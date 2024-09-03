@@ -77,6 +77,8 @@ import * as ColumnWithImageItem from '~/sections/content-columns/column-with-ima
 import * as BeforeAfter from '~/sections/before-after';
 import * as BeforeAfterHeading from '~/sections/before-after/heading';
 import * as BeforeAfterSlider from '~/sections/before-after/slider';
+import * as ScrollingText from '~/sections/scrolling-text';
+
 export let components: HydrogenComponent[] = [
   ...commonComponents,
   AllProducts,
@@ -158,4 +160,5 @@ export let components: HydrogenComponent[] = [
   BeforeAfter,
   BeforeAfterHeading,
   BeforeAfterSlider,
+  ScrollingText,
 ];
