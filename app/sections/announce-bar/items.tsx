@@ -37,7 +37,7 @@ export let loader = async (args: ComponentLoaderArgs<AnnounceBarItemData>) => {
 };
 
 export let schema: HydrogenComponentSchema = {
-  type: 'scrolling-text-type',
+  type: 'annoument-text-type',
   title: 'Item',
   inspector: [
     {
