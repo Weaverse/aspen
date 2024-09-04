@@ -11,9 +11,6 @@ interface ImageWithTextProps extends HydrogenComponentProps {
   sectionHeight: number;
   backgroundColor: string;
   imagePosition?: AlignImage;
-  maxWidth: number;
-  paddingTop: number;
-  paddingBottom: number;
 }
 
 let AlignImageClasses: Record<AlignImage, string> = {
@@ -23,22 +20,11 @@ let AlignImageClasses: Record<AlignImage, string> = {
 
 let ImageWithText = forwardRef<HTMLElement, ImageWithTextProps>(
   (props, ref) => {
-    let {
-      imagePosition,
-      sectionHeight,
-      backgroundColor,
-      maxWidth,
-      paddingTop,
-      paddingBottom,
-      children,
-      ...rest
-    } = props;
+    let {imagePosition, sectionHeight, backgroundColor, children, ...rest} =
+      props;
     let styleSection: CSSProperties = {
-      '--section-height': `${sectionHeight}px`,
+      height: `${sectionHeight}px`,
       backgroundColor,
-      'max-width': `${maxWidth}px`,
-      paddingTop,
-      paddingBottom,
     } as CSSProperties;
 
     return (
@@ -48,10 +34,10 @@ let ImageWithText = forwardRef<HTMLElement, ImageWithTextProps>(
         style={styleSection}
         className="mx-auto sm-max:h-auto sm-max:overflow-hidden"
       >
-        <div className="h-full sm-max:w-full">
+        <div className="h-full w-full">
           <div
             className={clsx(
-              'flex justify-center items-center gap-5 h-full w-full sm-max:flex-col',
+              'flex justify-center items-center h-full w-full sm-max:flex-col',
               AlignImageClasses[imagePosition!],
             )}
           >
@@ -85,50 +71,23 @@ export let schema: HydrogenComponentSchema = {
           },
           defaultValue: 'left',
         },
-
+        {
+          type: 'range',
+          label: 'Section height',
+          name: 'sectionHeight',
+          defaultValue: 600,
+          configs: {
+            min: 5,
+            max: 1000,
+            step: 1,
+            unit: 'px',
+          },
+        },
         {
           type: 'color',
           name: 'backgroundColor',
           label: 'Background color',
           defaultValue: '#f4f4f4',
-        },
-
-        {
-          type: 'range',
-          name: 'maxWidth',
-          label: 'Max Width',
-          defaultValue: 800,
-          configs: {
-            min: 400,
-            max: 1800,
-            step: 10,
-            unit: 'px',
-          },
-        },
-
-        {
-          type: 'range',
-          name: 'paddingTop',
-          label: 'Top padding',
-          defaultValue: 20,
-          configs: {
-            min: 0,
-            max: 100,
-            step: 1,
-            unit: 'px',
-          },
-        },
-        {
-          type: 'range',
-          name: 'paddingBottom',
-          label: 'Bottom padding',
-          defaultValue: 20,
-          configs: {
-            min: 0,
-            max: 100,
-            step: 1,
-            unit: 'px',
-          },
         },
       ],
     },

@@ -10,11 +10,11 @@ import {IconImageBlank} from '~/components';
 
 interface ImageItemsProps extends HydrogenComponentProps {
   image: WeaverseImage;
-  loading: HTMLImageElement['loading'];
+  enableLazyLoad: boolean;
 }
 
 let ImageItems = forwardRef<HTMLDivElement, ImageItemsProps>((props, ref) => {
-  let {image, loading, ...rest} = props;
+  let {image, enableLazyLoad, ...rest} = props;
 
   return (
     <div
@@ -25,7 +25,7 @@ let ImageItems = forwardRef<HTMLDivElement, ImageItemsProps>((props, ref) => {
       {image ? (
         <Image
           data={image}
-          loading={loading}
+          loading={enableLazyLoad ? 'lazy' : 'eager'}
           sizes="auto"
           className="!w-full !aspect-square sm-max:!w-full"
         />
@@ -56,6 +56,12 @@ export let schema: HydrogenComponentSchema = {
           type: 'image',
           name: 'image',
           label: 'Image',
+        },
+        {
+          type: 'switch',
+          label: 'Lazy load image',
+          name: 'enableLazyLoad',
+          defaultValue: true,
         },
       ],
     },

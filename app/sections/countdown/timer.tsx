@@ -13,21 +13,14 @@ interface CountDownTimerProps extends HydrogenComponentProps {
 let CountdownTimer = forwardRef<HTMLDivElement, CountDownTimerProps>(
   (props, ref) => {
     let {textColor, startDate, ...rest} = props;
-    const [timeRemaining, setTimeRemaining] = useState(
+
+    const [timeRemaining, setTimeRemaining] = useState(() =>
       calculateTimeRemaining(startDate),
     );
+
     useEffect(() => {
       const intervalId = setInterval(() => {
-        const updatedTimeRemaining = calculateTimeRemaining(startDate);
-        setTimeRemaining(updatedTimeRemaining);
-        if (
-          updatedTimeRemaining.days <= 0 &&
-          updatedTimeRemaining.hours <= 0 &&
-          updatedTimeRemaining.minutes <= 0 &&
-          updatedTimeRemaining.seconds <= 0
-        ) {
-          clearInterval(intervalId);
-        }
+        setTimeRemaining(calculateTimeRemaining(startDate));
       }, 1000);
       return () => clearInterval(intervalId);
     }, [startDate]);
@@ -36,12 +29,7 @@ let CountdownTimer = forwardRef<HTMLDivElement, CountDownTimerProps>(
       let now = new Date().getTime();
       let difference = startTime - now;
       if (difference <= 0) {
-        return {
-          days: 0,
-          hours: 0,
-          minutes: 0,
-          seconds: 0,
-        };
+        return {days: 0, hours: 0, minutes: 0, seconds: 0};
       }
 
       let days = Math.floor(difference / (1000 * 60 * 60 * 24));
@@ -50,12 +38,7 @@ let CountdownTimer = forwardRef<HTMLDivElement, CountDownTimerProps>(
       );
       let minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
       let seconds = Math.floor((difference % (1000 * 60)) / 1000);
-      return {
-        days,
-        hours,
-        minutes,
-        seconds,
-      };
+      return {days, hours, minutes, seconds};
     }
 
     let timerStyle: CSSProperties = {
@@ -75,21 +58,21 @@ let CountdownTimer = forwardRef<HTMLDivElement, CountDownTimerProps>(
           </p>
           <p className="text-base font-normal sm-max:text-sm">DAYS</p>
         </div>
-        <div className="bg-black w-px h-7 mt-4 sm-max:mt-2" />
+        <div className="bg-black w-px h-7 mt-4 sm-max:h-5 sm-max:mt-8" />
         <div className="">
           <p className="text-5xl font-medium leading-tight sm-max:text-4xl">
             {timeRemaining?.hours || 0}
           </p>
           <p className="text-base font-normal sm-max:text-sm">HOURS</p>
         </div>
-        <div className="bg-black w-px h-7 mt-4 sm-max:mt-2" />
+        <div className="bg-black w-px h-7 mt-4 sm-max:h-5 sm-max:mt-8" />
         <div className="">
           <p className="text-5xl font-medium leading-tight sm-max:text-4xl">
             {timeRemaining?.minutes || 0}
           </p>
           <p className="text-base font-normal sm-max:text-sm">MINUTES</p>
         </div>
-        <div className="bg-black w-px h-7 mt-4 sm-max:mt-2" />
+        <div className="bg-black w-px h-7 mt-4 sm-max:h-5 sm-max:mt-8" />
         <div className="">
           <p className="text-5xl font-medium leading-tight sm-max:text-4xl">
             {timeRemaining?.seconds || 0}
@@ -119,9 +102,9 @@ export let schema: HydrogenComponentSchema = {
         },
         {
           type: 'datepicker',
-          label: 'Start date',
+          label: 'Date picker',
           name: 'startDate',
-          defaultValue: '2024-01-01',
+          defaultValue: Date.now(),
         },
       ],
     },

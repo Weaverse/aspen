@@ -13,7 +13,12 @@ export default defineConfig({
   ],
   ssr: {
     optimizeDeps: {
-      include: ['typographic-base/index', 'textr'],
+      include: [
+        'react-compare-image',
+        'react-image-comparison',
+        'typographic-base/index',
+        'textr',
+      ],
     },
   },
   server: {

@@ -115,7 +115,7 @@ export let schema: HydrogenComponentSchema = {
     'heading',
     'subheading',
     'countdown--timer',
-    'countdown--actions',
+    'image-with-text-button',
   ],
   presets: {
     children: [

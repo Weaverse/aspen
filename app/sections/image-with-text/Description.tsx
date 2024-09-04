@@ -5,63 +5,66 @@ import {
 import {clsx} from 'clsx';
 import {forwardRef} from 'react';
 
-import type {Alignment} from '~/lib/type';
-
+type Size = 'XS' | 'S' | 'M' | 'L' | 'XL';
+let sizes: Record<Size, string> = {
+  XS: 'text-xs',
+  S: 'text-sm',
+  M: 'text-base',
+  L: 'text-lg',
+  XL: 'text-xl',
+};
 type DescriptionProps = HydrogenComponentProps & {
   content: string;
   color?: string;
+  paragraphSize: Size;
 };
 
 let Description = forwardRef<
   HTMLParagraphElement | HTMLDivElement,
   DescriptionProps
 >((props, ref) => {
-  let {content, color, ...rest} = props;
+  let {content, color, paragraphSize, ...rest} = props;
   return (
     <p
+      className={clsx(sizes[paragraphSize!])}
       ref={ref}
-      {...rest}
       style={{color}}
-      suppressHydrationWarning
       dangerouslySetInnerHTML={{__html: content}}
     />
   );
 });
 
-Description.defaultProps = {
-  content:
-    "Pair large text with an image or full-width video to showcase your brand's lifestyle to describe and showcase an important detail of your products that you can tag on your image.",
-};
-
 export default Description;
 
 export let schema: HydrogenComponentSchema = {
   type: 'image-with-text-description',
-  title: 'Description',
+  title: 'Paragraph',
   inspector: [
     {
-      group: 'Description',
+      group: 'Paragraph',
       inputs: [
         {
-          type: 'select',
-          name: 'as',
-          label: 'Tag name',
-          configs: {
-            options: [
-              {value: 'p', label: 'Paragraph'},
-              {value: 'div', label: 'Div'},
-            ],
-          },
-          defaultValue: 'p',
+          type: 'textarea',
+          label: 'Text',
+          name: 'content',
+          defaultValue:
+            'The shipping was fast, and the packaging was eco-friendly. I love shopping here!',
+          placeholder: 'Share customer shopping experience...',
         },
         {
-          type: 'richtext',
-          name: 'content',
-          label: 'Content',
-          defaultValue:
-            "Pair large text with an image or full-width video to showcase your brand's lifestyle to describe and showcase an important detail of your products that you can tag on your image.",
-          placeholder:
-            "Pair large text with an image or full-width video to showcase your brand's lifestyle to describe and showcase an important detail of your products that you can tag on your image.",
+          type: 'toggle-group',
+          name: 'paragraphSize',
+          label: 'Text size',
+          configs: {
+            options: [
+              {value: 'XS', label: 'XS'},
+              {value: 'S', label: 'S'},
+              {value: 'M', label: 'M'},
+              {value: 'L', label: 'L'},
+              {value: 'XL', label: 'XL'},
+            ],
+          },
+          defaultValue: 'M',
         },
         {
           type: 'color',

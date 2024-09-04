@@ -3,9 +3,10 @@ import {
   type HydrogenComponentProps,
   type HydrogenComponentSchema,
 } from '@weaverse/hydrogen';
+import {forwardRef} from 'react';
 import {VariantProps, cva} from 'class-variance-authority';
 import {clsx} from 'clsx';
-import {forwardRef} from 'react';
+
 import {Link} from '~/components';
 
 export interface ButtonProps extends VariantProps<typeof variants> {
@@ -125,7 +126,7 @@ export let buttonInputs: InspectorGroup['inputs'] = [
 ];
 
 export let schema: HydrogenComponentSchema = {
-  type: 'button',
+  type: 'image-button',
   title: 'Button',
   inspector: [
     {

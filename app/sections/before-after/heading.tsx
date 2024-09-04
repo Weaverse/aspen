@@ -5,18 +5,18 @@ import type {
 } from '@weaverse/hydrogen';
 import {forwardRef} from 'react';
 
-type AnnounceBarItemData = {
+type BeforeAfterHeadingData = {
   text: string;
   textColor: string;
   // More type definitions...
 };
 
-type AnnounceBarItemProps = HydrogenComponentProps<
+type BeforeAfterHeadingProps = HydrogenComponentProps<
   Awaited<ReturnType<typeof loader>>
 > &
-  AnnounceBarItemData;
+  BeforeAfterHeadingData;
 
-let AnnounceBarItem = forwardRef<HTMLElement, AnnounceBarItemProps>(
+let BeforeAfterHeading = forwardRef<HTMLElement, BeforeAfterHeadingProps>(
   (props, ref) => {
     let {text, textColor, children, ...rest} = props;
     // More component logic...
@@ -32,13 +32,16 @@ let AnnounceBarItem = forwardRef<HTMLElement, AnnounceBarItemProps>(
   },
 );
 
-export let loader = async (args: ComponentLoaderArgs<AnnounceBarItemData>) => {
+export let loader = async (
+  args: ComponentLoaderArgs<BeforeAfterHeadingData>,
+) => {
   // Data fetching logic, the code will be run on the server-side ...
 };
 
 export let schema: HydrogenComponentSchema = {
-  type: 'annoument-text-type',
-  title: 'Item',
+  type: 'before-after-heading-type',
+  title: 'Heading',
+
   inspector: [
     {
       group: 'General',
@@ -61,4 +64,4 @@ export let schema: HydrogenComponentSchema = {
   ],
 };
 
-export default AnnounceBarItem;
+export default BeforeAfterHeading;

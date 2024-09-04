@@ -129,17 +129,18 @@ export let schema: HydrogenComponentSchema = {
           },
           defaultValue: 'center',
         },
-        {
-          type: 'text',
-          name: 'subheading',
-          label: 'Subheading',
-          defaultValue: 'Subscribe to our Newsletter',
-        },
+
         {
           type: 'text',
           name: 'heading',
           label: 'Heading',
           defaultValue: 'Subscribe and save more',
+        },
+        {
+          type: 'text',
+          name: 'subheading',
+          label: 'Subheading',
+          defaultValue: 'Subscribe to our Newsletter',
         },
         {
           type: 'text',

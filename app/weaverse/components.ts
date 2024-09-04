@@ -6,9 +6,6 @@ import * as Blogs from '~/sections/blogs';
 import * as CollectionBanner from '~/sections/collection-banner';
 import * as CollectionFilters from '~/sections/collection-filters';
 import * as CollectionList from '~/sections/collection-list';
-import * as ColumnsWithImages from '~/sections/columns-with-images';
-import * as ColumnsWithImagesItems from '~/sections/columns-with-images/items';
-import * as ColumnWithImageItem from '~/sections/columns-with-images/column';
 import * as Countdown from '~/sections/countdown';
 import * as CountdownActions from '~/sections/countdown/actions';
 import * as CountDownTimer from '~/sections/countdown/timer';
@@ -69,6 +66,19 @@ import * as RichText from '~/sections/rich-text';
 import * as LogoList from '~/sections/logo-list';
 import * as LogoListContainer from '~/sections/logo-list/logo-list-container';
 import * as LogoListItem from '~/sections/logo-list/logo-list-item';
+import * as Image from '~/sections/image';
+import * as ImageHeading from '~/sections/image/image-heading';
+import * as ImageSubheading from '~/sections/image/image-subheading';
+import * as ImageDescription from '~/sections/image/image-description';
+import * as ImageButton from '~/sections/image/image-button';
+import * as ColumnsWithImages from '~/sections/content-columns';
+import * as ColumnsWithImagesItems from '~/sections/content-columns/items';
+import * as ColumnWithImageItem from '~/sections/content-columns/column-with-image-item';
+import * as BeforeAfter from '~/sections/before-after';
+import * as BeforeAfterHeading from '~/sections/before-after/heading';
+import * as BeforeAfterSlider from '~/sections/before-after/slider';
+import * as ScrollingText from '~/sections/scrolling-text';
+
 export let components: HydrogenComponent[] = [
   ...commonComponents,
   AllProducts,
@@ -142,4 +152,13 @@ export let components: HydrogenComponent[] = [
   LogoList,
   LogoListContainer,
   LogoListItem,
+  Image,
+  ImageHeading,
+  ImageSubheading,
+  ImageDescription,
+  ImageButton,
+  BeforeAfter,
+  BeforeAfterHeading,
+  BeforeAfterSlider,
+  ScrollingText,
 ];

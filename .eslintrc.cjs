@@ -8,6 +8,7 @@ module.exports = {
     'plugin:hydrogen/typescript',
   ],
   rules: {
+    "no-multiple-empty-lines": "off",
     'prettier/prettier': 0,
     '@typescript-eslint/ban-ts-comment': 'off',
     '@typescript-eslint/naming-convention': 'off',

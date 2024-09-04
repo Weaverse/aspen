@@ -12,8 +12,7 @@ import {overlayInputs} from '~/sections/shared/Overlay';
 type VideoBannerData = {
   videoLink: string;
   gap: number;
-  sectionHeightDesktop: string;
-  sectionHeightMobile: string;
+  sectionHeight: string;
   enableOverlay: boolean;
   overlayColor: string;
   overlayOpacity: number;
@@ -38,8 +37,7 @@ let ReactPlayer = (props: any) => (
 let VideoBanner = forwardRef<HTMLElement, VideoBannerProps>((props, ref) => {
   let {
     videoLink,
-    sectionHeightMobile,
-    sectionHeightDesktop,
+    sectionHeight,
     enableOverlay,
     overlayColor,
     overlayOpacity,
@@ -52,8 +50,8 @@ let VideoBanner = forwardRef<HTMLElement, VideoBannerProps>((props, ref) => {
   } = props;
   // More component logic...
   let sectionStyle: CSSProperties = {
-    '--desktop-height': `${sectionHeightDesktop}px`,
-    '--mobile-height': `${sectionHeightMobile}px`,
+    '--section-height': `${sectionHeight}px`,
+    '--content-alignment': 'center',
   } as CSSProperties;
   return (
     <section
@@ -64,10 +62,8 @@ let VideoBanner = forwardRef<HTMLElement, VideoBannerProps>((props, ref) => {
     >
       <div
         className={clsx(
-          'flex items-center justify-center relative overflow-hidden',
-          'h-[var(--mobile-height)] sm:h-[var(--desktop-height)]',
-          'w-[max(var(--mobile-height)/9*16,100vw)] sm:w-[max(var(--desktop-height)/9*16,100vw)]',
-          'translate-x-[min(0px,calc((var(--mobile-height)/9*16-100vw)/-2))] sm:translate-x-[min(0px,calc((var(--desktop-height)/9*16-100vw)/-2))]',
+          'flex items-center justify-center  relative overflow-hidden',
+          'h-[var(--section-height)]',
         )}
       >
         <ReactPlayer
@@ -109,9 +105,14 @@ export let loader = async (args: ComponentLoaderArgs<VideoBannerData>) => {
 
 export let schema: HydrogenComponentSchema = {
   type: 'video-banner',
-  title: 'Video Banner',
+  title: 'Video',
   // More schema definitions...
-  childTypes: ['subheading', 'heading', 'description'],
+  childTypes: [
+    'subheading',
+    'heading',
+    'description',
+    'image-with-text-button',
+  ],
   inspector: [
     {
       group: 'Video',
@@ -130,8 +131,8 @@ export let schema: HydrogenComponentSchema = {
         },
         {
           type: 'range',
-          name: 'sectionHeightDesktop',
-          label: 'Height on desktop',
+          name: 'sectionHeight',
+          label: 'Section height',
           defaultValue: 650,
           configs: {
             min: 400,
@@ -140,30 +141,30 @@ export let schema: HydrogenComponentSchema = {
             unit: 'px',
           },
         },
-        {
-          type: 'range',
-          name: 'sectionHeightMobile',
-          label: 'Height on mobile',
-          defaultValue: 300,
-          configs: {
-            min: 250,
-            max: 500,
-            step: 10,
-            unit: 'px',
-          },
-        },
-        {
-          type: 'range',
-          name: 'gap',
-          label: 'Content spacing',
-          configs: {
-            min: 0,
-            max: 40,
-            step: 4,
-            unit: 'px',
-          },
-          defaultValue: 20,
-        },
+        // {
+        //   type: 'range',
+        //   name: 'sectionHeightMobile',
+        //   label: 'Height on mobile',
+        //   defaultValue: 300,
+        //   configs: {
+        //     min: 250,
+        //     max: 500,
+        //     step: 10,
+        //     unit: 'px',
+        //   },
+        // },
+        // {
+        //   type: 'range',
+        //   name: 'gap',
+        //   label: 'Content spacing',
+        //   configs: {
+        //     min: 0,
+        //     max: 40,
+        //     step: 4,
+        //     unit: 'px',
+        //   },
+        //   defaultValue: 20,
+        // },
         {
           type: 'switch',
           name: 'enableAutoPlay',

@@ -7,7 +7,7 @@ import {forwardRef} from 'react';
 
 import type {Alignment} from '~/lib/type';
 
-type Size = 'small' | 'base' | 'large';
+type Size = 'XS' | 'S' | 'M' | 'L' | 'XL';
 type Weight = 'normal' | 'medium';
 type SubHeadingProps = HydrogenComponentProps & {
   content: string;
@@ -20,9 +20,11 @@ type SubHeadingProps = HydrogenComponentProps & {
 };
 
 let sizes: Record<Size, string> = {
-  base: 'text-base',
-  large: 'text-lg',
-  small: 'text-xs',
+  XS: 'text-xs',
+  S: 'text-sm',
+  M: 'text-base',
+  L: 'text-lg',
+  XL: 'text-xl',
 };
 
 let SubHeading = forwardRef<
@@ -64,12 +66,14 @@ export let schema: HydrogenComponentSchema = {
           label: 'Subheading size',
           configs: {
             options: [
-              {value: 'small', label: 'S'},
-              {value: 'base', label: 'M'},
-              {value: 'large', label: 'L'},
+              {value: 'XS', label: 'XS'},
+              {value: 'S', label: 'S'},
+              {value: 'M', label: 'M'},
+              {value: 'L', label: 'L'},
+              {value: 'XL', label: 'XL'},
             ],
           },
-          defaultValue: 'base',
+          defaultValue: 'XS',
         },
         {
           type: 'color',
