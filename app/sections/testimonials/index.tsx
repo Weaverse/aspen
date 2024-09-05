@@ -1,5 +1,3 @@
-import {Link} from '@remix-run/react';
-import {Image} from '@shopify/hydrogen';
 import type {
   ComponentLoaderArgs,
   HydrogenComponentProps,
@@ -10,6 +8,7 @@ import type {CSSProperties} from 'react';
 import {forwardRef} from 'react';
 
 type TestimonialsData = {
+  bgImage: WeaverseImage;
   paddingTop: number;
   paddingBottom: number;
   maxWidth: number;
@@ -30,6 +29,7 @@ type TestimonialsProps = HydrogenComponentProps<
 
 let Testimonials = forwardRef<HTMLElement, TestimonialsProps>((props, ref) => {
   let {
+    bgImage,
     paddingTop,
     paddingBottom,
     children,
@@ -49,6 +49,8 @@ let Testimonials = forwardRef<HTMLElement, TestimonialsProps>((props, ref) => {
     paddingBottom,
     maxWidth: enableFullWidth ? '100%' : maxWidth,
     backgroundColor,
+    '--section-background-color': backgroundColor,
+    backgroundImage: bgImage?.url ? `url('${bgImage?.url}')` : '',
     paddingLeft,
     paddingRight,
     margin: '0 auto',
@@ -75,6 +77,11 @@ export let schema: HydrogenComponentSchema = {
     {
       group: 'Testimonials',
       inputs: [
+        {
+          type: 'image',
+          name: 'bgImage',
+          label: 'Background image',
+        },
         {
           type: 'text',
           label: 'Heading',
