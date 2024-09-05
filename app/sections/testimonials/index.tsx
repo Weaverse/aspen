@@ -17,7 +17,9 @@ type TestimonialsData = {
   button: string;
   enableFullWidth: boolean;
   backgroundColor: string;
-
+  heading: string;
+  paddingLeft: number;
+  paddingRight: number;
   // More type definitions...
 };
 
@@ -35,19 +37,29 @@ let Testimonials = forwardRef<HTMLElement, TestimonialsProps>((props, ref) => {
     button,
     maxWidth,
     enableFullWidth,
+    heading,
     backgroundColor,
+    paddingLeft,
+    paddingRight,
     ...rest
   } = props;
   // More component logic...
   let styleSection: CSSProperties = {
     paddingTop,
     paddingBottom,
-    maxWidth,
+    maxWidth: enableFullWidth ? '100%' : maxWidth,
     backgroundColor,
+    paddingLeft,
+    paddingRight,
     margin: '0 auto',
     width: enableFullWidth ? '100%' : 'auto',
   } as CSSProperties;
-  return <section ref={ref} {...rest} style={styleSection}></section>;
+  return (
+    <section ref={ref} {...rest} style={styleSection}>
+      <h3 className="mb-8">{heading}</h3>
+      {children}
+    </section>
+  );
 });
 
 export let loader = async (args: ComponentLoaderArgs<TestimonialsData>) => {
@@ -58,10 +70,17 @@ export let schema: HydrogenComponentSchema = {
   type: 'testimonials',
   title: 'Testimonials',
   // More schema definitions...
+  childTypes: ['testimonials-items'],
   inspector: [
     {
       group: 'Testimonials',
       inputs: [
+        {
+          type: 'text',
+          label: 'Heading',
+          name: 'heading',
+          defaultValue: 'Testimonials',
+        },
         {
           type: 'range',
           label: 'Padding Top',
@@ -83,6 +102,28 @@ export let schema: HydrogenComponentSchema = {
             min: 0,
             max: 300,
             step: 1,
+            unit: 'px',
+          },
+        },
+        {
+          type: 'range',
+          label: 'Padding Left',
+          name: 'paddingLeft',
+          defaultValue: 0,
+          configs: {
+            min: 0,
+            max: 300,
+            unit: 'px',
+          },
+        },
+        {
+          type: 'range',
+          label: 'Padding Right',
+          name: 'paddingRight',
+          defaultValue: 0,
+          configs: {
+            min: 0,
+            max: 300,
             unit: 'px',
           },
         },

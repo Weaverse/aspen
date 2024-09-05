@@ -24,17 +24,13 @@ let Testimonials = forwardRef<HTMLDivElement, TestimonialsItemsProps>(
       <div
         ref={ref}
         {...rest}
-        className={clsx(gapClasses[gap!], 'grid lg:grid-cols-3')}
+        className={clsx(gapClasses[gap!], 'grid grid-cols-1 gap-6')}
       >
-        <div className="space-y-6">
-          {children?.filter((_, i) => i % 3 === 0)}
-        </div>
-        <div className="space-y-6">
-          {children?.filter((_, i) => i % 3 === 1)}
-        </div>
-        <div className="space-y-6">
-          {children?.filter((_, i) => i % 3 === 2)}
-        </div>
+        {children?.map((child, index) => (
+          <div key={index} className="space-y-6">
+            {child}
+          </div>
+        ))}
       </div>
     );
   },
@@ -70,30 +66,4 @@ export let schema: HydrogenComponentSchema = {
     },
   ],
   toolbar: ['general-settings', ['duplicate', 'delete']],
-  presets: {
-    children: [
-      {
-        type: 'testimonial--item',
-      },
-      {
-        type: 'testimonial--item',
-        hideOnMobile: true,
-      },
-      {
-        type: 'testimonial--item',
-        hideOnMobile: true,
-      },
-      {
-        type: 'testimonial--item',
-      },
-      {
-        type: 'testimonial--item',
-        hideOnMobile: true,
-      },
-      {
-        type: 'testimonial--item',
-        hideOnMobile: true,
-      },
-    ],
-  },
 };
