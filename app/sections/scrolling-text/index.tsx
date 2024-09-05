@@ -3,7 +3,7 @@ import type {
   HydrogenComponentProps,
   HydrogenComponentSchema,
 } from '@weaverse/hydrogen';
-import {forwardRef} from 'react';
+import {CSSProperties, forwardRef} from 'react';
 import clsx from 'clsx';
 type Size = 'XS' | 'S' | 'M' | 'L' | 'XL';
 type ScrollingTextData = {
@@ -14,8 +14,8 @@ type ScrollingTextData = {
   size: Size;
   brColor: string;
   textColor: string;
-  verticalPadding: number;
-  verticalMarin: number;
+  padding: number;
+  margin: number;
   speed: number;
   visibleOnMobile: boolean;
 };
@@ -41,26 +41,24 @@ let ScrollingText = forwardRef<HTMLElement, ScrollingTextProps>(
       brColor,
       content,
       textColor,
-      verticalPadding,
-      verticalMarin,
+      padding,
+      margin,
       speed,
       visibleOnMobile,
       ...rest
     } = props;
-    let styles = {
+
+    let sectionStyle: CSSProperties = {
       backgroundColor: bgColor,
       borderColor: brColor,
-      paddingTop: `${verticalPadding}px`,
-      // paddingBottom: verticalPadding + 'px',
-      // marginTop: verticalMarin + 'px',
-      // marginBottom: verticalMarin + 'px',
-    };
+      paddingTop: `${padding}px`,
+      paddingBottom: `${padding}px`,
+      marginTop: `${margin}px`,
+      marginBottom: `${margin}px`,
+    } as CSSProperties;
+
     return (
-      <section
-        // className={clsx('hidden', visibleOnMobile ? 'md:block' : 'hidden')}
-        ref={ref}
-        {...rest}
-      >
+      <section style={sectionStyle} ref={ref} {...rest}>
         <style>{`
           @keyframes scroll {
             0% {
@@ -71,11 +69,10 @@ let ScrollingText = forwardRef<HTMLElement, ScrollingTextProps>(
             }
           }
           .animate-scroll {
-            animation: scroll 20s linear infinite;
+            animation: scroll ${speed}s linear infinite;
           }
         `}</style>
         <div
-          style={styles}
           className={clsx(
             'py-2 px-4 overflow-hidden relative border flex items-center',
             visibleOnMobile ? 'md:block' : 'hidden',
@@ -152,7 +149,7 @@ export let schema: HydrogenComponentSchema = {
         {
           type: 'range',
           label: 'Vertical padding',
-          name: 'vartialPadding',
+          name: 'padding',
           defaultValue: 10,
           configs: {
             min: 5,
@@ -164,10 +161,10 @@ export let schema: HydrogenComponentSchema = {
         {
           type: 'range',
           label: 'Vertical margin',
-          name: 'vartialMargin',
+          name: 'margin',
           defaultValue: 10,
           configs: {
-            min: 5,
+            min: 0,
             max: 50,
             step: 1,
             unit: 'px',
@@ -179,7 +176,7 @@ export let schema: HydrogenComponentSchema = {
           name: 'speed',
           defaultValue: 10,
           configs: {
-            min: 5,
+            min: 0,
             max: 100,
             step: 1,
             unit: 's',
