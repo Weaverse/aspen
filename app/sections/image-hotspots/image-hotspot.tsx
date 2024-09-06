@@ -122,11 +122,4 @@ export let schema: HydrogenComponentSchema = {
     },
   ],
   childTypes: ['product-hotspot--items'],
-  presets: {
-    children: [
-      {
-        type: 'product-hotspot--items',
-      },
-    ],
-  },
 };
