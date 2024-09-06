@@ -10,22 +10,24 @@ import {IconImageBlank} from '~/components';
 
 interface PromotionItemProps extends HydrogenComponentProps {
   backgroundImage: WeaverseImage;
+  enableLazyLoad: boolean;
 }
 
 let PromotionGridItem = forwardRef<HTMLDivElement, PromotionItemProps>(
   (props, ref) => {
-    let {backgroundImage, children, ...rest} = props;
+    let {backgroundImage, enableLazyLoad, children, ...rest} = props;
     return (
       <div ref={ref} {...rest} className="relative w-96 aspect-video">
         <div className="absolute inset-0">
           {backgroundImage ? (
             <Image
+              loading={enableLazyLoad ? 'lazy' : 'eager'}
               data={backgroundImage}
               sizes="auto"
-              className="w-full h-full object-cover rounded-2xl"
+              className="w-full h-full object-cover "
             />
           ) : (
-            <div className="w-full h-full flex justify-center items-center rounded-2xl bg-black bg-opacity-5">
+            <div className="w-full h-full flex justify-center items-center bg-black bg-opacity-5">
               <IconImageBlank
                 viewBox="0 0 100 101"
                 className="!w-24 !h-24 opacity-20"
@@ -58,6 +60,12 @@ export let schema: HydrogenComponentSchema = {
           name: 'backgroundImage',
           label: 'Background image',
         },
+        {
+          type: 'switch',
+          label: 'Lazy load image',
+          name: 'enableLazyLoad',
+          defaultValue: true,
+        },
       ],
     },
   ],
@@ -65,7 +73,7 @@ export let schema: HydrogenComponentSchema = {
     'subheading',
     'heading',
     'description',
-    'promotion-item--buttons',
+    'image-with-text-button',
   ],
   presets: {
     children: [
@@ -83,7 +91,7 @@ export let schema: HydrogenComponentSchema = {
           'Include the smaller details of your promotion in text below the title.',
       },
       {
-        type: 'promotion-item--buttons',
+        type: 'image-with-text-button',
       },
     ],
   },

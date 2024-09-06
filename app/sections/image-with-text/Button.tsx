@@ -84,7 +84,7 @@ export let buttonInputs: InspectorGroup['inputs'] = [
     type: 'range',
     name: 'blockWidth',
     label: 'Block width',
-    defaultValue: 400,
+    defaultValue: 250,
     configs: {
       min: 90,
       max: 500,
@@ -151,7 +151,7 @@ export let buttonInputs: InspectorGroup['inputs'] = [
       ],
     },
     defaultValue:
-      'transition hover:bg-white border-2 border-solid hover:border-gray-900 hover:text-black bg-black text-white',
+      'transition center hover:bg-white border-2 border-solid hover:border-gray-900 hover:text-black bg-black text-white',
   },
   {
     type: 'toggle-group',
@@ -177,7 +177,7 @@ export let buttonInputs: InspectorGroup['inputs'] = [
       ],
     },
     defaultValue:
-      'transition hover:bg-white border-2 border-solid hover:border-gray-900 hover:text-black bg-black text-white',
+      'transition center hover:bg-white border-2 border-solid hover:border-gray-900 hover:text-black bg-black text-white',
   },
 ];
 
