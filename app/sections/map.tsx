@@ -63,7 +63,7 @@ let Map = forwardRef<HTMLElement, MapProps>((props, ref) => {
           </div>
         )}
       </div>
-      <div className="relative bg-white rounded-3xl p-8 border-2 border-solid border-gray-200 h-fit w-80">
+      <div className="relative bg-[#EBE8E5] p-8 border-2 border-solid border-gray-200 h-fit w-80">
         <div className="z-10 flex flex-col gap-6">
           {heading && (
             <p className="text-2xl font-bold" style={{color: textColor}}>
@@ -132,7 +132,7 @@ export let schema: HydrogenComponentSchema = {
               {label: 'Right', value: 'flex-end'},
             ],
           },
-          defaultValue: 'center',
+          defaultValue: 'flex-start',
         },
         {
           type: 'map-autocomplete',
@@ -144,8 +144,7 @@ export let schema: HydrogenComponentSchema = {
           type: 'textarea',
           label: 'Description text',
           name: 'descriptionText',
-          defaultValue:
-            'Pair large text with an image to tell a story, explain a detail about your product, or describe a new promotion.',
+          defaultValue: 'Mon - Fri: 8AM - 10PM Sat - Sun: 9AM - 9PM',
         },
         {
           type: 'text',
