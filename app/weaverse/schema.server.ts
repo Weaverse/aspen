@@ -6,7 +6,7 @@ export let themeSchema: HydrogenThemeSchema = {
   info: {
     version: pkg.version,
     author: "Weaverse",
-    name: "Pilot",
+    name: "Aspen",
     authorProfilePhoto:
       "https://cdn.shopify.com/s/files/1/0838/0052/3057/files/Weaverse_logo_-_3000x_e2fa8c13-dac2-4dcb-a2c2-f7aaf7a58169.png?v=1698245759",
     documentationUrl: "https://weaverse.io/docs",
@@ -151,7 +151,7 @@ export let themeSchema: HydrogenThemeSchema = {
           defaultValue: {
             id: "gid://shopify/MediaImage/34144817938616",
             altText: "Logo",
-            url: "https://cdn.shopify.com/s/files/1/0623/5095/0584/files/Pilot_logo_b04f1938-06e5-414d-8a47-d5fcca424000.png?v=1697101908",
+            url: "https://cdn.shopify.com/s/files/1/0838/0052/3057/files/fpo-logo-k-600x200.svg",
             width: 320,
             height: 116,
           },
@@ -163,7 +163,7 @@ export let themeSchema: HydrogenThemeSchema = {
           defaultValue: {
             id: "gid://shopify/MediaImage/34144817938616",
             altText: "Logo",
-            url: "https://cdn.shopify.com/s/files/1/0838/0052/3057/files/transparent_Pilot_logo.png?v=1718763594",
+            url: "https://cdn.shopify.com/s/files/1/0838/0052/3057/files/fpo-logo-w-600x200.svg",
             width: 320,
             height: 116,
           },

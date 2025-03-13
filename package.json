@@ -1,8 +1,8 @@
 {
-  "name": "@weaverse/pilot",
+  "name": "@weaverse/aspen",
   "private": true,
   "sideEffects": false,
-  "version": "3.5.3",
+  "version": "0.0.1",
   "type": "module",
   "author": "Weaverse",
   "scripts": {
