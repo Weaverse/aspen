@@ -1,0 +1,17 @@
+node_modules
+/.DS_Store
+/.cache
+/build
+/dist
+/public/build
+/.mf
+.env
+.vscode
+.idea
+.shopify
+.turbo
+/test-results/
+/playwright-report/
+/playwright/.cache/
+pnpm-lock.yaml
+.DS_Store
