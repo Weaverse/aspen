@@ -18,31 +18,21 @@ let variants = cva(["transition-colors inline-flex"], {
   variants: {
     variant: {
       primary: [
-        "border px-4 py-3",
+        "px-4 py-3",
         "text-[--btn-primary-text]",
         "bg-[--btn-primary-bg]",
-        "border-[--btn-primary-bg]",
-        "hover:text-[--btn-primary-bg]",
-        "hover:bg-[--btn-primary-text]",
-        "hover:border-[--btn-primary-bg]",
       ],
       secondary: [
-        "border px-4 py-3",
+        "px-4 py-3",
         "text-[--btn-secondary-text]",
         "bg-[--btn-secondary-bg]",
-        "border-[--btn-secondary-bg]",
-        "hover:bg-[--btn-secondary-text]",
-        "hover:text-[--btn-secondary-bg]",
-        "hover:border-[--btn-secondary-text]",
       ],
       outline: [
         "border px-4 py-3",
         "text-[--btn-outline-text]",
         "bg-transparent",
-        "border-[--btn-outline-text]",
-        "hover:bg-[--btn-outline-text]",
-        "hover:text-background",
-        "hover:border-[--btn-outline-text]",
+        "border-[--btn-outline-border]",
+        "hover:bg-[--btn-outline-background]",
       ],
       custom: [
         "border px-4 py-3",
