@@ -1,9 +1,9 @@
 import {
-  CaretRight,
   FacebookLogo,
   InstagramLogo,
   LinkedinLogo,
   XLogo,
+  Plus,
 } from "@phosphor-icons/react";
 import * as Accordion from "@radix-ui/react-accordion";
 import { Link, useFetcher } from "@remix-run/react";
@@ -108,11 +108,11 @@ export function Footer() {
     >
       <div
         className={cn(
-          "divide-y divide-line-subtle space-y-9 w-full h-full",
+          "w-full h-full",
           variants({ width: footerWidth }),
         )}
       >
-        <div className="space-y-9">
+        <div className="space-y-9 divide-y divide-line-subtle">
           <div className="w-full grid lg:grid-cols-3 gap-8">
             <div className="flex flex-col gap-6">
               {footerLogoData ? (
@@ -163,16 +163,16 @@ export function Footer() {
                   method="POST"
                   encType="multipart/form-data"
                 >
-                  <div className="flex">
+                  <div className="flex gap-3">
                     <input
                       name="email"
                       type="email"
                       required
                       placeholder={newsletterPlaceholder}
-                      className="grow text-body focus-visible:outline-none px-3"
+                      className="grow text-body focus-visible:outline-none px-3 placeholder:text-[#918379] border border-line-subtle"
                     />
                     <Button
-                      variant="custom"
+                      variant="primary"
                       type="submit"
                       loading={fetcher.state === "submitting"}
                     >
@@ -198,7 +198,7 @@ export function Footer() {
           </div>
           <FooterMenu />
         </div>
-        <div className="py-9 flex gap-4 flex-col lg:flex-row justify-between items-center">
+        <div className="flex gap-4 flex-col lg:flex-row justify-between items-center py-9">
           <div className="flex gap-2 ">
             <CountrySelector />
           </div>
@@ -216,17 +216,17 @@ function FooterMenu() {
     <Accordion.Root
       type="multiple"
       defaultValue={items.map(({ id }) => id)}
-      className="w-full grid lg:grid-cols-3 lg:gap-8"
+      className="w-full grid lg:grid-cols-3 lg:gap-8 pt-0 md:pt-9"
     >
       {items.map(({ id, to, title, items }) => (
-        <Accordion.Item key={id} value={id} className="flex flex-col">
+        <Accordion.Item key={id} value={id} className="flex flex-col border-b border-line-subtle md:border-none">
           <Accordion.Trigger className="flex py-4 justify-between items-center lg:hidden text-left font-medium [&>svg]:data-[state=open]:rotate-90">
             {["#", "/"].includes(to) ? (
               <span>{title}</span>
             ) : (
               <Link to={to}>{title}</Link>
             )}
-            <CaretRight className="w-4 h-4 transition-transform rotate-0" />
+            <Plus className="w-4 h-4 transition-transform rotate-0" />
           </Accordion.Trigger>
           <div className="text-lg font-medium hidden lg:block">
             {["#", "/"].includes(to) ? title : <Link to={to}>{title}</Link>}
