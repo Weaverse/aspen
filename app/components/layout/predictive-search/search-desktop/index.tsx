@@ -7,19 +7,29 @@ import Link from "~/components/link";
 import { usePredictiveSearch } from "~/hooks/use-predictive-search";
 import { cn } from "~/utils/cn";
 import { PredictiveSearchResult } from "./predictive-search-result";
-import { PredictiveSearchForm } from "./search-form";
+import { PredictiveSearchForm } from "../search-form";
+import { PopularSearch } from "./PopularSearch";
+import clsx from "clsx";
 
-export function PredictiveSearchButton() {
+export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
   let [open, setOpen] = useState(false);
   let location = useLocation();
+  let [searchQuery, setSearchQuery] = useState("");
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: close the dialog when the location changes, aka when the user navigates to a search result page
   useEffect(() => {
     setOpen(false);
+    setIsSearchOpen(false);
   }, [location]);
 
   return (
-    <Dialog.Root open={open} onOpenChange={setOpen}>
+    <Dialog.Root
+      open={open}
+      onOpenChange={(value) => {
+        setOpen(value);
+        setIsSearchOpen(value);
+      }}
+    >
       <Dialog.Trigger
         asChild
         className="hidden lg:flex h-8 w-8 items-center justify-center focus-visible:outline-none"
@@ -30,12 +40,13 @@ export function PredictiveSearchButton() {
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay
-          className="fixed inset-0 bg-black/50 data-[state=open]:animate-fade-in z-10"
+          className="fixed top-[calc(var(--height-nav)+var(--topbar-height))] inset-0 bg-black/50 data-[state=open]:animate-fade-in z-10"
           style={{ "--fade-in-duration": "100ms" } as React.CSSProperties}
         />
         <Dialog.Content
           className={cn([
-            "fixed inset-x-0 top-0 bg-[--color-header-bg] z-10",
+            "fixed inset-x-0 top-[calc(var(--height-nav)+var(--topbar-height))] bg-[--color-header-bg] z-10",
+            "border-t border-line-subtle",
             "-translate-y-full data-[state=open]:animate-enter-from-top",
             "focus-visible:outline-none",
           ])}
@@ -47,15 +58,19 @@ export function PredictiveSearchButton() {
           <VisuallyHidden.Root asChild>
             <Dialog.Title>Predictive search</Dialog.Title>
           </VisuallyHidden.Root>
-          <div className="relative pt-[--topbar-height]">
+          <div className="relative p-6">
             <PredictiveSearchForm>
               {({ fetchResults, inputRef }) => (
-                <div className="flex items-center gap-3 w-[560px] max-w-[90vw] mx-auto px-3 my-6 border border-line-subtle">
+                <div className="flex items-center gap-3 max-w-page mx-auto px-3 my-6 border-b border-line-subtle">
                   <MagnifyingGlass className="h-5 w-5 shrink-0 text-gray-500" />
                   <input
                     name="q"
                     type="search"
-                    onChange={(e) => fetchResults(e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setSearchQuery(value);
+                      fetchResults(value);
+                    }}
                     onFocus={(e) => fetchResults(e.target.value)}
                     placeholder="Enter a keyword"
                     ref={inputRef}
@@ -68,6 +83,7 @@ export function PredictiveSearchButton() {
                     onClick={() => {
                       if (inputRef.current) {
                         inputRef.current.value = "";
+                        setSearchQuery("");
                         fetchResults("");
                       }
                     }}
@@ -77,6 +93,7 @@ export function PredictiveSearchButton() {
                 </div>
               )}
             </PredictiveSearchForm>
+            {searchQuery === "" && <PopularSearch />}
             <PredictiveSearchResults />
           </div>
         </Dialog.Content>
@@ -86,6 +103,7 @@ export function PredictiveSearchButton() {
 }
 
 function PredictiveSearchResults() {
+  const [activeType, setActiveType] = useState("articles");
   let { results, totalResults, searchTerm } = usePredictiveSearch();
   let queries = results?.find(({ type }) => type === "queries");
   let articles = results?.find(({ type }) => type === "articles");
@@ -93,35 +111,53 @@ function PredictiveSearchResults() {
 
   if (!totalResults) {
     return (
-      <div className="absolute top-full z-10 flex w-full items-center justify-center">
+      <div className="z-10 flex max-w-page mx-auto items-center justify-start">
         <NoResults searchTerm={searchTerm} />
       </div>
     );
   }
   return (
-    <div className="absolute left-1/2 top-full z-10 flex w-fit -translate-x-1/2 items-center justify-center">
-      <div className="grid w-screen min-w-[430px] max-w-[720px] grid-cols-1 gap-6 bg-[--color-header-bg] p-6 lg:grid-cols-[1fr_2fr] max-h-[80vh] overflow-y-auto">
-        <div className="space-y-8">
-          <div className="flex flex-col gap-4 divide-y divide-line">
-            <PredictiveSearchResult type="queries" items={queries?.items} />
-          </div>
-          <div className="flex flex-col gap-4">
-            <PredictiveSearchResult type="articles" items={articles?.items} />
-          </div>
+    <div className="w-full z-10 bg-[--color-header-bg]">
+      <div className="flex gap-6 overflow-hidden max-w-page mx-auto py-6">
+        <div className="flex flex-col gap-4 divide-y divide-line w-1/5">
+          <PredictiveSearchResult type="queries" items={queries?.items} />
         </div>
-        <div className="space-y-6">
-          <PredictiveSearchResult
-            type="products"
-            items={products?.items?.slice(0, 5)}
-          />
-          {searchTerm.current && (
-            <div>
+        <div className="w-4/5">
+          <div className="flex gap-6 border-b border-line-subtle">
+            {["articles", "products"].map((type) => (
+              <button
+                key={type}
+                className={clsx(
+                  "relative uppercase font-bold px-3 py-1 transition",
+                  activeType === type
+                    ? "border-b-2 border-line text-body -mb-[2px]"
+                    : "text-body-subtle"
+                )}
+                onClick={() => setActiveType(type)}
+              >
+                {type}
+              </button>
+            ))}
+          </div>
+          <div className="flex flex-col gap-4 mt-5 px-4">
+            {activeType === "articles" && (
+              <PredictiveSearchResult type="articles" items={articles?.items} />
+            )}
+            {activeType === "products" && (
+              <PredictiveSearchResult
+                type="products"
+                items={products?.items?.slice(0, 4)}
+              />
+            )}
+          </div>
+          {activeType === "products" && products?.items?.length > 0 && (
+            <div className="mt-10 flex items-center justify-center">
               <Link
                 to={`/search?q=${searchTerm.current}`}
-                variant="underline"
+                variant="secondary"
                 className="flex items-center gap-2 w-fit"
               >
-                <span>View all results</span>
+                <span className=" uppercase">View all Products</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
@@ -137,7 +173,7 @@ function NoResults({ searchTerm }: { searchTerm: MutableRefObject<string> }) {
     return null;
   }
   return (
-    <p className="w-[640px] shadow-header bg-background p-6">
+    <p className="w-[640px] bg-[--color-header-bg] p-6">
       No results found for <q>{searchTerm.current}</q>
     </p>
   );
