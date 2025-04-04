@@ -788,6 +788,42 @@ export let themeSchema: HydrogenThemeSchema = {
       ],
     },
     {
+      group: "Cart",
+      inputs: [
+        {
+          type: "text",
+          label: "Cart title empty state",
+          name: "cartTitleEmpty",
+          defaultValue: "Looks like you haven’t added anything yet, let’s get you started!",
+        },
+        {
+          type: "text",
+          label: "Button tittle start shopping",
+          name: "buttonStartShopping",
+          defaultValue: "Start Shopping",
+        },
+        {
+          type: "switch",
+          label: "Enable cart best sellers",
+          name: "enableCartBestSellers",
+          defaultValue: true,
+        },
+        {
+          type: "switch",
+          label: "Enable free shipping",
+          name: "enableFreeShipping",
+          defaultValue: true,
+        },
+        {
+          type: "text",
+          label: "Total amount sufficient for free shipping",
+          name: "freeShippingThreshold",
+          defaultValue: "50",
+          placeholder: "Only numeric values can be entered.",
+        }
+      ],
+    },
+    {
       group: "Animations and effects",
       inputs: [
         {
