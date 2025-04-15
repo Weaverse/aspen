@@ -54,6 +54,8 @@ import * as TestimonialItem from "~/sections/testimonials/item";
 import * as TestimonialItems from "~/sections/testimonials/items";
 import * as VideoEmbed from "~/sections/video-embed";
 import * as VideoEmbedItem from "~/sections/video-embed/video";
+import * as BeforeAndAfter from "~/sections/before-and-after/index";
+import * as BeforeAndAfterSlide from "~/sections/before-and-after/slider";
 
 export let components: HydrogenComponent[] = [
   SubHeading,
@@ -113,5 +115,7 @@ export let components: HydrogenComponent[] = [
   OurTeamMembers,
   SlideShow,
   SlideShowSlide,
+  BeforeAndAfter,
+  BeforeAndAfterSlide,
   Spacer,
 ];
