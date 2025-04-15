@@ -51,9 +51,6 @@ function CartDetails({
 }) {
   let {
     enableFreeShipping,
-    cartTitleEmpty,
-    buttonStartShopping,
-    enableCartBestSellers,
   } = useThemeSettings();
   return (
     <>
@@ -62,10 +59,10 @@ function CartDetails({
       )}
       <div
         className={clsx(
-          layout === "drawer" &&
-            `grid grid-cols-1 grid-rows-[1fr_auto] px-4 pt-6 h-${
-              enableFreeShipping ? "[calc(100vh-100px)]" : "[100vh]"
-            }`,
+          layout === "drawer" && [
+            "grid grid-cols-1 grid-rows-[1fr_auto] px-4 pt-6",
+            enableFreeShipping ? "h-[calc(100vh-100px)]" : "h-[100vh]",
+          ],
           layout === "page" && [
             "pb-12 w-full max-w-page mx-auto",
             "grid grid-cols-1 lg:grid-cols-3 md:items-start",
@@ -243,15 +240,15 @@ function CartCheckoutActions({
 
   return (
     <div className="flex flex-col gap-3">
-      <a href={checkoutUrl} target="_self">
-        <Button className="w-full">Continue to Checkout</Button>
-      </a>
       {/* @todo: <CartShopPayButton cart={cart} /> */}
       {layout === "drawer" && (
-        <Link variant="underline" to="/cart" className="w-fit mx-auto">
+        <Link variant="outline" to="/cart" className="w-full flex justify-center">
           View cart
         </Link>
       )}
+      <a href={checkoutUrl} target="_self">
+        <Button className="w-full">Continue to Checkout</Button>
+      </a>
     </div>
   );
 }
