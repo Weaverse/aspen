@@ -1,4 +1,4 @@
-import { CircleNotch } from "@phosphor-icons/react";
+import { ArrowRight, CircleNotch } from "@phosphor-icons/react";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import type { HTMLAttributes } from "react";
@@ -32,6 +32,10 @@ export let variants = cva(
           "border-[--btn-outline-border]",
           "hover:bg-[--btn-outline-background]",
         ],
+        decor: [
+          "bg-transparent border-none p-0",
+          "text-[--btn-text-decor] inline-flex items-center gap-1 group",
+        ],
         custom: [
           "border px-4 py-3",
           "text-[--btn-text]",
@@ -52,7 +56,7 @@ export let variants = cva(
     defaultVariants: {
       variant: "primary",
     },
-  },
+  }
 );
 
 export interface ButtonStyleProps {
@@ -129,7 +133,18 @@ export let Button = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => {
       className={cn(variants({ variant, className }))}
     >
       {loading && <Spinner />}
-      {content}
+      {variant === "decor" ? (
+        <span className="inline-flex items-center gap-1">
+          {content}
+          <ArrowRight
+            size={20}
+            weight="thin"
+            className="transition-transform duration-300 transform group-hover:translate-x-1"
+          />
+        </span>
+      ) : (
+        content
+      )}
     </button>
   );
 });
