@@ -7,6 +7,8 @@ import * as SubHeading from "~/components/subheading";
 // import * as AliReview from "~/sections/ali-reviews";
 // import * as AliReviewList from "~/sections/ali-reviews/review-list";
 import * as AllProducts from "~/sections/all-products";
+import * as BeforeAndAfter from "~/sections/before-and-after";
+import * as BeforeAndAfterSlide from "~/sections/before-and-after/slider";
 import * as BlogPost from "~/sections/blog-post";
 import * as Blogs from "~/sections/blogs";
 import * as CollectionFilters from "~/sections/collection-filters";
@@ -54,8 +56,9 @@ import * as TestimonialItem from "~/sections/testimonials/item";
 import * as TestimonialItems from "~/sections/testimonials/items";
 import * as VideoEmbed from "~/sections/video-embed";
 import * as VideoEmbedItem from "~/sections/video-embed/video";
-import * as BeforeAndAfter from "~/sections/before-and-after/index";
-import * as BeforeAndAfterSlide from "~/sections/before-and-after/slider";
+import * as Videos from "~/sections/videos";
+import * as VideoItems from "~/sections/videos/items";
+import * as VideoItem from "~/sections/videos/video";
 
 export let components: HydrogenComponent[] = [
   SubHeading,
@@ -65,6 +68,8 @@ export let components: HydrogenComponent[] = [
   // AliReview,
   // AliReviewList,
   AllProducts,
+  BeforeAndAfter,
+  BeforeAndAfterSlide,
   FeaturedCollections,
   FeaturedCollectionItems,
   BlogPost,
@@ -115,7 +120,8 @@ export let components: HydrogenComponent[] = [
   OurTeamMembers,
   SlideShow,
   SlideShowSlide,
-  BeforeAndAfter,
-  BeforeAndAfterSlide,
   Spacer,
+  Videos,
+  VideoItems,
+  VideoItem,
 ];
