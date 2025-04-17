@@ -24,6 +24,11 @@ function calculateRemainingTime(endTime: number) {
   };
 }
 
+// Add leading zero for numbers less than 10
+function formatNumber(num: number): string {
+  return num < 10 ? `0${num}` : `${num}`;
+}
+
 type CountDownTimerData = {
   textColor: string;
   endTime: number;
@@ -67,32 +72,29 @@ let CountdownTimer = forwardRef<
       data-motion="fade-up"
       style={timerStyle}
     >
-      <div className="space-y-1">
-        <div className="text-4xl leading-tight md:text-5xl font-medium flex items-center">
+      <div className="flex items-end">
+        <div className="text-4xl leading-tight md:text-5xl font-medium flex items-end">
           <div className="px-6">{remainingTime?.days || 0}</div>
-          <div className="h-6 border-r border-[var(--timer-color)]" />
         </div>
         <div className="text-sm text-center md:text-base capitalize">Days</div>
       </div>
-      <div className="space-y-1">
-        <div className="text-4xl leading-tight md:text-5xl font-medium flex items-center">
-          <div className="px-6">{remainingTime?.hours || 0}</div>
-          <div className="h-6 border-r border-[var(--timer-color)]" />
+      <div className="flex items-end">
+        <div className="text-4xl leading-tight md:text-5xl font-medium flex items-end">
+          <div className="px-6">{formatNumber(remainingTime?.hours || 0)}</div>
         </div>
         <div className="text-sm text-center md:text-base capitalize">hours</div>
       </div>
-      <div className="space-y-1">
-        <div className="text-4xl leading-tight md:text-5xl font-medium flex items-center">
-          <div className="px-6">{remainingTime?.minutes || 0}</div>
-          <div className="h-6 border-r border-[var(--timer-color)]" />
+      <div className="flex items-end">
+        <div className="text-4xl leading-tight md:text-5xl font-medium flex items-end">
+          <div className="px-6">{formatNumber(remainingTime?.minutes || 0)}</div>
         </div>
         <div className="text-sm text-center md:text-base capitalize">
           minutes
         </div>
       </div>
-      <div className="space-y-1">
-        <div className="text-4xl leading-tight md:text-5xl font-medium flex items-center">
-          <div className="px-6">{remainingTime?.seconds || 0}</div>
+      <div className="flex items-end">
+        <div className="text-4xl leading-tight md:text-5xl font-medium flex items-end">
+          <div className="px-6">{formatNumber(remainingTime?.seconds || 0)}</div>
         </div>
         <div className="text-sm text-center md:text-base capitalize">
           seconds
