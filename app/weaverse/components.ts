@@ -35,7 +35,8 @@ import * as ImageWithTextContent from "~/sections/image-with-text/content";
 import * as ImageWithTextImage from "~/sections/image-with-text/image";
 import * as JudgemeReview from "~/sections/judgeme-reviews";
 import * as ReviewIndex from "~/sections/judgeme-reviews/review-index";
-import * as MapSection from "~/sections/map";
+import * as MapSection from "~/sections/map/map";
+import * as Address from "~/sections/map/address";
 import * as NewsLetter from "~/sections/newsletter";
 import * as NewsLetterForm from "~/sections/newsletter/newsletter-form";
 import * as OurTeam from "~/sections/our-team";
@@ -86,6 +87,7 @@ export let components: HydrogenComponent[] = [
   ColumnWithImageItem,
   HeroVideo,
   MapSection,
+  Address,
   PromotionGrid,
   PromotionGridItem,
   PromotionGridButtons,
