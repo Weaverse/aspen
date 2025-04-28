@@ -11,13 +11,15 @@ interface MapSectionProps extends SectionProps {
 let MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
   let { heading, children, ...rest } = props;
   return (
-    <Section ref={ref} {...rest} className="bg-[#F6F4F3]">
-      <div className="flex flex-col relative w-full">
-        <div className="w-1/3 px-12">
-          {heading && <Heading content={heading} as="h6" alignment="left" />}
+    <Section ref={ref} {...rest}>
+      <div className="flex justify-center relative sm:flex-row flex-col-reverse gap-10">
+        <div className="flex flex-col sm:gap-16 gap-10 sm:w-1/3 w-full">
+          <div className="w-full px-12 sm:px-0">
+            {heading && <Heading content={heading} as="h6" alignment="left" />}
+          </div>
+          <div className="flex flex-col">{children}</div>
         </div>
-        {children}
-        <div className="flex-1 relative min-h-[648px]" />
+        <div className="flex-1 aspect-square sm:w-2/3 w-full" />
       </div>
     </Section>
   );

@@ -32,21 +32,21 @@ let Address = forwardRef<HTMLDivElement, AddressProps>((props, ref) => {
   return (
     <div ref={containerRef} {...rest}>
       <div
-        className="w-1/3 px-10"
+        className="px-9 sm:px-0"
         onClick={() => setActiveIndex(activeIndex + 1)}
       >
         <div
           className={clsx(
             "flex items-center gap-2.5 cursor-pointer transition-colors text-[#524B46]/80 hover:text-[#524B46] p-3",
-            activeIndex === 1 ? "bg-white" : "")
+            activeIndex === 1 ? "bg-gray-300" : "")
           }
         >
           <MapPinLine size={24} weight="light" className="text-[#918379]" />
           <div className="flex flex-col">
-            <span className="font-['Open_Sans'] text-base tracking-[0.02em] leading-[1.4em]">
+            <span className="text-base">
               {nameStore}
             </span>
-            <span className="font-['Open_Sans'] text-base tracking-[0.02em] leading-[1.4em]">
+            <span className="text-base">
               {address}
             </span>
           </div>
@@ -54,7 +54,7 @@ let Address = forwardRef<HTMLDivElement, AddressProps>((props, ref) => {
       </div>
       <div
         className={clsx(
-          "w-2/3 aspect-square absolute right-0 top-0",
+          "aspect-square absolute right-0 top-0 sm:h-full w-full sm:w-fit",
           activeIndex === 1 ? "z-[1]" : "z-0"
         )}
       >
