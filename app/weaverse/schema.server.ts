@@ -870,11 +870,11 @@ export let themeSchema: HydrogenThemeSchema = {
           label: "Logo width",
           configs: {
             min: 20,
-            max: 200,
+            max: 500,
             step: 1,
             unit: "px",
           },
-          defaultValue: 80,
+          defaultValue: 400,
         },
         {
           type: "richtext",
