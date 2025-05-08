@@ -11,6 +11,7 @@ import type {
 } from "@shopify/hydrogen/storefront-api-types";
 import {
   data,
+  redirect,
   type ActionFunctionArgs,
   type LoaderFunctionArgs,
 } from "@shopify/remix-oxygen";
@@ -69,8 +70,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   let redirectTo = formData.get("redirectTo") ?? null;
   if (typeof redirectTo === "string" && isLocalPath(redirectTo)) {
-    status = 303;
-    headers.set("Location", redirectTo);
+    // status = 303;
+    // headers.set("Location", redirectTo);
+    return redirect(redirectTo);
   }
 
   let { cart: cartResult, errors, userErrors } = result;
