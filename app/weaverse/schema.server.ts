@@ -78,6 +78,31 @@ export let themeSchema: HydrogenThemeSchema = {
       group: "Scrolling announcements",
       inputs: [
         {
+          type: "select",
+          name: "announcementWidth",
+          label: "Announcement width",
+          configs: {
+            options: [
+              { value: "full", label: "Full page" },
+              { value: "stretch", label: "Stretch" },
+              { value: "fixed", label: "Fixed" },
+            ],
+          },
+          defaultValue: "fixed",
+        },
+        {
+          type: "range",
+          label: "Height",
+          name: "topbarHeight",
+          configs: {
+            min: 10,
+            max: 100,
+            step: 1,
+            unit: "px",
+          },
+          defaultValue: 36,
+        },
+        {
           type: "richtext",
           name: "topbarText",
           label: "Content",
@@ -93,19 +118,8 @@ export let themeSchema: HydrogenThemeSchema = {
             step: 1,
             unit: "px",
           },
+          condition: "layoutText.eq.scroll",
           defaultValue: 44,
-        },
-        {
-          type: "range",
-          label: "Height",
-          name: "topbarHeight",
-          configs: {
-            min: 10,
-            max: 100,
-            step: 1,
-            unit: "px",
-          },
-          defaultValue: 36,
         },
         {
           type: "range",
@@ -117,7 +131,36 @@ export let themeSchema: HydrogenThemeSchema = {
             step: 1,
             unit: "x",
           },
+          condition: "layoutText.eq.scroll",
           defaultValue: 5,
+        },
+        {
+          type: "heading",
+          label: "Social links",
+        },
+        {
+          type: "text",
+          name: "socialInstagramAnnouncement",
+          label: "Instagram",
+          defaultValue: "https://www.instagram.com/",
+        },
+        {
+          type: "text",
+          name: "socialXAnnouncement",
+          label: "X (formerly Twitter)",
+          defaultValue: "https://x.com/i/communities/1636383560197373952",
+        },
+        {
+          type: "text",
+          name: "socialLinkedInAnnouncement",
+          label: "LinkedIn",
+          defaultValue: "https://www.linkedin.com/company/weaverseio",
+        },
+        {
+          type: "text",
+          name: "socialFacebookAnnouncement",
+          label: "Facebook",
+          defaultValue: "https://www.facebook.com/weaverse",
         },
       ],
     },
