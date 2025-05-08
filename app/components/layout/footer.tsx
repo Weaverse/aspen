@@ -191,7 +191,7 @@ export function Footer() {
                 {copyright}
               </p>
               <div className="flex justify-start lg:justify-center items-center order-1">
-                <CountrySelector />
+                <CountrySelector inputClassName="px-4 py-3" />
               </div>
               <div className="flex gap-4 justify-start md:justify-end order-2">
                 {socialItems.map((social) =>
