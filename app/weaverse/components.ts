@@ -7,6 +7,11 @@ import * as SubHeading from "~/components/subheading";
 // import * as AliReview from "~/sections/ali-reviews";
 // import * as AliReviewList from "~/sections/ali-reviews/review-list";
 import * as AllProducts from "~/sections/all-products";
+import * as AccordionSection from "~/sections/accordion/index";
+import * as AccordionInformationItem from "~/sections/accordion/information-item";
+import * as AccordionInformationGroup from "~/sections/accordion/content-information";
+import * as AccordionGroup from "~/sections/accordion/accordion-group";
+import * as AccordionItem from "~/sections/accordion/accordion-item";
 import * as BeforeAndAfter from "~/sections/before-and-after";
 import * as BeforeAndAfterSlide from "~/sections/before-and-after/slider";
 import * as BlogPost from "~/sections/blog-post";
@@ -69,6 +74,11 @@ export let components: HydrogenComponent[] = [
   // AliReview,
   // AliReviewList,
   AllProducts,
+  AccordionSection,
+  AccordionInformationItem,
+  AccordionInformationGroup,
+  AccordionGroup,
+  AccordionItem,
   BeforeAndAfter,
   BeforeAndAfterSlide,
   FeaturedCollections,
