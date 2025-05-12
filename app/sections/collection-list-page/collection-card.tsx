@@ -44,7 +44,7 @@ export function CollectionCard({
   return (
     <Link
       to={`/collections/${collection.handle}`}
-      className="flex flex-col gap-2"
+      className="flex flex-col gap-2 relative"
       style={
         {
           "--aspect-ratio": getImageAspectRatio(
@@ -69,9 +69,9 @@ export function CollectionCard({
             )}
           />
         ) : null}
-        <h5 style={{ color: collectionNameColor }} className="z-1">
+        <span style={{ color: collectionNameColor }} className="z-1 absolute bottom-0 left-0 uppercase p-4">
           {collection.title}
-        </h5>
+        </span>
         <Overlay
           enableOverlay={enableOverlay}
           overlayColor={overlayColor}

@@ -10,13 +10,12 @@ import { overlayInputs } from "~/components/overlay";
 import type { SectionProps } from "~/components/section";
 import { Section } from "~/components/section";
 
-let variants = cva("flex flex-col [&_.paragraph]:mx-[unset] px-4 sm:px-16", {
+let variants = cva("grid grid-cols-1 md:grid-cols-2 px-4 sm:px-16", {
   variants: {
     alignment: {
-      left: "items-start [&_.paragraph]:[text-align:left] [&_.countdown--timer]:-ml-4",
-      center: "items-center [&_.paragraph]:[text-align:center]",
-      right:
-        "items-end [&_.paragraph]:[text-align:right] [&_.countdown--timer]:-mr-4",
+      left: "justify-items-start [&_.paragraph]:text-left",
+      center: "justify-items-center [&_.paragraph]:text-center",
+      right: "justify-items-end [&_.paragraph]:text-right",
     },
   },
 });
@@ -24,10 +23,12 @@ let variants = cva("flex flex-col [&_.paragraph]:mx-[unset] px-4 sm:px-16", {
 interface CountdownProps extends VariantProps<typeof variants>, SectionProps {}
 
 let Countdown = forwardRef<HTMLElement, CountdownProps>((props, ref) => {
-  let { children, alignment, ...rest } = props;
+  let { children, alignment, gap = 24, ...rest } = props;
   return (
-    <Section ref={ref} {...rest} containerClassName={variants({ alignment })}>
-      {children}
+    <Section ref={ref} {...rest}>
+      <div className={variants({ alignment })} style={{ gap }}>
+        {children}
+      </div>
     </Section>
   );
 });
@@ -74,14 +75,14 @@ export let schema: HydrogenComponentSchema = {
         {
           type: "range",
           name: "gap",
-          label: "Items spacing",
+          label: "Content spacing",
           configs: {
-            min: 0,
-            max: 60,
-            step: 4,
+            min: 16,
+            max: 64,
+            step: 8,
             unit: "px",
           },
-          defaultValue: 20,
+          defaultValue: 24,
         },
         {
           type: "select",

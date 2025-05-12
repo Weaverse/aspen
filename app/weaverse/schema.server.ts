@@ -78,6 +78,31 @@ export let themeSchema: HydrogenThemeSchema = {
       group: "Scrolling announcements",
       inputs: [
         {
+          type: "select",
+          name: "announcementWidth",
+          label: "Announcement width",
+          configs: {
+            options: [
+              { value: "full", label: "Full page" },
+              { value: "stretch", label: "Stretch" },
+              { value: "fixed", label: "Fixed" },
+            ],
+          },
+          defaultValue: "fixed",
+        },
+        {
+          type: "range",
+          label: "Height",
+          name: "topbarHeight",
+          configs: {
+            min: 10,
+            max: 100,
+            step: 1,
+            unit: "px",
+          },
+          defaultValue: 36,
+        },
+        {
           type: "richtext",
           name: "topbarText",
           label: "Content",
@@ -93,19 +118,8 @@ export let themeSchema: HydrogenThemeSchema = {
             step: 1,
             unit: "px",
           },
+          condition: "layoutText.eq.scroll",
           defaultValue: 44,
-        },
-        {
-          type: "range",
-          label: "Height",
-          name: "topbarHeight",
-          configs: {
-            min: 10,
-            max: 100,
-            step: 1,
-            unit: "px",
-          },
-          defaultValue: 36,
         },
         {
           type: "range",
@@ -117,7 +131,36 @@ export let themeSchema: HydrogenThemeSchema = {
             step: 1,
             unit: "x",
           },
+          condition: "layoutText.eq.scroll",
           defaultValue: 5,
+        },
+        {
+          type: "heading",
+          label: "Social links",
+        },
+        {
+          type: "text",
+          name: "socialInstagramAnnouncement",
+          label: "Instagram",
+          defaultValue: "https://www.instagram.com/",
+        },
+        {
+          type: "text",
+          name: "socialXAnnouncement",
+          label: "X (formerly Twitter)",
+          defaultValue: "https://x.com/i/communities/1636383560197373952",
+        },
+        {
+          type: "text",
+          name: "socialLinkedInAnnouncement",
+          label: "LinkedIn",
+          defaultValue: "https://www.linkedin.com/company/weaverseio",
+        },
+        {
+          type: "text",
+          name: "socialFacebookAnnouncement",
+          label: "Facebook",
+          defaultValue: "https://www.facebook.com/weaverse",
         },
       ],
     },
@@ -216,17 +259,17 @@ export let themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "Text",
           name: "colorText",
-          defaultValue: "#0F0F0F",
+          defaultValue: "#24211E",
         },
         {
           type: "color",
           label: "Text (subtle)",
           name: "colorTextSubtle",
-          defaultValue: "#88847F",
+          defaultValue: "#524B46",
         },
         {
           type: "color",
-          label: "Text (inverse)",
+          label: "Text (basic)",
           name: "colorTextInverse",
           defaultValue: "#fff",
         },
@@ -234,13 +277,13 @@ export let themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "Borders",
           name: "colorLine",
-          defaultValue: "#3B352C",
+          defaultValue: "#A79D95",
         },
         {
           type: "color",
           label: "Borders (subtle)",
           name: "colorLineSubtle",
-          defaultValue: "#A19B91",
+          defaultValue: "#DBD7D1",
         },
         {
           type: "heading",
@@ -250,13 +293,13 @@ export let themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "Announcement text",
           name: "topbarTextColor",
-          defaultValue: "#ffffff",
+          defaultValue: "#524B46",
         },
         {
           type: "color",
           label: "Announcement background",
           name: "topbarBgColor",
-          defaultValue: "#000000",
+          defaultValue: "#F2F0EE",
         },
         {
           type: "heading",
@@ -272,7 +315,7 @@ export let themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "Header text",
           name: "headerText",
-          defaultValue: "#000000",
+          defaultValue: "#24211E",
         },
         {
           type: "color",
@@ -288,13 +331,13 @@ export let themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "Footer background",
           name: "footerBgColor",
-          defaultValue: "#000000",
+          defaultValue: "#EBE8E5",
         },
         {
           type: "color",
           label: "Footer text",
           name: "footerText",
-          defaultValue: "#ffffff",
+          defaultValue: "#24211E",
         },
         {
           type: "heading",
@@ -304,13 +347,13 @@ export let themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "Background color",
           name: "buttonPrimaryBg",
-          defaultValue: "#000000",
+          defaultValue: "#908379",
         },
         {
           type: "color",
           label: "Text color",
           name: "buttonPrimaryColor",
-          defaultValue: "#ffffff",
+          defaultValue: "#F1EEEA",
         },
         {
           type: "heading",
@@ -320,13 +363,13 @@ export let themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "Background color",
           name: "buttonSecondaryBg",
-          defaultValue: "#ffffff",
+          defaultValue: "#F0EFED",
         },
         {
           type: "color",
           label: "Text color",
           name: "buttonSecondaryColor",
-          defaultValue: "#000000",
+          defaultValue: "#24211E",
         },
         {
           type: "heading",
@@ -334,9 +377,21 @@ export let themeSchema: HydrogenThemeSchema = {
         },
         {
           type: "color",
-          label: "Text and border",
-          name: "buttonOutlineTextAndBorder",
-          defaultValue: "#000000",
+          label: "Text color",
+          name: "buttonOutlineText",
+          defaultValue: "#524B46",
+        },
+        {
+          type: "color",
+          label: "Background color",
+          name: "buttonOutlineBackground",
+          defaultValue: "#A79D95",
+        },
+        {
+          type: "color",
+          label: "Border color",
+          name: "buttonOutlineBorder",
+          defaultValue: "#A79D95",
         },
         {
           type: "heading",
@@ -776,6 +831,42 @@ export let themeSchema: HydrogenThemeSchema = {
       ],
     },
     {
+      group: "Cart",
+      inputs: [
+        {
+          type: "text",
+          label: "Cart title empty state",
+          name: "cartTitleEmpty",
+          defaultValue: "Looks like you haven’t added anything yet, let’s get you started!",
+        },
+        {
+          type: "text",
+          label: "Button tittle start shopping",
+          name: "buttonStartShopping",
+          defaultValue: "Start Shopping",
+        },
+        {
+          type: "switch",
+          label: "Enable cart best sellers",
+          name: "enableCartBestSellers",
+          defaultValue: true,
+        },
+        {
+          type: "switch",
+          label: "Enable free shipping",
+          name: "enableFreeShipping",
+          defaultValue: true,
+        },
+        {
+          type: "text",
+          label: "Total amount sufficient for free shipping",
+          name: "freeShippingThreshold",
+          defaultValue: "50",
+          placeholder: "Only numeric values can be entered.",
+        }
+      ],
+    },
+    {
       group: "Animations and effects",
       inputs: [
         {
@@ -822,11 +913,11 @@ export let themeSchema: HydrogenThemeSchema = {
           label: "Logo width",
           configs: {
             min: 20,
-            max: 200,
+            max: 500,
             step: 1,
             unit: "px",
           },
-          defaultValue: 80,
+          defaultValue: 400,
         },
         {
           type: "richtext",

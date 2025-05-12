@@ -7,11 +7,18 @@ import * as SubHeading from "~/components/subheading";
 // import * as AliReview from "~/sections/ali-reviews";
 // import * as AliReviewList from "~/sections/ali-reviews/review-list";
 import * as AllProducts from "~/sections/all-products";
+import * as AccordionSection from "~/sections/accordion/index";
+import * as AccordionInformationItem from "~/sections/accordion/information-item";
+import * as AccordionInformationGroup from "~/sections/accordion/content-information";
+import * as AccordionGroup from "~/sections/accordion/accordion-group";
+import * as AccordionItem from "~/sections/accordion/accordion-item";
+import * as BeforeAndAfter from "~/sections/before-and-after";
+import * as BeforeAndAfterSlide from "~/sections/before-and-after/slider";
 import * as BlogPost from "~/sections/blog-post";
 import * as Blogs from "~/sections/blogs";
 import * as CollectionFilters from "~/sections/collection-filters";
-import * as CollectionList from "~/sections/collection-list";
-import * as CollectionListItems from "~/sections/collection-list/collections-items";
+import * as CollectionList from "~/sections/collection-list-page/collections-items";
+import * as CollectionListItems from "~/sections/collection-list-page";
 import * as ColumnsWithImages from "~/sections/columns-with-images";
 import * as ColumnWithImageItem from "~/sections/columns-with-images/column";
 import * as ColumnsWithImagesItems from "~/sections/columns-with-images/items";
@@ -33,7 +40,8 @@ import * as ImageWithTextContent from "~/sections/image-with-text/content";
 import * as ImageWithTextImage from "~/sections/image-with-text/image";
 import * as JudgemeReview from "~/sections/judgeme-reviews";
 import * as ReviewIndex from "~/sections/judgeme-reviews/review-index";
-import * as MapSection from "~/sections/map";
+import * as MapSection from "~/sections/map/map";
+import * as Address from "~/sections/map/address";
 import * as NewsLetter from "~/sections/newsletter";
 import * as NewsLetterForm from "~/sections/newsletter/newsletter-form";
 import * as OurTeam from "~/sections/our-team";
@@ -54,6 +62,9 @@ import * as TestimonialItem from "~/sections/testimonials/item";
 import * as TestimonialItems from "~/sections/testimonials/items";
 import * as VideoEmbed from "~/sections/video-embed";
 import * as VideoEmbedItem from "~/sections/video-embed/video";
+import * as Videos from "~/sections/videos";
+import * as VideoItems from "~/sections/videos/items";
+import * as VideoItem from "~/sections/videos/video";
 
 export let components: HydrogenComponent[] = [
   SubHeading,
@@ -63,6 +74,13 @@ export let components: HydrogenComponent[] = [
   // AliReview,
   // AliReviewList,
   AllProducts,
+  AccordionSection,
+  AccordionInformationItem,
+  AccordionInformationGroup,
+  AccordionGroup,
+  AccordionItem,
+  BeforeAndAfter,
+  BeforeAndAfterSlide,
   FeaturedCollections,
   FeaturedCollectionItems,
   BlogPost,
@@ -79,6 +97,7 @@ export let components: HydrogenComponent[] = [
   ColumnWithImageItem,
   HeroVideo,
   MapSection,
+  Address,
   PromotionGrid,
   PromotionGridItem,
   PromotionGridButtons,
@@ -114,4 +133,7 @@ export let components: HydrogenComponent[] = [
   SlideShow,
   SlideShowSlide,
   Spacer,
+  Videos,
+  VideoItems,
+  VideoItem,
 ];
