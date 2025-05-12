@@ -43,8 +43,6 @@ const AccordionItem = forwardRef<HTMLDivElement, AccordionItemProps>(
       const current = triggerRef.current;
       if (!current) return;
       const sectionEl = current.closest("section") as HTMLElement | null; // hoặc closest()
-      console.log("sectionEl", sectionEl);
-
       if (sectionEl) {
         const raw = getComputedStyle(sectionEl)
           .getPropertyValue("--section-bg-color")
@@ -54,7 +52,6 @@ const AccordionItem = forwardRef<HTMLDivElement, AccordionItemProps>(
         }
       }
     }, []);
-    console.log("highlightBg", highlightBg);
 
     const renderIcon = () => {
       if (!icon) return null;
