@@ -87,19 +87,19 @@ let MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
       <Section ref={ref} {...rest}>
         <div
           ref={triggerRef}
-          className="flex justify-center relative sm:flex-row flex-col-reverse gap-10"
+          className="flex justify-center items-center relative md:flex-row flex-col-reverse gap-10"
         >
           {/* List & Accordion layouts - Left column */}
           <div
             className={
               layoutMap === "list"
-                ? "flex flex-col sm:gap-16 gap-10 sm:w-1/3 w-full"
-                : "flex flex-col sm:gap-8 gap-8 sm:w-[45%] w-full absolute top-1/3 left-[20%] z-1 p-10 bg-[--form-bg-color]"
+                ? "flex flex-col md:gap-16 gap-10 md:w-1/3 w-full"
+                : "flex flex-col md:gap-8 gap-8 md:w-[45%] w-full md:absolute z-1 p-10 bg-[--form-bg-color]"
             }
             style={{ "--form-bg-color": highlightBg } as React.CSSProperties}
           >
             {/* Heading */}
-            <div className="w-full px-12 sm:px-0">
+            <div className="w-full px-12 md:px-0">
               {heading && layoutMap === "list" ? (
                 <Heading content={heading} as="h6" alignment="left" />
               ) : (
@@ -129,10 +129,10 @@ let MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
               </div>
             )}
           </div>
-          {layoutMap === "accordion" && <div className="sm:w-1/3 w-full"></div>}
+          {layoutMap === "accordion" && <div className="hidden md:block md:w-1/3 w-full"></div>}
 
           {/* Map container - Right column */}
-          <div className={clsx("flex-1 sm:w-2/3 w-full relative")}>
+          <div className={clsx("flex-1 md:w-2/3 md:ml-auto w-full relative")}>
             {/* Map that displays the active address */}
             <div
               className={clsx(

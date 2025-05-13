@@ -77,7 +77,7 @@ let Address = forwardRef<HTMLDivElement, AddressProps>((props, ref) => {
     return (
       <div ref={containerRef} {...rest}>
         <div
-          className="px-9 sm:px-0"
+          className="px-9 md:px-0"
           onClick={handleClick}
         >
           <div
@@ -201,7 +201,7 @@ let Address = forwardRef<HTMLDivElement, AddressProps>((props, ref) => {
   return (
     <div ref={containerRef} {...rest}>
       <div
-        className="px-9 sm:px-0"
+        className="px-9 md:px-0"
         onClick={handleClick}
       >
         <div
