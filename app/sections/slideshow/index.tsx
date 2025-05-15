@@ -105,9 +105,8 @@ let Slideshow = forwardRef<HTMLDivElement, SlideshowProps>((props, ref) => {
             el: ".slideshow-dots",
             clickable: true,
             bulletClass: clsx(
-              "dot rounded-full cursor-pointer",
-              "w-2.5 h-2.5 p-0",
-              "outline outline-offset-3 outline-2 outline-transparent",
+              "dot cursor-pointer",
+              "w-12 h-1 p-0",
               "transition-all duration-200",
             ),
             bulletActiveClass: "active",

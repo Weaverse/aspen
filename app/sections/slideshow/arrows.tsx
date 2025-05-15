@@ -13,7 +13,7 @@ import { useSwiper } from "swiper/react";
 let variants = cva(
   [
     "hidden md:block",
-    "absolute top-1/2 -translate-y-1/2 z-1",
+    "absolute bottom-0 -translate-y-1/2 z-1",
     "p-2 text-center cursor-pointer",
     "border border-transparent",
     "transition-all duration-200",
