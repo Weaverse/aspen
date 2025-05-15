@@ -65,6 +65,8 @@ import * as VideoEmbedItem from "~/sections/video-embed/video";
 import * as Videos from "~/sections/videos";
 import * as VideoItems from "~/sections/videos/items";
 import * as VideoItem from "~/sections/videos/video";
+import * as CollectionListDynamic from "~/sections/collection-list-dynamic";
+import * as CollectionListDynamicItems from "~/sections/collection-list-dynamic/collection-items";
 
 export let components: HydrogenComponent[] = [
   SubHeading,
@@ -136,4 +138,6 @@ export let components: HydrogenComponent[] = [
   Videos,
   VideoItems,
   VideoItem,
+  CollectionListDynamic,
+  CollectionListDynamicItems,
 ];
