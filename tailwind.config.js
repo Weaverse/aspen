@@ -145,8 +145,8 @@ export default {
         4.5: "1.125rem",
       },
       fontFamily: {
-        sans: ["Poppins", "ui-sans-serif", "system-ui", "sans-serif"],
-        serif: ["Arial", '"IBMPlexSerif"', "Palatino", "ui-serif"],
+        sans: ["Tenor Sans", "ui-sans-serif", "system-ui", "sans-serif"],
+        serif: ["Open Sans Variable", '"IBMPlexSerif"', "Palatino", "sans-serif"],
       },
       fontSize: {
         scale: [

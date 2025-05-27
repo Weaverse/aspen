@@ -1,4 +1,4 @@
-import { Trash } from "@phosphor-icons/react";
+import { CaretDown, Trash, X } from "@phosphor-icons/react";
 import {
   CartForm,
   Money,
@@ -7,12 +7,9 @@ import {
   useOptimisticCart,
   useOptimisticData,
 } from "@shopify/hydrogen";
-import type {
-  CartLineUpdateInput,
-  Cart as CartType,
-} from "@shopify/hydrogen/storefront-api-types";
+import type { Cart as CartType } from "@shopify/hydrogen/storefront-api-types";
 import clsx from "clsx";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import useScroll from "react-use/esm/useScroll";
 import type { CartApiQueryFragment } from "storefront-api.generated";
 import { Button } from "~/components/button";
@@ -21,6 +18,7 @@ import { Link } from "~/components/link";
 import { RevealUnderline } from "~/reveal-underline";
 import { getImageAspectRatio } from "~/utils/image";
 import { CartBestSellers } from "./cart-best-sellers";
+import { useThemeSettings } from "@weaverse/hydrogen";
 
 type CartLine = OptimisticCart<CartApiQueryFragment>["lines"]["nodes"][0];
 type Layouts = "page" | "drawer";
@@ -51,23 +49,69 @@ function CartDetails({
   layout: Layouts;
   cart: OptimisticCart<CartApiQueryFragment>;
 }) {
+  let { enableFreeShipping } = useThemeSettings();
   return (
-    <div
-      className={clsx(
-        layout === "drawer" &&
-          "grid grid-cols-1 h-screen-no-nav grid-rows-[1fr_auto] px-4",
-        layout === "page" && [
-          "pb-12 w-full max-w-page mx-auto",
-          "grid md:grid-cols-2 lg:grid-cols-3 md:items-start",
-          "gap-8 md:gap-8 lg:gap-12",
-        ],
+    <>
+      {layout === "drawer" && enableFreeShipping && (
+        <CartProgression cost={cart.cost} />
       )}
-    >
-      <CartLines lines={cart?.lines?.nodes} layout={layout} />
-      <CartSummary cost={cart.cost} layout={layout}>
-        <CartDiscounts discountCodes={cart.discountCodes} />
-        <CartCheckoutActions checkoutUrl={cart.checkoutUrl} layout={layout} />
-      </CartSummary>
+      <div
+        className={clsx(
+          layout === "drawer" && [
+            "grid grid-cols-1 grid-rows-[1fr_auto] px-4 pt-6",
+            enableFreeShipping ? "h-[calc(100vh-100px)]" : "h-[100vh]",
+          ],
+          layout === "page" && [
+            "pb-12 w-full max-w-page mx-auto",
+            "grid grid-cols-1 lg:grid-cols-3 md:items-start",
+            "gap-8 md:gap-8 lg:gap-12",
+          ]
+        )}
+      >
+        <div
+          className={clsx(
+            layout === "drawer"
+              ? `overflow-y-auto max-h-full pr-3 ${
+                  enableFreeShipping ? "pb-5" : "pb-16"
+                }`
+              : "lg:col-span-2 order-1 lg:order-none"
+          )}
+        >
+          <CartLines lines={cart?.lines?.nodes} layout={layout} />
+        </div>
+        <CartSummary cost={cart.cost} layout={layout}>
+          <CartDiscounts discountCodes={cart.discountCodes} />
+          <CartCheckoutActions checkoutUrl={cart.checkoutUrl} layout={layout} />
+        </CartSummary>
+      </div>
+    </>
+  );
+}
+
+function CartProgression({ cost }: { cost: CartApiQueryFragment["cost"] }) {
+  let { freeShippingThreshold } = useThemeSettings();
+
+  let subtotal = parseFloat(cost?.subtotalAmount?.amount || "0");
+  let threshold = parseFloat(freeShippingThreshold || "100");
+  let progress = Math.min((subtotal / threshold) * 100, 100);
+  let amountRemaining = Math.max(threshold - subtotal, 0);
+  return (
+    <div className="w-full rounded-lg flex flex-col gap-2 px-6 pt-6">
+      <div className="relative w-full h-1 bg-[#F2F0EE] rounded-full overflow-hidden">
+        <div
+          className="h-full bg-[#A79D95] transition-all duration-300"
+          style={{ width: `${progress}%` }}
+        ></div>
+      </div>
+      <p className="text-sm text-gray-700 mb-2">
+        {amountRemaining > 0 ? (
+          <>
+            You're <b>${amountRemaining.toFixed(2)}</b> away from free shipping!
+          </>
+        ) : (
+          "🎉 Congrats! You have free shipping!"
+        )}
+      </p>
     </div>
   );
 }
@@ -167,11 +211,16 @@ function CartLines({
         className={clsx(
           "grid",
           layout === "page" && "gap-9",
-          layout === "drawer" && "gap-5",
+          layout === "drawer" && "gap-5"
         )}
       >
-        {currentLines.map((line) => (
-          <CartLineItem key={line.id} line={line} layout={layout} />
+        {currentLines.map((line, index) => (
+          <CartLineItem
+            key={line.id}
+            line={line}
+            layout={layout}
+            isLastItem={index === currentLines.length - 1}
+          />
         ))}
       </ul>
     </div>
@@ -189,15 +238,19 @@ function CartCheckoutActions({
 
   return (
     <div className="flex flex-col gap-3">
-      <a href={checkoutUrl} target="_self">
-        <Button className="w-full">Continue to Checkout</Button>
-      </a>
       {/* @todo: <CartShopPayButton cart={cart} /> */}
       {layout === "drawer" && (
-        <Link variant="underline" to="/cart" className="w-fit mx-auto">
+        <Link
+          variant="outline"
+          to="/cart"
+          className="w-full flex justify-center"
+        >
           View cart
         </Link>
       )}
+      <a href={checkoutUrl} target="_self">
+        <Button className="w-full">Continue to Checkout</Button>
+      </a>
     </div>
   );
 }
@@ -215,9 +268,10 @@ function CartSummary({
     <div
       aria-labelledby="summary-heading"
       className={clsx(
-        layout === "drawer" && "grid gap-4 border-t border-line-subtle pt-4",
+        layout === "drawer" &&
+          "sticky bottom-0 grid gap-4 border-t border-line-subtle p-4 bg-white",
         layout === "page" &&
-          "sticky top-nav grid gap-6 p-4 md:px-6 md:translate-y-4 rounded w-full",
+          "sticky top-nav grid gap-6 p-4 md:px-6 md:translate-y-4 rounded w-full lg:col-span-1 order-2 lg:order-none"
       )}
     >
       <h2 id="summary-heading" className="sr-only">
@@ -245,7 +299,15 @@ type OptimisticData = {
   quantity?: number;
 };
 
-function CartLineItem({ line, layout }: { line: CartLine; layout: Layouts }) {
+function CartLineItem({
+  line,
+  layout,
+  isLastItem,
+}: {
+  line: CartLine;
+  layout: Layouts;
+  isLastItem: boolean;
+}) {
   let optimisticData = useOptimisticData<OptimisticData>(line?.id);
 
   if (!line?.id) return null;
@@ -256,10 +318,11 @@ function CartLineItem({ line, layout }: { line: CartLine; layout: Layouts }) {
   return (
     <li
       key={id}
-      className="flex gap-4"
+      className={clsx(
+        "grid gap-4",
+        layout === "drawer" ? "" : "grid-cols-1 md:grid-cols-2"
+      )}
       style={{
-        // Hide the line item if the optimistic data action is remove
-        // Do not remove the form from the DOM
         display: optimisticData?.action === "remove" ? "none" : "flex",
       }}
     >
@@ -269,13 +332,21 @@ function CartLineItem({ line, layout }: { line: CartLine; layout: Layouts }) {
             width={250}
             height={250}
             data={merchandise.image}
-            className="w-24 h-auto"
+            className={clsx(
+              "!object-cover",
+              layout === "drawer" ? "w-36 h-auto" : "w-full h-auto"
+            )}
             alt={merchandise.title}
-            aspectRatio={getImageAspectRatio(merchandise.image, "adapt")}
+            aspectRatio={getImageAspectRatio(merchandise.image, "1/1")}
           />
         )}
       </div>
-      <div className="flex flex-col justify-between grow">
+      <div
+        className={clsx(
+          "flex flex-col justify-between grow",
+          layout === "drawer" ? "" : "p-6"
+        )}
+      >
         <div className="flex justify-between gap-4">
           <div className="space-y-2">
             <div>
@@ -302,20 +373,22 @@ function CartLineItem({ line, layout }: { line: CartLine; layout: Layouts }) {
                 ))}
             </div>
           </div>
-          {layout === "drawer" && (
-            <ItemRemoveButton lineId={id} className="-mt-1.5 -mr-2" />
+          {layout === "page" && (
+            <ItemRemoveButton lineId={id} className="" layout={layout} />
           )}
         </div>
         <div
           className={clsx(
             "flex items-center gap-2",
-            layout === "drawer" && "justify-between",
+            layout === "drawer" && "justify-between"
           )}
         >
-          <CartLineQuantityAdjust line={line} />
-          {layout === "page" && <ItemRemoveButton lineId={id} />}
+          <CartLineQuantityAdjust line={line} isLastItem={isLastItem} />
           <CartLinePrice line={line} as="span" />
         </div>
+        {layout === "drawer" && (
+          <ItemRemoveButton lineId={id} className="" layout={layout} />
+        )}
       </div>
     </li>
   );
@@ -324,9 +397,11 @@ function CartLineItem({ line, layout }: { line: CartLine; layout: Layouts }) {
 function ItemRemoveButton({
   lineId,
   className,
+  layout,
 }: {
   lineId: CartLine["id"];
   className?: string;
+  layout: Layouts;
 }) {
   return (
     <CartForm
@@ -335,97 +410,107 @@ function ItemRemoveButton({
       inputs={{ lineIds: [lineId] }}
     >
       <button
-        className={clsx(
-          "flex items-center justify-center w-8 h-8 border-none",
-          className,
-        )}
+        className={clsx("flex items-center justify-center", className)}
         type="submit"
       >
-        <span className="sr-only">Remove</span>
-        <Trash aria-hidden="true" className="h-4 w-4" />
+        {layout === "page" && <X className="w-4 h-4" />}
+        {layout === "drawer" && (
+          <span className="underline uppercase">Remove</span>
+        )}
       </button>
       <OptimisticInput id={lineId} data={{ action: "remove" }} />
     </CartForm>
   );
 }
 
-function CartLineQuantityAdjust({ line }: { line: CartLine }) {
-  let optimisticId = line?.id;
-  let optimisticData = useOptimisticData<OptimisticData>(optimisticId);
+function CartLineQuantityAdjust({
+  line,
+  isLastItem,
+}: {
+  line: CartLine;
+  isLastItem: boolean;
+}) {
+  let optimisticData = useOptimisticData<OptimisticData>(line?.id);
+  const [isOpen, setIsOpen] = useState(false);
 
   if (!line || typeof line?.quantity === "undefined") return null;
 
   let optimisticQuantity = optimisticData?.quantity || line.quantity;
-
   let { id: lineId, isOptimistic } = line;
-  let prevQuantity = Number(Math.max(0, optimisticQuantity - 1).toFixed(0));
-  let nextQuantity = Number((optimisticQuantity + 1).toFixed(0));
+
+  const quantities = [1, 2, 3, 4, 5];
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    function handleClickOutside(event: MouseEvent) {
+      const target = event.target as HTMLElement;
+      if (!target.closest(".quantity-selector")) {
+        setIsOpen(false);
+      }
+    }
+
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [isOpen]);
 
   return (
     <>
       <label htmlFor={`quantity-${lineId}`} className="sr-only">
         Quantity, {optimisticQuantity}
       </label>
-      <div className="flex items-center border border-line-subtle">
-        <UpdateCartButton lines={[{ id: lineId, quantity: prevQuantity }]}>
-          <button
-            type="submit"
-            name="decrease-quantity"
-            aria-label="Decrease quantity"
-            className="w-9 h-9 transition disabled:text-body-subtle disabled:cursor-not-allowed"
-            value={prevQuantity}
-            disabled={optimisticQuantity <= 1 || isOptimistic}
-          >
-            <span>&#8722;</span>
-            <OptimisticInput
-              id={optimisticId}
-              data={{ quantity: prevQuantity }}
-            />
-          </button>
-        </UpdateCartButton>
+      <div className="relative quantity-selector">
+        <button
+          className="flex gap-2 items-center px-3 py-2 min-w-[80px] relative bg-white"
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsOpen(!isOpen);
+          }}
+          type="button"
+          disabled={isOptimistic}
+        >
+          <span>QTY</span>
+          <span className="flex-1 text-center">{optimisticQuantity}</span>
+          <CaretDown />
+        </button>
 
-        <div className="px-2 text-center" data-test="item-quantity">
-          {optimisticQuantity}
-        </div>
-
-        <UpdateCartButton lines={[{ id: lineId, quantity: nextQuantity }]}>
-          <button
-            type="submit"
-            className="w-9 h-9 transition disabled:text-body-subtle disabled:cursor-not-allowed"
-            name="increase-quantity"
-            value={nextQuantity}
-            aria-label="Increase quantity"
-            disabled={isOptimistic}
+        {isOpen && (
+          <div
+            className={clsx(
+              "absolute left-0 bg-white shadow-2xl rounded-md z-10 min-w-[80px]",
+              isLastItem ? "bottom-full mb-1" : "top-full mt-1"
+            )}
           >
-            <span>&#43;</span>
-            <OptimisticInput
-              id={optimisticId}
-              data={{ quantity: nextQuantity }}
-            />
-          </button>
-        </UpdateCartButton>
+            {quantities.map((qty) => (
+              <CartForm
+                key={qty}
+                route="/cart"
+                action={CartForm.ACTIONS.LinesUpdate}
+                inputs={{
+                  lines: [{ id: lineId, quantity: qty }],
+                }}
+              >
+                <button
+                  className={clsx(
+                    "w-full text-center px-4 py-2 text-sm hover:bg-gray-100 transition",
+                    qty === optimisticQuantity
+                      ? "bg-gray-200 text-primary font-medium"
+                      : "text-gray-700"
+                  )}
+                  type="submit"
+                  disabled={isOptimistic || qty === optimisticQuantity}
+                >
+                  {qty}
+                  {qty === optimisticQuantity && (
+                    <OptimisticInput id={lineId} data={{ quantity: qty }} />
+                  )}
+                </button>
+              </CartForm>
+            ))}
+          </div>
+        )}
       </div>
     </>
-  );
-}
-
-function UpdateCartButton({
-  children,
-  lines,
-}: {
-  children: React.ReactNode;
-  lines: CartLineUpdateInput[];
-}) {
-  return (
-    <CartForm
-      route="/cart"
-      action={CartForm.ACTIONS.LinesUpdate}
-      inputs={{
-        lines,
-      }}
-    >
-      {children}
-    </CartForm>
   );
 }
 
@@ -468,6 +553,8 @@ function CartEmpty({
   layout?: Layouts;
   onClose?: () => void;
 }) {
+  let { cartTitleEmpty, buttonStartShopping, enableCartBestSellers } =
+    useThemeSettings();
   let scrollRef = useRef(null);
   let { y } = useScroll(scrollRef);
   return (
@@ -481,32 +568,33 @@ function CartEmpty({
         layout === "page" && [
           hidden ? "" : "grid",
           "pb-12 w-full md:items-start gap-4 md:gap-8 lg:gap-12",
-        ],
+        ]
       )}
       hidden={hidden}
     >
       <div className={clsx(layout === "page" && "text-center")}>
-        <p className="mb-4">
-          Looks like you haven&rsquo;t added anything yet, let&rsquo;s get you
-          started!
-        </p>
-        <Link
-          to={layout === "page" ? "/products" : ""}
-          className={clsx(layout === "drawer" ? "w-full" : "min-w-48")}
-          onClick={onClose}
-        >
-          Start Shopping
-        </Link>
+        {cartTitleEmpty && <p className="mb-4">{cartTitleEmpty}</p>}
+        {buttonStartShopping && (
+          <Link
+            to={layout === "page" ? "/products" : ""}
+            className={clsx(layout === "drawer" ? "w-full" : "min-w-48")}
+            onClick={onClose}
+          >
+            {buttonStartShopping}
+          </Link>
+        )}
       </div>
-      <div className="grid gap-4">
-        <CartBestSellers
-          count={4}
-          heading="Shop Best Sellers"
-          layout={layout}
-          onClose={onClose}
-          sortKey="BEST_SELLING"
-        />
-      </div>
+      {enableCartBestSellers && (
+        <div className="grid gap-4">
+          <CartBestSellers
+            count={4}
+            heading="Shop Best Sellers"
+            layout={layout}
+            onClose={onClose}
+            sortKey="BEST_SELLING"
+          />
+        </div>
+      )}
     </div>
   );
 }

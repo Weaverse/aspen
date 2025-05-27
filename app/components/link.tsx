@@ -1,3 +1,4 @@
+import { ArrowRight } from "@phosphor-icons/react";
 import {
   Link as RemixLink,
   type LinkProps as RemixLinkProps,
@@ -14,35 +15,29 @@ import { type HTMLAttributes, forwardRef } from "react";
 import type { RootLoader } from "~/root";
 import { cn } from "~/utils/cn";
 
-let variants = cva(["transition-colors inline-flex"], {
+let variants = cva(["button transition-colors inline-flex"], {
   variants: {
     variant: {
       primary: [
-        "border px-4 py-3",
+        "px-4 py-3",
         "text-[--btn-primary-text]",
         "bg-[--btn-primary-bg]",
-        "border-[--btn-primary-bg]",
-        "hover:text-[--btn-primary-bg]",
-        "hover:bg-[--btn-primary-text]",
-        "hover:border-[--btn-primary-bg]",
       ],
       secondary: [
-        "border px-4 py-3",
+        "px-4 py-3",
         "text-[--btn-secondary-text]",
         "bg-[--btn-secondary-bg]",
-        "border-[--btn-secondary-bg]",
-        "hover:bg-[--btn-secondary-text]",
-        "hover:text-[--btn-secondary-bg]",
-        "hover:border-[--btn-secondary-text]",
       ],
       outline: [
         "border px-4 py-3",
         "text-[--btn-outline-text]",
         "bg-transparent",
-        "border-[--btn-outline-text]",
-        "hover:bg-[--btn-outline-text]",
-        "hover:text-background",
-        "hover:border-[--btn-outline-text]",
+        "border-[--btn-outline-border]",
+        "hover:bg-[--btn-outline-background]",
+      ],
+      decor: [
+        "bg-transparent border-none p-0",
+        "text-[--btn-text-decor] inline-flex items-center gap-1 group",
       ],
       custom: [
         "border px-4 py-3",
@@ -70,6 +65,7 @@ export interface LinkStyleProps {
   backgroundColorHover: string;
   textColorHover: string;
   borderColorHover: string;
+  textColorDecor: string;
 }
 
 export interface LinkProps
@@ -126,6 +122,7 @@ export let Link = forwardRef(
       textColorHover,
       backgroundColorHover,
       borderColorHover,
+      textColorDecor,
       children,
       ...rest
     } = props;
@@ -141,6 +138,13 @@ export let Link = forwardRef(
         "--btn-bg-hover": backgroundColorHover,
         "--btn-text-hover": textColorHover,
         "--btn-border-hover": borderColorHover,
+        
+      } as React.CSSProperties;
+    }
+    if (variant === "decor") {
+      style = {
+        ...style,
+        "--btn-text-decor": textColorDecor,
       } as React.CSSProperties;
     }
 
@@ -158,10 +162,21 @@ export let Link = forwardRef(
         className={cn(variants({ variant, className }))}
         {...rest}
       >
-        {children || text}
+        {variant === "decor" ? (
+          <span className="inline-flex items-center gap-1">
+            {children || text}
+            <ArrowRight
+              size={20}
+              weight="thin"
+              className="transition-transform duration-300 transform group-hover:translate-x-1"
+            />
+          </span>
+        ) : (
+          children || text
+        )}
       </RemixLink>
     );
-  },
+  }
 );
 
 export default Link;
@@ -197,11 +212,19 @@ export let linkContentInputs: InspectorGroup["inputs"] = [
         { label: "Primary", value: "primary" },
         { label: "Secondary", value: "secondary" },
         { label: "Outline", value: "outline" },
+        { label: "Decoration", value: "decor" },
         { label: "Underline", value: "underline" },
         { label: "Custom styles", value: "custom" },
       ],
     },
     defaultValue: "primary",
+  },
+  {
+    type: "color",
+    name: "textColorDecor",
+    label: "Text color decor",
+    defaultValue: "#fff",
+    condition: "variant.eq.decor",
   },
 ];
 export let linkStylesInputs: InspectorGroup["inputs"] = [

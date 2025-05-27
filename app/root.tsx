@@ -1,3 +1,5 @@
+import '@fontsource/tenor-sans';
+import '@fontsource-variable/open-sans';
 import {
   Links,
   Meta,
@@ -28,10 +30,6 @@ import { GlobalLoading } from "./components/root/global-loading";
 import { DEFAULT_LOCALE } from "./utils/const";
 import { GlobalStyle } from "./weaverse/style";
 import { Header } from "./components/layout/header";
-import poppins400 from "@fontsource/poppins/400.css?url";
-import poppins500 from "@fontsource/poppins/500.css?url";
-import poppins600 from "@fontsource/poppins/600.css?url";
-import poppins700 from "@fontsource/poppins/700.css?url";
 import styles from "./styles/app.css?url";
 
 export type RootLoader = typeof loader;
@@ -98,7 +96,7 @@ export function ErrorBoundary({ error }: { error: Error }) {
   );
 }
 
-export function Layout({ children }: { children: React.ReactNode }) {
+export function Layout({ children }: { children?: React.ReactNode }) {
   let nonce = useNonce();
   let data = useRouteLoaderData<RootLoader>("root");
   let locale = data?.selectedLocale ?? DEFAULT_LOCALE;
@@ -109,10 +107,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
-        <link rel="stylesheet" href={poppins400} />
-        <link rel="stylesheet" href={poppins500} />
-        <link rel="stylesheet" href={poppins600} />
-        <link rel="stylesheet" href={poppins700} />
         <link rel="stylesheet" href={styles} />
         <Meta />
         <Links />

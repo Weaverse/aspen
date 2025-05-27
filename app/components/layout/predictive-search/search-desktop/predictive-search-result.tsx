@@ -21,15 +21,17 @@ export function PredictiveSearchResult({ items, type }: SearchResultTypeProps) {
 
   return (
     <div key={type} className="predictive-search-result flex flex-col gap-4">
-      <div className="uppercase font-bold border-b border-line-subtle pb-3">
-        {isSuggestions ? "Suggestions" : type}
-      </div>
+      {isSuggestions && (
+        <div className="uppercase border-b border-line-subtle py-1 px-3">
+          {isSuggestions && "Suggestions"}
+        </div>
+      )}
       {items?.length ? (
         <ul
           className={clsx(
             type === "queries" && "space-y-1",
             type === "articles" && "space-y-3",
-            type === "products" && "space-y-4",
+            type === "products" && "flex gap-4"
           )}
         >
           {items.map((item: NormalizedPredictiveSearchResultItem) => (
@@ -65,7 +67,7 @@ function SearchResultItem({
   return (
     <li key={id}>
       <Link
-        className="flex gap-4"
+        className="flex flex-col gap-4"
         to={
           __typename === "SearchQuerySuggestion" || !url
             ? `/search?q=${id}`
@@ -74,12 +76,12 @@ function SearchResultItem({
         data-type={__typename}
       >
         {__typename === "Product" && (
-          <div className="h-20 w-20 shrink-0">
+          <div className="shrink-0">
             {image?.url && (
               <Image
                 alt={image.altText ?? ""}
                 src={image.url}
-                width={200}
+                className="max-w-full"
                 aspectRatio="1/1"
               />
             )}
@@ -96,7 +98,7 @@ function SearchResultItem({
           ) : (
             <div
               className={clsx(
-                __typename === "Product" ? "line-clamp-1" : "line-clamp-2",
+                __typename === "Product" ? "line-clamp-1" : "line-clamp-2"
               )}
             >
               <RevealUnderline>{title}</RevealUnderline>

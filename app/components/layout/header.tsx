@@ -1,4 +1,4 @@
-import { MagnifyingGlass, User } from "@phosphor-icons/react";
+import { User } from "@phosphor-icons/react";
 import {
   Await,
   useLocation,
@@ -7,7 +7,7 @@ import {
 } from "@remix-run/react";
 import { useThemeSettings } from "@weaverse/hydrogen";
 import { cva } from "class-variance-authority";
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import useWindowScroll from "react-use/esm/useWindowScroll";
 import Link from "~/components/link";
 import { Logo } from "~/components/logo";
@@ -17,7 +17,8 @@ import { DEFAULT_LOCALE } from "~/utils/const";
 import { CartDrawer } from "./cart-drawer";
 import { DesktopMenu } from "./desktop-menu";
 import { MobileMenu } from "./mobile-menu";
-import { PredictiveSearchButton } from "./predictive-search";
+import { PredictiveSearchButtonMobile } from "./predictive-search/search-mobile";
+import { PredictiveSearchButtonDesktop } from "./predictive-search/search-desktop";
 
 let variants = cva("", {
   variants: {
@@ -42,6 +43,7 @@ function useIsHomeCheck() {
 }
 
 export function Header() {
+  let [isSearchOpen, setIsSearchOpen] = useState(false);
   let { enableTransparentHeader, headerWidth } = useThemeSettings();
   let isHome = useIsHomeCheck();
   let { y } = useWindowScroll();
@@ -49,7 +51,7 @@ export function Header() {
 
   let scrolled = y >= 50;
   let enableTransparent = enableTransparentHeader && isHome && !routeError;
-  let isTransparent = enableTransparent && !scrolled;
+  let isTransparent = enableTransparent && !scrolled && !isSearchOpen;
 
   return (
     <header
@@ -81,23 +83,21 @@ export function Header() {
               "[&_.cart-count]:bg-[--color-header-text]",
               "[&_.main-logo]:opacity-100",
               "[&_.transparent-logo]:opacity-0",
-            ],
+            ]
       )}
     >
       <div
         className={cn(
           "h-nav py-1.5 lg:py-3 flex items-center justify-between gap-2 lg:gap-8",
-          variants({ width: headerWidth }),
+          variants({ width: headerWidth })
         )}
       >
         <MobileMenu />
-        <Link to="/search" className="p-1.5 lg:hidden">
-          <MagnifyingGlass className="w-5 h-5" />
-        </Link>
+        <PredictiveSearchButtonMobile setIsSearchOpen={setIsSearchOpen} />
         <Logo />
         <DesktopMenu />
         <div className="flex items-center gap-1 z-1">
-          <PredictiveSearchButton />
+          <PredictiveSearchButtonDesktop setIsSearchOpen={setIsSearchOpen} />
           <AccountLink className="relative flex items-center justify-center w-8 h-8" />
           <CartDrawer />
         </div>
@@ -111,18 +111,20 @@ function AccountLink({ className }: { className?: string }) {
   let isLoggedIn = rootData?.isLoggedIn;
 
   return (
-    <Link to="/account" className={className}>
-      <Suspense fallback={<User className="w-5 h-5" />}>
-        <Await resolve={isLoggedIn} errorElement={<User className="w-5 h-5" />}>
-          {(isLoggedIn) =>
-            isLoggedIn ? (
+    <Suspense fallback="Sign in">
+      <Await resolve={isLoggedIn}  errorElement="Sign in">
+        {(isLoggedIn) =>
+          isLoggedIn ? (
+            <Link prefetch="intent" to="/account" className={className}>
               <User className="w-5 h-5" />
-            ) : (
+            </Link>
+          ) : (
+            <Link to="/account/login" className={className}>
               <User className="w-5 h-5" />
-            )
-          }
-        </Await>
-      </Suspense>
-    </Link>
+            </Link>
+          )
+        }
+      </Await>
+    </Suspense>
   );
 }

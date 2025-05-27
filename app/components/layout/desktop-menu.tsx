@@ -1,4 +1,3 @@
-import { CaretDown } from "@phosphor-icons/react";
 import * as Menubar from "@radix-ui/react-menubar";
 import { useThemeSettings } from "@weaverse/hydrogen";
 import clsx from "clsx";
@@ -37,7 +36,6 @@ export function DesktopMenu() {
                   asChild={!hasSubmenu}
                   className={clsx([
                     "cursor-pointer px-3 py-2 h-full flex items-center gap-1.5",
-                    '[&>svg]:data-[state="open"]:rotate-180',
                     "focus:outline-none uppercase",
                   ])}
                   onMouseEnter={() => {
@@ -49,7 +47,6 @@ export function DesktopMenu() {
                   {hasSubmenu ? (
                     <>
                       <span>{title}</span>
-                      <CaretDown className="w-3.5 h-3.5 transition-transform" />
                     </>
                   ) : (
                     <Link to={to} className="transition-none">
@@ -61,7 +58,7 @@ export function DesktopMenu() {
                   <Menubar.Content
                     className={cn([
                       "px-3 md:px-4 lg:px-6",
-                      "bg-[--color-header-bg] shadow-lg",
+                      "bg-[--color-header-bg] shadow-lg border-t border-line-subtle mt-1.5 lg:mt-3",
                       isDropdown ? "py-6" : "w-screen py-8",
                     ])}
                   >
@@ -109,25 +106,24 @@ function MegaMenu({ items }: { items: SingleMenuItem[] }) {
         resource?.image && children.length === 0 ? (
           <SlideIn
             key={id}
-            className="grow max-w-72 w-72 bg-gray-100 aspect-square relative group/item overflow-hidden"
+            className="flex flex-col gap-5 group/item overflow-hidden"
             style={{ "--idx": idx } as React.CSSProperties}
           >
             <Image
               sizes="auto"
               data={resource.image}
-              className="group-hover/item:scale-[1.03] transition-transform duration-300"
+              className="group-hover/item:scale-[1.03] transition-transform duration-300 max-w-72 w-72 aspect-square"
               width={300}
             />
             <Link
               to={to}
               prefetch="intent"
               className={clsx([
-                "absolute inset-0 p-2 flex items-center justify-center text-center",
-                "bg-black/20 group-hover/item:bg-black/40",
-                "h6 text-body-inverse font-medium transition-all duration-300",
+                "text-left",
+                "font-normal uppercase",
               ])}
             >
-              {title}
+              <RevealUnderline>{title}</RevealUnderline>
             </Link>
           </SlideIn>
         ) : (

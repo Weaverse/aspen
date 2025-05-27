@@ -6,32 +6,20 @@ export let themeSchema: HydrogenThemeSchema = {
   info: {
     version: pkg.version,
     author: "Weaverse",
-    name: "Pilot",
+    name: "Aspen",
     authorProfilePhoto:
       "https://cdn.shopify.com/s/files/1/0838/0052/3057/files/Weaverse_logo_-_3000x_e2fa8c13-dac2-4dcb-a2c2-f7aaf7a58169.png?v=1698245759",
     documentationUrl: "https://weaverse.io/docs",
     supportUrl: "https://weaverse.io/contact",
   },
-  i18n: {
-    urlStructure: "url-path",
-    defaultLocale: {
-      pathPrefix: "",
-      label: "United States (USD $)",
-      language: "EN",
-      country: "US",
-      currency: "USD",
-    },
-    shopLocales: Object.entries(COUNTRIES).map(
-      ([pathPrefix, { label, language, country }]) => {
-        return {
-          pathPrefix: pathPrefix === "default" ? "" : pathPrefix,
-          label,
-          language,
-          country,
-        };
-      },
-    ),
-  },
+  i18n: Object.values(COUNTRIES).map((i) => {
+    return {
+      language: i.language,
+      country: i.country,
+      label: i.label,
+    };
+  }),
+  defaultLocale: "en-us",
   inspector: [
     {
       group: "Layout",
@@ -90,6 +78,31 @@ export let themeSchema: HydrogenThemeSchema = {
       group: "Scrolling announcements",
       inputs: [
         {
+          type: "select",
+          name: "announcementWidth",
+          label: "Announcement width",
+          configs: {
+            options: [
+              { value: "full", label: "Full page" },
+              { value: "stretch", label: "Stretch" },
+              { value: "fixed", label: "Fixed" },
+            ],
+          },
+          defaultValue: "fixed",
+        },
+        {
+          type: "range",
+          label: "Height",
+          name: "topbarHeight",
+          configs: {
+            min: 10,
+            max: 100,
+            step: 1,
+            unit: "px",
+          },
+          defaultValue: 36,
+        },
+        {
           type: "richtext",
           name: "topbarText",
           label: "Content",
@@ -105,19 +118,8 @@ export let themeSchema: HydrogenThemeSchema = {
             step: 1,
             unit: "px",
           },
+          condition: "layoutText.eq.scroll",
           defaultValue: 44,
-        },
-        {
-          type: "range",
-          label: "Height",
-          name: "topbarHeight",
-          configs: {
-            min: 10,
-            max: 100,
-            step: 1,
-            unit: "px",
-          },
-          defaultValue: 36,
         },
         {
           type: "range",
@@ -129,7 +131,36 @@ export let themeSchema: HydrogenThemeSchema = {
             step: 1,
             unit: "x",
           },
-          defaultValue: 1,
+          condition: "layoutText.eq.scroll",
+          defaultValue: 5,
+        },
+        {
+          type: "heading",
+          label: "Social links",
+        },
+        {
+          type: "text",
+          name: "socialInstagramAnnouncement",
+          label: "Instagram",
+          defaultValue: "https://www.instagram.com/",
+        },
+        {
+          type: "text",
+          name: "socialXAnnouncement",
+          label: "X (formerly Twitter)",
+          defaultValue: "https://x.com/i/communities/1636383560197373952",
+        },
+        {
+          type: "text",
+          name: "socialLinkedInAnnouncement",
+          label: "LinkedIn",
+          defaultValue: "https://www.linkedin.com/company/weaverseio",
+        },
+        {
+          type: "text",
+          name: "socialFacebookAnnouncement",
+          label: "Facebook",
+          defaultValue: "https://www.facebook.com/weaverse",
         },
       ],
     },
@@ -153,7 +184,7 @@ export let themeSchema: HydrogenThemeSchema = {
           type: "switch",
           label: "Enable transparent header",
           name: "enableTransparentHeader",
-          defaultValue: false,
+          defaultValue: true,
           helpText: "Header is transparent in home page only.",
         },
         {
@@ -163,7 +194,7 @@ export let themeSchema: HydrogenThemeSchema = {
           defaultValue: {
             id: "gid://shopify/MediaImage/34144817938616",
             altText: "Logo",
-            url: "https://cdn.shopify.com/s/files/1/0623/5095/0584/files/Pilot_logo_b04f1938-06e5-414d-8a47-d5fcca424000.png?v=1697101908",
+            url: "https://cdn.shopify.com/s/files/1/0838/0052/3057/files/fpo-logo-k-600x200.svg",
             width: 320,
             height: 116,
           },
@@ -175,7 +206,7 @@ export let themeSchema: HydrogenThemeSchema = {
           defaultValue: {
             id: "gid://shopify/MediaImage/34144817938616",
             altText: "Logo",
-            url: "https://cdn.shopify.com/s/files/1/0838/0052/3057/files/transparent_Pilot_logo.png?v=1718763594",
+            url: "https://cdn.shopify.com/s/files/1/0838/0052/3057/files/fpo-logo-w-600x200.svg",
             width: 320,
             height: 116,
           },
@@ -228,17 +259,17 @@ export let themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "Text",
           name: "colorText",
-          defaultValue: "#0F0F0F",
+          defaultValue: "#24211E",
         },
         {
           type: "color",
           label: "Text (subtle)",
           name: "colorTextSubtle",
-          defaultValue: "#88847F",
+          defaultValue: "#524B46",
         },
         {
           type: "color",
-          label: "Text (inverse)",
+          label: "Text (basic)",
           name: "colorTextInverse",
           defaultValue: "#fff",
         },
@@ -246,13 +277,13 @@ export let themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "Borders",
           name: "colorLine",
-          defaultValue: "#3B352C",
+          defaultValue: "#A79D95",
         },
         {
           type: "color",
           label: "Borders (subtle)",
           name: "colorLineSubtle",
-          defaultValue: "#A19B91",
+          defaultValue: "#DBD7D1",
         },
         {
           type: "heading",
@@ -262,13 +293,13 @@ export let themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "Announcement text",
           name: "topbarTextColor",
-          defaultValue: "#ffffff",
+          defaultValue: "#524B46",
         },
         {
           type: "color",
           label: "Announcement background",
           name: "topbarBgColor",
-          defaultValue: "#000000",
+          defaultValue: "#F2F0EE",
         },
         {
           type: "heading",
@@ -284,7 +315,7 @@ export let themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "Header text",
           name: "headerText",
-          defaultValue: "#000000",
+          defaultValue: "#24211E",
         },
         {
           type: "color",
@@ -300,13 +331,13 @@ export let themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "Footer background",
           name: "footerBgColor",
-          defaultValue: "#000000",
+          defaultValue: "#EBE8E5",
         },
         {
           type: "color",
           label: "Footer text",
           name: "footerText",
-          defaultValue: "#ffffff",
+          defaultValue: "#24211E",
         },
         {
           type: "heading",
@@ -316,13 +347,13 @@ export let themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "Background color",
           name: "buttonPrimaryBg",
-          defaultValue: "#000000",
+          defaultValue: "#908379",
         },
         {
           type: "color",
           label: "Text color",
           name: "buttonPrimaryColor",
-          defaultValue: "#ffffff",
+          defaultValue: "#F1EEEA",
         },
         {
           type: "heading",
@@ -332,13 +363,13 @@ export let themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "Background color",
           name: "buttonSecondaryBg",
-          defaultValue: "#ffffff",
+          defaultValue: "#F0EFED",
         },
         {
           type: "color",
           label: "Text color",
           name: "buttonSecondaryColor",
-          defaultValue: "#000000",
+          defaultValue: "#24211E",
         },
         {
           type: "heading",
@@ -346,9 +377,21 @@ export let themeSchema: HydrogenThemeSchema = {
         },
         {
           type: "color",
-          label: "Text and border",
-          name: "buttonOutlineTextAndBorder",
-          defaultValue: "#000000",
+          label: "Text color",
+          name: "buttonOutlineText",
+          defaultValue: "#524B46",
+        },
+        {
+          type: "color",
+          label: "Background color",
+          name: "buttonOutlineBackground",
+          defaultValue: "#A79D95",
+        },
+        {
+          type: "color",
+          label: "Border color",
+          name: "buttonOutlineBorder",
+          defaultValue: "#A79D95",
         },
         {
           type: "heading",
@@ -788,6 +831,42 @@ export let themeSchema: HydrogenThemeSchema = {
       ],
     },
     {
+      group: "Cart",
+      inputs: [
+        {
+          type: "text",
+          label: "Cart title empty state",
+          name: "cartTitleEmpty",
+          defaultValue: "Looks like you haven’t added anything yet, let’s get you started!",
+        },
+        {
+          type: "text",
+          label: "Button tittle start shopping",
+          name: "buttonStartShopping",
+          defaultValue: "Start Shopping",
+        },
+        {
+          type: "switch",
+          label: "Enable cart best sellers",
+          name: "enableCartBestSellers",
+          defaultValue: true,
+        },
+        {
+          type: "switch",
+          label: "Enable free shipping",
+          name: "enableFreeShipping",
+          defaultValue: true,
+        },
+        {
+          type: "text",
+          label: "Total amount sufficient for free shipping",
+          name: "freeShippingThreshold",
+          defaultValue: "50",
+          placeholder: "Only numeric values can be entered.",
+        }
+      ],
+    },
+    {
       group: "Animations and effects",
       inputs: [
         {
@@ -834,11 +913,11 @@ export let themeSchema: HydrogenThemeSchema = {
           label: "Logo width",
           configs: {
             min: 20,
-            max: 200,
+            max: 500,
             step: 1,
             unit: "px",
           },
-          defaultValue: 80,
+          defaultValue: 400,
         },
         {
           type: "richtext",

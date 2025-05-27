@@ -21,7 +21,9 @@ export function GlobalStyle() {
       buttonPrimaryColor,
       buttonSecondaryBg,
       buttonSecondaryColor,
-      buttonOutlineTextAndBorder,
+      buttonOutlineText,
+      buttonOutlineBackground,
+      buttonOutlineBorder,
       comparePriceTextColor,
       discountBadge,
       newBadge,
@@ -73,7 +75,9 @@ export function GlobalStyle() {
               --btn-primary-text: ${buttonPrimaryColor};
               --btn-secondary-bg: ${buttonSecondaryBg};
               --btn-secondary-text: ${buttonSecondaryColor};
-              --btn-outline-text: ${buttonOutlineTextAndBorder};
+              --btn-outline-text: ${buttonOutlineText};
+              --btn-outline-background: ${buttonOutlineBackground};
+              --btn-outline-border: ${buttonOutlineBorder};
 
               /* Colors (product) */
               --color-compare-price-text: ${comparePriceTextColor};
