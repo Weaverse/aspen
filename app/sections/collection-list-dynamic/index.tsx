@@ -56,7 +56,7 @@ let CollectionListDynamic = forwardRef<HTMLElement, CollectionListDynamicProps>(
 export default CollectionListDynamic;
 
 let COLLECTIONS_QUERY = `#graphql
-  query collectionsByIds($country: CountryCode, $language: LanguageCode, $ids: [ID!]!)
+  query collectionByIds($country: CountryCode, $language: LanguageCode, $ids: [ID!]!)
   @inContext(country: $country, language: $language) {
     nodes(ids: $ids) {
       ... on Collection {
