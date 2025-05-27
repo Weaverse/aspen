@@ -1,8 +1,8 @@
 import {
-  CaretRight,
   FacebookLogo,
   InstagramLogo,
   LinkedinLogo,
+  Plus,
   XLogo,
 } from "@phosphor-icons/react";
 import * as Accordion from "@radix-ui/react-accordion";
@@ -103,18 +103,13 @@ export function Footer() {
     <footer
       className={cn(
         "w-full bg-[--color-footer-bg] text-[--color-footer-text] pt-9 lg:pt-16",
-        variants({ padding: footerWidth }),
+        variants({ padding: footerWidth })
       )}
     >
-      <div
-        className={cn(
-          "divide-y divide-line-subtle space-y-9 w-full h-full",
-          variants({ width: footerWidth }),
-        )}
-      >
-        <div className="space-y-9">
-          <div className="w-full grid lg:grid-cols-3 gap-8">
-            <div className="flex flex-col gap-6">
+      <div className={cn("w-full h-full", variants({ width: footerWidth }))}>
+        <div className="md:space-y-9 divide-y divide-line-subtle">
+          <div className="w-full grid md:grid-cols-2 grid-cols-1 gap-8">
+            <div className="flex flex-col justify-between gap-6">
               {footerLogoData ? (
                 <div className="relative" style={{ width: footerLogoWidth }}>
                   <Image
@@ -129,8 +124,76 @@ export function Footer() {
                   {shopName}
                 </div>
               )}
-              {bio ? <div dangerouslySetInnerHTML={{ __html: bio }} /> : null}
-              <div className="flex gap-4">
+              <div className="flex flex-col gap-4">
+                {bio ? <div dangerouslySetInnerHTML={{ __html: bio }} /> : null}
+              </div>
+            </div>
+            <div className="flex flex-col gap-10">
+              <div className="lg:block md:hidden block">
+                <FooterMenu />
+              </div>
+              <div className="flex flex-col gap-6">
+                <div className="text-base">{addressTitle}</div>
+                <div className="space-y-2">
+                  <p>{storeAddress}</p>
+                  <p>Email: {storeEmail}</p>
+                </div>
+              </div>
+              <div className="flex flex-col gap-6 lg:w-fit w-full">
+                <div className="text-base">{newsletterTitle}</div>
+                <div className="space-y-2">
+                  <p>{newsletterDescription}</p>
+                  <fetcher.Form
+                    onSubmit={handleSubmit}
+                    action="/api/klaviyo"
+                    method="POST"
+                    encType="multipart/form-data"
+                    className="flex gap-3"
+                  >
+                    <input
+                      name="email"
+                      type="email"
+                      required
+                      placeholder={newsletterPlaceholder}
+                      className="text-body focus-visible:outline-none px-3 placeholder:text-[#918379] border border-line-subtle lg:w-80 w-full"
+                    />
+                    <Button
+                      variant="primary"
+                      type="submit"
+                      loading={fetcher.state === "submitting"}
+                    >
+                      {newsletterButtonText}
+                    </Button>
+                  </fetcher.Form>
+                  <div className="h-8">
+                    {error && (
+                      <div className="bg-red-100 border-l-4 border-red-500 text-red-700 py-1 px-2 mb-6 flex gap-1 w-fit">
+                        <p className="font-semibold">ERROR:</p>
+                        <p>{error}</p>
+                      </div>
+                    )}
+                    {message && (
+                      <div className="bg-green-100 border-l-4 border-green-500 text-green-700 py-1 px-2 mb-6 flex gap-1 w-fit">
+                        <p>{message}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div className="lg:hidden md:block hidden">
+              <FooterMenu />
+            </div>
+            <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 justify-center items-center py-9 gap-y-6">
+              <p className="order-3 md:col-span-2 lg:order-none lg:col-span-1">
+                {copyright}
+              </p>
+              <div className="flex justify-start lg:justify-center items-center order-1">
+                <CountrySelector inputClassName="px-4 py-3" />
+              </div>
+              <div className="flex gap-4 justify-start md:justify-end order-2">
                 {socialItems.map((social) =>
                   social.to ? (
                     <Link
@@ -142,67 +205,11 @@ export function Footer() {
                     >
                       {social.icon}
                     </Link>
-                  ) : null,
+                  ) : null
                 )}
               </div>
             </div>
-            <div className="flex flex-col gap-6">
-              <div className="text-base">{addressTitle}</div>
-              <div className="space-y-2">
-                <p>{storeAddress}</p>
-                <p>Email: {storeEmail}</p>
-              </div>
-            </div>
-            <div className="flex flex-col gap-6">
-              <div className="text-base">{newsletterTitle}</div>
-              <div className="space-y-2">
-                <p>{newsletterDescription}</p>
-                <fetcher.Form
-                  onSubmit={handleSubmit}
-                  action="/api/klaviyo"
-                  method="POST"
-                  encType="multipart/form-data"
-                >
-                  <div className="flex">
-                    <input
-                      name="email"
-                      type="email"
-                      required
-                      placeholder={newsletterPlaceholder}
-                      className="grow text-body focus-visible:outline-none px-3"
-                    />
-                    <Button
-                      variant="custom"
-                      type="submit"
-                      loading={fetcher.state === "submitting"}
-                    >
-                      {newsletterButtonText}
-                    </Button>
-                  </div>
-                </fetcher.Form>
-                <div className="h-8">
-                  {error && (
-                    <div className="bg-red-100 border-l-4 border-red-500 text-red-700 py-1 px-2 mb-6 flex gap-1 w-fit">
-                      <p className="font-semibold">ERROR:</p>
-                      <p>{error}</p>
-                    </div>
-                  )}
-                  {message && (
-                    <div className="bg-green-100 border-l-4 border-green-500 text-green-700 py-1 px-2 mb-6 flex gap-1 w-fit">
-                      <p>{message}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
           </div>
-          <FooterMenu />
-        </div>
-        <div className="py-9 flex gap-4 flex-col lg:flex-row justify-between items-center">
-          <div className="flex gap-2 ">
-            <CountrySelector />
-          </div>
-          <p>{copyright}</p>
         </div>
       </div>
     </footer>
@@ -216,48 +223,70 @@ function FooterMenu() {
     <Accordion.Root
       type="multiple"
       defaultValue={items.map(({ id }) => id)}
-      className="w-full grid lg:grid-cols-3 lg:gap-8"
+      className="w-full grid lg:grid-cols-4 lg:gap-8 md:grid-cols-3 md:gap-5 pt-0 md:pt-9"
     >
-      {items.map(({ id, to, title, items }) => (
-        <Accordion.Item key={id} value={id} className="flex flex-col">
-          <Accordion.Trigger className="flex py-4 justify-between items-center lg:hidden text-left font-medium [&>svg]:data-[state=open]:rotate-90">
-            {["#", "/"].includes(to) ? (
-              <span>{title}</span>
-            ) : (
-              <Link to={to}>{title}</Link>
-            )}
-            <CaretRight className="w-4 h-4 transition-transform rotate-0" />
-          </Accordion.Trigger>
-          <div className="text-lg font-medium hidden lg:block">
-            {["#", "/"].includes(to) ? title : <Link to={to}>{title}</Link>}
-          </div>
-          <Accordion.Content
-            style={
-              {
-                "--expand-duration": "0.15s",
-                "--expand-to": "var(--radix-accordion-content-height)",
-                "--collapse-duration": "0.15s",
-                "--collapse-from": "var(--radix-accordion-content-height)",
-              } as React.CSSProperties
-            }
-            className={clsx([
-              "overflow-hidden",
-              "data-[state=closed]:animate-collapse",
-              "data-[state=open]:animate-expand",
-            ])}
+      {items.map(({ id, to, title, items: subItems }) => {
+        const isEmpty = !subItems || subItems.length === 0;
+
+        return (
+          <Accordion.Item
+            key={id}
+            value={id}
+            className="flex flex-col border-b border-line-subtle md:border-none"
           >
-            <div className="pb-4 lg:pt-6 flex flex-col gap-2">
-              {items.map(({ id, to, title }) => (
-                <Link to={to} key={id} className="relative">
-                  <RevealUnderline className="[--underline-color:--color-footer-text]">
-                    {title}
-                  </RevealUnderline>
-                </Link>
-              ))}
+            {!isEmpty ? (
+              <Accordion.Trigger className="flex py-4 justify-between items-center md:hidden text-left font-medium [&>svg]:data-[state=open]:rotate-90">
+                {["#", "/"].includes(to) ? (
+                  <span>{title}</span>
+                ) : (
+                  <Link to={to}>{title}</Link>
+                )}
+                <Plus className="w-4 h-4 transition-transform rotate-0" />
+              </Accordion.Trigger>
+            ) : (
+              <div className="py-4 md:hidden text-left font-medium">
+                {["#", "/"].includes(to) ? (
+                  <span>{title}</span>
+                ) : (
+                  <Link to={to}>{title}</Link>
+                )}
+              </div>
+            )}
+
+            <div className="text-lg font-medium hidden md:block">
+              {["#", "/"].includes(to) ? title : <Link to={to}>{title}</Link>}
             </div>
-          </Accordion.Content>
-        </Accordion.Item>
-      ))}
+
+            {!isEmpty && (
+              <Accordion.Content
+                style={
+                  {
+                    "--expand-duration": "0.15s",
+                    "--expand-to": "var(--radix-accordion-content-height)",
+                    "--collapse-duration": "0.15s",
+                    "--collapse-from": "var(--radix-accordion-content-height)",
+                  } as React.CSSProperties
+                }
+                className={clsx([
+                  "overflow-hidden",
+                  "data-[state=closed]:animate-collapse",
+                  "data-[state=open]:animate-expand",
+                ])}
+              >
+                <div className="pb-4 lg:pt-6 flex flex-col gap-2">
+                  {subItems.map(({ id, to, title }) => (
+                    <Link to={to} key={id} className="relative">
+                      <RevealUnderline className="[--underline-color:--color-footer-text]">
+                        {title}
+                      </RevealUnderline>
+                    </Link>
+                  ))}
+                </div>
+              </Accordion.Content>
+            )}
+          </Accordion.Item>
+        );
+      })}
     </Accordion.Root>
   );
 }
