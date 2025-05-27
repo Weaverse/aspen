@@ -14,9 +14,10 @@ import ReactCountryFlag from "react-country-flag";
 import { useInView } from "react-intersection-observer";
 import type { RootLoader } from "~/root";
 import type { Localizations } from "~/types/locale";
+import { cn } from "~/utils/cn";
 import { DEFAULT_LOCALE } from "~/utils/const";
 
-export function CountrySelector() {
+export function CountrySelector({inputClassName, wrapperClassName}:{inputClassName?: string, wrapperClassName?: string}) {
   let fetcher = useFetcher();
   let submit = useSubmit();
   let rootData = useRouteLoaderData<RootLoader>("root");
@@ -24,7 +25,7 @@ export function CountrySelector() {
   let { pathname, search } = useLocation();
   let pathWithoutLocale = `${pathname.replace(
     selectedLocale.pathPrefix,
-    "",
+    ""
   )}${search}`;
 
   let countries = (fetcher.data ?? {}) as Localizations;
@@ -47,37 +48,37 @@ export function CountrySelector() {
 
   // Get available countries list when in view
   useEffect(() => {
-    if (!inView || fetcher.data || fetcher.state === "loading") {
-      return;
-    }
+    if (!inView || fetcher.data || fetcher.state === "loading") return;
     fetcher.load("/api/countries");
   }, [inView, fetcher]);
 
-  function handleLocaleChange({
+  let handleLocaleChange = ({
     redirectTo,
     buyerIdentity,
   }: {
     redirectTo: string;
     buyerIdentity: CartBuyerIdentityInput;
-  }) {
-    submit(
-      {
-        redirectTo,
-        cartFormInput: JSON.stringify({
-          action: CartForm.ACTIONS.BuyerIdentityUpdate,
-          inputs: { buyerIdentity },
-        }),
-      },
-      { method: "POST", action: "/cart" },
-    );
-  }
+  }) => {
+    let cartFormInput = {
+      action: CartForm.ACTIONS.BuyerIdentityUpdate,
+      inputs: { buyerIdentity },
+    };
+    let formData = {
+      redirectTo,
+      cartFormInput: JSON.stringify(cartFormInput),
+    };
+    submit(formData, {
+      method: "POST",
+      action: "/cart",
+    });
+  };
 
   return (
-    <div ref={observerRef} className="grid gap-4 w-80">
+    <div ref={observerRef} className={cn("grid gap-4 w-80", wrapperClassName)}>
       <Popover.Root>
         <Popover.Trigger asChild>
           <button
-            className="w-full border border-line-subtle overflow-clip px-4 py-3 cursor-pointer text-left outline-none flex items-center gap-2"
+            className={cn("w-full border border-line-subtle overflow-clip cursor-pointer text-left outline-none flex items-center gap-2", inputClassName)}
             aria-label="Select country"
           >
             <ReactCountryFlag
@@ -90,7 +91,7 @@ export function CountrySelector() {
           </button>
         </Popover.Trigger>
         <Popover.Portal>
-          <Popover.Content>
+          <Popover.Content className="z-10">
             <div className="w-80 max-h-40 overflow-auto py-2 bg-neutral-800 my-2">
               {countries &&
                 Object.keys(countries).map((countryPath) => {
@@ -98,7 +99,6 @@ export function CountrySelector() {
                   let isSelected =
                     countryLocale.language === selectedLocale.language &&
                     countryLocale.country === selectedLocale.country;
-
                   return (
                     <Popover.Close
                       aria-label={`Select ${countryLocale.label} country`}
