@@ -6,7 +6,6 @@ import clsx from "clsx";
 import { Suspense, useState } from "react";
 import { Cart } from "~/components/cart/cart";
 import Link from "~/components/link";
-import { ScrollArea } from "~/components/scroll-area";
 import type { RootLoader } from "~/root";
 
 export let openCartDrawer = () => {};
@@ -53,7 +52,7 @@ export function CartDrawer() {
                     "text-sm leading-none text-center font-medium",
                     "transition-colors duration-300",
                     "group-hover/header:bg-[--color-header-text]",
-                    "group-hover/header:text-[--color-header-bg]",
+                    "group-hover/header:text-[--color-header-bg]"
                   )}
                 >
                   <span className="-mr-px">{cart?.totalQuantity}</span>
@@ -67,12 +66,12 @@ export function CartDrawer() {
               />
               <Dialog.Content
                 className={clsx([
-                  "fixed inset-y-0 w-screen max-w-[400px] bg-[--color-background] py-4 z-10",
+                  "fixed inset-y-0 w-screen max-w-[430px] bg-[--color-background] py-4 z-10",
                   "right-0 translate-x-full data-[state=open]:animate-enter-from-right",
                 ])}
                 aria-describedby={undefined}
               >
-                <div className="space-y-6">
+                <div className="">
                   <div className="flex gap-2 items-center justify-between px-4">
                     <Dialog.Title asChild className="py-2.5">
                       <span className="font-bold">Cart</span>
@@ -86,9 +85,9 @@ export function CartDrawer() {
                       </button>
                     </Dialog.Close>
                   </div>
-                  <ScrollArea className="max-h-[calc(100vh-4.5rem)]" size="sm">
+                  {/* <ScrollArea className="max-h-[calc(100vh-4.5rem)]" size="sm"> */}
                     <Cart layout="drawer" cart={cart as CartReturn} />
-                  </ScrollArea>
+                  {/* </ScrollArea> */}
                 </div>
               </Dialog.Content>
             </Dialog.Portal>
