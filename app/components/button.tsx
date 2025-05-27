@@ -1,4 +1,4 @@
-import { CircleNotch } from "@phosphor-icons/react";
+import { ArrowRight, CircleNotch } from "@phosphor-icons/react";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import type { HTMLAttributes } from "react";
@@ -7,7 +7,7 @@ import { cn } from "~/utils/cn";
 
 export let variants = cva(
   [
-    "inline-flex items-center justify-center rounded-none relative",
+    "button inline-flex items-center justify-center rounded-none relative",
     "text-base leading-tight font-normal whitespace-nowrap",
     "focus-visible:outline-none disabled:cursor-not-allowed disabled:!opacity-50",
     "transition-colors",
@@ -19,28 +19,22 @@ export let variants = cva(
           "border px-4 py-3",
           "text-[--btn-primary-text]",
           "bg-[--btn-primary-bg]",
-          "border-[--btn-primary-bg]",
-          "hover:text-[--btn-primary-bg]",
-          "hover:bg-[--btn-primary-text]",
-          "hover:border-[--btn-primary-bg]",
         ],
         secondary: [
           "border px-4 py-3",
           "text-[--btn-secondary-text]",
           "bg-[--btn-secondary-bg]",
-          "border-[--btn-secondary-bg]",
-          "hover:bg-[--btn-secondary-text]",
-          "hover:text-[--btn-secondary-bg]",
-          "hover:border-[--btn-secondary-text]",
         ],
         outline: [
           "border px-4 py-3",
           "text-[--btn-outline-text]",
           "bg-transparent",
-          "border-[--btn-outline-text]",
-          "hover:bg-[--btn-outline-text]",
-          "hover:text-background",
-          "hover:border-[--btn-outline-text]",
+          "border-[--btn-outline-border]",
+          "hover:bg-[--btn-outline-background]",
+        ],
+        decor: [
+          "bg-transparent border-none p-0",
+          "text-[--btn-text-decor] inline-flex items-center gap-1 group",
         ],
         custom: [
           "border px-4 py-3",
@@ -62,7 +56,7 @@ export let variants = cva(
     defaultVariants: {
       variant: "primary",
     },
-  },
+  }
 );
 
 export interface ButtonStyleProps {
@@ -139,7 +133,18 @@ export let Button = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => {
       className={cn(variants({ variant, className }))}
     >
       {loading && <Spinner />}
-      {content}
+      {variant === "decor" ? (
+        <span className="inline-flex items-center gap-1">
+          {content}
+          <ArrowRight
+            size={20}
+            weight="thin"
+            className="transition-transform duration-300 transform group-hover:translate-x-1"
+          />
+        </span>
+      ) : (
+        content
+      )}
     </button>
   );
 });
