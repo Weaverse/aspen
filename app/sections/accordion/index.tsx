@@ -1,20 +1,32 @@
 import type { HydrogenComponentSchema } from "@weaverse/hydrogen";
+import clsx from "clsx";
 import { forwardRef } from "react";
 import { backgroundInputs } from "~/components/background-image";
 import { overlayInputs } from "~/components/overlay";
 import type { SectionProps } from "~/components/section";
-import { layoutInputs, Section, sectionInspector } from "~/components/section";
+import { layoutInputs, Section } from "~/components/section";
 
 // Accordion Section Props
-export type AccordionSectionProps = SectionProps;
+interface AccordionSectionProps extends SectionProps {
+  accordionLayout: "column" | "row";
+}
 
 const AccordionSection = forwardRef<HTMLElement, AccordionSectionProps>(
   (props, ref) => {
-    let { children, ...rest } = props;
+    let { accordionLayout, children, ...rest } = props;
 
     return (
       <Section ref={ref} {...rest}>
-        <div className="w-full h-full grid md:grid-cols-2 grid-cols-1 justify-center items-center lg:gap-16 md:gap-12 gap-8">{children}</div>
+        <div
+          className={clsx(
+            "w-full h-full grid items-center lg:gap-16 md:gap-12 gap-8",
+            accordionLayout === "row"
+              ? "justify-start grid-cols-1 md:[&_.accordion--group]:grid-cols-2 [&_.accordion--group]:grid-cols-1"
+              : "md:grid-cols-2 grid-cols-1"
+          )}
+        >
+          {children}
+        </div>
       </Section>
     );
   }
@@ -28,11 +40,28 @@ export const schema: HydrogenComponentSchema = {
   inspector: [
     {
       group: "Accordion settings",
-      inputs:[
+      inputs: [
         ...layoutInputs.filter((input) => input.name !== "gap"),
         ...backgroundInputs,
         ...overlayInputs,
-      ] 
+      ],
+    },
+    {
+      group: "Accordion layout",
+      inputs: [
+        {
+          type: "toggle-group",
+          name: "accordionLayout",
+          label: "Accordion layout",
+          defaultValue: "column",
+          configs: {
+            options: [
+              { value: "column", label: "Column" },
+              { value: "row", label: "Row" },
+            ],
+          },
+        },
+      ],
     },
   ],
   childTypes: ["content-information", "accordion-group"],
