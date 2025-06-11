@@ -2,7 +2,7 @@ import { HydrogenComponentSchema } from "@weaverse/hydrogen";
 import { createContext, forwardRef, useState, useRef, useEffect } from "react";
 import Heading from "~/components/heading";
 import type { SectionProps } from "~/components/section";
-import { Section, sectionInspector } from "~/components/section";
+import { Section, sectionSettings } from "~/components/section";
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
 import clsx from "clsx";
 
@@ -164,7 +164,7 @@ export let schema: HydrogenComponentSchema = {
   title: "Map",
   childTypes: ["address-item"],
   inspector: [
-    ...sectionInspector,
+    ...sectionSettings,
     {
       group: "Content",
       inputs: [

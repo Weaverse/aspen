@@ -1,14 +1,14 @@
 import { FunnelX, X } from "@phosphor-icons/react";
+import { Pagination } from "@shopify/hydrogen";
+import clsx from "clsx";
+import { useEffect } from "react";
+import { useInView } from "react-intersection-observer";
 import {
   useLoaderData,
   useLocation,
   useNavigate,
   useSearchParams,
-} from "@remix-run/react";
-import { Pagination } from "@shopify/hydrogen";
-import clsx from "clsx";
-import { useEffect } from "react";
-import { useInView } from "react-intersection-observer";
+} from "react-router";
 import type {
   CollectionQuery,
   ProductCardFragment,
@@ -157,7 +157,7 @@ function ProductsLoadedOnScroll(props: ProductsLoadedOnScrollProps) {
     <div
       className={clsx([
         "w-full gap-x-4 gap-y-6 lg:gap-y-10",
-        "grid grid-cols-[--cols-mobile] lg:grid-cols-[--cols-desktop]",
+        "grid grid-cols-(--cols-mobile) lg:grid-cols-(--cols-desktop)",
       ])}
     >
       {nodes.map((product: ProductCardFragment) => (

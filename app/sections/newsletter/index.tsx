@@ -1,7 +1,7 @@
-import type { HydrogenComponentSchema } from "@weaverse/hydrogen";
+import { createSchema } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
 import type { SectionProps } from "~/components/section";
-import { Section, sectionInspector } from "~/components/section";
+import { Section, sectionSettings } from "~/components/section";
 
 type NewsLetterProps = SectionProps;
 
@@ -16,10 +16,10 @@ let NewsLetter = forwardRef<HTMLElement, NewsLetterProps>((props, ref) => {
 
 export default NewsLetter;
 
-export let schema: HydrogenComponentSchema = {
+export let schema = createSchema({
   type: "newsletter",
   title: "Newsletter",
-  inspector: sectionInspector,
+  settings: sectionSettings,
   childTypes: ["subheading", "heading", "paragraph", "newsletter-form"],
   presets: {
     gap: 20,
@@ -36,4 +36,4 @@ export let schema: HydrogenComponentSchema = {
       { type: "newsletter-form" },
     ],
   },
-};
+});

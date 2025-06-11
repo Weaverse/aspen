@@ -1,5 +1,4 @@
 import { ArrowLeft, ArrowRight, FacebookLogo, InstagramLogo, LinkedinLogo, XLogo } from "@phosphor-icons/react";
-import { Link } from "@remix-run/react";
 import { useThemeSettings } from "@weaverse/hydrogen";
 import { cva } from "class-variance-authority";
 import { useEffect, useRef } from "react";
@@ -7,6 +6,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { cn } from "~/utils/cn";
 import { CountrySelector } from "./country-selector";
 import { Navigation } from "swiper/modules";
+import { Link } from "react-router";
 
 let variants = cva("", {
   variants: {

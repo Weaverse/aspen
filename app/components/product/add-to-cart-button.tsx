@@ -1,8 +1,7 @@
-import type { FetcherWithComponents } from "@remix-run/react";
-import { useMatches } from "@remix-run/react";
 import type {
   OptimisticCartLineInput,
   ShopifyAddToCartPayload,
+  ShopifyPageViewPayload,
 } from "@shopify/hydrogen";
 import {
   AnalyticsEventName,
@@ -10,9 +9,9 @@ import {
   getClientBrowserParameters,
   sendShopifyAnalytics,
 } from "@shopify/hydrogen";
-import type { ShopifyPageViewPayload } from "@shopify/hydrogen";
-import { useEffect } from "react";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
+import type { FetcherWithComponents } from "react-router";
+import { useMatches } from "react-router";
 import { Button } from "~/components/button";
 import { openCartDrawer } from "~/components/layout/cart-drawer";
 import { cn } from "~/utils/cn";
@@ -52,7 +51,7 @@ export function AddToCartButton({
             <Button
               type="submit"
               className={cn(
-                "hover:text-[--btn-primary-text] hover:bg-[--btn-primary-bg]",
+                "hover:text-(--btn-primary-text) hover:bg-(--btn-primary-bg)",
                 className,
               )}
               disabled={disabled ?? fetcher.state !== "idle"}
@@ -99,7 +98,7 @@ function AddToCartAnalytics({
 }: {
   fetcher: FetcherWithComponents<any>;
   children: React.ReactNode;
-}): JSX.Element {
+}) {
   let fetcherData = fetcher.data;
   let formData = fetcher.formData;
   let pageAnalytics = usePageAnalytics({ hasUserConsent: true });

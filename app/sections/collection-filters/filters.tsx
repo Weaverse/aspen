@@ -1,9 +1,9 @@
 import { CaretRight } from "@phosphor-icons/react";
 import * as Accordion from "@radix-ui/react-accordion";
-import { useLoaderData } from "@remix-run/react";
 import type { Filter } from "@shopify/hydrogen/storefront-api-types";
 import clsx from "clsx";
 import { useRef } from "react";
+import { useLoaderData } from "react-router";
 import type { CollectionQuery } from "storefront-api.generated";
 import { OPTIONS_AS_SWATCH } from "~/components/product/variant-option";
 import { ScrollArea } from "~/components/scroll-area";
@@ -53,7 +53,7 @@ export function Filters({ className }: { className?: string }) {
               value={filter.id}
               className="w-full pb-6 pt-7"
             >
-              <Accordion.Trigger className="flex w-full justify-between items-center [&>svg]:data-[state=open]:rotate-90">
+              <Accordion.Trigger className="flex w-full justify-between items-center data-[state=open]:[&>svg]:rotate-90">
                 <span>{filter.label}</span>
                 <CaretRight className="w-4 h-4 transition-transform rotate-0" />
               </Accordion.Trigger>

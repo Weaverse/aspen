@@ -1,4 +1,4 @@
-import type { HydrogenComponentSchema } from "@weaverse/hydrogen";
+import { createSchema } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
 import { backgroundInputs } from "~/components/background-image";
 import type { SectionProps } from "~/components/section";
@@ -24,7 +24,7 @@ let TestimonialIndex = forwardRef<HTMLElement, TestimonialProps>(
 
 export default TestimonialIndex;
 
-export let schema: HydrogenComponentSchema = {
+export let schema = createSchema({
   type: "testimonial",
   title: "Testimonial",
   inspector: [
@@ -45,4 +45,4 @@ export let schema: HydrogenComponentSchema = {
       { type: "testimonial--hotspots", aspectRatio: "1/1" },
     ],
   },
-};
+});

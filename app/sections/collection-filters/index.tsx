@@ -1,11 +1,11 @@
-import { useLoaderData } from "@remix-run/react";
-import type { HydrogenComponentSchema } from "@weaverse/hydrogen";
+import { createSchema } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { forwardRef, useEffect, useState } from "react";
+import { useLoaderData } from "react-router";
 import type { CollectionQuery } from "storefront-api.generated";
 import { BreadCrumb } from "~/components/breadcrumb";
 import { Image } from "~/components/image";
-import { Section, type SectionProps, layoutInputs } from "~/components/section";
+import { layoutInputs, Section, type SectionProps } from "~/components/section";
 import { Filters } from "./filters";
 import { ProductsPagination } from "./products-pagination";
 import { ToolsBar } from "./tools-bar";
@@ -94,8 +94,8 @@ let CollectionFilters = forwardRef<HTMLElement, CollectionFiltersProps>(
               <div
                 className={clsx([
                   "mt-6 overflow-hidden bg-gray-100",
-                  "rounded-[--banner-border-radius]",
-                  "h-[--banner-height-mobile] lg:h-[--banner-height-desktop]",
+                  "rounded-(--banner-border-radius)",
+                  "h-(--banner-height-mobile) lg:h-(--banner-height-desktop)",
                 ])}
                 style={
                   {
@@ -147,14 +147,14 @@ let CollectionFilters = forwardRef<HTMLElement, CollectionFiltersProps>(
 
 export default CollectionFilters;
 
-export let schema: HydrogenComponentSchema = {
+export let schema = createSchema({
   type: "collection-filters",
   title: "Collection filters",
   limit: 1,
   enabledOn: {
     pages: ["COLLECTION"],
   },
-  inspector: [
+  settings: [
     {
       group: "Layout",
       inputs: [
@@ -196,7 +196,7 @@ export let schema: HydrogenComponentSchema = {
             max: 600,
             step: 1,
           },
-          condition: "showBanner.eq.true",
+          condition: (data) => data.showBanner,
         },
         {
           type: "range",
@@ -208,7 +208,7 @@ export let schema: HydrogenComponentSchema = {
             max: 400,
             step: 1,
           },
-          condition: "showBanner.eq.true",
+          condition: (data) => data.showBanner,
         },
         {
           type: "range",
@@ -221,7 +221,7 @@ export let schema: HydrogenComponentSchema = {
             unit: "px",
           },
           defaultValue: 0,
-          condition: "showBanner.eq.true",
+          condition: (data) => data.showBanner,
         },
       ],
     },
@@ -257,35 +257,35 @@ export let schema: HydrogenComponentSchema = {
             ],
           },
           defaultValue: "sidebar",
-          condition: "enableFilter.eq.true",
+          condition: (data) => data.enableFilter,
         },
         {
           type: "switch",
           name: "expandFilters",
           label: "Expand filters",
           defaultValue: true,
-          condition: "enableFilter.eq.true",
+          condition: (data) => data.enableFilter,
         },
         {
           type: "switch",
           name: "showFiltersCount",
           label: "Show filters count",
           defaultValue: true,
-          condition: "enableFilter.eq.true",
+          condition: (data) => data.enableFilter,
         },
         {
           type: "switch",
           name: "enableSwatches",
           label: "Enable color/image swatches",
           defaultValue: true,
-          condition: "enableFilter.eq.true",
+          condition: (data) => data.enableFilter,
         },
         {
           type: "text",
           name: "displayAsButtonFor",
           label: "Display as button for:",
           defaultValue: "Size, More filters",
-          condition: "enableFilter.eq.true",
+          condition: (data) => data.enableFilter,
           helpText: "Comma-separated list of filters to display as buttons",
         },
       ],
@@ -335,4 +335,4 @@ export let schema: HydrogenComponentSchema = {
       ],
     },
   ],
-};
+});

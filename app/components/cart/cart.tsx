@@ -62,7 +62,7 @@ function CartDetails({
             enableFreeShipping ? "h-[calc(100vh-100px)]" : "h-[100vh]",
           ],
           layout === "page" && [
-            "pb-12 w-full max-w-page mx-auto",
+            "pb-12 w-full max-w-(--page-width) mx-auto",
             "grid grid-cols-1 lg:grid-cols-3 md:items-start",
             "gap-8 md:gap-8 lg:gap-12",
           ]
@@ -152,12 +152,12 @@ function CartDiscounts({
       <UpdateDiscountForm discountCodes={codes}>
         <div className="flex items-center gap-3">
           <input
-            className="p-3 border border-line rounded-none !leading-tight grow"
+            className="p-3 border border-line rounded-none leading-tight! grow"
             type="text"
             name="discountCode"
             placeholder="Discount code"
           />
-          <Button variant="outline" className="!leading-tight">
+          <Button variant="outline" className="leading-tight!">
             Apply
           </Button>
         </div>
@@ -203,7 +203,7 @@ function CartLines({
       aria-labelledby="cart-contents"
       className={clsx([
         y > 0 ? "border-t border-line-subtle" : "",
-        layout === "page" && "flex-grow md:translate-y-4 lg:col-span-2",
+        layout === "page" && "grow md:translate-y-4 lg:col-span-2",
         layout === "drawer" && "overflow-auto transition",
       ])}
     >
@@ -271,7 +271,7 @@ function CartSummary({
         layout === "drawer" &&
           "sticky bottom-0 grid gap-4 border-t border-line-subtle p-4 bg-white",
         layout === "page" &&
-          "sticky top-nav grid gap-6 p-4 md:px-6 md:translate-y-4 rounded w-full lg:col-span-1 order-2 lg:order-none"
+          "sticky top-(--height-nav) grid gap-6 p-4 md:px-6 md:translate-y-4 rounded w-full lg:col-span-1 order-2 lg:order-none"
       )}
     >
       <h2 id="summary-heading" className="sr-only">
@@ -366,7 +366,7 @@ function CartLineItem({
                 .map((option) => (
                   <div
                     key={option.name}
-                    className="text-[var(--color-compare-price-text)]"
+                    className="text-(--color-compare-price-text)"
                   >
                     {option.name}: {option.value}
                   </div>
@@ -562,7 +562,7 @@ function CartEmpty({
       ref={scrollRef}
       className={clsx(
         layout === "drawer" && [
-          "content-start space-y-12 px-5 pb-5 transition overflow-y-scroll h-screen-no-nav w-[400px]",
+          "content-start space-y-12 px-5 pb-5 transition overflow-y-scroll h-screen-dynamic w-[400px]",
           y > 0 ? "border-t" : "",
         ],
         layout === "page" && [

@@ -1,11 +1,8 @@
-import type {
-  ComponentLoaderArgs,
-  HydrogenComponentSchema,
-} from "@weaverse/hydrogen";
+import { type ComponentLoaderArgs, createSchema } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
 import type { FeaturedProductsQuery } from "storefront-api.generated";
 import type { SectionProps } from "~/components/section";
-import { Section, layoutInputs } from "~/components/section";
+import { layoutInputs, Section } from "~/components/section";
 import { PRODUCT_CARD_FRAGMENT } from "~/graphql/fragments";
 
 // biome-ignore lint/suspicious/noEmptyInterface: <explanation>
@@ -56,11 +53,11 @@ export let loader = async ({ weaverse }: ComponentLoaderArgs) => {
   );
 };
 
-export let schema: HydrogenComponentSchema = {
+export let schema = createSchema({
   type: "featured-products",
   title: "Featured products",
   childTypes: ["featured-products-items", "heading", "subheading", "paragraph"],
-  inspector: [
+  settings: [
     {
       group: "Layout",
       inputs: layoutInputs.filter((i) => i.name !== "borderRadius"),
@@ -73,4 +70,4 @@ export let schema: HydrogenComponentSchema = {
       { type: "featured-products-items" },
     ],
   },
-};
+});

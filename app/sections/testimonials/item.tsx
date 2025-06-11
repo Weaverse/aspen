@@ -1,8 +1,8 @@
 import { Circle, Handbag, Plus, Tag } from "@phosphor-icons/react";
-import type {
+import {
   ComponentLoaderArgs,
   HydrogenComponentProps,
-  HydrogenComponentSchema,
+  createSchema,
   WeaverseProduct,
 } from "@weaverse/hydrogen";
 import type { CSSProperties } from "react";
@@ -111,10 +111,10 @@ export let loader = async (args: ComponentLoaderArgs<TestimonialHotspotsItemData
   return { product };
 };
 
-export let schema: HydrogenComponentSchema = {
+export let schema = createSchema({
   type: "testimonial-hotspots--item",
   title: "Testimonial hotspots item",
-  inspector: [
+  settings: [
     {
       group: "Icon",
       inputs: [
@@ -229,4 +229,4 @@ export let schema: HydrogenComponentSchema = {
       ],
     },
   ],
-};
+});

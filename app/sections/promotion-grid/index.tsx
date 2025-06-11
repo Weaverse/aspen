@@ -1,14 +1,11 @@
-import {
-  type HydrogenComponentSchema,
-  IMAGES_PLACEHOLDERS,
-} from "@weaverse/hydrogen";
+import { createSchema, IMAGES_PLACEHOLDERS } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import { forwardRef } from "react";
 import { backgroundInputs } from "~/components/background-image";
 import { overlayInputs } from "~/components/overlay";
 import type { SectionProps } from "~/components/section";
-import { Section, layoutInputs } from "~/components/section";
+import { layoutInputs, Section } from "~/components/section";
 
 type PromotionGridProps = VariantProps<typeof variants> & SectionProps;
 
@@ -61,10 +58,10 @@ let PromotionGrid = forwardRef<HTMLElement, PromotionGridProps>(
 
 export default PromotionGrid;
 
-export let schema: HydrogenComponentSchema = {
+export let schema = createSchema({
   type: "promotion-grid",
   title: "Promotion grid",
-  inspector: [
+  settings: [
     {
       group: "Grid",
       inputs: [
@@ -162,4 +159,4 @@ export let schema: HydrogenComponentSchema = {
       },
     ],
   },
-};
+});

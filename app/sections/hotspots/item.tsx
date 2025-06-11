@@ -1,9 +1,9 @@
 import { Circle, Handbag, Plus, Tag } from "@phosphor-icons/react";
-import type {
-  ComponentLoaderArgs,
-  HydrogenComponentProps,
-  HydrogenComponentSchema,
-  WeaverseProduct,
+import {
+  type ComponentLoaderArgs,
+  createSchema,
+  type HydrogenComponentProps,
+  type WeaverseProduct,
 } from "@weaverse/hydrogen";
 import type { CSSProperties } from "react";
 import { forwardRef } from "react";
@@ -56,7 +56,7 @@ let HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>(
       <div
         ref={ref}
         {...rest}
-        className="absolute -translate-x-1/2 -translate-y-1/2 hover:z-[1]"
+        className="absolute -translate-x-1/2 -translate-y-1/2 hover:z-1"
         style={
           {
             top: `${offsetY}%`,
@@ -111,10 +111,10 @@ export let loader = async (args: ComponentLoaderArgs<HotspotsItemData>) => {
   return { product };
 };
 
-export let schema: HydrogenComponentSchema = {
+export let schema = createSchema({
   type: "hotspots--item",
   title: "Hotspots item",
-  inspector: [
+  settings: [
     {
       group: "Icon",
       inputs: [
@@ -224,9 +224,9 @@ export let schema: HydrogenComponentSchema = {
           name: "viewDetailsLinkText",
           label: "View details link text",
           defaultValue: "View full details",
-          condition: "showViewDetailsLink.eq.true",
+          condition: (data) => data.showViewDetailsLink,
         },
       ],
     },
   ],
-};
+});

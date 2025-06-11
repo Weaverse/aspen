@@ -1,10 +1,9 @@
-import { Await, useLoaderData } from "@remix-run/react";
-import type { HydrogenComponentSchema } from "@weaverse/hydrogen";
-import { Suspense, forwardRef } from "react";
+import { createSchema } from "@weaverse/hydrogen";
+import { forwardRef } from "react";
+import { useLoaderData } from "react-router";
 import type { ArticleFragment } from "storefront-api.generated";
 import Heading from "~/components/heading";
-import { Section, type SectionProps, layoutInputs } from "~/components/section";
-import { Skeleton } from "~/components/skeleton";
+import { layoutInputs, Section, type SectionProps } from "~/components/section";
 import { Swimlane } from "~/components/swimlane";
 import { getImageLoadingPriority } from "~/utils/image";
 import { ArticleCard, type ArticleCardProps } from "./blogs";
@@ -59,14 +58,14 @@ let RelatedArticles = forwardRef<HTMLElement, RelatedArticlesProps>(
 
 export default RelatedArticles;
 
-export let schema: HydrogenComponentSchema = {
+export let schema = createSchema({
   type: "related-articles",
   title: "Related articles",
   limit: 1,
   enabledOn: {
     pages: ["ARTICLE"],
   },
-  inspector: [
+  settings: [
     {
       group: "Layout",
       inputs: layoutInputs,
@@ -125,4 +124,4 @@ export let schema: HydrogenComponentSchema = {
       ],
     },
   ],
-};
+});

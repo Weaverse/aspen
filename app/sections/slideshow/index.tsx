@@ -1,6 +1,6 @@
 import {
+  createSchema,
   type HydrogenComponentProps,
-  type HydrogenComponentSchema,
   IMAGES_PLACEHOLDERS,
   useThemeSettings,
 } from "@weaverse/hydrogen";
@@ -32,12 +32,12 @@ let variants = cva("group [&_.swiper]:h-full", {
     {
       height: "full",
       enableTransparentHeader: true,
-      className: "h-screen",
+      className: "h-screen-no-topbar",
     },
     {
       height: "full",
       enableTransparentHeader: false,
-      className: "h-screen-no-nav",
+      className: "h-screen-dynamic",
     },
   ],
   defaultVariants: {
@@ -133,11 +133,11 @@ let Slideshow = forwardRef<HTMLDivElement, SlideshowProps>((props, ref) => {
 
 export default Slideshow;
 
-export let schema: HydrogenComponentSchema = {
+export let schema = createSchema({
   title: "Slideshow",
   type: "slideshow",
   childTypes: ["slideshow-slide"],
-  inspector: [
+  settings: [
     {
       group: "Slideshow",
       inputs: [
@@ -184,7 +184,7 @@ export let schema: HydrogenComponentSchema = {
             unit: "s",
           },
           defaultValue: 5,
-          condition: "autoRotate.eq.true",
+          condition: (data) => data.autoRotate,
           helpText: "Auto-rotate is disabled inside Weaverse Studio.",
         },
         {
@@ -219,7 +219,7 @@ export let schema: HydrogenComponentSchema = {
             ],
           },
           defaultValue: "arrow",
-          condition: "showArrows.eq.true",
+          condition: (data) => data.showArrows,
         },
         {
           type: "range",
@@ -231,14 +231,14 @@ export let schema: HydrogenComponentSchema = {
             step: 2,
           },
           defaultValue: 20,
-          condition: "showArrows.eq.true",
+          condition: (data) => data.showArrows,
         },
         {
           type: "switch",
           label: "Show arrows on hover",
           name: "showArrowsOnHover",
           defaultValue: true,
-          condition: "showArrows.eq.true",
+          condition: (data) => data.showArrows,
         },
         {
           type: "select",
@@ -251,7 +251,7 @@ export let schema: HydrogenComponentSchema = {
             ],
           },
           defaultValue: "light",
-          condition: "showArrows.eq.true",
+          condition: (data) => data.showArrows,
         },
         {
           type: "toggle-group",
@@ -259,13 +259,13 @@ export let schema: HydrogenComponentSchema = {
           name: "arrowsShape",
           configs: {
             options: [
-              { value: "rounded", label: "Rounded", icon: "squircle" },
+              { value: "rounded-sm", label: "Rounded", icon: "squircle" },
               { value: "circle", label: "Circle", icon: "circle" },
               { value: "square", label: "Square", icon: "square" },
             ],
           },
-          defaultValue: "rounded",
-          condition: "showArrows.eq.true",
+          defaultValue: "rounded-sm",
+          condition: (data) => data.showArrows,
         },
 
         {
@@ -291,7 +291,7 @@ export let schema: HydrogenComponentSchema = {
             ],
           },
           defaultValue: "bottom",
-          condition: "showDots.eq.true",
+          condition: (data) => data.showDots,
         },
         {
           type: "select",
@@ -304,7 +304,7 @@ export let schema: HydrogenComponentSchema = {
             ],
           },
           defaultValue: "light",
-          condition: "showDots.eq.true",
+          condition: (data) => data.showDots,
         },
       ],
     },
@@ -395,4 +395,4 @@ export let schema: HydrogenComponentSchema = {
       },
     ],
   },
-};
+});

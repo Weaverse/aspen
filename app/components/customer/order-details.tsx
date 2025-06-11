@@ -1,7 +1,7 @@
 import { ArrowLeft, Tag } from "@phosphor-icons/react";
-import { useLoaderData } from "@remix-run/react";
 import { Money } from "@shopify/hydrogen";
 import clsx from "clsx";
+import { useLoaderData } from "react-router";
 import { Image } from "~/components/image";
 import { Link } from "~/components/link";
 import { Section } from "~/components/section";
@@ -81,7 +81,7 @@ export function OrderDetails() {
                             discountApp?.title || discountApp?.code;
                           return (
                             <div
-                              className="text-body-subtle flex items-center gap-1 border border-line-subtle py-1 px-1.5 rounded-sm text-sm w-fit"
+                              className="text-body-subtle flex items-center gap-1 border border-line-subtle py-1 px-1.5 rounded-xs text-sm w-fit"
                               key={index}
                             >
                               <Tag className="w-4 h-4" />

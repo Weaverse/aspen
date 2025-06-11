@@ -4,13 +4,13 @@ import {
   MagnifyingGlassPlus,
   VideoCamera,
 } from "@phosphor-icons/react";
-import { type VariantProps, cva } from "class-variance-authority";
+import { cva, type VariantProps } from "class-variance-authority";
 import clsx from "clsx";
 import { useEffect, useState } from "react";
 import type {
-  MediaFragment,
   Media_MediaImage_Fragment,
   Media_Video_Fragment,
+  MediaFragment,
   ProductVariantFragment,
 } from "storefront-api.generated";
 import { FreeMode, Navigation, Pagination, Thumbs } from "swiper/modules";
@@ -138,7 +138,7 @@ export function ProductMedia(props: ProductMediaProps) {
                     key={id}
                     className={cn(
                       "relative",
-                      "p-1 border transition-colors cursor-pointer border-transparent !h-auto",
+                      "p-1 border transition-colors cursor-pointer border-transparent h-auto!",
                       "[&.swiper-slide-thumb-active]:border-line",
                     )}
                   >

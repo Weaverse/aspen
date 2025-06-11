@@ -1,9 +1,9 @@
 import { Money, ShopPayButton } from "@shopify/hydrogen";
-import type {
-  ComponentLoaderArgs,
-  HydrogenComponentProps,
-  HydrogenComponentSchema,
-  WeaverseProduct,
+import {
+  type ComponentLoaderArgs,
+  createSchema,
+  type HydrogenComponentProps,
+  type WeaverseProduct,
 } from "@weaverse/hydrogen";
 import { forwardRef, useEffect, useState } from "react";
 import type { ProductQuery } from "storefront-api.generated";
@@ -11,7 +11,7 @@ import { AddToCartButton } from "~/components/product/add-to-cart-button";
 import { ProductPlaceholder } from "~/components/product/placeholder";
 import { ProductMedia } from "~/components/product/product-media";
 import { Quantity } from "~/components/product/quantity";
-import { Section, layoutInputs } from "~/components/section";
+import { layoutInputs, Section } from "~/components/section";
 import { PRODUCT_QUERY, VARIANTS_QUERY } from "~/graphql/queries";
 import { useAnimation } from "~/hooks/use-animation";
 
@@ -176,11 +176,11 @@ export let loader = async (args: ComponentLoaderArgs<SingleProductData>) => {
   };
 };
 
-export let schema: HydrogenComponentSchema = {
+export let schema = createSchema({
   type: "single-product",
   title: "Single product",
   childTypes: ["judgeme"],
-  inspector: [
+  settings: [
     {
       group: "Layout",
       inputs: layoutInputs,
@@ -213,6 +213,6 @@ export let schema: HydrogenComponentSchema = {
       ],
     },
   ],
-};
+});
 
 export default SingleProduct;

@@ -1,8 +1,8 @@
-import type { MetaFunction } from "@remix-run/react";
 import type { SeoConfig } from "@shopify/hydrogen";
 import { AnalyticsPageType, getSeoMeta } from "@shopify/hydrogen";
 import type { LoaderFunctionArgs } from "@shopify/remix-oxygen";
 import type { PageType } from "@weaverse/hydrogen";
+import type { MetaFunction } from "react-router";
 import type { ShopQuery } from "storefront-api.generated";
 import { routeHeaders } from "~/utils/cache";
 import { seoPayload } from "~/utils/seo.server";
@@ -31,7 +31,7 @@ export async function loader(args: LoaderFunctionArgs) {
   ]);
 
   // Check weaverseData after parallel loading
-  validateWeaverseData(weaverseData)
+  validateWeaverseData(weaverseData);
 
   return {
     shop,

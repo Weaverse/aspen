@@ -1,7 +1,7 @@
-import type {
-  HydrogenComponentProps,
-  HydrogenComponentSchema,
-  WeaverseImage,
+import {
+  createSchema,
+  type HydrogenComponentProps,
+  type WeaverseImage,
 } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
@@ -9,7 +9,7 @@ import clsx from "clsx";
 import { forwardRef } from "react";
 import { Image } from "~/components/image";
 
-let variants = cva("h-[--image-height]", {
+let variants = cva("h-(--image-height)", {
   variants: {
     columnSpan: {
       1: "col-span-1",
@@ -19,8 +19,8 @@ let variants = cva("h-[--image-height]", {
     },
     borderRadius: {
       0: "",
-      2: "rounded-sm",
-      4: "rounded",
+      2: "rounded-xs",
+      4: "rounded-sm",
       6: "rounded-md",
       8: "rounded-lg",
       10: "rounded-[10px]",
@@ -71,10 +71,10 @@ let ImageGalleryItem = forwardRef<HTMLImageElement, ImageGalleryItemProps>(
 
 export default ImageGalleryItem;
 
-export let schema: HydrogenComponentSchema = {
+export let schema = createSchema({
   type: "image-gallery--item",
   title: "Image",
-  inspector: [
+  settings: [
     {
       group: "Image gallery item",
       inputs: [
@@ -117,4 +117,4 @@ export let schema: HydrogenComponentSchema = {
       ],
     },
   ],
-};
+});

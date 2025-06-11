@@ -1,6 +1,6 @@
 import {
+  createSchema,
   type HydrogenComponentProps,
-  type HydrogenComponentSchema,
   isBrowser,
 } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
@@ -8,9 +8,9 @@ import { cva } from "class-variance-authority";
 import clsx from "clsx";
 import type { CSSProperties } from "react";
 import {
-  Suspense,
   forwardRef,
   lazy,
+  Suspense,
   useCallback,
   useEffect,
   useState,
@@ -158,7 +158,7 @@ let HeroVideo = forwardRef<HTMLElement, HeroVideoProps>((props, ref) => {
       <div
         className={clsx(
           "flex items-center justify-center relative overflow-hidden",
-          "h-[var(--mobile-height)] sm:h-[var(--desktop-height)]",
+          "h-(--mobile-height) sm:h-(--desktop-height)",
           "w-[max(var(--mobile-height)/9*16,100vw)] sm:w-[max(var(--desktop-height)/9*16,100vw)]",
           "translate-x-[min(0px,calc((var(--mobile-height)/9*16-100vw)/-2))] sm:translate-x-[min(0px,calc((var(--desktop-height)/9*16-100vw)/-2))]",
         )}
@@ -194,10 +194,10 @@ let HeroVideo = forwardRef<HTMLElement, HeroVideoProps>((props, ref) => {
 
 export default HeroVideo;
 
-export let schema: HydrogenComponentSchema = {
+export let schema = createSchema({
   type: "hero-video",
   title: "Hero video",
-  inspector: [
+  settings: [
     {
       group: "Video",
       inputs: [
@@ -238,7 +238,7 @@ export let schema: HydrogenComponentSchema = {
             step: 10,
             unit: "px",
           },
-          condition: "height.eq.custom",
+          condition: (data) => data.height === "custom",
         },
         {
           type: "range",
@@ -251,7 +251,7 @@ export let schema: HydrogenComponentSchema = {
             step: 10,
             unit: "px",
           },
-          condition: "height.eq.custom",
+          condition: (data) => data.height === "custom",
         },
         {
           type: "range",
@@ -300,4 +300,4 @@ export let schema: HydrogenComponentSchema = {
       },
     ],
   },
-};
+});

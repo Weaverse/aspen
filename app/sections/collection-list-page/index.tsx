@@ -1,6 +1,6 @@
-import type { HydrogenComponentSchema } from "@weaverse/hydrogen";
+import { createSchema } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
-import { Section, type SectionProps, layoutInputs } from "~/components/section";
+import { layoutInputs, Section, type SectionProps } from "~/components/section";
 
 let CollectionList = forwardRef<HTMLElement, SectionProps>((props, ref) => {
   let { children, ...rest } = props;
@@ -13,7 +13,7 @@ let CollectionList = forwardRef<HTMLElement, SectionProps>((props, ref) => {
 
 export default CollectionList;
 
-export let schema: HydrogenComponentSchema = {
+export let schema = createSchema({
   type: "collection-list",
   title: "Collection list",
   limit: 1,
@@ -21,7 +21,7 @@ export let schema: HydrogenComponentSchema = {
   enabledOn: {
     pages: ["COLLECTION_LIST"],
   },
-  inspector: [
+  settings: [
     {
       group: "Layout",
       inputs: layoutInputs.filter((input) => input.name !== "borderRadius"),
@@ -45,4 +45,4 @@ export let schema: HydrogenComponentSchema = {
       },
     ],
   },
-};
+});

@@ -1,10 +1,10 @@
-import { useLoaderData } from "@remix-run/react";
-import type { HydrogenComponentSchema } from "@weaverse/hydrogen";
+import { createSchema } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
+import { useLoaderData } from "react-router";
 import type { ArticleFragment, BlogQuery } from "storefront-api.generated";
 import { Image } from "~/components/image";
 import { Link } from "~/components/link";
-import { Section, type SectionProps, layoutInputs } from "~/components/section";
+import { layoutInputs, Section, type SectionProps } from "~/components/section";
 import { RevealUnderline } from "~/reveal-underline";
 import type { ImageAspectRatio } from "~/types/image";
 import { cn } from "~/utils/cn";
@@ -126,14 +126,14 @@ export function ArticleCard({
 
 export default Blogs;
 
-export let schema: HydrogenComponentSchema = {
+export let schema = createSchema({
   type: "blogs",
   title: "Blogs",
   limit: 1,
   enabledOn: {
     pages: ["BLOG"],
   },
-  inspector: [
+  settings: [
     { group: "Layout", inputs: layoutInputs },
     {
       group: "Article card",
@@ -182,4 +182,4 @@ export let schema: HydrogenComponentSchema = {
       ],
     },
   ],
-};
+});

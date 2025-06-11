@@ -1,9 +1,9 @@
 import { Handbag, X } from "@phosphor-icons/react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { Await, useRouteLoaderData } from "@remix-run/react";
 import { type CartReturn, useAnalytics } from "@shopify/hydrogen";
 import clsx from "clsx";
 import { Suspense, useState } from "react";
+import { Await, useRouteLoaderData } from "react-router";
 import { Cart } from "~/components/cart/cart";
 import Link from "~/components/link";
 import type { RootLoader } from "~/root";
@@ -51,8 +51,8 @@ export function CartDrawer() {
                     "flex items-center text-center justify-center min-w-4.5 h-4.5 px-1 rounded-full",
                     "text-sm leading-none text-center font-medium",
                     "transition-colors duration-300",
-                    "group-hover/header:bg-[--color-header-text]",
-                    "group-hover/header:text-[--color-header-bg]"
+                    "group-hover/header:bg-(--color-header-text)",
+                    "group-hover/header:text-(--color-header-bg)"
                   )}
                 >
                   <span className="-mr-px">{cart?.totalQuantity}</span>
@@ -66,8 +66,8 @@ export function CartDrawer() {
               />
               <Dialog.Content
                 className={clsx([
-                  "fixed inset-y-0 w-screen max-w-[430px] bg-[--color-background] py-4 z-10",
-                  "right-0 translate-x-full data-[state=open]:animate-enter-from-right",
+                  "fixed inset-y-0 w-screen max-w-[430px] bg-background py-4 z-10",
+                  "data-[state=open]:animate-enter-from-right",
                 ])}
                 aria-describedby={undefined}
               >
