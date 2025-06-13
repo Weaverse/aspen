@@ -1,15 +1,6 @@
 import '@fontsource/tenor-sans';
 import '@fontsource-variable/open-sans';
-import {
-  Links,
-  Meta,
-  Outlet,
-  Scripts,
-  ScrollRestoration,
-  isRouteErrorResponse,
-  useRouteError,
-  useRouteLoaderData,
-} from "@remix-run/react";
+import { TooltipProvider } from "@radix-ui/react-tooltip";
 import type { SeoConfig } from "@shopify/hydrogen";
 import { Analytics, getSeoMeta, useNonce } from "@shopify/hydrogen";
 import type {
@@ -17,20 +8,29 @@ import type {
   LoaderFunctionArgs,
   MetaArgs,
 } from "@shopify/remix-oxygen";
-import { GenericError } from "./components/root/generic-error";
-import { NotFound } from "./components/root/not-found";
-import { loadCriticalData, loadDeferredData } from "./utils/root.server";
-import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { useThemeSettings, withWeaverse } from "@weaverse/hydrogen";
 import type { CSSProperties } from "react";
+import {
+  isRouteErrorResponse,
+  Links,
+  Meta,
+  Outlet,
+  Scripts,
+  ScrollRestoration,
+  useRouteError,
+  useRouteLoaderData,
+} from "react-router";
 import { Footer } from "./components/layout/footer";
+import { Header } from "./components/layout/header";
 import { ScrollingAnnouncement } from "./components/layout/scrolling-announcement";
 import { CustomAnalytics } from "./components/root/custom-analytics";
+import { GenericError } from "./components/root/generic-error";
 import { GlobalLoading } from "./components/root/global-loading";
-import { DEFAULT_LOCALE } from "./utils/const";
-import { GlobalStyle } from "./weaverse/style";
-import { Header } from "./components/layout/header";
+import { NotFound } from "./components/root/not-found";
 import styles from "./styles/app.css?url";
+import { DEFAULT_LOCALE } from "./utils/const";
+import { loadCriticalData, loadDeferredData } from "./utils/root.server";
+import { GlobalStyle } from "./weaverse/style";
 
 export type RootLoader = typeof loader;
 
@@ -119,7 +119,7 @@ export function Layout({ children }: { children?: React.ReactNode }) {
             "--initial-topbar-height": `${topbarText ? topbarHeight : 0}px`,
           } as CSSProperties
         }
-        className="transition-opacity !opacity-100 duration-300 antialiased bg-background text-body"
+        className="transition-opacity opacity-100! duration-300 antialiased bg-background text-body"
       >
         {data ? (
           <Analytics.Provider
@@ -129,7 +129,7 @@ export function Layout({ children }: { children?: React.ReactNode }) {
           >
             <TooltipProvider disableHoverableContent>
               <div
-                className="flex flex-col min-h-screen"
+                className="flex flex-col min-h-screen-no-topbar"
                 key={`${locale.language}-${locale.country}`}
               >
                 <div className="">
@@ -139,7 +139,7 @@ export function Layout({ children }: { children?: React.ReactNode }) {
                 </div>
                 <ScrollingAnnouncement />
                 <Header />
-                <main id="mainContent" className="flex-grow">
+                <main id="mainContent" className="grow">
                   {children}
                 </main>
                 <Footer />

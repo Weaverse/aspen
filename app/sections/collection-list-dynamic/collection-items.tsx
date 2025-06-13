@@ -125,13 +125,13 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
           <Link
             key={collection.id + ind}
             to={`/collections/${collection.handle}`}
-            className="relative h-full group"
+            className="relative h-full w-full group"
             data-motion="slide-in"
           >
             {collection?.image && (
               <div
                 className={clsx(
-                  "overflow-hidden",
+                  "overflow-hidden w-full h-full",
                   activeLayout === "showcase" ? "aspect-[4/3]" : "aspect-[3/4]"
                 )}
               >

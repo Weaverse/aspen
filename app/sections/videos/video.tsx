@@ -1,7 +1,7 @@
-import { Link } from "@remix-run/react";
 import type { HydrogenComponent, WeaverseBlog, WeaverseVideo } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
 import { Suspense, lazy } from "react";
+import { Link } from "react-router";
 
 const ReactPlayer = lazy(() => import("react-player/lazy"));
 

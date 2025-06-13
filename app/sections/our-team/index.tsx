@@ -1,12 +1,12 @@
-import type {
-  ComponentLoaderArgs,
-  HydrogenComponentSchema,
-  WeaverseMetaObject,
+import {
+  type ComponentLoaderArgs,
+  createSchema,
+  type WeaverseMetaObject,
 } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
 import type { OurTeamQuery } from "storefront-api.generated";
 import { backgroundInputs } from "~/components/background-image";
-import { Section, type SectionProps, layoutInputs } from "~/components/section";
+import { layoutInputs, Section, type SectionProps } from "~/components/section";
 
 type OurTeamData = {
   metaobject: WeaverseMetaObject;
@@ -69,11 +69,11 @@ let OUR_TEAM_QUERY = `#graphql
   }
 `;
 
-export let schema: HydrogenComponentSchema = {
+export let schema = createSchema({
   type: "our-team",
   title: "Our team",
   childTypes: ["heading", "paragraph", "our-team-members"],
-  inspector: [
+  settings: [
     {
       group: "Data source",
       inputs: [
@@ -119,6 +119,6 @@ export let schema: HydrogenComponentSchema = {
       },
     ],
   },
-};
+});
 
 export default OurTeam;

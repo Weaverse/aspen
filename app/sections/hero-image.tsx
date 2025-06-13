@@ -1,5 +1,5 @@
 import {
-  type HydrogenComponentSchema,
+  createSchema,
   IMAGES_PLACEHOLDERS,
   useThemeSettings,
 } from "@weaverse/hydrogen";
@@ -9,7 +9,7 @@ import { forwardRef } from "react";
 import { backgroundInputs } from "~/components/background-image";
 import { overlayInputs } from "~/components/overlay";
 import type { SectionProps } from "~/components/section";
-import { Section, layoutInputs } from "~/components/section";
+import { layoutInputs, Section } from "~/components/section";
 
 export interface HeroImageProps extends VariantProps<typeof variants> {}
 
@@ -26,32 +26,27 @@ let variants = cva("flex flex-col [&_.paragraph]:mx-[unset]", {
       false: "",
     },
     contentPosition: {
-      "top left": "justify-start items-start [&_.paragraph]:[text-align:left]",
-      "top center":
-        "justify-start items-center [&_.paragraph]:[text-align:center]",
-      "top right": "justify-start items-end [&_.paragraph]:[text-align:right]",
-      "center left":
-        "justify-center items-start [&_.paragraph]:[text-align:left]",
-      "center center":
-        "justify-center items-center [&_.paragraph]:[text-align:center]",
-      "center right":
-        "justify-center items-end [&_.paragraph]:[text-align:right]",
-      "bottom left": "justify-end items-start [&_.paragraph]:[text-align:left]",
-      "bottom center":
-        "justify-end items-center [&_.paragraph]:[text-align:center]",
-      "bottom right": "justify-end items-end [&_.paragraph]:[text-align:right]",
+      "top left": "justify-start items-start [&_.paragraph]:text-left",
+      "top center": "justify-start items-center [&_.paragraph]:text-center",
+      "top right": "justify-start items-end [&_.paragraph]:text-right",
+      "center left": "justify-center items-start [&_.paragraph]:text-left",
+      "center center": "justify-center items-center [&_.paragraph]:text-center",
+      "center right": "justify-center items-end [&_.paragraph]:text-right",
+      "bottom left": "justify-end items-start [&_.paragraph]:text-left",
+      "bottom center": "justify-end items-center [&_.paragraph]:text-center",
+      "bottom right": "justify-end items-end [&_.paragraph]:text-right",
     },
   },
   compoundVariants: [
     {
       height: "full",
       enableTransparentHeader: true,
-      className: "h-screen",
+      className: "h-screen-no-topbar",
     },
     {
       height: "full",
       enableTransparentHeader: false,
-      className: "h-screen-no-nav",
+      className: "h-screen-dynamic",
     },
   ],
   defaultVariants: {
@@ -82,10 +77,10 @@ let HeroImage = forwardRef<HTMLElement, HeroImageProps & SectionProps>(
 
 export default HeroImage;
 
-export let schema: HydrogenComponentSchema = {
+export let schema = createSchema({
   type: "hero-image",
   title: "Hero image",
-  inspector: [
+  settings: [
     {
       group: "Layout",
       inputs: [
@@ -153,4 +148,4 @@ export let schema: HydrogenComponentSchema = {
       },
     ],
   },
-};
+});

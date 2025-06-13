@@ -1,8 +1,8 @@
-import { useFetcher } from "@remix-run/react";
 import { ShopPayButton } from "@shopify/hydrogen";
 import type { ProductVariant } from "@shopify/hydrogen/storefront-api-types";
 import { useThemeSettings } from "@weaverse/hydrogen";
 import { useEffect, useState } from "react";
+import { useFetcher } from "react-router";
 import type {
   ProductQuery,
   ProductVariantFragment,
@@ -13,7 +13,6 @@ import { Modal, ModalContent, ModalTrigger } from "~/components/modal";
 import { AddToCartButton } from "~/components/product/add-to-cart-button";
 import { ProductMedia } from "~/components/product/product-media";
 import { Quantity } from "~/components/product/quantity";
-import { ProductVariants } from "~/components/product/variants";
 import { Skeleton } from "~/components/skeleton";
 import { VariantPrices } from "~/components/variant-prices";
 import type { ProductData } from "~/routes/($locale).api.product";

@@ -1,17 +1,13 @@
 import { Star } from "@phosphor-icons/react";
-import { useFetcher, useLoaderData } from "@remix-run/react";
 import clsx from "clsx";
 import { type FormEvent, useEffect, useRef, useState } from "react";
+import { useFetcher, useLoaderData } from "react-router";
 import { Button } from "~/components/button";
 import { StarRating } from "~/components/star-rating";
 import type { loader as productRouteLoader } from "~/routes/($locale).products.$productHandle";
 import type { JudgemeReviewsData } from "~/utils/judgeme";
 
-export function ReviewForm({
-  reviews,
-}: {
-  reviews: JudgemeReviewsData;
-}) {
+export function ReviewForm({ reviews }: { reviews: JudgemeReviewsData }) {
   let { product } = useLoaderData<typeof productRouteLoader>();
   let [rating, setRating] = useState(0);
   let [hover, setHover] = useState(0);
@@ -149,7 +145,7 @@ export function ReviewForm({
                   type="text"
                   id="name"
                   name="name"
-                  className="w-full border px-3 py-3 border-line outline-none focus-visible:border-line"
+                  className="w-full border px-3 py-3 border-line outline-hidden focus-visible:border-line"
                 />
               </div>
               <div className="mb-4">
@@ -164,7 +160,7 @@ export function ReviewForm({
                   id="email"
                   name="email"
                   required
-                  className="w-full border px-3 py-3 border-line outline-none focus-visible:border-line"
+                  className="w-full border px-3 py-3 border-line outline-hidden focus-visible:border-line"
                 />
               </div>
               <div className="mb-4">
@@ -179,7 +175,7 @@ export function ReviewForm({
                   id="title"
                   name="title"
                   required
-                  className="w-full border px-3 py-3 border-line outline-none focus-visible:border-line"
+                  className="w-full border px-3 py-3 border-line outline-hidden focus-visible:border-line"
                 />
               </div>
               <div className="mb-4">
@@ -192,7 +188,7 @@ export function ReviewForm({
                 <textarea
                   id="review-body"
                   name="body"
-                  className="w-full border px-3 py-3 border-line outline-none focus-visible:border-line"
+                  className="w-full border px-3 py-3 border-line outline-hidden focus-visible:border-line"
                   rows={4}
                 />
               </div>
@@ -206,7 +202,7 @@ export function ReviewForm({
                 <Button
                   variant="outline"
                   onClick={() => setIsFormVisible(false)}
-                  className="!border-none bg-background"
+                  className="border-none! bg-background"
                 >
                   Close
                 </Button>
@@ -230,8 +226,8 @@ export function ReviewForm({
           )}
           role="alert"
         >
-          <p className="font-bold leading-normal text-lg">REVIEW SUBMITTED</p>
-          <p className="font-normal leading-normal text-base">
+          <p className="font-bold text-lg">REVIEW SUBMITTED</p>
+          <p className="font-normal text-base">
             Thanks for leaving your review!
           </p>
           <div
@@ -245,7 +241,7 @@ export function ReviewForm({
                 setIsPopupVisible(false);
               }}
               variant="outline"
-              className="!border-none bg-background"
+              className="border-none! bg-background"
             >
               Close
             </Button>

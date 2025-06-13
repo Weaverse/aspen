@@ -6,7 +6,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
     type: "CUSTOM",
   });
 
-  validateWeaverseData(weaverseData)
+  validateWeaverseData(weaverseData);
 
   return {
     weaverseData,

@@ -23,8 +23,8 @@ export function Overlay(props: OverlayProps) {
       <div
         className={cn(
           "absolute inset-0 z-[-1] transition-colors duration-300",
-          "bg-[var(--overlay-color)]",
-          "group-hover/overlay:bg-[var(--overlay-color-hover,var(--overlay-color))]",
+          "bg-(--overlay-color)",
+          "group-hover/overlay:bg-(--overlay-color-hover,var(--overlay-color))",
           className,
         )}
         style={
@@ -53,13 +53,13 @@ export let overlayInputs: InspectorGroup["inputs"] = [
     name: "overlayColor",
     label: "Overlay color",
     defaultValue: "#000000",
-    condition: "enableOverlay.eq.true",
+    condition: (data) => data.enableOverlay,
   },
   {
     type: "color",
     name: "overlayColorHover",
     label: "Overlay color (hover)",
-    condition: "enableOverlay.eq.true",
+    condition: (data) => data.enableOverlay,
   },
   {
     type: "range",
@@ -72,6 +72,6 @@ export let overlayInputs: InspectorGroup["inputs"] = [
       step: 1,
       unit: "%",
     },
-    condition: "enableOverlay.eq.true",
+    condition: (data) => data.enableOverlay,
   },
 ];

@@ -1,7 +1,6 @@
 import { ArrowRight, MagnifyingGlass, X } from "@phosphor-icons/react";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
-import { useLocation } from "@remix-run/react";
 import { type MutableRefObject, useEffect, useState } from "react";
 import Link from "~/components/link";
 import { usePredictiveSearch } from "~/hooks/use-predictive-search";
@@ -10,6 +9,7 @@ import { PredictiveSearchResult } from "./predictive-search-result";
 import { PredictiveSearchForm } from "../search-form";
 import { PopularSearch } from "./PopularSearch";
 import clsx from "clsx";
+import { useLocation } from "react-router";
 
 export function PredictiveSearchButtonMobile({ setIsSearchOpen }) {
   let [open, setOpen] = useState(false);

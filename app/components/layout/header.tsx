@@ -4,7 +4,7 @@ import {
   useLocation,
   useRouteError,
   useRouteLoaderData,
-} from "@remix-run/react";
+} from "react-router";
 import { useThemeSettings } from "@weaverse/hydrogen";
 import { cva } from "class-variance-authority";
 import { Suspense, useState } from "react";
@@ -23,9 +23,9 @@ import { PredictiveSearchButtonDesktop } from "./predictive-search/search-deskto
 let variants = cva("", {
   variants: {
     width: {
-      full: "w-full h-full",
-      stretch: "w-full h-full",
-      fixed: "w-full h-full max-w-page mx-auto",
+      full: "w-full h-(--height-nav)",
+      stretch: "w-full h-(--height-nav)",
+      fixed: "w-full h-(--height-nav) max-w-(--page-width) mx-auto",
     },
     padding: {
       full: "",
@@ -58,29 +58,29 @@ export function Header() {
       className={cn(
         "w-full z-10",
         "transition-all duration-300 ease-in-out",
-        "bg-[--color-header-bg] hover:bg-[--color-header-bg]",
-        "text-[--color-header-text] hover:text-[--color-header-text]",
+        "bg-(--color-header-bg) hover:bg-(--color-header-bg)",
+        "text-(--color-header-text) hover:text-(--color-header-text)",
         "border-b border-line-subtle",
         variants({ padding: headerWidth }),
         scrolled ? "shadow-header" : "shadow-none",
         enableTransparent
           ? [
               "fixed w-screen group/header",
-              "top-[var(--topbar-height,var(--initial-topbar-height))]",
+              "top-(--topbar-height,var(--initial-topbar-height))",
             ]
           : "sticky top-0",
         isTransparent
           ? [
               "bg-transparent border-transparent",
-              "text-[--color-transparent-header-text]",
-              "[&_.cart-count]:text-[--color-header-text]",
-              "[&_.cart-count]:bg-[--color-transparent-header-text]",
+              "text-(--color-transparent-header-text)",
+              "[&_.cart-count]:text-(--color-header-text)",
+              "[&_.cart-count]:bg-(--color-transparent-header-text)",
               "[&_.main-logo]:opacity-0",
               "[&_.transparent-logo]:opacity-100",
             ]
           : [
-              "[&_.cart-count]:text-[--color-header-bg]",
-              "[&_.cart-count]:bg-[--color-header-text]",
+              "[&_.cart-count]:text-(--color-header-bg)",
+              "[&_.cart-count]:bg-(--color-header-text)",
               "[&_.main-logo]:opacity-100",
               "[&_.transparent-logo]:opacity-0",
             ]
@@ -88,7 +88,7 @@ export function Header() {
     >
       <div
         className={cn(
-          "h-nav py-1.5 lg:py-3 flex items-center justify-between gap-2 lg:gap-8",
+          "py-1.5 lg:py-3 flex items-center justify-between gap-2 lg:gap-8",
           variants({ width: headerWidth })
         )}
       >

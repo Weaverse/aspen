@@ -1,8 +1,8 @@
 import { ArrowRight, MagnifyingGlass, X } from "@phosphor-icons/react";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
-import { useLocation } from "@remix-run/react";
 import { type MutableRefObject, useEffect, useState } from "react";
+import { useLocation } from "react-router";
 import Link from "~/components/link";
 import { usePredictiveSearch } from "~/hooks/use-predictive-search";
 import { cn } from "~/utils/cn";
@@ -32,7 +32,7 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
     >
       <Dialog.Trigger
         asChild
-        className="hidden lg:flex h-8 w-8 items-center justify-center focus-visible:outline-none"
+        className="hidden lg:flex h-8 w-8 items-center justify-center focus-visible:outline-hidden"
       >
         <button type="button">
           <MagnifyingGlass className="w-5 h-5" />
@@ -45,10 +45,10 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
         />
         <Dialog.Content
           className={cn([
-            "fixed inset-x-0 top-[calc(var(--height-nav)+var(--topbar-height))] bg-[--color-header-bg] z-10",
+            "fixed inset-x-0 top-(calc(var(--height-nav)+var(--topbar-height))) bg-(--color-header-bg) z-10",
             "border-t border-line-subtle",
             "-translate-y-full data-[state=open]:animate-enter-from-top",
-            "focus-visible:outline-none",
+            "focus-visible:outline-hidden",
           ])}
           style={
             { "--enter-from-top-duration": "200ms" } as React.CSSProperties
@@ -75,7 +75,7 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
                     placeholder="Enter a keyword"
                     ref={inputRef}
                     autoComplete="off"
-                    className="focus-visible:outline-none w-full h-full py-4"
+                    className="focus-visible:outline-hidden w-full h-full py-4"
                   />
                   <button
                     type="button"
@@ -117,7 +117,7 @@ function PredictiveSearchResults() {
     );
   }
   return (
-    <div className="w-full z-10 bg-[--color-header-bg]">
+    <div className="w-full z-10 bg-(--color-header-bg)">
       <div className="flex gap-6 overflow-hidden max-w-page mx-auto py-6">
         <div className="flex flex-col gap-4 divide-y divide-line w-1/5">
           <PredictiveSearchResult type="queries" items={queries?.items} />

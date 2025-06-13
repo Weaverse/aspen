@@ -1,6 +1,6 @@
 import {
+  createSchema,
   type HydrogenComponentProps,
-  type HydrogenComponentSchema,
   IMAGES_PLACEHOLDERS,
   type WeaverseImage,
 } from "@weaverse/hydrogen";
@@ -24,8 +24,8 @@ let variants = cva("w-full h-auto", {
     },
     borderRadius: {
       0: "",
-      2: "rounded-sm",
-      4: "rounded",
+      2: "rounded-xs",
+      4: "rounded-sm",
       6: "rounded-md",
       8: "rounded-lg",
       10: "rounded-[10px]",
@@ -94,11 +94,11 @@ let ImageWithTextImage = forwardRef<HTMLDivElement, ImageWithTextImageProps>(
 
 export default ImageWithTextImage;
 
-export let schema: HydrogenComponentSchema = {
+export let schema = createSchema({
   type: "image-with-text--image",
   title: "Image",
   limit: 1,
-  inspector: [
+  settings: [
     {
       group: "Image",
       inputs: [
@@ -171,4 +171,4 @@ export let schema: HydrogenComponentSchema = {
     objectFit: "cover",
     borderRadius: 0,
   },
-};
+});

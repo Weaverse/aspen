@@ -1,7 +1,7 @@
-import type {
-  HydrogenComponentProps,
-  HydrogenComponentSchema,
-  WeaverseVideo,
+import {
+  createSchema,
+  type HydrogenComponentProps,
+  type WeaverseVideo,
 } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
@@ -16,8 +16,8 @@ let variants = cva("mx-auto w-full aspect-video", {
     },
     borderRadius: {
       0: "",
-      2: "rounded-sm",
-      4: "rounded",
+      2: "rounded-xs",
+      4: "rounded-sm",
       6: "rounded-md",
       8: "rounded-lg",
       10: "rounded-[10px]",
@@ -71,10 +71,10 @@ let VideoEmbedItem = forwardRef<HTMLIFrameElement, VideoItemProps>(
 
 export default VideoEmbedItem;
 
-export let schema: HydrogenComponentSchema = {
+export let schema = createSchema({
   type: "video-embed--item",
   title: "Video",
-  inspector: [
+  settings: [
     {
       group: "Video",
       inputs: [
@@ -123,4 +123,4 @@ export let schema: HydrogenComponentSchema = {
       ],
     },
   ],
-};
+});

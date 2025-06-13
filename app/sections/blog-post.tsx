@@ -1,7 +1,7 @@
 import { FacebookLogo, PinterestLogo, XLogo } from "@phosphor-icons/react";
-import { useLoaderData, useRouteLoaderData } from "@remix-run/react";
-import { type HydrogenComponentSchema, isBrowser } from "@weaverse/hydrogen";
+import { createSchema, isBrowser } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
+import { useLoaderData, useRouteLoaderData } from "react-router";
 import {
   FacebookShareButton,
   PinterestShareButton,
@@ -9,7 +9,7 @@ import {
 } from "react-share";
 import type { ArticleQuery } from "storefront-api.generated";
 import { Image } from "~/components/image";
-import { Section, type SectionProps, layoutInputs } from "~/components/section";
+import { layoutInputs, Section, type SectionProps } from "~/components/section";
 import type { RootLoader } from "~/root";
 
 interface BlogPostProps extends SectionProps {
@@ -45,7 +45,7 @@ let BlogPost = forwardRef<HTMLElement, BlogPostProps>((props, ref) => {
         )}
         <div className="space-y-5 py-4 lg:py-16 text-center">
           <div className="text-body-subtle">{formattedDate}</div>
-          <h1 className="h3 !leading-tight">{title}</h1>
+          <h1 className="h3 leading-tight!">{title}</h1>
           {author?.name && (
             <div className="font-medium uppercase">
               by <span>{author.name}</span>
@@ -92,14 +92,14 @@ let BlogPost = forwardRef<HTMLElement, BlogPostProps>((props, ref) => {
 
 export default BlogPost;
 
-export let schema: HydrogenComponentSchema = {
+export let schema = createSchema({
   type: "blog-post",
   title: "Blog post",
   limit: 1,
   enabledOn: {
     pages: ["ARTICLE"],
   },
-  inspector: [
+  settings: [
     {
       group: "Layout",
       inputs: layoutInputs.filter((input) => input.name !== "borderRadius"),
@@ -122,4 +122,4 @@ export let schema: HydrogenComponentSchema = {
       ],
     },
   ],
-};
+});

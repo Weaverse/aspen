@@ -1,12 +1,12 @@
-import type {
-  ComponentLoaderArgs,
-  HydrogenComponentSchema,
-  WeaverseCollection,
+import {
+  type ComponentLoaderArgs,
+  createSchema,
+  type WeaverseCollection,
 } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
 import type { CollectionsByIdsQuery } from "storefront-api.generated";
 import type { SectionProps } from "~/components/section";
-import { Section, layoutInputs } from "~/components/section";
+import { layoutInputs, Section } from "~/components/section";
 
 interface FeaturedCollectionsData {
   collections: WeaverseCollection[];
@@ -77,7 +77,7 @@ export let loader = async ({
   return [];
 };
 
-export let schema: HydrogenComponentSchema = {
+export let schema = createSchema({
   type: "featured-collections",
   title: "Featured collections",
   childTypes: [
@@ -86,7 +86,7 @@ export let schema: HydrogenComponentSchema = {
     "subheading",
     "paragraph",
   ],
-  inspector: [
+  settings: [
     {
       group: "Featured collections",
       inputs: [
@@ -125,4 +125,4 @@ export let schema: HydrogenComponentSchema = {
       },
     ],
   },
-};
+});

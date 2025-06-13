@@ -1,7 +1,4 @@
-import type {
-  HydrogenComponentProps,
-  HydrogenComponentSchema,
-} from "@weaverse/hydrogen";
+import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
 
 type SpacerProps = HydrogenComponentProps & {
@@ -25,7 +22,7 @@ let Spacer = forwardRef<HTMLDivElement, SpacerProps>((props, ref) => {
     <div
       ref={ref}
       {...rest}
-      className="w-full flex items-center justify-center h-[var(--mobile-height)] md:h-[var(--desktop-height)]"
+      className="w-full flex items-center justify-center h-(--mobile-height) md:h-(--desktop-height)"
       style={
         {
           backgroundColor,
@@ -36,7 +33,7 @@ let Spacer = forwardRef<HTMLDivElement, SpacerProps>((props, ref) => {
       }
     >
       {addSeparator && (
-        <div className="w-3/4 md:w-2/3 mx-auto border-t h-px border-[var(--separator-color,var(--color-border))]" />
+        <div className="w-3/4 md:w-2/3 mx-auto border-t h-px border-(--separator-color,var(--color-border))" />
       )}
     </div>
   );
@@ -44,10 +41,10 @@ let Spacer = forwardRef<HTMLDivElement, SpacerProps>((props, ref) => {
 
 export default Spacer;
 
-export let schema: HydrogenComponentSchema = {
+export let schema = createSchema({
   type: "spacer",
   title: "Spacer",
-  inspector: [
+  settings: [
     {
       group: "Spacer",
       inputs: [
@@ -93,9 +90,9 @@ export let schema: HydrogenComponentSchema = {
           label: "Separator color",
           name: "separatorColor",
           defaultValue: "#000",
-          condition: "addSeparator.eq.true",
+          condition: (data) => data.addSeparator,
         },
       ],
     },
   ],
-};
+});

@@ -2,7 +2,6 @@ import { HydrogenComponentSchema, useParentInstance } from "@weaverse/hydrogen";
 import { forwardRef, useEffect, useRef, useState, useContext } from "react";
 import { MapPinLine, PlusCircle, MinusCircle } from "@phosphor-icons/react";
 import clsx from "clsx";
-import { motion } from "framer-motion";
 import { MapContext } from './map';
 import * as Accordion from "@radix-ui/react-accordion";
 
@@ -77,7 +76,7 @@ let Address = forwardRef<HTMLDivElement, AddressProps>((props, ref) => {
     return (
       <div ref={containerRef} {...rest}>
         <div
-          className="px-9 md:px-0"
+          className="md:px-0"
           onClick={handleClick}
         >
           <div
@@ -201,7 +200,7 @@ let Address = forwardRef<HTMLDivElement, AddressProps>((props, ref) => {
   return (
     <div ref={containerRef} {...rest}>
       <div
-        className="px-9 md:px-0"
+        className="md:px-0"
         onClick={handleClick}
       >
         <div

@@ -1,12 +1,12 @@
 import * as Checkbox from "@radix-ui/react-checkbox";
+import type { Filter } from "@shopify/hydrogen/storefront-api-types";
+import { useState } from "react";
 import {
   useLocation,
   useNavigate,
   useRouteLoaderData,
   useSearchParams,
-} from "@remix-run/react";
-import type { Filter } from "@shopify/hydrogen/storefront-api-types";
-import { useState } from "react";
+} from "react-router";
 import { Tooltip, TooltipContent, TooltipTrigger } from "~/components/tooltip";
 import type { RootLoader } from "~/root";
 import { cn } from "~/utils/cn";
@@ -119,7 +119,7 @@ export function FilterItem({
         disabled={option.count === 0}
         className={cn(
           "w-5 h-5 shrink-0",
-          "border border-line focus-visible:outline-none",
+          "border border-line focus-visible:outline-hidden",
           "disabled:cursor-not-allowed disabled:opacity-50",
         )}
       >

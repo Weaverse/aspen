@@ -7,7 +7,10 @@ import Link from "~/components/link";
 export function OutletModal({
   children,
   cancelLink,
-}: { children: React.ReactNode; cancelLink: string }) {
+}: {
+  children: React.ReactNode;
+  cancelLink: string;
+}) {
   return (
     <Dialog.Root defaultOpen>
       <Dialog.Portal>
@@ -29,7 +32,7 @@ export function OutletModal({
           }
           aria-describedby={undefined}
         >
-          <div className="w-[500px] max-w-[90vw] bg-[--color-background] px-6 py-3 relative">
+          <div className="w-[500px] max-w-[90vw] bg-(--color-background) px-6 py-3 relative">
             <VisuallyHidden.Root asChild>
               <Dialog.Title>Account modal</Dialog.Title>
             </VisuallyHidden.Root>

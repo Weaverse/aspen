@@ -1,7 +1,7 @@
 import { Minus, Plus } from "@phosphor-icons/react";
 import * as Accordion from "@radix-ui/react-accordion";
-import { Link, useLoaderData } from "@remix-run/react";
 import clsx from "clsx";
+import { Link, useLoaderData } from "react-router";
 import type { loader as productLoader } from "~/routes/($locale).products.$productHandle";
 
 export function ProductDetails({ showShippingPolicy, showRefundPolicy }) {
@@ -32,8 +32,8 @@ export function ProductDetails({ showShippingPolicy, showRefundPolicy }) {
             className={clsx([
               "flex justify-between py-4 w-full font-bold",
               "border-b border-line-subtle",
-              "[&>.minus]:data-[state=open]:inline-block",
-              "[&>.plus]:data-[state=open]:hidden",
+              "data-[state=open]:[&>.minus]:inline-block",
+              "data-[state=open]:[&>.plus]:hidden",
             ])}
           >
             <span>{title}</span>

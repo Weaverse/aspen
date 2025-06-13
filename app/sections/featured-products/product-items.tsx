@@ -1,13 +1,9 @@
-import {
-  type HydrogenComponentSchema,
-  useParentInstance,
-} from "@weaverse/hydrogen";
+import { createSchema, useParentInstance } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import { forwardRef } from "react";
 import { ProductCard } from "~/components/product/product-card";
 import { Swimlane } from "~/components/swimlane";
-import type { FeaturedProductsLoaderData } from ".";
 
 let variants = cva("", {
   variants: {
@@ -32,12 +28,12 @@ let ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
   (props, ref) => {
     let { gap, ...rest } = props;
     let parent = useParentInstance();
-    let products = parent.data?.loaderData?.products
+    let products = parent.data?.loaderData?.products;
 
     return (
       <div ref={ref} {...rest}>
         <Swimlane className={variants({ gap })}>
-          {products.nodes.map((product) => (
+          {products?.nodes?.map((product) => (
             <ProductCard
               key={product.id}
               product={product}
@@ -52,10 +48,10 @@ let ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
 
 export default ProductItems;
 
-export let schema: HydrogenComponentSchema = {
+export let schema = createSchema({
   type: "featured-products-items",
   title: "Product items",
-  inspector: [
+  settings: [
     {
       group: "Product items",
       inputs: [
@@ -73,4 +69,4 @@ export let schema: HydrogenComponentSchema = {
       ],
     },
   ],
-};
+});

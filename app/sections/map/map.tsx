@@ -1,15 +1,8 @@
 import { HydrogenComponentSchema } from "@weaverse/hydrogen";
-import {
-  createContext,
-  forwardRef,
-  useState,
-  useContext,
-  useRef,
-  useEffect,
-} from "react";
+import { createContext, forwardRef, useState, useRef, useEffect } from "react";
 import Heading from "~/components/heading";
 import type { SectionProps } from "~/components/section";
-import { Section, sectionInspector } from "~/components/section";
+import { Section, sectionSettings } from "~/components/section";
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
 import clsx from "clsx";
 
@@ -87,19 +80,22 @@ let MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
       <Section ref={ref} {...rest}>
         <div
           ref={triggerRef}
-          className="flex justify-center items-center relative md:flex-row flex-col-reverse gap-10"
+          className={clsx(
+            "flex justify-center relative md:flex-row flex-col-reverse gap-10",
+            layoutMap === "list" ? "" : "items-center"
+          )}
         >
           {/* List & Accordion layouts - Left column */}
           <div
-            className={
+            className={clsx(
               layoutMap === "list"
                 ? "flex flex-col md:gap-16 gap-10 md:w-1/3 w-full"
-                : "flex flex-col md:gap-8 gap-8 md:w-[45%] w-full md:absolute z-1 p-10 bg-[--form-bg-color]"
-            }
+                : "flex flex-col md:gap-8 gap-8 md:w-1/2 w-full md:absolute md:-translate-x-1/2 z-1 p-10 bg-[--form-bg-color]"
+            )}
             style={{ "--form-bg-color": highlightBg } as React.CSSProperties}
           >
             {/* Heading */}
-            <div className="w-full px-12 md:px-0">
+            <div className="w-full md:px-0">
               {heading && layoutMap === "list" ? (
                 <Heading content={heading} as="h6" alignment="left" />
               ) : (
@@ -117,7 +113,6 @@ let MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
                   defaultValue="item-0"
                   className="w-full"
                   onValueChange={(value) => {
-                    // When accordion value changes, set the active item
                     if (value) {
                       const index = parseInt(value.replace("item-", ""));
                       setActiveItem(index);
@@ -129,7 +124,9 @@ let MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
               </div>
             )}
           </div>
-          {layoutMap === "accordion" && <div className="hidden md:block md:w-1/3 w-full"></div>}
+          {layoutMap === "accordion" && (
+            <div className="hidden md:block md:w-1/3 w-full"></div>
+          )}
 
           {/* Map container - Right column */}
           <div className={clsx("flex-1 md:w-2/3 md:ml-auto w-full relative")}>
@@ -143,7 +140,7 @@ let MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
             >
               {/* We use the same iframe for both layouts now */}
               <iframe
-                key={activeAddress} /* Force re-render when address changes */
+                key={activeAddress}
                 className="w-full h-full"
                 title="Google map embedded frame"
                 src={`https://maps.google.com/maps?t=m&q=${encodeURIComponent(
@@ -167,7 +164,7 @@ export let schema: HydrogenComponentSchema = {
   title: "Map",
   childTypes: ["address-item"],
   inspector: [
-    ...sectionInspector,
+    ...sectionSettings,
     {
       group: "Content",
       inputs: [

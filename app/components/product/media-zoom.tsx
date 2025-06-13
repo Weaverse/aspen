@@ -5,9 +5,9 @@ import { parseGid } from "@shopify/hydrogen";
 import clsx from "clsx";
 import { useEffect, useRef } from "react";
 import type {
-  MediaFragment,
   Media_MediaImage_Fragment,
   Media_Video_Fragment,
+  MediaFragment,
 } from "storefront-api.generated";
 import { Button } from "~/components/button";
 import { Image } from "~/components/image";
@@ -87,7 +87,7 @@ export function ZoomModal({
           }
           aria-describedby={undefined}
         >
-          <div className="w-full h-full flex items-center justify-center bg-[--color-background] relative">
+          <div className="w-full h-full flex items-center justify-center bg-(--color-background) relative">
             <VisuallyHidden.Root asChild>
               <Dialog.Title>Product media zoom</Dialog.Title>
             </VisuallyHidden.Root>
@@ -106,7 +106,7 @@ export function ZoomModal({
                         id={`zoom-media--${mediaId}`}
                         className={cn(
                           "relative bg-gray-100",
-                          "p-1 border transition-colors cursor-pointer border-transparent !h-auto",
+                          "p-1 border transition-colors cursor-pointer border-transparent h-auto!",
                           zoomMediaId === id && "border-line",
                         )}
                         onClick={() => setZoomMediaId(id)}
@@ -174,7 +174,7 @@ function ZoomMedia({ media }: { media: MediaFragment }) {
       <Image
         data={{ ...image, altText: alt || "Product image zoom" }}
         loading="lazy"
-        className="object-cover max-w-[95vw] w-auto h-auto md:h-full max-h-screen"
+        className="object-cover max-w-[95vw] w-auto h-auto md:h-full max-h-screen-no-topbar"
         width={4096}
         aspectRatio={getImageAspectRatio(image, "adapt")}
         sizes="auto"

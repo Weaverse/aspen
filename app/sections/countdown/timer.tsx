@@ -1,7 +1,4 @@
-import type {
-  HydrogenComponentProps,
-  HydrogenComponentSchema,
-} from "@weaverse/hydrogen";
+import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
 import type { CSSProperties } from "react";
 import { forwardRef, useEffect, useState } from "react";
 
@@ -68,7 +65,7 @@ let CountdownTimer = forwardRef<
     <div
       ref={ref}
       {...rest}
-      className="countdown--timer grid grid-cols-2 lg:grid-cols-4 text-[var(--timer-color)] py-3 sm:py-0"
+      className="countdown--timer grid grid-cols-2 lg:grid-cols-4 text-(--timer-color) py-3 sm:py-0"
       data-motion="fade-up"
       style={timerStyle}
     >
@@ -109,10 +106,10 @@ export default CountdownTimer;
 let tomorrow = new Date();
 tomorrow.setDate(tomorrow.getDate() + 1);
 
-export let schema: HydrogenComponentSchema = {
+export let schema = createSchema({
   type: "countdown--timer",
   title: "Timer",
-  inspector: [
+  settings: [
     {
       group: "Timer",
       inputs: [
@@ -130,4 +127,4 @@ export let schema: HydrogenComponentSchema = {
       ],
     },
   ],
-};
+});

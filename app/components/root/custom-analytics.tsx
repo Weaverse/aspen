@@ -1,6 +1,14 @@
-import { useRouteLoaderData } from "@remix-run/react";
-import { AnalyticsEvent, type CartUpdatePayload, type PageViewPayload, type ProductViewPayload, Script, useAnalytics, useNonce } from "@shopify/hydrogen";
+import {
+  AnalyticsEvent,
+  type CartUpdatePayload,
+  type PageViewPayload,
+  type ProductViewPayload,
+  Script,
+  useAnalytics,
+  useNonce,
+} from "@shopify/hydrogen";
 import { useEffect } from "react";
+import { useRouteLoaderData } from "react-router";
 import type { RootLoader } from "~/root";
 
 export function CustomAnalytics() {
@@ -23,7 +31,7 @@ export function CustomAnalytics() {
         event: "page_viewed",
         page_url: data.url,
       };
-      window.dataLayer.push(dataToSentToGTM);
+      window.dataLayer?.push(dataToSentToGTM);
     });
     subscribe(AnalyticsEvent.PRODUCT_VIEWED, (data: ProductViewPayload) => {
       console.log("CustomAnalytics - Product viewed:", data);
@@ -34,7 +42,7 @@ export function CustomAnalytics() {
         product_price: data.products?.[0]?.price,
         product_url: data.products?.[0]?.url,
       };
-      window.dataLayer.push(dataToSentToGTM);
+      window.dataLayer?.push(dataToSentToGTM);
     });
     subscribe(AnalyticsEvent.COLLECTION_VIEWED, (data) => {
       console.log("CustomAnalytics - Collection viewed:", data);
@@ -50,7 +58,7 @@ export function CustomAnalytics() {
         cart_total: data.cart?.cost?.totalAmount?.amount,
         cart_total_quantity: data.cart?.totalQuantity,
       };
-      window.dataLayer.push(dataToSentToGTM);
+      window.dataLayer?.push(dataToSentToGTM);
     });
     subscribe(AnalyticsEvent.PRODUCT_ADD_TO_CART, (data) => {
       console.log("CustomAnalytics - Product added to cart:", data);

@@ -1,6 +1,6 @@
-import type { HydrogenComponentSchema } from "@weaverse/hydrogen";
+import { createSchema } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
-import { Section, type SectionProps, layoutInputs } from "~/components/section";
+import { layoutInputs, Section, type SectionProps } from "~/components/section";
 
 let JudgemeReviewSection = forwardRef<HTMLElement, SectionProps>(
   (props, ref) => {
@@ -15,13 +15,13 @@ let JudgemeReviewSection = forwardRef<HTMLElement, SectionProps>(
 
 export default JudgemeReviewSection;
 
-export let schema: HydrogenComponentSchema = {
+export let schema = createSchema({
   type: "judgeme-reviews",
   title: "Judgeme Reviews",
   enabledOn: {
     pages: ["PRODUCT"],
   },
-  inspector: [
+  settings: [
     {
       group: "Layout",
       inputs: layoutInputs.filter((inp) => inp.name !== "borderRadius"),
@@ -43,4 +43,4 @@ export let schema: HydrogenComponentSchema = {
       },
     ],
   },
-};
+});

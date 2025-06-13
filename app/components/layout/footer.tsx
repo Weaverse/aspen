@@ -6,12 +6,12 @@ import {
   XLogo,
 } from "@phosphor-icons/react";
 import * as Accordion from "@radix-ui/react-accordion";
-import { Link, useFetcher } from "@remix-run/react";
 import { Image } from "@shopify/hydrogen";
 import { useThemeSettings } from "@weaverse/hydrogen";
 import { cva } from "class-variance-authority";
 import clsx from "clsx";
 import { type FormEvent, useEffect, useState } from "react";
+import { Link, useFetcher } from "react-router";
 import { Button } from "~/components/button";
 import { useShopMenu } from "~/hooks/use-shop-menu";
 import { RevealUnderline } from "~/reveal-underline";
@@ -24,7 +24,7 @@ let variants = cva("", {
     width: {
       full: "",
       stretch: "",
-      fixed: "max-w-page mx-auto",
+      fixed: "max-w-(--page-width) mx-auto",
     },
     padding: {
       full: "",
@@ -102,7 +102,7 @@ export function Footer() {
   return (
     <footer
       className={cn(
-        "w-full bg-[--color-footer-bg] text-[--color-footer-text] pt-9 lg:pt-16",
+        "w-full bg-(--color-footer-bg) text-(--color-footer-text) pt-9 lg:pt-16",
         variants({ padding: footerWidth })
       )}
     >
@@ -155,7 +155,7 @@ export function Footer() {
                       type="email"
                       required
                       placeholder={newsletterPlaceholder}
-                      className="text-body focus-visible:outline-none px-3 placeholder:text-[#918379] border border-line-subtle lg:w-80 w-full"
+                      className="text-body focus-visible:outline-hidden px-3 placeholder:text-[#918379] border border-line-subtle lg:w-80 w-full"
                     />
                     <Button
                       variant="primary"
@@ -235,7 +235,7 @@ function FooterMenu() {
             className="flex flex-col border-b border-line-subtle md:border-none"
           >
             {!isEmpty ? (
-              <Accordion.Trigger className="flex py-4 justify-between items-center md:hidden text-left font-medium [&>svg]:data-[state=open]:rotate-90">
+              <Accordion.Trigger className="flex py-4 justify-between items-center md:hidden text-left font-medium data-[state=open]:[&>svg]:rotate-90">
                 {["#", "/"].includes(to) ? (
                   <span>{title}</span>
                 ) : (
@@ -276,7 +276,7 @@ function FooterMenu() {
                 <div className="pb-4 lg:pt-6 flex flex-col gap-2">
                   {subItems.map(({ id, to, title }) => (
                     <Link to={to} key={id} className="relative">
-                      <RevealUnderline className="[--underline-color:--color-footer-text]">
+                      <RevealUnderline className="[--underline-color:var(--color-footer-text)]">
                         {title}
                       </RevealUnderline>
                     </Link>

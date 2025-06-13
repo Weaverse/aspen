@@ -8,19 +8,31 @@ export let themeSchema: HydrogenThemeSchema = {
     author: "Weaverse",
     name: "Aspen",
     authorProfilePhoto:
-      "https://cdn.shopify.com/s/files/1/0838/0052/3057/files/Weaverse_logo_-_3000x_e2fa8c13-dac2-4dcb-a2c2-f7aaf7a58169.png?v=1698245759",
+      "https://cdn.shopify.com/s/files/1/0838/0052/3057/files/Weaverse_logo_-_3000x_b2c0c4be-44bb-4750-9abb-099696808ec6_120x120.png?v=1698245759",
     documentationUrl: "https://weaverse.io/docs",
-    supportUrl: "https://weaverse.io/contact",
+    supportUrl: "https://help.weaverse.io/",
   },
-  i18n: Object.values(COUNTRIES).map((i) => {
-    return {
-      language: i.language,
-      country: i.country,
-      label: i.label,
-    };
-  }),
-  defaultLocale: "en-us",
-  inspector: [
+  i18n: {
+    urlStructure: "url-path",
+    defaultLocale: {
+      pathPrefix: "",
+      label: "United States (USD $)",
+      language: "EN",
+      country: "US",
+      currency: "USD",
+    },
+    shopLocales: Object.entries(COUNTRIES).map(
+      ([pathPrefix, { label, language, country }]) => {
+        return {
+          pathPrefix: pathPrefix === "default" ? "" : pathPrefix,
+          label,
+          language,
+          country,
+        };
+      },
+    ),
+  },
+  settings: [
     {
       group: "Layout",
       inputs: [
@@ -210,7 +222,7 @@ export let themeSchema: HydrogenThemeSchema = {
             width: 320,
             height: 116,
           },
-          condition: "enableTransparentHeader.eq.true",
+          condition: (data) => data.enableTransparentHeader === true,
         },
         {
           type: "range",
@@ -697,7 +709,7 @@ export let themeSchema: HydrogenThemeSchema = {
             ],
           },
           defaultValue: "center",
-          condition: "pcardTitlePricesAlignment.eq.vertical",
+          condition: (data) => data.pcardTitlePricesAlignment === "vertical",
         },
         {
           type: "switch",
@@ -716,7 +728,7 @@ export let themeSchema: HydrogenThemeSchema = {
           label: "Show sale price",
           name: "pcardShowSalePrice",
           defaultValue: true,
-          condition: "pcardShowLowestPrice.ne.true",
+          condition: (data) => data.pcardShowLowestPrice !== true,
         },
         {
           type: "switch",
@@ -730,7 +742,7 @@ export let themeSchema: HydrogenThemeSchema = {
           name: "pcardOptionToShow",
           defaultValue: "Color",
           placeholder: "Color",
-          condition: "pcardShowOptionValues.eq.true",
+          condition: (data) => data.pcardShowOptionValues === true,
         },
         {
           type: "range",
@@ -741,7 +753,7 @@ export let themeSchema: HydrogenThemeSchema = {
             max: 10,
           },
           defaultValue: 5,
-          condition: "pcardShowOptionValues.eq.true",
+          condition: (data) => data.pcardShowOptionValues === true,
         },
         {
           type: "heading",
@@ -764,7 +776,7 @@ export let themeSchema: HydrogenThemeSchema = {
             ],
           },
           defaultValue: "icon",
-          condition: "pcardEnableQuickShop.eq.true",
+          condition: (data) => data.pcardEnableQuickShop === true,
         },
         {
           type: "text",
@@ -772,7 +784,7 @@ export let themeSchema: HydrogenThemeSchema = {
           name: "pcardQuickShopButtonText",
           defaultValue: "Quick shop",
           placeholder: "Quick shop",
-          condition: "pcardQuickShopButtonType.eq.text",
+          condition: (data) => data.pcardQuickShopButtonType === "text",
         },
         {
           type: "select",
@@ -785,7 +797,7 @@ export let themeSchema: HydrogenThemeSchema = {
             ],
           },
           defaultValue: "open-quick-shop",
-          condition: "pcardEnableQuickShop.eq.true",
+          condition: (data) => data.pcardEnableQuickShop === true,
         },
         {
           type: "select",
@@ -798,7 +810,7 @@ export let themeSchema: HydrogenThemeSchema = {
             ],
           },
           defaultValue: "modal",
-          condition: "pcardQuickShopAction.eq.open-quick-shop",
+          condition: (data) => data.pcardQuickShopAction === "open-quick-shop",
         },
         {
           type: "heading",

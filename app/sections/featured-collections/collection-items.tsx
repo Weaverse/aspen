@@ -1,5 +1,5 @@
 import {
-  type HydrogenComponentSchema,
+  createSchema,
   IMAGES_PLACEHOLDERS,
   useParentInstance,
 } from "@weaverse/hydrogen";
@@ -9,7 +9,7 @@ import clsx from "clsx";
 import type { CSSProperties } from "react";
 import { forwardRef } from "react";
 import { Image } from "~/components/image";
-import Link, { linkStylesInputs, type LinkStyleProps } from "~/components/link";
+import Link, { type LinkStyleProps, linkStylesInputs } from "~/components/link";
 import type { OverlayProps } from "~/components/overlay";
 import { Overlay, overlayInputs } from "~/components/overlay";
 import { useAnimation } from "~/hooks/use-animation";
@@ -36,8 +36,8 @@ let variants = cva("", {
     },
     borderRadius: {
       0: "",
-      2: "rounded-sm",
-      4: "rounded",
+      2: "rounded-xs",
+      4: "rounded-sm",
       6: "rounded-md",
       8: "rounded-lg",
       10: "rounded-[10px]",
@@ -152,7 +152,7 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
                 }
                 className={clsx(
                   contentPosition === "over"
-                    ? "text-center space-y-4 xl:space-y-7 px-4 py-16 text-[--col-name-color]"
+                    ? "text-center space-y-4 xl:space-y-7 px-4 py-16 text-(--col-name-color)"
                     : "py-4",
                 )}
               >
@@ -200,10 +200,10 @@ let COLLECTION_PLACEHOLDER: FeaturedCollectionsLoaderData[0] = {
 
 export default CollectionItems;
 
-export let schema: HydrogenComponentSchema = {
+export let schema = createSchema({
   type: "featured-collections-items",
   title: "Collection items",
-  inspector: [
+  settings: [
     {
       group: "Collection items",
       inputs: [
@@ -291,21 +291,21 @@ export let schema: HydrogenComponentSchema = {
           name: "collectionNameColor",
           label: "Collection name color",
           defaultValue: "#fff",
-          condition: "contentPosition.eq.over",
+          condition: (data) => data.contentPosition === "over",
         },
         {
           type: "heading",
           label: "Overlay",
-          condition: "contentPosition.eq.over",
+          condition: (data) => data.contentPosition === "over",
         },
         ...overlayInputs.map((inp) => ({
           ...inp,
-          condition: "contentPosition.eq.over",
+          condition: (data) => data.contentPosition === "over",
         })),
         {
           type: "heading",
           label: "Button (optional)",
-          condition: "contentPosition.eq.over",
+          condition: (data) => data.contentPosition === "over",
         },
         {
           type: "text",
@@ -313,13 +313,13 @@ export let schema: HydrogenComponentSchema = {
           label: "Button text",
           defaultValue: "Shop now",
           placeholder: "Shop now",
-          condition: "contentPosition.eq.over",
+          condition: (data) => data.contentPosition === "over",
         },
         ...linkStylesInputs.map((inp) => ({
           ...inp,
-          condition: "contentPosition.eq.over",
+          condition: (data) => data.contentPosition === "over",
         })),
       ],
     },
   ],
-};
+});

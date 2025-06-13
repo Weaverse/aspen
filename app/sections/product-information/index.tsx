@@ -1,9 +1,9 @@
-import { useLoaderData, useSearchParams } from "@remix-run/react";
 import { Money, ShopPayButton, useOptimisticVariant } from "@shopify/hydrogen";
 import type { MoneyV2 } from "@shopify/hydrogen/storefront-api-types";
-import type { HydrogenComponentSchema } from "@weaverse/hydrogen";
+import { createSchema } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { forwardRef, useState } from "react";
+import { useLoaderData, useSearchParams } from "react-router";
 import { CompareAtPrice } from "~/components/compare-at-price";
 import { Link } from "~/components/link";
 import { AddToCartButton } from "~/components/product/add-to-cart-button";
@@ -18,7 +18,7 @@ import {
 } from "~/components/product/product-media";
 import { Quantity } from "~/components/product/quantity";
 import { ProductVariants } from "~/components/product/variants";
-import { Section, type SectionProps, layoutInputs } from "~/components/section";
+import { layoutInputs, Section, type SectionProps } from "~/components/section";
 import type { loader as productRouteLoader } from "~/routes/($locale).products.$productHandle";
 import { isDiscounted } from "~/utils/product";
 import { ProductDetails } from "./product-details";
@@ -44,7 +44,7 @@ let ProductInformation = forwardRef<HTMLDivElement, ProductInformationProps>(
       useLoaderData<typeof productRouteLoader>();
     let [params] = useSearchParams();
     let selectedVariant = useOptimisticVariant(
-      product.selectedVariant,
+      product?.selectedVariant,
       variants,
     );
 
@@ -136,7 +136,7 @@ let ProductInformation = forwardRef<HTMLDivElement, ProductInformationProps>(
                   {showVendor && vendor && (
                     <span className="text-body-subtle">{vendor}</span>
                   )}
-                  <h1 className="h3 !tracking-tight">{title}</h1>
+                  <h1 className="h3 tracking-tight!">{title}</h1>
                 </div>
                 {selectedVariant ? (
                   <div className="flex items-center gap-2">
@@ -230,7 +230,7 @@ let ProductInformation = forwardRef<HTMLDivElement, ProductInformationProps>(
 
 export default ProductInformation;
 
-export let schema: HydrogenComponentSchema = {
+export let schema = createSchema({
   type: "product-information",
   title: "Main product",
   childTypes: ["judgeme"],
@@ -238,7 +238,7 @@ export let schema: HydrogenComponentSchema = {
   enabledOn: {
     pages: ["PRODUCT"],
   },
-  inspector: [
+  settings: [
     { group: "Layout", inputs: layoutInputs },
     {
       group: "Product Media",
@@ -289,14 +289,14 @@ export let schema: HydrogenComponentSchema = {
               { label: "Mix", value: "mix" },
             ],
           },
-          condition: "mediaLayout.eq.grid",
+          condition: (data) => data.mediaLayout === "grid",
         },
         {
           label: "Show thumbnails",
           name: "showThumbnails",
           type: "switch",
           defaultValue: true,
-          condition: "mediaLayout.eq.slider",
+          condition: (data) => data.mediaLayout === "slider",
         },
         {
           label: "Enable zoom",
@@ -380,4 +380,4 @@ export let schema: HydrogenComponentSchema = {
     mediaLayout: "grid",
     gridSize: "2x2",
   },
-};
+});

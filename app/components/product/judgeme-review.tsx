@@ -1,10 +1,10 @@
-import { useFetcher, useLoaderData } from "@remix-run/react";
-import type {
-  HydrogenComponentProps,
-  HydrogenComponentSchema,
+import {
+  createSchema,
+  type HydrogenComponentProps,
+  useParentInstance,
 } from "@weaverse/hydrogen";
-import { useParentInstance } from "@weaverse/hydrogen";
 import { forwardRef, useEffect } from "react";
+import { useFetcher, useLoaderData } from "react-router";
 import { StarRating } from "~/components/star-rating";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import type { loader as productRouteLoader } from "~/routes/($locale).products.$productHandle";
@@ -50,13 +50,7 @@ let JudgemeReview = forwardRef<HTMLDivElement, HydrogenComponentProps>(
 
 export default JudgemeReview;
 
-export let schema: HydrogenComponentSchema = {
+export let schema = createSchema({
   type: "judgeme",
   title: "Judgeme review",
-  inspector: [
-    {
-      group: "Judgeme",
-      inputs: [],
-    },
-  ],
-};
+});

@@ -1,6 +1,6 @@
 import {
+  createSchema,
   type HydrogenComponentProps,
-  type HydrogenComponentSchema,
   IMAGES_PLACEHOLDERS,
 } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
@@ -56,10 +56,10 @@ let ImageGalleyItems = forwardRef<HTMLDivElement, ImageGalleyItemsProps>(
 
 export default ImageGalleyItems;
 
-export let schema: HydrogenComponentSchema = {
+export let schema = createSchema({
   type: "image-gallery--items",
   title: "Images",
-  inspector: [
+  settings: [
     {
       group: "Images",
       inputs: [
@@ -125,4 +125,4 @@ export let schema: HydrogenComponentSchema = {
       },
     ],
   },
-};
+});

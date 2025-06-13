@@ -1,6 +1,6 @@
 import {
+  createSchema,
   type HydrogenComponentProps,
-  type HydrogenComponentSchema,
   IMAGES_PLACEHOLDERS,
   type WeaverseImage,
 } from "@weaverse/hydrogen";
@@ -9,7 +9,7 @@ import { cva } from "class-variance-authority";
 import type { CSSProperties } from "react";
 import { forwardRef } from "react";
 import { Image } from "~/components/image";
-import Link, { linkContentInputs, type LinkProps } from "~/components/link";
+import Link, { type LinkProps, linkContentInputs } from "~/components/link";
 import type { ImageAspectRatio } from "~/types/image";
 import { getImageAspectRatio } from "~/utils/image";
 
@@ -65,7 +65,7 @@ let ColumnWithImageItem = forwardRef<HTMLDivElement, ColumnWithImageItemProps>(
         <Image
           data={typeof imageSrc === "object" ? imageSrc : { url: imageSrc }}
           sizes="auto"
-          className="h-auto rounded-[--radius]"
+          className="h-auto rounded-(--radius)"
           aspectRatio={getImageAspectRatio(imageSrc, imageAspectRatio)}
         />
         <div className="text-center w-full space-y-3.5 mt-6">
@@ -84,10 +84,10 @@ let ColumnWithImageItem = forwardRef<HTMLDivElement, ColumnWithImageItemProps>(
 
 export default ColumnWithImageItem;
 
-export let schema: HydrogenComponentSchema = {
+export let schema = createSchema({
   type: "column-with-image--item",
   title: "Column",
-  inspector: [
+  settings: [
     {
       group: "Column",
       inputs: [
@@ -185,4 +185,4 @@ export let schema: HydrogenComponentSchema = {
   presets: {
     imageSrc: IMAGES_PLACEHOLDERS.product_4,
   },
-};
+});

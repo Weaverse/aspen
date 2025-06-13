@@ -1,7 +1,7 @@
-import type { HydrogenComponentSchema } from "@weaverse/hydrogen";
+import { createSchema } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
 import type { SectionProps } from "~/components/section";
-import { Section, sectionInspector } from "~/components/section";
+import { Section, sectionSettings } from "~/components/section";
 
 type ImageGalleryProps = SectionProps;
 
@@ -16,11 +16,11 @@ let ImageGallery = forwardRef<HTMLElement, ImageGalleryProps>((props, ref) => {
 
 export default ImageGallery;
 
-export let schema: HydrogenComponentSchema = {
+export let schema = createSchema({
   type: "image-gallery",
   title: "Image gallery",
   childTypes: ["subheading", "heading", "paragraph", "image-gallery--items"],
-  inspector: sectionInspector,
+  settings: sectionSettings,
   presets: {
     children: [
       {
@@ -37,4 +37,4 @@ export let schema: HydrogenComponentSchema = {
       },
     ],
   },
-};
+});

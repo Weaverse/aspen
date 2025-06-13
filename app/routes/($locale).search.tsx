@@ -1,14 +1,14 @@
 import { MagnifyingGlass, X } from "@phosphor-icons/react";
-import { Await, Form, useLoaderData } from "@remix-run/react";
 import {
   Analytics,
-  Pagination,
   getPaginationVariables,
   getSeoMeta,
+  Pagination,
 } from "@shopify/hydrogen";
 import type { LoaderFunctionArgs, MetaArgs } from "@shopify/remix-oxygen";
 import { clsx } from "clsx";
 import { Fragment, Suspense, useEffect, useState } from "react";
+import { Await, Form, useLoaderData } from "react-router";
 import type { SearchQuery } from "storefront-api.generated";
 import { BreadCrumb } from "~/components/breadcrumb";
 import Link from "~/components/link";
@@ -82,9 +82,10 @@ export async function loader({
   };
 }
 
-
 export let meta = ({ matches }: MetaArgs<typeof loader>) => {
-  return getSeoMeta(...matches.map((match) => (match.data as any)?.seo).filter(Boolean));
+  return getSeoMeta(
+    ...matches.map((match) => (match.data as any)?.seo).filter(Boolean),
+  );
 };
 
 const POPULAR_SEARCHES = ["French Linen", "Shirt", "Cotton"];
@@ -125,7 +126,7 @@ export default function Search() {
       >
         <MagnifyingGlass className="w-5 h-5 shrink-0 text-gray-500" />
         <input
-          className="focus-visible:outline-none w-full h-full py-4"
+          className="focus-visible:outline-hidden w-full h-full py-4"
           value={searchKey}
           onChange={(e) => setSearchKey(e.target.value)}
           name="q"

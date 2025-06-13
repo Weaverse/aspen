@@ -1,10 +1,10 @@
-import { useFetcher } from "@remix-run/react";
 import type {
   Product,
   ProductSortKeys,
 } from "@shopify/hydrogen/storefront-api-types";
 import clsx from "clsx";
 import { useEffect, useId, useMemo } from "react";
+import { useFetcher } from "react-router";
 import type { ProductCardFragment } from "storefront-api.generated";
 import { ProductCard } from "~/components/product/product-card";
 import { Skeleton } from "~/components/skeleton";
@@ -92,7 +92,7 @@ function CartBestSellersContent({
       <>
         {[...new Array(count)].map((_, i) => (
           <div key={`${id + i}`} className="grid gap-2">
-            <Skeleton className="aspect-[3/4]" />
+            <Skeleton className="aspect-3/4" />
             <Skeleton className="w-32 h-4" />
           </div>
         ))}

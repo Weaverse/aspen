@@ -1,13 +1,13 @@
-import { useLoaderData } from "@remix-run/react";
 import { Pagination } from "@shopify/hydrogen";
-import type { HydrogenComponentSchema } from "@weaverse/hydrogen";
+import { createSchema } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { forwardRef } from "react";
+import { useLoaderData } from "react-router";
 import type { AllProductsQuery } from "storefront-api.generated";
 import { BreadCrumb } from "~/components/breadcrumb";
 import Link from "~/components/link";
 import { ProductCard } from "~/components/product/product-card";
-import { Section, type SectionProps, layoutInputs } from "~/components/section";
+import { layoutInputs, Section, type SectionProps } from "~/components/section";
 
 interface AllProductsProps extends SectionProps {
   heading: string;
@@ -68,14 +68,14 @@ let AllProducts = forwardRef<HTMLElement, AllProductsProps>((props, ref) => {
 
 export default AllProducts;
 
-export let schema: HydrogenComponentSchema = {
+export let schema = createSchema({
   type: "all-products",
   title: "All products",
   limit: 1,
   enabledOn: {
     pages: ["ALL_PRODUCTS"],
   },
-  inspector: [
+  settings: [
     {
       group: "Layout",
       inputs: [
@@ -114,4 +114,4 @@ export let schema: HydrogenComponentSchema = {
       ],
     },
   ],
-};
+});

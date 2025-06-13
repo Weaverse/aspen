@@ -43,7 +43,6 @@ export function GlobalStyle() {
 
     return (
       <style
-        id="global-theme-style"
         key="global-theme-style"
         suppressHydrationWarning
         dangerouslySetInnerHTML={{

@@ -1,12 +1,9 @@
-import type {
-  HydrogenComponentSchema,
-  WeaverseImage,
-} from "@weaverse/hydrogen";
-import { IMAGES_PLACEHOLDERS } from "@weaverse/hydrogen";
+import type { WeaverseImage } from "@weaverse/hydrogen";
+import { createSchema, IMAGES_PLACEHOLDERS } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
 import Heading, {
-  headingInputs,
   type HeadingProps,
+  headingInputs,
 } from "~/components/heading";
 import { Image } from "~/components/image";
 import Paragraph from "~/components/paragraph";
@@ -86,11 +83,11 @@ let Hotspots = forwardRef<HTMLElement, HotspotsProps>((props, ref) => {
 
 export default Hotspots;
 
-export let schema: HydrogenComponentSchema = {
+export let schema = createSchema({
   type: "hotspots",
   title: "Hotspots",
   childTypes: ["hotspots--item"],
-  inspector: [
+  settings: [
     {
       group: "Layout",
       inputs: [
@@ -188,4 +185,4 @@ export let schema: HydrogenComponentSchema = {
       },
     ],
   },
-};
+});

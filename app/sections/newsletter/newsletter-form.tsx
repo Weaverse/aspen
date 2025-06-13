@@ -1,11 +1,8 @@
 import { EnvelopeSimple } from "@phosphor-icons/react";
-import { useFetcher } from "@remix-run/react";
-import type {
-  HydrogenComponentProps,
-  HydrogenComponentSchema,
-} from "@weaverse/hydrogen";
+import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { forwardRef } from "react";
+import { useFetcher } from "react-router";
 import { Button } from "~/components/button";
 import type { CustomerApiPlayLoad } from "~/routes/($locale).api.customer";
 
@@ -41,7 +38,7 @@ let NewsLetterForm = forwardRef<HTMLDivElement, NewsLetterInputProps>(
               type="email"
               required
               placeholder={placeholder}
-              className="py-3 pr-3 pl-1.5 focus:outline-none leading-tight w-full bg-transparent"
+              className="py-3 pr-3 pl-1.5 focus:outline-hidden leading-tight w-full bg-transparent"
             />
           </div>
           <Button
@@ -75,10 +72,10 @@ let NewsLetterForm = forwardRef<HTMLDivElement, NewsLetterInputProps>(
 
 export default NewsLetterForm;
 
-export let schema: HydrogenComponentSchema = {
+export let schema = createSchema({
   type: "newsletter-form",
   title: "Form",
-  inspector: [
+  settings: [
     {
       group: "Form",
       inputs: [
@@ -125,4 +122,4 @@ export let schema: HydrogenComponentSchema = {
       ],
     },
   ],
-};
+});

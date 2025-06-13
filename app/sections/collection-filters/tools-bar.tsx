@@ -1,7 +1,7 @@
 import { Sliders, X } from "@phosphor-icons/react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { useLoaderData } from "@remix-run/react";
 import clsx from "clsx";
+import { useLoaderData } from "react-router";
 import type { CollectionQuery } from "storefront-api.generated";
 import { Button } from "~/components/button";
 import { ScrollArea } from "~/components/scroll-area";
@@ -82,7 +82,7 @@ function FiltersDrawer({
         />
         <Dialog.Content
           className={clsx([
-            "fixed inset-y-0 w-full md:w-[360px] bg-[--color-background] py-4 z-10",
+            "fixed inset-y-0 w-full md:w-[360px] bg-(--color-background) py-4 z-10",
             "left-0 -translate-x-full data-[state=open]:animate-enter-from-left",
           ])}
           aria-describedby={undefined}

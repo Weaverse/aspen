@@ -1,122 +1,232 @@
+import { Circle, Handbag, Plus, Tag } from "@phosphor-icons/react";
 import {
-  type HydrogenComponentProps,
-  type HydrogenComponentSchema,
-  IMAGES_PLACEHOLDERS,
-  type WeaverseImage,
+  ComponentLoaderArgs,
+  HydrogenComponentProps,
+  createSchema,
+  WeaverseProduct,
 } from "@weaverse/hydrogen";
-import clsx from "clsx";
+import type { CSSProperties } from "react";
 import { forwardRef } from "react";
-import { Image } from "~/components/image";
+import type { ProductQuery } from "storefront-api.generated";
+import { PRODUCT_QUERY } from "~/graphql/queries";
+import { ProductPopup } from "./product-popup";
 
-interface TestimonialItemProps extends HydrogenComponentProps {
-  heading: string;
-  content: string;
-  authorImage: WeaverseImage;
-  authorName: string;
-  authorTitle: string;
-  hideOnMobile: boolean;
+export interface TestimonialHotspotsItemData {
+  icon: "circle" | "plus" | "bag" | "tag";
+  iconSize: number;
+  offsetX: number;
+  offsetY: number;
+  product: WeaverseProduct;
+  popupWidth: number;
+  showPrice: boolean;
+  showViewDetailsLink: boolean;
+  viewDetailsLinkText: string;
 }
 
-let TestimonialItem = forwardRef<HTMLDivElement, TestimonialItemProps>(
+interface TestimonialHotspotsItemProps
+  extends HydrogenComponentProps<Awaited<ReturnType<typeof loader>>>,
+  TestimonialHotspotsItemData {}
+
+const ICONS = {
+  circle: Circle,
+  plus: Plus,
+  bag: Handbag,
+  tag: Tag,
+};
+
+let TestimonialHotspotsItem = forwardRef<HTMLDivElement, TestimonialHotspotsItemProps>(
   (props, ref) => {
     let {
-      heading,
-      content,
-      authorImage,
-      authorName,
-      authorTitle,
-      hideOnMobile,
+      icon,
+      iconSize,
+      offsetX,
+      offsetY,
+      product,
+      popupWidth,
+      showPrice,
+      showViewDetailsLink,
+      viewDetailsLinkText,
+      children,
+      loaderData,
       ...rest
     } = props;
+    let Icon = ICONS[icon];
+
     return (
       <div
         ref={ref}
         {...rest}
-        data-motion="slide-in"
-        className={clsx(hideOnMobile && "hidden sm:block")}
+        className="absolute -translate-x-1/2 -translate-y-1/2 hover:z-[1]"
+        style={
+          {
+            top: `${offsetY}%`,
+            left: `${offsetX}%`,
+            "--translate-x-ratio": offsetX > 50 ? 1 : -1,
+            "--translate-y-ratio": offsetY > 50 ? 1 : -1,
+            "--spot-size": `${iconSize + 16}px`,
+          } as CSSProperties
+        }
       >
-        <figure className="p-6 bg-gray-50 rounded">
-          <blockquote>
-            <div className="text-xl md:text-2xl">{heading}</div>
-            <p
-              className="my-4 text-gray-500"
-              suppressHydrationWarning
-              dangerouslySetInnerHTML={{ __html: content }}
+        <div className="relative flex cursor-pointer">
+          <span
+            className="animate-ping absolute inline-flex h-full w-full rounded-full bg-gray-700 opacity-75"
+            style={{ animationDuration: "1500ms" }}
+          />
+          <span className="relative inline-flex rounded-full p-2 bg-white group">
+            <Icon style={{ width: iconSize, height: iconSize }} />
+            <ProductPopup
+              product={loaderData?.product}
+              popupWidth={popupWidth}
+              offsetX={offsetX}
+              offsetY={offsetY}
+              showPrice={showPrice}
+              showViewDetailsLink={showViewDetailsLink}
+              viewDetailsLinkText={viewDetailsLinkText}
             />
-          </blockquote>
-          <figcaption className="flex items-center space-x-3">
-            <Image
-              className="h-9 w-9 rounded-full"
-              data={
-                typeof authorImage === "object"
-                  ? authorImage
-                  : { url: authorImage, altText: authorName }
-              }
-              alt={authorName}
-              width={36}
-              sizes="auto"
-            />
-            <div className="space-y-0.5">
-              <div className="font-medium">{authorName}</div>
-              <div className="text-sm text-gray-500">{authorTitle}</div>
-            </div>
-          </figcaption>
-        </figure>
+          </span>
+        </div>
       </div>
     );
   },
 );
 
-export default TestimonialItem;
+export default TestimonialHotspotsItem;
 
-export let schema: HydrogenComponentSchema = {
-  type: "testimonial--item",
-  title: "Testimonial",
-  inspector: [
+export let loader = async (args: ComponentLoaderArgs<TestimonialHotspotsItemData>) => {
+  let { weaverse, data } = args;
+  let { storefront } = weaverse;
+  if (!data?.product) {
+    return null;
+  }
+  let productHandle = data.product.handle;
+  let { product } = await storefront.query<ProductQuery>(PRODUCT_QUERY, {
+    variables: {
+      handle: productHandle,
+      selectedOptions: [],
+      language: storefront.i18n.language,
+      country: storefront.i18n.country,
+    },
+  });
+
+  return { product };
+};
+
+export let schema = createSchema({
+  type: "testimonial-hotspots--item",
+  title: "Testimonial hotspots item",
+  settings: [
     {
-      group: "Testimonial",
+      group: "Icon",
       inputs: [
         {
-          type: "text",
-          name: "heading",
-          label: "Heading",
-          defaultValue: "Reliable international shipping",
-          placeholder: "Testimonial heading",
+          type: "toggle-group",
+          name: "icon",
+          label: "Icon",
+          configs: {
+            options: [
+              {
+                label: "Circle",
+                value: "circle",
+                icon: "circle",
+              },
+              {
+                label: "Plus",
+                value: "plus",
+                icon: "plus",
+              },
+              {
+                label: "Bag",
+                value: "bag",
+                icon: "shopping-bag",
+              },
+              {
+                label: "Tag",
+                value: "tag",
+                icon: "tag",
+              },
+            ],
+          },
+          defaultValue: "plus",
         },
         {
-          type: "textarea",
-          name: "content",
-          label: "Content",
-          defaultValue: `I've ordered to multiple countries without issue. Their calculated duties/taxes and import fees make international delivery transparent.`,
-          placeholder: "Testimonial content",
+          type: "range",
+          name: "iconSize",
+          label: "Icon size",
+          configs: {
+            min: 16,
+            max: 32,
+            step: 2,
+            unit: "px",
+          },
+          defaultValue: 20,
         },
         {
-          type: "image",
-          name: "authorImage",
-          label: "Author image",
-          defaultValue: IMAGES_PLACEHOLDERS.image,
+          type: "range",
+          name: "offsetX",
+          label: "Offset X",
+          configs: {
+            min: 0,
+            max: 100,
+            step: 1,
+            unit: "%",
+          },
+          defaultValue: 50,
         },
         {
-          type: "text",
-          name: "authorName",
-          label: "Author Name",
-          defaultValue: "Emma Thomas",
-          placeholder: "Author name",
+          type: "range",
+          name: "offsetY",
+          label: "Offset Y",
+          configs: {
+            min: 0,
+            max: 100,
+            step: 1,
+            unit: "%",
+          },
+          defaultValue: 50,
+        },
+      ],
+    },
+    {
+      group: "Product",
+      inputs: [
+        {
+          type: "product",
+          name: "product",
+          label: "Product",
         },
         {
-          type: "text",
-          name: "authorTitle",
-          label: "Author Title",
-          defaultValue: "International Customer",
-          placeholder: "Author title",
+          type: "range",
+          name: "popupWidth",
+          label: "Popup width",
+          configs: {
+            min: 300,
+            max: 600,
+            step: 10,
+            unit: "px",
+          },
+          defaultValue: 350,
+          helpText: "For desktop devices only",
         },
         {
           type: "switch",
-          label: "Hide on Mobile",
-          name: "hideOnMobile",
-          defaultValue: false,
+          name: "showPrice",
+          label: "Show price",
+          defaultValue: true,
+        },
+        {
+          type: "switch",
+          name: "showViewDetailsLink",
+          label: "Show view details link",
+          defaultValue: true,
+        },
+        {
+          type: "text",
+          name: "viewDetailsLinkText",
+          label: "View details link text",
+          defaultValue: "View full details",
+          condition: "showViewDetailsLink.eq.true",
         },
       ],
     },
   ],
-};
+});

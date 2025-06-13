@@ -1,7 +1,6 @@
 import type { HydrogenComponentProps, HydrogenComponentSchema } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
 import * as RadixAccordion from "@radix-ui/react-accordion";
-import { Icon } from "@radix-ui/react-select";
 
 interface AccordionGroupProps extends HydrogenComponentProps{
     allowMultiple: boolean;
@@ -15,7 +14,7 @@ const AccordionGroup = forwardRef<HTMLDivElement, AccordionGroupProps>(
       <div ref={ref} {...rest}>
         <RadixAccordion.Root
           type="multiple"
-          className="w-full flex flex-col gap-4"
+          className="accordion--group w-full grid gap-4"
         >
           {children}
         </RadixAccordion.Root>

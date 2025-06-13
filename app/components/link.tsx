@@ -1,17 +1,17 @@
 import { ArrowRight } from "@phosphor-icons/react";
 import {
-  Link as RemixLink,
-  type LinkProps as RemixLinkProps,
-  useRouteLoaderData,
-} from "@remix-run/react";
-import {
+  createSchema,
   type HydrogenComponentProps,
-  type HydrogenComponentSchema,
   type InspectorGroup,
   useThemeSettings,
 } from "@weaverse/hydrogen";
-import { type VariantProps, cva } from "class-variance-authority";
-import { type HTMLAttributes, forwardRef } from "react";
+import { cva, type VariantProps } from "class-variance-authority";
+import { forwardRef, type HTMLAttributes } from "react";
+import {
+  Link as RemixLink,
+  type LinkProps as RemixLinkProps,
+  useRouteLoaderData,
+} from "react-router";
 import type { RootLoader } from "~/root";
 import { cn } from "~/utils/cn";
 
@@ -20,20 +20,30 @@ let variants = cva(["button transition-colors inline-flex"], {
     variant: {
       primary: [
         "px-4 py-3",
-        "text-[--btn-primary-text]",
-        "bg-[--btn-primary-bg]",
+        "text-(--btn-primary-text)",
+        "bg-(--btn-primary-bg)",
+        "border-(--btn-primary-bg)",
+        "hover:text-(--btn-primary-bg)",
+        "hover:bg-(--btn-primary-text)",
+        "hover:border-(--btn-primary-bg)",
       ],
       secondary: [
         "px-4 py-3",
-        "text-[--btn-secondary-text]",
-        "bg-[--btn-secondary-bg]",
+        "text-(--btn-secondary-text)",
+        "bg-(--btn-secondary-bg)",
+        "border-(--btn-secondary-bg)",
+        "hover:bg-(--btn-secondary-text)",
+        "hover:text-(--btn-secondary-bg)",
+        "hover:border-(--btn-secondary-text)",
       ],
       outline: [
         "border px-4 py-3",
-        "text-[--btn-outline-text]",
+        "text-(--btn-outline-text)",
         "bg-transparent",
-        "border-[--btn-outline-border]",
-        "hover:bg-[--btn-outline-background]",
+        "border-(--btn-outline-border)",
+        "hover:bg-(--btn-outline-background)",
+        "hover:text-background",
+        "hover:border-(--btn-outline-text)",
       ],
       decor: [
         "bg-transparent border-none p-0",
@@ -41,12 +51,12 @@ let variants = cva(["button transition-colors inline-flex"], {
       ],
       custom: [
         "border px-4 py-3",
-        "text-[--btn-text]",
-        "bg-[--btn-bg]",
-        "border-[--btn-border]",
-        "hover:text-[--btn-text-hover]",
-        "hover:bg-[--btn-bg-hover]",
-        "hover:border-[--btn-border-hover]",
+        "text-(--btn-text)",
+        "bg-(--btn-bg)",
+        "border-(--btn-border)",
+        "hover:text-(--btn-text-hover)",
+        "hover:bg-(--btn-bg-hover)",
+        "hover:border-(--btn-border-hover)",
       ],
       underline: [
         "relative bg-transparent pb-1 text-body",
@@ -201,7 +211,7 @@ export let linkContentInputs: InspectorGroup["inputs"] = [
     name: "openInNewTab",
     label: "Open in new tab",
     defaultValue: false,
-    condition: "to.ne.nil",
+    condition: (data) => !!data.to,
   },
   {
     type: "select",
@@ -211,7 +221,7 @@ export let linkContentInputs: InspectorGroup["inputs"] = [
       options: [
         { label: "Primary", value: "primary" },
         { label: "Secondary", value: "secondary" },
-        { label: "Outline", value: "outline" },
+        { label: "Outline", value: "outline-solid" },
         { label: "Decoration", value: "decor" },
         { label: "Underline", value: "underline" },
         { label: "Custom styles", value: "custom" },
@@ -233,42 +243,42 @@ export let linkStylesInputs: InspectorGroup["inputs"] = [
     label: "Background color",
     name: "backgroundColor",
     defaultValue: "#000",
-    condition: "variant.eq.custom",
+    condition: (data) => data.variant === "custom",
   },
   {
     type: "color",
     label: "Text color",
     name: "textColor",
     defaultValue: "#fff",
-    condition: "variant.eq.custom",
+    condition: (data) => data.variant === "custom",
   },
   {
     type: "color",
     label: "Border color",
     name: "borderColor",
     defaultValue: "#00000000",
-    condition: "variant.eq.custom",
+    condition: (data) => data.variant === "custom",
   },
   {
     type: "color",
     label: "Background color (hover)",
     name: "backgroundColorHover",
     defaultValue: "#00000000",
-    condition: "variant.eq.custom",
+    condition: (data) => data.variant === "custom",
   },
   {
     type: "color",
     label: "Text color (hover)",
     name: "textColorHover",
     defaultValue: "#000",
-    condition: "variant.eq.custom",
+    condition: (data) => data.variant === "custom",
   },
   {
     type: "color",
     label: "Border color (hover)",
     name: "borderColorHover",
     defaultValue: "#000",
-    condition: "variant.eq.custom",
+    condition: (data) => data.variant === "custom",
   },
 ];
 
@@ -281,13 +291,13 @@ export let linkInputs: InspectorGroup["inputs"] = [
   ...linkStylesInputs,
 ];
 
-export let schema: HydrogenComponentSchema = {
+export let schema = createSchema({
   type: "button",
   title: "Button",
-  inspector: [
+  settings: [
     {
       group: "Button",
       inputs: linkInputs,
     },
   ],
-};
+});

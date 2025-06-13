@@ -1,23 +1,23 @@
 import { SignOut } from "@phosphor-icons/react";
 import {
+  CacheNone,
+  flattenConnection,
+  generateCacheControlHeader,
+} from "@shopify/hydrogen";
+import { data, type LoaderFunctionArgs } from "@shopify/remix-oxygen";
+import type {
+  CustomerDetailsFragment,
+  CustomerDetailsQuery,
+} from "customer-account-api.generated";
+import { Suspense } from "react";
+import {
   Await,
   Form,
   Outlet,
   useLoaderData,
   useMatches,
   useOutlet,
-} from "@remix-run/react";
-import {
-  CacheNone,
-  flattenConnection,
-  generateCacheControlHeader,
-} from "@shopify/hydrogen";
-import { type LoaderFunctionArgs, data } from "@shopify/remix-oxygen";
-import type {
-  CustomerDetailsFragment,
-  CustomerDetailsQuery,
-} from "customer-account-api.generated";
-import { Suspense } from "react";
+} from "react-router";
 import { AccountDetails } from "~/components/customer/account-details";
 import { AccountAddressBook } from "~/components/customer/address-book";
 import { AccountOrderHistory } from "~/components/customer/orders";

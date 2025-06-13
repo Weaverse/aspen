@@ -1,9 +1,9 @@
-import { useLoaderData } from "@remix-run/react";
-import type { HydrogenComponentSchema } from "@weaverse/hydrogen";
+import { createSchema } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
+import { useLoaderData } from "react-router";
 import type { PageDetailsQuery } from "storefront-api.generated";
 import { Link } from "~/components/link";
-import { Section, type SectionProps, layoutInputs } from "~/components/section";
+import { layoutInputs, Section, type SectionProps } from "~/components/section";
 
 interface PageProps extends SectionProps {}
 
@@ -36,14 +36,14 @@ let Page = forwardRef<HTMLElement, PageProps>((props, ref) => {
 
 export default Page;
 
-export let schema: HydrogenComponentSchema = {
+export let schema = createSchema({
   type: "page",
   title: "Page",
   limit: 1,
   enabledOn: {
     pages: ["PAGE"],
   },
-  inspector: [
+  settings: [
     {
       group: "Layout",
       inputs: layoutInputs.filter(
@@ -51,4 +51,4 @@ export let schema: HydrogenComponentSchema = {
       ),
     },
   ],
-};
+});

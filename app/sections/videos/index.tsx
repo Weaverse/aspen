@@ -1,7 +1,7 @@
 import type { HydrogenComponent } from '@weaverse/hydrogen';
 import { forwardRef } from 'react';
 import type { ReactNode } from 'react';
-import { Section, type SectionProps, sectionInspector } from '~/components/section';
+import { Section, type SectionProps, sectionSettings } from '~/components/section';
 
 interface VideosProps extends SectionProps {
   children?: ReactNode;
@@ -20,7 +20,7 @@ let Videos = forwardRef<HTMLElement, VideosProps>((props, ref) => {
 export let schema: HydrogenComponent['schema'] = {
   title: 'Videos',
   type: 'videos',
-  inspector: sectionInspector,
+  inspector: sectionSettings,
   childTypes: ['heading', 'video--items'],
   presets: {
     children: [
@@ -33,7 +33,6 @@ export let schema: HydrogenComponent['schema'] = {
       },
     ],
   },
-  toolbar: ['general-settings', ['duplicate', 'delete']],
 };
 
 Videos.displayName = 'Videos';

@@ -60,9 +60,10 @@ import * as SingleProduct from "~/sections/single-product";
 import * as SlideShow from "~/sections/slideshow";
 import * as SlideShowSlide from "~/sections/slideshow/slide";
 import * as Spacer from "~/sections/spacer";
-import * as Testimonial from "~/sections/testimonials";
-import * as TestimonialItem from "~/sections/testimonials/item";
-import * as TestimonialItems from "~/sections/testimonials/items";
+import * as Testimonial from "~/sections/testimonials/index";
+import * as TestimonialContent from "~/sections/testimonials/content";
+import * as TestimonialHotspots from "~/sections/testimonials/hotspots";
+import * as TestimonialHotspotsItem from "~/sections/testimonials/hotspot-item";
 import * as VideoEmbed from "~/sections/video-embed";
 import * as VideoEmbedItem from "~/sections/video-embed/video";
 import * as Videos from "~/sections/videos";
@@ -120,8 +121,9 @@ export let components: HydrogenComponent[] = [
   FeaturedProducts,
   FeaturedProductItems,
   Testimonial,
-  TestimonialItems,
-  TestimonialItem,
+  TestimonialContent,
+  TestimonialHotspots,
+  TestimonialHotspotsItem,
   ImageGallery,
   ImageGalleryItems,
   ImageGalleryItem,
