@@ -36,6 +36,7 @@ export function DesktopMenu() {
                   asChild={!hasSubmenu}
                   className={clsx([
                     "cursor-pointer px-3 py-2 h-full flex items-center gap-1.5",
+                    'data-[state="open"]:[&>svg]:rotate-180',
                     "focus:outline-hidden uppercase",
                   ])}
                   onMouseEnter={() => {
