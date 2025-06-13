@@ -96,7 +96,7 @@ let ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
       ...rest 
     } = props;
     let parent = useParentInstance();
-    let products = parent.data?.loaderData?.products;
+    let products = parent.data?.loaderData?.products;;
     const [activeSlide, setActiveSlide] = useState(0);
 
     if (!products?.nodes?.length) {
@@ -165,7 +165,7 @@ let ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
               productItemsVariants({ layout, itemsPerRow, gap })
             )}
           >
-            {products.nodes.map((product) => (
+            {products?.nodes?.map((product) => (
               <ProductCard
                 key={product.id}
                 product={product}

@@ -77,7 +77,7 @@ export function CountrySelector({inputClassName, wrapperClassName}:{inputClassNa
       <Popover.Root>
         <Popover.Trigger asChild>
           <button
-            className={cn("w-full border border-line-subtle overflow-clip cursor-pointer text-left outline-none flex items-center gap-2", inputClassName)}
+            className={cn("w-full border border-line-subtle overflow-clip cursor-pointer text-left outline-hidden flex items-center gap-2", inputClassName)}
             aria-label="Select country"
           >
             <ReactCountryFlag
