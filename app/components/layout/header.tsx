@@ -25,7 +25,7 @@ let variants = cva("", {
     width: {
       full: "w-full h-(--height-nav)",
       stretch: "w-full h-(--height-nav)",
-      fixed: "w-full h-(--height-nav) max-w-(--(--page-width)-width) mx-auto",
+      fixed: "w-full h-(--height-nav) max-w-(--page-width) mx-auto",
     },
     padding: {
       full: "",
