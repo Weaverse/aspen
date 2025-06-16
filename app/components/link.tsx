@@ -221,7 +221,7 @@ export let linkContentInputs: InspectorGroup["inputs"] = [
       options: [
         { label: "Primary", value: "primary" },
         { label: "Secondary", value: "secondary" },
-        { label: "Outline", value: "outline-solid" },
+        { label: "Outline", value: "outline" },
         { label: "Decoration", value: "decor" },
         { label: "Underline", value: "underline" },
         { label: "Custom styles", value: "custom" },
