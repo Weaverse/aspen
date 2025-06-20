@@ -1,23 +1,35 @@
 import { createSchema } from "@weaverse/hydrogen";
-import { forwardRef } from "react";
+import { forwardRef, useState } from "react";
 import { backgroundInputs } from "~/components/background-image";
 import type { SectionProps } from "~/components/section";
 import { layoutInputs, Section } from "~/components/section";
+import { ImageWithTextContext, type ImageAspectRatioType } from "./context";
+import { cn } from "~/utils/cn";
 
 type ImageWithTextProps = SectionProps;
 
 let ImageWithText = forwardRef<HTMLElement, ImageWithTextProps>(
   (props, ref) => {
     let { children, ...rest } = props;
+    
+    const [imageCount, setImageCount] = useState(0);
+    const [imageAspectRatio, setImageAspectRatio] = useState<ImageAspectRatioType>("1/1");
 
     return (
-      <Section
-        ref={ref}
-        {...rest}
-        containerClassName="flex flex-col md:flex-row px-0 sm:px-0"
-      >
-        {children}
-      </Section>
+      <ImageWithTextContext.Provider value={{ imageCount, setImageCount, imageAspectRatio, setImageAspectRatio }}>
+        <Section
+          ref={ref}
+          {...rest}
+          containerClassName={cn(
+            "px-0 sm:px-0",
+            imageCount <= 1 
+              ? "flex flex-col md:flex-row"
+              : imageCount > 1 && "flex flex-row relative aspect-square md:aspect-[unset] lg:aspect-auto"
+          )}
+        >
+          {children}
+        </Section>
+      </ImageWithTextContext.Provider>
     );
   },
 );
@@ -34,13 +46,13 @@ export let schema = createSchema({
     },
     { group: "Background", inputs: backgroundInputs },
   ],
-  childTypes: ["image-with-text--content", "image-with-text--image"],
+  childTypes: ["image-with-text--content", "image-with-text--images"],
   presets: {
     verticalPadding: "none",
     backgroundColor: "#dbe3d6",
     backgroundFor: "content",
     children: [
-      { type: "image-with-text--image", aspectRatio: "1/1" },
+      { type: "image-with-text--images" },
       { type: "image-with-text--content" },
     ],
   },
