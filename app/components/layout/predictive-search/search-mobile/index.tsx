@@ -45,8 +45,8 @@ export function PredictiveSearchButtonMobile({ setIsSearchOpen }) {
         />
         <Dialog.Content
           className={cn([
-            "fixed inset-y-0 w-screen max-w-[400px] bg-[--color-header-bg] z-10",
-            "left-0 translate-x-full data-[state=open]:animate-enter-from-left",
+            "fixed inset-y-0 w-screen max-w-[400px] bg-(--color-header-bg) z-10",
+            "left-0 data-[state=open]:animate-enter-from-left",
             "focus-visible:outline-none",
           ])}
           style={
@@ -73,7 +73,7 @@ export function PredictiveSearchButtonMobile({ setIsSearchOpen }) {
             </div>
             <PredictiveSearchForm>
               {({ fetchResults, inputRef }) => (
-                <div className="flex items-center gap-3 max-w-page mx-auto my-6 border-b border-line-subtle">
+                <div className="flex items-center gap-3 max-w-(--page-width) mx-auto my-6 border-b border-line-subtle">
                   <MagnifyingGlass className="h-5 w-5 shrink-0 text-gray-500" />
                   <input
                     name="q"
@@ -117,7 +117,7 @@ function PredictiveSearchResults() {
   }
   return (
     <div className="w-full z-10 bg-[--color-header-bg]">
-      <div className="flex flex-col gap-6 overflow-y-auto max-w-page mx-auto max-h-[80vh]">
+      <div className="flex flex-col gap-6 overflow-y-auto max-w-(--page-width) mx-auto max-h-[80vh]">
         <div className="flex flex-col gap-4 divide-y divide-line">
           <PredictiveSearchResult type="queries" items={queries?.items} />
         </div>

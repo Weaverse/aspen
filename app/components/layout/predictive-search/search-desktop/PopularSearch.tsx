@@ -10,7 +10,7 @@ export function PopularSearch() {
   ];
 
   return (
-    <div className="flex flex-col gap-4 max-w-page mx-auto">
+    <div className="flex flex-col gap-4 max-w-(--page-width) mx-auto">
       <h3 className="text-sm font-semibold uppercase">
         Popular Searches
       </h3>
