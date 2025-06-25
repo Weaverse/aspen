@@ -43,17 +43,18 @@ let BlogPost = forwardRef<HTMLElement, BlogPostProps>((props, ref) => {
             <Image data={image} sizes="90vw" />
           </div>
         )}
-        <div className="space-y-5 py-4 lg:py-16 text-center">
-          <div className="text-body-subtle">{formattedDate}</div>
-          <h1 className="h3 leading-tight!">{title}</h1>
-          {author?.name && (
-            <div className="font-medium uppercase">
-              by <span>{author.name}</span>
-            </div>
-          )}
-        </div>
-        <div className="border-t border-line-subtle w-1/3 mx-auto" />
         <article className="prose lg:max-w-4xl mx-auto py-4 lg:py-10">
+          <div className="space-y-5 text-left">
+            <h3 className="h3 leading-tight!">{title}</h3>
+            <div className="flex items-center text-body-subtle gap-0.5">
+              <div className="">{formattedDate}</div>-
+              {author?.name && (
+                <div className="font-medium uppercase">
+                  by <span>{author.name}</span>
+                </div>
+              )}
+            </div>
+          </div>
           <div className="mx-auto space-y-8 md:space-y-16">
             <div
               suppressHydrationWarning
