@@ -68,8 +68,8 @@ export function ProductCard({
   let firstVariant = flattenConnection(product.variants)[0];
   let params = new URLSearchParams(
     mapSelectedProductOptionToObject(
-      (selectedVariant || firstVariant).selectedOptions,
-    ),
+      (selectedVariant || firstVariant).selectedOptions
+    )
   );
 
   let isVertical = pcardTitlePricesAlignment === "vertical";
@@ -92,7 +92,7 @@ export function ProductCard({
   return (
     <div
       className={clsx(
-        "rounded-(--pcard-radius) transition-all hover:border hover:border-[#DBD7D1] hover:shadow-lg",
+        "group rounded-(--pcard-radius) transition-all hover:border hover:border-[#DBD7D1] hover:shadow-lg",
         className
       )}
       style={
@@ -103,7 +103,10 @@ export function ProductCard({
         } as React.CSSProperties
       }
     >
-      <div className="transition-transform duration-300 hover:scale-95 rounded-(--pcard-radius) overflow-hidden" style={{ backgroundColor: pcardBackgroundColor }}>
+      <div
+        className="transition-transform duration-300 group-hover:scale-95 rounded-(--pcard-radius) overflow-hidden"
+        style={{ backgroundColor: pcardBackgroundColor }}
+      >
         <div className="relative group">
           {image && (
             <Link
@@ -151,40 +154,49 @@ export function ProductCard({
             {pcardShowBestSellerBadges && isBestSellerProduct && (
               <BestSellerBadge />
             )}
-            {pcardShowNewBadges && <NewBadge publishedAt={product.publishedAt} />}
+            {pcardShowNewBadges && (
+              <NewBadge publishedAt={product.publishedAt} />
+            )}
             {pcardShowOutOfStockBadges && <SoldOutBadge />}
           </div>
           <QuickShopTrigger productHandle={product.handle} />
         </div>
         <div
           className={clsx(
-            "py-3 text-sm space-y-2",
-            isVertical && styleVariants({ alignment: pcardAlignment }),
+            "py-3 text-sm flex flex-col gap-2",
+            isVertical && styleVariants({ alignment: pcardAlignment })
           )}
         >
           {pcardShowVendor && (
             <div className="uppercase text-body-subtle">{product.vendor}</div>
           )}
+          <div className="md:hidden block">
+              <ProductCardOptions
+                product={product}
+                selectedVariant={selectedVariant}
+                setSelectedVariant={setSelectedVariant}
+              />
+            </div>
+          <NavLink
+            to={`/products/${product.handle}?${params.toString()}`}
+            prefetch="intent"
+            className={({ isTransitioning }) =>
+              clsx(
+                "font-bold ",
+                isTransitioning && "[view-transition-name:product-image]"
+              )
+            }
+          >
+            <RevealUnderline>{product.title}</RevealUnderline>
+          </NavLink>
           <div
             className={clsx(
               "flex",
               isVertical
                 ? "title-and-price flex-col gap-1"
-                : "justify-between gap-4",
+                : "justify-between gap-4"
             )}
           >
-            <NavLink
-              to={`/products/${product.handle}?${params.toString()}`}
-              prefetch="intent"
-              className={({ isTransitioning }) =>
-                clsx(
-                  "font-bold ",
-                  isTransitioning && "[view-transition-name:product-image]",
-                )
-              }
-            >
-              <RevealUnderline>{product.title}</RevealUnderline>
-            </NavLink>
             {pcardShowLowestPrice ? (
               <div className="flex gap-1">
                 <span>From</span>
@@ -196,12 +208,14 @@ export function ProductCard({
                 showCompareAtPrice={pcardShowSalePrice}
               />
             )}
+            <div className="md:block hidden">
+              <ProductCardOptions
+                product={product}
+                selectedVariant={selectedVariant}
+                setSelectedVariant={setSelectedVariant}
+              />
+            </div>
           </div>
-          <ProductCardOptions
-            product={product}
-            selectedVariant={selectedVariant}
-            setSelectedVariant={setSelectedVariant}
-          />
         </div>
       </div>
     </div>

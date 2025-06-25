@@ -52,7 +52,7 @@ export function ProductCardOptions({
                   <button
                     type="button"
                     className={clsx(
-                      "size-4 flex aspect-square rounded-full",
+                      "size-4 flex aspect-square",
                       "transition-[outline-color] outline-solid outline-offset-2 outline-1",
                       selectedValue === name
                         ? "outline-line"
@@ -65,14 +65,14 @@ export function ProductCardOptions({
                     {swatch?.image?.previewImage ? (
                       <Image
                         data={swatch.image.previewImage}
-                        className="w-full h-full object-cover object-center rounded-full"
+                        className="w-full h-full object-cover object-center"
                         width={200}
                         sizes="auto"
                       />
                     ) : (
                       <span
                         className={clsx(
-                          "w-full h-full inline-block text-[0px] rounded-full",
+                          "w-full h-full inline-block text-[0px]",
                           isLightColor(swatch?.color || name) &&
                             "border border-line-subtle",
                         )}
