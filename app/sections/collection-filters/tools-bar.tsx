@@ -30,23 +30,32 @@ export function ToolsBar({
 }: ToolsBarProps) {
   let { collection } = useLoaderData<CollectionQuery>();
   return (
-    <div className="border-y border-line-subtle py-4">
+    <div className="py-4">
       <div className="gap-4 md:gap-8 flex w-full items-center justify-between">
-        <LayoutSwitcher
-          gridSizeDesktop={gridSizeDesktop}
-          gridSizeMobile={gridSizeMobile}
-          onGridSizeChange={onGridSizeChange}
-        />
-        {showProductsCount && (
-          <span className="text-center hidden md:inline">
-            {collection?.products.nodes.length} products
-          </span>
-        )}
+        <div className="space-y-2 md:block hidden">
+          <h3>{collection.title}</h3>
+          {showProductsCount && (
+            <span className="text-center hidden md:inline">
+              {collection?.products.nodes.length} products
+            </span>
+          )}
+        </div>
         {(enableSort || (enableFilter && filtersPosition === "drawer")) && (
-          <div className="flex gap-2">
-            {enableSort && <Sort />}
-            {enableFilter && (
-              <FiltersDrawer filtersPosition={filtersPosition} />
+          <div className="flex flex-col w-full gap-2 justify-end md:w-fit">
+            <div className="flex w-full justify-between items-end md:justify-end md:w-fit gap-2">
+              <LayoutSwitcher
+                gridSizeDesktop={gridSizeDesktop}
+                gridSizeMobile={gridSizeMobile}
+                onGridSizeChange={onGridSizeChange}
+              />
+              {enableFilter && (
+                <FiltersDrawer filtersPosition={filtersPosition} />
+              )}
+            </div>
+            {enableSort && (
+              <div className="w-full flex justify-end">
+                <Sort />
+              </div>
             )}
           </div>
         )}
@@ -67,7 +76,7 @@ function FiltersDrawer({
           variant="outline"
           className={cn(
             "flex items-center gap-1.5 border py-2 h-12",
-            filtersPosition === "sidebar" && "lg:hidden",
+            filtersPosition === "sidebar" && "lg:hidden"
           )}
           animate={false}
         >
@@ -83,7 +92,7 @@ function FiltersDrawer({
         <Dialog.Content
           className={clsx([
             "fixed inset-y-0 w-full md:w-[360px] bg-(--color-background) py-4 z-10",
-            "left-0 -translate-x-full data-[state=open]:animate-enter-from-left",
+            "right-0 data-[state=open]:animate-enter-from-right",
           ])}
           aria-describedby={undefined}
         >

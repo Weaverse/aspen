@@ -63,14 +63,14 @@ let CollectionFilters = forwardRef<HTMLElement, CollectionFiltersProps>(
     >();
 
     let [gridSizeDesktop, setGridSizeDesktop] = useState(
-      Number(productsPerRowDesktop) || 3,
+      Number(productsPerRowDesktop) || 2,
     );
     let [gridSizeMobile, setGridSizeMobile] = useState(
       Number(productsPerRowMobile) || 1,
     );
 
     useEffect(() => {
-      setGridSizeDesktop(Number(productsPerRowDesktop) || 3);
+      setGridSizeDesktop(Number(productsPerRowDesktop) || 2);
       setGridSizeMobile(Number(productsPerRowMobile) || 1);
     }, [productsPerRowDesktop, productsPerRowMobile]);
 
@@ -80,11 +80,11 @@ let CollectionFilters = forwardRef<HTMLElement, CollectionFiltersProps>(
         : collection.image;
       return (
         <Section ref={ref} {...rest} overflow="unset">
-          <div className="py-10">
+          <div className="py-5">
             {showBreadcrumb && (
               <BreadCrumb page={collection.title} className="mb-2.5" />
             )}
-            <h3>{collection.title}</h3>
+            <h3 className="md:hidden block">{collection.title}</h3>
             {showDescription && collection.description && (
               <p className="text-body-subtle mt-2.5">
                 {collection.description}
@@ -113,8 +113,8 @@ let CollectionFilters = forwardRef<HTMLElement, CollectionFiltersProps>(
             width={rest.width}
             gridSizeDesktop={gridSizeDesktop}
             gridSizeMobile={gridSizeMobile}
-            onGridSizeChange={(v) => {
-              if (v > 2) {
+            onGridSizeChange={(v, context) => {
+              if (context === 'desktop') {
                 setGridSizeDesktop(v);
               } else {
                 setGridSizeMobile(v);
@@ -299,12 +299,11 @@ export let schema = createSchema({
           label: "Default products per row (desktop)",
           configs: {
             options: [
+              { value: "2", label: "2" },
               { value: "3", label: "3" },
-              { value: "4", label: "4" },
-              { value: "5", label: "5" },
             ],
           },
-          defaultValue: "3",
+          defaultValue: "2",
         },
         {
           type: "select",

@@ -18,7 +18,7 @@ import { ProductCard } from "~/components/product/product-card";
 import { type AppliedFilter, getAppliedFilterLink } from "~/utils/filter";
 
 export function ProductsPagination({
-  gridSizeDesktop: desktopCols = 3,
+  gridSizeDesktop: desktopCols = 2,
   gridSizeMobile: mobileCols = 1,
   loadPrevText,
   loadMoreText,

@@ -39,7 +39,7 @@ export function Sort() {
 
   return (
     <DropdownMenu.Root>
-      <DropdownMenu.Trigger className="flex items-center gap-1.5 h-12 border px-4 py-2.5 focus-visible:outline-hidden">
+      <DropdownMenu.Trigger className="flex w-fit items-center justify-end gap-1.5 h-12 py-2.5 focus-visible:outline-hidden">
         <span className="hidden lg:inline">
           Sort by: <span className="font-semibold">{currentSort.label}</span>
         </span>
