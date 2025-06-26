@@ -99,16 +99,16 @@ export function ArticleCard({
           to={`/blogs/${blogHandle}/${article.handle}`}
           className="text-xl leading-relaxed inline"
         >
-          <RevealUnderline>{article.title}</RevealUnderline>
+          <RevealUnderline as={"h5"}>{article.title}</RevealUnderline>
         </Link>
-        <div className="flex items-center gap-2 empty:hidden text-gray-600">
-          {showDate && <span className="block">{article.publishedAt}</span>}
-          {showDate && showAuthor && <span>•</span>}
-          {showAuthor && <span className="block">{article.author?.name}</span>}
-        </div>
         {showExcerpt && (
           <div className="line-clamp-2 lg:line-clamp-4">{article.excerpt}</div>
         )}
+        <div className="flex items-center gap-2 empty:hidden text-gray-600 mt-2">
+          {showDate && <span className="block">{article.publishedAt}</span>}
+          {showDate && showAuthor && <span>-</span>}
+          {showAuthor && <span className="block">{article.author?.name}</span>}
+        </div>
         {showReadmore && (
           <div>
             <Link
