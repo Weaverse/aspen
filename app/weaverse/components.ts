@@ -65,7 +65,8 @@ import * as ScrollingText from "~/sections/scrolling-text";
 import * as Testimonial from "~/sections/testimonials/index";
 import * as TestimonialContent from "~/sections/testimonials/content";
 import * as TestimonialHotspots from "~/sections/testimonials/hotspots";
-import * as TestimonialHotspotsItem from "~/sections/testimonials/hotspot-item";
+import * as TestimonialHotspotsItems from "~/sections/testimonials/hotspot-item";
+import * as TestimonialHotspotsItem from "~/sections/testimonials/item";
 import * as VideoEmbed from "~/sections/video-embed";
 import * as VideoEmbedItem from "~/sections/video-embed/video";
 import * as Videos from "~/sections/videos";
@@ -127,6 +128,7 @@ export let components: HydrogenComponent[] = [
   TestimonialContent,
   TestimonialHotspots,
   TestimonialHotspotsItem,
+  TestimonialHotspotsItems,
   ImageGallery,
   ImageGalleryItems,
   ImageGalleryItem,

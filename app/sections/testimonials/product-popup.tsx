@@ -87,7 +87,7 @@ export function ProductPopup({
       className={clsx(
         "absolute z-10 py-1.5 text-sm sm:text-base transition-all",
         "invisible opacity-0",
-        "w-40 sm:w-[var(--popup-width)]",
+        "md:max-w-[250px] w-[120px]",
         "translate-x-[calc(var(--translate-x-ratio)*var(--spot-size))]",
         "translate-y-[calc(var(--translate-y-ratio)*-16px)]",
         "group-hover:visible group-hover:opacity-100",
@@ -106,23 +106,23 @@ export function ProductPopup({
         } as CSSProperties
       }
     >
-      <div className="p-2.5 bg-white shadow-lg flex flex-col sm:flex-row gap-3">
+      <div className="p-2.5 bg-white shadow-lg flex flex-col gap-3">
         {featuredImage && (
-          <div className="w-full md:w-1/2 flex-1 aspect-square">
-            <Image data={featuredImage} alt={product.title} sizes="auto" className="w-full h-full" />
+          <div className="w-full flex-1 aspect-square">
+            <Image data={featuredImage} alt={product.title} sizes="auto" className="w-full h-full aspect-square" />
           </div>
         )}
-        <div className="flex flex-col gap-2 py-2 font-sans w-full md:w-1/2 aspect-square flex-1">
-          <div className="space-y-1">
-            <div className="font-semibold">{product.title}</div>
+        <div className="flex flex-col gap-2 font-sans w-full flex-1 h-fit">
+          <div className="flex flex-col gap-1">
+            <div className="text-[12px] font-medium line-clamp-1">{product.title}</div>
             {showPrice && (
-              <div className="flex items-center gap-1.5">
+              <div className="flex flex-row gap-1.5">
                 {compareAtPrice && (
                   <Money
                     withoutTrailingZeros
                     data={compareAtPrice}
                     as="div"
-                    className="text-base font-medium line-through text-gray-400"
+                    className="text-[12px] font-medium line-through text-gray-400"
                   />
                 )}
                 {price && (
@@ -130,7 +130,7 @@ export function ProductPopup({
                     withoutTrailingZeros
                     data={price}
                     as="div"
-                    className="text-base font-medium"
+                    className="text-[12px] font-medium"
                   />
                 )}
               </div>
@@ -140,7 +140,7 @@ export function ProductPopup({
             <Link
               to={`/products/${product.handle}`}
               variant="underline"
-              className="w-fit text-sm"
+              className="w-fit text-[12px]"
             >
               {viewDetailsLinkText}
             </Link>
