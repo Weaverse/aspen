@@ -40,14 +40,14 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay
-          className="fixed top-[calc(var(--height-nav)+var(--topbar-height))] inset-0 bg-black/50 data-[state=open]:animate-fade-in z-10"
+          className="fixed top-[calc(var(--height-nav)+var(--topbar-height))] inset-0 bg-black/50 data-[state=open]:animate-fade-in z-3"
           style={{ "--fade-in-duration": "100ms" } as React.CSSProperties}
         />
         <Dialog.Content
           className={cn([
-            "fixed inset-x-0 top-(calc(var(--height-nav)+var(--topbar-height))) bg-(--color-header-bg) z-10",
+            "fixed inset-x-0 top-[calc(var(--height-nav)+var(--topbar-height))] bg-(--color-header-bg) z-3",
             "border-t border-line-subtle",
-            "-translate-y-full data-[state=open]:animate-enter-from-top",
+            "data-[state=open]:animate-enter-from-top",
             "focus-visible:outline-hidden",
           ])}
           style={
@@ -61,7 +61,7 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
           <div className="relative p-6">
             <PredictiveSearchForm>
               {({ fetchResults, inputRef }) => (
-                <div className="flex items-center gap-3 max-w-page mx-auto px-3 my-6 border-b border-line-subtle">
+                <div className="flex items-center gap-3 max-w-(--page-width) mx-auto px-3 my-6 border-b border-line-subtle">
                   <MagnifyingGlass className="h-5 w-5 shrink-0 text-gray-500" />
                   <input
                     name="q"
@@ -111,14 +111,14 @@ function PredictiveSearchResults() {
 
   if (!totalResults) {
     return (
-      <div className="z-10 flex max-w-page mx-auto items-center justify-start">
+      <div className="z-10 flex max-w-(--page-width) mx-auto items-center justify-start">
         <NoResults searchTerm={searchTerm} />
       </div>
     );
   }
   return (
     <div className="w-full z-10 bg-(--color-header-bg)">
-      <div className="flex gap-6 overflow-hidden max-w-page mx-auto py-6">
+      <div className="flex gap-6 overflow-hidden max-w-(--page-width) mx-auto py-6">
         <div className="flex flex-col gap-4 divide-y divide-line w-1/5">
           <PredictiveSearchResult type="queries" items={queries?.items} />
         </div>

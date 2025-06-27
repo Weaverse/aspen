@@ -20,6 +20,7 @@ import { RevealUnderline } from "~/reveal-underline";
 import { getImageAspectRatio } from "~/utils/image";
 import { BestSellerBadge, NewBadge, SaleBadge, SoldOutBadge } from "./badges";
 import { ProductCardOptions } from "./product-card-options";
+import { QuickShopTrigger } from "./quick-shop";
 
 let styleVariants = cva("", {
   variants: {
@@ -67,8 +68,8 @@ export function ProductCard({
   let firstVariant = flattenConnection(product.variants)[0];
   let params = new URLSearchParams(
     mapSelectedProductOptionToObject(
-      (selectedVariant || firstVariant).selectedOptions,
-    ),
+      (selectedVariant || firstVariant).selectedOptions
+    )
   );
 
   let isVertical = pcardTitlePricesAlignment === "vertical";
@@ -90,7 +91,10 @@ export function ProductCard({
 
   return (
     <div
-      className={clsx("rounded-(--pcard-radius)", className)}
+      className={clsx(
+        "group rounded-(--pcard-radius) transition-all hover:border hover:border-[#DBD7D1] hover:shadow-lg",
+        className
+      )}
       style={
         {
           backgroundColor: pcardBackgroundColor,
@@ -99,104 +103,120 @@ export function ProductCard({
         } as React.CSSProperties
       }
     >
-      <div className="relative group">
-        {image && (
-          <Link
-            to={`/products/${product.handle}?${params.toString()}`}
-            prefetch="intent"
-            className="overflow-hidden rounded-t-(--pcard-radius) block group relative aspect-(--pcard-image-ratio) bg-gray-100"
-          >
-            <Image
-              className={clsx([
-                "absolute inset-0",
-                pcardShowImageOnHover &&
-                  secondImage &&
-                  "transition-opacity duration-300 group-hover:opacity-50",
-              ])}
-              sizes="(min-width: 64em) 25vw, (min-width: 48em) 30vw, 45vw"
-              data={image}
-              width={700}
-              alt={image.altText || `Picture of ${product.title}`}
-              loading="lazy"
-            />
-            {pcardShowImageOnHover && secondImage && (
+      <div
+        className="transition-transform duration-300 group-hover:scale-95 rounded-(--pcard-radius) overflow-hidden"
+        style={{ backgroundColor: pcardBackgroundColor }}
+      >
+        <div className="relative group">
+          {image && (
+            <Link
+              to={`/products/${product.handle}?${params.toString()}`}
+              prefetch="intent"
+              className="overflow-hidden rounded-t-(--pcard-radius) block group relative aspect-(--pcard-image-ratio) bg-gray-100"
+            >
               <Image
                 className={clsx([
                   "absolute inset-0",
-                  "transition-opacity duration-300 opacity-0 group-hover:opacity-100",
+                  pcardShowImageOnHover &&
+                    secondImage &&
+                    "transition-opacity duration-300 group-hover:opacity-50",
                 ])}
-                sizes="auto"
+                sizes="(min-width: 64em) 25vw, (min-width: 48em) 30vw, 45vw"
+                data={image}
                 width={700}
-                data={secondImage}
-                alt={
-                  secondImage.altText || `Second picture of ${product.title}`
-                }
+                alt={image.altText || `Picture of ${product.title}`}
                 loading="lazy"
               />
+              {pcardShowImageOnHover && secondImage && (
+                <Image
+                  className={clsx([
+                    "absolute inset-0",
+                    "transition-opacity duration-300 opacity-0 group-hover:opacity-100",
+                  ])}
+                  sizes="auto"
+                  width={700}
+                  data={secondImage}
+                  alt={
+                    secondImage.altText || `Second picture of ${product.title}`
+                  }
+                  loading="lazy"
+                />
+              )}
+            </Link>
+          )}
+          <div className="flex gap-1 absolute top-2.5 right-2.5">
+            {pcardShowSaleBadges && (
+              <SaleBadge
+                price={minVariantPrice as MoneyV2}
+                compareAtPrice={maxVariantPrice as MoneyV2}
+              />
             )}
-          </Link>
-        )}
-        <div className="flex gap-1 absolute top-2.5 right-2.5">
-          {pcardShowSaleBadges && (
-            <SaleBadge
-              price={minVariantPrice as MoneyV2}
-              compareAtPrice={maxVariantPrice as MoneyV2}
-            />
-          )}
-          {pcardShowBestSellerBadges && isBestSellerProduct && (
-            <BestSellerBadge />
-          )}
-          {pcardShowNewBadges && <NewBadge publishedAt={product.publishedAt} />}
-          {pcardShowOutOfStockBadges && <SoldOutBadge />}
+            {pcardShowBestSellerBadges && isBestSellerProduct && (
+              <BestSellerBadge />
+            )}
+            {pcardShowNewBadges && (
+              <NewBadge publishedAt={product.publishedAt} />
+            )}
+            {pcardShowOutOfStockBadges && <SoldOutBadge />}
+          </div>
+          <QuickShopTrigger productHandle={product.handle} />
         </div>
-        {/* <QuickShopTrigger productHandle={product.handle} /> */}
-      </div>
-      <div
-        className={clsx(
-          "py-3 text-sm space-y-2",
-          isVertical && styleVariants({ alignment: pcardAlignment }),
-        )}
-      >
-        {pcardShowVendor && (
-          <div className="uppercase text-body-subtle">{product.vendor}</div>
-        )}
         <div
           className={clsx(
-            "flex",
-            isVertical
-              ? "title-and-price flex-col gap-1"
-              : "justify-between gap-4",
+            "py-3 text-sm flex flex-col gap-2",
+            isVertical && styleVariants({ alignment: pcardAlignment })
           )}
         >
+          {pcardShowVendor && (
+            <div className="uppercase text-body-subtle">{product.vendor}</div>
+          )}
+          <div className="md:hidden block">
+              <ProductCardOptions
+                product={product}
+                selectedVariant={selectedVariant}
+                setSelectedVariant={setSelectedVariant}
+              />
+            </div>
           <NavLink
             to={`/products/${product.handle}?${params.toString()}`}
             prefetch="intent"
             className={({ isTransitioning }) =>
               clsx(
                 "font-bold ",
-                isTransitioning && "[view-transition-name:product-image]",
+                isTransitioning && "[view-transition-name:product-image]"
               )
             }
           >
             <RevealUnderline>{product.title}</RevealUnderline>
           </NavLink>
-          {pcardShowLowestPrice ? (
-            <div className="flex gap-1">
-              <span>From</span>
-              <Money withoutTrailingZeros data={minVariantPrice} />
+          <div
+            className={clsx(
+              "flex",
+              isVertical
+                ? "title-and-price flex-col gap-1"
+                : "justify-between gap-4"
+            )}
+          >
+            {pcardShowLowestPrice ? (
+              <div className="flex gap-1">
+                <span>From</span>
+                <Money withoutTrailingZeros data={minVariantPrice} />
+              </div>
+            ) : (
+              <VariantPrices
+                variant={selectedVariant || firstVariant}
+                showCompareAtPrice={pcardShowSalePrice}
+              />
+            )}
+            <div className="md:block hidden">
+              <ProductCardOptions
+                product={product}
+                selectedVariant={selectedVariant}
+                setSelectedVariant={setSelectedVariant}
+              />
             </div>
-          ) : (
-            <VariantPrices
-              variant={selectedVariant || firstVariant}
-              showCompareAtPrice={pcardShowSalePrice}
-            />
-          )}
+          </div>
         </div>
-        <ProductCardOptions
-          product={product}
-          selectedVariant={selectedVariant}
-          setSelectedVariant={setSelectedVariant}
-        />
       </div>
     </div>
   );

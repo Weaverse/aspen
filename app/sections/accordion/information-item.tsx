@@ -1,4 +1,4 @@
-import type { HydrogenComponentProps, HydrogenComponentSchema } from "@weaverse/hydrogen";
+import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
 
 interface InformationItemProps extends HydrogenComponentProps{
@@ -19,7 +19,7 @@ const InformationItem = forwardRef<HTMLDivElement, InformationItemProps>(
 
 export default InformationItem;
 
-export const schema: HydrogenComponentSchema = {
+export const schema = createSchema({
   type: "information--item",
   title: "Information Item",
   inspector: [
@@ -52,4 +52,4 @@ export const schema: HydrogenComponentSchema = {
       },
     ],
   },
-};
+});

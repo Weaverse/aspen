@@ -41,6 +41,7 @@ import * as ImageGalleryItems from "~/sections/image-gallery/items";
 import * as ImageWithText from "~/sections/image-with-text";
 import * as ImageWithTextContent from "~/sections/image-with-text/content";
 import * as ImageWithTextImage from "~/sections/image-with-text/image";
+import * as ImageWithTextImages from "~/sections/image-with-text/images";
 import * as JudgemeReview from "~/sections/judgeme-reviews";
 import * as ReviewIndex from "~/sections/judgeme-reviews/review-index";
 import * as MapSection from "~/sections/map/map";
@@ -60,10 +61,12 @@ import * as SingleProduct from "~/sections/single-product";
 import * as SlideShow from "~/sections/slideshow";
 import * as SlideShowSlide from "~/sections/slideshow/slide";
 import * as Spacer from "~/sections/spacer";
+import * as ScrollingText from "~/sections/scrolling-text";
 import * as Testimonial from "~/sections/testimonials/index";
 import * as TestimonialContent from "~/sections/testimonials/content";
 import * as TestimonialHotspots from "~/sections/testimonials/hotspots";
-import * as TestimonialHotspotsItem from "~/sections/testimonials/hotspot-item";
+import * as TestimonialHotspotsItems from "~/sections/testimonials/hotspot-item";
+import * as TestimonialHotspotsItem from "~/sections/testimonials/item";
 import * as VideoEmbed from "~/sections/video-embed";
 import * as VideoEmbedItem from "~/sections/video-embed/video";
 import * as Videos from "~/sections/videos";
@@ -100,6 +103,7 @@ export let components: HydrogenComponent[] = [
   ImageWithText,
   ImageWithTextContent,
   ImageWithTextImage,
+  ImageWithTextImages,
   ColumnsWithImages,
   ColumnsWithImagesItems,
   ColumnWithImageItem,
@@ -124,6 +128,7 @@ export let components: HydrogenComponent[] = [
   TestimonialContent,
   TestimonialHotspots,
   TestimonialHotspotsItem,
+  TestimonialHotspotsItems,
   ImageGallery,
   ImageGalleryItems,
   ImageGalleryItem,
@@ -144,4 +149,5 @@ export let components: HydrogenComponent[] = [
   SlideShow,
   SlideShowSlide,
   Spacer,
+  ScrollingText,
 ];

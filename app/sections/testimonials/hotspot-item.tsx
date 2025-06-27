@@ -47,8 +47,8 @@ export default HotspotsTestimonial;
 
 export let schema: HydrogenComponentSchema = {
   type: "testimonial--hotspots-item",
-  title: "Hotspots",
-  childTypes: ["hotspots--item"],
+  title: "Hotspot",
+  childTypes: ["testimonial-hot--item"],
   inspector: [
     {
       group: "Layout",
@@ -83,12 +83,12 @@ export let schema: HydrogenComponentSchema = {
     aspectRatio: "1/1",
     children: [
       {
-        type: "testimonial-hotspots--item",
+        type: "testimonial-hot--item",
         offsetX: 25,
         offsetY: 30,
       },
       {
-        type: "testimonial-hotspots--item",
+        type: "testimonial-hot--item",
         offsetX: 55,
         offsetY: 65,
       },

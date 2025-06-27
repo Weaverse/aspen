@@ -1,6 +1,6 @@
-import type {
-  HydrogenComponentProps,
-  HydrogenComponentSchema,
+import {
+  createSchema,
+  type HydrogenComponentProps,
 } from "@weaverse/hydrogen";
 import { cva, VariantProps } from "class-variance-authority";
 import { forwardRef } from "react";
@@ -50,7 +50,7 @@ const ContentInformation = forwardRef<HTMLDivElement, ContentInformationProps>(
 
 export default ContentInformation;
 
-export const schema: HydrogenComponentSchema = {
+export const schema = createSchema({
   type: "content-information",
   title: "Content Information",
   inspector: [
@@ -72,7 +72,7 @@ export const schema: HydrogenComponentSchema = {
       ],
     },
   ],
-  childTypes: ["subheading", "heading", "information-item"],
+  childTypes: ["subheading", "heading", "information--item"],
   presets: {
     children: [
       {
@@ -96,4 +96,4 @@ export const schema: HydrogenComponentSchema = {
       },
     ],
   },
-};
+});

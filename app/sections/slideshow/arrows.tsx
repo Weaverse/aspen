@@ -7,7 +7,7 @@ import {
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import clsx from "clsx";
-import { useState } from "react";
+import React from "react";
 import { useSwiper } from "swiper/react";
 
 let variants = cva(
@@ -70,36 +70,49 @@ export interface SlideshowArrowsProps extends VariantProps<typeof variants> {
 export function Arrows(props: SlideshowArrowsProps) {
   let { arrowsIcon, iconSize, arrowsColor, showArrowsOnHover, arrowsShape } =
     props;
-  let [canNext, setCanNext] = useState(true);
-  let [canPrev, setCanPrev] = useState(true);
   let swiper = useSwiper();
 
-  if (!swiper.params.loop) {
-    swiper.on("init", ({ activeIndex, slides }) => {
-      setCanNext(activeIndex < slides.length - 1);
-      setCanPrev(activeIndex > 0);
-    });
-    swiper.on("activeIndexChange", ({ activeIndex, slides }) => {
-      setCanNext(activeIndex < slides.length - 1);
-      setCanPrev(activeIndex > 0);
-    });
-  }
+  const handlePrevClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const currentIndex = swiper.activeIndex;
+    const totalSlides = swiper.slides.length;
+    if (currentIndex > 0) {
+      swiper.slideTo(currentIndex - 1);
+    } else {
+      // Loop to last slide
+      swiper.slideTo(totalSlides - 1);
+    }
+  };
+
+  const handleNextClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const currentIndex = swiper.activeIndex;
+    const totalSlides = swiper.slides.length;
+    if (currentIndex < totalSlides - 1) {
+      swiper.slideTo(currentIndex + 1);
+    } else {
+      // Loop to first slide
+      swiper.slideTo(0);
+    }
+  };
 
   return (
     <>
       <button
         type="button"
         className={clsx(
-          "slideshow-arrow-prev",
+          "slideshow-arrow-prev-custom",
           variants({
             arrowsColor,
             arrowsShape,
             showArrowsOnHover,
-            disabled: !canPrev,
+            disabled: false,
             side: "left",
           }),
         )}
-        disabled={!canPrev}
+        onClick={handlePrevClick}
       >
         {arrowsIcon === "caret" ? (
           <CaretLeft style={{ width: iconSize, height: iconSize }} />
@@ -110,16 +123,16 @@ export function Arrows(props: SlideshowArrowsProps) {
       <button
         type="button"
         className={clsx(
-          "slideshow-arrow-next",
+          "slideshow-arrow-next-custom",
           variants({
             arrowsColor,
             arrowsShape,
             showArrowsOnHover,
-            disabled: !canNext,
+            disabled: false,
             side: "right",
           }),
         )}
-        disabled={!canNext}
+        onClick={handleNextClick}
       >
         {arrowsIcon === "caret" ? (
           <CaretRight style={{ width: iconSize, height: iconSize }} />

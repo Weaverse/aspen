@@ -142,7 +142,7 @@ export function QuickShopTrigger({ productHandle }: { productHandle: string }) {
         <Button
           variant="secondary"
           loading={state === "loading"}
-          className="absolute inset-x-4 bottom-4 hidden lg:group-hover:block"
+          className="absolute inset-x-4 bottom-4 !opacity-0 -translate-y-1.5 -translate-x-2 lg:group-hover:!opacity-100 lg:group-hover:translate-x-0 lg:group-hover:translate-y-2 transition-all duration-500"
         >
           Quick shop
         </Button>

@@ -1,17 +1,19 @@
 import { createSchema } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
-import { useLoaderData } from "react-router";
+import { Link, useLoaderData } from "react-router";
 import type { ArticleFragment } from "storefront-api.generated";
 import Heading from "~/components/heading";
 import { layoutInputs, Section, type SectionProps } from "~/components/section";
-import { Swimlane } from "~/components/swimlane";
 import { getImageLoadingPriority } from "~/utils/image";
 import { ArticleCard, type ArticleCardProps } from "./blogs";
+import { ArrowRight } from "@phosphor-icons/react";
 
 interface RelatedArticlesProps
   extends Omit<ArticleCardProps, "article" | "blogHandle" | "loading">,
     SectionProps {
   heading: string;
+  showViewAll?: boolean;
+  viewAllText?: string;
 }
 
 let RelatedArticles = forwardRef<HTMLElement, RelatedArticlesProps>(
@@ -22,6 +24,8 @@ let RelatedArticles = forwardRef<HTMLElement, RelatedArticlesProps>(
     }>();
     let {
       heading,
+      showViewAll,
+      viewAllText,
       showExcerpt,
       showAuthor,
       showDate,
@@ -29,26 +33,50 @@ let RelatedArticles = forwardRef<HTMLElement, RelatedArticlesProps>(
       imageAspectRatio,
       ...rest
     } = props;
+    
     if (relatedArticles.length > 0) {
       return (
-        <Section ref={ref} {...rest}>
-          <Heading content={heading} animate={false} />
-          <Swimlane>
-            {relatedArticles.map((article, i) => (
-              <ArticleCard
-                key={article.id}
-                blogHandle={blog.handle}
-                article={article}
-                loading={getImageLoadingPriority(i, 2)}
-                showAuthor={showAuthor}
-                showExcerpt={showExcerpt}
-                showDate={showDate}
-                showReadmore={showReadmore}
-                imageAspectRatio={imageAspectRatio}
-                className="snap-start w-80"
-              />
+        <Section ref={ref} {...rest} className="py-10 px-10">
+          {/* Header section with title and view all button */}
+          <div className="flex items-center justify-between w-full mb-10">
+            <div className="flex items-center gap-2">
+              <h2 className="font-tenor text-[26px] leading-[1.1] tracking-[0.02em] text-[#29231E] uppercase">
+                {heading}
+              </h2>
+            </div>
+            {showViewAll && (
+              <div className="flex items-center gap-2">
+                <Link 
+                  to={`/blogs/${blog.handle}`}
+                  className="flex items-center gap-2.5 py-1 px-1 text-[#29231E] hover:opacity-70 transition-opacity"
+                >
+                  <span className="font-open-sans text-sm leading-[1em] tracking-[0.02em] uppercase">
+                    {viewAllText}
+                  </span>
+                  <ArrowRight size={20} weight="regular" className="text-[#29231E]" />
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* Articles grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
+            {relatedArticles.slice(0, 3).map((article, i) => (
+              <div key={article.id} className="flex flex-col gap-5">
+                <ArticleCard
+                  blogHandle={blog.handle}
+                  article={article}
+                  loading={getImageLoadingPriority(i, 2)}
+                  showAuthor={showAuthor}
+                  showExcerpt={showExcerpt}
+                  showDate={showDate}
+                  showReadmore={showReadmore}
+                  imageAspectRatio={imageAspectRatio}
+                  className="w-full"
+                />
+              </div>
             ))}
-          </Swimlane>
+          </div>
         </Section>
       );
     }
@@ -79,6 +107,20 @@ export let schema = createSchema({
           label: "Heading",
           defaultValue: "Related articles",
           placeholder: "Related articles",
+        },
+        {
+          type: "switch",
+          name: "showViewAll",
+          label: "Show view all button",
+          defaultValue: true,
+        },
+        {
+          type: "text",
+          name: "viewAllText",
+          label: "View all text",
+          defaultValue: "VIEW ALL",
+          placeholder: "VIEW ALL",
+          condition: "showViewAll.eq.true",
         },
         {
           type: "select",

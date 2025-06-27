@@ -8,7 +8,7 @@ import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import clsx from "clsx";
 import { forwardRef } from "react";
-import { Autoplay, EffectFade, Navigation, Pagination } from "swiper/modules";
+import { Autoplay, EffectFade, Pagination } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import type { SlideshowArrowsProps } from "./arrows";
 import { Arrows } from "./arrows";
@@ -92,14 +92,11 @@ let Slideshow = forwardRef<HTMLDivElement, SlideshowProps>((props, ref) => {
     >
       <Swiper
         effect={effect}
-        loop={loop}
+        fadeEffect={{
+          crossFade: true,
+        }}
+        loop={effect === "slide" ? loop : false}
         autoplay={autoRotate ? { delay: changeSlidesEvery * 1000 } : false}
-        navigation={
-          showArrows && {
-            nextEl: ".slideshow-arrow-next",
-            prevEl: ".slideshow-arrow-prev",
-          }
-        }
         pagination={
           showDots && {
             el: ".slideshow-dots",
@@ -113,9 +110,8 @@ let Slideshow = forwardRef<HTMLDivElement, SlideshowProps>((props, ref) => {
           }
         }
         modules={[
-          EffectFade,
+          effect === "fade" ? EffectFade : null,
           autoRotate ? Autoplay : null,
-          showArrows ? Navigation : null,
           showDots ? Pagination : null,
         ].filter(Boolean)}
       >

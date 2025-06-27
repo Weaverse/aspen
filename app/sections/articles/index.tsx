@@ -180,7 +180,7 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
           {res?.map((idx, i) => (
             <article key={i} className="group">
               <Link
-                to={idx.handle ? `/blogs/${res?.handle}/${idx.handle}` : "#"}
+                to={idx.handle ? `/blogs/${idx.blog.handle}/${idx.handle}` : "#"}
                 data-motion="slide-in"
                 className="block h-full cursor-pointer"
               >

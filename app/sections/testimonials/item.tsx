@@ -112,7 +112,7 @@ export let loader = async (args: ComponentLoaderArgs<TestimonialHotspotsItemData
 };
 
 export let schema = createSchema({
-  type: "testimonial-hotspots--item",
+  type: "testimonial-hot--item",
   title: "Testimonial hotspots item",
   settings: [
     {
@@ -199,7 +199,7 @@ export let schema = createSchema({
           name: "popupWidth",
           label: "Popup width",
           configs: {
-            min: 300,
+            min: 100,
             max: 600,
             step: 10,
             unit: "px",

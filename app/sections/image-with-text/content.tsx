@@ -1,8 +1,9 @@
 import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
-import clsx from "clsx";
 import { forwardRef } from "react";
+import { useImageWithTextContext } from "./context";
+import { cn } from "~/utils/cn";
 
 let variants = cva(
   "grow flex flex-col justify-center gap-5 py-6 px-4 md:px-8 md:py-8 [&_.paragraph]:mx-[unset] [&_.paragraph]:w-auto",
@@ -17,7 +18,7 @@ let variants = cva(
     defaultVariants: {
       alignment: "center",
     },
-  },
+  }
 );
 
 interface ImageWithTextContentProps
@@ -29,8 +30,20 @@ let ImageWithTextContent = forwardRef<
   ImageWithTextContentProps
 >((props, ref) => {
   let { alignment, children, ...rest } = props;
+  const { imageCount } = useImageWithTextContext();
+
   return (
-    <div ref={ref} {...rest} className={clsx(variants({ alignment }))}>
+    <div
+      ref={ref}
+      {...rest}
+      className={cn(
+        variants({ alignment }),
+        imageCount > 1 &&
+          "absolute inset-0 flex items-center justify-center z-1",
+        imageCount <= 1 && "flex-1"
+      )}
+      data-content-with-images={imageCount}
+    >
       {children}
     </div>
   );

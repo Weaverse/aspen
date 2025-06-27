@@ -10,14 +10,10 @@ import { forwardRef } from "react";
 import { Image } from "~/components/image";
 import type { ImageAspectRatio } from "~/types/image";
 import { cn } from "~/utils/cn";
+import { useImageWithTextContext } from "./context";
 
 let variants = cva("w-full h-auto", {
   variants: {
-    width: {
-      small: "md:w-[40%]",
-      medium: "md:w-[50%]",
-      large: "md:w-[60%]",
-    },
     objectFit: {
       cover: "object-cover",
       contain: "object-contain",
@@ -52,44 +48,47 @@ interface ImageWithTextImageProps
   extends VariantProps<typeof variants>,
     HydrogenComponentProps {
   image: WeaverseImage | string;
-  imageAspectRatio: ImageAspectRatio;
+  imageAspectRatio?: ImageAspectRatio;
 }
 
 let ImageWithTextImage = forwardRef<HTMLDivElement, ImageWithTextImageProps>(
   (props, ref) => {
     let {
       image = IMAGES_PLACEHOLDERS.image,
-      width,
-      imageAspectRatio,
       borderRadius,
       objectFit,
+      imageAspectRatio: propAspectRatio,
       ...rest
     } = props;
+    const { imageAspectRatio: contextAspectRatio } = useImageWithTextContext();
+    const finalAspectRatio = propAspectRatio || contextAspectRatio;
     let imageData: Partial<WeaverseImage> =
       typeof image === "string"
         ? { url: image, altText: "Placeholder" }
         : image;
+
     let aspRt: string | undefined;
-    if (imageAspectRatio === "adapt") {
+    if (finalAspectRatio === "adapt") {
       if (imageData.width && imageData.height) {
         aspRt = `${imageData.width}/${imageData.height}`;
       }
     } else {
-      aspRt = imageAspectRatio;
+      aspRt = finalAspectRatio;
     }
 
     return (
-      <div ref={ref} {...rest} className={cn(variants({ width }))}>
-        <Image
-          data={imageData}
-          data-motion="slide-in"
-          sizes="auto"
-          aspectRatio={aspRt}
-          className={cn("w-full h-auto", variants({ objectFit, borderRadius }))}
-        />
-      </div>
+      <Image
+        ref={ref}
+        {...rest}
+        data={imageData}
+        data-motion="slide-in"
+        sizes="auto"
+        aspectRatio={aspRt}
+        className={cn("w-full h-auto", variants({ objectFit, borderRadius }))}
+        data-aspect-ratio={finalAspectRatio}
+      />
     );
-  },
+  }
 );
 
 export default ImageWithTextImage;
@@ -97,7 +96,7 @@ export default ImageWithTextImage;
 export let schema = createSchema({
   type: "image-with-text--image",
   title: "Image",
-  limit: 1,
+  limit: 2,
   settings: [
     {
       group: "Image",
@@ -106,36 +105,6 @@ export let schema = createSchema({
           type: "image",
           name: "image",
           label: "Image",
-        },
-        {
-          type: "select",
-          name: "imageAspectRatio",
-          label: "Image aspect ratio",
-          configs: {
-            options: [
-              { value: "adapt", label: "Adapt to image" },
-              { value: "1/1", label: "Square (1/1)" },
-              { value: "3/4", label: "Portrait (3/4)" },
-              { value: "4/3", label: "Landscape (4/3)" },
-              { value: "16/9", label: "Widescreen (16/9)" },
-            ],
-          },
-          defaultValue: "1/1",
-          helpText:
-            'Learn more about image <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/aspect-ratio" target="_blank" rel="noopener noreferrer">aspect ratio</a> property.',
-        },
-        {
-          type: "select",
-          name: "width",
-          label: "Width",
-          defaultValue: "medium",
-          configs: {
-            options: [
-              { value: "small", label: "Small" },
-              { value: "medium", label: "Medium" },
-              { value: "large", label: "Large" },
-            ],
-          },
         },
         {
           type: "range",
@@ -166,8 +135,6 @@ export let schema = createSchema({
   ],
   presets: {
     image: IMAGES_PLACEHOLDERS.image,
-    width: "medium",
-    aspectRatio: "1/1",
     objectFit: "cover",
     borderRadius: 0,
   },

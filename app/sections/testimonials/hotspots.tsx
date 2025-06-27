@@ -53,7 +53,7 @@ let HotspotsTestimonial = forwardRef<HTMLDivElement, HotspotsTestimonialProps>((
         loop={true}
         slidesPerView={1}
         className="mySwiper h-full w-full"
-        effect={"fade"}
+        effect={"flip"}
         fadeEffect={{
           crossFade: true,
         }}
