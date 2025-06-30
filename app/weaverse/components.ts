@@ -37,6 +37,8 @@ import * as Highlights from "~/sections/highlights";
 import * as HighlightsBadge from "~/sections/highlights/badge";
 import * as Hotspots from "~/sections/hotspots";
 import * as HotspotsItem from "~/sections/hotspots/item";
+import * as HotspotsContainer from "~/sections/hotspots/hotpots";
+import * as HotspotsImage from "~/sections/hotspots/hotpots-image";
 import * as ImageGallery from "~/sections/image-gallery";
 import * as ImageGalleryItem from "~/sections/image-gallery/image";
 import * as ImageGalleryItems from "~/sections/image-gallery/items";
@@ -125,6 +127,8 @@ export let components: HydrogenComponent[] = [
   PromotionGridButtons,
   Hotspots,
   HotspotsItem,
+  HotspotsContainer,
+  HotspotsImage,
   Countdown,
   CountDownTimer,
   NewsLetter,
