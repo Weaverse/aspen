@@ -1,6 +1,5 @@
 import { Image } from "@shopify/hydrogen";
 import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
-import { cva } from "class-variance-authority";
 import { forwardRef, useRef } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
@@ -52,7 +51,7 @@ let InstagramSlider = forwardRef<HTMLDivElement, InstagramSliderProps>(
     let displayedImages = res?.slice(0, 6);
 
     return (
-      <div ref={ref} {...rest} className="relative w-3/4">
+      <div ref={ref} {...rest} className="relative md:w-3/4 w-full space-y-10 md:space-y-0">
         <Swiper
           onSwiper={(swiper) => {
             swiperRef.current = swiper;
@@ -110,7 +109,7 @@ let InstagramSlider = forwardRef<HTMLDivElement, InstagramSliderProps>(
         </Swiper>
         
         {showNavigation && (
-          <div className="absolute top-1/2 left-0 right-0 flex justify-between items-center pointer-events-none z-10">
+          <div className="md:absolute md:top-1/2 md:left-0 md:right-0 flex md:justify-between justify-center md:gap-0 gap-4 items-center pointer-events-none z-10">
             <button
               onClick={() => swiperRef.current?.slidePrev()}
               className="pointer-events-auto flex items-center justify-center w-12 h-12 bg-white/60 backdrop-blur-sm rounded-full hover:bg-white/80 transition-colors"

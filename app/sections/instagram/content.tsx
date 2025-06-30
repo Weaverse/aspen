@@ -4,7 +4,7 @@ import { cva } from "class-variance-authority";
 import { forwardRef } from "react";
 
 let variants = cva(
-  "flex flex-col gap-6 text-center w-1/4",
+  "flex flex-col gap-6 text-center md:w-1/4 w-full",
   {
     variants: {
       alignment: {
@@ -33,7 +33,7 @@ let InstagramContent = forwardRef<HTMLDivElement, InstagramContentProps>(
 
     return (
       <div ref={ref} {...rest} className={variants({ alignment })}>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 w-full">
           <div className="flex flex-col gap-2">
             <h2 className="font-['Tenor_Sans'] text-[37px] leading-[1.1] tracking-[-0.02em] text-[#29231E]">
               {title}
