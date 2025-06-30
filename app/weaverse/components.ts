@@ -33,6 +33,8 @@ import * as FeaturedProducts from "~/sections/featured-products";
 import * as FeaturedProductItems from "~/sections/featured-products/product-items";
 import * as HeroImage from "~/sections/hero-image";
 import * as HeroVideo from "~/sections/hero-video";
+import * as Highlights from "~/sections/highlights";
+import * as HighlightsBadge from "~/sections/highlights/badge";
 import * as Hotspots from "~/sections/hotspots";
 import * as HotspotsItem from "~/sections/hotspots/item";
 import * as ImageGallery from "~/sections/image-gallery";
@@ -103,6 +105,8 @@ export let components: HydrogenComponent[] = [
   VideoItems,
   VideoItem,
   HeroImage,
+  Highlights,
+  HighlightsBadge,
   ImageWithText,
   ImageWithTextContent,
   ImageWithTextImage,
