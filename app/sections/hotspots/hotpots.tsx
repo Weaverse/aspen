@@ -18,7 +18,7 @@ let Hotspots = forwardRef<HTMLDivElement, HotspotsProps>((props, ref) => {
   let { children, gap = 20, aspectRatio = "adapt", ...rest } = props;
 
   const containerStyle = {
-    display: 'flex' as const,
+    display: 'grid' as const,
     gap: `${gap}px`,
   };
 
@@ -27,7 +27,7 @@ let Hotspots = forwardRef<HTMLDivElement, HotspotsProps>((props, ref) => {
       <div 
         ref={ref} 
         {...rest}
-        className="flex-col md:flex-row w-full"
+        className="md:grid-cols-2 grid-cols-1 w-full"
         style={containerStyle}
       >
         {children}
