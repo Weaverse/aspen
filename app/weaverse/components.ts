@@ -80,7 +80,7 @@ import * as Videos from "~/sections/videos";
 import * as VideoItems from "~/sections/videos/items";
 import * as VideoItem from "~/sections/videos/video";
 
-export let components: HydrogenComponent[] = [
+export const components: HydrogenComponent[] = [
   SubHeading,
   Heading,
   Paragraph,

@@ -39,7 +39,7 @@ let Hotspots = forwardRef<HTMLElement, HotspotsProps>((props, ref) => {
 
 export default Hotspots;
 
-export let schema = createSchema({
+export const schema = createSchema({
   type: "hotspots",
   title: "Hotspots",
   childTypes: [

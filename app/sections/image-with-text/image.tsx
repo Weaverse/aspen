@@ -12,7 +12,7 @@ import type { ImageAspectRatio } from "~/types/image";
 import { cn } from "~/utils/cn";
 import { useImageWithTextContext } from "./context";
 
-let variants = cva("w-full h-auto", {
+const variants = cva("w-full h-auto", {
   variants: {
     objectFit: {
       cover: "object-cover",
@@ -51,9 +51,9 @@ interface ImageWithTextImageProps
   imageAspectRatio?: ImageAspectRatio;
 }
 
-let ImageWithTextImage = forwardRef<HTMLDivElement, ImageWithTextImageProps>(
+const ImageWithTextImage = forwardRef<HTMLDivElement, ImageWithTextImageProps>(
   (props, ref) => {
-    let {
+    const {
       image = IMAGES_PLACEHOLDERS.image,
       borderRadius,
       objectFit,
@@ -62,7 +62,7 @@ let ImageWithTextImage = forwardRef<HTMLDivElement, ImageWithTextImageProps>(
     } = props;
     const { imageAspectRatio: contextAspectRatio } = useImageWithTextContext();
     const finalAspectRatio = propAspectRatio || contextAspectRatio;
-    let imageData: Partial<WeaverseImage> =
+    const imageData: Partial<WeaverseImage> =
       typeof image === "string"
         ? { url: image, altText: "Placeholder" }
         : image;
@@ -93,7 +93,7 @@ let ImageWithTextImage = forwardRef<HTMLDivElement, ImageWithTextImageProps>(
 
 export default ImageWithTextImage;
 
-export let schema = createSchema({
+export const schema = createSchema({
   type: "image-with-text--image",
   title: "Image",
   limit: 2,

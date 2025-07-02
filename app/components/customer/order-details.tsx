@@ -1,4 +1,4 @@
-import { ArrowLeft, Tag } from "@phosphor-icons/react";
+import { ArrowLeftIcon, TagIcon } from "@phosphor-icons/react";
 import { Money } from "@shopify/hydrogen";
 import clsx from "clsx";
 import { useLoaderData } from "react-router";
@@ -9,18 +9,18 @@ import type { loader as orderDetailsLoader } from "~/routes/($locale).account.or
 import { ORDER_STATUS } from "./orders";
 
 export function OrderDetails() {
-  let { order, lineItems, fulfillmentStatus } =
+  const { order, lineItems, fulfillmentStatus } =
     useLoaderData<typeof orderDetailsLoader>();
 
   let totalDiscount = 0;
-  for (let lineItem of lineItems) {
+  for (const lineItem of lineItems) {
     totalDiscount += lineItem.discountAllocations.reduce(
       (acc, curr) => acc + Number.parseFloat(curr.allocatedAmount.amount),
       0,
     );
   }
 
-  let totalDiscountMoney = {
+  const totalDiscountMoney = {
     amount: totalDiscount.toString(),
     currencyCode: order.totalPrice?.currencyCode,
   };
@@ -35,7 +35,7 @@ export function OrderDetails() {
             className="text-body-subtle w-fit items-center gap-2 after:bg-body-subtle"
             variant="underline"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeftIcon className="w-4 h-4" />
             <span>Return to My Account</span>
           </Link>
         </div>
@@ -76,15 +76,16 @@ export function OrderDetails() {
                       <dt className="sr-only">Discount</dt>
                       <dd className="truncate flex gap-2 flex-wrap">
                         {lineItem.discountAllocations.map((discount, index) => {
-                          let discountApp = discount.discountApplication as any;
-                          let discountTitle =
+                          const discountApp =
+                            discount.discountApplication as any;
+                          const discountTitle =
                             discountApp?.title || discountApp?.code;
                           return (
                             <div
-                              className="text-body-subtle flex items-center gap-1 border border-line-subtle py-1 px-1.5 rounded-xs text-sm w-fit"
                               key={index}
+                              className="text-body-subtle flex items-center gap-1 border border-line-subtle py-1 px-1.5 rounded-xs text-sm w-fit"
                             >
-                              <Tag className="w-4 h-4" />
+                              <TagIcon className="w-4 h-4" />
                               <span>{discountTitle}</span>
                               <div className="inline-flex">
                                 (<span>-</span>
@@ -136,7 +137,7 @@ export function OrderDetails() {
                 </div>
                 <div className="flex justify-between gap-4">
                   <div className="flex gap-2 items-center">
-                    <Tag className="w-4 h-4" />
+                    <TagIcon className="w-4 h-4" />
                     <span className="uppercase font-bold text-sm leading-none">
                       Total savings
                     </span>

@@ -7,9 +7,9 @@ import { layoutInputs, Section } from "~/components/section";
 
 type PromotionGridProps = SectionProps;
 
-let PromotionGrid = forwardRef<HTMLElement, PromotionGridProps>(
+const PromotionGrid = forwardRef<HTMLElement, PromotionGridProps>(
   (props, ref) => {
-    let { children, ...rest } = props;
+    const { children, ...rest } = props;
     return (
       <Section ref={ref} {...rest}>
         {children}
@@ -20,7 +20,7 @@ let PromotionGrid = forwardRef<HTMLElement, PromotionGridProps>(
 
 export default PromotionGrid;
 
-export let schema = createSchema({
+export const schema = createSchema({
   type: "promotion-grid",
   title: "Promotion grid",
   settings: [

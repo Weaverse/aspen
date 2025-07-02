@@ -12,27 +12,27 @@ const ANIMATIONS: Record<MotionType, any> = {
 
 // TODO prevent already-in-view elements from triggering the animation
 export function useAnimation(ref?: ForwardedRef<any>) {
-  let { revealElementsOnScroll } = useThemeSettings();
-  let [scope] = useAnimate();
+  const { revealElementsOnScroll } = useThemeSettings();
+  const [scope] = useAnimate();
 
   useEffect(() => {
     if (!scope.current || !ref) return;
     Object.assign(ref, { current: scope.current });
   }, [scope, ref]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation> --- IGNORE ---
   useEffect(() => {
     if (!revealElementsOnScroll) {
       return;
     }
     if (scope.current) {
       scope.current.classList.add("animated-scope");
-      let elems = scope.current.querySelectorAll("[data-motion]");
+      const elems = scope.current.querySelectorAll("[data-motion]");
       elems.forEach((elem: HTMLElement, idx: number) => {
         inView(
           elem,
-          (element: Element, entry: IntersectionObserverEntry) => {
-            let { motion, delay } = elem.dataset;
+          (element: Element) => {
+            const { motion, delay } = elem.dataset;
             animate(element, ANIMATIONS[motion || "fade-up"], {
               delay: Number(delay) || idx * 0.15,
               duration: 0.5,

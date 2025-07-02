@@ -16,8 +16,8 @@ interface BlogsProps
   layout: "blog" | "default";
 }
 
-let Blogs = forwardRef<HTMLElement, BlogsProps>((props, ref) => {
-  let {
+const Blogs = forwardRef<HTMLElement, BlogsProps>((props, ref) => {
+  const {
     layout,
     showExcerpt,
     showAuthor,
@@ -26,7 +26,7 @@ let Blogs = forwardRef<HTMLElement, BlogsProps>((props, ref) => {
     imageAspectRatio,
     ...rest
   } = props;
-  let { blog, articles } = useLoaderData<
+  const { blog, articles } = useLoaderData<
     BlogQuery & { articles: ArticleFragment[] }
   >();
 
@@ -97,10 +97,20 @@ export function ArticleCard({
       <div className="space-y-2.5">
         <Link
           to={`/blogs/${blogHandle}/${article.handle}`}
-          className="text-xl leading-relaxed inline"
+          className="inline-block"
         >
           <RevealUnderline as={"h5"}>{article.title}</RevealUnderline>
         </Link>
+        {showExcerpt && (
+          <div className="line-clamp-2 lg:line-clamp-4 text-gray-700">
+            {article.excerpt}
+          </div>
+        )}
+        <div className="flex items-center gap-2 empty:hidden text-gray-600 mt-2">
+          {showDate && <span className="block">{article.publishedAt}</span>}
+          {showDate && showAuthor && <span>-</span>}
+          {showAuthor && <span className="block">{article.author?.name}</span>}
+        </div>
         {showExcerpt && (
           <div className="line-clamp-2 lg:line-clamp-4">{article.excerpt}</div>
         )}
@@ -126,7 +136,7 @@ export function ArticleCard({
 
 export default Blogs;
 
-export let schema = createSchema({
+export const schema = createSchema({
   type: "blogs",
   title: "Blogs",
   limit: 1,

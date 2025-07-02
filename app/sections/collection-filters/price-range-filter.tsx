@@ -12,23 +12,23 @@ export function PriceRangeFilter({
 }: {
   collection: CollectionQuery["collection"];
 }) {
-  let [params] = useSearchParams();
-  let location = useLocation();
-  let navigate = useNavigate();
-  let thumbRef = useRef<"from" | "to" | null>(null);
+  const [params] = useSearchParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const thumbRef = useRef<"from" | "to" | null>(null);
 
-  let { minVariantPrice, maxVariantPrice } = getPricesRange(collection);
-  let { min, max } = getPricesFromFilter(params);
+  const { minVariantPrice, maxVariantPrice } = getPricesRange(collection);
+  const { min, max } = getPricesFromFilter(params);
 
-  let [minPrice, setMinPrice] = useState(min);
-  let [maxPrice, setMaxPrice] = useState(max);
+  const [minPrice, setMinPrice] = useState(min);
+  const [maxPrice, setMaxPrice] = useState(max);
 
   function handleFilter() {
     let paramsClone = new URLSearchParams(params);
     if (minPrice === undefined && maxPrice === undefined) {
       paramsClone.delete(`${FILTER_URL_PREFIX}price`);
     } else {
-      let price = {
+      const price = {
         ...(minPrice === undefined ? {} : { min: minPrice }),
         ...(maxPrice === undefined ? {} : { max: maxPrice }),
       };
@@ -74,8 +74,12 @@ export function PriceRangeFilter({
         {["from", "to"].map((s: "from" | "to") => (
           <Slider.Thumb
             key={s}
-            onPointerUp={() => (thumbRef.current = null)}
-            onPointerDown={() => (thumbRef.current = s)}
+            onPointerUp={() => {
+              thumbRef.current = null;
+            }}
+            onPointerDown={() => {
+              thumbRef.current = s;
+            }}
             className={clsx(
               "block h-4 w-4 bg-gray-800 cursor-grab rounded-full shadow-md",
               "focus-visible:outline-hidden",
@@ -98,8 +102,8 @@ export function PriceRangeFilter({
             min={minVariantPrice}
             placeholder={minVariantPrice.toString()}
             onChange={(e) => {
-              let { value } = e.target;
-              let newMinPrice = Number.isNaN(Number.parseFloat(value))
+              const { value } = e.target;
+              const newMinPrice = Number.isNaN(Number.parseFloat(value))
                 ? undefined
                 : Number.parseFloat(value);
               setMinPrice(newMinPrice);
@@ -123,8 +127,8 @@ export function PriceRangeFilter({
             max={maxVariantPrice}
             placeholder={maxVariantPrice.toString()}
             onChange={(e) => {
-              let { value } = e.target;
-              let newMaxPrice = Number.isNaN(Number.parseFloat(value))
+              const { value } = e.target;
+              const newMaxPrice = Number.isNaN(Number.parseFloat(value))
                 ? undefined
                 : Number.parseFloat(value);
               setMaxPrice(newMaxPrice);
@@ -139,10 +143,10 @@ export function PriceRangeFilter({
 }
 
 function getPricesRange(collection: CollectionQuery["collection"]) {
-  let { highestPriceProduct, lowestPriceProduct } = collection;
-  let minVariantPrice =
+  const { highestPriceProduct, lowestPriceProduct } = collection;
+  const minVariantPrice =
     lowestPriceProduct.nodes[0]?.priceRange?.minVariantPrice;
-  let maxVariantPrice =
+  const maxVariantPrice =
     highestPriceProduct.nodes[0]?.priceRange?.maxVariantPrice;
   return {
     minVariantPrice: Number(minVariantPrice?.amount) || 0,
@@ -151,11 +155,11 @@ function getPricesRange(collection: CollectionQuery["collection"]) {
 }
 
 function getPricesFromFilter(params: URLSearchParams) {
-  let priceFilter = params.get(`${FILTER_URL_PREFIX}price`);
-  let price = priceFilter
+  const priceFilter = params.get(`${FILTER_URL_PREFIX}price`);
+  const price = priceFilter
     ? (JSON.parse(priceFilter) as ProductFilter["price"])
     : undefined;
-  let min = Number.isNaN(Number(price?.min)) ? undefined : Number(price?.min);
-  let max = Number.isNaN(Number(price?.max)) ? undefined : Number(price?.max);
+  const min = Number.isNaN(Number(price?.min)) ? undefined : Number(price?.min);
+  const max = Number.isNaN(Number(price?.max)) ? undefined : Number(price?.max);
   return { min, max };
 }

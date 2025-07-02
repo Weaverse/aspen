@@ -33,8 +33,8 @@ function splitHtmlByLineBreaks(html: string): string[] {
 }
 
 export function ScrollingAnnouncement() {
-  let themeSettings = useThemeSettings();
-  let {
+  const themeSettings = useThemeSettings();
+  const {
     topbarText,
     topbarHeight,
     topbarTextColor,

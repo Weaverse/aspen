@@ -1,8 +1,8 @@
 import {
-  ArrowLeft,
-  ArrowRight,
-  MagnifyingGlassPlus,
-  VideoCamera,
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  MagnifyingGlassPlusIcon,
+  VideoCameraIcon,
 } from "@phosphor-icons/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import clsx from "clsx";
@@ -21,7 +21,7 @@ import { cn } from "~/utils/cn";
 import { getImageAspectRatio } from "~/utils/image";
 import { ZoomModal } from "./media-zoom";
 
-let variants = cva(
+const variants = cva(
   [
     "w-full grid justify-start gap-2 lg:gap-1",
     "lg:grid-cols-1",
@@ -50,7 +50,7 @@ export interface ProductMediaProps extends VariantProps<typeof variants> {
 }
 
 export function ProductMedia(props: ProductMediaProps) {
-  let {
+  const {
     mediaLayout,
     gridSize,
     showThumbnails,
@@ -60,15 +60,15 @@ export function ProductMedia(props: ProductMediaProps) {
     enableZoom,
   } = props;
 
-  let [swiper, setSwiper] = useState<SwiperClass | null>(null);
-  let [thumbsSwiper, setThumbsSwiper] = useState<SwiperClass | null>(null);
-  let [zoomMediaId, setZoomMediaId] = useState<string | null>(null);
-  let [zoomModalOpen, setZoomModalOpen] = useState(false);
+  const [swiper, setSwiper] = useState<SwiperClass | null>(null);
+  const [thumbsSwiper, setThumbsSwiper] = useState<SwiperClass | null>(null);
+  const [zoomMediaId, setZoomMediaId] = useState<string | null>(null);
+  const [zoomModalOpen, setZoomModalOpen] = useState(false);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation> --- IGNORE ---
   useEffect(() => {
     if (selectedVariant && swiper) {
-      let index = getSelectedVariantMediaIndex(media, selectedVariant);
+      const index = getSelectedVariantMediaIndex(media, selectedVariant);
       if (index !== swiper.activeIndex) {
         swiper.slideTo(index);
       }
@@ -79,7 +79,7 @@ export function ProductMedia(props: ProductMediaProps) {
     return (
       <div className={variants({ gridSize })}>
         {media.map((med, idx) => {
-          let image = {
+          const image = {
             ...med.previewImage,
             altText: med.alt || "Product image",
           };
@@ -106,7 +106,7 @@ export function ProductMedia(props: ProductMediaProps) {
     <div className="overflow-hidden product-media-slider">
       <div
         className={clsx(
-          "flex items-start gap-4 [--thumbs-width:0px]",
+          "flex items-start gap-4 [--thumbs-width:0px] overflow-hidden",
           showThumbnails && "md:[--thumbs-width:8rem]",
         )}
       >
@@ -155,7 +155,7 @@ export function ProductMedia(props: ProductMediaProps) {
                     />
                     {mediaContentType === "VIDEO" && (
                       <div className="absolute bottom-2 right-2 bg-gray-900 text-white p-0.5">
-                        <VideoCamera className="w-4 h-4" />
+                        <VideoCameraIcon className="w-4 h-4" />
                       </div>
                     )}
                   </SwiperSlide>
@@ -201,7 +201,7 @@ export function ProductMedia(props: ProductMediaProps) {
                       setZoomModalOpen(true);
                     }}
                   >
-                    <MagnifyingGlassPlus className="w-5 h-5" />
+                    <MagnifyingGlassPlusIcon className="w-5 h-5" />
                   </button>
                 )}
               </SwiperSlide>
@@ -212,13 +212,13 @@ export function ProductMedia(props: ProductMediaProps) {
               type="button"
               className="media_slider__prev p-2 text-center border border-transparent transition-all duration-200 text-gray-900 bg-white hover:bg-gray-800 hover:text-white left-6 disabled:cursor-not-allowed disabled:text-body-subtle"
             >
-              <ArrowLeft className="w-4.5 h-4.5" />
+              <ArrowLeftIcon className="w-4.5 h-4.5" />
             </button>
             <button
               type="button"
               className="media_slider__next p-2 text-center border border-transparent transition-all duration-200 text-gray-900 bg-white hover:bg-gray-800 hover:text-white right-6 disabled:cursor-not-allowed disabled:text-body-subtle"
             >
-              <ArrowRight className="w-4.5 h-4.5" />
+              <ArrowRightIcon className="w-4.5 h-4.5" />
             </button>
           </div>
         </div>
@@ -246,7 +246,7 @@ function Media({
   index: number;
 }) {
   if (media.mediaContentType === "IMAGE") {
-    let { image, alt } = media as Media_MediaImage_Fragment;
+    const { image, alt } = media as Media_MediaImage_Fragment;
     return (
       <Image
         data={{ ...image, altText: alt || "Product image" }}
@@ -259,7 +259,7 @@ function Media({
     );
   }
   if (media.mediaContentType === "VIDEO") {
-    let mediaVideo = media as Media_Video_Fragment;
+    const mediaVideo = media as Media_Video_Fragment;
     return (
       <video
         controls
@@ -287,6 +287,6 @@ function getSelectedVariantMediaIndex(
   selectedVariant: ProductVariantFragment,
 ) {
   if (!selectedVariant) return 0;
-  let mediaUrl = selectedVariant.image?.url;
+  const mediaUrl = selectedVariant.image?.url;
   return media.findIndex((med) => med.previewImage?.url === mediaUrl);
 }

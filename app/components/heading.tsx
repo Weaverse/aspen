@@ -9,7 +9,7 @@ import type { CSSProperties } from "react";
 import { forwardRef } from "react";
 import { cn } from "~/utils/cn";
 
-let fontSizeVariants = cva("", {
+const fontSizeVariants = cva("", {
   variants: {
     mobileSize: {
       xs: "text-xs",
@@ -44,7 +44,7 @@ let fontSizeVariants = cva("", {
   },
 });
 
-let variants = cva("heading", {
+const variants = cva("heading", {
   variants: {
     size: {
       default: "",
@@ -96,11 +96,11 @@ export interface HeadingProps
   animate?: boolean;
 }
 
-let Heading = forwardRef<
+const Heading = forwardRef<
   HTMLHeadingElement,
   HeadingProps & Partial<HydrogenComponentProps>
 >((props, ref) => {
-  let {
+  const {
     as: Tag = "h4",
     content,
     size,
@@ -146,7 +146,7 @@ let Heading = forwardRef<
 
 export default Heading;
 
-export let headingInputs: InspectorGroup["inputs"] = [
+export const headingInputs: InspectorGroup["inputs"] = [
   {
     type: "text",
     name: "content",
@@ -199,7 +199,7 @@ export let headingInputs: InspectorGroup["inputs"] = [
       unit: "px",
     },
     defaultValue: 16,
-    condition: (data) => data.size === "scale",
+    condition: (data: HeadingProps) => data.size === "scale",
   },
   {
     type: "range",
@@ -212,7 +212,7 @@ export let headingInputs: InspectorGroup["inputs"] = [
       unit: "px",
     },
     defaultValue: 64,
-    condition: (data) => data.size === "scale",
+    condition: (data: HeadingProps) => data.size === "scale",
     helpText:
       'See how scale text works <a href="https://css-tricks.com/snippets/css/fluid-typography/" target="_blank" rel="noreferrer">here</a>.',
   },
@@ -220,7 +220,7 @@ export let headingInputs: InspectorGroup["inputs"] = [
     type: "select",
     name: "mobileSize",
     label: "Mobile text size",
-    condition: (data) => data.size === "custom",
+    condition: (data: HeadingProps) => data.size === "custom",
     configs: {
       options: [
         { value: "xs", label: "Extra small (text-xs)" },
@@ -244,7 +244,7 @@ export let headingInputs: InspectorGroup["inputs"] = [
     type: "select",
     name: "desktopSize",
     label: "Desktop text size",
-    condition: (data) => data.size === "custom",
+    condition: (data: HeadingProps) => data.size === "custom",
     configs: {
       options: [
         { value: "xs", label: "Extra small (text-xs)" },
@@ -318,7 +318,7 @@ export let headingInputs: InspectorGroup["inputs"] = [
   },
 ];
 
-export let schema = createSchema({
+export const schema = createSchema({
   type: "heading",
   title: "Heading",
   settings: [

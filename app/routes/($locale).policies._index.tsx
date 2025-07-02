@@ -1,4 +1,4 @@
-import { FileText } from "@phosphor-icons/react";
+import { FileTextIcon } from "@phosphor-icons/react";
 import type { SeoConfig } from "@shopify/hydrogen";
 import { getSeoMeta } from "@shopify/hydrogen";
 import type { LoaderFunctionArgs } from "@shopify/remix-oxygen";
@@ -12,7 +12,7 @@ import { Section } from "~/components/section";
 import { routeHeaders } from "~/utils/cache";
 import { seoPayload } from "~/utils/seo.server";
 
-export let headers = routeHeaders;
+export const headers = routeHeaders;
 
 type NonNullableFields<T> = {
   [P in keyof T]: NonNullable<T[P]>;
@@ -22,11 +22,11 @@ export async function loader({
   request,
   context: { storefront },
 }: LoaderFunctionArgs) {
-  let data = await storefront.query<PoliciesIndexQuery>(POLICIES_QUERY);
+  const data = await storefront.query<PoliciesIndexQuery>(POLICIES_QUERY);
 
   invariant(data, "No data returned from Shopify API");
 
-  let policies = Object.values(
+  const policies = Object.values(
     data.shop as NonNullableFields<typeof data.shop>,
   ).filter(Boolean);
 
@@ -34,7 +34,7 @@ export async function loader({
     throw new Response("Not found", { status: 404 });
   }
 
-  let seo = seoPayload.policies({ policies, url: request.url });
+  const seo = seoPayload.policies({ policies, url: request.url });
 
   return {
     policies,
@@ -42,12 +42,12 @@ export async function loader({
   };
 }
 
-export let meta: MetaFunction<typeof loader> = ({ data }) => {
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return getSeoMeta(data.seo as SeoConfig);
 };
 
 export default function Policies() {
-  let { policies } = useLoaderData<typeof loader>();
+  const { policies } = useLoaderData<typeof loader>();
 
   return (
     <Section width="fixed" verticalPadding="medium">
@@ -63,7 +63,7 @@ export default function Policies() {
                   className="w-fit gap-2"
                   to={`/policies/${policy.handle}`}
                 >
-                  <FileText className="w-5 h-5" />
+                  <FileTextIcon className="w-5 h-5" />
                   <span>{policy.title}</span>
                 </Link>
               )

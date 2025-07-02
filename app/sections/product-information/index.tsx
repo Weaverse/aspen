@@ -1,9 +1,15 @@
-import { Money, ShopPayButton, useOptimisticVariant } from "@shopify/hydrogen";
+import {
+  getAdjacentAndFirstAvailableVariants,
+  getProductOptions,
+  Money,
+  ShopPayButton,
+  useOptimisticVariant,
+} from "@shopify/hydrogen";
 import type { MoneyV2 } from "@shopify/hydrogen/storefront-api-types";
 import { createSchema } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { forwardRef, useState } from "react";
-import { useLoaderData, useSearchParams } from "react-router";
+import { useLoaderData } from "react-router";
 import { CompareAtPrice } from "~/components/compare-at-price";
 import { Link } from "~/components/link";
 import { AddToCartButton } from "~/components/product/add-to-cart-button";
@@ -23,214 +29,194 @@ import type { loader as productRouteLoader } from "~/routes/($locale).products.$
 import { isDiscounted } from "~/utils/product";
 import { ProductDetails } from "./product-details";
 
-interface ProductInformationProps
-  extends SectionProps,
-    Omit<ProductMediaProps, "selectedVariant" | "media"> {
+interface ProductInformationData
+  extends Omit<ProductMediaProps, "selectedVariant" | "media"> {
   addToCartText: string;
   soldOutText: string;
-  unavailableText: string;
-  selectVariantText: string;
   showVendor: boolean;
   showSalePrice: boolean;
   showShortDescription: boolean;
   showShippingPolicy: boolean;
   showRefundPolicy: boolean;
-  hideUnavailableOptions: boolean;
 }
 
-let ProductInformation = forwardRef<HTMLDivElement, ProductInformationProps>(
-  (props, ref) => {
-    let { product, variants, storeDomain } =
-      useLoaderData<typeof productRouteLoader>();
-    let [params] = useSearchParams();
-    let selectedVariant = useOptimisticVariant(
-      product?.selectedVariant,
-      variants,
-    );
+const ProductInformation = forwardRef<
+  HTMLDivElement,
+  ProductInformationData & SectionProps
+>((props, ref) => {
+  const { product, storeDomain } = useLoaderData<typeof productRouteLoader>();
 
-    let {
-      addToCartText,
-      soldOutText,
-      unavailableText,
-      selectVariantText,
-      showVendor,
-      showSalePrice,
-      showShortDescription,
-      showShippingPolicy,
-      showRefundPolicy,
-      hideUnavailableOptions,
-      mediaLayout,
-      gridSize,
-      imageAspectRatio,
-      showThumbnails,
-      children,
-      enableZoom,
-      ...rest
-    } = props;
-    let [quantity, setQuantity] = useState<number>(1);
+  // Optimistically selects a variant with given available variant information
+  const selectedVariant = useOptimisticVariant(
+    product?.selectedOrFirstAvailableVariant,
+    getAdjacentAndFirstAvailableVariants(product),
+  );
 
-    if (product) {
-      let {
-        title,
-        handle,
-        vendor,
-        summary,
-        options,
-        priceRange,
-        publishedAt,
-        badges,
-      } = product;
-      let allOptionNames = options.map(({ name }) => name);
-      let isAllOptionsSelected = allOptionNames.every((name) =>
-        params.get(name),
-      );
-      let isBestSellerProduct = badges
-        .filter(Boolean)
-        .some(({ key, value }) => key === "best_seller" && value === "true");
+  // Get the product options array
+  const productOptions = getProductOptions({
+    ...product,
+    selectedOrFirstAvailableVariant: selectedVariant,
+  });
 
-      return (
-        <Section ref={ref} {...rest} overflow="unset">
-          <div
-            className={clsx([
-              "space-y-5 lg:space-y-0 lg:grid",
-              "lg:gap-[clamp(30px,5%,60px)]",
-              "lg:grid-cols-[1fr_clamp(360px,45%,480px)]",
-            ])}
-          >
-            <ProductMedia
-              key={handle}
-              mediaLayout={mediaLayout}
-              gridSize={gridSize}
-              imageAspectRatio={imageAspectRatio}
-              media={product?.media.nodes}
-              selectedVariant={selectedVariant}
-              showThumbnails={showThumbnails}
-              enableZoom={enableZoom}
-            />
-            <div>
-              <div
-                className="sticky flex flex-col justify-start space-y-5"
-                style={{ top: "calc(var(--height-nav) + 20px)" }}
-              >
-                <div className="flex items-center gap-1.5">
-                  <Link
-                    to="/"
-                    className="text-body-subtle hover:underline underline-offset-4"
-                  >
-                    Home
-                  </Link>
-                  <span className="inline-block h-4 border-r border-body-subtle" />
-                  <span>{product.title}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm empty:hidden">
-                  {selectedVariant && (
-                    <SaleBadge
-                      price={selectedVariant.price as MoneyV2}
-                      compareAtPrice={selectedVariant.compareAtPrice as MoneyV2}
-                    />
-                  )}
-                  <NewBadge publishedAt={publishedAt} />
-                  {isBestSellerProduct && <BestSellerBadge />}
-                </div>
-                <div className="flex flex-col gap-2">
-                  {showVendor && vendor && (
-                    <span className="text-body-subtle">{vendor}</span>
-                  )}
-                  <h1 className="h3 tracking-tight!">{title}</h1>
-                </div>
-                {selectedVariant ? (
-                  <div className="flex items-center gap-2">
-                    <Money
-                      withoutTrailingZeros
-                      data={selectedVariant.price}
-                      as="span"
-                      className="font-medium text-2xl/none"
-                    />
-                    {isDiscounted(
-                      selectedVariant.price as MoneyV2,
-                      selectedVariant.compareAtPrice as MoneyV2,
-                    ) &&
-                      showSalePrice && (
-                        <CompareAtPrice
-                          data={selectedVariant.compareAtPrice as MoneyV2}
-                          className="text-2xl/none"
-                        />
-                      )}
-                  </div>
-                ) : (
-                  <Money
-                    withoutTrailingZeros
-                    data={priceRange.minVariantPrice}
-                    as="div"
-                    className="font-medium text-2xl/none"
+  const {
+    addToCartText,
+    soldOutText,
+    showVendor,
+    showSalePrice,
+    showShortDescription,
+    showShippingPolicy,
+    showRefundPolicy,
+    mediaLayout,
+    gridSize,
+    imageAspectRatio,
+    showThumbnails,
+    children,
+    enableZoom,
+    ...rest
+  } = props;
+  const [quantity, setQuantity] = useState<number>(1);
+
+  if (product) {
+    const { title, handle, vendor, summary, priceRange, publishedAt, badges } =
+      product;
+
+    const isBestSellerProduct = badges
+      .filter(Boolean)
+      .some(({ key, value }) => key === "best_seller" && value === "true");
+
+    return (
+      <Section ref={ref} {...rest} overflow="unset">
+        <div
+          className={clsx([
+            "space-y-5 lg:space-y-0 lg:grid",
+            "lg:gap-[clamp(30px,5%,60px)]",
+            "lg:grid-cols-[1fr_clamp(360px,45%,480px)]",
+          ])}
+        >
+          <ProductMedia
+            key={handle}
+            mediaLayout={mediaLayout}
+            gridSize={gridSize}
+            imageAspectRatio={imageAspectRatio}
+            media={product?.media.nodes}
+            selectedVariant={selectedVariant}
+            showThumbnails={showThumbnails}
+            enableZoom={enableZoom}
+          />
+          <div>
+            <div
+              className="sticky flex flex-col justify-start space-y-5"
+              style={{ top: "calc(var(--height-nav) + 20px)" }}
+            >
+              <div className="flex items-center gap-1.5">
+                <Link
+                  to="/"
+                  className="text-body-subtle hover:underline underline-offset-4"
+                >
+                  Home
+                </Link>
+                <span className="inline-block h-4 border-r border-body-subtle" />
+                <span>{product.title}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm empty:hidden">
+                {selectedVariant && (
+                  <SaleBadge
+                    price={selectedVariant.price as MoneyV2}
+                    compareAtPrice={selectedVariant.compareAtPrice as MoneyV2}
                   />
                 )}
-                {children}
-                {showShortDescription && (
-                  <p className="leading-relaxed">{summary}</p>
+                <NewBadge publishedAt={publishedAt} />
+                {isBestSellerProduct && <BestSellerBadge />}
+              </div>
+              <div className="flex flex-col gap-2">
+                {showVendor && vendor && (
+                  <span className="text-body-subtle">{vendor}</span>
                 )}
-                <ProductVariants
-                  variants={variants}
-                  options={options}
-                  productHandle={handle}
-                  hideUnavailableOptions={hideUnavailableOptions}
+                <h1 className="h3 tracking-tight!">{title}</h1>
+              </div>
+              {selectedVariant ? (
+                <div className="flex items-center gap-2">
+                  <Money
+                    withoutTrailingZeros
+                    data={selectedVariant.price}
+                    as="span"
+                    className="font-medium text-2xl/none"
+                  />
+                  {isDiscounted(
+                    selectedVariant.price as MoneyV2,
+                    selectedVariant.compareAtPrice as MoneyV2,
+                  ) &&
+                    showSalePrice && (
+                      <CompareAtPrice
+                        data={selectedVariant.compareAtPrice as MoneyV2}
+                        className="text-2xl/none"
+                      />
+                    )}
+                </div>
+              ) : (
+                <Money
+                  withoutTrailingZeros
+                  data={priceRange.minVariantPrice}
+                  as="div"
+                  className="font-medium text-2xl/none"
                 />
-                <Quantity value={quantity} onChange={setQuantity} />
-                <div className="space-y-2">
-                  <AddToCartButton
-                    disabled={!selectedVariant?.availableForSale}
-                    lines={[
+              )}
+              {children}
+              {showShortDescription && (
+                <p className="leading-relaxed">{summary}</p>
+              )}
+              <ProductVariants productOptions={productOptions} />
+              <Quantity value={quantity} onChange={setQuantity} />
+              <div className="space-y-2">
+                <AddToCartButton
+                  disabled={!selectedVariant?.availableForSale}
+                  lines={[
+                    {
+                      merchandiseId: selectedVariant?.id,
+                      quantity,
+                      selectedVariant,
+                    },
+                  ]}
+                  data-test="add-to-cart"
+                  className="w-full uppercase"
+                >
+                  {selectedVariant.availableForSale
+                    ? addToCartText
+                    : soldOutText}
+                </AddToCartButton>
+                {selectedVariant?.availableForSale && (
+                  <ShopPayButton
+                    width="100%"
+                    variantIdsAndQuantities={[
                       {
-                        merchandiseId: selectedVariant?.id,
+                        id: selectedVariant?.id,
                         quantity,
-                        selectedVariant,
                       },
                     ]}
-                    data-test="add-to-cart"
-                    className="w-full uppercase"
-                  >
-                    {isAllOptionsSelected
-                      ? selectedVariant
-                        ? selectedVariant.availableForSale
-                          ? addToCartText
-                          : soldOutText
-                        : unavailableText
-                      : selectVariantText}
-                  </AddToCartButton>
-                  {selectedVariant?.availableForSale && (
-                    <ShopPayButton
-                      width="100%"
-                      variantIdsAndQuantities={[
-                        {
-                          id: selectedVariant?.id,
-                          quantity,
-                        },
-                      ]}
-                      storeDomain={storeDomain}
-                    />
-                  )}
-                </div>
-                <ProductDetails
-                  showShippingPolicy={showShippingPolicy}
-                  showRefundPolicy={showRefundPolicy}
-                />
+                    storeDomain={storeDomain}
+                  />
+                )}
               </div>
+              <ProductDetails
+                showShippingPolicy={showShippingPolicy}
+                showRefundPolicy={showRefundPolicy}
+              />
             </div>
           </div>
-        </Section>
-      );
-    }
-    return (
-      <div ref={ref} {...rest}>
-        No product data...
-      </div>
+        </div>
+      </Section>
     );
-  },
-);
+  }
+  return (
+    <div ref={ref} {...rest}>
+      No product data...
+    </div>
+  );
+});
 
 export default ProductInformation;
 
-export let schema = createSchema({
+export const schema = createSchema({
   type: "product-information",
   title: "Main product",
   childTypes: ["judgeme"],
@@ -289,14 +275,16 @@ export let schema = createSchema({
               { label: "Mix", value: "mix" },
             ],
           },
-          condition: (data) => data.mediaLayout === "grid",
+          condition: (data: ProductInformationData) =>
+            data.mediaLayout === "grid",
         },
         {
           label: "Show thumbnails",
           name: "showThumbnails",
           type: "switch",
           defaultValue: true,
-          condition: (data) => data.mediaLayout === "slider",
+          condition: (data: ProductInformationData) =>
+            data.mediaLayout === "slider",
         },
         {
           label: "Enable zoom",
@@ -322,20 +310,6 @@ export let schema = createSchema({
           name: "soldOutText",
           defaultValue: "Sold out",
           placeholder: "Sold out",
-        },
-        {
-          type: "text",
-          label: "Unavailable text",
-          name: "unavailableText",
-          defaultValue: "Unavailable",
-          placeholder: "Unavailable",
-        },
-        {
-          type: "text",
-          label: "Select variant text",
-          name: "selectVariantText",
-          defaultValue: "Select variant",
-          placeholder: "Select variant",
         },
         {
           type: "switch",
@@ -366,12 +340,6 @@ export let schema = createSchema({
           label: "Show refund policy",
           name: "showRefundPolicy",
           defaultValue: true,
-        },
-        {
-          label: "Hide unavailable options",
-          type: "switch",
-          name: "hideUnavailableOptions",
-          defaultValue: false,
         },
       ],
     },

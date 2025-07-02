@@ -1,4 +1,9 @@
-import { Analytics, getSeoMeta } from "@shopify/hydrogen";
+import {
+  Analytics,
+  getAdjacentAndFirstAvailableVariants,
+  getSeoMeta,
+  useOptimisticVariant,
+} from "@shopify/hydrogen";
 import type {
   ActionFunctionArgs,
   LoaderFunctionArgs,
@@ -6,10 +11,11 @@ import type {
 } from "@shopify/remix-oxygen";
 import { data } from "@shopify/remix-oxygen";
 import { getSelectedProductOptions } from "@weaverse/hydrogen";
+import { useEffect } from "react";
 import { useLoaderData } from "react-router";
-import type { ProductQuery, VariantsQuery } from "storefront-api.generated";
+import type { ProductQuery } from "storefront-api.generated";
 import invariant from "tiny-invariant";
-import { PRODUCT_QUERY, VARIANTS_QUERY } from "~/graphql/queries";
+import { PRODUCT_QUERY } from "~/graphql/queries";
 import { routeHeaders } from "~/utils/cache";
 import { createJudgeMeReview, getJudgeMeProductReviews } from "~/utils/judgeme";
 import { getRecommendedProducts } from "~/utils/product";
@@ -17,16 +23,16 @@ import { redirectIfHandleIsLocalized } from "~/utils/redirect";
 import { seoPayload } from "~/utils/seo.server";
 import { WeaverseContent } from "~/weaverse";
 
-export let headers = routeHeaders;
+export const headers = routeHeaders;
 
 export async function loader({ params, request, context }: LoaderFunctionArgs) {
-  let { productHandle: handle } = params;
+  const { productHandle: handle } = params;
 
   invariant(handle, "Missing productHandle param, check route filename");
 
-  let { storefront, weaverse } = context;
-  let selectedOptions = getSelectedProductOptions(request);
-  let [{ shop, product }, weaverseData, productReviews] = await Promise.all([
+  const { storefront, weaverse } = context;
+  const selectedOptions = getSelectedProductOptions(request);
+  const [{ shop, product }, weaverseData, productReviews] = await Promise.all([
     storefront.query<ProductQuery>(PRODUCT_QUERY, {
       variables: {
         handle,
@@ -45,32 +51,16 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
   }
   redirectIfHandleIsLocalized(request, { handle, data: product });
 
-  // Load variants since they're needed for initial rendering
-  let { product: productWithAllVariants } =
-    await storefront.query<VariantsQuery>(VARIANTS_QUERY, {
-      variables: {
-        handle,
-        country: storefront.i18n.country,
-        language: storefront.i18n.language,
-      },
-    });
-
-  let variants = productWithAllVariants.variants.nodes;
-
   // Use Hydrogen/Remix streaming for recommended products
-  let recommended = getRecommendedProducts(storefront, product.id);
+  const recommended = getRecommendedProducts(storefront, product.id);
 
   return {
     shop,
     product,
-    variants,
     weaverseData,
     productReviews,
     storeDomain: shop.primaryDomain.url,
-    seo: seoPayload.product({
-      product: { ...product, variants },
-      url: request.url,
-    }),
+    seo: seoPayload.product({ product, url: request.url }),
     recommended,
     selectedOptions,
   };
@@ -86,7 +76,7 @@ export async function action({
       "Missing `JUDGEME_PRIVATE_API_TOKEN`",
     );
 
-    let response = await createJudgeMeReview({
+    const response = await createJudgeMeReview({
       formData: await request.formData(),
       apiToken: env.JUDGEME_PRIVATE_API_TOKEN,
       shopDomain: env.PUBLIC_STORE_DOMAIN,
@@ -98,28 +88,77 @@ export async function action({
   }
 }
 
-export let meta = ({ matches }: MetaArgs<typeof loader>) => {
+export const meta = ({ matches }: MetaArgs<typeof loader>) => {
   return getSeoMeta(
     ...matches.map((match) => (match.data as any)?.seo).filter(Boolean),
   );
 };
 
 export default function Product() {
-  let { product } = useLoaderData<typeof loader>();
+  const { product } = useLoaderData<typeof loader>();
+
+  // Optimistically selects a variant with given available variant information
+  const selectedVariant = useOptimisticVariant(
+    product.selectedOrFirstAvailableVariant,
+    getAdjacentAndFirstAvailableVariants(product),
+  );
+
+  // Sets the search param to the selected variant without navigation
+  // when no search params are set or when variant options don't match
+  useEffect(() => {
+    if (!selectedVariant?.selectedOptions) return;
+
+    const currentParams = new URLSearchParams(window.location.search);
+    let needsUpdate = false;
+
+    // If no search params exist, we need to add them
+    if (window.location.search === "") {
+      needsUpdate = true;
+    } else {
+      // Check if any of the selected variant options differ from current params
+      for (const option of selectedVariant.selectedOptions) {
+        const currentValue = currentParams.get(option.name);
+        if (currentValue !== option.value) {
+          needsUpdate = true;
+          break;
+        }
+      }
+    }
+
+    if (needsUpdate) {
+      // Preserve existing non-variant-related params
+      const updatedParams = new URLSearchParams(currentParams);
+
+      // Update or add variant option params
+      for (const option of selectedVariant.selectedOptions) {
+        updatedParams.set(option.name, option.value);
+      }
+
+      const newSearch = updatedParams.toString();
+      if (newSearch !== window.location.search.slice(1)) {
+        window.history.replaceState(
+          {},
+          "",
+          `${location.pathname}?${newSearch}`,
+        );
+      }
+    }
+  }, [selectedVariant?.selectedOptions]);
+
   return (
     <>
       <WeaverseContent />
-      {product.selectedVariant && (
+      {selectedVariant && (
         <Analytics.ProductView
           data={{
             products: [
               {
                 id: product.id,
                 title: product.title,
-                price: product.selectedVariant?.price.amount || "0",
+                price: selectedVariant?.price.amount || "0",
                 vendor: product.vendor,
-                variantId: product.selectedVariant?.id || "",
-                variantTitle: product.selectedVariant?.title || "",
+                variantId: selectedVariant?.id || "",
+                variantTitle: selectedVariant?.title || "",
                 quantity: 1,
               },
             ],

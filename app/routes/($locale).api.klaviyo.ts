@@ -6,33 +6,26 @@ import {
 
 const KLAVIYO_API = "https://a.klaviyo.com/api/profiles";
 
-export let action: ActionFunction = async ({
+export const action: ActionFunction = async ({
   request,
   context,
 }: ActionFunctionArgs) => {
-  let apiToken = context.env.KLAVIYO_PRIVATE_API_TOKEN;
-  let formData = await request.formData();
-  let email = formData.get("email");
-  let errorMessage = "";
-
+  const apiToken = context.env.KLAVIYO_PRIVATE_API_TOKEN;
   if (!apiToken) {
-    errorMessage = "Missing KLAVIYO_PRIVATE_API_TOKEN";
+    return data({
+      ok: false,
+      error: "Missing KLAVIYO_PRIVATE_API_TOKEN",
+    });
   }
+
+  const formData = await request.formData();
+  const email = formData.get("email");
   if (!email) {
-    errorMessage = "Email is required";
-  }
-  if (errorMessage) {
-    return data(
-      {
-        success: false,
-        message: errorMessage,
-      },
-      400,
-    );
+    return data({ ok: false, error: "Email is required" });
   }
 
   try {
-    let response = await fetch(KLAVIYO_API, {
+    const res = await fetch(KLAVIYO_API, {
       method: "POST",
       headers: {
         accept: "application/vnd.api+json",
@@ -47,15 +40,19 @@ export let action: ActionFunction = async ({
         },
       }),
     });
-    let status = response.status;
-    let message = await response.json();
-    if (response.ok) {
-      return data({ success: true }, status);
+
+    const status = res.status;
+    const klaviyoData = await res.json();
+    if (res.ok) {
+      return data({ ok: true }, status);
     }
-    return data({ success: false, message }, status);
+    return data(
+      { ok: false, error: "Unable to subscribe", klaviyoData },
+      status,
+    );
   } catch (e) {
     return data(
-      { success: false, message: "Something went wrong! Please try again." },
+      { ok: false, error: "Something went wrong! Please try again." },
       500,
     );
   }

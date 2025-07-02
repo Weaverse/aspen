@@ -1,4 +1,9 @@
-import { Circle, Handbag, Plus, Tag } from "@phosphor-icons/react";
+import {
+  CircleIcon,
+  HandbagIcon,
+  PlusIcon,
+  TagIcon,
+} from "@phosphor-icons/react";
 import {
   type ComponentLoaderArgs,
   createSchema,
@@ -28,15 +33,15 @@ interface HotspotsItemProps
     HotspotsItemData {}
 
 const ICONS = {
-  circle: Circle,
-  plus: Plus,
-  bag: Handbag,
-  tag: Tag,
+  circle: CircleIcon,
+  plus: PlusIcon,
+  bag: HandbagIcon,
+  tag: TagIcon,
 };
 
-let HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>(
+const HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>(
   (props, ref) => {
-    let {
+    const {
       icon,
       iconSize,
       offsetX,
@@ -50,7 +55,7 @@ let HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>(
       loaderData,
       ...rest
     } = props;
-    let Icon = ICONS[icon];
+    const Icon = ICONS[icon];
 
     return (
       <div
@@ -92,14 +97,14 @@ let HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>(
 
 export default HotspotsItem;
 
-export let loader = async (args: ComponentLoaderArgs<HotspotsItemData>) => {
-  let { weaverse, data } = args;
-  let { storefront } = weaverse;
+export const loader = async (args: ComponentLoaderArgs<HotspotsItemData>) => {
+  const { weaverse, data } = args;
+  const { storefront } = weaverse;
   if (!data?.product) {
     return null;
   }
-  let productHandle = data.product.handle;
-  let { product } = await storefront.query<ProductQuery>(PRODUCT_QUERY, {
+  const productHandle = data.product.handle;
+  const { product } = await storefront.query<ProductQuery>(PRODUCT_QUERY, {
     variables: {
       handle: productHandle,
       selectedOptions: [],
@@ -111,7 +116,7 @@ export let loader = async (args: ComponentLoaderArgs<HotspotsItemData>) => {
   return { product };
 };
 
-export let schema = createSchema({
+export const schema = createSchema({
   type: "hotspots--item",
   title: "Hotspots item",
   settings: [
@@ -224,7 +229,7 @@ export let schema = createSchema({
           name: "viewDetailsLinkText",
           label: "View details link text",
           defaultValue: "View full details",
-          condition: (data) => data.showViewDetailsLink,
+          condition: (data: HotspotsItemData) => data.showViewDetailsLink,
         },
       ],
     },

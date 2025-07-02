@@ -1,27 +1,38 @@
-import { Money, ShopPayButton } from "@shopify/hydrogen";
+import { getProductOptions, Money, ShopPayButton } from "@shopify/hydrogen";
+import type { MoneyV2 } from "@shopify/hydrogen/customer-account-api-types";
 import {
   type ComponentLoaderArgs,
   createSchema,
   type HydrogenComponentProps,
+  IMAGES_PLACEHOLDERS,
   type WeaverseProduct,
 } from "@weaverse/hydrogen";
-import { forwardRef, useEffect, useState } from "react";
-import type { ProductQuery } from "storefront-api.generated";
+import { forwardRef, useState } from "react";
+import type {
+  ProductQuery,
+  ProductVariantFragment,
+} from "storefront-api.generated";
+import { Button } from "~/components/button";
+import { Image } from "~/components/image";
+import Link from "~/components/link";
 import { AddToCartButton } from "~/components/product/add-to-cart-button";
-import { ProductPlaceholder } from "~/components/product/placeholder";
+import {
+  BestSellerBadge,
+  NewBadge,
+  SaleBadge,
+  SoldOutBadge,
+} from "~/components/product/badges";
 import { ProductMedia } from "~/components/product/product-media";
 import { Quantity } from "~/components/product/quantity";
 import { layoutInputs, Section } from "~/components/section";
-import { PRODUCT_QUERY, VARIANTS_QUERY } from "~/graphql/queries";
+import { PRODUCT_QUERY } from "~/graphql/queries";
 import { useAnimation } from "~/hooks/use-animation";
+import { SingleProductVariantSelector } from "./variant-selector";
 
 interface SingleProductData {
   productsCount: number;
   product: WeaverseProduct;
-  hideUnavailableOptions: boolean;
-  // product media props
   showThumbnails: boolean;
-  numberOfThumbnails: number;
 }
 
 type SingleProductProps = HydrogenComponentProps<
@@ -29,43 +40,107 @@ type SingleProductProps = HydrogenComponentProps<
 > &
   SingleProductData;
 
-let SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
+const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
   (props, ref) => {
-    let {
+    const {
       loaderData,
       children,
       product: _product,
-      hideUnavailableOptions,
       showThumbnails,
-      numberOfThumbnails,
       ...rest
     } = props;
-    let { storeDomain, product, variants: _variants } = loaderData || {};
-    let variants = _variants?.product?.variants;
-    let [selectedVariant, setSelectedVariant] = useState<any>(null);
-    let [quantity, setQuantity] = useState<number>(1);
-    useEffect(() => {
-      setSelectedVariant(variants?.nodes?.[0]);
-      setQuantity(1);
-    }, [variants?.nodes]);
+    const { storeDomain, product } = loaderData || {};
+    const [quantity, setQuantity] = useState<number>(1);
+    const [selectedVariant, setSelectedVariant] =
+      useState<ProductVariantFragment | null>(null);
     const [scope] = useAnimation(ref);
 
-    if (!product)
-      return (
-        <section
-          className="w-full py-12 md:py-24 lg:py-32"
-          ref={scope}
-          {...rest}
-        >
-          <ProductPlaceholder />
-        </section>
-      );
+    // Use the selected variant or fall back to the first available variant
+    const currentVariant =
+      selectedVariant || product?.selectedOrFirstAvailableVariant;
 
-    let atcText = selectedVariant?.availableForSale
+    if (!product) {
+      return (
+        <Section ref={ref} {...rest}>
+          <div className="container px-4 md:px-6 mx-auto">
+            <div className="grid items-start gap-6 lg:grid-cols-2 lg:gap-12 xl:grid-cols-2">
+              <Image
+                data={{
+                  url: IMAGES_PLACEHOLDERS.product_2,
+                  width: 1660,
+                  height: 1660,
+                }}
+                loading="lazy"
+                width={1660}
+                aspectRatio="1/1"
+                sizes="auto"
+              />
+              <div className="flex flex-col justify-start items-start gap-4">
+                <SoldOutBadge />
+                <h3 data-motion="fade-up" className="tracking-tight">
+                  EXAMPLE PRODUCT TITLE
+                </h3>
+                <Money
+                  withoutTrailingZeros
+                  data={{ amount: "19.99", currencyCode: "USD" }}
+                  as="span"
+                  className="text-lg"
+                />
+                <p className="text-body-subtle">
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
+                  do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                  Ut enim ad minim veniam, quis nostrud exercitation ullamco
+                  laboris nisi ut aliquip ex ea commodo consequat.
+                </p>
+                <Button
+                  type="button"
+                  className="w-full cursor-not-allowed"
+                  disabled
+                >
+                  SOLD OUT
+                </Button>
+                <Link
+                  to="#"
+                  prefetch="intent"
+                  variant="underline"
+                  className="w-fit cursor-not-allowed"
+                  onClick={(e) => e.preventDefault()}
+                >
+                  View full details →
+                </Link>
+              </div>
+            </div>
+          </div>
+        </Section>
+      );
+    }
+
+    // Get the product options array
+    const productOptions = getProductOptions({
+      ...product,
+      selectedOrFirstAvailableVariant: currentVariant,
+    });
+    let shouldRenderVariants = true;
+    // Check if this is a default variant only product
+    if (productOptions.length === 1) {
+      const option = productOptions[0];
+      if (option.name === "Title" && option.optionValues.length === 1) {
+        const optionValue = option.optionValues[0];
+        if (optionValue.name === "Default Title") {
+          shouldRenderVariants = false;
+        }
+      }
+    }
+
+    const atcText = currentVariant?.availableForSale
       ? "Add to Cart"
-      : selectedVariant?.quantityAvailable === -1
+      : currentVariant?.quantityAvailable === -1
         ? "Unavailable"
         : "Sold Out";
+    const isBestSellerProduct = product.badges
+      .filter(Boolean)
+      .some(({ key, value }) => key === "best_seller" && value === "true");
+
     return (
       <Section ref={ref} {...rest}>
         <div ref={scope}>
@@ -74,7 +149,7 @@ let SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
               mediaLayout="slider"
               imageAspectRatio="adapt"
               media={product?.media.nodes}
-              selectedVariant={selectedVariant}
+              selectedVariant={currentVariant}
               showThumbnails={showThumbnails}
             />
             <div
@@ -82,12 +157,32 @@ let SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
               data-motion="slide-in"
             >
               <div className="space-y-4">
-                <h3 data-motion="fade-up">{product?.title}</h3>
+                <div className="flex items-center gap-2 text-sm empty:hidden">
+                  {currentVariant?.availableForSale ? (
+                    <>
+                      {currentVariant && (
+                        <SaleBadge
+                          price={currentVariant.price as MoneyV2}
+                          compareAtPrice={
+                            currentVariant.compareAtPrice as MoneyV2
+                          }
+                        />
+                      )}
+                      <NewBadge publishedAt={product.publishedAt} />
+                      {isBestSellerProduct && <BestSellerBadge />}
+                    </>
+                  ) : (
+                    <SoldOutBadge />
+                  )}
+                </div>
+                <h3 data-motion="fade-up" className="tracking-tight">
+                  {product?.title}
+                </h3>
                 <p className="text-lg" data-motion="fade-up">
-                  {selectedVariant ? (
+                  {currentVariant ? (
                     <Money
                       withoutTrailingZeros
-                      data={selectedVariant.price}
+                      data={currentVariant.price}
                       as="span"
                     />
                   ) : null}
@@ -96,48 +191,67 @@ let SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
                 <p
                   className="leading-relaxed fade-up line-clamp-5"
                   suppressHydrationWarning
-                  dangerouslySetInnerHTML={{
-                    __html: product?.summary,
-                  }}
+                  dangerouslySetInnerHTML={{ __html: product?.summary }}
                 />
-                {/* <ProductVariants
-                  product={product}
-                  selectedVariant={selectedVariant}
-                  onSelectedVariantChange={setSelectedVariant}
-                  variants={variants}
-                  options={product?.options}
-                  productHandle={product?.handle}
-                  hideUnavailableOptions={hideUnavailableOptions}
-                /> */}
+                {shouldRenderVariants ? (
+                  <div className="space-y-5" data-motion="fade-up">
+                    <div className="product-form space-y-5">
+                      {productOptions.map((option) => (
+                        <div
+                          className="product-options space-y-2"
+                          key={option.name}
+                        >
+                          <legend className="leading-tight">
+                            <span className="font-bold">{option.name}</span>
+                          </legend>
+                          <SingleProductVariantSelector
+                            option={option}
+                            selectedVariant={selectedVariant}
+                            onVariantChange={setSelectedVariant}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
               </div>
               <Quantity value={quantity} onChange={setQuantity} />
               <AddToCartButton
-                disabled={!selectedVariant?.availableForSale}
+                disabled={!currentVariant?.availableForSale}
                 lines={[
                   {
-                    merchandiseId: selectedVariant?.id,
+                    merchandiseId: currentVariant?.id,
                     quantity,
-                    selectedVariant,
+                    selectedVariant: currentVariant,
                   },
                 ]}
                 variant="primary"
-                className="w-full"
+                className="w-full -mt-2"
                 data-test="add-to-cart"
               >
                 {atcText}
               </AddToCartButton>
-              {selectedVariant?.availableForSale && (
+              {currentVariant?.availableForSale && (
                 <ShopPayButton
                   width="100%"
                   variantIdsAndQuantities={[
                     {
-                      id: selectedVariant?.id,
+                      id: currentVariant?.id,
                       quantity,
                     },
                   ]}
                   storeDomain={storeDomain}
+                  className="-mt-2"
                 />
               )}
+              <Link
+                to={`/products/${product.handle}`}
+                prefetch="intent"
+                variant="underline"
+                className="w-fit"
+              >
+                View full details →
+              </Link>
             </div>
           </div>
         </div>
@@ -146,37 +260,32 @@ let SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
   },
 );
 
-export let loader = async (args: ComponentLoaderArgs<SingleProductData>) => {
-  let { weaverse, data } = args;
-  let { storefront } = weaverse;
+export const loader = async (args: ComponentLoaderArgs<SingleProductData>) => {
+  const { weaverse, data } = args;
+  const { storefront } = weaverse;
   if (!data.product) {
     return null;
   }
-  let productHandle = data.product.handle;
-  let { product, shop } = await storefront.query<ProductQuery>(PRODUCT_QUERY, {
-    variables: {
-      handle: productHandle,
-      selectedOptions: [],
-      language: storefront.i18n.language,
-      country: storefront.i18n.country,
+  const productHandle = data.product.handle;
+  const { product, shop } = await storefront.query<ProductQuery>(
+    PRODUCT_QUERY,
+    {
+      variables: {
+        handle: productHandle,
+        selectedOptions: [],
+        language: storefront.i18n.language,
+        country: storefront.i18n.country,
+      },
     },
-  });
-  let variants = await storefront.query(VARIANTS_QUERY, {
-    variables: {
-      handle: productHandle,
-      language: storefront.i18n.language,
-      country: storefront.i18n.country,
-    },
-  });
+  );
 
   return {
     product,
-    variants,
     storeDomain: shop.primaryDomain.url,
   };
 };
 
-export let schema = createSchema({
+export const schema = createSchema({
   type: "single-product",
   title: "Single product",
   childTypes: ["judgeme"],
@@ -194,11 +303,6 @@ export let schema = createSchema({
           name: "product",
           shouldRevalidate: true,
         },
-        {
-          label: "Hide unavailable options",
-          type: "switch",
-          name: "hideUnavailableOptions",
-        },
       ],
     },
     {
@@ -208,7 +312,7 @@ export let schema = createSchema({
           label: "Show thumbnails",
           name: "showThumbnails",
           type: "switch",
-          defaultValue: true,
+          defaultValue: false,
         },
       ],
     },

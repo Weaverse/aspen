@@ -5,7 +5,7 @@ import { forwardRef } from "react";
 import { useImageWithTextContext } from "./context";
 import { cn } from "~/utils/cn";
 
-let variants = cva(
+const variants = cva(
   "grow flex flex-col justify-center gap-5 py-6 px-4 md:px-8 md:py-8 [&_.paragraph]:mx-[unset] [&_.paragraph]:w-auto",
   {
     variants: {
@@ -25,11 +25,11 @@ interface ImageWithTextContentProps
   extends VariantProps<typeof variants>,
     HydrogenComponentProps {}
 
-let ImageWithTextContent = forwardRef<
+const ImageWithTextContent = forwardRef<
   HTMLDivElement,
   ImageWithTextContentProps
 >((props, ref) => {
-  let { alignment, children, ...rest } = props;
+  const { alignment, children, ...rest } = props;
   const { imageCount } = useImageWithTextContext();
 
   return (
@@ -51,7 +51,7 @@ let ImageWithTextContent = forwardRef<
 
 export default ImageWithTextContent;
 
-export let schema = createSchema({
+export const schema = createSchema({
   type: "image-with-text--content",
   title: "Content",
   limit: 1,

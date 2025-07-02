@@ -1,8 +1,8 @@
 import {
-  ArrowLeft,
-  ArrowRight,
-  CaretLeft,
-  CaretRight,
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  CaretLeftIcon,
+  CaretRightIcon,
 } from "@phosphor-icons/react";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
@@ -10,7 +10,7 @@ import clsx from "clsx";
 import React from "react";
 import { useSwiper } from "swiper/react";
 
-let variants = cva(
+const variants = cva(
   [
     "hidden md:block",
     "absolute bottom-0 -translate-y-1/2 z-1",
@@ -68,9 +68,9 @@ export interface SlideshowArrowsProps extends VariantProps<typeof variants> {
 }
 
 export function Arrows(props: SlideshowArrowsProps) {
-  let { arrowsIcon, iconSize, arrowsColor, showArrowsOnHover, arrowsShape } =
+  const { arrowsIcon, iconSize, arrowsColor, showArrowsOnHover, arrowsShape } =
     props;
-  let swiper = useSwiper();
+  const swiper = useSwiper();
 
   const handlePrevClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -115,9 +115,9 @@ export function Arrows(props: SlideshowArrowsProps) {
         onClick={handlePrevClick}
       >
         {arrowsIcon === "caret" ? (
-          <CaretLeft style={{ width: iconSize, height: iconSize }} />
+          <CaretLeftIcon style={{ width: iconSize, height: iconSize }} />
         ) : (
-          <ArrowLeft style={{ width: iconSize, height: iconSize }} />
+          <ArrowLeftIcon style={{ width: iconSize, height: iconSize }} />
         )}
       </button>
       <button
@@ -135,9 +135,9 @@ export function Arrows(props: SlideshowArrowsProps) {
         onClick={handleNextClick}
       >
         {arrowsIcon === "caret" ? (
-          <CaretRight style={{ width: iconSize, height: iconSize }} />
+          <CaretRightIcon style={{ width: iconSize, height: iconSize }} />
         ) : (
-          <ArrowRight style={{ width: iconSize, height: iconSize }} />
+          <ArrowRightIcon style={{ width: iconSize, height: iconSize }} />
         )}
       </button>
     </>
