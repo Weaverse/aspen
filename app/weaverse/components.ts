@@ -60,7 +60,7 @@ import * as OurTeamMembers from "~/sections/our-team/team-members";
 import * as Page from "~/sections/page";
 import * as ProductInformation from "~/sections/product-information";
 import * as PromotionGrid from "~/sections/promotion-grid";
-import * as PromotionGridButtons from "~/sections/promotion-grid/buttons";
+import * as GridItems from "~/sections/promotion-grid/grid-items";
 import * as PromotionGridItem from "~/sections/promotion-grid/item";
 import * as RelatedArticles from "~/sections/related-articles";
 import * as RelatedProducts from "~/sections/related-products";
@@ -123,8 +123,8 @@ export let components: HydrogenComponent[] = [
   MapSection,
   Address,
   PromotionGrid,
+  GridItems,
   PromotionGridItem,
-  PromotionGridButtons,
   Hotspots,
   HotspotsItem,
   HotspotsContainer,

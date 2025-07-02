@@ -144,7 +144,7 @@ export let schema = createSchema({
       ],
     },
   ],
-  childTypes: ["subheading", "heading", "paragraph", "promotion-item--buttons"],
+  childTypes: ["subheading", "heading", "paragraph", "button"],
   presets: {
     contentPosition: "bottom right",
     backgroundImage: IMAGES_PLACEHOLDERS.collection_3,
@@ -162,13 +162,9 @@ export let schema = createSchema({
           "Include the smaller details of your promotion in text below the title.",
       },
       {
-        type: "promotion-item--buttons",
-        children: [
-          {
-            type: "button",
-            content: "Shop now",
-          },
-        ],
+        type: "button",
+        text: "EXPLORE NOW",
+        variant: "decor",
       },
     ],
   },
