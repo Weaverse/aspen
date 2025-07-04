@@ -3,7 +3,7 @@ import { forwardRef } from "react";
 import { Suspense, lazy } from "react";
 import { Link } from "react-router";
 
-const ReactPlayer = lazy(() => import("react-player/lazy"));
+const ReactPlayer = lazy(() => import("react-player"));
 
 interface VideoItemProps {
   video: WeaverseVideo;
