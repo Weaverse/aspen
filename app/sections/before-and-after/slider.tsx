@@ -4,7 +4,7 @@ import {
   type HydrogenComponentSchema,
   type WeaverseImage,
 } from "@weaverse/hydrogen";
-import React, { forwardRef, CSSProperties, useRef, useEffect } from "react";
+import React, { forwardRef, type CSSProperties, useRef, useEffect } from "react";
 // import { IconArrowSlideRight, IconArrowSlideLeft, IconImageBlank } from '~/components/Icon';
 import { Image } from "@shopify/hydrogen";
 import clsx from "clsx";
@@ -250,7 +250,7 @@ export let schema: HydrogenComponentSchema = {
   type: "before-after-slider",
   title: "Slider",
   limit: 1,
-  toolbar: ["general-settings", ["duplicate", "delete"]],
+  // toolbar: ["general-settings", ["duplicate", "delete"]],
   inspector: [
     {
       group: "Slider",

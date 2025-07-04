@@ -1,4 +1,4 @@
-import { HydrogenComponentSchema } from "@weaverse/hydrogen";
+import { type HydrogenComponentSchema } from "@weaverse/hydrogen";
 import { createContext, forwardRef, useState, useRef, useEffect } from "react";
 import Heading from "~/components/heading";
 import type { SectionProps } from "~/components/section";

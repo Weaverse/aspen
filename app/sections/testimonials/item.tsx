@@ -1,9 +1,9 @@
 import { Circle, Handbag, Plus, Tag } from "@phosphor-icons/react";
 import {
-  ComponentLoaderArgs,
-  HydrogenComponentProps,
+  type ComponentLoaderArgs,
+  type HydrogenComponentProps,
+  type WeaverseProduct,
   createSchema,
-  WeaverseProduct,
 } from "@weaverse/hydrogen";
 import type { CSSProperties } from "react";
 import { forwardRef } from "react";

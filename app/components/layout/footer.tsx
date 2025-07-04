@@ -193,7 +193,7 @@ export function Footer() {
                 <CountrySelector inputClassName="px-4 py-3" />
               </div>
               <div className="flex gap-4 justify-start md:justify-end order-2">
-                {socialItems.map((social) =>
+                {SOCIAL_ACCOUNTS.map((social) =>
                   social.to ? (
                     <Link
                       key={social.name}
@@ -202,7 +202,7 @@ export function Footer() {
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 text-lg"
                     >
-                      {social.icon}
+                      <social.Icon />
                     </Link>
                   ) : null
                 )}

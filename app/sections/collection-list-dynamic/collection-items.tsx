@@ -1,5 +1,6 @@
 import {
-  HydrogenComponentProps,
+  type HydrogenComponentProps,
+  type HydrogenComponent,
   type HydrogenComponentSchema,
   IMAGES_PLACEHOLDERS,
   useParentInstance,

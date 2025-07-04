@@ -2,7 +2,7 @@ import type {
     HydrogenComponentSchema,
 } from '@weaverse/hydrogen';
 import { forwardRef } from 'react';
-import { layoutInputs, Section, SectionProps } from '~/components/section';
+import { layoutInputs, Section, type SectionProps } from '~/components/section';
 
 type BeforeAndAfterProps = SectionProps;
 
@@ -23,7 +23,7 @@ export default BeforeAndAfter;
 export let schema: HydrogenComponentSchema = {
     type: 'before-and-after',
     title: 'Before & after',
-    toolbar: ['general-settings', ['duplicate', 'delete']],
+    // toolbar: ['general-settings', ['duplicate', 'delete']],
     inspector: [
         {
             group: 'Layout',
