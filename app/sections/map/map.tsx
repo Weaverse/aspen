@@ -90,7 +90,7 @@ let MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
             className={clsx(
               layoutMap === "list"
                 ? "flex flex-col md:gap-16 gap-10 md:w-1/3 w-full"
-                : "flex flex-col md:gap-8 gap-8 md:w-1/2 w-full md:absolute md:-translate-x-1/2 z-1 p-10 bg-[--form-bg-color]"
+                : "flex flex-col md:gap-8 gap-8 md:w-1/2 w-full md:absolute md:-translate-x-1/2 z-1 p-10 bg-(--form-bg-color)"
             )}
             style={{ "--form-bg-color": highlightBg } as React.CSSProperties}
           >
@@ -107,7 +107,7 @@ let MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
             {layoutMap === "list" ? (
               <div className="flex flex-col relative">{children}</div>
             ) : (
-              <div className="bg-[--section-bg-color] rounded-md overflow-hidden">
+              <div className="bg-(--section-bg-color) rounded-md overflow-hidden">
                 <AccordionPrimitive.Root
                   type="single"
                   defaultValue="item-0"
