@@ -158,9 +158,9 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
     >
       <div className="flex flex-col gap-8">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-normal sm:text-3xl uppercase font-heading tracking-wider text-[var(--accent-color)]">
+          <h5 className="font-normal uppercase font-heading tracking-wider text-[var(--accent-color)]">
             {articleHeading}
-          </h2>
+          </h5>
           {viewAllText && (
             <Link
               to={blogs?.handle ? `/blogs/${blogs.handle}` : "#"}
