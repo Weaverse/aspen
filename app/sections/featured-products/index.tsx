@@ -5,28 +5,22 @@ import type { SectionProps } from "~/components/section";
 import { layoutInputs, Section } from "~/components/section";
 import { PRODUCT_CARD_FRAGMENT } from "~/graphql/fragments";
 
-// biome-ignore lint/suspicious/noEmptyInterface: <explanation>
-interface FeaturedProductsData {}
-
-interface FeaturedProductsProps
-  extends SectionProps<FeaturedProductsLoaderData>,
-    FeaturedProductsData {}
-
-let FeaturedProducts = forwardRef<HTMLElement, FeaturedProductsProps>(
-  (props, ref) => {
-    let { loaderData, children, ...rest } = props;
-    return (
-      <Section ref={ref} {...rest}>
-        {children}
-      </Section>
-    );
-  },
-);
+const FeaturedProducts = forwardRef<
+  HTMLElement,
+  SectionProps<FeaturedProductsLoaderData>
+>((props, ref) => {
+  const { loaderData, children, ...rest } = props;
+  return (
+    <Section ref={ref} {...rest}>
+      {children}
+    </Section>
+  );
+});
 
 export default FeaturedProducts;
 
 // TODO: allowing pick products or select a collection
-let FEATURED_PRODUCTS_QUERY = `#graphql
+const FEATURED_PRODUCTS_QUERY = `#graphql
   query featuredProducts($country: CountryCode, $language: LanguageCode)
   @inContext(country: $country, language: $language) {
     products(first: 16) {
@@ -40,8 +34,8 @@ let FEATURED_PRODUCTS_QUERY = `#graphql
 
 export type FeaturedProductsLoaderData = Awaited<ReturnType<typeof loader>>;
 
-export let loader = async ({ weaverse }: ComponentLoaderArgs) => {
-  let { language, country } = weaverse.storefront.i18n;
+export const loader = async ({ weaverse }: ComponentLoaderArgs) => {
+  const { language, country } = weaverse.storefront.i18n;
   return await weaverse.storefront.query<FeaturedProductsQuery>(
     FEATURED_PRODUCTS_QUERY,
     {
@@ -53,7 +47,7 @@ export let loader = async ({ weaverse }: ComponentLoaderArgs) => {
   );
 };
 
-export let schema = createSchema({
+export const schema = createSchema({
   type: "featured-products",
   title: "Featured products",
   childTypes: ["featured-products-items", "heading", "subheading", "paragraph"],

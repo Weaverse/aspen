@@ -1,4 +1,4 @@
-import { User } from "@phosphor-icons/react";
+import { UserIcon } from "@phosphor-icons/react";
 import {
   Await,
   useLocation,
@@ -20,7 +20,7 @@ import { MobileMenu } from "./mobile-menu";
 import { PredictiveSearchButtonMobile } from "./predictive-search/search-mobile";
 import { PredictiveSearchButtonDesktop } from "./predictive-search/search-desktop";
 
-let variants = cva("", {
+const variants = cva("", {
   variants: {
     width: {
       full: "w-full h-(--height-nav)",
@@ -36,22 +36,22 @@ let variants = cva("", {
 });
 
 function useIsHomeCheck() {
-  let { pathname } = useLocation();
-  let rootData = useRouteLoaderData<RootLoader>("root");
-  let selectedLocale = rootData?.selectedLocale ?? DEFAULT_LOCALE;
+  const { pathname } = useLocation();
+  const rootData = useRouteLoaderData<RootLoader>("root");
+  const selectedLocale = rootData?.selectedLocale ?? DEFAULT_LOCALE;
   return pathname.replace(selectedLocale.pathPrefix, "") === "/";
 }
 
 export function Header() {
   let [isSearchOpen, setIsSearchOpen] = useState(false);
-  let { enableTransparentHeader, headerWidth } = useThemeSettings();
-  let isHome = useIsHomeCheck();
-  let { y } = useWindowScroll();
-  let routeError = useRouteError();
+  const { enableTransparentHeader, headerWidth } = useThemeSettings();
+  const isHome = useIsHomeCheck();
+  const { y } = useWindowScroll();
+  const routeError = useRouteError();
 
-  let scrolled = y >= 50;
-  let enableTransparent = enableTransparentHeader && isHome && !routeError;
-  let isTransparent = enableTransparent && !scrolled && !isSearchOpen;
+  const scrolled = y >= 50;
+  const enableTransparent = enableTransparentHeader && isHome && !routeError;
+  const isTransparent = enableTransparent && !scrolled && !isSearchOpen;
 
   return (
     <header
@@ -75,6 +75,8 @@ export function Header() {
               "text-(--color-transparent-header-text)",
               "[&_.cart-count]:text-(--color-header-text)",
               "[&_.cart-count]:bg-(--color-transparent-header-text)",
+              "hover:[&_.cart-count]:bg-(--color-header-text)",
+              "hover:[&_.cart-count]:text-(--color-transparent-header-text)",
               "[&_.main-logo]:opacity-0",
               "[&_.transparent-logo]:opacity-100",
             ]
@@ -107,8 +109,8 @@ export function Header() {
 }
 
 function AccountLink({ className }: { className?: string }) {
-  let rootData = useRouteLoaderData<RootLoader>("root");
-  let isLoggedIn = rootData?.isLoggedIn;
+  const rootData = useRouteLoaderData<RootLoader>("root");
+  const isLoggedIn = rootData?.isLoggedIn;
 
   return (
     <Suspense fallback="Sign in">
@@ -116,11 +118,11 @@ function AccountLink({ className }: { className?: string }) {
         {(isLoggedIn) =>
           isLoggedIn ? (
             <Link prefetch="intent" to="/account" className={className}>
-              <User className="w-5 h-5" />
+              <UserIcon className="w-5 h-5" />
             </Link>
           ) : (
             <Link to="/account/login" className={className}>
-              <User className="w-5 h-5" />
+              <UserIcon className="w-5 h-5" />
             </Link>
           )
         }

@@ -1,4 +1,8 @@
-import { FacebookLogo, PinterestLogo, XLogo } from "@phosphor-icons/react";
+import {
+  FacebookLogoIcon,
+  PinterestLogoIcon,
+  XLogoIcon,
+} from "@phosphor-icons/react";
 import { createSchema, isBrowser } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
 import { useLoaderData, useRouteLoaderData } from "react-router";
@@ -17,25 +21,25 @@ interface BlogPostProps extends SectionProps {
   showShareButtons: boolean;
 }
 
-let BlogPost = forwardRef<HTMLElement, BlogPostProps>((props, ref) => {
-  let { showTags, showShareButtons, ...rest } = props;
-  let { layout } = useRouteLoaderData<RootLoader>("root");
-  let { article, blog, formattedDate } = useLoaderData<{
+const BlogPost = forwardRef<HTMLElement, BlogPostProps>((props, ref) => {
+  const { showTags, showShareButtons, ...rest } = props;
+  const { layout } = useRouteLoaderData<RootLoader>("root");
+  const { article, blog, formattedDate } = useLoaderData<{
     article: ArticleQuery["blog"]["articleByHandle"];
     blog: ArticleQuery["blog"];
     formattedDate: string;
   }>();
-  let { title, handle, image, contentHtml, author, tags } = article;
+  const { title, handle, image, contentHtml, author, tags } = article;
   if (article) {
     let domain = layout.shop.primaryDomain.url;
     if (isBrowser) {
-      let origin = window.location.origin;
+      const origin = window.location.origin;
       if (!origin.includes("localhost")) {
         domain = origin;
       }
     }
-    let { handle: blogHandle } = blog;
-    let articleUrl = `${domain}/blogs/${blogHandle}/${handle}`;
+    const { handle: blogHandle } = blog;
+    const articleUrl = `${domain}/blogs/${blogHandle}/${handle}`;
     return (
       <Section ref={ref} {...rest}>
         {image && (
@@ -72,13 +76,13 @@ let BlogPost = forwardRef<HTMLElement, BlogPostProps>((props, ref) => {
                 <div className="flex gap-2 items-center">
                   <strong>Share:</strong>
                   <FacebookShareButton url={articleUrl}>
-                    <FacebookLogo size={24} />
+                    <FacebookLogoIcon size={24} />
                   </FacebookShareButton>
                   <PinterestShareButton url={articleUrl} media={image?.url}>
-                    <PinterestLogo size={24} />
+                    <PinterestLogoIcon size={24} />
                   </PinterestShareButton>
                   <TwitterShareButton url={articleUrl} title={title}>
-                    <XLogo size={24} />
+                    <XLogoIcon size={24} />
                   </TwitterShareButton>
                 </div>
               )}
@@ -93,7 +97,7 @@ let BlogPost = forwardRef<HTMLElement, BlogPostProps>((props, ref) => {
 
 export default BlogPost;
 
-export let schema = createSchema({
+export const schema = createSchema({
   type: "blog-post",
   title: "Blog post",
   limit: 1,

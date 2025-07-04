@@ -1,4 +1,4 @@
-import { Sliders, X } from "@phosphor-icons/react";
+import { SlidersIcon, XIcon } from "@phosphor-icons/react";
 import * as Dialog from "@radix-ui/react-dialog";
 import clsx from "clsx";
 import { useLoaderData } from "react-router";
@@ -28,7 +28,7 @@ export function ToolsBar({
   gridSizeMobile,
   onGridSizeChange,
 }: ToolsBarProps) {
-  let { collection } = useLoaderData<CollectionQuery>();
+  const { collection } = useLoaderData<CollectionQuery>();
   return (
     <div className="py-4">
       <div className="gap-4 md:gap-8 flex w-full items-center justify-between">
@@ -80,7 +80,7 @@ function FiltersDrawer({
           )}
           animate={false}
         >
-          <Sliders size={18} />
+          <SlidersIcon size={18} />
           <span>Filter</span>
         </Button>
       </Dialog.Trigger>
@@ -103,10 +103,11 @@ function FiltersDrawer({
               </Dialog.Title>
               <Dialog.Close asChild>
                 <button
+                  type="button"
                   className="p-2 translate-x-2"
                   aria-label="Close filters drawer"
                 >
-                  <X className="w-4 h-4" />
+                  <XIcon className="w-4 h-4" />
                 </button>
               </Dialog.Close>
             </div>

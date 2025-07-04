@@ -1,9 +1,9 @@
 import {
-  FacebookLogo,
-  InstagramLogo,
-  LinkedinLogo,
+  FacebookLogoIcon,
+  InstagramLogoIcon,
+  LinkedinLogoIcon,
+  XLogoIcon,
   Plus,
-  XLogo,
 } from "@phosphor-icons/react";
 import * as Accordion from "@radix-ui/react-accordion";
 import { Image } from "@shopify/hydrogen";
@@ -19,7 +19,7 @@ import type { SingleMenuItem } from "~/types/menu";
 import { cn } from "~/utils/cn";
 import { CountrySelector } from "./country-selector";
 
-let variants = cva("", {
+const variants = cva("", {
   variants: {
     width: {
       full: "",
@@ -35,8 +35,8 @@ let variants = cva("", {
 });
 
 export function Footer() {
-  let { shopName } = useShopMenu();
-  let {
+  const { shopName } = useShopMenu();
+  const {
     footerWidth,
     socialFacebook,
     socialInstagram,
@@ -54,50 +54,45 @@ export function Footer() {
     newsletterPlaceholder,
     newsletterButtonText,
   } = useThemeSettings();
-  let fetcher = useFetcher<any>();
-  let [message, setMessage] = useState("");
-  let [error, setError] = useState("");
-
-  let handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    setMessage("");
-    setError("");
-    fetcher.submit(event.currentTarget);
-  };
+  const fetcher = useFetcher<{ ok: boolean; error: string }>();
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const newsLetterResponse = fetcher.data;
 
   useEffect(() => {
-    if (fetcher.data) {
-      let message = (fetcher.data as any)?.message;
-      if (!fetcher.data.success) {
-        let error = message?.errors[0]?.detail;
-        setError(error);
+    if (newsLetterResponse) {
+      if (!newsLetterResponse.ok) {
+        setError(
+          newsLetterResponse.error || "An error occurred while signing up.",
+        );
       } else {
-        setMessage("Thank you for signing up!");
+        setMessage("Thank you for signing up! 🎉");
       }
     }
-  }, [fetcher.data]);
+  }, [newsLetterResponse]);
 
-  let socialItems = [
+  const SOCIAL_ACCOUNTS = [
     {
       name: "Instagram",
       to: socialInstagram,
-      icon: <InstagramLogo className="w-5 h-5" />,
+      Icon: InstagramLogoIcon,
     },
     {
       name: "X",
       to: socialX,
-      icon: <XLogo className="w-5 h-5" />,
+      Icon: XLogoIcon,
     },
     {
       name: "LinkedIn",
       to: socialLinkedIn,
-      icon: <LinkedinLogo className="w-5 h-5" />,
+      Icon: LinkedinLogoIcon,
     },
     {
       name: "Facebook",
       to: socialFacebook,
-      icon: <FacebookLogo className="w-5 h-5" />,
+      Icon: FacebookLogoIcon,
     },
-  ];
+  ].filter((acc) => acc.to && acc.to.trim() !== "");
 
   return (
     <footer
@@ -144,7 +139,11 @@ export function Footer() {
                 <div className="space-y-2">
                   <p>{newsletterDescription}</p>
                   <fetcher.Form
-                    onSubmit={handleSubmit}
+                    onSubmit={(event: FormEvent<HTMLFormElement>) => {
+                    setMessage("");
+                    setError("");
+                    fetcher.submit(event.currentTarget);
+                  }}
                     action="/api/klaviyo"
                     method="POST"
                     encType="multipart/form-data"
@@ -194,7 +193,7 @@ export function Footer() {
                 <CountrySelector inputClassName="px-4 py-3" />
               </div>
               <div className="flex gap-4 justify-start md:justify-end order-2">
-                {socialItems.map((social) =>
+                {SOCIAL_ACCOUNTS.map((social) =>
                   social.to ? (
                     <Link
                       key={social.name}
@@ -203,7 +202,7 @@ export function Footer() {
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 text-lg"
                     >
-                      {social.icon}
+                      <social.Icon />
                     </Link>
                   ) : null
                 )}
@@ -217,8 +216,8 @@ export function Footer() {
 }
 
 function FooterMenu() {
-  let { footerMenu } = useShopMenu();
-  let items = footerMenu.items as unknown as SingleMenuItem[];
+  const { footerMenu } = useShopMenu();
+  const items = footerMenu.items as unknown as SingleMenuItem[];
   return (
     <Accordion.Root
       type="multiple"

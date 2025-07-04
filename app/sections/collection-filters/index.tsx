@@ -33,9 +33,9 @@ export interface CollectionFiltersData {
 
 interface CollectionFiltersProps extends SectionProps, CollectionFiltersData {}
 
-let CollectionFilters = forwardRef<HTMLElement, CollectionFiltersProps>(
+const CollectionFilters = forwardRef<HTMLElement, CollectionFiltersProps>(
   (props, ref) => {
-    let {
+    const {
       showBreadcrumb,
       showDescription,
       showBanner,
@@ -56,16 +56,16 @@ let CollectionFilters = forwardRef<HTMLElement, CollectionFiltersProps>(
       loadMoreText,
       ...rest
     } = props;
-    let { collection, collections } = useLoaderData<
+    const { collection, collections } = useLoaderData<
       CollectionQuery & {
         collections: Array<{ handle: string; title: string }>;
       }
     >();
 
-    let [gridSizeDesktop, setGridSizeDesktop] = useState(
+    const [gridSizeDesktop, setGridSizeDesktop] = useState(
       Number(productsPerRowDesktop) || 2,
     );
-    let [gridSizeMobile, setGridSizeMobile] = useState(
+    const [gridSizeMobile, setGridSizeMobile] = useState(
       Number(productsPerRowMobile) || 1,
     );
 
@@ -75,7 +75,7 @@ let CollectionFilters = forwardRef<HTMLElement, CollectionFiltersProps>(
     }, [productsPerRowDesktop, productsPerRowMobile]);
 
     if (collection?.products && collections) {
-      let banner = collection.metafield
+      const banner = collection.metafield
         ? collection.metafield.reference.image
         : collection.image;
       return (
@@ -147,7 +147,7 @@ let CollectionFilters = forwardRef<HTMLElement, CollectionFiltersProps>(
 
 export default CollectionFilters;
 
-export let schema = createSchema({
+export const schema = createSchema({
   type: "collection-filters",
   title: "Collection filters",
   limit: 1,
@@ -196,7 +196,7 @@ export let schema = createSchema({
             max: 600,
             step: 1,
           },
-          condition: (data) => data.showBanner,
+          condition: (data: CollectionFiltersData) => data.showBanner,
         },
         {
           type: "range",
@@ -208,7 +208,7 @@ export let schema = createSchema({
             max: 400,
             step: 1,
           },
-          condition: (data) => data.showBanner,
+          condition: (data: CollectionFiltersData) => data.showBanner,
         },
         {
           type: "range",
@@ -221,7 +221,7 @@ export let schema = createSchema({
             unit: "px",
           },
           defaultValue: 0,
-          condition: (data) => data.showBanner,
+          condition: (data: CollectionFiltersData) => data.showBanner,
         },
       ],
     },
@@ -257,35 +257,35 @@ export let schema = createSchema({
             ],
           },
           defaultValue: "sidebar",
-          condition: (data) => data.enableFilter,
+          condition: (data: CollectionFiltersData) => data.enableFilter,
         },
         {
           type: "switch",
           name: "expandFilters",
           label: "Expand filters",
           defaultValue: true,
-          condition: (data) => data.enableFilter,
+          condition: (data: CollectionFiltersData) => data.enableFilter,
         },
         {
           type: "switch",
           name: "showFiltersCount",
           label: "Show filters count",
           defaultValue: true,
-          condition: (data) => data.enableFilter,
+          condition: (data: CollectionFiltersData) => data.enableFilter,
         },
         {
           type: "switch",
           name: "enableSwatches",
           label: "Enable color/image swatches",
           defaultValue: true,
-          condition: (data) => data.enableFilter,
+          condition: (data: CollectionFiltersData) => data.enableFilter,
         },
         {
           type: "text",
           name: "displayAsButtonFor",
           label: "Display as button for:",
           defaultValue: "Size, More filters",
-          condition: (data) => data.enableFilter,
+          condition: (data: CollectionFiltersData) => data.enableFilter,
           helpText: "Comma-separated list of filters to display as buttons",
         },
       ],

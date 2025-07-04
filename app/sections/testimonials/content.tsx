@@ -4,7 +4,7 @@ import type {
   HydrogenComponentSchema,
 } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
-import Heading, { headingInputs, HeadingProps } from "~/components/heading";
+import Heading, { headingInputs, type HeadingProps } from "~/components/heading";
 
 interface TestimonialContentProps
   extends Omit<HeadingProps, "as">,

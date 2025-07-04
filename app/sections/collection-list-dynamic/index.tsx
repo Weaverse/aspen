@@ -3,7 +3,7 @@ import type {
   HydrogenComponentSchema,
   WeaverseCollection,
 } from "@weaverse/hydrogen";
-import { cva, VariantProps } from "class-variance-authority";
+import { cva, type VariantProps } from "class-variance-authority";
 import React, { forwardRef } from "react";
 import type { CollectionsByIdsQuery } from "storefront-api.generated";
 import type { SectionProps } from "~/components/section";

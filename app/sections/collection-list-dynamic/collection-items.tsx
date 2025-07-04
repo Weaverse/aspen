@@ -1,5 +1,5 @@
 import {
-  HydrogenComponentProps,
+  type HydrogenComponentProps,
   type HydrogenComponentSchema,
   IMAGES_PLACEHOLDERS,
   useParentInstance,
@@ -91,7 +91,7 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
         return (
           <div
             key={collection.id + ind}
-            className="w-full h-full aspect-[3/4] p-4 bg-[--collection-bg-color] flex flex-col gap-5"
+            className="w-full h-full aspect-[3/4] p-4 bg-(--collection-bg-color) flex flex-col gap-5"
           >
             {collection?.image && (
               <div className="overflow-hidden w-full h-full relative">
@@ -107,7 +107,7 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
             )}
             <Link
               to={`/collections/${collection.handle}`}
-              className="flex flex-col gap-1 w-full text-[--collection-name-color]"
+              className="flex flex-col gap-1 w-full text-(--collection-name-color)"
             >
               <h3
                 className={clsx(
@@ -148,7 +148,7 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
 
             <h3
               className={clsx(
-                "absolute bottom-0 uppercase w-full font-medium text-lg leading-snug line-clamp-1 p-4 bg-[--collection-bg-color] text-[--collection-name-color]"
+                "absolute bottom-0 uppercase w-full font-medium text-lg leading-snug line-clamp-1 p-4 bg-(--collection-bg-color) text-(--collection-name-color)"
               )}
             >
               {collection.title}
@@ -223,7 +223,7 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
 
                 <h3
                   className={clsx(
-                    "absolute bottom-0 uppercase w-full font-medium text-lg leading-snug line-clamp-1 p-4 bg-[--collection-bg-color] text-[--collection-name-color]"
+                    "absolute bottom-0 uppercase w-full font-medium text-lg leading-snug line-clamp-1 p-4 bg-(--collection-bg-color) text-(--collection-name-color)"
                   )}
                 >
                   {third.title}

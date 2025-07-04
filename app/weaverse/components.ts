@@ -33,8 +33,12 @@ import * as FeaturedProducts from "~/sections/featured-products";
 import * as FeaturedProductItems from "~/sections/featured-products/product-items";
 import * as HeroImage from "~/sections/hero-image";
 import * as HeroVideo from "~/sections/hero-video";
+import * as Highlights from "~/sections/highlights";
+import * as HighlightsBadge from "~/sections/highlights/badge";
 import * as Hotspots from "~/sections/hotspots";
 import * as HotspotsItem from "~/sections/hotspots/item";
+import * as HotspotsContainer from "~/sections/hotspots/hotpots";
+import * as HotspotsImage from "~/sections/hotspots/hotpots-image";
 import * as ImageGallery from "~/sections/image-gallery";
 import * as ImageGalleryItem from "~/sections/image-gallery/image";
 import * as ImageGalleryItems from "~/sections/image-gallery/items";
@@ -42,6 +46,9 @@ import * as ImageWithText from "~/sections/image-with-text";
 import * as ImageWithTextContent from "~/sections/image-with-text/content";
 import * as ImageWithTextImage from "~/sections/image-with-text/image";
 import * as ImageWithTextImages from "~/sections/image-with-text/images";
+import * as Instagram from "~/sections/instagram";
+import * as InstagramContent from "~/sections/instagram/content";
+import * as InstagramSlider from "~/sections/instagram/slider";
 import * as JudgemeReview from "~/sections/judgeme-reviews";
 import * as ReviewIndex from "~/sections/judgeme-reviews/review-index";
 import * as MapSection from "~/sections/map/map";
@@ -53,7 +60,7 @@ import * as OurTeamMembers from "~/sections/our-team/team-members";
 import * as Page from "~/sections/page";
 import * as ProductInformation from "~/sections/product-information";
 import * as PromotionGrid from "~/sections/promotion-grid";
-import * as PromotionGridButtons from "~/sections/promotion-grid/buttons";
+import * as GridItems from "~/sections/promotion-grid/grid-items";
 import * as PromotionGridItem from "~/sections/promotion-grid/item";
 import * as RelatedArticles from "~/sections/related-articles";
 import * as RelatedProducts from "~/sections/related-products";
@@ -73,7 +80,7 @@ import * as Videos from "~/sections/videos";
 import * as VideoItems from "~/sections/videos/items";
 import * as VideoItem from "~/sections/videos/video";
 
-export let components: HydrogenComponent[] = [
+export const components: HydrogenComponent[] = [
   SubHeading,
   Heading,
   Paragraph,
@@ -100,10 +107,15 @@ export let components: HydrogenComponent[] = [
   VideoItems,
   VideoItem,
   HeroImage,
+  Highlights,
+  HighlightsBadge,
   ImageWithText,
   ImageWithTextContent,
   ImageWithTextImage,
   ImageWithTextImages,
+  Instagram,
+  InstagramContent,
+  InstagramSlider,
   ColumnsWithImages,
   ColumnsWithImagesItems,
   ColumnWithImageItem,
@@ -111,10 +123,12 @@ export let components: HydrogenComponent[] = [
   MapSection,
   Address,
   PromotionGrid,
+  GridItems,
   PromotionGridItem,
-  PromotionGridButtons,
   Hotspots,
   HotspotsItem,
+  HotspotsContainer,
+  HotspotsImage,
   Countdown,
   CountDownTimer,
   NewsLetter,

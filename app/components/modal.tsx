@@ -1,4 +1,4 @@
-import { X } from "@phosphor-icons/react";
+import { XIcon } from "@phosphor-icons/react";
 import {
   Close,
   Content,
@@ -15,9 +15,9 @@ import type React from "react";
 import { forwardRef } from "react";
 import { cn } from "~/utils/cn";
 
-export let Modal: React.FC<DialogProps> = Root;
+export const Modal: React.FC<DialogProps> = Root;
 
-export let ModalTrigger = forwardRef<HTMLButtonElement, DialogTriggerProps>(
+export const ModalTrigger = forwardRef<HTMLButtonElement, DialogTriggerProps>(
   ({ asChild = true, ...rest }, ref) => {
     return <Trigger asChild={asChild} {...rest} ref={ref} />;
   },
@@ -25,7 +25,7 @@ export let ModalTrigger = forwardRef<HTMLButtonElement, DialogTriggerProps>(
 
 interface ModalContentProps extends DialogContentProps {}
 
-export let ModalContent = forwardRef<HTMLDivElement, ModalContentProps>(
+export const ModalContent = forwardRef<HTMLDivElement, ModalContentProps>(
   ({ children, className, ...rest }, ref) => {
     return (
       <Portal>
@@ -56,14 +56,14 @@ export let ModalContent = forwardRef<HTMLDivElement, ModalContentProps>(
   },
 );
 
-export let ModalClose = forwardRef<HTMLButtonElement, DialogCloseProps>(
+export const ModalClose = forwardRef<HTMLButtonElement, DialogCloseProps>(
   ({ asChild, children, ...rest }, ref) => {
     return (
       <Close asChild {...rest} ref={ref}>
         {asChild ? (
           children
         ) : (
-          <X className="absolute right-3 top-3 cursor-pointer" size={20} />
+          <XIcon className="absolute right-3 top-3 cursor-pointer" size={20} />
         )}
       </Close>
     );

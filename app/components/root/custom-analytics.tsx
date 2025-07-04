@@ -17,10 +17,10 @@ export function CustomAnalytics() {
 
   const data = useRouteLoaderData<RootLoader>("root");
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation> --- IGNORE ---
   useEffect(() => {
     setTimeout(() => {
-      let isTrackingAllowed = canTrack();
+      const isTrackingAllowed = canTrack();
       console.log("CustomAnalytics - isTrackingAllowed", isTrackingAllowed);
     }, 1000);
     let dataToSentToGTM: any = {};
@@ -76,7 +76,7 @@ export function CustomAnalytics() {
     });
   }, []);
 
-  let id = data?.googleGtmID;
+  const id = data?.googleGtmID;
   if (!id) {
     return null;
   }

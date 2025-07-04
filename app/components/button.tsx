@@ -1,11 +1,11 @@
-import { ArrowRight, CircleNotch } from "@phosphor-icons/react";
+import { ArrowRight, CircleNotchIcon } from "@phosphor-icons/react";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import type { HTMLAttributes } from "react";
 import { forwardRef } from "react";
 import { cn } from "~/utils/cn";
 
-export let variants = cva(
+export const variants = cva(
   [
     "button inline-flex items-center justify-center rounded-none relative",
     "text-base leading-tight font-normal whitespace-nowrap",
@@ -90,62 +90,63 @@ export interface ButtonProps
   animate?: boolean;
 }
 
-export let Button = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => {
-  let {
-    type = "button",
-    variant,
-    loading,
-    className,
-    textColor,
-    backgroundColor,
-    borderColor,
-    textColorHover,
-    backgroundColorHover,
-    borderColorHover,
-    style = {},
-    animate = true,
-    children,
-    ...rest
-  } = props;
-  if (variant === "custom") {
-    style = {
-      ...style,
-      "--btn-text": textColor,
-      "--btn-bg": backgroundColor,
-      "--btn-border": borderColor,
-      "--btn-text-hover": textColorHover,
-      "--btn-bg-hover": backgroundColorHover,
-      "--btn-border-hover": borderColorHover,
-    } as React.CSSProperties;
-  }
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+  (props, ref) => {
+    let {
+      type = "button",
+      variant,
+      loading,
+      className,
+      textColor,
+      backgroundColor,
+      borderColor,
+      textColorHover,
+      backgroundColorHover,
+      borderColorHover,
+      style = {},
+      animate = true,
+      children,
+      ...rest
+    } = props;
+    if (variant === "custom") {
+      style = {
+        ...style,
+        "--btn-text": textColor,
+        "--btn-bg": backgroundColor,
+        "--btn-border": borderColor,
+        "--btn-text-hover": textColorHover,
+        "--btn-bg-hover": backgroundColorHover,
+        "--btn-border-hover": borderColorHover,
+      } as React.CSSProperties;
+    }
 
-  if (!children) {
-    return null;
-  }
+    if (!children) {
+      return null;
+    }
 
-  let content: React.ReactNode;
-  if (typeof children === "string") {
-    content = <span>{children}</span>;
-  } else {
-    content = children;
-  }
+    let content: React.ReactNode;
+    if (typeof children === "string") {
+      content = <span>{children}</span>;
+    } else {
+      content = children;
+    }
 
-  if (animate) {
-    rest["data-motion"] = "fade-up";
-  }
+    if (animate) {
+      rest["data-motion"] = "fade-up";
+    }
 
-  return (
-    <button
-      ref={ref}
-      style={style}
-      type={type}
-      {...rest}
-      className={cn(variants({ variant, className }))}
-    >
-      {loading && <Spinner />}
+    return (
+      <button
+        ref={ref}
+        style={style}
+        type={type}
+        {...rest}
+        className={cn(variants({ variant, className }))}
+      >
+        {loading && <Spinner />}
       {variant === "decor" ? (
         <span className="inline-flex items-center gap-1">
-          {content}
+            {content}
           <ArrowRight
             size={20}
             weight="thin"
@@ -155,18 +156,19 @@ export let Button = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => {
       ) : (
         content
       )}
-    </button>
-  );
-});
+      </button>
+    );
+  },
+);
 
 function Spinner() {
-  let style = { "--duration": "500ms" } as React.CSSProperties;
+  const style = { "--duration": "500ms" } as React.CSSProperties;
   return (
     <span
       className="[&~*]:invisible absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
       style={style}
     >
-      <CircleNotch className="animate-spin w-5 h-5" />
+      <CircleNotchIcon className="animate-spin w-5 h-5" />
     </span>
   );
 }

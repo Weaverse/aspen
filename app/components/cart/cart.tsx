@@ -1,4 +1,4 @@
-import { CaretDown, Trash, X } from "@phosphor-icons/react";
+import { CaretDown, TrashIcon, X } from "@phosphor-icons/react";
 import {
   CartForm,
   Money,
@@ -17,6 +17,7 @@ import { Image } from "~/components/image";
 import { Link } from "~/components/link";
 import { RevealUnderline } from "~/reveal-underline";
 import { getImageAspectRatio } from "~/utils/image";
+import { toggleCartDrawer } from "../layout/cart-drawer";
 import { CartBestSellers } from "./cart-best-sellers";
 import { useThemeSettings } from "@weaverse/hydrogen";
 
@@ -32,9 +33,9 @@ export function Cart({
   onClose?: () => void;
   cart: CartApiQueryFragment;
 }) {
-  let optimisticCart = useOptimisticCart<CartApiQueryFragment>(cart);
-  let linesCount = Boolean(optimisticCart?.lines?.nodes?.length || 0);
-  let cartHasItems = !!cart && cart.totalQuantity > 0;
+  const optimisticCart = useOptimisticCart<CartApiQueryFragment>(cart);
+  const linesCount = Boolean(optimisticCart?.lines?.nodes?.length || 0);
+  const cartHasItems = !!cart && cart.totalQuantity > 0;
 
   if (cartHasItems) {
     return <CartDetails cart={optimisticCart} layout={layout} />;
@@ -126,7 +127,7 @@ function CartDiscounts({
 }: {
   discountCodes: CartType["discountCodes"];
 }) {
-  let codes: string[] =
+  const codes: string[] =
     discountCodes
       ?.filter((discount) => discount.applicable)
       ?.map(({ code }) => code) || [];
@@ -140,7 +141,10 @@ function CartDiscounts({
           <div className="flex items-center justify-between">
             <UpdateDiscountForm>
               <button type="button">
-                <Trash aria-hidden="true" className="h-[18px] w-[18px] mr-1" />
+                <TrashIcon
+                  aria-hidden="true"
+                  className="h-[18px] w-[18px] mr-1"
+                />
               </button>
             </UpdateDiscountForm>
             <dd>{codes?.join(", ")}</dd>
@@ -193,18 +197,18 @@ function CartLines({
   layout: Layouts;
   lines: CartLine[];
 }) {
-  let currentLines = cartLines;
-  let scrollRef = useRef(null);
-  let { y } = useScroll(scrollRef);
+  const currentLines = cartLines;
+  const scrollRef = useRef(null);
+  const { y } = useScroll(scrollRef);
 
   return (
     <div
       ref={scrollRef}
-      aria-labelledby="cart-contents"
       className={clsx([
+        "-mx-4 pb-4",
         y > 0 ? "border-t border-line-subtle" : "",
         layout === "page" && "grow md:translate-y-4 lg:col-span-2",
-        layout === "drawer" && "overflow-auto transition",
+        layout === "drawer" && "transition",
       ])}
     >
       <ul
@@ -266,7 +270,6 @@ function CartSummary({
 }) {
   return (
     <div
-      aria-labelledby="summary-heading"
       className={clsx(
         layout === "drawer" &&
           "sticky bottom-0 grid gap-4 border-t border-line-subtle p-4 bg-white",
@@ -308,16 +311,28 @@ function CartLineItem({
   layout: Layouts;
   isLastItem: boolean;
 }) {
-  let optimisticData = useOptimisticData<OptimisticData>(line?.id);
+  const optimisticData = useOptimisticData<OptimisticData>(line?.id);
 
   if (!line?.id) return null;
 
-  let { id, quantity, merchandise } = line;
-  if (typeof quantity === "undefined" || !merchandise?.product) return null;
+  const { id, quantity, merchandise } = line;
+
+  if (typeof quantity === "undefined" || !merchandise?.product) {
+    return null;
+  }
+
+  let { image, title, product, selectedOptions } = merchandise;
+  let url = `/products/${product.handle}`;
+  if (selectedOptions?.length) {
+    let params = new URLSearchParams();
+    for (const option of selectedOptions) {
+      params.append(option.name, option.value);
+    }
+    url += `?${params.toString()}`;
+  }
 
   return (
     <li
-      key={id}
       className={clsx(
         "grid gap-4",
         layout === "drawer" ? "" : "grid-cols-1 md:grid-cols-2"
@@ -327,17 +342,17 @@ function CartLineItem({
       }}
     >
       <div className="shrink-0">
-        {merchandise.image && (
+        {image && (
           <Image
             width={250}
             height={250}
-            data={merchandise.image}
+            data={image}
             className={clsx(
               "!object-cover",
               layout === "drawer" ? "w-36 h-auto" : "w-full h-auto"
             )}
-            alt={merchandise.title}
-            aspectRatio={getImageAspectRatio(merchandise.image, "1/1")}
+            alt={title}
+            aspectRatio={getImageAspectRatio(image, "1/1")}
           />
         )}
       </div>
@@ -348,30 +363,17 @@ function CartLineItem({
         )}
       >
         <div className="flex justify-between gap-4">
-          <div className="space-y-2">
+          <div className="space-y-1">
             <div>
-              {merchandise?.product?.handle ? (
-                <Link to={`/products/${merchandise.product.handle}`}>
-                  <RevealUnderline>
-                    {merchandise?.product?.title || ""}
-                  </RevealUnderline>
+              {product?.handle ? (
+                <Link to={url} onClick={() => toggleCartDrawer(false)}>
+                  <RevealUnderline>{product?.title || ""}</RevealUnderline>
                 </Link>
               ) : (
-                <p>{merchandise?.product?.title || ""}</p>
+                <p>{product?.title || ""}</p>
               )}
             </div>
-            <div className="text-sm space-y-0.5">
-              {(merchandise?.selectedOptions || [])
-                .filter((option) => option.value !== "Default Title")
-                .map((option) => (
-                  <div
-                    key={option.name}
-                    className="text-(--color-compare-price-text)"
-                  >
-                    {option.name}: {option.value}
-                  </div>
-                ))}
-            </div>
+            <div className="text-sm text-gray-500 space-y-0.5">{title}</div>
           </div>
           {layout === "page" && (
             <ItemRemoveButton lineId={id} className="" layout={layout} />
@@ -433,7 +435,9 @@ function CartLineQuantityAdjust({
   let optimisticData = useOptimisticData<OptimisticData>(line?.id);
   const [isOpen, setIsOpen] = useState(false);
 
-  if (!line || typeof line?.quantity === "undefined") return null;
+  if (!line || typeof line?.quantity === "undefined") {
+    return null;
+  }
 
   let optimisticQuantity = optimisticData?.quantity || line.quantity;
   let { id: lineId, isOptimistic } = line;
@@ -525,7 +529,7 @@ function CartLinePrice({
 }) {
   if (!line?.cost?.amountPerQuantity || !line?.cost?.totalAmount) return null;
 
-  let moneyV2 =
+  const moneyV2 =
     priceType === "regular"
       ? line.cost.totalAmount
       : line.cost.compareAtAmountPerQuantity;
@@ -555,8 +559,8 @@ function CartEmpty({
 }) {
   let { cartTitleEmpty, buttonStartShopping, enableCartBestSellers } =
     useThemeSettings();
-  let scrollRef = useRef(null);
-  let { y } = useScroll(scrollRef);
+  const scrollRef = useRef(null);
+  const { y } = useScroll(scrollRef);
   return (
     <div
       ref={scrollRef}
@@ -590,8 +594,7 @@ function CartEmpty({
             count={4}
             heading="Shop Best Sellers"
             layout={layout}
-            onClose={onClose}
-            sortKey="BEST_SELLING"
+              sortKey="BEST_SELLING"
           />
         </div>
       )}

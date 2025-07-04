@@ -29,14 +29,13 @@ export interface ImageProps extends React.ComponentPropsWithRef<"img"> {
 }
 
 export const Image = forwardRef<HTMLDivElement, ImageProps>(
-  function Image(props, forwardedRef) {
-    let { className, ...rest } = props;
+  ({ className, ...rest }, ref) => {
     /**
      * Use useRef for HydrogenImage, so we can access the HydrogenImage's ref
      * even when using forwardRef for the outer div
      */
-    let hydrogenImageRef = useRef<HTMLImageElement>(null);
-    let [loaded, setLoaded] = useState(false);
+    const hydrogenImageRef = useRef<HTMLImageElement>(null);
+    const [loaded, setLoaded] = useState(false);
 
     useEffect(() => {
       if (hydrogenImageRef.current?.complete) {
@@ -46,7 +45,7 @@ export const Image = forwardRef<HTMLDivElement, ImageProps>(
 
     return (
       <div
-        ref={forwardedRef}
+        ref={ref}
         className={cn(
           "w-full h-full overflow-hidden",
           !loaded && "animate-pulse [animation-duration:4s]",

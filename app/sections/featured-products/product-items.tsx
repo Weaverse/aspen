@@ -86,17 +86,17 @@ interface ProductItemsProps extends VariantProps<typeof productItemsVariants> {
   gap?: GapType;
 }
 
-let ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
+const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
   (props, ref) => {
-    let { 
+    const { 
       gap = 16, 
       layout = "carousel", 
       slidesPerView = 4,
       itemsPerRow = "4" as ItemsPerRowType,
       ...rest 
     } = props;
-    let parent = useParentInstance();
-    let products = parent.data?.loaderData?.products;;
+    const parent = useParentInstance();
+    const products = parent.data?.loaderData?.products;;
     const [activeSlide, setActiveSlide] = useState(0);
 
     if (!products?.nodes?.length) {
@@ -243,7 +243,7 @@ let ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
 
 export default ProductItems;
 
-export let schema = createSchema({
+export const schema = createSchema({
   type: "featured-products-items",
   title: "Product items",
   settings: [

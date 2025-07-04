@@ -15,7 +15,7 @@ import {
 import type { RootLoader } from "~/root";
 import { cn } from "~/utils/cn";
 
-let variants = cva(["button transition-colors inline-flex"], {
+const variants = cva(["button transition-colors inline-flex"], {
   variants: {
     variant: {
       primary: [
@@ -68,7 +68,7 @@ let variants = cva(["button transition-colors inline-flex"], {
   },
 });
 
-export interface LinkStyleProps {
+export interface LinkStyles {
   backgroundColor: string;
   textColor: string;
   borderColor: string;
@@ -78,19 +78,22 @@ export interface LinkStyleProps {
   textColorDecor: string;
 }
 
-export interface LinkProps
+export interface LinkData
   extends RemixLinkProps,
-    VariantProps<typeof variants>,
-    HTMLAttributes<HTMLAnchorElement>,
-    Partial<Omit<HydrogenComponentProps, "children">>,
-    Partial<LinkStyleProps> {
+    Partial<LinkStyles>,
+    VariantProps<typeof variants> {
   text?: string;
   openInNewTab?: boolean;
 }
 
+export interface LinkProps
+  extends HTMLAttributes<HTMLAnchorElement>,
+    Partial<Omit<HydrogenComponentProps, "children">>,
+    LinkData {}
+
 export function useHrefWithLocale(href: LinkProps["to"]) {
-  let rootData = useRouteLoaderData<RootLoader>("root");
-  let selectedLocale = rootData?.selectedLocale;
+  const rootData = useRouteLoaderData<RootLoader>("root");
+  const selectedLocale = rootData?.selectedLocale;
 
   let toWithLocale = href;
   if (typeof toWithLocale === "string" && selectedLocale?.pathPrefix) {
@@ -117,7 +120,7 @@ export function useHrefWithLocale(href: LinkProps["to"]) {
  *
  * Ultimately, it is up to you to decide how to implement this behavior.
  */
-export let Link = forwardRef(
+export const Link = forwardRef(
   (props: LinkProps, ref: React.Ref<HTMLAnchorElement>) => {
     let {
       to,
@@ -136,8 +139,8 @@ export let Link = forwardRef(
       children,
       ...rest
     } = props;
-    let { enableViewTransition } = useThemeSettings();
-    let href = useHrefWithLocale(to);
+    const { enableViewTransition } = useThemeSettings();
+    const href = useHrefWithLocale(to);
 
     if (variant === "custom") {
       style = {
@@ -191,7 +194,7 @@ export let Link = forwardRef(
 
 export default Link;
 
-export let linkContentInputs: InspectorGroup["inputs"] = [
+export const linkContentInputs: InspectorGroup["inputs"] = [
   {
     type: "text",
     name: "text",
@@ -211,7 +214,7 @@ export let linkContentInputs: InspectorGroup["inputs"] = [
     name: "openInNewTab",
     label: "Open in new tab",
     defaultValue: false,
-    condition: (data) => !!data.to,
+    condition: (data: LinkData) => !!data.to,
   },
   {
     type: "select",
@@ -237,52 +240,52 @@ export let linkContentInputs: InspectorGroup["inputs"] = [
     condition: "variant.eq.decor",
   },
 ];
-export let linkStylesInputs: InspectorGroup["inputs"] = [
+export const linkStylesInputs: InspectorGroup["inputs"] = [
   {
     type: "color",
     label: "Background color",
     name: "backgroundColor",
     defaultValue: "#000",
-    condition: (data) => data.variant === "custom",
+    condition: (data: LinkData) => data.variant === "custom",
   },
   {
     type: "color",
     label: "Text color",
     name: "textColor",
     defaultValue: "#fff",
-    condition: (data) => data.variant === "custom",
+    condition: (data: LinkData) => data.variant === "custom",
   },
   {
     type: "color",
     label: "Border color",
     name: "borderColor",
     defaultValue: "#00000000",
-    condition: (data) => data.variant === "custom",
+    condition: (data: LinkData) => data.variant === "custom",
   },
   {
     type: "color",
     label: "Background color (hover)",
     name: "backgroundColorHover",
     defaultValue: "#00000000",
-    condition: (data) => data.variant === "custom",
+    condition: (data: LinkData) => data.variant === "custom",
   },
   {
     type: "color",
     label: "Text color (hover)",
     name: "textColorHover",
     defaultValue: "#000",
-    condition: (data) => data.variant === "custom",
+    condition: (data: LinkData) => data.variant === "custom",
   },
   {
     type: "color",
     label: "Border color (hover)",
     name: "borderColorHover",
     defaultValue: "#000",
-    condition: (data) => data.variant === "custom",
+    condition: (data: LinkData) => data.variant === "custom",
   },
 ];
 
-export let linkInputs: InspectorGroup["inputs"] = [
+export const linkInputs: InspectorGroup["inputs"] = [
   ...linkContentInputs,
   {
     type: "heading",
@@ -291,7 +294,7 @@ export let linkInputs: InspectorGroup["inputs"] = [
   ...linkStylesInputs,
 ];
 
-export let schema = createSchema({
+export const schema = createSchema({
   type: "button",
   title: "Button",
   settings: [

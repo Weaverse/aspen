@@ -41,17 +41,17 @@ export function NotFound({ type = "page" }: { type?: string }) {
 }
 
 export function FeaturedProducts() {
-  let { load, data } = useFetcher<FeaturedData>();
-  let api = usePrefixPathWithLocale("/api/featured-items");
+  const { load, data } = useFetcher<FeaturedData>();
+  const api = usePrefixPathWithLocale("/api/featured-items");
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation> --- IGNORE ---
   useEffect(() => {
     load(api);
   }, [api]);
 
   if (!data) return null;
 
-  let { featuredProducts } = data;
+  const { featuredProducts } = data;
 
   return (
     <div className="space-y-8 pt-20">

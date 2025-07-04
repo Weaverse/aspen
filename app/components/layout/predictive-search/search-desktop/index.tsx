@@ -1,4 +1,8 @@
-import { ArrowRight, MagnifyingGlass, X } from "@phosphor-icons/react";
+import {
+  ArrowRightIcon,
+  MagnifyingGlassIcon,
+  XIcon,
+} from "@phosphor-icons/react";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { type MutableRefObject, useEffect, useState } from "react";
@@ -12,8 +16,8 @@ import { PopularSearch } from "./PopularSearch";
 import clsx from "clsx";
 
 export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
-  let [open, setOpen] = useState(false);
-  let location = useLocation();
+  const [open, setOpen] = useState(false);
+  const location = useLocation();
   let [searchQuery, setSearchQuery] = useState("");
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: close the dialog when the location changes, aka when the user navigates to a search result page
@@ -35,7 +39,7 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
         className="hidden lg:flex h-8 w-8 items-center justify-center focus-visible:outline-hidden"
       >
         <button type="button">
-          <MagnifyingGlass className="w-5 h-5" />
+          <MagnifyingGlassIcon className="w-5 h-5" />
         </button>
       </Dialog.Trigger>
       <Dialog.Portal>
@@ -47,6 +51,7 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
           className={cn([
             "fixed inset-x-0 top-[calc(var(--height-nav)+var(--topbar-height))] bg-(--color-header-bg) z-3",
             "border-t border-line-subtle",
+            "-translate-y-full data-[state=open]:translate-y-0",
             "data-[state=open]:animate-enter-from-top",
             "focus-visible:outline-hidden",
           ])}
@@ -62,7 +67,7 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
             <PredictiveSearchForm>
               {({ fetchResults, inputRef }) => (
                 <div className="flex items-center gap-3 max-w-(--page-width) mx-auto px-3 my-6 border-b border-line-subtle">
-                  <MagnifyingGlass className="h-5 w-5 shrink-0 text-gray-500" />
+                  <MagnifyingGlassIcon className="h-5 w-5 shrink-0 text-gray-500" />
                   <input
                     name="q"
                     type="search"
@@ -88,7 +93,7 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
                       }
                     }}
                   >
-                    <X className="w-5 h-5" />
+                    <XIcon className="w-5 h-5" />
                   </button>
                 </div>
               )}
@@ -104,10 +109,10 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
 
 function PredictiveSearchResults() {
   const [activeType, setActiveType] = useState("articles");
-  let { results, totalResults, searchTerm } = usePredictiveSearch();
-  let queries = results?.find(({ type }) => type === "queries");
-  let articles = results?.find(({ type }) => type === "articles");
-  let products = results?.find(({ type }) => type === "products");
+  const { results, totalResults, searchTerm } = usePredictiveSearch();
+  const queries = results?.find(({ type }) => type === "queries");
+  const articles = results?.find(({ type }) => type === "articles");
+  const products = results?.find(({ type }) => type === "products");
 
   if (!totalResults) {
     return (
@@ -158,7 +163,7 @@ function PredictiveSearchResults() {
                 className="flex items-center gap-2 w-fit"
               >
                 <span className=" uppercase">View all Products</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRightIcon className="w-4 h-4" />
               </Link>
             </div>
           )}

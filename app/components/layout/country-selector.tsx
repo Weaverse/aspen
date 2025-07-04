@@ -1,4 +1,4 @@
-import { CaretDown, CheckCircle } from "@phosphor-icons/react";
+import { CaretDownIcon, CheckCircleIcon } from "@phosphor-icons/react";
 import * as Popover from "@radix-ui/react-popover";
 import { CartForm } from "@shopify/hydrogen";
 import type { CartBuyerIdentityInput } from "@shopify/hydrogen/storefront-api-types";
@@ -17,30 +17,29 @@ import { cn } from "~/utils/cn";
 import { DEFAULT_LOCALE } from "~/utils/const";
 
 export function CountrySelector({inputClassName, wrapperClassName}:{inputClassName?: string, wrapperClassName?: string}) {
-  let fetcher = useFetcher();
-  let submit = useSubmit();
-  let rootData = useRouteLoaderData<RootLoader>("root");
-  let selectedLocale = rootData?.selectedLocale ?? DEFAULT_LOCALE;
-  let { pathname, search } = useLocation();
-  let pathWithoutLocale = `${pathname.replace(
+  const fetcher = useFetcher();
+  const submit = useSubmit();
+  const rootData = useRouteLoaderData<RootLoader>("root");
+  const selectedLocale = rootData?.selectedLocale ?? DEFAULT_LOCALE;
+  const { pathname, search } = useLocation();
+  const pathWithoutLocale = `${pathname.replace(
     selectedLocale.pathPrefix,
     ""
   )}${search}`;
 
-  let countries = (fetcher.data ?? {}) as Localizations;
-  // biome-ignore lint/complexity/useLiteralKeys: <explanation>
-  let defaultLocale = countries?.["default"];
-  let defaultLocalePrefix = defaultLocale
+  const countries = (fetcher.data ?? {}) as Localizations;
+  const defaultLocale = countries?.default;
+  const defaultLocalePrefix = defaultLocale
     ? `${defaultLocale?.language}-${defaultLocale?.country}`
     : "";
 
-  let { ref, inView } = useInView({
+  const { ref, inView } = useInView({
     threshold: 0,
     triggerOnce: true,
   });
 
-  let observerRef = useRef(null);
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  const observerRef = useRef(null);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation> --- IGNORE ---
   useEffect(() => {
     ref(observerRef.current);
   }, [ref, observerRef]);
@@ -77,6 +76,7 @@ export function CountrySelector({inputClassName, wrapperClassName}:{inputClassNa
       <Popover.Root>
         <Popover.Trigger asChild>
           <button
+            type="button"
             className={cn("w-full border border-line-subtle overflow-clip cursor-pointer text-left outline-hidden flex items-center gap-2", inputClassName)}
             aria-label="Select country"
           >
@@ -86,7 +86,7 @@ export function CountrySelector({inputClassName, wrapperClassName}:{inputClassNa
               style={{ width: "24px", height: "14px" }}
             />
             <span>{selectedLocale.label}</span>
-            <CaretDown className="ml-auto w-4 h-4" />
+            <CaretDownIcon className="ml-auto w-4 h-4" />
           </button>
         </Popover.Trigger>
         <Popover.Portal>
@@ -94,8 +94,8 @@ export function CountrySelector({inputClassName, wrapperClassName}:{inputClassNa
             <div className="w-80 max-h-40 overflow-auto py-2 bg-neutral-800 my-2">
               {countries &&
                 Object.keys(countries).map((countryPath) => {
-                  let countryLocale = countries[countryPath];
-                  let isSelected =
+                  const countryLocale = countries[countryPath];
+                  const isSelected =
                     countryLocale.language === selectedLocale.language &&
                     countryLocale.country === selectedLocale.country;
                   return (
@@ -125,7 +125,7 @@ export function CountrySelector({inputClassName, wrapperClassName}:{inputClassNa
                       <span>{countryLocale.label}</span>
                       {isSelected ? (
                         <span className="ml-auto">
-                          <CheckCircle className="w-5 h-5" />
+                          <CheckCircleIcon className="w-5 h-5" />
                         </span>
                       ) : null}
                     </Popover.Close>
@@ -149,7 +149,7 @@ function getCountryUrlPath({
   defaultLocalePrefix: string;
 }) {
   let countryPrefixPath = "";
-  let countryLocalePrefix = `${countryLocale.language}-${countryLocale.country}`;
+  const countryLocalePrefix = `${countryLocale.language}-${countryLocale.country}`;
   if (countryLocalePrefix !== defaultLocalePrefix) {
     countryPrefixPath = `/${countryLocalePrefix.toLowerCase()}`;
   }

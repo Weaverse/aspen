@@ -1,4 +1,4 @@
-import { HydrogenComponentSchema, useParentInstance } from "@weaverse/hydrogen";
+import { type HydrogenComponentSchema, useParentInstance } from "@weaverse/hydrogen";
 import { forwardRef, useEffect, useRef, useState, useContext } from "react";
 import { MapPinLine, PlusCircle, MinusCircle } from "@phosphor-icons/react";
 import clsx from "clsx";

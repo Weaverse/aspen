@@ -32,7 +32,7 @@ export function LayoutSwitcher({
     >
       {/* Mobile layout options: 1 and 2 columns */}
       {[1, 2].map((col) => {
-        let Icon = LAYOUT_ICONS[col];
+        const Icon = LAYOUT_ICONS[col];
         return (
           <button
             key={col}

@@ -1,4 +1,8 @@
-import { GithubLogo, LinkedinLogo, XLogo } from "@phosphor-icons/react";
+import {
+  GithubLogoIcon,
+  LinkedinLogoIcon,
+  XLogoIcon,
+} from "@phosphor-icons/react";
 import {
   createSchema,
   type HydrogenComponentProps,
@@ -20,12 +24,12 @@ type MemberType = {
   x_url: string;
 };
 
-let TeamMembers = forwardRef<HTMLDivElement, HydrogenComponentProps>(
+const TeamMembers = forwardRef<HTMLDivElement, HydrogenComponentProps>(
   (props, ref) => {
-    let parent = useParentInstance();
-    let { metaobjects }: OurTeamQuery = parent.data?.loaderData || {};
+    const parent = useParentInstance();
+    const { metaobjects }: OurTeamQuery = parent.data?.loaderData || {};
     if (metaobjects?.nodes?.length) {
-      let members = metaobjects.nodes;
+      const members = metaobjects.nodes;
       return (
         <div
           ref={ref}
@@ -33,13 +37,20 @@ let TeamMembers = forwardRef<HTMLDivElement, HydrogenComponentProps>(
           className="grid gap-8 mb-6 lg:mb-16 md:grid-cols-2 pt-4"
         >
           {members.map(({ id, fields }) => {
-            let member: Partial<MemberType> = {};
-            for (let { key, value, reference } of fields) {
+            const member: Partial<MemberType> = {};
+            for (const { key, value, reference } of fields) {
               // @ts-ignore
               member[key] = key === "avatar" ? reference?.image : value;
             }
-            let { name, title, bio, avatar, github_url, linkedin_url, x_url } =
-              member;
+            const {
+              name,
+              title,
+              bio,
+              avatar,
+              github_url,
+              linkedin_url,
+              x_url,
+            } = member;
             return (
               <div key={id} className="items-center bg-gray-50 sm:flex">
                 {avatar && (
@@ -67,7 +78,7 @@ let TeamMembers = forwardRef<HTMLDivElement, HydrogenComponentProps>(
                           target="_blank"
                           className="text-gray-500 hover:text-gray-900"
                         >
-                          <LinkedinLogo className="w-6 h-6" />
+                          <LinkedinLogoIcon className="w-6 h-6" />
                         </Link>
                       </li>
                     )}
@@ -78,7 +89,7 @@ let TeamMembers = forwardRef<HTMLDivElement, HydrogenComponentProps>(
                           target="_blank"
                           className="text-gray-500 hover:text-gray-900"
                         >
-                          <GithubLogo className="w-6 h-6" />
+                          <GithubLogoIcon className="w-6 h-6" />
                         </Link>
                       </li>
                     )}
@@ -89,7 +100,7 @@ let TeamMembers = forwardRef<HTMLDivElement, HydrogenComponentProps>(
                           target="_blank"
                           className="text-gray-500 hover:text-gray-900"
                         >
-                          <XLogo className="w-6 h-6" />
+                          <XLogoIcon className="w-6 h-6" />
                         </Link>
                       </li>
                     )}
@@ -111,7 +122,7 @@ let TeamMembers = forwardRef<HTMLDivElement, HydrogenComponentProps>(
 
 export default TeamMembers;
 
-export let schema = createSchema({
+export const schema = createSchema({
   type: "our-team-members",
   title: "Members",
   settings: [],

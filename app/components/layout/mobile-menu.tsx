@@ -1,4 +1,4 @@
-import { CaretRight, List, X } from "@phosphor-icons/react";
+import { CaretRightIcon, ListIcon, XIcon } from "@phosphor-icons/react";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import * as Dialog from "@radix-ui/react-dialog";
 import { forwardRef } from "react";
@@ -9,7 +9,7 @@ import type { SingleMenuItem } from "~/types/menu";
 import { cn } from "~/utils/cn";
 
 export function MobileMenu() {
-  let { headerMenu } = useShopMenu();
+  const { headerMenu } = useShopMenu();
 
   if (!headerMenu) return <MenuTrigger />;
 
@@ -29,7 +29,7 @@ export function MobileMenu() {
         <Dialog.Content
           className={cn([
             "fixed inset-0 h-screen bg-(--color-header-bg) pt-4 pb-2 z-10",
-            "left-0 data-[state=open]:animate-enter-from-left",
+            "left-0 -translate-x-full data-[state=open]:translate-x-0 data-[state=open]:animate-enter-from-left",
             "focus-visible:outline-hidden",
             "uppercase",
           ])}
@@ -42,7 +42,7 @@ export function MobileMenu() {
             <div className="px-4">Menu</div>
           </Dialog.Title>
           <Dialog.Close asChild>
-            <X className="w-5 h-5 fixed top-4 right-4" />
+            <XIcon className="w-5 h-5 fixed top-4 right-4" />
           </Dialog.Close>
           <div className="mt-4 border-t border-line-subtle" />
           <div className="py-2">
@@ -64,7 +64,7 @@ export function MobileMenu() {
 }
 
 function CollapsibleMenuItem({ item }: { item: SingleMenuItem }) {
-  let { title, to, items } = item;
+  const { title, to, items } = item;
 
   if (!items?.length) {
     return (
@@ -79,9 +79,12 @@ function CollapsibleMenuItem({ item }: { item: SingleMenuItem }) {
   return (
     <Collapsible.Root>
       <Collapsible.Trigger asChild>
-        <button className='py-3 w-full flex items-center gap-4 justify-between data-[state="open"]:[&>svg]:rotate-90'>
+        <button
+          type="button"
+          className='py-3 w-full flex items-center gap-4 justify-between data-[state="open"]:[&>svg]:rotate-90'
+        >
           <span className="uppercase">{title}</span>
-          <CaretRight className="w-4 h-4" />
+          <CaretRightIcon className="w-4 h-4" />
         </button>
       </Collapsible.Trigger>
       <Collapsible.Content className="pl-4 border-l border-gray-300">
@@ -93,11 +96,11 @@ function CollapsibleMenuItem({ item }: { item: SingleMenuItem }) {
   );
 }
 
-let MenuTrigger = forwardRef<HTMLButtonElement, Dialog.DialogTriggerProps>(
+const MenuTrigger = forwardRef<HTMLButtonElement, Dialog.DialogTriggerProps>(
   (props, ref) => {
     return (
       <button ref={ref} type="button" {...props}>
-        <List className="w-5 h-5" />
+        <ListIcon className="w-5 h-5" />
       </button>
     );
   }

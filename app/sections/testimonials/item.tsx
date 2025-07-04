@@ -1,9 +1,9 @@
 import { Circle, Handbag, Plus, Tag } from "@phosphor-icons/react";
 import {
-  ComponentLoaderArgs,
-  HydrogenComponentProps,
+  type ComponentLoaderArgs,
+  type HydrogenComponentProps,
+  type WeaverseProduct,
   createSchema,
-  WeaverseProduct,
 } from "@weaverse/hydrogen";
 import type { CSSProperties } from "react";
 import { forwardRef } from "react";
@@ -36,7 +36,7 @@ const ICONS = {
 
 let TestimonialHotspotsItem = forwardRef<HTMLDivElement, TestimonialHotspotsItemProps>(
   (props, ref) => {
-    let {
+    const {
       icon,
       iconSize,
       offsetX,
@@ -111,7 +111,7 @@ export let loader = async (args: ComponentLoaderArgs<TestimonialHotspotsItemData
   return { product };
 };
 
-export let schema = createSchema({
+export const schema = createSchema({
   type: "testimonial-hot--item",
   title: "Testimonial hotspots item",
   settings: [

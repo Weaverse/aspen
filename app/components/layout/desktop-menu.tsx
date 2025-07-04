@@ -10,12 +10,12 @@ import type { SingleMenuItem } from "~/types/menu";
 import { cn } from "~/utils/cn";
 
 export function DesktopMenu() {
-  let { headerMenu } = useShopMenu();
-  let { openMenuBy } = useThemeSettings();
-  let [value, setValue] = useState<string | null>(null);
+  const { headerMenu } = useShopMenu();
+  const { openMenuBy } = useThemeSettings();
+  const [value, setValue] = useState<string | null>(null);
 
   if (headerMenu?.items?.length) {
-    let items = headerMenu.items as unknown as SingleMenuItem[];
+    const items = headerMenu.items as unknown as SingleMenuItem[];
     return (
       <Menubar.Root
         asChild
@@ -25,10 +25,10 @@ export function DesktopMenu() {
       >
         <nav className="hidden lg:flex grow justify-center h-full">
           {items.map((menuItem) => {
-            let { id, items = [], title, to } = menuItem;
-            let level = getMaxDepth(menuItem);
-            let hasSubmenu = level > 1;
-            let isDropdown =
+            const { id, items = [], title, to } = menuItem;
+            const level = getMaxDepth(menuItem);
+            const hasSubmenu = level > 1;
+            const isDropdown =
               level === 2 && items.every(({ resource }) => !resource?.image);
             return (
               <Menubar.Menu key={id} value={id}>
@@ -136,7 +136,7 @@ function MegaMenu({ items }: { items: SingleMenuItem[] }) {
             <Link
               to={to}
               prefetch="intent"
-              className="uppercase inline transition-none"
+              className="uppercase transition-none"
             >
               <RevealUnderline>{title}</RevealUnderline>
             </Link>
@@ -164,7 +164,7 @@ function SlideIn(props: {
   children: React.ReactNode;
   style: React.CSSProperties;
 }) {
-  let { className, children, style } = props;
+  const { className, children, style } = props;
   return (
     <div
       className={cn(

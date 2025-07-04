@@ -6,9 +6,10 @@ import { Section, layoutInputs } from "~/components/section";
 
 type TestimonialProps = SectionProps;
 
-let TestimonialIndex = forwardRef<HTMLElement, TestimonialProps>(
+const TestimonialIndex = forwardRef<HTMLElement, TestimonialProps>(
+  
   (props, ref) => {
-    let { children, ...rest } = props;
+      const { children, ...rest } = props;
 
     return (
       <Section
@@ -24,7 +25,7 @@ let TestimonialIndex = forwardRef<HTMLElement, TestimonialProps>(
 
 export default TestimonialIndex;
 
-export let schema = createSchema({
+export const schema = createSchema({
   type: "testimonial",
   title: "Testimonial",
   inspector: [

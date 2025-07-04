@@ -1,4 +1,4 @@
-import { CaretDown } from "@phosphor-icons/react";
+import { CaretDownIcon } from "@phosphor-icons/react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { useLocation, useSearchParams } from "react-router";
 import Link from "~/components/link";
@@ -30,12 +30,12 @@ const SORT_LIST: { label: string; key: SortParam }[] = [
 ];
 
 export function Sort() {
-  let [searchParams] = useSearchParams();
-  let location = useLocation();
-  let currentSort =
+  const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const currentSort =
     SORT_LIST.find(({ key }) => key === searchParams.get("sort")) ||
     SORT_LIST[0];
-  let params = new URLSearchParams(searchParams);
+  const params = new URLSearchParams(searchParams);
 
   return (
     <DropdownMenu.Root>
@@ -44,7 +44,7 @@ export function Sort() {
           Sort by: <span className="font-semibold">{currentSort.label}</span>
         </span>
         <span className="lg:hidden">Sort</span>
-        <CaretDown />
+        <CaretDownIcon />
       </DropdownMenu.Trigger>
       <DropdownMenu.Portal>
         <DropdownMenu.Content

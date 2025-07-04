@@ -36,18 +36,17 @@ const SECTION_HEIGHTS = {
   custom: null,
 };
 
-export interface HeroVideoProps
-  extends Omit<VariantProps<typeof variants>, "padding">,
-    HydrogenComponentProps,
-    OverlayProps {
+interface HeroVideoData extends OverlayProps, VariantProps<typeof variants> {
   videoURL: string;
   height: "small" | "medium" | "large" | "custom";
   heightOnDesktop: number;
   heightOnMobile: number;
 }
 
-let variants = cva(
-  "absolute inset-0 max-w-[100vw] mx-auto px-3 flex flex-col justify-center items-center z-10",
+export interface HeroVideoProps extends HeroVideoData, HydrogenComponentProps {}
+
+const variants = cva(
+  "absolute inset-0 max-w-screen mx-auto px-3 flex flex-col justify-center items-center z-10",
   {
     variants: {
       gap: {
@@ -75,14 +74,12 @@ let variants = cva(
   },
 );
 
-let ReactPlayer = lazy(() => import("react-player/lazy"));
-
 function getPlayerSize(id: string) {
   if (isBrowser) {
-    let section = document.querySelector(`[data-wv-id="${id}"]`);
+    const section = document.querySelector(`[data-wv-id="${id}"]`);
     if (section) {
-      let rect = section.getBoundingClientRect();
-      let aspectRatio = rect.width / rect.height;
+      const rect = section.getBoundingClientRect();
+      const aspectRatio = rect.width / rect.height;
       if (aspectRatio < 16 / 9) {
         return { width: "auto", height: "100%" };
       }
@@ -91,8 +88,10 @@ function getPlayerSize(id: string) {
   return { width: "100%", height: "auto" };
 }
 
-let HeroVideo = forwardRef<HTMLElement, HeroVideoProps>((props, ref) => {
-  let {
+const ReactPlayer = lazy(() => import("react-player"));
+
+const HeroVideo = forwardRef<HTMLElement, HeroVideoProps>((props, ref) => {
+  const {
     videoURL,
     gap,
     height,
@@ -106,24 +105,24 @@ let HeroVideo = forwardRef<HTMLElement, HeroVideoProps>((props, ref) => {
     ...rest
   } = props;
 
-  let id = rest["data-wv-id"];
-  let [size, setSize] = useState(() => getPlayerSize(id));
+  const id = rest["data-wv-id"];
+  const [size, setSize] = useState(() => getPlayerSize(id));
 
-  let desktopHeight =
+  const desktopHeight =
     SECTION_HEIGHTS[height]?.desktop || `${heightOnDesktop}px`;
-  let mobileHeight = SECTION_HEIGHTS[height]?.mobile || `${heightOnMobile}px`;
-  let sectionStyle: CSSProperties = {
+  const mobileHeight = SECTION_HEIGHTS[height]?.mobile || `${heightOnMobile}px`;
+  const sectionStyle: CSSProperties = {
     "--desktop-height": desktopHeight,
     "--mobile-height": mobileHeight,
   } as CSSProperties;
 
-  let { ref: inViewRef, inView } = useInView({
+  const { ref: inViewRef, inView } = useInView({
     triggerOnce: true,
   });
 
   // Use `useCallback` so we don't recreate the function on each render
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
-  let setRefs = useCallback(
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation> --- IGNORE ---
+  const setRefs = useCallback(
     (node: HTMLElement) => {
       // Ref's from useRef needs to have the node assigned to `current`
       ref && Object.assign(ref, { current: node });
@@ -137,7 +136,7 @@ let HeroVideo = forwardRef<HTMLElement, HeroVideoProps>((props, ref) => {
     setSize(getPlayerSize(id));
   }
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation> --- IGNORE ---
   useEffect(() => {
     handleResize();
     window.addEventListener("resize", handleResize);
@@ -146,7 +145,7 @@ let HeroVideo = forwardRef<HTMLElement, HeroVideoProps>((props, ref) => {
     };
   }, [inView, height, heightOnDesktop, heightOnMobile]);
 
-  let [scope] = useAnimation();
+  const [scope] = useAnimation();
 
   return (
     <section
@@ -160,13 +159,14 @@ let HeroVideo = forwardRef<HTMLElement, HeroVideoProps>((props, ref) => {
           "flex items-center justify-center relative overflow-hidden",
           "h-(--mobile-height) sm:h-(--desktop-height)",
           "w-[max(var(--mobile-height)/9*16,100vw)] sm:w-[max(var(--desktop-height)/9*16,100vw)]",
-          "translate-x-[min(0px,calc((var(--mobile-height)/9*16-100vw)/-2))] sm:translate-x-[min(0px,calc((var(--desktop-height)/9*16-100vw)/-2))]",
+          "translate-x-[min(0px,calc((var(--mobile-height)/9*16-100vw)/-2))]",
+          "sm:translate-x-[min(0px,calc((var(--desktop-height)/9*16-100vw)/-2))]",
         )}
       >
         {inView && (
           <Suspense fallback={null}>
             <ReactPlayer
-              url={videoURL}
+              src={videoURL}
               playing
               muted
               loop={true}
@@ -194,7 +194,7 @@ let HeroVideo = forwardRef<HTMLElement, HeroVideoProps>((props, ref) => {
 
 export default HeroVideo;
 
-export let schema = createSchema({
+export const schema = createSchema({
   type: "hero-video",
   title: "Hero video",
   settings: [
@@ -238,7 +238,7 @@ export let schema = createSchema({
             step: 10,
             unit: "px",
           },
-          condition: (data) => data.height === "custom",
+          condition: (data: HeroVideoData) => data.height === "custom",
         },
         {
           type: "range",
@@ -251,7 +251,7 @@ export let schema = createSchema({
             step: 10,
             unit: "px",
           },
-          condition: (data) => data.height === "custom",
+          condition: (data: HeroVideoData) => data.height === "custom",
         },
         {
           type: "range",

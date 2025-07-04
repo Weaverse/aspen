@@ -1,4 +1,4 @@
-import { SealCheck, X } from "@phosphor-icons/react";
+import { SealCheckIcon, XIcon } from "@phosphor-icons/react";
 import clsx from "clsx";
 import { useState } from "react";
 import ReactCountryFlag from "react-country-flag";
@@ -45,7 +45,7 @@ type ReviewItemProps = ReviewItemData & {
 };
 
 export function ReviewItem(props: ReviewItemProps) {
-  let {
+  const {
     review,
     showCountry,
     showDate,
@@ -53,7 +53,7 @@ export function ReviewItem(props: ReviewItemProps) {
     verifiedBadgeText,
     showStar,
   } = props;
-  let [previewMedia, setPreviewMedia] = useState<ReviewMedia | null>(null);
+  const [previewMedia, setPreviewMedia] = useState<ReviewMedia | null>(null);
 
   return (
     <div className="gap-3 py-6 space-y-4">
@@ -79,7 +79,7 @@ export function ReviewItem(props: ReviewItemProps) {
         <div className="flex items-center gap-6">
           {showVerifiedBadge && (
             <div className="inline-flex items-center gap-1">
-              <SealCheck className="h-4 w-4 text-white" fill="black" />
+              <SealCheckIcon className="h-4 w-4 text-white" fill="black" />
               <p className="text-xs">{verifiedBadgeText}</p>
             </div>
           )}
@@ -96,7 +96,6 @@ export function ReviewItem(props: ReviewItemProps) {
           {review.media.map((media) => (
             <div
               key={media.id}
-              role="button"
               className={clsx(
                 "flex items-center justify-center bg-gray-800 w-20 h-20 overflow-hidden cursor-pointer",
                 "outline-offset-2 hover:outline-solid hover:outline-2 hover:outline-gray-500",
@@ -132,7 +131,7 @@ function ReviewMediaPreview(props: {
   media: ReviewMedia | null;
   closePreview: () => void;
 }) {
-  let { media, closePreview } = props;
+  const { media, closePreview } = props;
   if (media) {
     return (
       <div className="flex gap-2 items-start">
@@ -143,7 +142,7 @@ function ReviewMediaPreview(props: {
             alt="Review media preview"
           />
         </div>
-        <X
+        <XIcon
           className="w-5 h-5 cursor-pointer text-gray-600"
           onClick={closePreview}
         />
@@ -154,13 +153,13 @@ function ReviewMediaPreview(props: {
 }
 
 function formatDate(date: string) {
-  let dateObj = new Date(date);
-  let dateStr = dateObj.toLocaleDateString("en-US", {
+  const dateObj = new Date(date);
+  const dateStr = dateObj.toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
     day: "numeric",
   });
-  let timeStr = dateObj.toLocaleTimeString("en-US", {
+  const timeStr = dateObj.toLocaleTimeString("en-US", {
     hour: "numeric",
     minute: "numeric",
   });

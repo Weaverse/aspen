@@ -8,7 +8,7 @@ import type { SectionProps } from "~/components/section";
 import { Section } from "~/components/section";
 import { cn } from "~/utils/cn";
 
-let variants = cva("flex justify-center items-end", {
+const variants = cva("flex justify-center items-end", {
   variants: {
     height: {
       small: "h-[40vh] lg:h-[50vh]",
@@ -26,8 +26,8 @@ interface CountdownProps extends VariantProps<typeof variants>, SectionProps {
   scenario?: "scenario1" | "scenario2";
 }
 
-let Countdown = forwardRef<HTMLElement, CountdownProps>((props, ref) => {
-  let { children, height, gap = 24, scenario = "scenario1", ...rest } = props;
+const Countdown = forwardRef<HTMLElement, CountdownProps>((props, ref) => {
+  const { children, height, gap = 24, scenario = "scenario1", ...rest } = props;
   const isScenario2 = scenario === "scenario2";
 
   return (
@@ -55,7 +55,7 @@ let Countdown = forwardRef<HTMLElement, CountdownProps>((props, ref) => {
 
 export default Countdown;
 
-export let schema = createSchema({
+export const schema = createSchema({
   type: "countdown",
   title: "Countdown",
   settings: [

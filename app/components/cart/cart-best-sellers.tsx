@@ -14,7 +14,6 @@ interface CartBestSellersProps {
   count: number;
   heading: string;
   layout?: "drawer" | "page";
-  onClose?: () => void;
   query?: string;
   reverse?: boolean;
   sortKey: ProductSortKeys;
@@ -34,13 +33,12 @@ export function CartBestSellers({
   count = 4,
   heading = "Shop Best Sellers",
   layout = "drawer",
-  onClose,
   query,
   reverse,
   sortKey = "BEST_SELLING",
 }: CartBestSellersProps) {
-  let { load, data } = useFetcher<{ products: Product[] }>();
-  let queryString = useMemo(
+  const { load, data } = useFetcher<{ products: Product[] }>();
+  const queryString = useMemo(
     () =>
       Object.entries({ count, sortKey, query, reverse })
         .map(([key, val]) => (val ? `${key}=${val}` : null))
@@ -48,7 +46,9 @@ export function CartBestSellers({
         .join("&"),
     [count, sortKey, query, reverse],
   );
-  let productsApiPath = usePrefixPathWithLocale(`/api/products?${queryString}`);
+  const productsApiPath = usePrefixPathWithLocale(
+    `/api/products?${queryString}`,
+  );
 
   useEffect(() => {
     load(productsApiPath);
@@ -65,7 +65,6 @@ export function CartBestSellers({
       >
         <CartBestSellersContent
           count={count}
-          onClick={onClose}
           products={data?.products as Product[]}
         />
       </div>
@@ -78,14 +77,12 @@ export function CartBestSellers({
  */
 function CartBestSellersContent({
   count = 4,
-  onClick,
   products,
 }: {
   count: CartBestSellersProps["count"];
   products: Product[] | undefined;
-  onClick?: () => void;
 }) {
-  let id = useId();
+  const id = useId();
 
   if (!products) {
     return (

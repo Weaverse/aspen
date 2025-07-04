@@ -1,4 +1,4 @@
-import { Check } from "@phosphor-icons/react";
+import { CheckIcon } from "@phosphor-icons/react";
 import * as Checkbox from "@radix-ui/react-checkbox";
 import * as Dialog from "@radix-ui/react-dialog";
 import { flattenConnection } from "@shopify/hydrogen";
@@ -15,13 +15,13 @@ import Link from "~/components/link";
 import type { AccountOutletContext } from "~/routes/($locale).account.edit";
 
 export function AccountEditAddressForm() {
-  let { id: addressId } = useParams();
-  let isNewAddress = addressId === "add";
-  let actionData = useActionData<{ formError?: string }>();
-  let { state } = useNavigation();
-  let { customer } = useOutletContext<AccountOutletContext>();
-  let addresses = flattenConnection(customer.addresses);
-  let defaultAddress = customer.defaultAddress;
+  const { id: addressId } = useParams();
+  const isNewAddress = addressId === "add";
+  const actionData = useActionData<{ formError?: string }>();
+  const { state } = useNavigation();
+  const { customer } = useOutletContext<AccountOutletContext>();
+  const addresses = flattenConnection(customer.addresses);
+  const defaultAddress = customer.defaultAddress;
   /**
    * When a refresh happens (or a user visits this link directly), the URL
    * is actually stale because it contains a special token. This means the data
@@ -29,8 +29,8 @@ export function AccountEditAddressForm() {
    * and we don't find a match. We update the `find` logic to just perform a match
    * on the first (permanent) part of the ID.
    */
-  let normalizedAddress = decodeURIComponent(addressId ?? "").split("?")[0];
-  let address = addresses.find((address) =>
+  const normalizedAddress = decodeURIComponent(addressId ?? "").split("?")[0];
+  const address = addresses.find((address) =>
     address.id?.startsWith(normalizedAddress),
   );
 
@@ -169,7 +169,7 @@ export function AccountEditAddressForm() {
             )}
           >
             <Checkbox.Indicator className="flex items-center justify-center text-current">
-              <Check className="w-4 h-4" weight="regular" />
+              <CheckIcon className="w-4 h-4" weight="regular" />
             </Checkbox.Indicator>
           </Checkbox.Root>
           <label htmlFor="defaultAddress">Set as default address</label>

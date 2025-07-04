@@ -1,4 +1,4 @@
-import { EnvelopeSimple } from "@phosphor-icons/react";
+import { EnvelopeSimpleIcon } from "@phosphor-icons/react";
 import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { forwardRef } from "react";
@@ -14,14 +14,14 @@ interface NewsLetterInputProps extends HydrogenComponentProps {
   successText?: string;
 }
 
-let NewsLetterForm = forwardRef<HTMLDivElement, NewsLetterInputProps>(
+const NewsLetterForm = forwardRef<HTMLDivElement, NewsLetterInputProps>(
   (props, ref) => {
-    let { buttonText, width, placeholder, helpText, successText, ...rest } =
+    const { buttonText, width, placeholder, helpText, successText, ...rest } =
       props;
-    let fetcher = useFetcher();
-    let { state, Form } = fetcher;
-    let data = fetcher.data as CustomerApiPlayLoad;
-    let { ok, errorMessage } = data || {};
+    const fetcher = useFetcher();
+    const { state, Form } = fetcher;
+    const data = fetcher.data as CustomerApiPlayLoad;
+    const { ok, errorMessage } = data || {};
 
     return (
       <div ref={ref} {...rest} className="mx-auto max-w-full" style={{ width }}>
@@ -32,7 +32,7 @@ let NewsLetterForm = forwardRef<HTMLDivElement, NewsLetterInputProps>(
           data-motion="fade-up"
         >
           <div className="flex items-center border-r-0 border-y border-l grow">
-            <EnvelopeSimple className="w-5 h-5 ml-3 mr-1.5 shrink-0" />
+            <EnvelopeSimpleIcon className="w-5 h-5 ml-3 mr-1.5 shrink-0" />
             <input
               name="email"
               type="email"
@@ -72,7 +72,7 @@ let NewsLetterForm = forwardRef<HTMLDivElement, NewsLetterInputProps>(
 
 export default NewsLetterForm;
 
-export let schema = createSchema({
+export const schema = createSchema({
   type: "newsletter-form",
   title: "Form",
   settings: [

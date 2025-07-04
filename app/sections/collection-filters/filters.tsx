@@ -1,11 +1,11 @@
-import { CaretRight } from "@phosphor-icons/react";
+import { CaretRightIcon } from "@phosphor-icons/react";
 import * as Accordion from "@radix-ui/react-accordion";
 import type { Filter } from "@shopify/hydrogen/storefront-api-types";
 import clsx from "clsx";
 import { useRef } from "react";
 import { useLoaderData } from "react-router";
 import type { CollectionQuery } from "storefront-api.generated";
-import { OPTIONS_AS_SWATCH } from "~/components/product/variant-option";
+import { OPTIONS_AS_SWATCH } from "~/components/product/product-option-values";
 import { ScrollArea } from "~/components/scroll-area";
 import { useClosestWeaverseItem } from "~/hooks/use-closest-weaverse-item";
 import { cn } from "~/utils/cn";
@@ -15,21 +15,25 @@ import { FilterItem } from "./filter-item";
 import { PriceRangeFilter } from "./price-range-filter";
 
 export function Filters({ className }: { className?: string }) {
-  let ref = useRef<HTMLDivElement>(null);
-  let parentInstance = useClosestWeaverseItem(ref);
-  let parentData = parentInstance.data as unknown as CollectionFiltersData;
-  let { expandFilters, showFiltersCount, enableSwatches, displayAsButtonFor } =
-    parentData;
-  let { collection, appliedFilters } = useLoaderData<
+  const ref = useRef<HTMLDivElement>(null);
+  const parentInstance = useClosestWeaverseItem(ref);
+  const parentData = parentInstance.data as unknown as CollectionFiltersData;
+  const {
+    expandFilters,
+    showFiltersCount,
+    enableSwatches,
+    displayAsButtonFor,
+  } = parentData;
+  const { collection, appliedFilters } = useLoaderData<
     CollectionQuery & {
       collections: Array<{ handle: string; title: string }>;
       appliedFilters: AppliedFilter[];
     }
   >();
-  let appliedFiltersKeys = appliedFilters
+  const appliedFiltersKeys = appliedFilters
     .map((filter) => filter.label)
     .join("-");
-  let filters = collection.products.filters as Filter[];
+  const filters = collection.products.filters as Filter[];
 
   return (
     <ScrollArea className="h-[calc(100vh-var(--height-nav)-100px)]">
@@ -42,9 +46,9 @@ export function Filters({ className }: { className?: string }) {
         defaultValue={expandFilters ? filters.map((filter) => filter.id) : []}
       >
         {filters.map((filter: Filter) => {
-          let asSwatch =
+          const asSwatch =
             enableSwatches && OPTIONS_AS_SWATCH.includes(filter.label);
-          let asButton = displayAsButtonFor.includes(filter.label);
+          const asButton = displayAsButtonFor.includes(filter.label);
 
           return (
             <Accordion.Item
@@ -55,7 +59,7 @@ export function Filters({ className }: { className?: string }) {
             >
               <Accordion.Trigger className="flex w-full justify-between items-center data-[state=open]:[&>svg]:rotate-90">
                 <span>{filter.label}</span>
-                <CaretRight className="w-4 h-4 transition-transform rotate-0" />
+                <CaretRightIcon className="w-4 h-4 transition-transform rotate-0" />
               </Accordion.Trigger>
               <Accordion.Content
                 style={
