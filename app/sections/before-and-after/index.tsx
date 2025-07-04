@@ -30,7 +30,7 @@ export let schema: HydrogenComponentSchema = {
             inputs: layoutInputs.filter(({ name }) => name !== 'divider' && name !== 'borderRadius'),
         },
     ],
-    childTypes: ['heading', 'before-after-slider'],
+    childTypes: ['heading', "subheading", "paragraph", "button", 'before-after-slider'],
     presets: {
         children: [
             {
