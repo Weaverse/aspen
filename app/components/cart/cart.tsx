@@ -543,7 +543,7 @@ function CartLinePrice({
       withoutTrailingZeros
       {...passthroughProps}
       data={moneyV2}
-      className="text-sm ml-auto"
+      className="text-sm mr-2"
     />
   );
 }

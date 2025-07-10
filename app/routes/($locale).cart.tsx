@@ -21,7 +21,7 @@ import { Cart } from "~/components/cart/cart";
 import type { RootLoader } from "~/root";
 
 export async function action({ request, context }: ActionFunctionArgs) {
-  const { cart } = context;
+  const { cart, session } = context;
   const formData = await request.formData();
   const { action, inputs } = CartForm.getFormInput(formData);
   invariant(action, "No cartAction defined");
@@ -64,14 +64,17 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   /**
    * The Cart ID may change after each mutation. We need to update it each time in the session.
+   * Manual workaround for React Router v7 compatibility issue with cart.setCartId()
    */
-  const headers = cart.setCartId(result.cart.id);
+  session.set("cartId", result.cart.id);
+  const headers = new Headers();
+  headers.set("Set-Cookie", await session.commit());
 
   const redirectTo = formData.get("redirectTo") ?? null;
   if (typeof redirectTo === "string" && isLocalPath(redirectTo)) {
     // status = 303;
     // headers.set("Location", redirectTo);
-    return redirect(redirectTo);
+    return redirect(redirectTo, { headers });
   }
 
   const { cart: cartResult, errors, userErrors } = result;

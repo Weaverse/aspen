@@ -58,7 +58,7 @@ export function CartDrawer() {
               />
               <Dialog.Content
                 className={clsx([
-                  "fixed inset-y-0 w-screen max-w-[430px] bg-background py-4 z-10",
+                  "fixed inset-y-0 right-0 w-screen max-w-[430px] bg-background py-4 z-10",
                   "data-[state=open]:animate-enter-from-right",
                 ])}
                 aria-describedby={undefined}
