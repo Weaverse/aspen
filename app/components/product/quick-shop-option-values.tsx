@@ -2,8 +2,8 @@ import { CaretDownIcon, CaretUpIcon, CheckIcon } from "@phosphor-icons/react";
 import * as Select from "@radix-ui/react-select";
 import { Image, type MappedProductOptions } from "@shopify/hydrogen";
 import clsx from "clsx";
-import { useNavigate } from "react-router";
 import { isLightColor, isValidColor } from "~/utils/misc";
+import type { ProductVariant } from "@shopify/hydrogen/storefront-api-types";
 
 /*
  * Configure which options should show color swatches beside the dropdown
@@ -11,15 +11,15 @@ import { isLightColor, isValidColor } from "~/utils/misc";
 const OPTIONS_WITH_SWATCH = ["Color", "Colors", "Colour", "Colours"];
 const OPTIONS_WITH_IMAGE = ["Style", "Pattern", "Material"];
 
-// Export for backward compatibility with product-card-options.tsx
-export const OPTIONS_AS_SWATCH = OPTIONS_WITH_SWATCH;
-
-export function ProductOptionValues({
+export function QuickShopOptionValues({
   option,
+  onVariantChange,
+  adjacentVariants,
 }: {
   option: MappedProductOptions;
+  onVariantChange: (variantId: string) => void;
+  adjacentVariants: ProductVariant[];
 }) {
-  const navigate = useNavigate();
   const { name: optionName, optionValues } = option || {};
 
   if (!optionName) return null;
@@ -81,15 +81,8 @@ export function ProductOptionValues({
         value={selectedValue}
         onValueChange={(v) => {
           const found = optionValues.find(({ name: value }) => value === v);
-          if (found) {
-            const to = found.isDifferentProduct
-              ? `/products/${found.handle}?${found.variantUriQuery}`
-              : `?${found.variantUriQuery}`;
-            if (found.isDifferentProduct) {
-              window.location.href = to;
-            } else {
-              navigate(to, { replace: true });
-            }
+          if (found && found.firstSelectableVariant?.id) {
+            onVariantChange(found.firstSelectableVariant.id);
           }
         }}
       >
@@ -178,4 +171,4 @@ export function ProductOptionValues({
       </Select.Root>
     </div>
   );
-}
+} 

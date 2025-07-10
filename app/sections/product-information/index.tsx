@@ -35,7 +35,6 @@ interface ProductInformationData
   soldOutText: string;
   showVendor: boolean;
   showSalePrice: boolean;
-  showShortDescription: boolean;
   showShippingPolicy: boolean;
   showRefundPolicy: boolean;
 }
@@ -49,7 +48,7 @@ const ProductInformation = forwardRef<
   // Optimistically selects a variant with given available variant information
   const selectedVariant = useOptimisticVariant(
     product?.selectedOrFirstAvailableVariant,
-    getAdjacentAndFirstAvailableVariants(product),
+    getAdjacentAndFirstAvailableVariants(product)
   );
 
   // Get the product options array
@@ -63,7 +62,6 @@ const ProductInformation = forwardRef<
     soldOutText,
     showVendor,
     showSalePrice,
-    showShortDescription,
     showShippingPolicy,
     showRefundPolicy,
     mediaLayout,
@@ -77,8 +75,7 @@ const ProductInformation = forwardRef<
   const [quantity, setQuantity] = useState<number>(1);
 
   if (product) {
-    const { title, handle, vendor, summary, priceRange, publishedAt, badges } =
-      product;
+    const { title, handle, vendor, priceRange, publishedAt, badges } = product;
 
     const isBestSellerProduct = badges
       .filter(Boolean)
@@ -134,39 +131,41 @@ const ProductInformation = forwardRef<
                 )}
                 <h1 className="h3 tracking-tight!">{title}</h1>
               </div>
-              {selectedVariant ? (
-                <div className="flex items-center gap-2">
+              <div className="space-y-7 divide-y divide-line-subtle [&>*:not(:last-child)]:pb-3">
+                {selectedVariant ? (
+                  <div className="flex justify-between">
+                    <span className="font-normal uppercase">Price</span>
+                    <div className="flex items-center gap-2">
+                      <Money
+                        withoutTrailingZeros
+                        data={selectedVariant.price}
+                        as="span"
+                        className="font-medium"
+                      />
+                      {isDiscounted(
+                        selectedVariant.price as MoneyV2,
+                        selectedVariant.compareAtPrice as MoneyV2
+                      ) &&
+                        showSalePrice && (
+                          <CompareAtPrice
+                            data={selectedVariant.compareAtPrice as MoneyV2}
+                            className=""
+                          />
+                        )}
+                    </div>
+                  </div>
+                ) : (
                   <Money
                     withoutTrailingZeros
-                    data={selectedVariant.price}
-                    as="span"
+                    data={priceRange.minVariantPrice}
+                    as="div"
                     className="font-medium text-2xl/none"
                   />
-                  {isDiscounted(
-                    selectedVariant.price as MoneyV2,
-                    selectedVariant.compareAtPrice as MoneyV2,
-                  ) &&
-                    showSalePrice && (
-                      <CompareAtPrice
-                        data={selectedVariant.compareAtPrice as MoneyV2}
-                        className="text-2xl/none"
-                      />
-                    )}
-                </div>
-              ) : (
-                <Money
-                  withoutTrailingZeros
-                  data={priceRange.minVariantPrice}
-                  as="div"
-                  className="font-medium text-2xl/none"
-                />
-              )}
-              {children}
-              {showShortDescription && (
-                <p className="leading-relaxed">{summary}</p>
-              )}
-              <ProductVariants productOptions={productOptions} />
-              <Quantity value={quantity} onChange={setQuantity} />
+                )}
+                {children}
+                <ProductVariants productOptions={productOptions} />
+                <Quantity value={quantity} onChange={setQuantity} />
+              </div>
               <div className="space-y-2">
                 <AddToCartButton
                   disabled={!selectedVariant?.availableForSale}
@@ -321,12 +320,6 @@ export const schema = createSchema({
           type: "switch",
           label: "Show sale price",
           name: "showSalePrice",
-          defaultValue: true,
-        },
-        {
-          type: "switch",
-          label: "Show short description",
-          name: "showShortDescription",
           defaultValue: true,
         },
         {

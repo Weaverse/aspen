@@ -17,8 +17,8 @@ export function Quantity(props: QuantityProps) {
     }
   };
   return (
-    <div className="space-y-1.5" data-motion="fade-up">
-      <legend className="font-bold leading-tight">Quantity</legend>
+    <div className="flex justify-between items-center" data-motion="fade-up">
+      <legend className="font-medium leading-tight uppercase">Quantity</legend>
       <div className="border border-line w-fit">
         <button
           type="button"

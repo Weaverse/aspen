@@ -6,10 +6,11 @@ import type { loader as productLoader } from "~/routes/($locale).products.$produ
 
 export function ProductDetails({ showShippingPolicy, showRefundPolicy }) {
   const { shop, product } = useLoaderData<typeof productLoader>();
-  const { description } = product;
+  const { description, summary } = product;
   const { shippingPolicy, refundPolicy } = shop;
   const details = [
     { title: "Description", content: description },
+    { title: "Summary", content: summary },
     showShippingPolicy &&
       shippingPolicy?.body && {
         title: "Shipping",
