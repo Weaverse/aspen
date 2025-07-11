@@ -879,6 +879,45 @@ export const themeSchema: HydrogenThemeSchema = {
       ],
     },
     {
+      group: "Quick shop",
+      inputs: [
+        {
+          type: "heading",
+          label: "Product Media",
+        },
+        {
+          label: "Enable zoom",
+          name: "enableZoom",
+          type: "switch",
+          defaultValue: true,
+        },
+        {
+          type: "heading",
+          label: "Quick Shop",
+        },
+        {
+          type: "text",
+          label: "Add to cart text",
+          name: "addToCartText",
+          defaultValue: "Add to cart",
+          placeholder: "Add to cart",
+        },
+        {
+          type: "text",
+          label: "Sold out text",
+          name: "soldOutText",
+          defaultValue: "Sold out",
+          placeholder: "Sold out",
+        },
+        {
+          type: "switch",
+          label: "Show compare at price",
+          name: "showCompareAtPrice",
+          defaultValue: true,
+        },
+      ]
+    },
+    {
       group: "Animations and effects",
       inputs: [
         {

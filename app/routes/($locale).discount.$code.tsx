@@ -13,7 +13,7 @@ import { type LoaderFunctionArgs, redirect } from "@shopify/remix-oxygen";
  * @preserve
  */
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
-  const { cart } = context;
+  const { cart, session } = context;
   // N.B. This route will probably be removed in the future.
   const { code } = params;
 
@@ -37,7 +37,13 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   }
 
   const result = await cart.updateDiscountCodes([code]);
-  const headers = cart.setCartId(result.cart.id);
+  
+  /**
+   * Manual workaround for React Router v7 compatibility issue with cart.setCartId()
+   */
+  session.set("cartId", result.cart.id);
+  const headers = new Headers();
+  headers.set("Set-Cookie", await session.commit());
 
   // Using set-cookie on a 303 redirect will not work if the domain origin have port number (:3000)
   // If there is no cart id and a new cart id is created in the progress, it will not be set in the cookie

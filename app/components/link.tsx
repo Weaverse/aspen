@@ -47,7 +47,7 @@ const variants = cva(["button transition-colors inline-flex"], {
       ],
       decor: [
         "bg-transparent border-none p-0",
-        "text-[--btn-text-decor] inline-flex items-center gap-1 group",
+        "text-(--btn-text-decor) inline-flex items-center gap-1 group",
       ],
       custom: [
         "border px-4 py-3",

@@ -1,8 +1,8 @@
 import type { LoaderFunctionArgs } from "@shopify/remix-oxygen";
-import { data } from "@shopify/remix-oxygen";
+import { data, redirect } from "@shopify/remix-oxygen";
 
 export async function loader({ params, context }: LoaderFunctionArgs) {
-  const { cart } = context;
+  const { cart, session } = context;
 
   try {
     const variantId = params.variantId;
@@ -17,9 +17,12 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
 
     /**
      * The Cart ID may change after each mutation. We need to update it each time in the session.
+     * Manual workaround for React Router v7 compatibility issue with cart.setCartId()
      */
     const cartId = result.cart.id;
-    const headers = cart.setCartId(cartId);
+    session.set("cartId", cartId);
+    const headers = new Headers();
+    headers.set("Set-Cookie", await session.commit());
     headers.set("Location", "/cart");
 
     const { cart: cartResult, errors, userErrors } = result;

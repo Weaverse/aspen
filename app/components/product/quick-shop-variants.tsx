@@ -1,10 +1,15 @@
 import type { MappedProductOptions } from "@shopify/hydrogen";
-import { ProductOptionValues } from "./product-option-values";
+import { QuickShopOptionValues } from "./quick-shop-option-values";
+import type { ProductVariant } from "@shopify/hydrogen/storefront-api-types";
 
-export function ProductVariants({
+export function QuickShopVariants({
   productOptions,
+  onVariantChange,
+  adjacentVariants,
 }: {
   productOptions: MappedProductOptions[];
+  onVariantChange: (variantId: string) => void;
+  adjacentVariants: ProductVariant[];
 }) {
   // Check if this is a default variant only product
   if (productOptions.length === 1) {
@@ -25,10 +30,14 @@ export function ProductVariants({
             <legend className="leading-tight">
               <span className="font-medium uppercase">{option.name}</span>
             </legend>
-            <ProductOptionValues option={option} />
+            <QuickShopOptionValues 
+              option={option} 
+              onVariantChange={onVariantChange}
+              adjacentVariants={adjacentVariants}
+            />
           </div>
         ))}
       </div>
     </div>
   );
-}
+} 

@@ -103,7 +103,7 @@ export function Footer() {
     >
       <div className={cn("w-full h-full", variants({ width: footerWidth }))}>
         <div className="md:space-y-9 divide-y divide-line-subtle">
-          <div className="w-full grid md:grid-cols-2 grid-cols-1 gap-8">
+          <div className="w-full grid md:grid-cols-2 grid-cols-1 gap-8 md:pb-9 pb-0">
             <div className="flex flex-col justify-between gap-6">
               {footerLogoData ? (
                 <div className="relative" style={{ width: footerLogoWidth }}>
@@ -185,7 +185,7 @@ export function Footer() {
             <div className="lg:hidden md:block hidden">
               <FooterMenu />
             </div>
-            <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 justify-center items-center py-9 gap-y-6">
+            <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 justify-center items-center pb-9 pt-9 md:pt-0 gap-y-6">
               <p className="order-3 md:col-span-2 lg:order-none lg:col-span-1">
                 {copyright}
               </p>
@@ -238,7 +238,7 @@ function FooterMenu() {
                 {["#", "/"].includes(to) ? (
                   <span>{title}</span>
                 ) : (
-                  <Link to={to}>{title}</Link>
+                  <Link className="w-fit" to={to}>{title}</Link>
                 )}
                 <Plus className="w-4 h-4 transition-transform rotate-0" />
               </Accordion.Trigger>
@@ -247,7 +247,7 @@ function FooterMenu() {
                 {["#", "/"].includes(to) ? (
                   <span>{title}</span>
                 ) : (
-                  <Link to={to}>{title}</Link>
+                  <Link className="w-fit" to={to}>{title}</Link>
                 )}
               </div>
             )}
@@ -274,7 +274,7 @@ function FooterMenu() {
               >
                 <div className="pb-4 lg:pt-6 flex flex-col gap-2">
                   {subItems.map(({ id, to, title }) => (
-                    <Link to={to} key={id} className="relative">
+                    <Link to={to} key={id} className="relative w-fit">
                       <RevealUnderline className="[--underline-color:var(--color-footer-text)]">
                         {title}
                       </RevealUnderline>
