@@ -3,7 +3,6 @@ import * as Select from "@radix-ui/react-select";
 import { Image, type MappedProductOptions } from "@shopify/hydrogen";
 import clsx from "clsx";
 import { isLightColor, isValidColor } from "~/utils/misc";
-import type { ProductVariant } from "@shopify/hydrogen/storefront-api-types";
 
 /*
  * Configure which options should show color swatches beside the dropdown
@@ -14,11 +13,9 @@ const OPTIONS_WITH_IMAGE = ["Style", "Pattern", "Material"];
 export function QuickShopOptionValues({
   option,
   onVariantChange,
-  adjacentVariants,
 }: {
   option: MappedProductOptions;
   onVariantChange: (variantId: string) => void;
-  adjacentVariants: ProductVariant[];
 }) {
   const { name: optionName, optionValues } = option || {};
 

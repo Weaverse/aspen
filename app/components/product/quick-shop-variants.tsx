@@ -1,15 +1,12 @@
 import type { MappedProductOptions } from "@shopify/hydrogen";
 import { QuickShopOptionValues } from "./quick-shop-option-values";
-import type { ProductVariant } from "@shopify/hydrogen/storefront-api-types";
 
 export function QuickShopVariants({
   productOptions,
   onVariantChange,
-  adjacentVariants,
 }: {
   productOptions: MappedProductOptions[];
   onVariantChange: (variantId: string) => void;
-  adjacentVariants: ProductVariant[];
 }) {
   // Check if this is a default variant only product
   if (productOptions.length === 1) {
@@ -33,7 +30,6 @@ export function QuickShopVariants({
             <QuickShopOptionValues 
               option={option} 
               onVariantChange={onVariantChange}
-              adjacentVariants={adjacentVariants}
             />
           </div>
         ))}

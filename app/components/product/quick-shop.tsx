@@ -232,7 +232,6 @@ export function QuickShop({ data }: { data: ProductData }) {
             View Description
           </Button>
           <div className="space-y-7 divide-y divide-line-subtle [&>*:not(:last-child)]:pb-3">
-            {/* <VariantPrices variant={selectedVariant as ProductVariant} /> */}
             {selectedVariant && (
               <div className="flex justify-between">
                 <span className="font-normal uppercase">Price</span>
@@ -250,7 +249,6 @@ export function QuickShop({ data }: { data: ProductData }) {
               <QuickShopVariants
                 productOptions={productOptions}
                 onVariantChange={setSelectedVariantId}
-                adjacentVariants={adjacentVariants}
               />
             )}
             <Quantity value={quantity} onChange={setQuantity} />
