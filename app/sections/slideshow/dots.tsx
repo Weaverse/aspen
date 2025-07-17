@@ -21,7 +21,7 @@ const variants = cva(
       },
       dotsColor: {
         light: "[&_.dot]:bg-black [&_.active]:!bg-white",
-        dark: "[&_.dot]:bg-line [&_.active]:!bg-line-subtle",
+        dark: "[&_.dot]:bg-[#DBD7D1] [&_.active]:!bg-[#A79D95]",
       },
     },
     defaultVariants: {
