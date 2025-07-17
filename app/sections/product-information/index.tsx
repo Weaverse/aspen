@@ -131,7 +131,7 @@ const ProductInformation = forwardRef<
                 )}
                 <h1 className="h3 tracking-tight!">{title}</h1>
               </div>
-              <div className="space-y-7 divide-y divide-line-subtle [&>*:not(:last-child)]:pb-3">
+              <div className="space-y-5 divide-y divide-line-subtle [&>*:not(:last-child)]:pb-3">
                 {selectedVariant ? (
                   <div className="flex justify-between">
                     <span className="font-normal uppercase">Price</span>
@@ -140,7 +140,7 @@ const ProductInformation = forwardRef<
                         withoutTrailingZeros
                         data={selectedVariant.price}
                         as="span"
-                        className="font-medium"
+                        className=""
                       />
                       {isDiscounted(
                         selectedVariant.price as MoneyV2,
@@ -159,7 +159,7 @@ const ProductInformation = forwardRef<
                     withoutTrailingZeros
                     data={priceRange.minVariantPrice}
                     as="div"
-                    className="font-medium text-2xl/none"
+                    className=""
                   />
                 )}
                 {children}

@@ -4,13 +4,41 @@ import clsx from "clsx";
 import { Link, useLoaderData } from "react-router";
 import type { loader as productLoader } from "~/routes/($locale).products.$productHandle";
 
-export function ProductDetails({ showShippingPolicy, showRefundPolicy }) {
-  const { shop, product } = useLoaderData<typeof productLoader>();
-  const { description, summary } = product;
-  const { shippingPolicy, refundPolicy } = shop;
+interface ProductDetailsProps {
+  showShippingPolicy: boolean;
+  showRefundPolicy: boolean;
+  product?: any;
+  shop?: any;
+}
+
+export function ProductDetails({ 
+  showShippingPolicy, 
+  showRefundPolicy, 
+  product: propProduct, 
+  shop: propShop 
+}: ProductDetailsProps) {
+  // Try to get data from props first, fallback to useLoaderData if available
+  let product, shop;
+  
+  try {
+    const loaderData = useLoaderData<typeof productLoader>();
+    product = propProduct || loaderData?.product;
+    shop = propShop || loaderData?.shop;
+  } catch {
+    // If useLoaderData fails (not in route context), use props
+    product = propProduct;
+    shop = propShop;
+  }
+
+  if (!product) {
+    return null;
+  }
+
+  const { description, summary } = product || {};
+  const { shippingPolicy, refundPolicy } = shop || {};
   const details = [
-    { title: "Description", content: description },
-    { title: "Summary", content: summary },
+    description && { title: "Description", content: description },
+    summary && { title: "Summary", content: summary },
     showShippingPolicy &&
       shippingPolicy?.body && {
         title: "Shipping",
@@ -24,6 +52,10 @@ export function ProductDetails({ showShippingPolicy, showRefundPolicy }) {
         learnMore: `/policies/${refundPolicy.handle}`,
       },
   ].filter(Boolean);
+
+  if (details.length === 0) {
+    return null;
+  }
 
   return (
     <Accordion.Root type="multiple">
