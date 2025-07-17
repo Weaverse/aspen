@@ -3,8 +3,8 @@
 @plugin "@tailwindcss/typography";
 
 @theme {
-  --font-sans: Poppins, ui-sans-serif, system-ui, sans-serif;
-  --font-serif: Arial, IBMPlexSerif, Palatino, ui-serif;
+  --font-sans: Tenor Sans, ui-sans-serif, system-ui, sans-serif;
+  --font-serif: Open Sans Variable, sans-serif;
 
   --breakpoint-sm: 32em;
   --breakpoint-md: 48em;
