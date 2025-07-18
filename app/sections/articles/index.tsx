@@ -7,9 +7,10 @@ import {
 } from "@weaverse/hydrogen";
 import { type VariantProps, cva } from "class-variance-authority";
 import clsx from "clsx";
-import { type CSSProperties, forwardRef } from "react";
+import { type CSSProperties, forwardRef, useState } from "react";
 import { Image } from "~/components/image";
 import Link from "~/components/link";
+import { Button } from "~/components/button";
 import { cn } from "~/utils/cn";
 import { ArrowRight } from "@phosphor-icons/react";
 import { layoutInputs, Section } from "~/components/section";
@@ -88,6 +89,11 @@ type ArticleData = {
   accentColor?: string;
   borderRadius?: number;
   showPublishedDate?: boolean;
+  // Load More props
+  initialCount?: number;
+  loadMoreCount?: number;
+  buttonVariant?: "primary" | "secondary" | "outline" | "decor" | "custom";
+  buttonText?: string;
 };
 
 export interface ArticlesProps
@@ -122,8 +128,16 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
     accentColor = "#27272A",
     borderRadius = 8,
     showPublishedDate = true,
+    // Load More props
+    initialCount = 3,
+    loadMoreCount = 3,
+    buttonVariant = "primary",
+    buttonText = "Load More",
     ...rest
   } = props;
+
+  // State to manage visible articles count
+  const [visibleCount, setVisibleCount] = useState(initialCount);
   
   let sectionStyle: CSSProperties = {
     "--min-size-px": `${minSize}px`,
@@ -148,6 +162,15 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
   }));
 
   const res = loaderData?.blog?.articles.nodes ?? defaultArticles;
+
+  // Get visible articles and check if there are more
+  const visibleArticles = res.slice(0, visibleCount);
+  const hasMoreArticles = visibleCount < res.length;
+
+  // Handle load more
+  const handleLoadMore = () => {
+    setVisibleCount(prev => Math.min(prev + loadMoreCount, res.length));
+  };
 
   return (
     <Section
@@ -177,7 +200,7 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
             articlesPerRowClasses[Math.min(articlePerRow, res?.length || 1)]
           )}
         >
-          {res?.map((idx, i) => (
+          {visibleArticles?.map((idx, i) => (
             <article key={i} className="group">
               <Link
                 to={idx.handle ? `/blogs/${idx.blog.handle}/${idx.handle}` : "#"}
@@ -233,6 +256,16 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
             </article>
           ))}
         </div>
+        {hasMoreArticles && (
+          <div className="flex justify-center mt-8">
+            <Button
+              onClick={handleLoadMore}
+              variant={buttonVariant}
+            >
+              {buttonText}
+            </Button>
+          </div>
+        )}
       </div>
     </Section>
   );
@@ -343,6 +376,30 @@ export const schema: HydrogenComponentSchema = {
         },
         {
           type: "range",
+          name: "initialCount",
+          label: "Initial articles to show",
+          defaultValue: 3,
+          configs: {
+            min: 1,
+            max: 8,
+            step: 1,
+          },
+          helpText: "Number of articles to show initially"
+        },
+        {
+          type: "range",
+          name: "loadMoreCount",
+          label: "Articles to load each time",
+          defaultValue: 3,
+          configs: {
+            min: 1,
+            max: 6,
+            step: 1,
+          },
+          helpText: "Number of articles to load when clicking 'Load More'"
+        },
+        {
+          type: "range",
           label: "Border radius",
           name: "borderRadius",
           configs: {
@@ -364,6 +421,33 @@ export const schema: HydrogenComponentSchema = {
           name: "showPublishedDate",
           label: "Show published date",
           defaultValue: true,
+        },
+      ],
+    },
+    {
+      group: "Load More Button",
+      inputs: [
+        {
+          type: "text",
+          name: "buttonText",
+          label: "Button text",
+          defaultValue: "Load More",
+          placeholder: "Load More",
+        },
+        {
+          type: "select",
+          name: "buttonVariant",
+          label: "Button variant",
+          defaultValue: "primary",
+          configs: {
+            options: [
+              { value: "primary", label: "Primary" },
+              { value: "secondary", label: "Secondary" },
+              { value: "outline", label: "Outline" },
+              { value: "decor", label: "Decorative" },
+              { value: "custom", label: "Custom" },
+            ],
+          },
         },
       ],
     },
