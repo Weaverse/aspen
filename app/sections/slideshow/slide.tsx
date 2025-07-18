@@ -12,8 +12,12 @@ import type { OverlayAndBackgroundProps } from "~/components/overlay-and-backgro
 import { OverlayAndBackground } from "~/components/overlay-and-background";
 import { layoutInputs } from "~/components/section";
 import { useAnimation } from "~/hooks/use-animation";
+import { cn } from "~/utils/cn";
+import Heading, { headingInputs, type HeadingProps } from "~/components/heading";
+import Paragraph, { type ParagraphProps } from "~/components/paragraph";
+import Link, { linkInputs, type LinkProps } from "~/components/link";
 
-const variants = cva("w-full h-full flex flex-col [&_.paragraph]:mx-[unset]", {
+const variants = cva("w-full h-full flex justify-center items-end", {
   variants: {
     width: {
       full: "",
@@ -44,38 +48,51 @@ const variants = cva("w-full h-full flex flex-col [&_.paragraph]:mx-[unset]", {
       56: "space-y-7 lg:space-y-14",
       60: "space-y-7 lg:space-y-[60px]",
     },
-    contentPosition: {
-      "top left": "justify-start items-start [&_.paragraph]:text-left",
-      "top center": "justify-start items-center [&_.paragraph]:text-center",
-      "top right": "justify-start items-end [&_.paragraph]:text-right",
-      "center left": "justify-center items-start [&_.paragraph]:text-left",
-      "center center": "justify-center items-center [&_.paragraph]:text-center",
-      "center right": "justify-center items-end [&_.paragraph]:text-right",
-      "bottom left": "justify-end items-start [&_.paragraph]:text-left",
-      "bottom center": "justify-end items-center [&_.paragraph]:text-center",
-      "bottom right": "justify-end items-end [&_.paragraph]:text-right",
-    },
-  },
-  defaultVariants: {
-    contentPosition: "bottom left",
   },
 });
 
 export interface SlideProps
   extends VariantProps<typeof variants>,
     HydrogenComponentProps,
-    OverlayAndBackgroundProps {
-  backgroundColor: string;
+    OverlayAndBackgroundProps,
+    Omit<HeadingProps, "content"> {
+  // Heading props
+  headingContent?: string;
+  headingTagName?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
+  // Subheading props
+  subheadingContent?: string;
+  subheadingTag?: "h4" | "h5" | "h6" | "div" | "p";
+  subheadingColor?: string;
+  subheadingSize?: "base" | "large";
+  subheadingWeight?: "normal" | "medium";
+  subheadingAlignment?: "left" | "center" | "right";
+  // Paragraph props
+  paragraphContent?: string;
+  paragraphTag?: "p" | "div";
+  paragraphColor?: string;
+  paragraphSize?: ParagraphProps["textSize"];
+  paragraphAlignment?: ParagraphProps["alignment"];
+  paragraphWidth?: ParagraphProps["width"];
+  // Button/Link props
+  buttonContent?: string;
+  to?: LinkProps["to"];
+  variant?: LinkProps["variant"];
+  openInNewTab?: boolean;
+  textColor?: string;
+  buttonBackgroundColor?: string;
+  borderColor?: string;
+  textColorHover?: string;
+  backgroundColorHover?: string;
+  borderColorHover?: string;
+  textColorDecor?: string;
 }
 
 const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
   const [scope] = useAnimation(ref);
   const {
-    contentPosition,
     width,
     gap,
     verticalPadding,
-    backgroundColor,
     backgroundImage,
     enableOverlay,
     overlayOpacity,
@@ -83,17 +100,123 @@ const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
     overlayColorHover,
     backgroundFit,
     backgroundPosition,
+    // Heading props
+    headingContent,
+    headingTagName,
+    color,
+    size,
+    mobileSize,
+    desktopSize,
+    weight,
+    letterSpacing,
+    alignment,
+    minSize,
+    maxSize,
+    animate,
+    // Subheading props
+    subheadingContent,
+    subheadingTag = "p",
+    subheadingColor,
+    subheadingSize,
+    subheadingWeight,
+    subheadingAlignment,
+    // Paragraph props
+    paragraphContent,
+    paragraphTag = "p",
+    paragraphColor,
+    paragraphSize,
+    paragraphAlignment,
+    paragraphWidth,
+    // Button/Link props
+    buttonContent,
+    to,
+    variant,
+    openInNewTab,
+    textColor,
+    buttonBackgroundColor,
+    borderColor,
+    textColorHover,
+    backgroundColorHover,
+    borderColorHover,
+    textColorDecor,
     children,
     ...rest
   } = props;
 
+  // Generate dynamic classes for subheading text
+  const subheadingClasses = [
+    `text-${subheadingAlignment || 'left'}`,
+    subheadingSize === "large" ? "text-lg" : "text-base",
+    subheadingWeight === "medium" ? "font-medium" : "font-normal",
+  ].join(" ");
+
+  // Create the subheading element based on the selected tag
+  const SubheadingTag = subheadingTag;
+
   return (
     <div ref={scope} {...rest} className="w-full h-full">
       <OverlayAndBackground {...props} />
-      <div
-        className={variants({ contentPosition, width, gap, verticalPadding })}
-      >
-        {children}
+      <div className={cn(variants({ width, gap, verticalPadding }))}>
+        <div className="flex flex-col md:flex-row gap-4 md:gap-6 max-w-full">
+          {/* Left Column */}
+          <div className="flex flex-col gap-4 md:gap-6 w-1/2">
+            {headingContent && (
+              <Heading
+                content={headingContent}
+                as={headingTagName}
+                color={color}
+                size={size}
+                mobileSize={mobileSize}
+                desktopSize={desktopSize}
+                weight={weight}
+                letterSpacing={letterSpacing}
+                alignment={alignment}
+                minSize={minSize}
+                maxSize={maxSize}
+                animate={animate}
+              />
+            )}
+            {subheadingContent && (
+              <SubheadingTag 
+                className={subheadingClasses} 
+                style={{ color: subheadingColor }}
+              >
+                {subheadingContent}
+              </SubheadingTag>
+            )}
+          </div>
+          
+          {/* Right Column */}
+          <div className="flex flex-col gap-4 md:gap-6 w-1/2 [&_.paragraph]:mx-[unset]">
+            {paragraphContent && (
+              <Paragraph
+                content={paragraphContent}
+                as={paragraphTag}
+                color={paragraphColor}
+                textSize={paragraphSize}
+                alignment={paragraphAlignment}
+                width={paragraphWidth}
+              />
+            )}
+            {buttonContent && (
+              <Link
+                variant={variant}
+                textColor={textColor}
+                backgroundColor={buttonBackgroundColor}
+                borderColor={borderColor}
+                textColorHover={textColorHover}
+                backgroundColorHover={backgroundColorHover}
+                borderColorHover={borderColorHover}
+                textColorDecor={textColorDecor}
+                openInNewTab={openInNewTab}
+                to={to}
+                className="w-fit"
+              >
+                {buttonContent}
+              </Link>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -104,20 +227,203 @@ export default Slide;
 export const schema = createSchema({
   title: "Slide",
   type: "slideshow-slide",
-  childTypes: ["subheading", "heading", "paragraph", "button"],
+  childTypes: [],
   settings: [
     {
-      group: "Slide",
+      group: "Layout",
       inputs: [
-        {
-          type: "position",
-          label: "Content position",
-          name: "contentPosition",
-          defaultValue: "center center",
-        },
         ...layoutInputs.filter(
           (inp) => inp.name !== "divider" && inp.name !== "borderRadius",
         ),
+      ],
+    },
+    {
+      group: "Heading (optional)",
+      inputs: [
+        {
+          type: "text",
+          name: "headingContent",
+          label: "Heading content",
+          defaultValue: "Slide with text overlay",
+          placeholder: "Enter heading text",
+        },
+        ...headingInputs.map((input) => {
+          if (input.name === "as") {
+            return {
+              ...input,
+              name: "headingTagName",
+            };
+          }
+          return input;
+        }),
+      ],
+    },
+    {
+      group: "Subheading",
+      inputs: [
+        {
+          type: "text",
+          name: "subheadingContent",
+          label: "Subheading content",
+          defaultValue: "Subheading",
+          placeholder: "Enter subheading text",
+        },
+        {
+          type: "select",
+          name: "subheadingTag",
+          label: "Tag name",
+          configs: {
+            options: [
+              { value: "h4", label: "Heading 4" },
+              { value: "h5", label: "Heading 5" },
+              { value: "h6", label: "Heading 6" },
+              { value: "p", label: "Paragraph" },
+              { value: "div", label: "Div" },
+            ],
+          },
+          defaultValue: "p",
+        },
+        {
+          type: "color",
+          name: "subheadingColor",
+          label: "Text color",
+        },
+        {
+          type: "select",
+          name: "subheadingSize",
+          label: "Text size",
+          configs: {
+            options: [
+              { value: "base", label: "Base" },
+              { value: "large", label: "Large" },
+            ],
+          },
+          defaultValue: "base",
+        },
+        {
+          type: "select",
+          name: "subheadingWeight",
+          label: "Weight",
+          configs: {
+            options: [
+              { value: "normal", label: "Normal" },
+              { value: "medium", label: "Medium" },
+            ],
+          },
+          defaultValue: "normal",
+        },
+        {
+          type: "toggle-group",
+          name: "subheadingAlignment",
+          label: "Alignment",
+          configs: {
+            options: [
+              { value: "left", label: "Left", icon: "align-start-vertical" },
+              { value: "center", label: "Center", icon: "align-center-vertical" },
+              { value: "right", label: "Right", icon: "align-end-vertical" },
+            ],
+          },
+          defaultValue: "left",
+        },
+      ],
+    },
+    {
+      group: "Paragraph",
+      inputs: [
+        {
+          type: "richtext",
+          name: "paragraphContent",
+          label: "Paragraph content",
+          defaultValue: "Use this text to share information about your brand with your customers. Describe a product, share announcements, or welcome customers to your store.",
+          placeholder: "Enter paragraph text",
+        },
+        {
+          type: "select",
+          name: "paragraphTag",
+          label: "HTML tag",
+          configs: {
+            options: [
+              { value: "p", label: "<p> (Paragraph)" },
+              { value: "div", label: "<div> (Div)" },
+            ],
+          },
+          defaultValue: "p",
+        },
+        {
+          type: "color",
+          name: "paragraphColor",
+          label: "Text color",
+        },
+        {
+          type: "select",
+          name: "paragraphSize",
+          label: "Text size",
+          configs: {
+            options: [
+              { value: "xs", label: "Extra small (text-xs)" },
+              { value: "sm", label: "Small (text-sm)" },
+              { value: "base", label: "Base (text-base)" },
+              { value: "lg", label: "Large (text-lg)" },
+              { value: "xl", label: "Extra large (text-xl)" },
+              { value: "2xl", label: "2x large (text-2xl)" },
+              { value: "3xl", label: "3x large (text-3xl)" },
+              { value: "4xl", label: "4x large (text-4xl)" },
+              { value: "5xl", label: "5x large (text-5xl)" },
+              { value: "6xl", label: "6x large (text-6xl)" },
+              { value: "7xl", label: "7x large (text-7xl)" },
+              { value: "8xl", label: "8x large (text-8xl)" },
+              { value: "9xl", label: "9x large (text-9xl)" },
+            ],
+          },
+          defaultValue: "base",
+        },
+        {
+          type: "toggle-group",
+          name: "paragraphWidth",
+          label: "Width",
+          configs: {
+            options: [
+              { value: "full", label: "Full", icon: "move-horizontal" },
+              {
+                value: "narrow",
+                label: "Narrow",
+                icon: "fold-horizontal",
+              },
+            ],
+          },
+          defaultValue: "full",
+        },
+        {
+          type: "toggle-group",
+          name: "paragraphAlignment",
+          label: "Alignment",
+          configs: {
+            options: [
+              { value: "left", label: "Left", icon: "align-start-vertical" },
+              { value: "center", label: "Center", icon: "align-center-vertical" },
+              { value: "right", label: "Right", icon: "align-end-vertical" },
+            ],
+          },
+          defaultValue: "left",
+        },
+      ],
+    },
+    {
+      group: "Button",
+      inputs: [
+        {
+          type: "text",
+          name: "buttonContent",
+          label: "Button text",
+          defaultValue: "Shop all",
+          placeholder: "Enter button text",
+        },
+        ...linkInputs.map((input) => {
+          if (input.name === "text") {
+            return null;
+          }
+          return input;
+        }).filter(Boolean),
       ],
     },
     {
@@ -132,42 +438,20 @@ export const schema = createSchema({
   ],
   presets: {
     verticalPadding: "large",
-    contentPosition: "center center",
     backgroundImage: IMAGES_PLACEHOLDERS.banner_1,
     backgroundFit: "cover",
     enableOverlay: true,
     overlayOpacity: 50,
-    children: [
-      {
-        type: "subheading",
-        content: "Subheading",
-        color: "#fff",
-      },
-      {
-        type: "heading",
-        content: "Slide with text overlay",
-        color: "#fff",
-        size: "scale",
-        minSize: 16,
-        maxSize: 56,
-      },
-      {
-        type: "paragraph",
-        content:
-          "Use this text to share information about your brand with your customers. Describe a product, share announcements, or welcome customers to your store.",
-        color: "#fff",
-      },
-      {
-        type: "button",
-        content: "Shop all",
-        variant: "custom",
-        backgroundColor: "#00000000",
-        textColor: "#fff",
-        borderColor: "#fff",
-        backgroundColorHover: "#fff",
-        textColorHover: "#000",
-        borderColorHover: "#fff",
-      },
-    ],
+    headingContent: "Slide with text overlay",
+    color: "#fff",
+    size: "scale",
+    subheadingColor: "#fff",
+    paragraphContent: "Wide inventory of furniture with plenty of essentials that no home would be complete without.",
+    paragraphColor: "#fff",
+    paragraphWidth: "full",
+    buttonContent: "Shop all",
+    to: "/products",
+    variant: "decor",
+    textColorDecor: "#fff",
   },
 });

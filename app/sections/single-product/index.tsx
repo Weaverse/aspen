@@ -27,12 +27,18 @@ import { Quantity } from "~/components/product/quantity";
 import { layoutInputs, Section } from "~/components/section";
 import { PRODUCT_QUERY } from "~/graphql/queries";
 import { useAnimation } from "~/hooks/use-animation";
-import { SingleProductVariantSelector } from "./variant-selector";
+import { isDiscounted } from "~/utils/product";
+import { CompareAtPrice } from "~/components/compare-at-price";
+import { ProductDetails } from "../product-information/product-details";
+import { ProductVariants } from "~/components/product/variants";
 
 interface SingleProductData {
   productsCount: number;
   product: WeaverseProduct;
   showThumbnails: boolean;
+  showSalePrice?: boolean;
+  showShippingPolicy?: boolean;
+  showRefundPolicy?: boolean;
 }
 
 type SingleProductProps = HydrogenComponentProps<
@@ -47,6 +53,9 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
       children,
       product: _product,
       showThumbnails,
+      showSalePrice = true,
+      showShippingPolicy = true,
+      showRefundPolicy = true,
       ...rest
     } = props;
     const { storeDomain, product } = loaderData || {};
@@ -58,6 +67,9 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
     // Use the selected variant or fall back to the first available variant
     const currentVariant =
       selectedVariant || product?.selectedOrFirstAvailableVariant;
+
+    // Get price range for when no variant is selected
+    const priceRange = product?.priceRange;
 
     if (!product) {
       return (
@@ -147,7 +159,8 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
           <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2 lg:gap-12 fade-up">
             <ProductMedia
               mediaLayout="slider"
-              imageAspectRatio="adapt"
+              enableZoom={true}
+              imageAspectRatio="1/1"
               media={product?.media.nodes}
               selectedVariant={currentVariant}
               showThumbnails={showThumbnails}
@@ -178,44 +191,49 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
                 <h3 data-motion="fade-up" className="tracking-tight">
                   {product?.title}
                 </h3>
-                <p className="text-lg" data-motion="fade-up">
-                  {currentVariant ? (
-                    <Money
-                      withoutTrailingZeros
-                      data={currentVariant.price}
-                      as="span"
-                    />
-                  ) : null}
-                </p>
-                {children}
-                <p
-                  className="leading-relaxed fade-up line-clamp-5"
-                  suppressHydrationWarning
-                  dangerouslySetInnerHTML={{ __html: product?.summary }}
-                />
-                {shouldRenderVariants ? (
-                  <div className="space-y-5" data-motion="fade-up">
-                    <div className="product-form space-y-5">
-                      {productOptions.map((option) => (
-                        <div
-                          className="product-options space-y-2"
-                          key={option.name}
-                        >
-                          <legend className="leading-tight">
-                            <span className="font-bold">{option.name}</span>
-                          </legend>
-                          <SingleProductVariantSelector
-                            option={option}
-                            selectedVariant={selectedVariant}
-                            onVariantChange={setSelectedVariant}
-                          />
-                        </div>
-                      ))}
+                <div className="space-y-5 divide-y divide-line-subtle [&>*:not(:last-child)]:pb-3">
+                  {selectedVariant ? (
+                    <div className="flex justify-between">
+                      <span className="font-normal uppercase">Price</span>
+                      <div className="flex items-center gap-2">
+                        <Money
+                          withoutTrailingZeros
+                          data={selectedVariant.price}
+                          as="span"
+                          className=""
+                        />
+                        {isDiscounted(
+                          selectedVariant.price as MoneyV2,
+                          selectedVariant.compareAtPrice as MoneyV2,
+                        ) &&
+                          showSalePrice && (
+                            <CompareAtPrice
+                              data={selectedVariant.compareAtPrice as MoneyV2}
+                              className=""
+                            />
+                          )}
+                      </div>
                     </div>
-                  </div>
-                ) : null}
+                  ) : (
+                    <div className="flex justify-between">
+                      <span className="font-normal uppercase">Price</span>
+                      {priceRange && (
+                        <Money
+                          withoutTrailingZeros
+                          data={priceRange.minVariantPrice}
+                          as="div"
+                          className=""
+                        />
+                      )}
+                    </div>
+                  )}
+                  {children}
+                  {shouldRenderVariants ? (
+                    <ProductVariants productOptions={productOptions} />
+                  ) : null}
+                  <Quantity value={quantity} onChange={setQuantity} />
+                </div>
               </div>
-              <Quantity value={quantity} onChange={setQuantity} />
               <AddToCartButton
                 disabled={!currentVariant?.availableForSale}
                 lines={[
@@ -244,6 +262,12 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
                   className="-mt-2"
                 />
               )}
+              <ProductDetails
+                product={product}
+                shop={loaderData?.shop}
+                showShippingPolicy={showShippingPolicy}
+                showRefundPolicy={showRefundPolicy}
+              />
               <Link
                 to={`/products/${product.handle}`}
                 prefetch="intent"
@@ -281,6 +305,7 @@ export const loader = async (args: ComponentLoaderArgs<SingleProductData>) => {
 
   return {
     product,
+    shop,
     storeDomain: shop.primaryDomain.url,
   };
 };
@@ -313,6 +338,29 @@ export const schema = createSchema({
           name: "showThumbnails",
           type: "switch",
           defaultValue: false,
+        },
+      ],
+    },
+    {
+      group: "Product Options",
+      inputs: [
+        {
+          label: "Show sale price",
+          name: "showSalePrice",
+          type: "switch",
+          defaultValue: true,
+        },
+        {
+          label: "Show shipping policy",
+          name: "showShippingPolicy",
+          type: "switch",
+          defaultValue: true,
+        },
+        {
+          label: "Show refund policy",
+          name: "showRefundPolicy",
+          type: "switch",
+          defaultValue: true,
         },
       ],
     },

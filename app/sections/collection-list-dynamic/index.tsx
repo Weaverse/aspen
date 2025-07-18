@@ -1,33 +1,19 @@
-import type {
-  ComponentLoaderArgs,
-  HydrogenComponentSchema,
-  WeaverseCollection,
-} from "@weaverse/hydrogen";
+import type { HydrogenComponentSchema } from "@weaverse/hydrogen";
 import { cva, type VariantProps } from "class-variance-authority";
-import React, { forwardRef } from "react";
-import type { CollectionsByIdsQuery } from "storefront-api.generated";
+import { forwardRef } from "react";
 import type { SectionProps } from "~/components/section";
-import { Section, layoutInputs } from "~/components/section";
-
-interface CollectionListDynamicData {
-  collections: WeaverseCollection[];
-  layout: "grid" | "slider" | "showcase";
-}
+import { layoutInputs, Section } from "~/components/section";
 
 interface CollectionListDynamicProps
-  extends SectionProps<CollectionListDynamicLoaderData>,
-    VariantProps<typeof variants>,
-    CollectionListDynamicData {}
+  extends SectionProps,
+    VariantProps<typeof variants> {}
 
 let variants = cva("flex flex-col [&_.paragraph]:mx-[unset]", {
   variants: {
     contentPosition: {
-      "left":
-        "justify-center items-start [&_.paragraph]:[text-align:left]",
-      "center":
-        "justify-center items-center [&_.paragraph]:[text-align:center]",
-      "right":
-        "justify-center items-end [&_.paragraph]:[text-align:right]",
+      left: "justify-center items-start [&_.paragraph]:[text-align:left]",
+      center: "justify-center items-center [&_.paragraph]:[text-align:center]",
+      right: "justify-center items-end [&_.paragraph]:[text-align:right]",
     },
   },
   defaultVariants: {
@@ -37,7 +23,7 @@ let variants = cva("flex flex-col [&_.paragraph]:mx-[unset]", {
 
 let CollectionListDynamic = forwardRef<HTMLElement, CollectionListDynamicProps>(
   (props, ref) => {
-    let { loaderData, children, contentPosition, ...rest } = props;
+    let { children, contentPosition, ...rest } = props;
 
     return (
       <Section
@@ -50,73 +36,12 @@ let CollectionListDynamic = forwardRef<HTMLElement, CollectionListDynamicProps>(
         {children}
       </Section>
     );
-  }
+  },
 );
 
 export default CollectionListDynamic;
 
-let COLLECTIONS_QUERY = `#graphql
-  query collectionByIds($country: CountryCode, $language: LanguageCode, $ids: [ID!]!)
-  @inContext(country: $country, language: $language) {
-    nodes(ids: $ids) {
-      ... on Collection {
-        id
-        title
-        handle
-        onlineStoreUrl
-        description
-        image {
-          id
-          altText
-          width
-          height
-          url
-        }
-        products(first: 3) {
-          nodes {
-            title
-            handle
-            featuredImage {
-              id
-              url
-              altText
-              width
-              height
-            }
-          }
-        }
-      }
-    }
-  }
-` as const;
-
-export type CollectionListDynamicLoaderData = Awaited<
-  ReturnType<typeof loader>
->;
-
-export let loader = async ({
-  data,
-  weaverse,
-}: ComponentLoaderArgs<CollectionListDynamicData>) => {
-  let { language, country } = weaverse.storefront.i18n;
-  let ids = data.collections?.map(
-    (collection) => `gid://shopify/Collection/${collection.id}`
-  );
-  if (ids?.length) {
-    let { nodes } = await weaverse.storefront.query<CollectionsByIdsQuery>(
-      COLLECTIONS_QUERY,
-      {
-        variables: {
-          country,
-          language,
-          ids,
-        },
-      }
-    );
-    return nodes.filter(Boolean);
-  }
-  return [];
-};
+// Remove the COLLECTIONS_QUERY and loader since they'll be moved to collection-items
 
 export let schema: HydrogenComponentSchema = {
   type: "collection-list-dynamic",
@@ -132,24 +57,7 @@ export let schema: HydrogenComponentSchema = {
     {
       group: "Collection List",
       inputs: [
-        {
-          type: "collection-list",
-          name: "collections",
-          label: "Collections",
-        },
-        {
-          type: "select",
-          name: "layout",
-          label: "Layout",
-          configs: {
-            options: [
-              { value: "grid", label: "Grid" },
-              { value: "slider", label: "Slider" },
-              { value: "showcase", label: "Showcase" },
-            ],
-          },
-          defaultValue: "grid",
-        },
+        // Remove collections and layout from here
         {
           type: "toggle-group",
           name: "contentPosition",

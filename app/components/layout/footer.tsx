@@ -235,11 +235,7 @@ function FooterMenu() {
           >
             {!isEmpty ? (
               <Accordion.Trigger className="flex py-4 justify-between items-center md:hidden text-left font-medium data-[state=open]:[&>svg]:rotate-90">
-                {["#", "/"].includes(to) ? (
-                  <span>{title}</span>
-                ) : (
-                  <Link className="w-fit" to={to}>{title}</Link>
-                )}
+                <span>{title}</span>
                 <Plus className="w-4 h-4 transition-transform rotate-0" />
               </Accordion.Trigger>
             ) : (
@@ -252,8 +248,12 @@ function FooterMenu() {
               </div>
             )}
 
-            <div className="text-lg font-medium hidden md:block">
-              {["#", "/"].includes(to) ? title : <Link to={to}>{title}</Link>}
+            <div className="font-semibold hidden md:block">
+              {!isEmpty ? (
+                <span>{title}</span>
+              ) : (
+                ["#", "/"].includes(to) ? title : <Link to={to}>{title}</Link>
+              )}
             </div>
 
             {!isEmpty && (
