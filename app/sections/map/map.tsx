@@ -124,20 +124,11 @@ let MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
               </div>
             )}
           </div>
-          {layoutMap === "accordion" && (
-            <div className="hidden md:block md:w-1/3 w-full"></div>
-          )}
 
           {/* Map container - Right column */}
-          <div className={clsx("flex-1 md:w-2/3 md:ml-auto w-full relative")}>
+          <div className="w-full md:w-3/4 md:ml-auto relative">
             {/* Map that displays the active address */}
-            <div
-              className={clsx(
-                layoutMap === "accordion"
-                  ? "w-full h-full bg-gray-100 rounded-md overflow-hidden aspect-square"
-                  : "w-full h-full bg-gray-100 aspect-square relative"
-              )}
-            >
+            <div className="w-full bg-gray-100 rounded-md overflow-hidden md:aspect-[16/12] aspect-[3/4]">
               {/* We use the same iframe for both layouts now */}
               <iframe
                 key={activeAddress}
