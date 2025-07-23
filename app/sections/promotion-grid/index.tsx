@@ -15,7 +15,7 @@ const PromotionGrid = forwardRef<HTMLElement, PromotionGridProps>(
         {children}
       </Section>
     );
-  }
+  },
 );
 
 export default PromotionGrid;
@@ -28,15 +28,10 @@ export const schema = createSchema({
     { group: "Background", inputs: backgroundInputs },
     { group: "Overlay", inputs: overlayInputs },
   ],
-  childTypes: ["grid-items", "heading", "paragraph"],
+  childTypes: ["grid-items", "promotion-grid-content"],
   presets: {
     children: [
-      { type: "heading", content: "EXPLORE MORE" },
-      {
-        type: "paragraph",
-        content:
-          "If you're looking for products that bring ease through form and function, we offer no-fuss furniture built to last.",
-      },
+      { type: "promotion-grid-content" },
       {
         type: "grid-items",
       },
