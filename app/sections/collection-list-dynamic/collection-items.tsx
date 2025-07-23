@@ -101,8 +101,7 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
                 <Image
                   data={collection.image}
                   className={clsx([
-                    "transition-all duration-300 h-full w-full object-cover",
-                    "will-change-transform scale-100 group-hover:scale-[1.05]",
+                    "h-full w-full object-cover",
                   ])}
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
@@ -141,8 +140,7 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
                 <Image
                   data={collection.image}
                   className={clsx([
-                    "transition-all duration-300 h-full w-full object-cover",
-                    "will-change-transform scale-100 group-hover:scale-[1.05]",
+                    "h-full w-full object-cover",
                   ])}
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
@@ -216,8 +214,7 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
                       height={third.image.height || 800}
                       sizes="(max-width: 32em) 100vw, 30vw"
                       className={clsx([
-                        "transition-all duration-300 h-full w-full object-cover",
-                        "will-change-transform scale-100 group-hover:scale-[1.05]",
+                        "h-full w-full object-cover",
                       ])}
                     />
                     <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
