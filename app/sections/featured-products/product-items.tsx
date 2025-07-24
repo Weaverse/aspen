@@ -152,6 +152,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
             {/* Navigation arrows for mobile */}
             <div className="flex gap-2 justify-center md:hidden">
               <button
+                type="button"
                 className={clsx(
                   "featured-products-prev rounded-full bg-[#EDEAE6] p-4",
                   activeSlide === 0
@@ -164,6 +165,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
               </button>
 
               <button
+                type="button"
                 className="featured-products-next rounded-full bg-[#EDEAE6] p-4"
                 aria-label="Next product"
               >
@@ -233,8 +235,8 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
           className="w-full py-4 mb-6"
         >
           {products.nodes.map((product, index) => (
-            <SwiperSlide key={product.id}>
-              <div className="relative h-full group">
+            <SwiperSlide key={index}>
+              <div className="relative h-full">
                 <ProductCard product={product} className="h-full" />
               </div>
             </SwiperSlide>
@@ -244,6 +246,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
         {/* Navigation arrows based on Figma design */}
         <div className="flex gap-2 justify-center">
           <button
+            type="button"
             className={clsx(
               "featured-products-prev rounded-full bg-[#EDEAE6] p-4",
               activeSlide === 0
@@ -256,6 +259,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
           </button>
 
           <button
+            type="button"
             className="featured-products-next rounded-full bg-[#EDEAE6] p-4"
             aria-label="Next product"
           >

@@ -1,11 +1,12 @@
 import { createSchema, IMAGES_PLACEHOLDERS } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
-import { forwardRef, type ReactNode, useEffect, useState } from "react";
+import { forwardRef, type ReactNode, useEffect, useState, useRef } from "react";
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
-import { CaretLeft, CaretRight } from "@phosphor-icons/react";
+import { ArrowLeftIcon, ArrowRightIcon } from "@phosphor-icons/react";
 import type { SectionProps } from "~/components/section";
+import type { Swiper as SwiperType } from 'swiper';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
@@ -18,7 +19,7 @@ type GridItemProps = VariantProps<typeof variants> & SectionProps & {
   enableNavigation?: boolean;
 };
 
-let variants = cva("relative promotion-slider", {
+let variants = cva("relative promotion-slider md:px-8 px-5", {
   variants: {
     slidesToShow: {
       1: "",
@@ -64,6 +65,9 @@ let PromotionSlider = forwardRef<HTMLDivElement, GridItemProps>((props, ref) => 
   } = props;
 
   const [swiperKey, setSwiperKey] = useState(0);
+  const swiperRef = useRef<SwiperType | null>(null);
+  const prevButtonRef = useRef<HTMLButtonElement>(null);
+  const nextButtonRef = useRef<HTMLButtonElement>(null);
 
   const childrenArray = Array.isArray(children) ? children : children ? [children] : [];
   const totalSlides = childrenArray.length;
@@ -76,16 +80,17 @@ let PromotionSlider = forwardRef<HTMLDivElement, GridItemProps>((props, ref) => 
     return <div ref={ref} {...rest} className={variants({ slidesToShow, gap })} />;
   }
 
-  const NavigationButtons = () => (
-    <>
-      <button className="swiper-button-prev-custom absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white shadow-lg rounded-full p-3 transition-all duration-200 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed">
-        <CaretLeft className="w-6 h-6 text-gray-800" />
-      </button>
-      <button className="swiper-button-next-custom absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white shadow-lg rounded-full p-3 transition-all duration-200 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed">
-        <CaretRight className="w-6 h-6 text-gray-800" />
-      </button>
-    </>
-  );
+  const handlePrevClick = () => {
+    if (swiperRef.current) {
+      swiperRef.current.slidePrev();
+    }
+  };
+
+  const handleNextClick = () => {
+    if (swiperRef.current) {
+      swiperRef.current.slideNext();
+    }
+  };
 
   return (
     <div ref={ref} {...rest} className={variants({ slidesToShow, gap })}>
@@ -114,14 +119,38 @@ let PromotionSlider = forwardRef<HTMLDivElement, GridItemProps>((props, ref) => 
         `
       }} />
       
+      {enableNavigation && totalSlides > slidesToShow && (
+        <>
+          <button 
+            ref={prevButtonRef}
+            type="button" 
+            onClick={handlePrevClick}
+            className="swiper-button-prev-custom absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white shadow-lg rounded-full p-3 transition-all duration-200 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ArrowLeftIcon className="w-6 h-6 text-gray-800" />
+          </button>
+          <button 
+            ref={nextButtonRef}
+            type="button" 
+            onClick={handleNextClick}
+            className="swiper-button-next-custom absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white shadow-lg rounded-full p-3 transition-all duration-200 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ArrowRightIcon className="w-6 h-6 text-gray-800" />
+          </button>
+        </>
+      )}
+      
       <Swiper
         key={swiperKey}
+        onSwiper={(swiper) => {
+          swiperRef.current = swiper;
+        }}
         modules={[Navigation, Pagination, Autoplay]}
         spaceBetween={gap}
         slidesPerView={slidesToShow}
         navigation={enableNavigation ? {
-          prevEl: '.swiper-button-prev-custom',
-          nextEl: '.swiper-button-next-custom',
+          prevEl: prevButtonRef.current,
+          nextEl: nextButtonRef.current,
         } : false}
         pagination={enableDots ? {
           clickable: true,
@@ -161,9 +190,6 @@ let PromotionSlider = forwardRef<HTMLDivElement, GridItemProps>((props, ref) => 
           </SwiperSlide>
         ))}
       </Swiper>
-
-      {/* Custom Navigation Arrows */}
-      {enableNavigation && totalSlides > slidesToShow && <NavigationButtons />}
 
       {/* Custom Pagination Dots */}
       {enableDots && totalSlides > slidesToShow && (

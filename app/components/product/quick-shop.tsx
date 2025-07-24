@@ -175,7 +175,7 @@ export function QuickShop({ data }: { data: ProductData }) {
 
   // Internal variant state for QuickShop - not tied to URL
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
-    product?.selectedOrFirstAvailableVariant?.id || null
+    product?.selectedOrFirstAvailableVariant?.id || null,
   );
 
   // Find the selected variant from the adjacent variants (which includes all product variants)
@@ -204,8 +204,8 @@ export function QuickShop({ data }: { data: ProductData }) {
   const atcText = selectedVariant?.availableForSale
     ? addToCartText
     : selectedVariant?.quantityAvailable === -1
-    ? unavailableText
-    : soldOutText;
+      ? unavailableText
+      : soldOutText;
   const { price, compareAtPrice } = selectedVariant;
   return (
     <>
@@ -240,7 +240,7 @@ export function QuickShop({ data }: { data: ProductData }) {
                   {showCompareAtPrice &&
                     isDiscounted(
                       price as MoneyV2,
-                      compareAtPrice as MoneyV2
+                      compareAtPrice as MoneyV2,
                     ) && <CompareAtPrice data={compareAtPrice as MoneyV2} />}
                 </div>
               </div>
@@ -301,7 +301,7 @@ export function QuickShopTrigger({ productHandle }: { productHandle: string }) {
   const [open, setOpen] = useState(false);
   const { load, data, state } = useFetcher<ProductData>();
   const apiPath = usePrefixPathWithLocale(
-    `/api/product?handle=${productHandle}`
+    `/api/product?handle=${productHandle}`,
   );
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: open and state are intentionally excluded
@@ -314,13 +314,23 @@ export function QuickShopTrigger({ productHandle }: { productHandle: string }) {
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger asChild>
-        <Button
-          variant="secondary"
-          loading={state === "loading"}
-          className="!absolute inset-x-4 bottom-4 !opacity-0 -translate-y-1.5 -translate-x-2 lg:group-hover:!opacity-100 lg:group-hover:translate-x-0 lg:group-hover:translate-y-2 !transition-all duration-500"
+        <button
+          type="button"
+          className={clsx(
+            "absolute inset-x-4 bottom-4 !opacity-0 -translate-y-1.5 -translate-x-2 lg:group-hover:!opacity-100 lg:group-hover:translate-x-0 lg:group-hover:translate-y-2 !transition-all duration-500",
+            "border px-4 py-3",
+            "text-(--btn-secondary-text)",
+            "bg-(--btn-secondary-bg)",
+            "border-(--btn-secondary-bg)",
+            "hover:bg-(--btn-secondary-text)",
+            "hover:text-(--btn-secondary-bg)",
+            "hover:border-(--btn-secondary-text)",
+            "inline-flex items-center justify-center rounded-none",
+            "text-base leading-tight font-normal whitespace-nowrap",
+          )}
         >
           Quick shop
-        </Button>
+        </button>
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay

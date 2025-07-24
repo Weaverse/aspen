@@ -1,9 +1,10 @@
-import { type HydrogenComponentSchema, useParentInstance } from "@weaverse/hydrogen";
+import { type HydrogenComponentSchema } from "@weaverse/hydrogen";
 import { forwardRef, useEffect, useRef, useState, useContext } from "react";
-import { MapPinLine, PlusCircle, MinusCircle } from "@phosphor-icons/react";
+import { MapPinLineIcon, PlusCircleIcon, MinusCircleIcon } from "@phosphor-icons/react";
 import clsx from "clsx";
 import { MapContext } from './map';
 import * as Accordion from "@radix-ui/react-accordion";
+import { cn } from "~/utils/cn";
 
 interface AddressProps {
   address: string;
@@ -85,7 +86,7 @@ let Address = forwardRef<HTMLDivElement, AddressProps>((props, ref) => {
               activeItem === itemIndex ? "bg-gray-100" : "")
             }
           >
-            <MapPinLine size={24} weight="light" className="text-[#918379]" />
+            <MapPinLineIcon size={24} weight="light" className="text-[#918379]" />
             <div className="flex flex-col">
               <span className="text-base font-medium">
                 {nameStore}
@@ -120,7 +121,7 @@ let Address = forwardRef<HTMLDivElement, AddressProps>((props, ref) => {
           }}
         >
           <div className="flex items-center gap-3 w-full">
-            <MapPinLine size={18} weight="light" className="text-[#918379] flex-shrink-0" />
+            <MapPinLineIcon size={18} weight="light" className="text-[#918379] flex-shrink-0" />
             <div className="flex flex-col text-left">
               <span className="text-sm font-semibold text-[#29231E] uppercase">
                 {nameStore}
@@ -128,13 +129,13 @@ let Address = forwardRef<HTMLDivElement, AddressProps>((props, ref) => {
             </div>
           </div>
           <div className="relative h-5 w-5 ml-auto">
-            <PlusCircle
+            <PlusCircleIcon
               size={20}
               weight="regular"
               className="absolute inset-0 h-full w-full text-[#524B46] transition-opacity duration-200 group-data-[state=open]:opacity-0"
               aria-hidden
             />
-            <MinusCircle
+            <MinusCircleIcon
               size={20}
               weight="regular"
               className="absolute inset-0 h-full w-full text-[#524B46] transition-opacity duration-200 opacity-0 group-data-[state=open]:opacity-100"
@@ -152,21 +153,25 @@ let Address = forwardRef<HTMLDivElement, AddressProps>((props, ref) => {
           } as React.CSSProperties}
           className={clsx(
             "overflow-hidden",
-            "data-[state=closed]:animate-collapse",
-            "data-[state=open]:animate-expand",
+            "data-[state=closed]:animate-collapse", 
+            "data-[state=open]:animate-expand"
           )}
         >
       
           {/* Additional info shown when accordion is open */}
-          <div className="px-4 pb-4 ml-[calc(18px+0.75rem)]">
+          <div className={cn(layoutMap === 'accordion' ? 'flex px-4 pb-4' : "px-4 pb-4 ml-[calc(18px+0.75rem)]")}>
             {/* Address and Phone Number */}
-            <div className="flex flex-col mb-3">
-              <span className="text-sm text-[#524B46] font-semibold">Address:</span>
+            <div className={cn("flex flex-col", layoutMap === 'accordion' ? 'flex-1 mb-0' : 'mb-3')}>
+              {layoutMap !== 'accordion' && (
+                <span className="text-sm text-[#524B46] font-semibold">Address:</span>
+              )}
               <span className="text-sm text-[#524B46] mt-1">{address}</span>
               
               {phoneNumber && (
                 <div className="mt-2">
-                  <span className="text-sm text-[#524B46] font-semibold">Phone:</span>
+                  {layoutMap !== 'accordion' && (
+                    <span className="text-sm text-[#524B46] font-semibold">Phone:</span>
+                  )}
                   <span className="text-sm text-[#524B46] block">{phoneNumber}</span>
                 </div>
               )}
@@ -174,7 +179,7 @@ let Address = forwardRef<HTMLDivElement, AddressProps>((props, ref) => {
             
             {/* Opening Hours */}
             {(openingHours || openingHoursSat) && (
-              <div className="text-sm text-[#524B46] mb-2">
+              <div className={cn("text-sm text-[#524B46]", layoutMap === 'accordion' ? 'flex-1 mb-0' : 'mb-2')}>
                 <div className="flex flex-col">
                   <span className="font-semibold">Opening hours:</span>
                   {openingHours && <span>{openingHours}</span>}
@@ -209,7 +214,7 @@ let Address = forwardRef<HTMLDivElement, AddressProps>((props, ref) => {
             activeItem === itemIndex ? "bg-gray-100" : "")
           }
         >
-          <MapPinLine size={24} weight="light" className="text-[#918379]" />
+          <MapPinLineIcon size={24} weight="light" className="text-[#918379]" />
           <div className="flex flex-col">
             <span className="text-base font-medium">
               {nameStore}

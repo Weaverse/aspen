@@ -8,7 +8,7 @@ import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import clsx from "clsx";
 import { forwardRef } from "react";
-import { Autoplay, EffectFade, Pagination } from "swiper/modules";
+import { Autoplay, EffectFade } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import type { SlideshowArrowsProps } from "./arrows";
 import { Arrows } from "./arrows";
@@ -99,22 +99,9 @@ const Slideshow = forwardRef<
         }}
         loop={effect === "slide" ? loop : false}
         autoplay={autoRotate ? { delay: changeSlidesEvery * 1000 } : false}
-        pagination={
-          showDots && {
-            el: ".slideshow-dots",
-            clickable: true,
-            bulletClass: clsx(
-              "dot cursor-pointer",
-              "w-12 h-1 p-0",
-              "transition-all duration-200",
-            ),
-            bulletActiveClass: "active",
-          }
-        }
         modules={[
           effect === "fade" ? EffectFade : null,
           autoRotate ? Autoplay : null,
-          showDots ? Pagination : null,
         ].filter(Boolean)}
       >
         {children.map((child, idx) => (
@@ -123,7 +110,7 @@ const Slideshow = forwardRef<
           </SwiperSlide>
         ))}
         {showArrows && <Arrows {...props} />}
-        {showDots && <Dots {...props} />}
+        {showDots && <Dots {...props} slidesCount={children.length} />}
       </Swiper>
     </section>
   );

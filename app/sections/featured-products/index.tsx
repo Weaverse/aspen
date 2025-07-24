@@ -50,7 +50,7 @@ export const loader = async ({ weaverse }: ComponentLoaderArgs) => {
 export const schema = createSchema({
   type: "featured-products",
   title: "Featured products",
-  childTypes: ["featured-products-items", "heading", "subheading", "paragraph"],
+  childTypes: ["featured-products-items", "featured-content-products"],
   settings: [
     {
       group: "Layout",
@@ -60,7 +60,7 @@ export const schema = createSchema({
   presets: {
     gap: 32,
     children: [
-      { type: "heading", content: "Featured products" },
+      { type: "featured-content-products" },
       { type: "featured-products-items" },
     ],
   },

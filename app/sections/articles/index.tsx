@@ -181,13 +181,13 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
     >
       <div className="flex flex-col gap-8">
         <div className="flex items-center justify-between">
-          <h5 className="font-normal uppercase font-heading tracking-wider text-[var(--accent-color)]">
+          <h5 className="font-normal uppercase font-heading tracking-wider text-(--accent-color)">
             {articleHeading}
           </h5>
           {viewAllText && (
             <Link
               to={blogs?.handle ? `/blogs/${blogs.handle}` : "#"}
-              className="flex items-center gap-2 text-sm cursor-pointer font-medium uppercase tracking-wider text-[var(--accent-color)] hover:opacity-80 transition-opacity"
+              className="flex items-center gap-2 text-sm cursor-pointer font-medium uppercase tracking-wider text-(--accent-color) hover:opacity-80 transition-opacity"
             >
               {viewAllText}
               <ArrowRight className="w-4 h-4" weight="bold" />
@@ -209,7 +209,7 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
               >
                 <div className="flex w-full h-full flex-col gap-4">
                   {idx.image && (
-                    <div className="overflow-hidden rounded-[var(--border-radius)] aspect-square">
+                    <div className="overflow-hidden rounded-(--border-radius) aspect-square">
                       <Image
                         data={idx.image}
                         sizes="auto"
@@ -220,7 +220,7 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
                   <div className="flex flex-col gap-3">
                     <Tag
                       className={cn(
-                        "font-normal text-[var(--accent-color)]",
+                        "font-normal text-(--accent-color)",
                         size === "custom" &&
                           fontSizeVariants({ mobileSize, desktopSize }),
                         variants({ size, weight })
@@ -229,13 +229,13 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
                       {idx.title}
                     </Tag>
                     {showSeperator && (
-                      <div className="w-full border-b border-[var(--accent-color)] opacity-20"></div>
+                      <div className="w-full border-b border-(--accent-color) opacity-20"></div>
                     )}
-                    <p className="line-clamp-2 text-[var(--accent-color)] opacity-80">
+                    <p className="line-clamp-2 text-(--accent-color) opacity-80">
                       {idx.excerpt}
                     </p>
                     {showPublishedDate && idx.publishedAt && (
-                      <div className="flex mt-4 gap-1 text-[var(--accent-color)] text-sm opacity-80">
+                      <div className="flex mt-4 gap-1 text-(--accent-color) text-sm opacity-80">
                         <time className="">
                           {new Date(idx.publishedAt).toLocaleDateString(
                             "en-US",

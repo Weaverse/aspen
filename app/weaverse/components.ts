@@ -26,16 +26,19 @@ import * as CountDownTimer from "~/sections/countdown/timer";
 import * as CollectionList from "~/sections/collection-list-page/collections-items";
 import * as CollectionListItems from "~/sections/collection-list-page";
 import * as CollectionListDynamic from "~/sections/collection-list-dynamic";
+import * as CollectionContentDynamic from "~/sections/collection-list-dynamic/content";
 import * as CollectionListDynamicItems from "~/sections/collection-list-dynamic/collection-items";
 import * as FeaturedCollections from "~/sections/featured-collections";
 import * as FeaturedCollectionItems from "~/sections/featured-collections/collection-items";
 import * as FeaturedProducts from "~/sections/featured-products";
+import * as FeaturedContentProducts from "~/sections/featured-products/content";
 import * as FeaturedProductItems from "~/sections/featured-products/product-items";
 import * as HeroImage from "~/sections/hero-image";
 import * as HeroVideo from "~/sections/hero-video";
 import * as Highlights from "~/sections/highlights";
 import * as HighlightsBadge from "~/sections/highlights/badge";
 import * as Hotspots from "~/sections/hotspots";
+import * as HotspotsContent from "~/sections/hotspots/content";
 import * as HotspotsItem from "~/sections/hotspots/item";
 import * as HotspotsContainer from "~/sections/hotspots/hotpots";
 import * as HotspotsImage from "~/sections/hotspots/hotpots-image";
@@ -62,6 +65,7 @@ import * as ProductInformation from "~/sections/product-information";
 import * as PromotionGrid from "~/sections/promotion-grid";
 import * as GridItems from "~/sections/promotion-grid/grid-items";
 import * as PromotionGridItem from "~/sections/promotion-grid/item";
+import * as PromotionGridItemContent from "~/sections/promotion-grid/content";
 import * as RelatedArticles from "~/sections/related-articles";
 import * as RelatedProducts from "~/sections/related-products";
 import * as SingleProduct from "~/sections/single-product";
@@ -125,7 +129,9 @@ export const components: HydrogenComponent[] = [
   PromotionGrid,
   GridItems,
   PromotionGridItem,
+  PromotionGridItemContent,
   Hotspots,
+  HotspotsContent,
   HotspotsItem,
   HotspotsContainer,
   HotspotsImage,
@@ -137,6 +143,7 @@ export const components: HydrogenComponent[] = [
   BlogPost,
   AllProducts,
   FeaturedProducts,
+  FeaturedContentProducts,
   FeaturedProductItems,
   Testimonial,
   TestimonialContent,
@@ -153,6 +160,7 @@ export const components: HydrogenComponent[] = [
   CollectionList,
   CollectionListItems,
   CollectionListDynamic,
+  CollectionContentDynamic,
   CollectionListDynamicItems,
   SingleProduct,
   Judgeme,
