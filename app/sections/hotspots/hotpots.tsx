@@ -1,5 +1,6 @@
 import type { HydrogenComponentProps } from "@weaverse/hydrogen";
 import { createSchema } from "@weaverse/hydrogen";
+import clsx from "clsx";
 import { forwardRef, createContext, useContext, Children } from "react";
 import type { ImageAspectRatio } from "~/types/image";
 
@@ -18,13 +19,6 @@ let Hotspots = forwardRef<HTMLDivElement, HotspotsProps>((props, ref) => {
   let { children, gap = 20, aspectRatio = "adapt", ...rest } = props;
 
   const childrenCount = Children.count(children);
-  
-  const getGridClass = () => {
-    if (childrenCount === 1) {
-      return "grid-cols-1";
-    }
-    return "md:grid-cols-2 grid-cols-1";
-  };
 
   const containerStyle = {
     display: 'grid' as const,
@@ -36,7 +30,7 @@ let Hotspots = forwardRef<HTMLDivElement, HotspotsProps>((props, ref) => {
       <div 
         ref={ref} 
         {...rest}
-        className={`${getGridClass()} w-full`}
+        className={clsx("w-full", childrenCount === 1 ? "grid-cols-1" : "md:grid-cols-2 grid-cols-1")}
         style={containerStyle}
       >
         {children}
