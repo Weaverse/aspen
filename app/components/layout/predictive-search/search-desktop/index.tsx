@@ -51,6 +51,7 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
           className={cn([
             "fixed inset-x-0 top-[calc(var(--height-nav)+var(--topbar-height))] bg-(--color-header-bg) z-3",
             "border-t border-line-subtle",
+            "min-h-[300px]",
             "-translate-y-full data-[state=open]:translate-y-0",
             "data-[state=open]:animate-enter-from-top",
             "focus-visible:outline-hidden",
