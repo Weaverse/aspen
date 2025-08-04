@@ -1,4 +1,9 @@
-import { ArrowLeft, ArrowRight, FacebookLogo, InstagramLogo, LinkedinLogo, XLogo } from "@phosphor-icons/react";
+import {
+  FacebookLogo,
+  InstagramLogo,
+  LinkedinLogo,
+  XLogo,
+} from "@phosphor-icons/react";
 import { useThemeSettings } from "@weaverse/hydrogen";
 import { cva } from "class-variance-authority";
 import { useEffect, useRef } from "react";
@@ -79,7 +84,7 @@ export function ScrollingAnnouncement() {
     if (topbarText) {
       document.body.style.setProperty(
         "--topbar-height",
-        `${Math.max(height - window.scrollY, 0)}px`
+        `${Math.max(height - window.scrollY, 0)}px`,
       );
     } else {
       document.body.style.setProperty("--topbar-height", "0px");
@@ -123,7 +128,7 @@ export function ScrollingAnnouncement() {
       <div
         className={cn(
           "grid lg:grid-cols-3 lg:gap-8 justify-center items-center py-1 grid-cols-1",
-          variants({ width: announcementWidth })
+          variants({ width: announcementWidth }),
         )}
       >
         <div className="lg:flex gap-4 justify-start hidden">
@@ -138,7 +143,7 @@ export function ScrollingAnnouncement() {
               >
                 {social.icon}
               </Link>
-            ) : null
+            ) : null,
           )}
         </div>
         <div className="relative w-full">
@@ -164,23 +169,48 @@ export function ScrollingAnnouncement() {
           </Swiper>
 
           <button
+            type="button"
             className="announcement-prev absolute left-0 top-1/2 -translate-y-1/2 z-10 p-2"
-            style={{backgroundColor: topbarBgColor,} as React.CSSProperties}
+            style={{ backgroundColor: topbarBgColor } as React.CSSProperties}
             aria-label="Previous slide"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 20 20"
+              fill="none"
+              className="rotate-180"
+            >
+              <path
+                d="M14.0575 4.74121L13.1737 5.62508L16.9236 9.37496H0.625V10.625H16.9234L13.1737 14.3748L14.0575 15.2586L19.3163 9.99992L14.0575 4.74121Z"
+                fill="#29231E"
+              />
+            </svg>
           </button>
 
           <button
+            type="button"
             className="announcement-next absolute right-0 top-1/2 -translate-y-1/2 z-10 p-2"
-            style={{backgroundColor: topbarBgColor,} as React.CSSProperties}
+            style={{ backgroundColor: topbarBgColor } as React.CSSProperties}
             aria-label="Next slide"
           >
-            <ArrowRight className="w-5 h-5" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 20 20"
+              fill="none"
+            >
+              <path
+                d="M14.0575 4.74121L13.1737 5.62508L16.9236 9.37496H0.625V10.625H16.9234L13.1737 14.3748L14.0575 15.2586L19.3163 9.99992L14.0575 4.74121Z"
+                fill="#29231E"
+              />
+            </svg>
           </button>
         </div>
         <div className="lg:flex justify-end hidden">
-          <CountrySelector inputClassName="px-4 py-2" />
+          <CountrySelector inputClassName="px-4 py-2" enableFlag={false} />
         </div>
       </div>
     </div>
