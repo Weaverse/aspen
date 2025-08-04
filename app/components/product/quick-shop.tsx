@@ -5,9 +5,8 @@ import {
   ShopPayButton,
 } from "@shopify/hydrogen";
 import type { MoneyV2 } from "@shopify/hydrogen/storefront-api-types";
-import { XIcon, MinusIcon, PlusIcon } from "@phosphor-icons/react";
+import { XIcon, CaretLeftIcon } from "@phosphor-icons/react";
 import * as Dialog from "@radix-ui/react-dialog";
-import * as Accordion from "@radix-ui/react-accordion";
 import { useThemeSettings } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { useEffect, useState } from "react";
@@ -47,70 +46,45 @@ function ProductDetailsContent({
   const { shippingPolicy, refundPolicy } = shop || {};
 
   const details = [
-    { title: "Description", content: description },
-    { title: "Summary", content: summary },
+    summary && { title: "SUMMARY", content: summary },
+    description && { title: "DESCRIPTION", content: description },
     showShippingPolicy &&
       shippingPolicy?.body && {
-        title: "Shipping",
+        title: "SHIPPING",
         content: getExcerpt(shippingPolicy.body),
         learnMore: `/policies/${shippingPolicy.handle}`,
       },
     showRefundPolicy &&
       refundPolicy?.body && {
-        title: "Returns",
+        title: "RETURNS",
         content: getExcerpt(refundPolicy.body),
         learnMore: `/policies/${refundPolicy.handle}`,
       },
   ].filter(Boolean);
 
   return (
-    <Accordion.Root type="multiple">
+    <div className="flex flex-col items-center gap-9 px-6">
       {details.map(({ title, content, learnMore }) => (
-        <Accordion.Item key={title} value={title}>
-          <Accordion.Trigger
-            className={clsx([
-              "flex justify-between py-4 w-full font-bold",
-              "border-b border-line-subtle",
-              "data-[state=open]:[&>.minus]:inline-block",
-              "data-[state=open]:[&>.plus]:hidden",
-            ])}
-          >
-            <span>{title}</span>
-            <MinusIcon className="w-4 h-4 minus hidden" />
-            <PlusIcon className="w-4 h-4 plus" />
-          </Accordion.Trigger>
-          <Accordion.Content
-            style={
-              {
-                "--expand-to": "var(--radix-accordion-content-height)",
-                "--expand-duration": "0.15s",
-                "--collapse-from": "var(--radix-accordion-content-height)",
-                "--collapse-duration": "0.15s",
-              } as React.CSSProperties
-            }
-            className={clsx([
-              "overflow-hidden",
-              "data-[state=closed]:animate-collapse",
-              "data-[state=open]:animate-expand",
-            ])}
-          >
-            <div
-              suppressHydrationWarning
-              className="prose dark:prose-invert py-2.5"
-              dangerouslySetInnerHTML={{ __html: content }}
-            />
-            {learnMore && (
-              <Link
-                className="pb-px border-b border-line-subtle text-body-subtle"
-                to={learnMore}
-              >
-                Learn more
-              </Link>
-            )}
-          </Accordion.Content>
-        </Accordion.Item>
+        <div key={title} className="flex flex-col items-center gap-6 w-full">
+          <span className="font-normal uppercase w-full">
+            {title}
+          </span>
+          <div
+            suppressHydrationWarning
+            className="font-normal w-full prose prose-sm prose-neutral max-w-none [&>p]:mb-4 [&>ul]:mb-4 [&>ol]:mb-4"
+            dangerouslySetInnerHTML={{ __html: content }}
+          />
+          {learnMore && (
+            <Link
+              className="pb-px border-b border-line-subtle text-body-subtle text-sm w-full"
+              to={learnMore}
+            >
+              Learn more
+            </Link>
+          )}
+        </div>
       ))}
-    </Accordion.Root>
+    </div>
   );
 }
 
@@ -119,10 +93,12 @@ function ProductDescriptionDrawer({
   data,
   open,
   onOpenChange,
+  onCloseAll,
 }: {
   data: ProductData;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onCloseAll?: () => void;
 }) {
   const { product } = data;
 
@@ -142,18 +118,31 @@ function ProductDescriptionDrawer({
         >
           <div className="h-full flex flex-col">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 flex-shrink-0">
-              <Dialog.Title asChild>
-                <span className="font-semibold">Details</span>
-              </Dialog.Title>
-              <Dialog.Close asChild>
-                <XIcon className="w-5 h-5 cursor-pointer" />
-              </Dialog.Close>
+            <div className="flex items-center justify-between px-5 py-3 flex-shrink-0">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => onOpenChange(false)}
+                  className="flex items-center justify-center w-4 h-4"
+                >
+                  <CaretLeftIcon className="w-4 h-4 text-[#29231E]" />
+                </button>
+                <Dialog.Title asChild>
+                  <span className="font-semibold text-sm tracking-[0.02em] text-[#29231E] uppercase">DESCRIPTION</span>
+                </Dialog.Title>
+              </div>
+              <button
+                type="button"
+                onClick={onCloseAll || (() => onOpenChange(false))}
+                className="flex items-center justify-center w-4 h-4"
+              >
+                <XIcon className="w-4 h-4 text-[#29231E]" />
+              </button>
             </div>
 
             {/* Content */}
             <ScrollArea className="flex-1" size="sm">
-              <div className="px-6 py-4">
+              <div className="px-5 py-4">
                 <ProductDetailsContent
                   data={data}
                   showShippingPolicy={true}
@@ -168,10 +157,23 @@ function ProductDescriptionDrawer({
   );
 }
 
-export function QuickShop({ data }: { data: ProductData }) {
+export function QuickShop({ 
+  data, 
+  showDescription, 
+  setShowDescription,
+  onCloseAll 
+}: { 
+  data: ProductData;
+  showDescription?: boolean;
+  setShowDescription?: (show: boolean) => void;
+  onCloseAll?: () => void;
+}) {
   const themeSettings = useThemeSettings();
   const { product, storeDomain } = data || {};
-  const [showDescription, setShowDescription] = useState(false);
+  const [internalShowDescription, setInternalShowDescription] = useState(false);
+  
+  const isDescriptionOpen = showDescription ?? internalShowDescription;
+  const setDescriptionOpen = setShowDescription ?? setInternalShowDescription;
 
   // Internal variant state for QuickShop - not tied to URL
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
@@ -209,7 +211,7 @@ export function QuickShop({ data }: { data: ProductData }) {
   const { price, compareAtPrice } = selectedVariant;
   return (
     <>
-      <div className="space-y-6">
+      <div className="space-y-6" style={{ "--shop-pay-button-height": "48px" } as React.CSSProperties}>
         {/* Product Image */}
         <div className="aspect-square w-full overflow-hidden relative bg-gray-100 rounded-lg">
           <div className="absolute inset-0 [&_.swiper]:!h-full [&_.swiper-slide]:!h-full [&_.swiper-wrapper]:!h-full">
@@ -227,10 +229,14 @@ export function QuickShop({ data }: { data: ProductData }) {
         {/* Product Details */}
         <div className="space-y-6">
           {/* Product Title & Price */}
-          <h4 className="text-lg font-semibold leading-tight">{title}</h4>
-          <Button variant="underline" onClick={() => setShowDescription(true)}>
-            View Description
-          </Button>
+          <h4 className="font-semibold leading-tight line-clamp-2">{title}</h4>
+          <button
+            type="button"
+            className="underline cursor-pointer"
+            onClick={() => setDescriptionOpen(true)}
+          >
+            <span>View Description</span>
+          </button>
           <div className="space-y-7 divide-y divide-line-subtle [&>*:not(:last-child)]:pb-3">
             {selectedVariant && (
               <div className="flex justify-between">
@@ -278,6 +284,7 @@ export function QuickShop({ data }: { data: ProductData }) {
                     quantity,
                   },
                 ]}
+                className="w-full h-12"
                 storeDomain={storeDomain}
               />
             )}
@@ -289,8 +296,9 @@ export function QuickShop({ data }: { data: ProductData }) {
       {product && (
         <ProductDescriptionDrawer
           data={data}
-          open={showDescription}
-          onOpenChange={setShowDescription}
+          open={isDescriptionOpen}
+          onOpenChange={setDescriptionOpen}
+          onCloseAll={onCloseAll}
         />
       )}
     </>
@@ -299,10 +307,16 @@ export function QuickShop({ data }: { data: ProductData }) {
 
 export function QuickShopTrigger({ productHandle }: { productHandle: string }) {
   const [open, setOpen] = useState(false);
+  const [showDescription, setShowDescription] = useState(false);
   const { load, data, state } = useFetcher<ProductData>();
   const apiPath = usePrefixPathWithLocale(
     `/api/product?handle=${productHandle}`,
   );
+
+  const closeAllDrawers = () => {
+    setShowDescription(false);
+    setOpen(false);
+  };
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: open and state are intentionally excluded
   useEffect(() => {
@@ -312,7 +326,16 @@ export function QuickShopTrigger({ productHandle }: { productHandle: string }) {
   }, [open, apiPath]);
 
   return (
-    <Dialog.Root open={open} onOpenChange={setOpen}>
+    <Dialog.Root 
+      open={open} 
+      onOpenChange={(isOpen) => {
+        if (!isOpen) {
+          closeAllDrawers();
+        } else {
+          setOpen(isOpen);
+        }
+      }}
+    >
       <Dialog.Trigger asChild>
         <button
           type="button"
@@ -339,25 +362,29 @@ export function QuickShopTrigger({ productHandle }: { productHandle: string }) {
         />
         <Dialog.Content
           className={clsx([
-            "fixed inset-y-0 w-full md:max-w-[430px] bg-background py-6 z-10",
+            "fixed inset-y-0 w-full md:max-w-[430px] bg-background py-4 z-10",
             "right-0 data-[state=open]:animate-enter-from-right shadow-2xl",
           ])}
           aria-describedby={undefined}
         >
           <div className="h-full flex flex-col">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 flex-shrink-0">
+            <div className="flex items-center justify-between px-5 flex-shrink-0 py-2.5">
               <Dialog.Title asChild>
                 <span className="font-semibold">Quick Shop</span>
               </Dialog.Title>
-              <Dialog.Close asChild>
-                <XIcon className="w-5 h-5 cursor-pointer" />
-              </Dialog.Close>
+              <button
+                type="button"
+                onClick={closeAllDrawers}
+                className="p-1 hover:bg-gray-100 rounded transition-colors"
+              >
+                <XIcon className="w-5 h-5" />
+              </button>
             </div>
 
             {/* Content */}
             <ScrollArea className="flex-1" size="sm">
-              <div className="px-6 py-4">
+              <div className="px-5 py-4">
                 {state === "loading" ? (
                   <div className="space-y-6">
                     {/* Image skeleton */}
@@ -394,7 +421,12 @@ export function QuickShopTrigger({ productHandle }: { productHandle: string }) {
                     </div>
                   </div>
                 ) : data ? (
-                  <QuickShop data={data as ProductData} />
+                  <QuickShop 
+                    data={data as ProductData} 
+                    showDescription={showDescription}
+                    setShowDescription={setShowDescription}
+                    onCloseAll={closeAllDrawers}
+                  />
                 ) : (
                   <div className="text-center py-8">
                     <p className="text-body-subtle">

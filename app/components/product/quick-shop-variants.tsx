@@ -25,7 +25,7 @@ export function QuickShopVariants({
         {productOptions.map((option) => (
           <div className="product-options flex justify-between items-center" key={option.name}>
             <legend className="leading-tight">
-              <span className="font-medium uppercase">{option.name}</span>
+              <span className="font-normal uppercase">{option.name}</span>
             </legend>
             <QuickShopOptionValues 
               option={option} 

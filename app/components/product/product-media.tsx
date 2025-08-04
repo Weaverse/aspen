@@ -210,13 +210,13 @@ export function ProductMedia(props: ProductMediaProps) {
           <div className="absolute bottom-6 right-6 z-10 hidden md:flex items-center gap-2">
             <button
               type="button"
-              className="media_slider__prev p-2 text-center border border-transparent transition-all duration-200 text-gray-900 bg-white hover:bg-gray-800 hover:text-white left-6 disabled:cursor-not-allowed disabled:text-body-subtle"
+              className="media_slider__prev rounded-full p-2 text-center border border-transparent transition-all duration-200 text-gray-900 bg-white hover:bg-gray-800 hover:text-white left-6 disabled:cursor-not-allowed disabled:text-body-subtle"
             >
               <ArrowLeftIcon className="w-4.5 h-4.5" />
             </button>
             <button
               type="button"
-              className="media_slider__next p-2 text-center border border-transparent transition-all duration-200 text-gray-900 bg-white hover:bg-gray-800 hover:text-white right-6 disabled:cursor-not-allowed disabled:text-body-subtle"
+              className="media_slider__next rounded-full p-2 text-center border border-transparent transition-all duration-200 text-gray-900 bg-white hover:bg-gray-800 hover:text-white right-6 disabled:cursor-not-allowed disabled:text-body-subtle"
             >
               <ArrowRightIcon className="w-4.5 h-4.5" />
             </button>
