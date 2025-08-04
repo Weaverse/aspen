@@ -98,12 +98,12 @@ export function Footer() {
     <footer
       className={cn(
         "w-full bg-(--color-footer-bg) text-(--color-footer-text) pt-9 lg:pt-16",
-        variants({ padding: footerWidth })
+        variants({ padding: footerWidth }),
       )}
     >
       <div className={cn("w-full h-full", variants({ width: footerWidth }))}>
-        <div className="md:space-y-9 divide-y divide-line-subtle">
-          <div className="w-full grid md:grid-cols-2 grid-cols-1 gap-8 md:pb-9 pb-0">
+        <div className="md:space-y-6 divide-y divide-line-subtle">
+          <div className="w-full grid md:grid-cols-2 grid-cols-1 gap-8 md:pb-6 pb-0">
             <div className="flex flex-col justify-between gap-6">
               {footerLogoData ? (
                 <div className="relative" style={{ width: footerLogoWidth }}>
@@ -119,31 +119,36 @@ export function Footer() {
                   {shopName}
                 </div>
               )}
-              <div className="flex flex-col gap-4">
-                {bio ? <div dangerouslySetInnerHTML={{ __html: bio }} /> : null}
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-6">
+                  <span className="font-semibold">{addressTitle}</span>
+                  <div className="space-y-2">
+                    <p>{storeAddress}</p>
+                    <p>Email: {storeEmail}</p>
+                  </div>
+                </div>
+                {bio ? (
+                  <div className="flex flex-col gap-4">
+                    <div dangerouslySetInnerHTML={{ __html: bio }} />
+                  </div>
+                ) : null}
               </div>
             </div>
             <div className="flex flex-col gap-10">
               <div className="lg:block md:hidden block">
                 <FooterMenu />
               </div>
-              <div className="flex flex-col gap-6">
-                <div className="text-base">{addressTitle}</div>
-                <div className="space-y-2">
-                  <p>{storeAddress}</p>
-                  <p>Email: {storeEmail}</p>
-                </div>
-              </div>
+
               <div className="flex flex-col gap-6 lg:w-fit w-full">
-                <div className="text-base">{newsletterTitle}</div>
+                <span className="font-semibold">{newsletterTitle}</span>
                 <div className="space-y-2">
                   <p>{newsletterDescription}</p>
                   <fetcher.Form
                     onSubmit={(event: FormEvent<HTMLFormElement>) => {
-                    setMessage("");
-                    setError("");
-                    fetcher.submit(event.currentTarget);
-                  }}
+                      setMessage("");
+                      setError("");
+                      fetcher.submit(event.currentTarget);
+                    }}
                     action="/api/klaviyo"
                     method="POST"
                     encType="multipart/form-data"
@@ -185,7 +190,7 @@ export function Footer() {
             <div className="lg:hidden md:block hidden">
               <FooterMenu />
             </div>
-            <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 justify-center items-center pb-9 pt-9 md:pt-0 gap-y-6">
+            <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 justify-center items-center pb-6 pt-6 md:pt-0 gap-y-6">
               <p className="order-3 md:col-span-2 lg:order-none lg:col-span-1">
                 {copyright}
               </p>
@@ -204,7 +209,7 @@ export function Footer() {
                     >
                       <social.Icon />
                     </Link>
-                  ) : null
+                  ) : null,
                 )}
               </div>
             </div>
@@ -243,7 +248,9 @@ function FooterMenu() {
                 {["#", "/"].includes(to) ? (
                   <span>{title}</span>
                 ) : (
-                  <Link className="w-fit" to={to}>{title}</Link>
+                  <Link className="w-fit" to={to}>
+                    {title}
+                  </Link>
                 )}
               </div>
             )}
@@ -251,8 +258,10 @@ function FooterMenu() {
             <div className="font-semibold hidden md:block">
               {!isEmpty ? (
                 <span>{title}</span>
+              ) : ["#", "/"].includes(to) ? (
+                title
               ) : (
-                ["#", "/"].includes(to) ? title : <Link to={to}>{title}</Link>
+                <Link to={to}>{title}</Link>
               )}
             </div>
 
