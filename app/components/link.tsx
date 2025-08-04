@@ -23,18 +23,12 @@ const variants = cva(["button transition-colors inline-flex"], {
         "text-(--btn-primary-text)",
         "bg-(--btn-primary-bg)",
         "border-(--btn-primary-bg)",
-        "hover:text-(--btn-primary-bg)",
-        "hover:bg-(--btn-primary-text)",
-        "hover:border-(--btn-primary-bg)",
       ],
       secondary: [
         "px-4 py-3",
         "text-(--btn-secondary-text)",
         "bg-(--btn-secondary-bg)",
         "border-(--btn-secondary-bg)",
-        "hover:bg-(--btn-secondary-text)",
-        "hover:text-(--btn-secondary-bg)",
-        "hover:border-(--btn-secondary-text)",
       ],
       outline: [
         "border px-4 py-3",
