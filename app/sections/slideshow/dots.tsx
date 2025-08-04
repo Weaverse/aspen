@@ -12,7 +12,7 @@ export interface SlideshowDotsProps extends VariantProps<typeof variants> {
 const variants = cva(
   [
     "slideshow-dots",
-    "absolute z-1 w-full flex justify-center items-center gap-2",
+    "absolute z-1 w-full flex justify-center items-center",
   ],
   {
     variants: {
@@ -38,7 +38,7 @@ const dotVariants = cva(
   [
     "dot cursor-pointer",
     "w-12 h-1 p-0",
-    "transition-all duration-300 ease-in-out",
+    "transition-all duration-300 fade-in",
     "border-0 outline-none",
   ],
   {
@@ -56,12 +56,12 @@ const dotVariants = cva(
       {
         dotsColor: "light",
         isActive: true,
-        className: "!bg-white transform scale-110",
+        className: "!bg-white",
       },
       {
         dotsColor: "dark", 
         isActive: true,
-        className: "!bg-[#A79D95] transform scale-110",
+        className: "!bg-[#A79D95]",
       },
     ],
   },

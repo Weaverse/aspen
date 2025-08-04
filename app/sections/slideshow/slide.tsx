@@ -154,12 +154,12 @@ const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
   const SubheadingTag = subheadingTag;
 
   return (
-    <div ref={scope} {...rest} className="w-full h-full">
+    <div ref={scope} {...rest} className="w-full h-full" style={{ "--gap": `${gap}px` } as React.CSSProperties}>
       <OverlayAndBackground {...props} />
       <div className={cn(variants({ width, gap, verticalPadding }))}>
         <div className="flex flex-col md:flex-row gap-4 md:gap-6 max-w-full">
           {/* Left Column */}
-          <div className="flex flex-col gap-4 md:gap-6 w-1/2">
+          <div className="flex flex-col gap-(--gap) w-1/2">
             {headingContent && (
               <Heading
                 content={headingContent}
@@ -187,7 +187,7 @@ const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
           </div>
           
           {/* Right Column */}
-          <div className="flex flex-col gap-4 md:gap-6 w-1/2 [&_.paragraph]:mx-[unset]">
+          <div className="flex flex-col gap-(--gap) w-1/2 [&_.paragraph]:mx-[unset]">
             {paragraphContent && (
               <Paragraph
                 content={paragraphContent}
