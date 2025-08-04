@@ -64,9 +64,9 @@ export function CartDrawer() {
                 aria-describedby={undefined}
               >
                 <div className="">
-                  <div className="flex gap-2 items-center justify-between px-4">
+                  <div className="flex gap-2 items-center justify-between px-4 pb-0.5 pt-1.5">
                     <Dialog.Title asChild className="text-base">
-                      <span className="font-bold">Cart</span>
+                      <span className="font-semibold uppercase">Cart</span>
                     </Dialog.Title>
                     <Dialog.Close asChild>
                       <button
