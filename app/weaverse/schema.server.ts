@@ -325,6 +325,12 @@ export const themeSchema: HydrogenThemeSchema = {
         },
         {
           type: "color",
+          label: "Header background hover",
+          name: "headerBgColorHover",
+          defaultValue: "#EBE8E5",
+        },
+        {
+          type: "color",
           label: "Header text",
           name: "headerText",
           defaultValue: "#24211E",
