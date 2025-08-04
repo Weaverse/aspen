@@ -210,7 +210,7 @@ export function ScrollingAnnouncement() {
           </button>
         </div>
         <div className="lg:flex justify-end hidden">
-          <CountrySelector inputClassName="px-4 py-2" enableFlag={false} />
+          <CountrySelector inputClassName="px-4 py-1" enableFlag={false} />
         </div>
       </div>
     </div>

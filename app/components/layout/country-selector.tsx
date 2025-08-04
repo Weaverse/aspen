@@ -86,7 +86,7 @@ export function CountrySelector({
           <button
             type="button"
             className={cn(
-              "w-full border border-line-subtle overflow-clip cursor-pointer text-left outline-hidden flex items-center gap-2",
+              "w-full border border-[#A79D95] overflow-clip cursor-pointer text-left outline-hidden flex items-center gap-2",
               inputClassName,
             )}
             aria-label="Select country"
@@ -104,7 +104,7 @@ export function CountrySelector({
         </Popover.Trigger>
         <Popover.Portal>
           <Popover.Content className="z-10">
-            <div className="w-80 max-h-40 overflow-auto py-2 bg-neutral-800 my-2">
+            <div className="w-48 max-h-40 overflow-auto py-2 bg-[#3b352c] my-2">
               {countries &&
                 Object.keys(countries).map((countryPath) => {
                   const countryLocale = countries[countryPath];
@@ -128,13 +128,15 @@ export function CountrySelector({
                           },
                         })
                       }
-                      className="text-white bg-neutral-800 hover:bg-neutral-600 w-full p-2 transition flex gap-2 items-center text-left cursor-pointer py-2 px-4 text-sm"
+                      className="text-white bg-[#3b352c] hover:bg-[#4a423a] w-full p-2 transition flex gap-2 items-center text-left cursor-pointer py-2 px-4 text-sm"
                     >
-                      <ReactCountryFlag
-                        svg
-                        countryCode={countryLocale.country}
-                        style={{ width: "24px", height: "14px" }}
-                      />
+                      {enableFlag && (
+                        <ReactCountryFlag
+                          svg
+                          countryCode={countryLocale.country}
+                          style={{ width: "24px", height: "14px" }}
+                        />
+                      )}
                       <span>{countryLocale.label}</span>
                       {isSelected ? (
                         <span className="ml-auto">

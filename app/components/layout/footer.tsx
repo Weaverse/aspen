@@ -159,7 +159,7 @@ export function Footer() {
                       type="email"
                       required
                       placeholder={newsletterPlaceholder}
-                      className="text-body focus-visible:outline-hidden px-3 placeholder:text-[#918379] border border-line-subtle lg:w-80 w-full"
+                      className="text-body bg-white focus-visible:outline-hidden px-3 placeholder:text-[#918379] border border-line-subtle lg:w-80 w-full"
                     />
                     <Button
                       variant="primary"
@@ -195,7 +195,7 @@ export function Footer() {
                 {copyright}
               </p>
               <div className="flex justify-start lg:justify-center items-center order-1">
-                <CountrySelector inputClassName="px-4 py-3" enableFlag={false} />
+                <CountrySelector inputClassName="px-4 py-2" enableFlag={false} />
               </div>
               <div className="flex gap-4 justify-start md:justify-end order-2">
                 {SOCIAL_ACCOUNTS.map((social) =>
