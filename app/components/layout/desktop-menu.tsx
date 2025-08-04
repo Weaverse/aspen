@@ -5,7 +5,6 @@ import { useState } from "react";
 import { Image } from "~/components/image";
 import Link from "~/components/link";
 import { useShopMenu } from "~/hooks/use-shop-menu";
-import { RevealUnderline } from "~/reveal-underline";
 import type { SingleMenuItem } from "~/types/menu";
 import { cn } from "~/utils/cn";
 
@@ -59,7 +58,7 @@ export function DesktopMenu() {
                   <Menubar.Content
                     className={cn([
                       "px-3 md:px-4 lg:px-6",
-                      "bg-(--color-header-bg) shadow-lg border-t border-line-subtle mt-1.5 lg:mt-3",
+                      "bg-(--color-header-bg-hover) shadow-lg border-t border-line-subtle mt-1.5 lg:mt-3",
                       isDropdown ? "py-6" : "w-screen py-8",
                     ])}
                   >
@@ -93,7 +92,7 @@ function DropdownSubMenu({ items }: { items: SingleMenuItem[] }) {
           prefetch="intent"
           className="transition-none block"
         >
-          <RevealUnderline>{title}</RevealUnderline>
+          <span>{title}</span>
         </Link>
       ))}
     </ul>
@@ -124,7 +123,7 @@ function MegaMenu({ items }: { items: SingleMenuItem[] }) {
                 "font-normal uppercase",
               ])}
             >
-              <RevealUnderline>{title}</RevealUnderline>
+              <span>{title}</span>
             </Link>
           </SlideIn>
         ) : (
@@ -138,7 +137,7 @@ function MegaMenu({ items }: { items: SingleMenuItem[] }) {
               prefetch="intent"
               className="uppercase transition-none"
             >
-              <RevealUnderline>{title}</RevealUnderline>
+              <span>{title}</span>
             </Link>
             <div className="flex flex-col gap-1.5">
               {children.map((cItem) => (
@@ -148,7 +147,7 @@ function MegaMenu({ items }: { items: SingleMenuItem[] }) {
                   prefetch="intent"
                   className="relative inline transition-none"
                 >
-                  <RevealUnderline>{cItem.title}</RevealUnderline>
+                  <span>{cItem.title}</span>
                 </Link>
               ))}
             </div>

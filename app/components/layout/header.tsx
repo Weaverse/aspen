@@ -58,7 +58,7 @@ export function Header() {
       className={cn(
         "w-full z-10",
         "transition-all duration-300 ease-in-out",
-        "bg-(--color-header-bg) hover:bg-(--color-header-bg)",
+        "bg-(--color-header-bg) hover:bg-(--color-header-bg-hover)",
         "text-(--color-header-text) hover:text-(--color-header-text)",
         "border-b border-line-subtle",
         variants({ padding: headerWidth }),
