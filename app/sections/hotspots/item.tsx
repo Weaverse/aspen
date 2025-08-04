@@ -1,9 +1,4 @@
-import {
-  CircleIcon,
-  HandbagIcon,
-  PlusIcon,
-  TagIcon,
-} from "@phosphor-icons/react";
+import { HandbagIcon, PlusIcon, TagIcon } from "@phosphor-icons/react";
 import {
   type ComponentLoaderArgs,
   createSchema,
@@ -15,6 +10,7 @@ import { forwardRef } from "react";
 import type { ProductQuery } from "storefront-api.generated";
 import { PRODUCT_QUERY } from "~/graphql/queries";
 import { ProductPopup } from "./product-popup";
+import clsx from "clsx";
 
 export interface HotspotsItemData {
   icon: "circle" | "plus" | "bag" | "tag";
@@ -22,7 +18,6 @@ export interface HotspotsItemData {
   offsetX: number;
   offsetY: number;
   product: WeaverseProduct;
-  popupWidth: number;
   showPrice: boolean;
   showViewDetailsLink: boolean;
   viewDetailsLinkText: string;
@@ -33,11 +28,23 @@ interface HotspotsItemProps
     HotspotsItemData {}
 
 const ICONS = {
-  circle: CircleIcon,
+  circle: CircleDotIcon,
   plus: PlusIcon,
   bag: HandbagIcon,
   tag: TagIcon,
 };
+
+function CircleDotIcon(props: any) {
+  let { width, height, ...rest } = props;
+  return (
+    <div
+      style={{ width: width, height: height }}
+      className="flex justify-center items-center border border-white rounded-full p-3.5"
+    >
+      <span className="bg-white w-1.5 h-1.5 rounded-full"></span>
+    </div>
+  );
+}
 
 const HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>(
   (props, ref) => {
@@ -47,7 +54,6 @@ const HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>(
       offsetX,
       offsetY,
       product,
-      popupWidth,
       showPrice,
       showViewDetailsLink,
       viewDetailsLinkText,
@@ -72,16 +78,23 @@ const HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>(
           } as CSSProperties
         }
       >
-        <div className="relative flex cursor-pointer">
+        <div className="relative flex cursor-pointer group">
           <span
-            className="animate-ping absolute inline-flex h-full w-full rounded-full bg-gray-700 opacity-75"
+            className={clsx("animate-ping absolute inline-flex rounded-full", {
+              "bg-white opacity-100 group-hover:opacity-100 w-3/4 h-3/4 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2": icon === "circle",
+              "bg-gray-700 opacity-75 h-full w-full": icon !== "circle"
+            })}
             style={{ animationDuration: "1500ms" }}
           />
-          <span className="relative inline-flex rounded-full p-2 bg-white group">
+          <span
+            className={clsx("relative inline-flex rounded-full group transition-all duration-300", {
+              "bg-white p-2 hover:shadow-lg hover:scale-110": icon !== "circle",
+              "bg-transparent hover:drop-shadow-lg": icon === "circle",
+            })}
+          >
             <Icon style={{ width: iconSize, height: iconSize }} />
             <ProductPopup
               product={loaderData?.product}
-              popupWidth={popupWidth}
               offsetX={offsetX}
               offsetY={offsetY}
               showPrice={showPrice}
@@ -198,19 +211,6 @@ export const schema = createSchema({
           type: "product",
           name: "product",
           label: "Product",
-        },
-        {
-          type: "range",
-          name: "popupWidth",
-          label: "Popup width",
-          configs: {
-            min: 300,
-            max: 600,
-            step: 10,
-            unit: "px",
-          },
-          defaultValue: 350,
-          helpText: "For desktop devices only",
         },
         {
           type: "switch",
