@@ -145,7 +145,6 @@ export const Link = forwardRef(
         "--btn-bg-hover": backgroundColorHover,
         "--btn-text-hover": textColorHover,
         "--btn-border-hover": borderColorHover,
-        
       } as React.CSSProperties;
     }
     if (variant === "decor") {
@@ -170,20 +169,29 @@ export const Link = forwardRef(
         {...rest}
       >
         {variant === "decor" ? (
-          <span className="inline-flex items-center gap-1">
+          <span className="inline-flex items-center gap-2.5">
             {children || text}
-            <ArrowRight
-              size={20}
-              weight="thin"
-              className="transition-transform duration-300 transform group-hover:translate-x-1"
-            />
+            <span className="transition-transform duration-300 transform group-hover:translate-x-1">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 20 20"
+              fill="none"
+            >
+              <path
+                d="M14.0575 4.74121L13.1737 5.62508L16.9236 9.37496H0.625V10.625H16.9234L13.1737 14.3748L14.0575 15.2586L19.3163 9.99992L14.0575 4.74121Z"
+                fill="currentColor"
+              />
+            </svg>
+            </span>
           </span>
         ) : (
           children || text
         )}
       </RemixLink>
     );
-  }
+  },
 );
 
 export default Link;
