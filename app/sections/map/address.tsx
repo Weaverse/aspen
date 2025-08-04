@@ -159,7 +159,7 @@ let Address = forwardRef<HTMLDivElement, AddressProps>((props, ref) => {
         >
       
           {/* Additional info shown when accordion is open */}
-          <div className={cn(layoutMap === 'accordion' ? 'flex px-4 pb-4' : "px-4 pb-4 ml-[calc(18px+0.75rem)]")}>
+          <div className={cn(layoutMap === 'accordion' ? 'flex px-4 pb-4 gap-4' : "px-4 pb-4 ml-[calc(18px+0.75rem)]")}>
             {/* Address and Phone Number */}
             <div className={cn("flex flex-col", layoutMap === 'accordion' ? 'flex-1 mb-0' : 'mb-3')}>
               {layoutMap !== 'accordion' && (
