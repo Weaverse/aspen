@@ -94,10 +94,12 @@ const AccordionItem = forwardRef<HTMLDivElement, AccordionItemProps>(
             <div className="relative h-5 w-5 ml-auto">
               <PlusCircle
                 className="absolute inset-0 h-full w-full transition-opacity duration-200 group-data-[state=open]:opacity-0"
+                fill="#918379"
                 aria-hidden
               />
               <MinusCircle
                 className="absolute inset-0 h-full w-full transition-opacity duration-200 opacity-0 group-data-[state=open]:opacity-100"
+                fill="#918379"
                 aria-hidden
               />
             </div>
