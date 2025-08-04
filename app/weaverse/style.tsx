@@ -13,6 +13,7 @@ export function GlobalStyle() {
       topbarTextColor,
       topbarBgColor,
       headerBgColor,
+      headerBgColorHover,
       headerText,
       transparentHeaderText,
       footerBgColor,
@@ -64,6 +65,7 @@ export function GlobalStyle() {
               --color-topbar-text: ${topbarTextColor};
               --color-topbar-bg: ${topbarBgColor};
               --color-header-bg: ${headerBgColor};
+              --color-header-bg-hover: ${headerBgColorHover};
               --color-header-text: ${headerText};
               --color-transparent-header-text: ${transparentHeaderText};
               --color-footer-bg: ${footerBgColor};
