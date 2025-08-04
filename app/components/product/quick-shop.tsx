@@ -111,7 +111,7 @@ function ProductDescriptionDrawer({
         />
         <Dialog.Content
           className={clsx([
-            "fixed inset-y-0 w-full md:max-w-[430px] bg-background py-6 z-20",
+            "fixed inset-y-0 w-full md:max-w-[430px] bg-background py-2.5 z-20",
             "right-0 data-[state=open]:animate-enter-from-right shadow-2xl",
           ])}
           aria-describedby={undefined}
@@ -128,7 +128,7 @@ function ProductDescriptionDrawer({
                   <CaretLeftIcon className="w-4 h-4 text-[#29231E]" />
                 </button>
                 <Dialog.Title asChild>
-                  <span className="font-semibold text-sm tracking-[0.02em] text-[#29231E] uppercase">DESCRIPTION</span>
+                  <span className="font-semibold uppercase">DESCRIPTION</span>
                 </Dialog.Title>
               </div>
               <button
@@ -229,7 +229,7 @@ export function QuickShop({
         {/* Product Details */}
         <div className="space-y-6">
           {/* Product Title & Price */}
-          <h4 className="font-semibold leading-tight line-clamp-2">{title}</h4>
+          <h4 className="font-medium leading-tight line-clamp-2">{title}</h4>
           <button
             type="button"
             className="underline cursor-pointer"
@@ -341,7 +341,7 @@ export function QuickShopTrigger({ productHandle }: { productHandle: string }) {
           type="button"
           className={clsx(
             "absolute inset-x-4 bottom-4 !opacity-0 -translate-y-1.5 -translate-x-2 lg:group-hover:!opacity-100 lg:group-hover:translate-x-0 lg:group-hover:translate-y-2 !transition-all duration-500",
-            "border px-4 py-3",
+            "border px-4 py-2",
             "text-(--btn-secondary-text)",
             "bg-(--btn-secondary-bg)",
             "border-(--btn-secondary-bg)",
@@ -362,16 +362,16 @@ export function QuickShopTrigger({ productHandle }: { productHandle: string }) {
         />
         <Dialog.Content
           className={clsx([
-            "fixed inset-y-0 w-full md:max-w-[430px] bg-background py-4 z-10",
+            "fixed inset-y-0 w-full md:max-w-[430px] bg-background py-2.5 z-10",
             "right-0 data-[state=open]:animate-enter-from-right shadow-2xl",
           ])}
           aria-describedby={undefined}
         >
           <div className="h-full flex flex-col">
             {/* Header */}
-            <div className="flex items-center justify-between px-5 flex-shrink-0 py-2.5">
+            <div className="flex items-center justify-between px-5 flex-shrink-0 py-3">
               <Dialog.Title asChild>
-                <span className="font-semibold">Quick Shop</span>
+                <span className="font-semibold uppercase">Quick Shop</span>
               </Dialog.Title>
               <button
                 type="button"

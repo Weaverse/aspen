@@ -91,14 +91,14 @@ function FiltersDrawer({
         />
         <Dialog.Content
           className={clsx([
-            "fixed inset-y-0 w-full md:w-[360px] bg-(--color-background) py-4 z-10",
+            "fixed inset-y-0 w-full md:max-w-[430px] bg-(--color-background) py-4 z-10",
             "right-0 data-[state=open]:animate-enter-from-right",
           ])}
           aria-describedby={undefined}
         >
           <div className="space-y-1">
             <div className="flex gap-2 items-center justify-between px-4">
-              <Dialog.Title asChild className="py-2.5 font-bold">
+              <Dialog.Title asChild className="py-2.5 font-semibold uppercase">
                 <span>Filters</span>
               </Dialog.Title>
               <Dialog.Close asChild>

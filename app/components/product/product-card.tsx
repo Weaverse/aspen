@@ -88,7 +88,7 @@ export function ProductCard({
   return (
     <div
       className={clsx(
-        "group rounded-(--pcard-radius) transition-all hover:border hover:border-[#DBD7D1] hover:shadow-lg",
+        "group rounded-(--pcard-radius) transition-all hover:border hover:border-[#DBD7D1]",
         className
       )}
       style={
@@ -183,7 +183,7 @@ export function ProductCard({
               )
             }
           >
-            <RevealUnderline>{product.title}</RevealUnderline>
+            <span className="font-semibold uppercase">{product.title}</span>
           </NavLink>
           <div
             className={clsx(

@@ -19,13 +19,17 @@ const FeaturedProducts = forwardRef<
 
 export default FeaturedProducts;
 
-// TODO: allowing pick products or select a collection
 const FEATURED_PRODUCTS_QUERY = `#graphql
-  query featuredProducts($country: CountryCode, $language: LanguageCode)
+  query featuredProducts($country: CountryCode, $language: LanguageCode, $handle: String!)
   @inContext(country: $country, language: $language) {
-    products(first: 16) {
-      nodes {
-        ...ProductCard
+    collection(handle: $handle) {
+      id
+      handle
+      title
+      products(first: 16) {
+        nodes {
+          ...ProductCard
+        }
       }
     }
   }
@@ -34,14 +38,17 @@ const FEATURED_PRODUCTS_QUERY = `#graphql
 
 export type FeaturedProductsLoaderData = Awaited<ReturnType<typeof loader>>;
 
-export const loader = async ({ weaverse }: ComponentLoaderArgs) => {
+export const loader = async ({ weaverse, data }: ComponentLoaderArgs) => {
   const { language, country } = weaverse.storefront.i18n;
+  const { collectionHandle = 'frontpage' } = data;
+  
   return await weaverse.storefront.query<FeaturedProductsQuery>(
     FEATURED_PRODUCTS_QUERY,
     {
       variables: {
         country,
         language,
+        handle: collectionHandle,
       },
     },
   );
@@ -53,12 +60,25 @@ export const schema = createSchema({
   childTypes: ["featured-products-items", "featured-content-products"],
   settings: [
     {
+      group: "Collection",
+      inputs: [
+        {
+          type: "text",
+          name: "collectionHandle",
+          label: "Collection handle",
+          defaultValue: "frontpage",
+          placeholder: "Enter collection handle (e.g., frontpage, featured)",
+        },
+      ],
+    },
+    {
       group: "Layout",
       inputs: layoutInputs.filter((i) => i.name !== "borderRadius"),
     },
   ],
   presets: {
     gap: 32,
+    collectionHandle: "frontpage",
     children: [
       { type: "featured-content-products" },
       { type: "featured-products-items" },

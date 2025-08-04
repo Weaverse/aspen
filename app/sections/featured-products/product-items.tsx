@@ -9,7 +9,7 @@ import clsx from "clsx";
 import { ArrowLeft, ArrowRight } from "@phosphor-icons/react";
 import "swiper/css";
 import "swiper/css/navigation";
-import { Button } from "~/components/button";
+import { Link } from "react-router";
 
 type ItemsPerRowType = "2" | "3" | "4" | "5";
 type GapType = 8 | 12 | 16 | 20 | 24 | 28 | 32;
@@ -85,8 +85,6 @@ interface ProductItemsProps extends VariantProps<typeof productItemsVariants> {
   slidesPerView?: number;
   itemsPerRow?: ItemsPerRowType;
   gap?: GapType;
-  initialProductsToShow?: number;
-  productsPerLoad?: number;
 }
 
 const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
@@ -96,35 +94,28 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
       layout = "carousel",
       slidesPerView = 4,
       itemsPerRow = "4" as ItemsPerRowType,
-      initialProductsToShow = 4,
-      productsPerLoad = 4,
       ...rest
     } = props;
     const parent = useParentInstance();
-    const products = parent.data?.loaderData?.products;
+    const collection = parent.data?.loaderData?.collection;
+    const products = collection?.products;
+    const collectionHandle = collection?.handle;
+    
     const [activeSlide, setActiveSlide] = useState(0);
-    const [visibleProducts, setVisibleProducts] = useState(
-      initialProductsToShow,
-    );
 
     if (!products?.nodes?.length) {
       return null;
     }
 
     const totalProducts = products.nodes.length;
-    const hasMoreProducts = visibleProducts < totalProducts;
-
-    const handleLoadMore = () => {
-      setVisibleProducts((prev) =>
-        Math.min(prev + productsPerLoad, totalProducts),
-      );
-    };
+    const maxProductsToShow = 4;
+    const displayedProducts = products.nodes.slice(0, maxProductsToShow);
+    const hasMoreProducts = totalProducts > maxProductsToShow;
 
     // For desktop view in grid layout
     if (layout === "grid") {
       return (
         <div ref={ref} {...rest} className="relative">
-          {/* Mobile view (slide with peek effect) */}
           <div className="md:hidden">
             <Swiper
               key={`swiper-grid-mobile-${gap}`}
@@ -140,7 +131,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
               modules={[Navigation]}
               className="w-full py-4 mb-6"
             >
-              {products.nodes.map((product) => (
+              {displayedProducts.map((product) => (
                 <SwiperSlide key={product.id}>
                   <div className="relative h-full">
                     <ProductCard product={product} className="w-full h-full" />
@@ -182,7 +173,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
                 productItemsVariants({ layout, itemsPerRow, gap }),
               )}
             >
-              {products?.nodes?.slice(0, visibleProducts).map((product) => (
+              {displayedProducts.map((product) => (
                 <ProductCard
                   key={product.id}
                   product={product}
@@ -191,13 +182,15 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
               ))}
             </div>
 
-            {/* Load More Button */}
-            {hasMoreProducts && (
+            {/* See More Products Button */}
+            {hasMoreProducts && collectionHandle && (
               <div className="flex justify-center mt-8">
-                <Button onClick={handleLoadMore} variant="outline">
-                  See More Products ({totalProducts - visibleProducts}{" "}
-                  remaining)
-                </Button>
+                <Link 
+                  to={`/collections/${collectionHandle}`}
+                  className="button inline-flex items-center justify-center rounded-none relative text-base leading-tight font-normal whitespace-nowrap focus-visible:outline-hidden transition-colors border px-4 py-3 text-(--btn-outline-text) bg-transparent border-(--btn-outline-border) hover:bg-(--btn-outline-background) hover:text-background hover:border-(--btn-outline-text)"
+                >
+                  See More Products
+                </Link>
               </div>
             )}
           </div>
@@ -234,7 +227,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
           modules={[Navigation]}
           className="w-full py-4 mb-6"
         >
-          {products.nodes.map((product, index) => (
+          {displayedProducts.map((product, index) => (
             <SwiperSlide key={index}>
               <div className="relative h-full">
                 <ProductCard product={product} className="h-full" />
@@ -329,30 +322,6 @@ export const schema = createSchema({
             step: 4,
           },
           defaultValue: 16,
-        },
-        {
-          type: "range",
-          name: "initialProductsToShow",
-          label: "Initial products to show",
-          configs: {
-            min: 2,
-            max: 12,
-            step: 1,
-          },
-          defaultValue: 4,
-          condition: (data) => data.layout === "grid",
-        },
-        {
-          type: "range",
-          name: "productsPerLoad",
-          label: "Products per load more",
-          configs: {
-            min: 1,
-            max: 8,
-            step: 1,
-          },
-          defaultValue: 4,
-          condition: (data) => data.layout === "grid",
         },
       ],
     },
