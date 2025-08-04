@@ -17,7 +17,6 @@ export interface TestimonialHotspotsItemData {
   offsetX: number;
   offsetY: number;
   product: WeaverseProduct;
-  popupWidth: number;
   showPrice: boolean;
   showViewDetailsLink: boolean;
   viewDetailsLinkText: string;
@@ -42,7 +41,6 @@ let TestimonialHotspotsItem = forwardRef<HTMLDivElement, TestimonialHotspotsItem
       offsetX,
       offsetY,
       product,
-      popupWidth,
       showPrice,
       showViewDetailsLink,
       viewDetailsLinkText,
@@ -76,7 +74,6 @@ let TestimonialHotspotsItem = forwardRef<HTMLDivElement, TestimonialHotspotsItem
             <Icon style={{ width: iconSize, height: iconSize }} />
             <ProductPopup
               product={loaderData?.product}
-              popupWidth={popupWidth}
               offsetX={offsetX}
               offsetY={offsetY}
               showPrice={showPrice}
@@ -193,19 +190,6 @@ export const schema = createSchema({
           type: "product",
           name: "product",
           label: "Product",
-        },
-        {
-          type: "range",
-          name: "popupWidth",
-          label: "Popup width",
-          configs: {
-            min: 100,
-            max: 600,
-            step: 10,
-            unit: "px",
-          },
-          defaultValue: 350,
-          helpText: "For desktop devices only",
         },
         {
           type: "switch",
