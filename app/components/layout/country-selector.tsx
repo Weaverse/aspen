@@ -16,7 +16,15 @@ import type { I18nLocale, Localizations } from "~/types/locale";
 import { cn } from "~/utils/cn";
 import { DEFAULT_LOCALE } from "~/utils/const";
 
-export function CountrySelector({inputClassName, wrapperClassName}:{inputClassName?: string, wrapperClassName?: string}) {
+export function CountrySelector({
+  inputClassName,
+  wrapperClassName,
+  enableFlag = true,
+}: {
+  inputClassName?: string;
+  wrapperClassName?: string;
+  enableFlag?: boolean;
+}) {
   const fetcher = useFetcher();
   const submit = useSubmit();
   const rootData = useRouteLoaderData<RootLoader>("root");
@@ -24,7 +32,7 @@ export function CountrySelector({inputClassName, wrapperClassName}:{inputClassNa
   const { pathname, search } = useLocation();
   const pathWithoutLocale = `${pathname.replace(
     selectedLocale.pathPrefix,
-    ""
+    "",
   )}${search}`;
 
   const countries = (fetcher.data ?? {}) as Localizations;
@@ -72,19 +80,24 @@ export function CountrySelector({inputClassName, wrapperClassName}:{inputClassNa
   };
 
   return (
-    <div ref={observerRef} className={cn("grid gap-4 w-80", wrapperClassName)}>
+    <div ref={observerRef} className={cn("grid gap-4 w-48", wrapperClassName)}>
       <Popover.Root>
         <Popover.Trigger asChild>
           <button
             type="button"
-            className={cn("w-full border border-line-subtle overflow-clip cursor-pointer text-left outline-hidden flex items-center gap-2", inputClassName)}
+            className={cn(
+              "w-full border border-line-subtle overflow-clip cursor-pointer text-left outline-hidden flex items-center gap-2",
+              inputClassName,
+            )}
             aria-label="Select country"
           >
-            <ReactCountryFlag
-              svg
-              countryCode={selectedLocale.country}
-              style={{ width: "24px", height: "14px" }}
-            />
+            {enableFlag && (
+              <ReactCountryFlag
+                svg
+                countryCode={selectedLocale.country}
+                style={{ width: "24px", height: "14px" }}
+              />
+            )}
             <span>{selectedLocale.label}</span>
             <CaretDownIcon className="ml-auto w-4 h-4" />
           </button>
