@@ -8,7 +8,7 @@ import { cn } from "~/utils/cn";
 export const variants = cva(
   [
     "button inline-flex items-center justify-center rounded-none relative",
-    "text-base leading-tight font-normal whitespace-nowrap",
+    "leading-tight font-normal whitespace-nowrap",
     "focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50!",
     "transition-colors",
   ],
@@ -20,27 +20,18 @@ export const variants = cva(
           "text-(--btn-primary-text)",
           "bg-(--btn-primary-bg)",
           "border-(--btn-primary-bg)",
-          "hover:text-(--btn-primary-bg)",
-          "hover:bg-(--btn-primary-text)",
-          "hover:border-(--btn-primary-bg)",
         ],
         secondary: [
           "border px-4 py-3",
           "text-(--btn-secondary-text)",
           "bg-(--btn-secondary-bg)",
           "border-(--btn-secondary-bg)",
-          "hover:bg-(--btn-secondary-text)",
-          "hover:text-(--btn-secondary-bg)",
-          "hover:border-(--btn-secondary-text)",
         ],
         outline: [
           "border px-4 py-3",
           "text-(--btn-outline-text)",
           "bg-transparent",
           "border-(--btn-outline-border)",
-          "hover:bg-(--btn-outline-background)",
-          "hover:text-background",
-          "hover:border-(--btn-outline-text)",
         ],
         decor: [
           "bg-transparent border-none p-0",
