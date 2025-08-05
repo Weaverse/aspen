@@ -50,9 +50,10 @@ export function AddToCartButton({
             />
             <Button
               type="submit"
+              variant="secondary"
               className={cn(
-                "hover:text-(--btn-primary-text) hover:bg-(--btn-primary-bg)",
                 className,
+                "px-6 py-5"
               )}
               disabled={disabled ?? fetcher.state !== "idle"}
               onClick={() => toggleCartDrawer(true)}
