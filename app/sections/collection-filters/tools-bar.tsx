@@ -33,9 +33,9 @@ export function ToolsBar({
     <div className="py-4">
       <div className="gap-4 md:gap-8 flex w-full items-center justify-between">
         <div className="space-y-2 md:block hidden">
-          <h3>{collection.title}</h3>
+          <h3 className="uppercase">{collection.title}</h3>
           {showProductsCount && (
-            <span className="text-center hidden md:inline">
+            <span className="text-center hidden md:inline uppercase">
               {collection?.products.nodes.length} products
             </span>
           )}
@@ -81,7 +81,7 @@ function FiltersDrawer({
           animate={false}
         >
           <SlidersIcon size={18} />
-          <span>Filter</span>
+          <span className="uppercase">Filter</span>
         </Button>
       </Dialog.Trigger>
       <Dialog.Portal>

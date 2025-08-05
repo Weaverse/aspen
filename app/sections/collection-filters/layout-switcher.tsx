@@ -1,5 +1,4 @@
 import type { IconProps } from "@phosphor-icons/react";
-import clsx from "clsx";
 import { cn } from "~/utils/cn";
 
 const LAYOUT_ICONS = {
@@ -11,7 +10,7 @@ const LAYOUT_ICONS = {
 export type LayoutSwitcherProps = {
   gridSizeDesktop: number;
   gridSizeMobile: number;
-  onGridSizeChange: (number: number, context: 'mobile' | 'desktop') => void;
+  onGridSizeChange: (number: number, context: "mobile" | "desktop") => void;
 };
 
 export function LayoutSwitcher({
@@ -23,7 +22,7 @@ export function LayoutSwitcher({
   return (
     <div
       className={cn(
-        "flex gap-1",
+        "flex",
         "[&>button]:text-[#b7b7b7] [&>button]:border-[#b7b7b7]",
         '[&>button[data-active="true"]]:text-[#696662]',
         '[&>button[data-active="true"]]:border-[#696662]',
@@ -38,14 +37,14 @@ export function LayoutSwitcher({
             key={col}
             type="button"
             data-active={gridSizeMobile === col}
-            onClick={() => onGridSizeChange(col, 'mobile')}
+            onClick={() => onGridSizeChange(col, "mobile")}
             className="border w-12 h-12 flex lg:hidden items-center justify-center"
           >
-            <Icon className="w-[22px] h-[22px]" />
+            <Icon className="w-[50px] h-[50px]" />
           </button>
         );
       })}
-      
+
       {/* Desktop layout options: 2 and 3 columns */}
       {[2, 3].map((col) => {
         let Icon = LAYOUT_ICONS[col];
@@ -54,10 +53,10 @@ export function LayoutSwitcher({
             key={`desktop-${col}`}
             type="button"
             data-active={gridSizeDesktop === col}
-            onClick={() => onGridSizeChange(col, 'desktop')}
+            onClick={() => onGridSizeChange(col, "desktop")}
             className="border w-12 h-12 hidden lg:flex items-center justify-center"
           >
-            <Icon className="w-[22px] h-[22px]" />
+            <Icon className="w-[50px] h-[50px]" />
           </button>
         );
       })}
@@ -83,15 +82,17 @@ function LayoutList(props: IconProps) {
 function TwoColumns(props: IconProps) {
   return (
     <svg
-      width="22"
-      height="22"
-      viewBox="0 0 22 22"
+      width="50"
+      height="50"
+      viewBox="0 0 50 50"
       fill="currentColor"
       xmlns="http://www.w3.org/2000/svg"
       {...props}
     >
-      <rect width="10" height="22" />
-      <rect x="12" width="10" height="22" />
+      <rect x="14" y="14" width="10" height="10" fill="currentColor" />
+      <rect x="26" y="14" width="10" height="10" fill="currentColor" />
+      <rect x="14" y="26" width="10" height="10" fill="currentColor" />
+      <rect x="26" y="26" width="10" height="10" fill="currentColor" />
     </svg>
   );
 }
@@ -99,16 +100,22 @@ function TwoColumns(props: IconProps) {
 function ThreeColumns(props: IconProps) {
   return (
     <svg
-      width="22"
-      height="22"
-      viewBox="0 0 22 22"
+      width="50"
+      height="50"
+      viewBox="0 0 50 50"
       fill="currentColor"
       xmlns="http://www.w3.org/2000/svg"
       {...props}
     >
-      <rect width="6" height="22" />
-      <rect x="8" width="6" height="22" />
-      <rect x="16" width="6" height="22" />
+      <rect x="14" y="14" width="6" height="6" fill="currentColor" />
+      <rect x="22" y="14" width="6" height="6" fill="currentColor" />
+      <rect x="30" y="14" width="6" height="6" fill="currentColor" />
+      <rect x="14" y="22" width="6" height="6" fill="currentColor" />
+      <rect x="22" y="22" width="6" height="6" fill="currentColor" />
+      <rect x="30" y="22" width="6" height="6" fill="currentColor" />
+      <rect x="14" y="30" width="6" height="6" fill="currentColor" />
+      <rect x="22" y="30" width="6" height="6" fill="currentColor" />
+      <rect x="30" y="30" width="6" height="6" fill="currentColor" />
     </svg>
   );
 }

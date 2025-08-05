@@ -126,7 +126,7 @@ const CollectionFilters = forwardRef<HTMLElement, CollectionFiltersProps>(
             {enableFilter && filtersPosition === "sidebar" && (
               <div className="hidden lg:block shrink-0 w-72">
                 <div className="space-y-4 sticky top-[calc(var(--height-nav)+40px)]">
-                  <div className="font-bold">Filters</div>
+                  <div className="font-bold uppercase">Filters</div>
                   <Filters />
                 </div>
               </div>
