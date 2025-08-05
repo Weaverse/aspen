@@ -70,6 +70,8 @@ const ProductInformation = forwardRef<
     showThumbnails,
     children,
     enableZoom,
+    showDots,
+    navigationStyle,
     ...rest
   } = props;
   const [quantity, setQuantity] = useState<number>(1);
@@ -99,22 +101,14 @@ const ProductInformation = forwardRef<
             selectedVariant={selectedVariant}
             showThumbnails={showThumbnails}
             enableZoom={enableZoom}
+            showDots={showDots}
+            navigationStyle={navigationStyle}
           />
           <div>
             <div
               className="sticky flex flex-col justify-start space-y-5"
               style={{ top: "calc(var(--height-nav) + 20px)" }}
             >
-              <div className="flex items-center gap-1.5">
-                <Link
-                  to="/"
-                  className="text-body-subtle hover:underline underline-offset-4"
-                >
-                  Home
-                </Link>
-                <span className="inline-block h-4 border-r border-body-subtle" />
-                <span>{product.title}</span>
-              </div>
               <div className="flex items-center gap-2 text-sm empty:hidden">
                 {selectedVariant && (
                   <SaleBadge
@@ -166,7 +160,7 @@ const ProductInformation = forwardRef<
                 <ProductVariants productOptions={productOptions} />
                 <Quantity value={quantity} onChange={setQuantity} />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2" style={{ "--shop-pay-button-height": "60px" } as React.CSSProperties}>
                 <AddToCartButton
                   disabled={!selectedVariant?.availableForSale}
                   lines={[
@@ -282,6 +276,28 @@ export const schema = createSchema({
           name: "showThumbnails",
           type: "switch",
           defaultValue: true,
+          condition: (data: ProductInformationData) =>
+            data.mediaLayout === "slider",
+        },
+        {
+          label: "Show dots",
+          name: "showDots",
+          type: "switch",
+          defaultValue: true,
+          condition: (data: ProductInformationData) =>
+            data.mediaLayout === "slider",
+        },
+        {
+          label: "Navigation style",
+          name: "navigationStyle",
+          type: "select",
+          defaultValue: "corner",
+          configs: {
+            options: [
+              { value: "corner", label: "Corner" },
+              { value: "sides", label: "Sides" },
+            ],
+          },
           condition: (data: ProductInformationData) =>
             data.mediaLayout === "slider",
         },

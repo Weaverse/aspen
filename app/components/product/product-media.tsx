@@ -47,6 +47,8 @@ export interface ProductMediaProps extends VariantProps<typeof variants> {
   selectedVariant: ProductVariantFragment;
   media: MediaFragment[];
   enableZoom?: boolean;
+  showDots?: boolean;
+  navigationStyle?: "corner" | "sides";
 }
 
 export function ProductMedia(props: ProductMediaProps) {
@@ -58,12 +60,18 @@ export function ProductMedia(props: ProductMediaProps) {
     selectedVariant,
     media,
     enableZoom,
+    showDots = false,
+    navigationStyle = "corner",
   } = props;
+
+  // Base navigation button styling
+  const baseButtonClasses = "rounded-full p-2 text-center border border-transparent transition-all duration-200 text-gray-900 bg-white hover:bg-gray-800 hover:text-white disabled:cursor-not-allowed disabled:text-body-subtle pointer-events-auto";
 
   const [swiper, setSwiper] = useState<SwiperClass | null>(null);
   const [thumbsSwiper, setThumbsSwiper] = useState<SwiperClass | null>(null);
   const [zoomMediaId, setZoomMediaId] = useState<string | null>(null);
   const [zoomModalOpen, setZoomModalOpen] = useState(false);
+  const [activeSlide, setActiveSlide] = useState(0);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation> --- IGNORE ---
   useEffect(() => {
@@ -166,6 +174,7 @@ export function ProductMedia(props: ProductMediaProps) {
         )}
         <div className="relative w-[calc(100%-var(--thumbs-width,0px))]">
           <Swiper
+            key={`media-slider-${navigationStyle}`}
             onSwiper={setSwiper}
             thumbs={{ swiper: thumbsSwiper }}
             slidesPerView={1}
@@ -173,12 +182,13 @@ export function ProductMedia(props: ProductMediaProps) {
             autoHeight
             loop
             navigation={{
-              nextEl: ".media_slider__next",
-              prevEl: ".media_slider__prev",
+              nextEl: navigationStyle === "corner" ? ".media_slider__next--corner" : ".media_slider__next--sides",
+              prevEl: navigationStyle === "corner" ? ".media_slider__prev--corner" : ".media_slider__prev--sides",
             }}
             pagination={{ type: "fraction" }}
             modules={[Pagination, Navigation, Thumbs]}
             className="overflow-visible md:overflow-hidden pb-10 md:pb-0 md:[&_.swiper-pagination]:hidden"
+            onSlideChange={(swiper) => setActiveSlide(swiper.realIndex || swiper.activeIndex)}
           >
             {media.map((media, idx) => (
               <SwiperSlide key={media.id} className="bg-gray-100">
@@ -207,20 +217,45 @@ export function ProductMedia(props: ProductMediaProps) {
               </SwiperSlide>
             ))}
           </Swiper>
-          <div className="absolute bottom-6 right-6 z-10 hidden md:flex items-center gap-2">
+          
+          {/* Navigation Buttons */}
+          <div className={clsx(
+            "absolute z-10 hidden md:flex items-center gap-2",
+            {
+              "bottom-6 right-6": navigationStyle === "corner",
+              "inset-0 justify-between items-center pointer-events-none": navigationStyle === "sides"
+            }
+          )}>
             <button
               type="button"
-              className="media_slider__prev rounded-full p-2 text-center border border-transparent transition-all duration-200 text-gray-900 bg-white hover:bg-gray-800 hover:text-white left-6 disabled:cursor-not-allowed disabled:text-body-subtle"
+              className={clsx(
+                `media_slider__prev--${navigationStyle}`,
+                baseButtonClasses,
+                navigationStyle === "sides" && "ml-4"
+              )}
             >
               <ArrowLeftIcon className="w-4.5 h-4.5" />
             </button>
             <button
               type="button"
-              className="media_slider__next rounded-full p-2 text-center border border-transparent transition-all duration-200 text-gray-900 bg-white hover:bg-gray-800 hover:text-white right-6 disabled:cursor-not-allowed disabled:text-body-subtle"
+              className={clsx(
+                `media_slider__next--${navigationStyle}`,
+                baseButtonClasses,
+                navigationStyle === "sides" && "mr-4"
+              )}
             >
               <ArrowRightIcon className="w-4.5 h-4.5" />
             </button>
           </div>
+
+          {/* Dots Navigation */}
+          {showDots && (
+            <ProductMediaDots
+              slidesCount={media.length}
+              activeIndex={activeSlide}
+              onDotClick={(index) => swiper?.slideTo(index)}
+            />
+          )}
         </div>
       </div>
       {enableZoom && (
@@ -289,4 +324,48 @@ function getSelectedVariantMediaIndex(
   if (!selectedVariant) return 0;
   const mediaUrl = selectedVariant.image?.url;
   return media.findIndex((med) => med.previewImage?.url === mediaUrl);
+}
+
+const dotVariants = cva(
+  [
+    "dot cursor-pointer",
+    "w-12 h-0.5 p-0",
+    "transition-all duration-300",
+    "border-0 outline-none",
+    "bg-[#DBD7D1] hover:bg-[#DBD7D1]/50",
+  ],
+  {
+    variants: {
+      isActive: {
+        true: "!bg-[#A79D95]",
+        false: "",
+      },
+    },
+  },
+);
+
+interface ProductMediaDotsProps {
+  slidesCount: number;
+  activeIndex: number;
+  onDotClick: (index: number) => void;
+}
+
+function ProductMediaDots({ slidesCount, activeIndex, onDotClick }: ProductMediaDotsProps) {
+  if (slidesCount === 0) return null;
+
+  return (
+    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex justify-center items-center gap-0">
+      {Array.from({ length: slidesCount }, (_, index) => (
+        <button
+          key={index}
+          type="button"
+          className={cn(dotVariants({ 
+            isActive: index <= activeIndex 
+          }))}
+          onClick={() => onDotClick(index)}
+          aria-label={`Go to slide ${index + 1}`}
+        />
+      ))}
+    </div>
+  );
 }

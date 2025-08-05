@@ -59,17 +59,24 @@ export function ProductDetails({
 
   return (
     <Accordion.Root type="multiple">
-      {details.map(({ title, content, learnMore }) => (
-        <Accordion.Item key={title} value={title}>
+      {details.map(({ title, content, learnMore }, index) => (
+        <Accordion.Item 
+          key={title} 
+          value={title}
+          className={clsx(
+            index === details.length - 1 && "border-b border-line-subtle",
+            "data-[state=open]:pb-6",
+          )}
+        >
           <Accordion.Trigger
             className={clsx([
-              "flex justify-between py-4 w-full font-bold",
-              "border-b border-line-subtle",
+              "flex justify-between py-6 w-full",
+              "border-t border-line-subtle",
               "data-[state=open]:[&>.minus]:inline-block",
               "data-[state=open]:[&>.plus]:hidden",
             ])}
           >
-            <span>{title}</span>
+            <span className="uppercase font-normal">{title}</span>
             <MinusIcon className="w-4 h-4 minus hidden" />
             <PlusIcon className="w-4 h-4 plus" />
           </Accordion.Trigger>
@@ -90,7 +97,7 @@ export function ProductDetails({
           >
             <div
               suppressHydrationWarning
-              className="prose dark:prose-invert py-2.5"
+              className="prose dark:prose-invert"
               dangerouslySetInnerHTML={{ __html: content }}
             />
             {learnMore && (
