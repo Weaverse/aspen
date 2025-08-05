@@ -329,7 +329,7 @@ function getSelectedVariantMediaIndex(
 const dotVariants = cva(
   [
     "dot cursor-pointer",
-    "w-12 h-0.5 p-0",
+    "h-0.5 p-0",
     "transition-all duration-300",
     "border-0 outline-none",
     "bg-[#DBD7D1] hover:bg-[#DBD7D1]/50",
@@ -353,15 +353,38 @@ interface ProductMediaDotsProps {
 function ProductMediaDots({ slidesCount, activeIndex, onDotClick }: ProductMediaDotsProps) {
   if (slidesCount === 0) return null;
 
+  // Calculate maximum width for dots container (80% of image width)
+  const maxContainerWidth = 'min(320px, 80vw)';
+  
+  // Calculate individual dot width based on slides count
+  const calculateDotWidth = (count: number) => {
+    if (count <= 4) return '48px'; // w-12 equivalent
+    if (count <= 6) return '32px'; // w-8 equivalent  
+    if (count <= 8) return '24px'; // w-6 equivalent
+    return '16px'; // w-4 equivalent for many slides
+  };
+
+  const dotWidth = calculateDotWidth(slidesCount);
+
   return (
-    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex justify-center items-center gap-0">
+    <div 
+      className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex justify-center items-center gap-0"
+      style={{ 
+        maxWidth: maxContainerWidth,
+        width: 'fit-content'
+      }}
+    >
       {Array.from({ length: slidesCount }, (_, index) => (
         <button
           key={index}
           type="button"
           className={cn(dotVariants({ 
-            isActive: index <= activeIndex 
+            isActive: index <= activeIndex  // Progressive fill like before
           }))}
+          style={{ 
+            width: dotWidth,
+            minWidth: dotWidth 
+          }}
           onClick={() => onDotClick(index)}
           aria-label={`Go to slide ${index + 1}`}
         />
