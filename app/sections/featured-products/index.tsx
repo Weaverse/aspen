@@ -1,4 +1,4 @@
-import { type ComponentLoaderArgs, createSchema } from "@weaverse/hydrogen";
+import { type ComponentLoaderArgs, createSchema, type WeaverseCollection } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
 import type { FeaturedProductsQuery } from "storefront-api.generated";
 import type { SectionProps } from "~/components/section";
@@ -40,7 +40,10 @@ export type FeaturedProductsLoaderData = Awaited<ReturnType<typeof loader>>;
 
 export const loader = async ({ weaverse, data }: ComponentLoaderArgs) => {
   const { language, country } = weaverse.storefront.i18n;
-  const { collectionHandle = 'frontpage' } = data;
+  const { collection } = data as { collection?: WeaverseCollection };
+  
+  // Use collection handle if available, otherwise default to 'frontpage'
+  const handle = collection?.handle || 'frontpage';
   
   return await weaverse.storefront.query<FeaturedProductsQuery>(
     FEATURED_PRODUCTS_QUERY,
@@ -48,7 +51,7 @@ export const loader = async ({ weaverse, data }: ComponentLoaderArgs) => {
       variables: {
         country,
         language,
-        handle: collectionHandle,
+        handle,
       },
     },
   );
@@ -63,11 +66,10 @@ export const schema = createSchema({
       group: "Collection",
       inputs: [
         {
-          type: "text",
-          name: "collectionHandle",
-          label: "Collection handle",
-          defaultValue: "frontpage",
-          placeholder: "Enter collection handle (e.g., frontpage, featured)",
+          type: "collection",
+          name: "collection",
+          label: "Collection",
+          shouldRevalidate: true,
         },
       ],
     },
@@ -78,7 +80,6 @@ export const schema = createSchema({
   ],
   presets: {
     gap: 32,
-    collectionHandle: "frontpage",
     children: [
       { type: "featured-content-products" },
       { type: "featured-products-items" },

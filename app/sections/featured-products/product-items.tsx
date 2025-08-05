@@ -85,6 +85,7 @@ interface ProductItemsProps extends VariantProps<typeof productItemsVariants> {
   slidesPerView?: number;
   itemsPerRow?: ItemsPerRowType;
   gap?: GapType;
+  productsToShow?: number;
 }
 
 const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
@@ -94,6 +95,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
       layout = "carousel",
       slidesPerView = 4,
       itemsPerRow = "4" as ItemsPerRowType,
+      productsToShow = 4,
       ...rest
     } = props;
     const parent = useParentInstance();
@@ -108,7 +110,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
     }
 
     const totalProducts = products.nodes.length;
-    const maxProductsToShow = 4;
+    const maxProductsToShow = productsToShow;
     const displayedProducts = products.nodes.slice(0, maxProductsToShow);
     const hasMoreProducts = totalProducts > maxProductsToShow;
 
@@ -322,6 +324,18 @@ export const schema = createSchema({
             step: 4,
           },
           defaultValue: 16,
+        },
+        {
+          type: "range",
+          name: "productsToShow",
+          label: "Number of products to show",
+          configs: {
+            min: 1,
+            max: 12,
+            step: 1,
+          },
+          defaultValue: 4,
+          helpText: "Maximum number of products to display. If more products are available, a 'See More Products' button will appear.",
         },
       ],
     },
