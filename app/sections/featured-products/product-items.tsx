@@ -9,7 +9,7 @@ import clsx from "clsx";
 import { ArrowLeft, ArrowRight } from "@phosphor-icons/react";
 import "swiper/css";
 import "swiper/css/navigation";
-import { Link } from "react-router";
+import Link from "~/components/link";
 
 type ItemsPerRowType = "2" | "3" | "4" | "5";
 type GapType = 8 | 12 | 16 | 20 | 24 | 28 | 32;
@@ -189,7 +189,8 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
               <div className="flex justify-center mt-8">
                 <Link 
                   to={`/collections/${collectionHandle}`}
-                  className="button inline-flex items-center justify-center rounded-none relative text-base leading-tight font-normal whitespace-nowrap focus-visible:outline-hidden transition-colors border px-4 py-3 text-(--btn-outline-text) bg-transparent border-(--btn-outline-border) hover:bg-(--btn-outline-background) hover:text-background hover:border-(--btn-outline-text)"
+                  variant="outline"
+                  className="uppercase"
                 >
                   See More Products
                 </Link>
