@@ -165,6 +165,7 @@ export function Footer() {
                       variant="primary"
                       type="submit"
                       loading={fetcher.state === "submitting"}
+                      className="uppercase"
                     >
                       {newsletterButtonText}
                     </Button>

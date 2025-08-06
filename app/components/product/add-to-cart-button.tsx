@@ -50,7 +50,7 @@ export function AddToCartButton({
             />
             <Button
               type="submit"
-              variant="secondary"
+              variant="primary"
               className={cn(
                 className,
                 "px-6 py-5"
