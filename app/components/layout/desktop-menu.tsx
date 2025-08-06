@@ -2,6 +2,7 @@ import * as Menubar from "@radix-ui/react-menubar";
 import { useThemeSettings } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import { Image } from "~/components/image";
 import Link from "~/components/link";
 import { useShopMenu } from "~/hooks/use-shop-menu";
@@ -12,6 +13,7 @@ export function DesktopMenu() {
   const { headerMenu } = useShopMenu();
   const { openMenuBy } = useThemeSettings();
   const [value, setValue] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   if (headerMenu?.items?.length) {
     const items = headerMenu.items as unknown as SingleMenuItem[];
@@ -43,11 +45,15 @@ export function DesktopMenu() {
                       setValue(id);
                     }
                   }}
+                  onPointerDown={hasSubmenu ? (e) => {
+                    // Allow navigation on left click while preserving submenu behavior
+                    if (e.button === 0 && !e.ctrlKey && !e.metaKey) {
+                      navigate(to);
+                    }
+                  } : undefined}
                 >
                   {hasSubmenu ? (
-                    <>
-                      <span>{title}</span>
-                    </>
+                    <span>{title}</span>
                   ) : (
                     <Link to={to} className="transition-none">
                       {title}
@@ -106,23 +112,23 @@ function MegaMenu({ items }: { items: SingleMenuItem[] }) {
         resource?.image && children.length === 0 ? (
           <SlideIn
             key={id}
-            className="flex flex-col gap-5 group/item overflow-hidden"
+            className="group/item overflow-hidden"
             style={{ "--idx": idx } as React.CSSProperties}
           >
-            <Image
-              sizes="auto"
-              data={resource.image}
-              className="group-hover/item:scale-[1.03] transition-transform duration-300 max-w-72 w-72 aspect-square"
-              width={300}
-            />
             <Link
               to={to}
               prefetch="intent"
-              className={clsx([
-                "text-left",
-                "font-normal uppercase",
-              ])}
+              className={clsx(["text-left", "font-normal uppercase", "flex flex-col gap-5"])}
             >
+              <div className="relative overflow-hidden max-w-72 w-72 aspect-square">
+                <Image
+                  sizes="auto"
+                  data={resource.image}
+                  className="w-full h-full object-cover"
+                  width={300}
+                />
+                <div className="absolute inset-0 bg-black opacity-0 group-hover/item:opacity-20 transition-opacity duration-300"></div>
+              </div>
               <span>{title}</span>
             </Link>
           </SlideIn>
