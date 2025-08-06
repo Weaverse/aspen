@@ -22,10 +22,10 @@ export function LayoutSwitcher({
   return (
     <div
       className={cn(
-        "flex",
-        "[&>button]:text-[#b7b7b7] [&>button]:border-[#b7b7b7]",
-        '[&>button[data-active="true"]]:text-[#696662]',
-        '[&>button[data-active="true"]]:border-[#696662]',
+        "flex flex-row-reverse md:flex-row",
+        "[&>button]:text-[#F2F0EE] [&>button]:border-[#F2F0EE]",
+        '[&>button[data-active="true"]]:text-[#A79D95]',
+        '[&>button[data-active="true"]]:border-[#A79D95]',
         className,
       )}
     >
@@ -38,7 +38,7 @@ export function LayoutSwitcher({
             type="button"
             data-active={gridSizeMobile === col}
             onClick={() => onGridSizeChange(col, "mobile")}
-            className="border w-12 h-12 flex lg:hidden items-center justify-center"
+            className="border w-12 h-12 flex md:hidden items-center justify-center"
           >
             <Icon className="w-[50px] h-[50px]" />
           </button>
@@ -54,7 +54,7 @@ export function LayoutSwitcher({
             type="button"
             data-active={gridSizeDesktop === col}
             onClick={() => onGridSizeChange(col, "desktop")}
-            className="border w-12 h-12 hidden lg:flex items-center justify-center"
+            className="border w-12 h-12 hidden md:flex items-center justify-center"
           >
             <Icon className="w-[50px] h-[50px]" />
           </button>
@@ -67,14 +67,14 @@ export function LayoutSwitcher({
 function LayoutList(props: IconProps) {
   return (
     <svg
-      width="22"
-      height="22"
-      viewBox="0 0 22 22"
+      width="50"
+      height="50"
+      viewBox="0 0 50 50"
       fill="currentColor"
       xmlns="http://www.w3.org/2000/svg"
       {...props}
     >
-      <rect width="22" height="22" />
+      <rect x="14" y="14" width="22" height="22" fill="currentColor" />
     </svg>
   );
 }

@@ -32,7 +32,7 @@ export function ToolsBar({
   return (
     <div className="py-4">
       <div className="gap-4 md:gap-8 flex w-full items-center justify-between">
-        <div className="space-y-2 md:block hidden">
+        <div className="space-y-4 md:block hidden">
           <h3 className="uppercase">{collection.title}</h3>
           {showProductsCount && (
             <span className="text-center hidden md:inline uppercase">
@@ -41,7 +41,7 @@ export function ToolsBar({
           )}
         </div>
         {(enableSort || (enableFilter && filtersPosition === "drawer")) && (
-          <div className="flex flex-col w-full gap-2 justify-end md:w-fit">
+          <div className="flex flex-col w-full gap-4 justify-end md:w-fit">
             <div className="flex w-full justify-between items-end md:justify-end md:w-fit gap-2">
               <LayoutSwitcher
                 gridSizeDesktop={gridSizeDesktop}
