@@ -105,7 +105,7 @@ let HighlightsBadge = forwardRef<HTMLDivElement, HighlightsBadgeProps & Hydrogen
       <div 
         ref={ref}
         {...rest}
-        className={"flex flex-col items-center gap-0 px-4 py-8 md:gap-5 md:px-8 md:py-16"}
+        className={"flex flex-col justify-center items-center gap-0 px-4 py-8 md:gap-5 md:px-8 md:py-16 aspect-[5/3]"}
       >
         {renderIcon(iconType)}
         {children}

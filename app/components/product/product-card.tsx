@@ -50,6 +50,7 @@ export function ProductCard({
     pcardQuickShopButtonText,
     pcardQuickShopAction,
     pcardQuickShopPanelType,
+    pcardBadgesPosition,
     pcardShowSaleBadges,
     pcardShowBestSellerBadges,
     pcardShowNewBadges,
@@ -72,6 +73,19 @@ export function ProductCard({
   const isBestSellerProduct = badges
     .filter(Boolean)
     .some(({ key, value }) => key === "best_seller" && value === "true");
+
+  // Helper function to get badge position classes
+  const getBadgePositionClasses = (position: string = "top-right") => {
+    switch (position) {
+      case "top-left":
+        return "flex gap-1 absolute top-2.5 left-2.5";
+      case "top-center":
+        return "flex gap-1 absolute top-2.5 left-1/2 -translate-x-1/2";
+      case "top-right":
+      default:
+        return "flex gap-1 absolute top-2.5 right-2.5";
+    }
+  };
 
   let [image, secondImage] = images.nodes;
   if (selectedVariant) {
@@ -140,7 +154,7 @@ export function ProductCard({
               )}
             </Link>
           )}
-          <div className="flex gap-1 absolute top-2.5 right-2.5">
+          <div className={getBadgePositionClasses(pcardBadgesPosition)}>
             {pcardShowSaleBadges && (
               <SaleBadge
                 price={minVariantPrice as MoneyV2}

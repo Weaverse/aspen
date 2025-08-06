@@ -823,6 +823,19 @@ export const themeSchema: HydrogenThemeSchema = {
           label: "Badges",
         },
         {
+          type: "toggle-group",
+          name: "pcardBadgesPosition",
+          label: "Badges position",
+          configs: {
+            options: [
+              { value: "top-left", label: "Top left" },
+              { value: "top-center", label: "Top center" },
+              { value: "top-right", label: "Top right" },
+            ],
+          },
+          defaultValue: "top-right",
+        },
+        {
           type: "switch",
           label: "Show sale badges",
           name: "pcardShowSaleBadges",
