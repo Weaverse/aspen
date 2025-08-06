@@ -27,7 +27,7 @@ const variants = cva("w-full h-full flex justify-center items-end", {
     verticalPadding: {
       none: "",
       small: "py-4 md:py-6 lg:py-8",
-      medium: "py-8 md:py-12 lg:py-16",
+      medium: "py-16 md:py-16 lg:py-20",
       large: "py-12 md:py-24 lg:py-32",
     },
     gap: {
@@ -159,7 +159,7 @@ const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
       <div className={cn(variants({ width, gap, verticalPadding }))}>
         <div className="flex flex-col md:flex-row gap-4 md:gap-6 max-w-full">
           {/* Left Column */}
-          <div className="flex flex-col gap-(--gap) w-1/2">
+          <div className="flex flex-col gap-(--gap) w-full md:w-1/2">
             {headingContent && (
               <Heading
                 content={headingContent}
@@ -187,7 +187,7 @@ const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
           </div>
           
           {/* Right Column */}
-          <div className="flex flex-col gap-(--gap) w-1/2 [&_.paragraph]:mx-[unset]">
+          <div className="flex flex-col gap-(--gap) w-full md:w-1/2 [&_.paragraph]:mx-[unset]">
             {paragraphContent && (
               <Paragraph
                 content={paragraphContent}
