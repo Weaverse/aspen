@@ -60,8 +60,8 @@ const ImageWithTextContent = forwardRef<
       className={cn(
         variants({ gap, contentPosition }),
         imageCount > 1 &&
-          "absolute inset-0 flex z-1",
-        imageCount <= 1 && "flex-1"
+          "absolute inset-0 flex z-1 w-full",
+        imageCount <= 1 && "md:w-1/2 w-full aspect-square"
       )}
       data-content-with-images={imageCount}
     >

@@ -23,7 +23,7 @@ let ImageWithTextImages = forwardRef<HTMLDivElement, ImageWithTextImageProps>(
       <div
         ref={ref}
         {...rest}
-        className={cn("w-full h-full flex", imageCount  <= 1 ? "flex-1" : "")}
+        className={cn("w-full h-full flex", imageCount  <= 1 ? "md:w-1/2 w-full aspect-square" : "")}
       >
         {children}
       </div>
