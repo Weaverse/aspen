@@ -42,7 +42,7 @@ const variants = cva("relative", {
     padding: {
       full: "",
       stretch: "px-3 md:px-10 lg:px-16",
-      fixed: "px-3 md:px-4 lg:px-6 mx-auto",
+      fixed: "px-5 md:px-6 lg:px-8 mx-auto",
     },
     verticalPadding: {
       none: "",
