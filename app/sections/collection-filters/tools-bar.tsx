@@ -36,7 +36,7 @@ export function ToolsBar({
           <h3 className="uppercase">{collection.title}</h3>
           {showProductsCount && (
             <span className="text-center hidden md:inline uppercase">
-              {collection?.products.nodes.length} products
+              products ({collection?.products.nodes.length})
             </span>
           )}
         </div>

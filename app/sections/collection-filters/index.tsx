@@ -80,11 +80,11 @@ const CollectionFilters = forwardRef<HTMLElement, CollectionFiltersProps>(
         : collection.image;
       return (
         <Section ref={ref} {...rest} overflow="unset">
-          <div className="py-5">
+          <div className="py-7">
             {showBreadcrumb && (
               <BreadCrumb page={collection.title} className="mb-2.5" />
             )}
-            <h3 className="md:hidden block">{collection.title}</h3>
+            <h3 className="md:hidden block uppercase">{collection.title}</h3>
             {showDescription && collection.description && (
               <p className="text-body-subtle mt-2.5">
                 {collection.description}
