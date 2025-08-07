@@ -37,6 +37,7 @@ interface ProductInformationData
   showSalePrice: boolean;
   showShippingPolicy: boolean;
   showRefundPolicy: boolean;
+  showBadgesOnProductMedia?: boolean;
 }
 
 const ProductInformation = forwardRef<
@@ -72,6 +73,7 @@ const ProductInformation = forwardRef<
     enableZoom,
     showDots,
     navigationStyle,
+    showBadgesOnProductMedia,
     ...rest
   } = props;
   const [quantity, setQuantity] = useState<number>(1);
@@ -103,13 +105,9 @@ const ProductInformation = forwardRef<
             enableZoom={enableZoom}
             showDots={showDots}
             navigationStyle={navigationStyle}
-          />
-          <div>
-            <div
-              className="sticky flex flex-col justify-start space-y-5"
-              style={{ top: "calc(var(--height-nav) + 20px)" }}
-            >
-              <div className="flex items-center gap-2 text-sm empty:hidden">
+            showBadges={showBadgesOnProductMedia}
+            badges={
+              <>
                 {selectedVariant && (
                   <SaleBadge
                     price={selectedVariant.price as MoneyV2}
@@ -118,7 +116,14 @@ const ProductInformation = forwardRef<
                 )}
                 <NewBadge publishedAt={publishedAt} />
                 {isBestSellerProduct && <BestSellerBadge />}
-              </div>
+              </>
+            }
+          />
+          <div>
+            <div
+              className="sticky flex flex-col justify-start space-y-5"
+              style={{ top: "calc(var(--height-nav) + 20px)" }}
+            >
               <div className="flex flex-col gap-2">
                 {showVendor && vendor && (
                   <span className="text-body-subtle">{vendor}</span>
@@ -306,6 +311,13 @@ export const schema = createSchema({
           name: "enableZoom",
           type: "switch",
           defaultValue: true,
+        },
+        {
+          type: "switch",
+          label: "Show badges on product media",
+          name: "showBadgesOnProductMedia",
+          defaultValue: true,
+          helpText: "Display sale, new, and best seller badges on product images",
         },
       ],
     },
