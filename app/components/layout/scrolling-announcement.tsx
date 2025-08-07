@@ -114,7 +114,7 @@ export function ScrollingAnnouncement() {
     <div
       id="announcement-bar"
       ref={ref}
-      className="w-full flex justify-center items-center overflow-visible lg:px-0 md:px-4 px-3 z-10"
+      className="w-full flex justify-center items-center overflow-visible lg:px-6 md:px-6 px-5 z-10"
       style={
         {
           minHeight: `${topbarHeight}px`,
@@ -127,11 +127,11 @@ export function ScrollingAnnouncement() {
     >
       <div
         className={cn(
-          "grid lg:grid-cols-3 lg:gap-8 justify-center items-center py-1 grid-cols-1",
+          "grid md:grid-cols-3 md:gap-8 justify-center items-center py-1 grid-cols-1",
           variants({ width: announcementWidth }),
         )}
       >
-        <div className="lg:flex gap-4 justify-start hidden">
+        <div className="md:flex gap-4 justify-start hidden">
           {socialItems.map((social) =>
             social.to ? (
               <Link
@@ -209,7 +209,7 @@ export function ScrollingAnnouncement() {
             </svg>
           </button>
         </div>
-        <div className="lg:flex justify-end hidden">
+        <div className="md:flex justify-end hidden">
           <CountrySelector inputClassName="px-4 py-1" enableFlag={false} />
         </div>
       </div>
