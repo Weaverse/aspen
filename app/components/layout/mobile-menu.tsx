@@ -39,7 +39,7 @@ export function MobileMenu() {
           aria-describedby={undefined}
         >
           <Dialog.Title asChild>
-            <div className="px-4">Menu</div>
+            <div className="px-4 uppercase font-semibold">Menu</div>
           </Dialog.Title>
           <Dialog.Close asChild>
             <XIcon className="w-5 h-5 fixed top-4 right-4" />
@@ -87,7 +87,7 @@ function CollapsibleMenuItem({ item }: { item: SingleMenuItem }) {
           <CaretRightIcon className="w-4 h-4" />
         </button>
       </Collapsible.Trigger>
-      <Collapsible.Content className="pl-4 border-l border-gray-300">
+      <Collapsible.Content className="pl-4">
         {items.map((item) => (
           <CollapsibleMenuItem key={item.id} item={item} />
         ))}
