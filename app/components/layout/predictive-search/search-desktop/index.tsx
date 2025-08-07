@@ -132,16 +132,17 @@ function PredictiveSearchResults() {
           <div className="flex gap-6 border-b border-line-subtle">
             {["articles", "products"].map((type) => (
               <button
+                type="button"
                 key={type}
                 className={clsx(
-                  "relative uppercase font-bold px-3 py-1 transition",
+                  "relative font-normal px-3 py-1 transition",
                   activeType === type
-                    ? "border-b-2 border-line text-body -mb-[2px]"
-                    : "text-body-subtle"
+                    ? "border-b border-line text-[#524B46] -mb-[2px]"
+                    : "text-[#918379]",
                 )}
                 onClick={() => setActiveType(type)}
               >
-                {type}
+                <span className="uppercase">{type}</span>
               </button>
             ))}
           </div>
@@ -164,7 +165,6 @@ function PredictiveSearchResults() {
                 className="flex items-center gap-2 w-fit"
               >
                 <span className=" uppercase">View all Products</span>
-                <ArrowRightIcon className="w-4 h-4" />
               </Link>
             </div>
           )}

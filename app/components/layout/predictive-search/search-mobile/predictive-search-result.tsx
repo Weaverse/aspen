@@ -22,9 +22,9 @@ export function PredictiveSearchResult({ items, type }: SearchResultTypeProps) {
   return (
     <div key={type} className="predictive-search-result flex flex-col gap-4">
       {isSuggestions && (
-        <div className="uppercase font-bold border-b border-line-subtle pb-3">
+        <span className="uppercase font-normal border-b border-line-subtle pb-3">
           {isSuggestions && "Suggestions"}
-        </div>
+        </span>
       )}
       {items?.length ? (
         <ul

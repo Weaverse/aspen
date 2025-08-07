@@ -57,14 +57,14 @@ export function PredictiveSearchButtonMobile({ setIsSearchOpen }) {
           <VisuallyHidden.Root asChild>
             <Dialog.Title>Predictive search</Dialog.Title>
           </VisuallyHidden.Root>
-          <div className="relative p-6">
-            <div className="flex gap-2 items-center justify-between">
-              <Dialog.Title asChild className="py-2.5">
-                <span className="font-bold">Search</span>
+          <div className="relative px-5 pt-3">
+            <div className="flex gap-2 items-center justify-between py-2.5">
+              <Dialog.Title asChild className="">
+                <span className="font-semibold uppercase">Search</span>
               </Dialog.Title>
               <Dialog.Close asChild>
                 <button
-                  className="p-2 translate-x-2"
+                  type="button"
                   aria-label="Close cart drawer"
                 >
                   <X className="w-4 h-4" />
@@ -73,7 +73,7 @@ export function PredictiveSearchButtonMobile({ setIsSearchOpen }) {
             </div>
             <PredictiveSearchForm>
               {({ fetchResults, inputRef }) => (
-                <div className="flex items-center gap-3 max-w-(--page-width) mx-auto my-6 border-b border-line-subtle">
+                <div className="flex items-center gap-3 max-w-(--page-width) mx-auto my-4 border-b border-line-subtle">
                   <MagnifyingGlass className="h-5 w-5 shrink-0 text-gray-500" />
                   <input
                     name="q"
@@ -126,11 +126,12 @@ function PredictiveSearchResults() {
             {["articles", "products"].map((type) => (
               <button
                 key={type}
+                type="button"
                 className={clsx(
-                  "relative uppercase font-bold px-3 py-1 transition",
+                  "relative uppercase font-normal px-3 py-1 transition",
                   activeType === type
-                    ? "border-b-2 border-line text-body -mb-[2px]"
-                    : "text-body-subtle"
+                    ? "border-b border-[#A79D95] font-medium text-body -mb-[2px]"
+                    : "text-body-subtle",
                 )}
                 onClick={() => setActiveType(type)}
               >
