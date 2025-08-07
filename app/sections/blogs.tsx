@@ -7,9 +7,7 @@ import { Link } from "~/components/link";
 import { Button } from "~/components/button";
 import { layoutInputs, Section, type SectionProps } from "~/components/section";
 import Heading, { headingInputs, type HeadingProps } from "~/components/heading";
-import { RevealUnderline } from "~/reveal-underline";
 import type { ImageAspectRatio } from "~/types/image";
-import { cn } from "~/utils/cn";
 import { getImageAspectRatio, getImageLoadingPriority } from "~/utils/image";
 
 interface BlogsProps
@@ -18,12 +16,16 @@ interface BlogsProps
     SectionProps {
   layout: "blog" | "default";
   headingTagName?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
+  showHeading?: boolean;
   imageBorderRadius?: string;
   initialCount?: number;
   loadMoreCount?: number;
   // Button props
   buttonVariant?: "primary" | "secondary" | "outline" | "decor" | "custom";
   buttonText?: string;
+  // Articles styling
+  accentColor?: string;
+  showSeperator?: boolean;
 }
 
 const Blogs = forwardRef<HTMLElement, BlogsProps>((props, ref) => {
@@ -40,7 +42,11 @@ const Blogs = forwardRef<HTMLElement, BlogsProps>((props, ref) => {
     // Button props
     buttonVariant = "primary",
     buttonText = "Load More",
+    // Articles styling
+    accentColor = "#27272A",
+    showSeperator = true,
     // Heading props
+    showHeading = true,
     headingTagName,
     color,
     size,
@@ -70,21 +76,28 @@ const Blogs = forwardRef<HTMLElement, BlogsProps>((props, ref) => {
   };
 
   if (blog) {
+    const sectionStyle: CSSProperties = {
+      "--accent-color": accentColor,
+      "--border-radius": `${imageBorderRadius}`,
+    } as CSSProperties;
+
     return (
-      <Section ref={ref} {...rest}>
-        <Heading
-          content={blog.title}
-          as={headingTagName}
-          color={color}
-          size={size}
-          mobileSize={mobileSize}
-          desktopSize={desktopSize}
-          minSize={minSize}
-          maxSize={maxSize}
-          weight={weight}
-          letterSpacing={letterSpacing}
-          alignment={alignment}
-        />
+      <Section ref={ref} {...rest} style={sectionStyle}>
+        {showHeading && (
+          <Heading
+            content={blog.title}
+            as={headingTagName}
+            color={color}
+            size={size}
+            mobileSize={mobileSize}
+            desktopSize={desktopSize}
+            minSize={minSize}
+            maxSize={maxSize}
+            weight={weight}
+            letterSpacing={letterSpacing}
+            alignment={alignment}
+          />
+        )}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-4 gap-y-12">
           {visibleArticles.map((article, i) => (
             <ArticleCard
@@ -96,6 +109,7 @@ const Blogs = forwardRef<HTMLElement, BlogsProps>((props, ref) => {
               showExcerpt={showExcerpt}
               showDate={showDate}
               showReadmore={showReadmore}
+              showSeperator={showSeperator}
               imageAspectRatio={imageAspectRatio}
               imageBorderRadius={imageBorderRadius}
             />
@@ -122,6 +136,7 @@ export interface ArticleCardProps {
   showExcerpt: boolean;
   showAuthor: boolean;
   showReadmore: boolean;
+  showSeperator?: boolean;
   imageAspectRatio: ImageAspectRatio;
   imageBorderRadius?: string;
   className?: string;
@@ -135,56 +150,71 @@ export function ArticleCard({
   showAuthor,
   showDate,
   showReadmore,
+  showSeperator,
   imageAspectRatio,
   imageBorderRadius,
   className,
 }: ArticleCardProps) {
   return (
-    <div className={cn("flex flex-col gap-5", className)} style={{"--image-border-radius": imageBorderRadius} as CSSProperties}>
-      {article.image && (
-        <Link
-          to={`/blogs/${blogHandle}/${article.handle}`}
-          className="flex flex-col gap-5"
-        >
-          <Image
-            alt={article.image.altText || article.title}
-            data={article.image}
-            aspectRatio={getImageAspectRatio(article.image, imageAspectRatio)}
-            loading={loading}
-            sizes="(min-width: 768px) 50vw, 100vw"
-            className={"rounded-(--image-border-radius) object-cover"}
-          />
-        </Link>
-      )}
-      <div className="space-y-2.5">
-        <Link
-          to={`/blogs/${blogHandle}/${article.handle}`}
-          className="inline-block"
-        >
-          <RevealUnderline as={"h5"}>{article.title}</RevealUnderline>
-        </Link>
-        {showExcerpt && (
-          <div className="line-clamp-2 lg:line-clamp-3 text-gray-700">
-            {article.excerpt}
-          </div>
-        )}
-        <div className="flex items-center gap-2 empty:hidden text-gray-600 mt-2">
-          {showDate && <span className="block">{article.publishedAt}</span>}
-          {showDate && showAuthor && <span>-</span>}
-          {showAuthor && <span className="block">{article.author?.name}</span>}
-        </div>
-        {showReadmore && (
-          <div>
-            <Link
-              to={`/blogs/${blogHandle}/${article.handle}`}
-              variant="underline"
+    <article className={`group ${className || ""}`}>
+      <Link
+        to={`/blogs/${blogHandle}/${article.handle}`}
+        className="block h-full cursor-pointer"
+      >
+        <div className="flex w-full h-full flex-col gap-4">
+          {article.image && (
+            <div 
+              className="overflow-hidden aspect-square"
+              style={{ borderRadius: imageBorderRadius }}
             >
-              Read more →
-            </Link>
+              <Image
+                alt={article.image.altText || article.title}
+                data={article.image}
+                aspectRatio={getImageAspectRatio(article.image, imageAspectRatio)}
+                loading={loading}
+                sizes="(min-width: 768px) 50vw, 100vw"
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+            </div>
+          )}
+          <div className="flex flex-col gap-3">
+            <h5 className="font-normal text-(--accent-color) line-clamp-3">
+              {article.title}
+            </h5>
+            {showSeperator && (
+              <div className="w-full border-b border-(--accent-color) opacity-20"></div>
+            )}
+            {showExcerpt && (
+              <p className="line-clamp-3 text-(--accent-color) opacity-80">
+                {article.excerpt}
+              </p>
+            )}
+            {(showDate || showAuthor) && (
+              <div className="flex mt-4 gap-1 text-(--accent-color) text-sm opacity-80">
+                {showDate && (
+                  <time>
+                    {new Date(article.publishedAt).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long", 
+                      day: "numeric",
+                    })}
+                  </time>
+                )}
+                {showDate && showAuthor && <span>—</span>}
+                {showAuthor && <p>{article.author?.name}</p>}
+              </div>
+            )}
+            {showReadmore && (
+              <div className="mt-2">
+                <span className="text-(--accent-color) text-sm underline opacity-80 hover:opacity-100 transition-opacity">
+                  Read more →
+                </span>
+              </div>
+            )}
           </div>
-        )}
-      </div>
-    </div>
+        </div>
+      </Link>
+    </article>
   );
 }
 
@@ -201,15 +231,24 @@ export const schema = createSchema({
     { group: "Layout", inputs: layoutInputs },
     {
       group: "Heading (optional)",
-      inputs: headingInputs.filter(input => input.name !== "content").map((input) => {
-        if (input.name === "as") {
-          return {
-            ...input,
-            name: "headingTagName",
-          };
-        }
-        return input;
-      }),
+      inputs: [
+        {
+          type: "switch",
+          name: "showHeading",
+          label: "Show heading",
+          defaultValue: true,
+          helpText: "Toggle to show or hide the blog title heading",
+        },
+        ...headingInputs.filter(input => input.name !== "content").map((input) => {
+          if (input.name === "as") {
+            return {
+              ...input,
+              name: "headingTagName",
+            };
+          }
+          return input;
+        }),
+      ],
     },
     {
       group: "Pagination",
@@ -268,6 +307,23 @@ export const schema = createSchema({
       ],
     },
     {
+      group: "Styling",
+      inputs: [
+        {
+          type: "color",
+          label: "Accent color",
+          name: "accentColor",
+          defaultValue: "#27272A",
+        },
+        {
+          type: "switch",
+          name: "showSeperator",
+          label: "Show separator",
+          defaultValue: true,
+        },
+      ],
+    },
+    {
       group: "Article card",
       inputs: [
         {
@@ -291,7 +347,7 @@ export const schema = createSchema({
           type: "select",
           name: "imageBorderRadius",
           label: "Image border radius",
-          defaultValue: "0px",
+          defaultValue: "8px",
           configs: {
             options: [
               { value: "0px", label: "None" },

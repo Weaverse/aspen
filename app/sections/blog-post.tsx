@@ -50,14 +50,19 @@ const BlogPost = forwardRef<HTMLElement, BlogPostProps>((props, ref) => {
         <article className="prose lg:max-w-4xl mx-auto py-4 lg:py-10">
           <div className="space-y-5 text-left">
             <h3 className="h3 leading-tight!">{title}</h3>
-            <div className="flex items-center text-body-subtle gap-0.5">
-              <div className="">{formattedDate}</div>-
-              {author?.name && (
-                <div className="font-medium uppercase">
-                  by <span>{author.name}</span>
-                </div>
-              )}
-            </div>
+            {(formattedDate || author?.name) && (
+              <span className="flex items-center text-[#918379] gap-0.5 text-[14px]">
+                {formattedDate && author?.name ? (
+                  <>
+                    {formattedDate} - {author.name}
+                  </>
+                ) : (
+                  <>
+                    {formattedDate || author?.name}
+                  </>
+                )}
+              </span>
+            )}
           </div>
           <div className="mx-auto space-y-8 md:space-y-16">
             <div

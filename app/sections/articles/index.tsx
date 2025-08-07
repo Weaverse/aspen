@@ -5,87 +5,25 @@ import {
   type HydrogenComponentSchema,
   type WeaverseBlog,
 } from "@weaverse/hydrogen";
-import { type VariantProps, cva } from "class-variance-authority";
 import clsx from "clsx";
 import { type CSSProperties, forwardRef, useState } from "react";
 import { Image } from "~/components/image";
 import Link from "~/components/link";
 import { Button } from "~/components/button";
-import { cn } from "~/utils/cn";
 import { ArrowRight } from "@phosphor-icons/react";
 import { layoutInputs, Section } from "~/components/section";
 import { backgroundInputs } from "~/components/background-image";
-
-let fontSizeVariants = cva("", {
-  variants: {
-    mobileSize: {
-      xs: "text-xs",
-      sm: "text-sm",
-      base: "text-base",
-      lg: "text-lg",
-      xl: "text-xl",
-      "2xl": "text-2xl",
-      "3xl": "text-3xl",
-      "4xl": "text-4xl",
-      "5xl": "text-5xl",
-      "6xl": "text-6xl",
-      "7xl": "text-7xl",
-      "8xl": "text-8xl",
-      "9xl": "text-9xl",
-    },
-    desktopSize: {
-      xs: "md:text-xs",
-      sm: "md:text-sm",
-      base: "md:text-base",
-      lg: "md:text-lg",
-      xl: "md:text-xl",
-      "2xl": "md:text-2xl",
-      "3xl": "md:text-3xl",
-      "4xl": "md:text-4xl",
-      "5xl": "md:text-5xl",
-      "6xl": "md:text-6xl",
-      "7xl": "md:text-7xl",
-      "8xl": "md:text-8xl",
-      "9xl": "md:text-9xl",
-    },
-  },
-});
-
-let variants = cva("heading", {
-  variants: {
-    size: {
-      default: "",
-      custom: "",
-      scale: "text-scale",
-    },
-    weight: {
-      "100": "font-thin",
-      "200": "font-extralight",
-      "300": "font-light",
-      "400": "font-normal",
-      "500": "font-medium",
-      "600": "font-semibold",
-      "700": "font-bold",
-      "800": "font-extrabold",
-      "900": "font-black",
-    },
-  },
-  defaultVariants: {
-    size: "default",
-    weight: "400",
-  },
-});
+import Heading, {
+  headingInputs,
+  type HeadingProps,
+} from "~/components/heading";
 
 type ArticleData = {
   blogs: WeaverseBlog;
   articlePerRow: number;
   showSeperator: boolean;
-  as?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
-  minSize?: number;
-  maxSize?: number;
   viewAllText?: string;
   viewAllLink?: string;
-  articleHeading?: string;
   accentColor?: string;
   borderRadius?: number;
   showPublishedDate?: boolean;
@@ -94,13 +32,15 @@ type ArticleData = {
   loadMoreCount?: number;
   buttonVariant?: "primary" | "secondary" | "outline" | "decor" | "custom";
   buttonText?: string;
+  // Heading props
+  headingContent?: string;
+  headingTagName?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
 };
 
 export interface ArticlesProps
   extends HydrogenComponentProps<Awaited<ReturnType<typeof loader>>>,
     ArticleData,
-    VariantProps<typeof variants>,
-    VariantProps<typeof fontSizeVariants> {}
+    Omit<HeadingProps, "content"> {}
 
 let articlesPerRowClasses: { [item: number]: string } = {
   1: "sm:grid-cols-1",
@@ -114,17 +54,9 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
     blogs,
     articlePerRow,
     showSeperator,
-    as: Tag = "h2",
-    size,
-    mobileSize,
-    desktopSize,
-    weight,
-    minSize,
-    maxSize,
     loaderData,
     children,
     viewAllText = "VIEW ALL",
-    articleHeading = "ARTICLES",
     accentColor = "#27272A",
     borderRadius = 8,
     showPublishedDate = true,
@@ -133,12 +65,25 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
     loadMoreCount = 3,
     buttonVariant = "primary",
     buttonText = "Load More",
+    // Heading props
+    headingContent = "ARTICLES",
+    headingTagName = "h5",
+    color,
+    size,
+    mobileSize,
+    desktopSize,
+    weight,
+    letterSpacing,
+    alignment,
+    minSize,
+    maxSize,
+    animate,
     ...rest
   } = props;
 
   // State to manage visible articles count
   const [visibleCount, setVisibleCount] = useState(initialCount);
-  
+
   let sectionStyle: CSSProperties = {
     "--min-size-px": `${minSize}px`,
     "--min-size": minSize,
@@ -169,7 +114,7 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
 
   // Handle load more
   const handleLoadMore = () => {
-    setVisibleCount(prev => Math.min(prev + loadMoreCount, res.length));
+    setVisibleCount((prev) => Math.min(prev + loadMoreCount, res.length));
   };
 
   return (
@@ -181,29 +126,56 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
     >
       <div className="flex flex-col gap-8">
         <div className="flex items-center justify-between">
-          <h5 className="font-normal uppercase font-heading tracking-wider text-(--accent-color)">
-            {articleHeading}
-          </h5>
+          {headingContent && (
+            <Heading
+              content={headingContent}
+              as={headingTagName}
+              color={color || accentColor}
+              size={size}
+              mobileSize={mobileSize}
+              desktopSize={desktopSize}
+              weight={weight}
+              letterSpacing={letterSpacing}
+              alignment={alignment}
+              minSize={minSize}
+              maxSize={maxSize}
+              animate={animate}
+              className="uppercase"
+            />
+          )}
           {viewAllText && (
             <Link
               to={blogs?.handle ? `/blogs/${blogs.handle}` : "#"}
-              className="flex items-center gap-2 text-sm cursor-pointer font-medium uppercase tracking-wider text-(--accent-color) hover:opacity-80 transition-opacity"
+              className="flex items-center justify-center gap-2 text-sm cursor-pointer font-medium uppercase tracking-wider text-(--accent-color) hover:opacity-80 transition-opacity"
             >
               {viewAllText}
-              <ArrowRight className="w-4 h-4" weight="bold" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="11"
+                viewBox="0 0 20 11"
+                fill="none"
+              >
+                <path
+                  d="M14.0575 0.376953L13.1737 1.26082L16.9236 5.0107H0.625V6.26074H16.9234L13.1737 10.0105L14.0575 10.8944L19.3163 5.63566L14.0575 0.376953Z"
+                  fill="currentColor"
+                />
+              </svg>
             </Link>
           )}
         </div>
         <div
           className={clsx(
             "grid gap-4",
-            articlesPerRowClasses[Math.min(articlePerRow, res?.length || 1)]
+            articlesPerRowClasses[Math.min(articlePerRow, res?.length || 1)],
           )}
         >
           {visibleArticles?.map((idx, i) => (
             <article key={i} className="group">
               <Link
-                to={idx.handle ? `/blogs/${idx.blog.handle}/${idx.handle}` : "#"}
+                to={
+                  idx.handle ? `/blogs/${idx.blog.handle}/${idx.handle}` : "#"
+                }
                 data-motion="slide-in"
                 className="block h-full cursor-pointer"
               >
@@ -218,16 +190,9 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
                     </div>
                   )}
                   <div className="flex flex-col gap-3">
-                    <Tag
-                      className={cn(
-                        "font-normal text-(--accent-color)",
-                        size === "custom" &&
-                          fontSizeVariants({ mobileSize, desktopSize }),
-                        variants({ size, weight })
-                      )}
-                    >
+                    <h5 className="font-normal text-(--accent-color) line-clamp-3">
                       {idx.title}
-                    </Tag>
+                    </h5>
                     {showSeperator && (
                       <div className="w-full border-b border-(--accent-color) opacity-20"></div>
                     )}
@@ -243,11 +208,10 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
                               year: "numeric",
                               month: "long",
                               day: "numeric",
-                            }
+                            },
                           )}
                         </time>
-                        —
-                        <p>{idx.author?.name}</p>
+                        —<p>{idx.author?.name}</p>
                       </div>
                     )}
                   </div>
@@ -258,10 +222,7 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
         </div>
         {hasMoreArticles && (
           <div className="flex justify-center mt-8">
-            <Button
-              onClick={handleLoadMore}
-              variant={buttonVariant}
-            >
+            <Button onClick={handleLoadMore} variant={buttonVariant}>
               {buttonText}
             </Button>
           </div>
@@ -326,14 +287,21 @@ export const schema: HydrogenComponentSchema = {
   inspector: [
     {
       group: "Layout",
-      inputs: layoutInputs.filter((inp) => inp.name !== "divider" && inp.name !== "borderRadius" && inp.name !== "gap"),
+      inputs: layoutInputs.filter(
+        (inp) =>
+          inp.name !== "divider" &&
+          inp.name !== "borderRadius" &&
+          inp.name !== "gap",
+      ),
     },
     {
       group: "Background",
       inputs: [
         ...backgroundInputs.filter(
           (inp) =>
-            inp.name !== "backgroundImage" && inp.name !== "backgroundFit" && inp.name !== "backgroundPosition",
+            inp.name !== "backgroundImage" &&
+            inp.name !== "backgroundFit" &&
+            inp.name !== "backgroundPosition",
         ),
       ],
     },
@@ -350,12 +318,6 @@ export const schema: HydrogenComponentSchema = {
           label: "Accent color",
           name: "accentColor",
           defaultValue: "#27272A",
-        },
-        {
-          type: "text",
-          label: "Section heading",
-          name: "articleHeading",
-          defaultValue: "ARTICLES",
         },
         {
           type: "text",
@@ -384,7 +346,7 @@ export const schema: HydrogenComponentSchema = {
             max: 8,
             step: 1,
           },
-          helpText: "Number of articles to show initially"
+          helpText: "Number of articles to show initially",
         },
         {
           type: "range",
@@ -396,7 +358,7 @@ export const schema: HydrogenComponentSchema = {
             max: 6,
             step: 1,
           },
-          helpText: "Number of articles to load when clicking 'Load More'"
+          helpText: "Number of articles to load when clicking 'Load More'",
         },
         {
           type: "range",
@@ -425,6 +387,27 @@ export const schema: HydrogenComponentSchema = {
       ],
     },
     {
+      group: "Heading (optional)",
+      inputs: [
+        {
+          type: "text",
+          name: "headingContent",
+          label: "Heading content",
+          defaultValue: "ARTICLES",
+          placeholder: "Enter heading text",
+        },
+        ...headingInputs.map((input) => {
+          if (input.name === "as") {
+            return {
+              ...input,
+              name: "headingTagName",
+            };
+          }
+          return input;
+        }),
+      ],
+    },
+    {
       group: "Load More Button",
       inputs: [
         {
@@ -448,135 +431,6 @@ export const schema: HydrogenComponentSchema = {
               { value: "custom", label: "Custom" },
             ],
           },
-        },
-      ],
-    },
-    {
-      group: "Heading title (optional)",
-      inputs: [
-        {
-          type: "select",
-          name: "as",
-          label: "HTML tag",
-          configs: {
-            options: [
-              { value: "h1", label: "<h1> (Heading 1)" },
-              { value: "h2", label: "<h2> (Heading 2)" },
-              { value: "h3", label: "<h3> (Heading 3)" },
-              { value: "h4", label: "<h4> (Heading 4)" },
-              { value: "h5", label: "<h5> (Heading 5)" },
-              { value: "h6", label: "<h6> (Heading 6)" },
-            ],
-          },
-          defaultValue: "h4",
-        },
-        {
-          type: "select",
-          name: "size",
-          label: "Text size",
-          configs: {
-            options: [
-              { value: "default", label: "Default" },
-              { value: "scale", label: "Auto scale" },
-              { value: "custom", label: "Custom" },
-            ],
-          },
-          defaultValue: "default",
-        },
-        {
-          type: "range",
-          name: "minSize",
-          label: "Minimum scale size",
-          configs: {
-            min: 12,
-            max: 32,
-            step: 1,
-            unit: "px",
-          },
-          defaultValue: 16,
-          condition: "size.eq.scale",
-        },
-        {
-          type: "range",
-          name: "maxSize",
-          label: "Maximum scale size",
-          configs: {
-            min: 40,
-            max: 96,
-            step: 1,
-            unit: "px",
-          },
-          defaultValue: 64,
-          condition: "size.eq.scale",
-          helpText:
-            'See how scale text works <a href="https://css-tricks.com/snippets/css/fluid-typography/" target="_blank" rel="noreferrer">here</a>.',
-        },
-        {
-          type: "select",
-          name: "mobileSize",
-          label: "Mobile text size",
-          condition: "size.eq.custom",
-          configs: {
-            options: [
-              { value: "xs", label: "Extra small (text-xs)" },
-              { value: "sm", label: "Small (text-sm)" },
-              { value: "base", label: "Base (text-base)" },
-              { value: "lg", label: "Large (text-lg)" },
-              { value: "xl", label: "Extra large (text-xl)" },
-              { value: "2xl", label: "2x large (text-2xl)" },
-              { value: "3xl", label: "3x large (text-3xl)" },
-              { value: "4xl", label: "4x large (text-4xl)" },
-              { value: "5xl", label: "5x large (text-5xl)" },
-              { value: "6xl", label: "6x large (text-6xl)" },
-              { value: "7xl", label: "7x large (text-7xl)" },
-              { value: "8xl", label: "8x large (text-8xl)" },
-              { value: "9xl", label: "9x large (text-9xl)" },
-            ],
-          },
-          defaultValue: "3xl",
-        },
-        {
-          type: "select",
-          name: "desktopSize",
-          label: "Desktop text size",
-          condition: "size.eq.custom",
-          configs: {
-            options: [
-              { value: "xs", label: "Extra small (text-xs)" },
-              { value: "sm", label: "Small (text-sm)" },
-              { value: "base", label: "Base (text-base)" },
-              { value: "lg", label: "Large (text-lg)" },
-              { value: "xl", label: "Extra large (text-xl)" },
-              { value: "2xl", label: "2x large (text-2xl)" },
-              { value: "3xl", label: "3x large (text-3xl)" },
-              { value: "4xl", label: "4x large (text-4xl)" },
-              { value: "5xl", label: "5x large (text-5xl)" },
-              { value: "6xl", label: "6x large (text-6xl)" },
-              { value: "7xl", label: "7x large (text-7xl)" },
-              { value: "8xl", label: "8x large (text-8xl)" },
-              { value: "9xl", label: "9x large (text-9xl)" },
-            ],
-          },
-          defaultValue: "5xl",
-        },
-        {
-          type: "select",
-          name: "weight",
-          label: "Weight",
-          configs: {
-            options: [
-              { value: "100", label: "100 - Thin" },
-              { value: "200", label: "200 - Extra Light" },
-              { value: "300", label: "300 - Light" },
-              { value: "400", label: "400 - Normal" },
-              { value: "500", label: "500 - Medium" },
-              { value: "600", label: "600 - Semi Bold" },
-              { value: "700", label: "700 - Bold" },
-              { value: "800", label: "800 - Extra Bold" },
-              { value: "900", label: "900 - Black" },
-            ],
-          },
-          defaultValue: "400",
         },
       ],
     },
