@@ -173,7 +173,7 @@ export function ProductCard({
         </div>
         <div
           className={clsx(
-            "py-3 text-sm flex flex-col gap-2",
+            "py-3 flex flex-col gap-2",
             isVertical && styleVariants({ alignment: pcardAlignment })
           )}
         >

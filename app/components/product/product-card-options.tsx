@@ -47,13 +47,15 @@ export function ProductCardOptions({
         .map(({ name, swatch, firstSelectableVariant }) => {
           if (asSwatch) {
             const swatchColor = swatch?.color || name;
+            console.log(swatch?.color);
+            
             return (
               <Tooltip key={name}>
                 <TooltipTrigger>
                   <button
                     type="button"
                     className={clsx(
-                      "size-4 flex aspect-square",
+                      "size-3 flex aspect-square",
                       "transition-(outline-color) outline-solid outline-offset-2 outline-1",
                       selectedValue === name
                         ? "outline-line"
@@ -75,7 +77,7 @@ export function ProductCardOptions({
                         className={clsx(
                           "w-full h-full inline-block text-[0px]",
                           isLightColor(swatch?.color || name) &&
-                            "border border-line-subtle",
+                            "border-[0.5px] border-line-subtle",
                         )}
                         style={{ backgroundColor: swatchColor }}
                       >
