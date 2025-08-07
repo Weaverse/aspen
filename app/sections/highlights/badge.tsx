@@ -155,13 +155,13 @@ export let schema = createSchema({
       ],
     },
   ],
-  childTypes: ["subheading", "paragraph"],
+  childTypes: ["subheading", "heading"],
   presets: {
     iconType: "circle",
     badgeTextColor: "#29231E",
     children: [
       {
-        type: "paragraph",
+        type: "heading",
         content: "Quality furniture made to last through moves and milestones.",
         color: "#29231E",
       },
