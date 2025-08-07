@@ -305,6 +305,9 @@ export function QuickShop({
 }
 
 export function QuickShopTrigger({ productHandle }: { productHandle: string }) {
+  const {
+    quickShopButtonTextOpen
+  } = useThemeSettings();
   const [open, setOpen] = useState(false);
   const [showDescription, setShowDescription] = useState(false);
   const { load, data, state } = useFetcher<ProductData>();
@@ -367,7 +370,7 @@ export function QuickShopTrigger({ productHandle }: { productHandle: string }) {
             />
           </svg>
           {/* Text for desktop */}
-          <span className="hidden lg:inline uppercase">Quick shop</span>
+          <span className="hidden lg:inline uppercase">{quickShopButtonTextOpen}</span>
         </button>
       </Dialog.Trigger>
       <Dialog.Portal>

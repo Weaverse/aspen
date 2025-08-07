@@ -49,6 +49,8 @@ export interface ProductMediaProps extends VariantProps<typeof variants> {
   enableZoom?: boolean;
   showDots?: boolean;
   navigationStyle?: "corner" | "sides";
+  showBadges?: boolean;
+  badges?: React.ReactNode;
 }
 
 export function ProductMedia(props: ProductMediaProps) {
@@ -62,6 +64,8 @@ export function ProductMedia(props: ProductMediaProps) {
     enableZoom,
     showDots = false,
     navigationStyle = "corner",
+    showBadges = false,
+    badges,
   } = props;
 
   // Base navigation button styling
@@ -255,6 +259,13 @@ export function ProductMedia(props: ProductMediaProps) {
               activeIndex={activeSlide}
               onDotClick={(index) => swiper?.slideTo(index)}
             />
+          )}
+
+          {/* Badges Overlay */}
+          {showBadges && badges && (
+            <div className="absolute top-2.5 left-2.5 flex items-center gap-2 z-10">
+              {badges}
+            </div>
           )}
         </div>
       </div>

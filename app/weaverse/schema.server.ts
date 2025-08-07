@@ -771,53 +771,53 @@ export const themeSchema: HydrogenThemeSchema = {
           name: "pcardEnableQuickShop",
           defaultValue: true,
         },
-        {
-          type: "select",
-          label: "Quick shop button type",
-          name: "pcardQuickShopButtonType",
-          configs: {
-            options: [
-              { value: "icon", label: "Icon button" },
-              { value: "text", label: "Text button" },
-            ],
-          },
-          defaultValue: "icon",
-          condition: (data) => data.pcardEnableQuickShop === true,
-        },
-        {
-          type: "text",
-          label: "Quick shop button text",
-          name: "pcardQuickShopButtonText",
-          defaultValue: "Quick shop",
-          placeholder: "Quick shop",
-          condition: (data) => data.pcardQuickShopButtonType === "text",
-        },
-        {
-          type: "select",
-          label: "Quick shop action",
-          name: "pcardQuickShopAction",
-          configs: {
-            options: [
-              { value: "go-to-page", label: "Go to product page" },
-              { value: "open-quick-shop", label: "Open quick shop panel" },
-            ],
-          },
-          defaultValue: "open-quick-shop",
-          condition: (data) => data.pcardEnableQuickShop === true,
-        },
-        {
-          type: "select",
-          label: "Quick shop panel type",
-          name: "pcardQuickShopPanelType",
-          configs: {
-            options: [
-              { value: "modal", label: "Modal" },
-              { value: "drawer", label: "Drawer" },
-            ],
-          },
-          defaultValue: "modal",
-          condition: (data) => data.pcardQuickShopAction === "open-quick-shop",
-        },
+        // {
+        //   type: "select",
+        //   label: "Quick shop button type",
+        //   name: "pcardQuickShopButtonType",
+        //   configs: {
+        //     options: [
+        //       { value: "icon", label: "Icon button" },
+        //       { value: "text", label: "Text button" },
+        //     ],
+        //   },
+        //   defaultValue: "icon",
+        //   condition: (data) => data.pcardEnableQuickShop === true,
+        // },
+        // {
+        //   type: "text",
+        //   label: "Quick shop button text",
+        //   name: "pcardQuickShopButtonText",
+        //   defaultValue: "Quick shop",
+        //   placeholder: "Quick shop",
+        //   condition: (data) => data.pcardQuickShopButtonType === "text",
+        // },
+        // {
+        //   type: "select",
+        //   label: "Quick shop action",
+        //   name: "pcardQuickShopAction",
+        //   configs: {
+        //     options: [
+        //       { value: "go-to-page", label: "Go to product page" },
+        //       { value: "open-quick-shop", label: "Open quick shop panel" },
+        //     ],
+        //   },
+        //   defaultValue: "open-quick-shop",
+        //   condition: (data) => data.pcardEnableQuickShop === true,
+        // },
+        // {
+        //   type: "select",
+        //   label: "Quick shop panel type",
+        //   name: "pcardQuickShopPanelType",
+        //   configs: {
+        //     options: [
+        //       { value: "modal", label: "Modal" },
+        //       { value: "drawer", label: "Drawer" },
+        //     ],
+        //   },
+        //   defaultValue: "modal",
+        //   condition: (data) => data.pcardQuickShopAction === "open-quick-shop",
+        // },
         {
           type: "heading",
           label: "Badges",
@@ -911,8 +911,21 @@ export const themeSchema: HydrogenThemeSchema = {
           defaultValue: true,
         },
         {
+          type: "switch",
+          label: "Show badges on product media",
+          name: "showBadgesOnProductMedia",
+          defaultValue: true,
+          helpText: "Display sale, new, and best seller badges on product images",
+        },
+        {
           type: "heading",
           label: "Quick Shop",
+        },
+        {
+          type: "text",
+          label: "Quick shop button text",
+          name: "quickShopButtonTextOpen",
+          defaultValue: "Quick shop",
         },
         {
           type: "text",
