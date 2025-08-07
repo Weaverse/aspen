@@ -5,13 +5,16 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
-import { Image as ImageIcon, InstagramLogo, ArrowLeft, ArrowRight } from "@phosphor-icons/react";
+import {
+  Image as ImageIcon,
+  InstagramLogo,
+  ArrowLeft,
+  ArrowRight,
+} from "@phosphor-icons/react";
 import type { Swiper as SwiperType } from "swiper";
 import { useInstagramContext } from "./context";
 
-
-interface InstagramSliderProps
-  extends HydrogenComponentProps {
+interface InstagramSliderProps extends HydrogenComponentProps {
   slidesPerView: number;
   spaceBetween: number;
   showNavigation: boolean;
@@ -19,17 +22,12 @@ interface InstagramSliderProps
 
 let InstagramSlider = forwardRef<HTMLDivElement, InstagramSliderProps>(
   (props, ref) => {
-    let { 
-      slidesPerView, 
-      spaceBetween, 
-      showNavigation, 
-      children, 
-      ...rest 
-    } = props;
+    let { slidesPerView, spaceBetween, showNavigation, children, ...rest } =
+      props;
 
     const swiperRef = useRef<SwiperType | null>(null);
     const { loaderData } = useInstagramContext();
-    
+
     const imageItemBlank = () => {
       return (
         <div className="flex aspect-square w-full items-center justify-center bg-[#EBE8E5] rounded">
@@ -51,7 +49,11 @@ let InstagramSlider = forwardRef<HTMLDivElement, InstagramSliderProps>(
     let displayedImages = res?.slice(0, 6);
 
     return (
-      <div ref={ref} {...rest} className="relative md:w-3/4 w-full space-y-10 md:space-y-0">
+      <div
+        ref={ref}
+        {...rest}
+        className="relative lg:w-3/4 w-full space-y-10 md:space-y-0"
+      >
         <Swiper
           onSwiper={(swiper) => {
             swiperRef.current = swiper;
@@ -107,10 +109,11 @@ let InstagramSlider = forwardRef<HTMLDivElement, InstagramSliderProps>(
             </SwiperSlide>
           ))}
         </Swiper>
-        
+
         {showNavigation && (
-          <div className="md:absolute md:top-1/2 md:left-0 md:right-0 flex md:justify-between justify-center md:gap-0 gap-4 items-center pointer-events-none z-10">
+          <div className="md:absolute md:top-1/2 md:left-0 md:right-0 flex md:justify-between justify-center md:gap-0 gap-4 items-center pointer-events-none z-10 px-0 md:px-5 lg:px-0">
             <button
+              type="button"
               onClick={() => swiperRef.current?.slidePrev()}
               className="pointer-events-auto flex items-center justify-center w-12 h-12 bg-white/60 backdrop-blur-sm rounded-full hover:bg-white/80 transition-colors"
               aria-label="Previous slide"
@@ -118,6 +121,7 @@ let InstagramSlider = forwardRef<HTMLDivElement, InstagramSliderProps>(
               <ArrowLeft size={16} className="text-[#29231E]" />
             </button>
             <button
+              type="button"
               onClick={() => swiperRef.current?.slideNext()}
               className="pointer-events-auto flex items-center justify-center w-12 h-12 bg-white/60 backdrop-blur-sm rounded-full hover:bg-white/80 transition-colors"
               aria-label="Next slide"
@@ -179,4 +183,4 @@ export let schema = createSchema({
     spaceBetween: 16,
     showNavigation: true,
   },
-}); 
+});

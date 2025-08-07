@@ -38,7 +38,7 @@ const Instagram = forwardRef<HTMLElement, InstagramProps>((props, ref) => {
       {...rest}
     >
       <InstagramProvider value={{ loaderData }}>
-        <div className="flex flex-col md:flex-row items-center justify-center gap-10">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-center gap-10">
           {children}
         </div>
       </InstagramProvider>
