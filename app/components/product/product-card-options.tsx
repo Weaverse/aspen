@@ -41,7 +41,7 @@ export function ProductCardOptions({
   const asSwatch = OPTIONS_AS_SWATCH.includes(pcardOptionToShow);
 
   return (
-    <div className="flex flex-wrap items-center gap-1 pt-1">
+    <div className="flex flex-wrap items-center gap-1 pt-1 px-2">
       {optionValues
         .slice(0, pcardMaxOptionValues)
         .map(({ name, swatch, firstSelectableVariant }) => {
@@ -54,7 +54,7 @@ export function ProductCardOptions({
                     type="button"
                     className={clsx(
                       "size-4 flex aspect-square",
-                      "transition-[outline-color] outline-solid outline-offset-2 outline-1",
+                      "transition-(outline-color) outline-solid outline-offset-2 outline-1",
                       selectedValue === name
                         ? "outline-line"
                         : "outline-transparent hover:outline-line",

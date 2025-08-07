@@ -104,7 +104,7 @@ function ProductColorOptions({
                   <button
                     type="button"
                     className={clsx(
-                      "w-2.5 h-2.5 overflow-hidden transition-[outline-color] outline-solid outline-offset-1 outline-1",
+                      "w-2.5 h-2.5 overflow-hidden transition-(outline-color) outline-solid outline-offset-1 outline-1",
                       isSelected
                         ? "outline-gray-800"
                         : "outline-transparent hover:outline-gray-400",

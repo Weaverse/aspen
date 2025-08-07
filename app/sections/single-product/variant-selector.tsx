@@ -52,7 +52,7 @@ export function SingleProductVariantSelector({
                   className={clsx(
                     "size-(--option-swatch-size) flex aspect-square",
                     "rounded-full overflow-hidden",
-                    "transition-[outline-color] outline-offset-2 outline-1",
+                    "transition-(outline-color) outline-offset-2 outline-1",
                     !exists && "cursor-not-allowed",
                     selected
                       ? "outline-line"
