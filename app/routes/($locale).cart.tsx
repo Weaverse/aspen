@@ -18,6 +18,7 @@ import { Await, useRouteLoaderData } from "react-router";
 import type { CartApiQueryFragment } from "storefront-api.generated";
 import invariant from "tiny-invariant";
 import { Cart } from "~/components/cart/cart";
+import { Section } from "~/components/section";
 import type { RootLoader } from "~/root";
 
 export async function action({ request, context }: ActionFunctionArgs) {
@@ -97,12 +98,12 @@ export default function CartRoute() {
 
   return (
     <>
-      <div className="px-3 md:px-10 lg:px-16 py-6 md:py-20 space-y-6 md:space-y-12">
-        <h3 className="text-center">Cart</h3>
+      <Section width="fixed" gap={32} className="bg-[#F2F0EE] pt-10 pb-20">
+        <h4 className="text-left font-normal uppercase">Cart</h4>
         <Await resolve={rootData?.cart}>
           {(cart) => <Cart layout="page" cart={cart as CartApiQueryFragment} />}
         </Await>
-      </div>
+      </Section>
       <Analytics.CartView />
     </>
   );
