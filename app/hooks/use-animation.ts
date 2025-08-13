@@ -10,7 +10,6 @@ const ANIMATIONS: Record<MotionType, any> = {
   "slide-in": { opacity: [0, 1], x: [20, 0] },
 };
 
-// TODO prevent already-in-view elements from triggering the animation
 export function useAnimation(ref?: ForwardedRef<any>) {
   const { revealElementsOnScroll } = useThemeSettings();
   const [scope] = useAnimate();
@@ -20,32 +19,52 @@ export function useAnimation(ref?: ForwardedRef<any>) {
     Object.assign(ref, { current: scope.current });
   }, [scope, ref]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation> --- IGNORE ---
   useEffect(() => {
     if (!revealElementsOnScroll) {
       return;
     }
+
     if (scope.current) {
-      scope.current.classList.add("animated-scope");
+      // Thêm lớp phủ opacity-0 cho tất cả elements có data-motion
       const elems = scope.current.querySelectorAll("[data-motion]");
+      
+      // Ẩn tất cả elements ban đầu
+      elems.forEach((elem: HTMLElement) => {
+        elem.style.opacity = "0";
+      });
+
+      // Thêm class để track trạng thái
+      scope.current.classList.add("animated-scope");
+      
       elems.forEach((elem: HTMLElement, idx: number) => {
         inView(
           elem,
           (element: Element) => {
             const { motion, delay } = elem.dataset;
-            animate(element, ANIMATIONS[motion || "fade-up"], {
+            const animationType = motion || "fade-up";
+            
+            // Reset về trạng thái ban đầu trước khi animate
+            const htmlElement = element as HTMLElement;
+            
+            // Chạy animation
+            animate(element, ANIMATIONS[animationType], {
               delay: Number(delay) || idx * 0.15,
               duration: 0.5,
             });
-            if (idx === elems.length - 1) {
-              scope.current.classList.remove("animated-scope");
-            }
+            
+            // Xóa inline styles sau khi animation hoàn thành
+            setTimeout(() => {
+              htmlElement.style.transform = "";
+              htmlElement.style.opacity = "";
+            }, 500 + (Number(delay) || idx * 0.15) * 1000);
           },
-          { amount: 0.3 },
+          { 
+            amount: 0.3,
+          },
         );
       });
     }
-  }, []);
+  }, [revealElementsOnScroll]);
 
   return [scope] as const;
 }
