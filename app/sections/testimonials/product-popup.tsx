@@ -270,7 +270,7 @@ export function ProductPopup({
                   ]
                 : []
             }
-            className="bg-[#908379] hover:bg-[#7a6f66] text-white transition-colors flex items-center justify-center"
+            className="bg-[#908379] hover:bg-[#7a6f66] text-white transition-colors flex items-center justify-center h-12"
           >
             <ShoppingBagIcon size={16} />
           </AddToCartButton>
