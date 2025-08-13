@@ -30,12 +30,12 @@ export function ToolsBar({
 }: ToolsBarProps) {
   const { collection } = useLoaderData<CollectionQuery>();
   return (
-    <div className="py-4">
-      <div className="gap-4 md:gap-8 flex w-full items-center justify-between">
-        <div className="space-y-4 md:block hidden">
-          <h3 className="uppercase">{collection.title}</h3>
+    <div className="py-3">
+      <div className="gap-4 md:gap-8 flex w-full items-center justify-between h-full">
+        <div className="md:block hidden h-full space-y-3.5">
+          <h4 className="uppercase tracking-tight">{collection.title}</h4>
           {showProductsCount && (
-            <span className="text-center hidden md:inline uppercase">
+            <span className="hidden md:inline uppercase">
               products ({collection?.products.nodes.length})
             </span>
           )}
@@ -76,7 +76,7 @@ function FiltersDrawer({
           variant="outline"
           className={cn(
             "flex items-center gap-1.5 border py-2 h-12",
-            filtersPosition === "sidebar" && "lg:hidden"
+            filtersPosition === "sidebar" && "lg:hidden",
           )}
           animate={false}
         >

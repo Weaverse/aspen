@@ -80,11 +80,11 @@ const CollectionFilters = forwardRef<HTMLElement, CollectionFiltersProps>(
         : collection.image;
       return (
         <Section ref={ref} {...rest} overflow="unset">
-          <div className="py-7">
+          <div className="lg:py-8 py-5">
             {showBreadcrumb && (
               <BreadCrumb page={collection.title} className="mb-2.5" />
             )}
-            <h3 className="md:hidden block uppercase">{collection.title}</h3>
+            <h4 className="md:hidden block uppercase tracking-tight">{collection.title}</h4>
             {showDescription && collection.description && (
               <p className="text-body-subtle mt-2.5">
                 {collection.description}
@@ -122,7 +122,7 @@ const CollectionFilters = forwardRef<HTMLElement, CollectionFiltersProps>(
             }}
             {...props}
           />
-          <div className="flex gap-5 pt-6 lg:pt-12 pb-8 lg:pb-20">
+          <div className="flex gap-5 pt-3 pb-8 lg:pb-20">
             {enableFilter && filtersPosition === "sidebar" && (
               <div className="hidden lg:block shrink-0 w-72">
                 <div className="space-y-4 sticky top-[calc(var(--height-nav)+40px)]">
