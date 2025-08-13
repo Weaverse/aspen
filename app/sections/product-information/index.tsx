@@ -165,7 +165,7 @@ const ProductInformation = forwardRef<
                 <ProductVariants productOptions={productOptions} />
                 <Quantity value={quantity} onChange={setQuantity} />
               </div>
-              <div className="space-y-2" style={{ "--shop-pay-button-height": "60px" } as React.CSSProperties}>
+              <div className="space-y-2 py-3 sp-button" style={{ "--shop-pay-button-height": "54px" } as React.CSSProperties}>
                 <AddToCartButton
                   disabled={!selectedVariant?.availableForSale}
                   lines={[
@@ -176,7 +176,7 @@ const ProductInformation = forwardRef<
                     },
                   ]}
                   data-test="add-to-cart"
-                  className="w-full uppercase"
+                  className="w-full uppercase !py-[17px]"
                 >
                   {selectedVariant.availableForSale
                     ? addToCartText
