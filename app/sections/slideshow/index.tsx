@@ -231,11 +231,11 @@ export const schema = createSchema({
           name: "arrowsColor",
           configs: {
             options: [
-              { value: "light", label: "Light" },
-              { value: "dark", label: "Dark" },
+              { value: "primary", label: "Primary" },
+              { value: "secondary", label: "Secondary" },
             ],
           },
-          defaultValue: "light",
+          defaultValue: "primary",
           condition: (data: SlideshowData) => data.showArrows,
         },
         {

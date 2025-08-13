@@ -21,8 +21,22 @@ const variants = cva(
   {
     variants: {
       arrowsColor: {
-        light: "text-gray-900 bg-white hover:bg-gray-100",
-        dark: "text-gray-100 bg-gray-900 hover:bg-gray-800",
+        primary: [
+          "text-(--btn-primary-text)",
+          "bg-(--btn-primary-bg)",
+          "border-(--btn-primary-bg)",
+          "hover:text-(--btn-primary-text)",
+          "hover:bg-(--btn-primary-bg)",
+          "hover:border-(--btn-primary-bg)",
+        ],
+        secondary: [
+          "text-(--btn-secondary-text)",
+          "bg-(--btn-secondary-bg)",
+          "border-(--btn-secondary-bg)",
+          "hover:text-(--btn-secondary-text)",
+          "hover:bg-(--btn-secondary-bg)",
+          "hover:border-(--btn-secondary-bg)",
+        ],
       },
       arrowsShape: {
         square: "",
