@@ -1,19 +1,36 @@
 import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
 import { forwardRef, useState, useEffect } from "react";
+import Heading, { headingInputs, type HeadingProps } from "~/components/heading";
 
-export interface HighlightsBadgeProps extends HydrogenComponentProps {
+export interface HighlightsBadgeProps extends HydrogenComponentProps, Omit<HeadingProps, "content"> {
   iconType?: string;
   customIcon?: string;
   badgeTextColor?: string;
+  // Heading props
+  headingContent?: string;
+  headingTagName?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
 }
 
-let HighlightsBadge = forwardRef<HTMLDivElement, HighlightsBadgeProps & HydrogenComponentProps>(
+let HighlightsBadge = forwardRef<HTMLDivElement, HighlightsBadgeProps>(
   (props, ref) => {
     let { 
       children,
       iconType = "circle",
       customIcon = "",
       badgeTextColor = "#29231E",
+      // Heading props
+      headingContent,
+      headingTagName,
+      color,
+      size,
+      mobileSize,
+      desktopSize,
+      weight,
+      letterSpacing,
+      alignment,
+      minSize,
+      maxSize,
+      animate,
       ...rest 
     } = props;
     const [imageError, setImageError] = useState(false);
@@ -105,10 +122,32 @@ let HighlightsBadge = forwardRef<HTMLDivElement, HighlightsBadgeProps & Hydrogen
       <div 
         ref={ref}
         {...rest}
-        className={"flex flex-col justify-center items-center gap-0 px-4 py-8 md:gap-5 md:px-8 md:py-16 aspect-[5/3]"}
+        className={"flex flex-col justify-center items-center gap-0 px-4 py-8 md:gap-5 md:px-8 md:py-16 h-full"}
       >
-        {renderIcon(iconType)}
-        {children}
+        {/* Icon container với vị trí cố định */}
+        <div className="flex-shrink-0 w-full flex justify-center items-center">
+          {renderIcon(iconType)}
+        </div>
+        
+        {/* Text container với vị trí cố định */}
+        <div className="flex-1 w-full flex justify-center items-start text-center">
+          {headingContent && (
+            <Heading
+              content={headingContent}
+              as={headingTagName}
+              color={color}
+              size={size}
+              mobileSize={mobileSize}
+              desktopSize={desktopSize}
+              weight={weight}
+              letterSpacing={letterSpacing}
+              alignment={alignment}
+              minSize={minSize}
+              maxSize={maxSize}
+              animate={animate}
+            />
+          )}
+        </div>
       </div>
     );
   },
@@ -119,6 +158,7 @@ export default HighlightsBadge;
 export let schema = createSchema({
   type: "highlights-badge",
   title: "Highlights Badge",
+  limit: 3,
   settings: [
     {
       group: "Icon",
@@ -154,17 +194,32 @@ export let schema = createSchema({
         },
       ],
     },
+    {
+      group: "Heading",
+      inputs: [
+        {
+          type: "text",
+          name: "headingContent",
+          label: "Heading content",
+          defaultValue: "Quality furniture made to last through moves and milestones.",
+          placeholder: "Enter heading text",
+        },
+        ...headingInputs.map((input) => {
+          if (input.name === "as") {
+            return {
+              ...input,
+              name: "headingTagName",
+            };
+          }
+          return input;
+        }),
+      ],
+    },
   ],
-  childTypes: ["subheading", "heading"],
   presets: {
     iconType: "circle",
     badgeTextColor: "#29231E",
-    children: [
-      {
-        type: "heading",
-        content: "Quality furniture made to last through moves and milestones.",
-        color: "#29231E",
-      },
-    ],
+    headingContent: "Quality furniture made to last through moves and milestones.",
+    color: "#29231E",
   },
 }); 

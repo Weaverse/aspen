@@ -46,7 +46,7 @@ let Highlights = forwardRef<HTMLElement, HighlightsProps & SectionProps>(
             paddingBottom: "5rem"
           }}
         >
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-7xl mx-auto border border-[#A79D95]">
+          <div className="grid items-center justify-center grid-cols-1 md:grid-cols-3 gap-4 max-w-7xl mx-auto border border-[#A79D95]">
             {children}
           </div>
         </div>
