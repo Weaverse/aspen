@@ -224,7 +224,7 @@ export function ProductMedia(props: ProductMediaProps) {
           
           {/* Navigation Buttons */}
           <div className={clsx(
-            "absolute z-10 hidden md:flex items-center gap-2",
+            "absolute z-[5] hidden md:flex items-center gap-2",
             {
               "bottom-6 right-6": navigationStyle === "corner",
               "inset-0 justify-between items-center pointer-events-none": navigationStyle === "sides"
@@ -263,7 +263,7 @@ export function ProductMedia(props: ProductMediaProps) {
 
           {/* Badges Overlay */}
           {showBadges && badges && (
-            <div className="absolute top-2.5 left-2.5 flex items-center gap-2 z-10">
+            <div className="absolute top-2.5 left-2.5 flex items-center gap-2 z-[5]">
               {badges}
             </div>
           )}
@@ -379,7 +379,7 @@ function ProductMediaDots({ slidesCount, activeIndex, onDotClick }: ProductMedia
 
   return (
     <div 
-      className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex justify-center items-center gap-0"
+      className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[5] flex justify-center items-center gap-0"
       style={{ 
         maxWidth: maxContainerWidth,
         width: 'fit-content'
