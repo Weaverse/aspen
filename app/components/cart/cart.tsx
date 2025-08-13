@@ -62,11 +62,7 @@ function CartDetails({
             "grid grid-cols-1 grid-rows-[1fr_auto] px-4 pt-6",
             enableFreeShipping ? "h-[calc(100vh-100px)]" : "h-[100vh]",
           ],
-          layout === "page" && [
-            "pb-12 w-full max-w-(--page-width) mx-auto",
-            "grid grid-cols-1 lg:grid-cols-3 md:items-start",
-            "gap-8 md:gap-8 lg:gap-12",
-          ]
+          layout === "page" && ["flex lg:gap-5 gap-10"],
         )}
       >
         <div
@@ -75,13 +71,30 @@ function CartDetails({
               ? `overflow-y-auto max-h-full pr-3 ${
                   enableFreeShipping ? "pb-5" : "pb-16"
                 }`
-              : "lg:col-span-2 order-1 lg:order-none"
+              : "lg:w-2/3 w-full",
           )}
         >
           <CartLines lines={cart?.lines?.nodes} layout={layout} />
         </div>
         <CartSummary cost={cart.cost} layout={layout}>
           <CartDiscounts discountCodes={cart.discountCodes} />
+          {layout === "page" && (
+            <div className="border-y border-line-subtle py-6 flex flex-col gap-6">
+              <div className="flex items-center justify-between font-medium">
+                <span className="font-normal">Subtotal</span>
+                <span className="font-normal">
+                  {cart?.cost?.subtotalAmount?.amount ? (
+                    <Money data={cart?.cost?.subtotalAmount} />
+                  ) : (
+                    "-"
+                  )}
+                </span>
+              </div>
+              <span className="font-normal text-[#918379]">
+                Shipping & taxes calculated at checkout
+              </span>
+            </div>
+          )}
           <CartCheckoutActions checkoutUrl={cart.checkoutUrl} layout={layout} />
         </CartSummary>
       </div>
@@ -205,17 +218,15 @@ function CartLines({
     <div
       ref={scrollRef}
       className={clsx([
-        "-mx-4 pb-4",
         y > 0 ? "border-t border-line-subtle" : "",
-        layout === "page" && "grow md:translate-y-4 lg:col-span-2",
+        layout === "page" && "w-full",
         layout === "drawer" && "transition",
       ])}
     >
       <ul
         className={clsx(
-          "grid",
-          layout === "page" && "gap-9",
-          layout === "drawer" && "gap-5"
+          layout === "page" && "flex flex-col",
+          layout === "drawer" && "grid gap-5",
         )}
       >
         {currentLines.map((line, index) => (
@@ -273,25 +284,28 @@ function CartSummary({
       className={clsx(
         layout === "drawer" &&
           "sticky bottom-0 grid gap-4 border-t border-line-subtle p-4 bg-white",
-        layout === "page" &&
-          "sticky top-(--height-nav) grid gap-6 p-4 md:px-6 md:translate-y-4 rounded w-full lg:col-span-1 order-2 lg:order-none"
+        layout === "page" && "flex flex-col gap-6 px-6 pb-6 lg:w-1/3 w-full",
       )}
     >
-      <h2 id="summary-heading" className="sr-only">
-        Order summary
-      </h2>
-      <dl className="grid">
-        <div className="flex items-center justify-between font-medium">
-          <dt>Subtotal</dt>
-          <dd>
-            {cost?.subtotalAmount?.amount ? (
-              <Money data={cost?.subtotalAmount} />
-            ) : (
-              "-"
-            )}
-          </dd>
-        </div>
-      </dl>
+      {layout === "page" && (
+        <span className="font-semibold uppercase border-b border-line-subtle pb-6">
+          Order summary
+        </span>
+      )}
+      {layout === "drawer" && (
+        <dl className="grid">
+          <div className="flex items-center justify-between font-medium">
+            <dt>Subtotal</dt>
+            <dd>
+              {cost?.subtotalAmount?.amount ? (
+                <Money data={cost?.subtotalAmount} />
+              ) : (
+                "-"
+              )}
+            </dd>
+          </div>
+        </dl>
+      )}
       {children}
     </div>
   );
@@ -334,62 +348,123 @@ function CartLineItem({
   return (
     <li
       className={clsx(
-        "grid gap-4",
-        layout === "drawer" ? "" : "grid-cols-1 md:grid-cols-2"
+        layout === "drawer"
+          ? "flex gap-4"
+          : "flex items-center h-full bg-white",
       )}
       style={{
         display: optimisticData?.action === "remove" ? "none" : "flex",
       }}
     >
-      <div className="shrink-0">
+      {/* Thumbnail */}
+      <div
+        className={clsx(
+          "shrink-0",
+          layout === "drawer" ? "" : "w-[360px] h-[360px]",
+        )}
+      >
         {image && (
           <Image
-            width={250}
-            height={250}
+            width={layout === "drawer" ? 250 : 360}
+            height={layout === "drawer" ? 250 : 360}
             data={image}
             className={clsx(
               "!object-cover",
-              layout === "drawer" ? "w-36 h-auto" : "w-full h-auto"
+              layout === "drawer" ? "w-36 h-auto" : "w-full h-full rounded",
             )}
             alt={title}
             aspectRatio={getImageAspectRatio(image, "1/1")}
           />
         )}
       </div>
+
+      {/* Info Section */}
       <div
         className={clsx(
-          "flex flex-col justify-between grow",
-          layout === "drawer" ? "" : "p-6"
+          "flex flex-col",
+          layout === "drawer" ? "grow justify-between" : "p-6 h-[360px]",
         )}
       >
-        <div className="flex justify-between gap-4">
-          <div className="space-y-1">
+        {layout === "page" ? (
+          // Page Layout - New Design
+          <div className="flex flex-col justify-between h-full">
             <div>
-              {product?.handle ? (
-                <Link to={url} onClick={() => toggleCartDrawer(false)}>
-                  <RevealUnderline>{product?.title || ""}</RevealUnderline>
-                </Link>
-              ) : (
-                <p>{product?.title || ""}</p>
-              )}
+              {/* Title and Close Button */}
+              <div className="flex items-center justify-between gap-1 mb-4">
+                <div className="flex-1">
+                  {product?.handle ? (
+                    <Link to={url} onClick={() => toggleCartDrawer(false)}>
+                      <span className="font-semibold uppercase line-clamp-1">
+                        {product?.title || ""}
+                      </span>
+                    </Link>
+                  ) : (
+                    <p className="font-semibold tracking-wide line-clamp-1">
+                      {product?.title || ""}
+                    </p>
+                  )}
+                </div>
+                <ItemRemoveButton
+                  lineId={id}
+                  className="w-4 h-4"
+                  layout={layout}
+                />
+              </div>
+
+              {/* Variant Information */}
+              <div className="flex flex-col font-normal">
+                {title.split(" / ").map((option, index) => (
+                  <span key={index} className="">
+                    {option.trim()}
+                  </span>
+                ))}
+              </div>
             </div>
-            <div className="text-sm text-gray-500 space-y-0.5">{title}</div>
+
+            {/* Quantity and Pricing */}
+            <div className="flex items-center justify-between">
+              <div className="">
+                Item price: <CartLinePrice line={line} as="span" />
+              </div>
+              <CartLineQuantityAdjust
+                line={line}
+                isLastItem={isLastItem}
+                layout={layout}
+              />
+              <div className="font-medium">
+                <CartLinePrice line={line} as="span" />
+              </div>
+            </div>
           </div>
-          {layout === "page" && (
+        ) : (
+          // Drawer Layout - Original Design
+          <>
+            <div className="flex justify-between gap-4">
+              <div className="space-y-1">
+                <div>
+                  {product?.handle ? (
+                    <Link to={url} onClick={() => toggleCartDrawer(false)}>
+                      <span className="font-semibold uppercase line-clamp-1">
+                        {product?.title || ""}
+                      </span>
+                    </Link>
+                  ) : (
+                    <p>{product?.title || ""}</p>
+                  )}
+                </div>
+                <div className="text-sm text-gray-500 space-y-0.5">{title}</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 justify-between">
+              <CartLineQuantityAdjust
+                line={line}
+                isLastItem={isLastItem}
+                layout={layout}
+              />
+              <CartLinePrice line={line} as="span" />
+            </div>
             <ItemRemoveButton lineId={id} className="" layout={layout} />
-          )}
-        </div>
-        <div
-          className={clsx(
-            "flex items-center gap-2",
-            layout === "drawer" && "justify-between"
-          )}
-        >
-          <CartLineQuantityAdjust line={line} isLastItem={isLastItem} />
-          <CartLinePrice line={line} as="span" />
-        </div>
-        {layout === "drawer" && (
-          <ItemRemoveButton lineId={id} className="" layout={layout} />
+          </>
         )}
       </div>
     </li>
@@ -428,9 +503,11 @@ function ItemRemoveButton({
 function CartLineQuantityAdjust({
   line,
   isLastItem,
+  layout,
 }: {
   line: CartLine;
   isLastItem: boolean;
+  layout: Layouts;
 }) {
   let optimisticData = useOptimisticData<OptimisticData>(line?.id);
   const [isOpen, setIsOpen] = useState(false);
@@ -465,7 +542,10 @@ function CartLineQuantityAdjust({
       </label>
       <div className="relative quantity-selector">
         <button
-          className="flex gap-2 items-center px-3 py-2 min-w-[80px] relative bg-white"
+          className={clsx(
+            "flex gap-2 items-center py-2 min-w-[80px] relative bg-white",
+            layout === "page" ? "" : "",
+          )}
           onClick={(e) => {
             e.stopPropagation();
             setIsOpen(!isOpen);
@@ -473,16 +553,27 @@ function CartLineQuantityAdjust({
           type="button"
           disabled={isOptimistic}
         >
-          <span>QTY</span>
-          <span className="flex-1 text-center">{optimisticQuantity}</span>
-          <CaretDown />
+          <span
+            className={clsx(layout === "page" ? "text-sm font-medium" : "")}
+          >
+            QTY
+          </span>
+          <span
+            className={clsx(
+              "flex-1 text-center",
+              layout === "page" ? "text-sm" : "",
+            )}
+          >
+            {optimisticQuantity}
+          </span>
+          <CaretDown className={clsx(layout === "page" ? "w-3 h-3" : "")} />
         </button>
 
         {isOpen && (
           <div
             className={clsx(
               "absolute left-0 bg-white shadow-2xl rounded-md z-10 min-w-[80px]",
-              isLastItem ? "bottom-full mb-1" : "top-full mt-1"
+              isLastItem ? "bottom-full mb-1" : "top-full mt-1",
             )}
           >
             {quantities.map((qty) => (
@@ -499,7 +590,7 @@ function CartLineQuantityAdjust({
                     "w-full text-center px-4 py-2 text-sm hover:bg-gray-100 transition",
                     qty === optimisticQuantity
                       ? "bg-gray-200 text-primary font-medium"
-                      : "text-gray-700"
+                      : "text-gray-700",
                   )}
                   type="submit"
                   disabled={isOptimistic || qty === optimisticQuantity}
@@ -572,7 +663,7 @@ function CartEmpty({
         layout === "page" && [
           hidden ? "" : "grid",
           "pb-12 w-full md:items-start gap-4 md:gap-8 lg:gap-12",
-        ]
+        ],
       )}
       hidden={hidden}
     >
@@ -594,7 +685,7 @@ function CartEmpty({
             count={4}
             heading="Shop Best Sellers"
             layout={layout}
-              sortKey="BEST_SELLING"
+            sortKey="BEST_SELLING"
           />
         </div>
       )}
