@@ -309,7 +309,7 @@ export const schema = createSchema({
           type: "text",
           name: "viewDetailsLinkText",
           label: "View details link text",
-          defaultValue: "View full details",
+          defaultValue: "View details",
           condition: (data: HotspotsItemData) => data.showViewDetailsLink,
         },
       ],

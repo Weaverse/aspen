@@ -252,7 +252,7 @@ export function ProductPopup({
             <Link
               to={`/products/${product.handle}`}
               variant="secondary"
-              className="text-sm !p-0 w-full flex justify-center items-center"
+              className="!p-0 w-full flex justify-center items-center"
             >
               {viewDetailsLinkText}
             </Link>
@@ -270,7 +270,7 @@ export function ProductPopup({
                   ]
                 : []
             }
-            className="bg-[#908379] hover:bg-[#7a6f66] text-white transition-colors flex items-center justify-center"
+            className="bg-[#908379] hover:bg-[#7a6f66] text-white transition-colors flex items-center justify-center !py-4 !px-6 h-12"
           >
             <ShoppingBagIcon size={16} />
           </AddToCartButton>
