@@ -97,49 +97,46 @@ export function Footer() {
   return (
     <footer
       className={cn(
-        "w-full bg-(--color-footer-bg) text-(--color-footer-text) pt-9 lg:pt-16",
+        "w-full bg-(--color-footer-bg) text-(--color-footer-text) pt-5 lg:pt-7",
         variants({ padding: footerWidth }),
       )}
     >
       <div className={cn("w-full h-full", variants({ width: footerWidth }))}>
-        <div className="md:space-y-6 divide-y divide-line-subtle">
-          <div className="w-full grid md:grid-cols-2 grid-cols-1 gap-8 md:pb-6 pb-0">
-            <div className="flex flex-col justify-between gap-6">
-              {footerLogoData ? (
-                <div className="relative" style={{ width: footerLogoWidth }}>
-                  <Image
-                    data={footerLogoData}
-                    sizes="auto"
-                    width={500}
-                    className="w-full h-full object-contain object-left"
-                  />
-                </div>
-              ) : (
-                <div className="font-medium text-base uppercase">
-                  {shopName}
-                </div>
-              )}
-              <div className="flex flex-col gap-2">
+        <div className="md:space-y-6 md:divide-y divide-line-subtle">
+          <div className="w-full grid lg:grid-cols-2 grid-cols-1 gap-0 md:gap-8 md:pb-6 pb-0">
+            {footerLogoData ? (
+              <div
+                className="relative md:order-none lg:order-1"
+                style={{ width: footerLogoWidth }}
+              >
+                <Image
+                  data={footerLogoData}
+                  sizes="auto"
+                  width={500}
+                  className="w-full h-full object-contain object-left"
+                />
+              </div>
+            ) : (
+              <div className="font-medium text-base uppercase md:order-none lg:order-1">
+                {shopName}
+              </div>
+            )}
+            <div className="hidden gap-4 lg:hidden md:flex">
+              <div className="flex flex-col gap-2 w-full">
                 <div className="flex flex-col gap-6">
                   <span className="font-semibold">{addressTitle}</span>
                   <div className="space-y-2">
                     <p>{storeAddress}</p>
-                    <p>Email: {storeEmail}</p>
+                    <p>{storeEmail}</p>
                   </div>
                 </div>
-                {bio ? (
+                {bio && (
                   <div className="flex flex-col gap-4">
                     <div dangerouslySetInnerHTML={{ __html: bio }} />
                   </div>
-                ) : null}
+                )}
               </div>
-            </div>
-            <div className="flex flex-col gap-10">
-              <div className="lg:block md:hidden block">
-                <FooterMenu />
-              </div>
-
-              <div className="flex flex-col gap-6 lg:w-fit w-full">
+              <div className="flex flex-col gap-6 w-full">
                 <span className="font-semibold">{newsletterTitle}</span>
                 <div className="space-y-2">
                   <p>{newsletterDescription}</p>
@@ -152,7 +149,7 @@ export function Footer() {
                     action="/api/klaviyo"
                     method="POST"
                     encType="multipart/form-data"
-                    className="flex gap-3"
+                    className="flex gap-3 h-[54px]"
                   >
                     <input
                       name="email"
@@ -186,6 +183,73 @@ export function Footer() {
                 </div>
               </div>
             </div>
+            <div className="flex flex-col gap-2 md:order-none lg:order-3 lg:flex md:hidden">
+              <div className="flex flex-col gap-6">
+                <span className="font-semibold">{addressTitle}</span>
+                <div className="space-y-2">
+                  <p>{storeAddress}</p>
+                  <p>{storeEmail}</p>
+                </div>
+              </div>
+              {bio ? (
+                <div className="flex flex-col gap-4">
+                  <div dangerouslySetInnerHTML={{ __html: bio }} />
+                </div>
+              ) : null}
+            </div>
+            <div className="lg:block md:hidden block order-2">
+              <FooterMenu />
+            </div>
+
+            <div className="flex flex-col gap-6 lg:w-fit w-full order-4 md:order-none lg:order-4 lg:flex md:hidden pt-6 md:pt-0">
+              <span className="font-semibold">{newsletterTitle}</span>
+              <div className="space-y-2">
+                <p>{newsletterDescription}</p>
+                <fetcher.Form
+                  onSubmit={(event: FormEvent<HTMLFormElement>) => {
+                    setMessage("");
+                    setError("");
+                    fetcher.submit(event.currentTarget);
+                  }}
+                  action="/api/klaviyo"
+                  method="POST"
+                  encType="multipart/form-data"
+                  className="flex gap-3 h-[54px]"
+                >
+                  <input
+                    name="email"
+                    type="email"
+                    required
+                    placeholder={newsletterPlaceholder}
+                    className="text-body bg-white focus-visible:outline-hidden px-3 placeholder:text-[#918379] border border-line-subtle lg:w-80 w-full"
+                  />
+                  <Button
+                    variant="primary"
+                    type="submit"
+                    loading={fetcher.state === "submitting"}
+                    className="uppercase"
+                  >
+                    {newsletterButtonText}
+                  </Button>
+                </fetcher.Form>
+                {error ||
+                  (message && (
+                    <div className="h-8">
+                      {error && (
+                        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 py-1 px-2 mb-6 flex gap-1 w-fit">
+                          <p className="font-semibold">ERROR:</p>
+                          <p>{error}</p>
+                        </div>
+                      )}
+                      {message && (
+                        <div className="bg-green-100 border-l-4 border-green-500 text-green-700 py-1 px-2 mb-6 flex gap-1 w-fit">
+                          <p>{message}</p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+              </div>
+            </div>
           </div>
           <div>
             <div className="lg:hidden md:block hidden">
@@ -196,7 +260,10 @@ export function Footer() {
                 {copyright}
               </p>
               <div className="flex justify-start lg:justify-center items-center order-1">
-                <CountrySelector inputClassName="px-4 py-2" enableFlag={false} />
+                <CountrySelector
+                  inputClassName="px-4 py-2"
+                  enableFlag={false}
+                />
               </div>
               <div className="flex gap-4 justify-start md:justify-end order-2">
                 {SOCIAL_ACCOUNTS.map((social) =>
