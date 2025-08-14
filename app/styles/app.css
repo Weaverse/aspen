@@ -188,7 +188,7 @@
   }
 
   mark {
-    background-color: none;
+    background-color: none !important;
     font-weight: 500;
   }
 }
@@ -437,6 +437,19 @@
   }
 }
 
+.font-heading {
+  font-family: var(--font-sans);
+}
+.font-body {
+  font-family: var(--font-serif);
+}
+
 /* .animated-scope [data-motion] {
   opacity: 0;
 } */
+
+/* Remove mark highlight in predictive search */
+.predictive-search-result mark {
+  background: none !important;
+  font-weight: 600 !important;
+}

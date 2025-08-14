@@ -10,10 +10,10 @@ export function PopularSearch() {
   ];
 
   return (
-    <div className="flex flex-col gap-4 max-w-(--page-width) mx-auto">
-      <h3 className="text-sm font-semibold uppercase">
+    <div className="flex flex-col gap-4 max-w-(--page-width) mx-auto pb-6">
+      <span className="font-normal uppercase">
         Popular Searches
-      </h3>
+      </span>
       <ul className="flex flex-col gap-2">
         {popularSearches.map((search, index) => (
           <li key={index}>

@@ -67,7 +67,7 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
           <div className="relative p-6">
             <PredictiveSearchForm>
               {({ fetchResults, inputRef }) => (
-                <div className="flex items-center gap-3 max-w-(--page-width) mx-auto px-3 my-6 border-b border-line-subtle">
+                <div className="flex items-center gap-3 max-w-(--page-width) mx-auto px-3 mb-6 border-b border-line-subtle">
                   <MagnifyingGlassIcon className="h-5 w-5 shrink-0 text-gray-500" />
                   <input
                     name="q"
@@ -130,21 +130,28 @@ function PredictiveSearchResults() {
         </div>
         <div className="w-4/5">
           <div className="flex gap-6 border-b border-line-subtle">
-            {["articles", "products"].map((type) => (
-              <button
-                type="button"
-                key={type}
-                className={clsx(
-                  "relative font-normal px-3 py-1 transition",
-                  activeType === type
-                    ? "border-b border-line text-[#524B46] -mb-[2px]"
-                    : "text-[#918379]",
-                )}
-                onClick={() => setActiveType(type)}
-              >
-                <span className="uppercase">{type}</span>
-              </button>
-            ))}
+            {["articles", "products"].map((type) => {
+              const itemCount = type === "articles" 
+                ? articles?.items?.length || 0 
+                : products?.items?.length || 0;
+              
+              return (
+                <button
+                  type="button"
+                  key={type}
+                  className={clsx(
+                    "relative font-normal px-3 py-1 transition",
+                    activeType === type
+                      ? "border-b border-line text-[#524B46] -mb-[2px]"
+                      : "text-[#918379]",
+                  )}
+                  onClick={() => setActiveType(type)}
+                >
+                  <span className="uppercase">{type}</span>
+                  <span className="ml-2 text-sm opacity-70">({itemCount})</span>
+                </button>
+              );
+            })}
           </div>
           <div className="flex flex-col gap-4 mt-5 px-4">
             {activeType === "articles" && (

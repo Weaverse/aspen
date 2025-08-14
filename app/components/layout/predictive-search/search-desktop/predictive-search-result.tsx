@@ -60,7 +60,6 @@ function SearchResultItem({
     price,
     title,
     url,
-    vendor,
     styledTitle,
   },
 }: SearchResultItemProps) {
@@ -88,9 +87,6 @@ function SearchResultItem({
           </div>
         )}
         <div className="space-y-1">
-          {vendor && (
-            <div className="text-body-subtle text-sm">By {vendor}</div>
-          )}
           {styledTitle ? (
             <RevealUnderline as="div">
               <span dangerouslySetInnerHTML={{ __html: styledTitle }} />
@@ -101,11 +97,11 @@ function SearchResultItem({
                 __typename === "Product" ? "line-clamp-1" : "line-clamp-2"
               )}
             >
-              <RevealUnderline>{title}</RevealUnderline>
+              <span className={clsx(__typename === "Product" ? "font-semibold uppercase line-clamp-1" : "font-normal")}>{title}</span>
             </div>
           )}
           {price && (
-            <div className="flex gap-2 text-sm pt-1">
+            <div className="flex gap-2 pt-1">
               <Money withoutTrailingZeros data={price as MoneyV2} />
               {isDiscounted(price as MoneyV2, compareAtPrice as MoneyV2) && (
                 <CompareAtPrice data={compareAtPrice as MoneyV2} />
