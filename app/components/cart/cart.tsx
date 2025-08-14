@@ -15,7 +15,6 @@ import type { CartApiQueryFragment } from "storefront-api.generated";
 import { Button } from "~/components/button";
 import { Image } from "~/components/image";
 import { Link } from "~/components/link";
-import { RevealUnderline } from "~/reveal-underline";
 import { getImageAspectRatio } from "~/utils/image";
 import { toggleCartDrawer } from "../layout/cart-drawer";
 import { CartBestSellers } from "./cart-best-sellers";

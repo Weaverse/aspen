@@ -24,7 +24,7 @@ export function DesktopMenu() {
         onValueChange={setValue}
         onMouseLeave={() => setValue(null)}
       >
-        <nav className="hidden lg:flex grow justify-center h-full">
+        <nav className="hidden lg:flex grow justify-center h-full desktop-menu">
           {items.map((menuItem) => {
             const { id, items = [], title, to } = menuItem;
             const level = getMaxDepth(menuItem);
@@ -45,18 +45,40 @@ export function DesktopMenu() {
                       setValue(id);
                     }
                   }}
-                  onPointerDown={hasSubmenu ? (e) => {
-                    // Allow navigation on left click while preserving submenu behavior
-                    if (e.button === 0 && !e.ctrlKey && !e.metaKey) {
-                      navigate(to);
-                    }
-                  } : undefined}
+                  onPointerDown={
+                    hasSubmenu
+                      ? (e) => {
+                          // Allow navigation on left click while preserving submenu behavior
+                          if (e.button === 0 && !e.ctrlKey && !e.metaKey) {
+                            navigate(to);
+                          }
+                        }
+                      : undefined
+                  }
                 >
                   {hasSubmenu ? (
-                    <span>{title}</span>
+                    <span
+                      className={cn(
+                        "font-heading relative cursor-pointer",
+                        "after:absolute after:left-0 after:bottom-[-2px] after:w-full after:h-[2px] after:bg-current",
+                        "after:opacity-0 hover:after:opacity-100 group-data-[state=open]:after:opacity-100",
+                        "after:transition-opacity after:duration-[360ms] after:ease-[cubic-bezier(0.22,1,0.36,1)]",
+                      )}
+                    >
+                      {title}
+                    </span>
                   ) : (
                     <Link to={to} className="transition-none">
-                      {title}
+                      <span
+                        className={cn(
+                          "font-heading relative cursor-pointer",
+                          "after:absolute after:left-0 after:bottom-[-2px] after:w-full after:h-[2px] after:bg-current",
+                          "after:opacity-0 hover:after:opacity-100 group-data-[state=open]:after:opacity-100",
+                          "after:transition-opacity after:duration-[360ms] after:ease-[cubic-bezier(0.22,1,0.36,1)]",
+                        )}
+                      >
+                        {title}
+                      </span>
                     </Link>
                   )}
                 </Menubar.Trigger>
@@ -65,7 +87,7 @@ export function DesktopMenu() {
                     className={cn([
                       "px-3 md:px-4 lg:px-6",
                       "bg-(--color-header-bg-hover) shadow-lg border-t border-line-subtle mt-1.5 lg:mt-3",
-                      isDropdown ? "py-6" : "w-screen py-8",
+                      isDropdown ? "py-6 max-w-[300px]" : "w-screen py-8",
                     ])}
                   >
                     {isDropdown ? (
@@ -98,7 +120,7 @@ function DropdownSubMenu({ items }: { items: SingleMenuItem[] }) {
           prefetch="intent"
           className="transition-none block"
         >
-          <span>{title}</span>
+          <span className="font-normal line-clamp-2">{title}</span>
         </Link>
       ))}
     </ul>
@@ -118,7 +140,11 @@ function MegaMenu({ items }: { items: SingleMenuItem[] }) {
             <Link
               to={to}
               prefetch="intent"
-              className={clsx(["text-left", "font-normal uppercase", "flex flex-col gap-5"])}
+              className={clsx([
+                "text-left",
+                "font-normal uppercase",
+                "flex flex-col gap-5",
+              ])}
             >
               <div className="relative overflow-hidden max-w-72 w-72 aspect-square">
                 <Image
