@@ -33,7 +33,7 @@ export function ToolsBar({
     <div className="py-3">
       <div className="gap-4 md:gap-8 flex w-full items-center justify-between h-full">
         <div className="md:block hidden h-full space-y-3.5">
-          <h4 className="uppercase tracking-tight">{collection.title}</h4>
+          <h4 className="uppercase tracking-tighter">{collection.title}</h4>
           {showProductsCount && (
             <span className="hidden md:inline uppercase">
               products ({collection?.products.nodes.length})

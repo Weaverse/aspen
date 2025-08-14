@@ -84,7 +84,7 @@ const CollectionFilters = forwardRef<HTMLElement, CollectionFiltersProps>(
             {showBreadcrumb && (
               <BreadCrumb page={collection.title} className="mb-2.5" />
             )}
-            <h4 className="md:hidden block uppercase tracking-tight">{collection.title}</h4>
+            <h4 className="md:hidden block uppercase tracking-tighter">{collection.title}</h4>
             {showDescription && collection.description && (
               <p className="text-body-subtle mt-2.5">
                 {collection.description}
