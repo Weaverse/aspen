@@ -47,9 +47,9 @@ const BlogPost = forwardRef<HTMLElement, BlogPostProps>((props, ref) => {
             <Image data={image} sizes="90vw" />
           </div>
         )}
-        <article className="prose lg:max-w-4xl mx-auto py-4 lg:py-10">
-          <div className="space-y-5 text-left">
-            <h3 className="h3 leading-tight!">{title}</h3>
+        <article className="prose lg:max-w-4xl mx-auto py-20">
+          <div className="space-y-5 text-left mb-3">
+            <h3 className="h3 !mt-0 !mb-8 leading-tight! !tracking-tighter font-normal">{title}</h3>
             {(formattedDate || author?.name) && (
               <span className="flex items-center text-[#918379] gap-0.5 text-[14px]">
                 {formattedDate && author?.name ? (
@@ -69,29 +69,33 @@ const BlogPost = forwardRef<HTMLElement, BlogPostProps>((props, ref) => {
               suppressHydrationWarning
               dangerouslySetInnerHTML={{ __html: contentHtml }}
             />
-            <div className="border-t border-line-subtle w-1/3 mx-auto" />
-            <div className="flex flex-col md:flex-row items-center justify-between gap-2">
-              {showTags && (
-                <div>
-                  <strong>Tags:</strong>
-                  <span className="ml-2">{tags.join(", ")}</span>
+            {(showTags || showShareButtons) && (
+              <>
+                <div className="border-t border-line-subtle w-1/3 mx-auto" />
+                <div className="flex flex-col md:flex-row items-center justify-between gap-2">
+                  {showTags && (
+                    <div>
+                      <strong>Tags:</strong>
+                      <span className="ml-2">{tags.join(", ")}</span>
+                    </div>
+                  )}
+                  {showShareButtons && (
+                    <div className="flex gap-2 items-center">
+                      <strong>Share:</strong>
+                      <FacebookShareButton url={articleUrl}>
+                        <FacebookLogoIcon size={24} />
+                      </FacebookShareButton>
+                      <PinterestShareButton url={articleUrl} media={image?.url}>
+                        <PinterestLogoIcon size={24} />
+                      </PinterestShareButton>
+                      <TwitterShareButton url={articleUrl} title={title}>
+                        <XLogoIcon size={24} />
+                      </TwitterShareButton>
+                    </div>
+                  )}
                 </div>
-              )}
-              {showShareButtons && (
-                <div className="flex gap-2 items-center">
-                  <strong>Share:</strong>
-                  <FacebookShareButton url={articleUrl}>
-                    <FacebookLogoIcon size={24} />
-                  </FacebookShareButton>
-                  <PinterestShareButton url={articleUrl} media={image?.url}>
-                    <PinterestLogoIcon size={24} />
-                  </PinterestShareButton>
-                  <TwitterShareButton url={articleUrl} title={title}>
-                    <XLogoIcon size={24} />
-                  </TwitterShareButton>
-                </div>
-              )}
-            </div>
+              </>
+            )}
           </div>
         </article>
       </Section>

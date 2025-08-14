@@ -178,7 +178,7 @@ export function ArticleCard({
             </div>
           )}
           <div className="flex flex-col gap-3">
-            <h5 className="font-normal text-(--accent-color) line-clamp-3">
+            <h5 className="font-normal text-(--accent-color) line-clamp-3 tracking-tighter">
               {article.title}
             </h5>
             {showSeperator && (
@@ -190,7 +190,7 @@ export function ArticleCard({
               </p>
             )}
             {(showDate || showAuthor) && (
-              <div className="flex mt-4 gap-1 text-(--accent-color) text-sm opacity-80">
+              <div className="flex mt-4 gap-1 text-(--accent-color) opacity-80">
                 {showDate && (
                   <time>
                     {new Date(article.publishedAt).toLocaleDateString("en-US", {
@@ -206,7 +206,7 @@ export function ArticleCard({
             )}
             {showReadmore && (
               <div className="mt-2">
-                <span className="text-(--accent-color) text-sm underline opacity-80 hover:opacity-100 transition-opacity">
+                <span className="text-(--accent-color) underline opacity-80 hover:opacity-100 transition-opacity uppercase">
                   Read more →
                 </span>
               </div>
