@@ -11,11 +11,12 @@ import { Fragment, Suspense, useEffect, useState } from "react";
 import { Await, Form, useLoaderData } from "react-router";
 import type { SearchQuery } from "storefront-api.generated";
 import { BreadCrumb } from "~/components/breadcrumb";
-import Link from "~/components/link";
+import Link, { variants } from "~/components/link";
 import { ProductCard } from "~/components/product/product-card";
 import { Section } from "~/components/section";
 import { Swimlane } from "~/components/swimlane";
 import { PRODUCT_CARD_FRAGMENT } from "~/graphql/fragments";
+import { cn } from "~/utils/cn";
 import { PAGINATION_SIZE } from "~/utils/const";
 import { seoPayload } from "~/utils/seo.server";
 import {
@@ -51,6 +52,14 @@ export async function loader({
   }
 
   const hasResults = products?.nodes?.length > 0;
+  let seoDescription = "";
+  if (hasResults) {
+    seoDescription = `Showing ${products.nodes.length} search results for "${searchTerm}"`;
+  } else if (searchTerm) {
+    seoDescription = `No results found for "${searchTerm}"`;
+  } else {
+    seoDescription = "Search our store";
+  }
 
   return {
     seo: seoPayload.collection({
@@ -61,14 +70,7 @@ export async function loader({
         handle: "search",
         descriptionHtml: "Search results",
         description: "Search results",
-        seo: {
-          title: "Search",
-          description: hasResults
-            ? `Showing ${products.nodes.length} search results for "${searchTerm}"`
-            : searchTerm
-              ? `No results found for "${searchTerm}"`
-              : "Search our store",
-        },
+        seo: { title: "Search", description: seoDescription },
         metafields: [],
         products,
         updatedAt: new Date().toISOString(),
@@ -103,14 +105,14 @@ export default function Search() {
   return (
     <Section width="fixed" verticalPadding="medium">
       <BreadCrumb className="justify-center" page="Search" />
-      <h4 className="mt-4 mb-2.5 font-medium text-center">Search</h4>
+      <h4 className="mt-4 mb-2.5 text-center font-medium">Search</h4>
       <div className="flex items-center justify-center text-body-subtle">
         <span>Popular Searches:</span>
         {POPULAR_SEARCHES.map((search, ind) => (
           <Fragment key={search}>
             <Link
               to={`/search?q=${search}`}
-              className="ml-1 hover:underline underline-offset-4"
+              className="ml-1 underline-offset-4 hover:underline"
             >
               {search}
             </Link>
@@ -122,11 +124,11 @@ export default function Search() {
       </div>
       <Form
         method="get"
-        className="flex items-center gap-3 w-[700px] max-w-[90vw] mx-auto mt-6 border border-line px-3"
+        className="mx-auto mt-6 flex w-[700px] max-w-[90vw] items-center gap-3 border border-line px-3"
       >
-        <MagnifyingGlassIcon className="w-5 h-5 shrink-0 text-gray-500" />
+        <MagnifyingGlassIcon className="h-5 w-5 shrink-0 text-gray-500" />
         <input
-          className="focus-visible:outline-hidden w-full h-full py-4"
+          className="h-full w-full py-4 focus-visible:outline-hidden"
           value={searchKey}
           onChange={(e) => setSearchKey(e.target.value)}
           name="q"
@@ -135,10 +137,10 @@ export default function Search() {
         />
         <button
           type="button"
-          className="shrink-0 text-gray-500 p-1"
+          className="shrink-0 p-1 text-gray-500"
           onClick={() => setSearchKey("")}
         >
-          <XIcon className="w-5 h-5" />
+          <XIcon className="h-5 w-5" />
         </button>
       </Form>
       {hasResults ? (
@@ -146,21 +148,19 @@ export default function Search() {
           {({
             nodes,
             isLoading,
-            nextPageUrl,
             hasNextPage,
-            previousPageUrl,
             hasPreviousPage,
+            NextLink,
+            PreviousLink,
           }) => {
             return (
-              <div className="flex w-full flex-col gap-8 items-center pt-20">
+              <div className="flex w-full flex-col items-center gap-8 pt-20">
                 {hasPreviousPage && (
-                  <Link
-                    to={previousPageUrl}
-                    variant="outline"
-                    className="mx-auto"
+                  <PreviousLink
+                    className={cn("mx-auto", variants({ variant: "outline" }))}
                   >
-                    {isLoading ? "Loading..." : "Previous"}
-                  </Link>
+                    {isLoading ? "Loading..." : "↑ Load previous"}
+                  </PreviousLink>
                 )}
                 <div
                   className={clsx([
@@ -173,9 +173,11 @@ export default function Search() {
                   ))}
                 </div>
                 {hasNextPage && (
-                  <Link to={nextPageUrl} variant="outline" className="mx-auto">
-                    {isLoading ? "Loading..." : "Next"}
-                  </Link>
+                  <NextLink
+                    className={cn("mx-auto", variants({ variant: "outline" }))}
+                  >
+                    {isLoading ? "Loading..." : "↓ Load more"}
+                  </NextLink>
                 )}
               </div>
             );
@@ -201,7 +203,7 @@ function NoResults({
   return (
     <>
       {searchTerm && (
-        <div className="flex text-lg flex-col items-center justify-center my-10">
+        <div className="my-10 flex flex-col items-center justify-center text-lg">
           No results for "{searchTerm}", try a different search.
         </div>
       )}
@@ -223,7 +225,7 @@ function NoResults({
                     <ProductCard
                       key={product.id}
                       product={product}
-                      className="snap-start w-80"
+                      className="w-80 snap-start"
                     />
                   ))}
                 </Swimlane>

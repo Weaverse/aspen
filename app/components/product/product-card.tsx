@@ -1,7 +1,6 @@
 import { Money, mapSelectedProductOptionToObject } from "@shopify/hydrogen";
 import type { MoneyV2 } from "@shopify/hydrogen/storefront-api-types";
 import { useThemeSettings } from "@weaverse/hydrogen";
-import { cva } from "class-variance-authority";
 import clsx from "clsx";
 import { useState } from "react";
 import type {
@@ -11,22 +10,20 @@ import type {
 import { Image } from "~/components/image";
 import { Link } from "~/components/link";
 import { NavLink } from "~/components/nav-link";
-import { VariantPrices } from "~/components/variant-prices";
+import { Spinner } from "~/components/spinner";
 import { RevealUnderline } from "~/reveal-underline";
-import { getImageAspectRatio } from "~/utils/image";
-import { BestSellerBadge, NewBadge, SaleBadge, SoldOutBadge } from "./badges";
+import { isCombinedListing } from "~/utils/combined-listings";
+import { calculateAspectRatio } from "~/utils/image";
+import {
+  BestSellerBadge,
+  BundleBadge,
+  NewBadge,
+  SaleBadge,
+  SoldOutBadge,
+} from "./badges";
 import { ProductCardOptions } from "./product-card-options";
 import { QuickShopTrigger } from "./quick-shop";
-
-const styleVariants = cva("", {
-  variants: {
-    alignment: {
-      left: "",
-      center: "text-center [&_.title-and-price]:items-center",
-      right: "text-right [&_.title-and-price]:items-end",
-    },
-  },
-});
+import { VariantPrices } from "./variant-prices";
 
 export function ProductCard({
   product,
@@ -46,187 +43,200 @@ export function ProductCard({
     pcardShowLowestPrice,
     pcardShowSalePrice,
     pcardEnableQuickShop,
+    pcardShowQuickShopOnHover,
     pcardQuickShopButtonType,
     pcardQuickShopButtonText,
-    pcardQuickShopAction,
     pcardQuickShopPanelType,
-    pcardBadgesPosition,
-    pcardShowSaleBadges,
-    pcardShowBestSellerBadges,
-    pcardShowNewBadges,
-    pcardShowOutOfStockBadges,
+    pcardShowSaleBadge,
+    pcardShowBundleBadge,
+    pcardShowBestSellerBadge,
+    pcardShowNewBadge,
+    pcardShowOutOfStockBadge,
   } = useThemeSettings();
 
   const [selectedVariant, setSelectedVariant] =
     useState<ProductVariantFragment | null>(null);
+  const [isImageLoading, setIsImageLoading] = useState(false);
   const { images, badges, priceRange } = product;
   const { minVariantPrice, maxVariantPrice } = priceRange;
 
   const firstVariant = product.selectedOrFirstAvailableVariant;
   const params = new URLSearchParams(
     mapSelectedProductOptionToObject(
-      (selectedVariant || firstVariant)?.selectedOptions || []
-    )
+      (selectedVariant || firstVariant)?.selectedOptions || [],
+    ),
   );
 
   const isVertical = pcardTitlePricesAlignment === "vertical";
   const isBestSellerProduct = badges
     .filter(Boolean)
     .some(({ key, value }) => key === "best_seller" && value === "true");
-
-  // Helper function to get badge position classes
-  const getBadgePositionClasses = (position: string = "top-right") => {
-    switch (position) {
-      case "top-left":
-        return "flex gap-1 absolute top-2.5 left-2.5";
-      case "top-center":
-        return "flex gap-1 absolute top-2.5 left-1/2 -translate-x-1/2";
-      case "top-right":
-      default:
-        return "flex gap-1 absolute top-2.5 right-2.5";
-    }
-  };
+  const isBundle = Boolean(product?.isBundle?.requiresComponents);
 
   let [image, secondImage] = images.nodes;
-  if (selectedVariant) {
-    if (selectedVariant.image) {
-      image = selectedVariant.image;
-      const imageUrl = image.url;
-      const imageIndex = images.nodes.findIndex(({ url }) => url === imageUrl);
-      if (imageIndex > 0 && imageIndex < images.nodes.length - 1) {
-        secondImage = images.nodes[imageIndex + 1];
-      }
+  if (selectedVariant?.image) {
+    image = selectedVariant.image;
+    const imageUrl = image.url;
+    const imageIndex = images.nodes.findIndex(({ url }) => url === imageUrl);
+    if (imageIndex > 0 && imageIndex < images.nodes.length - 1) {
+      secondImage = images.nodes[imageIndex + 1];
     }
   }
 
   return (
     <div
-      className={clsx(
-        "group rounded-(--pcard-radius) transition-all hover:border hover:border-[#DBD7D1]",
-        className
-      )}
+      className={clsx("rounded-(--pcard-radius)", className)}
       style={
         {
           backgroundColor: pcardBackgroundColor,
           "--pcard-radius": `${pcardBorderRadius}px`,
-          "--pcard-image-ratio": getImageAspectRatio(image, pcardImageRatio),
+          "--pcard-image-ratio": calculateAspectRatio(image, pcardImageRatio),
         } as React.CSSProperties
       }
     >
-      <div
-        className="transition-transform duration-300 group-hover:scale-95 rounded-(--pcard-radius) overflow-hidden"
-        style={{ backgroundColor: pcardBackgroundColor }}
-      >
-        <div className="relative group">
-          {image && (
-            <Link
-              to={`/products/${product.handle}?${params.toString()}`}
-              prefetch="intent"
-              className="overflow-hidden rounded-t-(--pcard-radius) block group relative aspect-(--pcard-image-ratio) bg-gray-100"
-            >
+      <div className="group relative">
+        {image && (
+          <Link
+            to={`/products/${product.handle}?${params.toString()}`}
+            prefetch="intent"
+            className="group relative block aspect-(--pcard-image-ratio) overflow-hidden rounded-t-(--pcard-radius) bg-gray-100"
+          >
+            {/* Loading skeleton overlay */}
+            {isImageLoading && <Spinner />}
+            <Image
+              className={clsx([
+                "absolute inset-0",
+                pcardShowImageOnHover &&
+                  secondImage &&
+                  "transition-opacity duration-300 group-hover:opacity-50",
+              ])}
+              sizes="(min-width: 64em) 25vw, (min-width: 48em) 30vw, 45vw"
+              data={image}
+              width={700}
+              alt={image.altText || `Picture of ${product.title}`}
+              loading="lazy"
+              onLoad={() => setIsImageLoading(false)}
+            />
+            {pcardShowImageOnHover && secondImage && (
               <Image
                 className={clsx([
                   "absolute inset-0",
-                  pcardShowImageOnHover &&
-                    secondImage &&
-                    "transition-opacity duration-300 group-hover:opacity-50",
+                  "opacity-0 transition-opacity duration-300 group-hover:opacity-100",
                 ])}
-                sizes="(min-width: 64em) 25vw, (min-width: 48em) 30vw, 45vw"
-                data={image}
+                sizes="auto"
                 width={700}
-                alt={image.altText || `Picture of ${product.title}`}
+                data={secondImage}
+                alt={
+                  secondImage.altText || `Second picture of ${product.title}`
+                }
                 loading="lazy"
               />
-              {pcardShowImageOnHover && secondImage && (
-                <Image
-                  className={clsx([
-                    "absolute inset-0",
-                    "transition-opacity duration-300 opacity-0 group-hover:opacity-100",
-                  ])}
-                  sizes="auto"
-                  width={700}
-                  data={secondImage}
-                  alt={
-                    secondImage.altText || `Second picture of ${product.title}`
-                  }
-                  loading="lazy"
-                />
-              )}
-            </Link>
+            )}
+          </Link>
+        )}
+        <div className="absolute top-2.5 right-2.5 flex gap-1">
+          {isBundle && pcardShowBundleBadge && <BundleBadge />}
+          {pcardShowSaleBadge && (
+            <SaleBadge
+              price={minVariantPrice as MoneyV2}
+              compareAtPrice={maxVariantPrice as MoneyV2}
+            />
           )}
-          <div className={getBadgePositionClasses(pcardBadgesPosition)}>
-            {pcardShowSaleBadges && (
-              <SaleBadge
-                price={minVariantPrice as MoneyV2}
-                compareAtPrice={maxVariantPrice as MoneyV2}
-              />
-            )}
-            {pcardShowBestSellerBadges && isBestSellerProduct && (
-              <BestSellerBadge />
-            )}
-            {pcardShowNewBadges && (
-              <NewBadge publishedAt={product.publishedAt} />
-            )}
-            {pcardShowOutOfStockBadges && <SoldOutBadge />}
-          </div>
-          <QuickShopTrigger productHandle={product.handle} />
+          {pcardShowBestSellerBadge && isBestSellerProduct && (
+            <BestSellerBadge />
+          )}
+          {pcardShowNewBadge && <NewBadge publishedAt={product.publishedAt} />}
+          {pcardShowOutOfStockBadge && <SoldOutBadge />}
         </div>
+        {pcardEnableQuickShop && (
+          <QuickShopTrigger
+            productHandle={product.handle}
+            showOnHover={pcardShowQuickShopOnHover}
+            buttonType={pcardQuickShopButtonType}
+            buttonText={pcardQuickShopButtonText}
+            panelType={pcardQuickShopPanelType}
+          />
+        )}
+      </div>
+      <div
+        className={clsx(
+          "space-y-2 py-3 text-sm",
+          pcardBackgroundColor && "px-2",
+          isVertical && [
+            pcardAlignment === "left" && "text-left",
+            pcardAlignment === "center" && "text-center",
+            pcardAlignment === "right" && "text-right",
+          ],
+        )}
+      >
+        {pcardShowVendor && (
+          <div className="text-body-subtle uppercase">{product.vendor}</div>
+        )}
         <div
           className={clsx(
-            "py-3 flex flex-col gap-2",
-            isVertical && styleVariants({ alignment: pcardAlignment })
+            "flex",
+            isVertical
+              ? [
+                  "flex-col gap-1",
+                  [
+                    pcardAlignment === "left" && "items-start",
+                    pcardAlignment === "center" && "items-center",
+                    pcardAlignment === "right" && "items-end",
+                  ],
+                ]
+              : "justify-between gap-4",
           )}
         >
-          {pcardShowVendor && (
-            <div className="uppercase text-body-subtle">{product.vendor}</div>
-          )}
-          <div className="md:hidden block">
-              <ProductCardOptions
-                product={product}
-                selectedVariant={selectedVariant}
-                setSelectedVariant={setSelectedVariant}
-              />
-            </div>
           <NavLink
             to={`/products/${product.handle}?${params.toString()}`}
             prefetch="intent"
             className={({ isTransitioning }) =>
               clsx(
-                "font-bold ",
-                isTransitioning && "[view-transition-name:product-image]"
+                "font-bold",
+                isTransitioning && "[view-transition-name:product-image]",
               )
             }
           >
-            <span className="font-semibold uppercase">{product.title}</span>
+            <RevealUnderline className="bg-position-[left_calc(1em+3px)] leading-normal">
+              {product.title}
+            </RevealUnderline>
           </NavLink>
-          <div
-            className={clsx(
-              "flex",
-              isVertical
-                ? "title-and-price flex-col gap-1"
-                : "justify-between gap-4"
-            )}
-          >
-            {pcardShowLowestPrice ? (
-              <div className="flex gap-1">
-                <span>From</span>
-                <Money withoutTrailingZeros data={minVariantPrice} />
-              </div>
-            ) : (
-              <VariantPrices
-                variant={selectedVariant || firstVariant}
-                showCompareAtPrice={pcardShowSalePrice}
-              />
-            )}
-            <div className="md:block hidden">
-              <ProductCardOptions
-                product={product}
-                selectedVariant={selectedVariant}
-                setSelectedVariant={setSelectedVariant}
-              />
+          {pcardShowLowestPrice || isCombinedListing(product) ? (
+            <div className="flex gap-1">
+              <span>From</span>
+              <Money withoutTrailingZeros data={minVariantPrice} />
+              {isCombinedListing(product) && (
+                <>
+                  <span>–</span>
+                  <Money withoutTrailingZeros data={maxVariantPrice} />
+                </>
+              )}
             </div>
-          </div>
+          ) : (
+            <VariantPrices
+              variant={selectedVariant || firstVariant}
+              showCompareAtPrice={pcardShowSalePrice}
+            />
+          )}
         </div>
+        <ProductCardOptions
+          product={product}
+          selectedVariant={selectedVariant}
+          setSelectedVariant={(variant: ProductVariantFragment) => {
+            // Only show loading if variant has a different image
+            if (variant.image?.url !== selectedVariant?.image?.url) {
+              setIsImageLoading(true);
+            }
+            setSelectedVariant(variant);
+          }}
+          className={clsx(
+            isVertical && [
+              pcardAlignment === "left" && "justify-start",
+              pcardAlignment === "center" && "justify-center",
+              pcardAlignment === "right" && "justify-end",
+            ],
+          )}
+        />
       </div>
     </div>
   );

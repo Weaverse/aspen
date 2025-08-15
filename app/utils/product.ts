@@ -1,9 +1,10 @@
-import type { Storefront } from "@shopify/hydrogen";
+import type { MappedProductOptions, Storefront } from "@shopify/hydrogen";
 import type { MoneyV2 } from "@shopify/hydrogen/storefront-api-types";
 import type { ProductRecommendationsQuery } from "storefront-api.generated";
 import invariant from "tiny-invariant";
 import { PRODUCT_CARD_FRAGMENT } from "~/graphql/fragments";
 import type { I18nLocale } from "~/types/locale";
+import { maybeFilterOutCombinedListingsQuery } from "~/utils/combined-listings";
 
 export function isNewArrival(date: string, daysOld = 30) {
   return (
@@ -26,7 +27,11 @@ export async function getRecommendedProducts(
   const products = await storefront.query<ProductRecommendationsQuery>(
     RECOMMENDED_PRODUCTS_QUERY,
     {
-      variables: { productId, count: 12 },
+      variables: {
+        productId,
+        count: 12,
+        query: maybeFilterOutCombinedListingsQuery,
+      },
     },
   );
 
@@ -53,11 +58,12 @@ const RECOMMENDED_PRODUCTS_QUERY = `#graphql
     $count: Int
     $country: CountryCode
     $language: LanguageCode
+    $query: String
   ) @inContext(country: $country, language: $language) {
     recommended: productRecommendations(productId: $productId) {
       ...ProductCard
     }
-    additional: products(first: $count, sortKey: BEST_SELLING) {
+    additional: products(first: $count, sortKey: BEST_SELLING, query: $query) {
       nodes {
         ...ProductCard
       }
@@ -65,3 +71,16 @@ const RECOMMENDED_PRODUCTS_QUERY = `#graphql
   }
   ${PRODUCT_CARD_FRAGMENT}
 ` as const;
+
+export function hasOnlyDefaultVariant(
+  productOptions: MappedProductOptions[] = [],
+) {
+  if (productOptions.length === 1) {
+    const option = productOptions[0];
+    if (option.name === "Title" && option.optionValues.length === 1) {
+      const optionValue = option.optionValues[0];
+      return optionValue.name === "Default Title";
+    }
+  }
+  return false;
+}

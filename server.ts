@@ -1,4 +1,3 @@
-// @ts-ignore
 import * as remixBuild from "virtual:react-router/server-build"; // Virtual entry point for the app
 import type { HydrogenSession } from "@shopify/hydrogen";
 import { createHydrogenContext, storefrontRedirect } from "@shopify/hydrogen";
@@ -109,7 +108,7 @@ export default {
 
       return response;
     } catch (error) {
-      // eslint-disable-next-line no-console
+      // biome-ignore lint/suspicious/noConsole: <explanation> --- IGNORE ---
       console.error(error);
       return new Response("An unexpected error occurred", { status: 500 });
     }
@@ -157,9 +156,9 @@ export async function createAppLoadContext(
 }
 
 class AppSession implements HydrogenSession {
-  public isPending = false;
-  #sessionStorage;
-  #session;
+  isPending = false;
+  #sessionStorage: SessionStorage;
+  #session: Session;
 
   constructor(sessionStorage: SessionStorage, session: Session) {
     this.#sessionStorage = sessionStorage;
@@ -293,6 +292,69 @@ const CART_QUERY_FRAGMENT = `#graphql
       }
     }
   }
+  fragment CartLineComponent on ComponentizableCartLine {
+    id
+    quantity
+    attributes {
+      key
+      value
+    }
+    cost {
+      totalAmount {
+        ...Money
+      }
+      amountPerQuantity {
+        ...Money
+      }
+      compareAtAmountPerQuantity {
+        ...Money
+      }
+    }
+    merchandise {
+      ... on ProductVariant {
+        id
+        availableForSale
+        compareAtPrice {
+          ...Money
+        }
+        price {
+          ...Money
+        }
+        requiresShipping
+        title
+        image {
+          id
+          url
+          altText
+          width
+          height
+        }
+        product {
+          handle
+          title
+          id
+          vendor
+        }
+        selectedOptions {
+          name
+          value
+        }
+        requiresComponents
+        components(first: 10) {
+          nodes {
+            productVariant {
+              id
+              title
+              product {
+                handle
+              }
+            }
+            quantity
+          }
+        }
+      }
+    }
+  }
   fragment CartApiQuery on Cart {
     updatedAt
     id
@@ -313,6 +375,9 @@ const CART_QUERY_FRAGMENT = `#graphql
     lines(first: $numCartLines) {
       nodes {
         ...CartLine
+      }
+      nodes {
+        ...CartLineComponent
       }
     }
     cost {

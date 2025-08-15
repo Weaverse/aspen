@@ -18,6 +18,12 @@ export const PRODUCT_QUERY = `#graphql
       summary: description(truncateAt: 200)
       encodedVariantExistence
       encodedVariantAvailability
+      tags
+      featuredImage {
+        id
+        url
+        altText
+      }
       priceRange {
         minVariantPrice {
           amount
@@ -43,6 +49,25 @@ export const PRODUCT_QUERY = `#graphql
       }
       adjacentVariants(selectedOptions: $selectedOptions) {
         ...ProductVariant
+      }
+      # Check if the product is a bundle
+      isBundle: selectedOrFirstAvailableVariant(ignoreUnknownOptions: true, selectedOptions: { name: "", value: ""}) {
+        ...on ProductVariant {
+          requiresComponents
+          components(first: 100) {
+             nodes {
+                productVariant {
+                  ...ProductVariant
+                }
+                quantity
+             }
+          }
+          groupedBy(first: 100) {
+            nodes {
+                id
+              }
+            }
+          }
       }
       media(first: 50) {
         nodes {

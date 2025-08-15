@@ -40,7 +40,7 @@ export function CartBestSellers({
   const { load, data } = useFetcher<{ products: Product[] }>();
   const queryString = useMemo(
     () =>
-      Object.entries({ count, sortKey, query, reverse })
+      Object.entries({ count: count * 2, sortKey, query, reverse })
         .map(([key, val]) => (val ? `${key}=${val}` : null))
         .filter(Boolean)
         .join("&"),
@@ -56,11 +56,16 @@ export function CartBestSellers({
 
   return (
     <>
-      <h6>{heading}</h6>
+      <h5
+        className={clsx(layout === "page" && "mt-4 mb-2 text-center lg:mb-6")}
+      >
+        {heading}
+      </h5>
       <div
         className={clsx([
           "grid grid-cols-2 gap-x-6 gap-y-8",
-          layout === "page" ? "md:grid-cols-4 sm:grid-col-4" : "",
+          "[&_.bundle-badge,&_.new-badge,&_.best-seller-badge]:hidden",
+          layout === "page" ? "sm:grid-cols-4 md:grid-cols-4" : "",
         ])}
       >
         <CartBestSellersContent
@@ -90,7 +95,7 @@ function CartBestSellersContent({
         {[...new Array(count)].map((_, i) => (
           <div key={`${id + i}`} className="grid gap-2">
             <Skeleton className="aspect-3/4" />
-            <Skeleton className="w-32 h-4" />
+            <Skeleton className="h-4 w-32" />
           </div>
         ))}
       </>
@@ -101,10 +106,13 @@ function CartBestSellersContent({
     return <div>No products found.</div>;
   }
 
-  return products.map((product) => (
-    <ProductCard
-      product={product as unknown as ProductCardFragment}
-      key={product.id}
-    />
-  ));
+  return products
+    .filter((product) => product.images?.nodes?.length > 0)
+    .slice(0, count)
+    .map((product) => (
+      <ProductCard
+        product={product as unknown as ProductCardFragment}
+        key={product.id}
+      />
+    ));
 }

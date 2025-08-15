@@ -1,9 +1,10 @@
-import { type ComponentLoaderArgs, createSchema, type WeaverseCollection } from "@weaverse/hydrogen";
+import { type ComponentLoaderArgs, createSchema } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
 import type { FeaturedProductsQuery } from "storefront-api.generated";
 import type { SectionProps } from "~/components/section";
 import { layoutInputs, Section } from "~/components/section";
 import { PRODUCT_CARD_FRAGMENT } from "~/graphql/fragments";
+import { maybeFilterOutCombinedListingsQuery } from "~/utils/combined-listings";
 
 const FeaturedProducts = forwardRef<
   HTMLElement,
@@ -19,17 +20,13 @@ const FeaturedProducts = forwardRef<
 
 export default FeaturedProducts;
 
+// TODO: allowing pick products or select a collection
 const FEATURED_PRODUCTS_QUERY = `#graphql
-  query featuredProducts($country: CountryCode, $language: LanguageCode, $handle: String!)
+  query featuredProducts($country: CountryCode, $language: LanguageCode, $query: String)
   @inContext(country: $country, language: $language) {
-    collection(handle: $handle) {
-      id
-      handle
-      title
-      products(first: 16) {
-        nodes {
-          ...ProductCard
-        }
+    products(first: 16, query: $query) {
+      nodes {
+        ...ProductCard
       }
     }
   }
@@ -38,20 +35,15 @@ const FEATURED_PRODUCTS_QUERY = `#graphql
 
 export type FeaturedProductsLoaderData = Awaited<ReturnType<typeof loader>>;
 
-export const loader = async ({ weaverse, data }: ComponentLoaderArgs) => {
+export const loader = async ({ weaverse }: ComponentLoaderArgs) => {
   const { language, country } = weaverse.storefront.i18n;
-  const { collection } = data as { collection?: WeaverseCollection };
-  
-  // Use collection handle if available, otherwise default to 'frontpage'
-  const handle = collection?.handle || 'frontpage';
-  
   return await weaverse.storefront.query<FeaturedProductsQuery>(
     FEATURED_PRODUCTS_QUERY,
     {
       variables: {
         country,
         language,
-        handle,
+        query: maybeFilterOutCombinedListingsQuery,
       },
     },
   );
@@ -60,19 +52,8 @@ export const loader = async ({ weaverse, data }: ComponentLoaderArgs) => {
 export const schema = createSchema({
   type: "featured-products",
   title: "Featured products",
-  childTypes: ["featured-products-items", "featured-content-products"],
+  childTypes: ["featured-products-items", "heading", "subheading", "paragraph"],
   settings: [
-    {
-      group: "Collection",
-      inputs: [
-        {
-          type: "collection",
-          name: "collection",
-          label: "Collection",
-          shouldRevalidate: true,
-        },
-      ],
-    },
     {
       group: "Layout",
       inputs: layoutInputs.filter((i) => i.name !== "borderRadius"),
@@ -81,7 +62,7 @@ export const schema = createSchema({
   presets: {
     gap: 32,
     children: [
-      { type: "featured-content-products" },
+      { type: "heading", content: "Featured products" },
       { type: "featured-products-items" },
     ],
   },

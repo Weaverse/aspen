@@ -35,14 +35,14 @@ export interface SectionProps<T = any>
 const variants = cva("relative", {
   variants: {
     width: {
-      full: "w-full h-full",
-      stretch: "w-full h-full",
-      fixed: "w-full h-full max-w-(--page-width) mx-auto",
+      full: "h-full w-full",
+      stretch: "h-full w-full",
+      fixed: "mx-auto h-full w-full max-w-(--page-width)",
     },
     padding: {
       full: "",
       stretch: "px-3 md:px-10 lg:px-16",
-      fixed: "px-5 md:px-6 lg:px-8 mx-auto",
+      fixed: "mx-auto px-5 md:px-6 lg:px-8",
     },
     verticalPadding: {
       none: "",
@@ -121,7 +121,7 @@ export const Section = forwardRef<HTMLElement, SectionProps>((props, ref) => {
         variants({ padding: width, overflow, className }),
         hasBackground &&
           !isBgForContent &&
-          "bg-(--section-bg-color) rounded-(--section-radius)",
+          "rounded-(--section-radius) bg-(--section-bg-color)",
       )}
     >
       {!isBgForContent && <OverlayAndBackground {...props} />}
@@ -130,7 +130,7 @@ export const Section = forwardRef<HTMLElement, SectionProps>((props, ref) => {
           variants({ gap, width, verticalPadding, overflow }),
           hasBackground &&
             isBgForContent && [
-              "bg-(--section-bg-color) rounded-(--section-radius)",
+              "rounded-(--section-radius) bg-(--section-bg-color)",
               "px-4 sm:px-8",
             ],
           containerClassName,

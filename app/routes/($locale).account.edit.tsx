@@ -35,7 +35,9 @@ export interface ActionData {
 }
 
 function formDataHas(formData: FormData, key: string) {
-  if (!formData.has(key)) return false;
+  if (!formData.has(key)) {
+    return false;
+  }
 
   const value = formData.get(key);
   return typeof value === "string" && value.length > 0;
@@ -64,7 +66,7 @@ export const action: ActionFunction = async ({ request, context, params }) => {
       customer.lastName = formData.get("lastName") as string;
     }
 
-    const { data, errors } =
+    const { data: updateData, errors } =
       await context.customerAccount.mutate<CustomerUpdateMutation>(
         CUSTOMER_UPDATE_MUTATION,
         {
@@ -77,8 +79,8 @@ export const action: ActionFunction = async ({ request, context, params }) => {
     invariant(!errors?.length, errors?.[0]?.message);
 
     invariant(
-      !data?.customerUpdate?.userErrors?.length,
-      data?.customerUpdate?.userErrors?.[0]?.message,
+      !updateData?.customerUpdate?.userErrors?.length,
+      updateData?.customerUpdate?.userErrors?.[0]?.message,
     );
 
     return redirect(params?.locale ? `${params.locale}/account` : "/account");
@@ -109,17 +111,17 @@ export default function AccountDetailsEdit() {
 
   return (
     <div className="space-y-2">
-      <div className="text-xl py-2.5">Edit account</div>
+      <div className="py-2.5 text-xl">Edit account</div>
       <Form method="post" className="space-y-3">
         {actionData?.formError && (
-          <div className="flex items-center justify-center bg-red-100 text-red-900 p-3">
+          <div className="flex items-center justify-center bg-red-100 p-3 text-red-900">
             {actionData.formError}
           </div>
         )}
         <input
           id="firstName"
           name="firstName"
-          className="appearance-none border border-line p-3 focus:outline-hidden w-full"
+          className="w-full appearance-none border border-line p-3 focus:outline-hidden"
           type="text"
           autoComplete="given-name"
           placeholder="First name"
@@ -129,15 +131,15 @@ export default function AccountDetailsEdit() {
         <input
           id="lastName"
           name="lastName"
-          className="appearance-none border border-line p-3 focus:outline-hidden w-full"
+          className="w-full appearance-none border border-line p-3 focus:outline-hidden"
           type="text"
           autoComplete="family-name"
           placeholder="Last name"
           aria-label="Last name"
           defaultValue={customer.lastName ?? ""}
         />
-        <div className="py-2.5 flex gap-6 items-center justify-end">
-          <Link to="/account" className="hover:underline underline-offset-4">
+        <div className="flex items-center justify-end gap-6 py-2.5">
+          <Link to="/account" className="underline-offset-4 hover:underline">
             Cancel
           </Link>
           <Button type="submit" variant="primary" disabled={state !== "idle"}>

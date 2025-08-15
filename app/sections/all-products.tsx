@@ -5,9 +5,10 @@ import { forwardRef } from "react";
 import { useLoaderData } from "react-router";
 import type { AllProductsQuery } from "storefront-api.generated";
 import { BreadCrumb } from "~/components/breadcrumb";
-import Link from "~/components/link";
+import { variants } from "~/components/link";
 import { ProductCard } from "~/components/product/product-card";
 import { layoutInputs, Section, type SectionProps } from "~/components/section";
+import { cn } from "~/utils/cn";
 
 interface AllProductsProps extends SectionProps {
   heading: string;
@@ -21,27 +22,25 @@ const AllProducts = forwardRef<HTMLElement, AllProductsProps>((props, ref) => {
 
   return (
     <Section ref={ref} {...rest} overflow="unset">
-      <BreadCrumb page={heading} className="justify-center mb-4" />
-      <h4 className="mb-8 lg:mb-20 font-medium text-center">{heading}</h4>
+      <BreadCrumb page={heading} className="mb-4 justify-center" />
+      <h4 className="mb-8 text-center font-medium lg:mb-20">{heading}</h4>
       <Pagination connection={products}>
         {({
           nodes,
           isLoading,
-          nextPageUrl,
+          NextLink,
+          PreviousLink,
           hasNextPage,
-          previousPageUrl,
           hasPreviousPage,
         }) => {
           return (
-            <div className="flex w-full flex-col gap-8 items-center">
+            <div className="flex w-full flex-col items-center gap-8">
               {hasPreviousPage && (
-                <Link
-                  to={previousPageUrl}
-                  variant="outline"
-                  className="mx-auto"
+                <PreviousLink
+                  className={cn("mx-auto", variants({ variant: "outline" }))}
                 >
                   {isLoading ? "Loading..." : prevPageText}
-                </Link>
+                </PreviousLink>
               )}
               <div
                 className={clsx([
@@ -54,9 +53,11 @@ const AllProducts = forwardRef<HTMLElement, AllProductsProps>((props, ref) => {
                 ))}
               </div>
               {hasNextPage && (
-                <Link to={nextPageUrl} variant="outline" className="mx-auto">
+                <NextLink
+                  className={cn("mx-auto", variants({ variant: "outline" }))}
+                >
                   {isLoading ? "Loading..." : nextPageText}
-                </Link>
+                </NextLink>
               )}
             </div>
           );
@@ -101,15 +102,15 @@ export const schema = createSchema({
           type: "text",
           name: "prevPageText",
           label: "Previous page text",
-          defaultValue: "Previous",
-          placeholder: "Previous",
+          defaultValue: "↑ Load previous",
+          placeholder: "↑ Load previous",
         },
         {
           type: "text",
           name: "nextPageText",
           label: "Next page text",
-          defaultValue: "Next",
-          placeholder: "Next",
+          defaultValue: "Load more ↓",
+          placeholder: "Load more ↓",
         },
       ],
     },
