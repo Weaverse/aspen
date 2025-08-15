@@ -6,8 +6,6 @@
 
 </div>
 
-<img style="border-radius: 16px;" src="https://cdn.shopify.com/s/files/1/0838/0052/3057/files/weaverse-x-hydrogen-x-shopify.png?v=1755245801" alt="Weaverse + Hydrogen + Shopify" />
-
 _Aspen is a sophisticated Shopify theme crafted specifically for home furniture and interior design stores. Powered by Hydrogen, React Router, and Weaverse, this theme delivers lightning-fast storefronts with exceptional performance and elegant design aesthetics perfect for showcasing furniture collections, home decor, and interior design services._
 
 ## Demo
@@ -18,6 +16,8 @@ _Aspen is a sophisticated Shopify theme crafted specifically for home furniture 
 ![aspen.weaverse.dev](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/aspen-preview-desktop.png?v=1755162368)
 
 ## What's included
+
+![Weaverse + Hydrogen + Shopify](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/weaverse-x-hydrogen-x-shopify.png?v=1755245801)
 
 - React Router v7
 - Hydrogen 2025.5.0
@@ -283,7 +283,7 @@ And then you can use the data in your component with `Component.props.loaderData
 
 Weaverse provides a convenient way to customize your theme inside the **Weaverse Studio**. You can add new sections, customize existing ones, and change the theme settings.
 
-![Weaverse Studio](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/weaverse_studio.png?v=1735017805)
+![Aspen in Weaverse Studio](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/aspen-demo.png?v=1755246830)
 
 ### Local development inspects
 
