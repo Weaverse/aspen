@@ -6,7 +6,7 @@
 
 </div>
 
-![Weaverse + Hydrogen + Shopify](https://cdn.shopify.com/s/files/1/0693/8201/3220/files/Logos.png?v=1695811776)
+<img style="border-radius: 16px;" src="https://cdn.shopify.com/s/files/1/0838/0052/3057/files/weaverse-x-hydrogen-x-shopify.png?v=1755245801" alt="Weaverse + Hydrogen + Shopify" />
 
 _Aspen is a sophisticated Shopify theme crafted specifically for home furniture and interior design stores. Powered by Hydrogen, React Router, and Weaverse, this theme delivers lightning-fast storefronts with exceptional performance and elegant design aesthetics perfect for showcasing furniture collections, home decor, and interior design services._
 
