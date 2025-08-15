@@ -13,8 +13,13 @@ import type {
   CollectionQuery,
   ProductCardFragment,
 } from "storefront-api.generated";
-import Link from "~/components/link";
+import Link, { variants } from "~/components/link";
 import { ProductCard } from "~/components/product/product-card";
+import { cn } from "~/utils/cn";
+import {
+  COMBINED_LISTINGS_CONFIGS,
+  isCombinedListing,
+} from "~/utils/combined-listings";
 import { type AppliedFilter, getAppliedFilterLink } from "~/utils/filter";
 
 export function ProductsPagination({
@@ -40,9 +45,9 @@ export function ProductsPagination({
   const { ref, inView } = useInView();
 
   return (
-    <div className="space-y-6 grow">
+    <div className="grow space-y-6">
       {appliedFilters.length > 0 ? (
-        <div className="flex items-center flex-wrap gap-6">
+        <div className="flex flex-wrap items-center gap-6">
           <div className="flex items-center gap-2">
             {appliedFilters.map((filter: AppliedFilter) => {
               const { label } = filter;
@@ -50,12 +55,12 @@ export function ProductsPagination({
                 <Link
                   key={label}
                   to={getAppliedFilterLink(filter, params, location)}
-                  className="px-2 py-1 border border-line-subtle hover:border-line items-center gap-2"
+                  className="items-center gap-2 border border-line-subtle px-2 py-1 hover:border-line"
                   variant="custom"
                   preventScrollReset
                 >
                   <span>{label}</span>
-                  <XIcon className="w-4 h-4" />
+                  <XIcon className="h-4 w-4" />
                 </Link>
               );
             })}
@@ -78,13 +83,14 @@ export function ProductsPagination({
             nodes,
             isLoading,
             nextPageUrl,
-            previousPageUrl,
             hasNextPage,
             hasPreviousPage,
+            PreviousLink,
+            NextLink,
             state,
           }) => (
             <div
-              className="flex w-full flex-col gap-8 items-center"
+              className="flex w-full flex-col items-center gap-8"
               style={
                 {
                   "--cols-mobile": `repeat(${mobileCols}, minmax(0, 1fr))`,
@@ -93,13 +99,11 @@ export function ProductsPagination({
               }
             >
               {hasPreviousPage && (
-                <Link
-                  to={previousPageUrl}
-                  variant="outline"
-                  className="mx-auto"
+                <PreviousLink
+                  className={cn("mx-auto", variants({ variant: "outline" }))}
                 >
                   {isLoading ? "Loading..." : loadPrevText}
-                </Link>
+                </PreviousLink>
               )}
               <ProductsLoadedOnScroll
                 nodes={nodes}
@@ -109,20 +113,17 @@ export function ProductsPagination({
                 state={state}
               />
               {hasNextPage && (
-                <Link
-                  ref={ref}
-                  to={nextPageUrl}
-                  variant="outline"
-                  className="mx-auto"
+                <NextLink
+                  className={cn("mx-auto", variants({ variant: "outline" }))}
                 >
                   {isLoading ? "Loading..." : loadMoreText}
-                </Link>
+                </NextLink>
               )}
             </div>
           )}
         </Pagination>
       ) : (
-        <div className="gap-3 pt-20 flex justify-center items-center flex-col">
+        <div className="flex flex-col items-center justify-center gap-3 pt-20">
           <FunnelXIcon size={50} weight="light" />
           <div className="text-lg">No products matched your filters.</div>
         </div>
@@ -160,9 +161,17 @@ function ProductsLoadedOnScroll(props: ProductsLoadedOnScrollProps) {
         "grid grid-cols-(--cols-mobile) md:grid-cols-(--cols-desktop)",
       ])}
     >
-      {nodes.map((product: ProductCardFragment) => (
-        <ProductCard key={product.id} product={product} />
-      ))}
+      {nodes
+        .filter(
+          (product: ProductCardFragment) =>
+            !(
+              COMBINED_LISTINGS_CONFIGS.hideCombinedListingsFromProductList &&
+              isCombinedListing(product)
+            ),
+        )
+        .map((product: ProductCardFragment) => (
+          <ProductCard key={product.id} product={product} />
+        ))}
     </div>
   );
 }

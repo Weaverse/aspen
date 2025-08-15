@@ -1,8 +1,13 @@
 import { useMoney } from "@shopify/hydrogen";
 import type { MoneyV2 } from "@shopify/hydrogen/storefront-api-types";
 import { useThemeSettings } from "@weaverse/hydrogen";
-import { clsx } from "clsx";
+import clsx from "clsx";
 import { colord } from "colord";
+import type {
+  ProductQuery,
+  ProductVariantFragment,
+} from "storefront-api.generated";
+import { cn } from "~/utils/cn";
 
 function Badge({
   text,
@@ -23,7 +28,7 @@ function Badge({
         borderRadius: `${badgeBorderRadius}px`,
         textTransform: badgeTextTransform,
       }}
-      className={clsx("px-1.5 py-1 uppercase text-sm", className)}
+      className={cn("px-1.5 py-1 text-sm uppercase", className)}
     >
       {text}
     </span>
@@ -43,7 +48,7 @@ export function NewBadge({
       <Badge
         text={newBadgeText}
         backgroundColor={newBadgeColor}
-        className={className}
+        className={clsx("new-badge", className)}
       />
     );
   }
@@ -56,7 +61,7 @@ export function BestSellerBadge({ className }: { className?: string }) {
     <Badge
       text={bestSellerBadgeText}
       backgroundColor={bestSellerBadgeColor}
-      className={className}
+      className={clsx("best-seller-badge", className)}
     />
   );
 }
@@ -67,7 +72,18 @@ export function SoldOutBadge({ className }: { className?: string }) {
     <Badge
       text={soldOutBadgeText}
       backgroundColor={soldOutBadgeColor}
-      className={className}
+      className={clsx("sold-out-badge", className)}
+    />
+  );
+}
+
+export function BundleBadge({ className }: { className?: string }) {
+  const { bundleBadgeText, bundleBadgeColor } = useThemeSettings();
+  return (
+    <Badge
+      text={bundleBadgeText}
+      backgroundColor={bundleBadgeColor}
+      className={clsx("bundle-badge", className)}
     />
   );
 }
@@ -93,7 +109,7 @@ export function SaleBadge({
       <Badge
         text={text}
         backgroundColor={saleBadgeColor}
-        className={className}
+        className={clsx("sale-badge", className)}
       />
     );
   }
@@ -120,5 +136,45 @@ function isNewArrival(date: string, daysOld = 30) {
   return (
     new Date(date).valueOf() >
     new Date().setDate(new Date().getDate() - daysOld).valueOf()
+  );
+}
+
+export function ProductBadges({
+  product,
+  selectedVariant,
+  className = "",
+}: {
+  product: NonNullable<ProductQuery["product"]>;
+  selectedVariant: ProductVariantFragment;
+  className?: string;
+}) {
+  if (!(product && selectedVariant)) {
+    return null;
+  }
+
+  const isBundle = Boolean(product?.isBundle?.requiresComponents);
+  const { publishedAt, badges } = product;
+  const isBestSellerProduct = badges
+    .filter(Boolean)
+    .some(({ key, value }) => key === "best_seller" && value === "true");
+
+  return (
+    <div
+      className={cn("flex items-center gap-2 text-sm empty:hidden", className)}
+    >
+      {selectedVariant.availableForSale ? (
+        <>
+          {isBundle && <BundleBadge />}
+          <SaleBadge
+            price={selectedVariant.price as MoneyV2}
+            compareAtPrice={selectedVariant.compareAtPrice as MoneyV2}
+          />
+          <NewBadge publishedAt={publishedAt} />
+          {isBestSellerProduct && <BestSellerBadge />}
+        </>
+      ) : (
+        <SoldOutBadge />
+      )}
+    </div>
   );
 }

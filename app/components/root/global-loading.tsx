@@ -10,12 +10,16 @@ export function GlobalLoading() {
   const [animating, setAnimating] = useState(false);
 
   useEffect(() => {
-    if (!ref.current) return;
+    if (!ref.current) {
+      return;
+    }
 
     Promise.allSettled(
       ref.current.getAnimations().map(({ finished }) => finished),
     ).then(() => {
-      if (!active) setAnimating(false);
+      if (!active) {
+        setAnimating(false);
+      }
     });
 
     if (active) {
@@ -27,7 +31,7 @@ export function GlobalLoading() {
   return (
     <div
       aria-hidden={!active}
-      className="fixed inset-x-0 left-0 top-0 z-50 h-1 animate-pulse"
+      className="fixed inset-x-0 top-0 left-0 z-50 h-1 animate-pulse"
     >
       <div
         ref={ref}

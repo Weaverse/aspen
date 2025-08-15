@@ -1,43 +1,40 @@
 import {
   getAdjacentAndFirstAvailableVariants,
   getProductOptions,
-  Money,
   ShopPayButton,
   useOptimisticVariant,
 } from "@shopify/hydrogen";
-import type { MoneyV2 } from "@shopify/hydrogen/storefront-api-types";
+import type { ProductVariantComponent } from "@shopify/hydrogen/storefront-api-types";
 import { createSchema } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { forwardRef, useState } from "react";
 import { useLoaderData } from "react-router";
-import { CompareAtPrice } from "~/components/compare-at-price";
 import { Link } from "~/components/link";
 import { AddToCartButton } from "~/components/product/add-to-cart-button";
-import {
-  BestSellerBadge,
-  NewBadge,
-  SaleBadge,
-} from "~/components/product/badges";
+import { ProductBadges } from "~/components/product/badges";
+import { BundledVariants } from "~/components/product/bundled-variants";
 import {
   ProductMedia,
   type ProductMediaProps,
 } from "~/components/product/product-media";
 import { Quantity } from "~/components/product/quantity";
-import { ProductVariants } from "~/components/product/variants";
+import { VariantPrices } from "~/components/product/variant-prices";
 import { layoutInputs, Section, type SectionProps } from "~/components/section";
 import type { loader as productRouteLoader } from "~/routes/($locale).products.$productHandle";
-import { isDiscounted } from "~/utils/product";
+import { isCombinedListing } from "~/utils/combined-listings";
 import { ProductDetails } from "./product-details";
+import { ProductVariants } from "./variants";
 
 interface ProductInformationData
   extends Omit<ProductMediaProps, "selectedVariant" | "media"> {
   addToCartText: string;
+  addBundleToCartText: string;
   soldOutText: string;
   showVendor: boolean;
   showSalePrice: boolean;
+  showShortDescription: boolean;
   showShippingPolicy: boolean;
   showRefundPolicy: boolean;
-  showBadgesOnProductMedia?: boolean;
 }
 
 const ProductInformation = forwardRef<
@@ -49,7 +46,7 @@ const ProductInformation = forwardRef<
   // Optimistically selects a variant with given available variant information
   const selectedVariant = useOptimisticVariant(
     product?.selectedOrFirstAvailableVariant,
-    getAdjacentAndFirstAvailableVariants(product)
+    getAdjacentAndFirstAvailableVariants(product),
   );
 
   // Get the product options array
@@ -60,9 +57,11 @@ const ProductInformation = forwardRef<
 
   const {
     addToCartText,
+    addBundleToCartText,
     soldOutText,
     showVendor,
     showSalePrice,
+    showShortDescription,
     showShippingPolicy,
     showRefundPolicy,
     mediaLayout,
@@ -71,25 +70,30 @@ const ProductInformation = forwardRef<
     showThumbnails,
     children,
     enableZoom,
-    showDots,
-    navigationStyle,
-    showBadgesOnProductMedia,
+    zoomTrigger,
+    zoomButtonVisibility,
     ...rest
   } = props;
   const [quantity, setQuantity] = useState<number>(1);
 
-  if (product) {
-    const { title, handle, vendor, priceRange, publishedAt, badges } = product;
+  const isBundle = Boolean(product?.isBundle?.requiresComponents);
+  const bundledVariants = isBundle ? product?.isBundle?.components.nodes : null;
+  const combinedListing = isCombinedListing(product);
 
-    const isBestSellerProduct = badges
-      .filter(Boolean)
-      .some(({ key, value }) => key === "best_seller" && value === "true");
+  if (product) {
+    const { title, handle, vendor, summary } = product;
+    let atcButtonText = "Add to cart";
+    if (selectedVariant.availableForSale) {
+      atcButtonText = isBundle ? addBundleToCartText : addToCartText;
+    } else {
+      atcButtonText = soldOutText;
+    }
 
     return (
       <Section ref={ref} {...rest} overflow="unset">
         <div
           className={clsx([
-            "space-y-5 lg:space-y-0 lg:grid",
+            "space-y-5 lg:grid lg:space-y-0",
             "lg:gap-[clamp(30px,5%,60px)]",
             "lg:grid-cols-[1fr_clamp(360px,45%,480px)]",
           ])}
@@ -99,102 +103,126 @@ const ProductInformation = forwardRef<
             mediaLayout={mediaLayout}
             gridSize={gridSize}
             imageAspectRatio={imageAspectRatio}
-            media={product?.media.nodes}
+            media={
+              combinedListing && product?.featuredImage
+                ? [
+                    {
+                      __typename: "MediaImage",
+                      id: product.featuredImage.id,
+                      mediaContentType: "IMAGE",
+                      alt: product.featuredImage.altText,
+                      previewImage: product.featuredImage,
+                      image: product.featuredImage,
+                    },
+                    ...(product?.media?.nodes || []),
+                  ]
+                : product?.media?.nodes || []
+            }
             selectedVariant={selectedVariant}
             showThumbnails={showThumbnails}
             enableZoom={enableZoom}
-            showDots={showDots}
-            navigationStyle={navigationStyle}
-            showBadges={showBadgesOnProductMedia}
-            badges={
-              <>
-                {selectedVariant && (
-                  <SaleBadge
-                    price={selectedVariant.price as MoneyV2}
-                    compareAtPrice={selectedVariant.compareAtPrice as MoneyV2}
-                  />
-                )}
-                <NewBadge publishedAt={publishedAt} />
-                {isBestSellerProduct && <BestSellerBadge />}
-              </>
-            }
+            zoomTrigger={zoomTrigger}
+            zoomButtonVisibility={zoomButtonVisibility}
           />
           <div>
             <div
               className="sticky flex flex-col justify-start space-y-5"
               style={{ top: "calc(var(--height-nav) + 20px)" }}
             >
+              <div className="flex items-center gap-1.5">
+                <Link
+                  to="/"
+                  className="text-body-subtle underline-offset-4 hover:underline"
+                >
+                  Home
+                </Link>
+                <span className="inline-block h-4 border-body-subtle border-r" />
+                <span>{product.title}</span>
+              </div>
+              <ProductBadges
+                product={product}
+                selectedVariant={selectedVariant}
+              />
               <div className="flex flex-col gap-2">
                 {showVendor && vendor && (
                   <span className="text-body-subtle">{vendor}</span>
                 )}
                 <h1 className="h3 tracking-tight!">{title}</h1>
               </div>
-              <div className="space-y-5 divide-y divide-line-subtle [&>*:not(:last-child)]:pb-3">
-                {selectedVariant ? (
-                  <div className="flex justify-between">
-                    <span className="font-normal uppercase">Price</span>
-                    <div className="flex items-center gap-2">
-                      <Money
-                        withoutTrailingZeros
-                        data={selectedVariant.price}
-                        as="span"
-                        className=""
+              {combinedListing ? (
+                <div className="flex gap-2 text-2xl/none">
+                  <span className="flex gap-1">
+                    From
+                    <VariantPrices
+                      variant={{ price: product.priceRange.minVariantPrice }}
+                      showCompareAtPrice={false}
+                    />
+                  </span>
+                  <span className="flex gap-1">
+                    To
+                    <VariantPrices
+                      variant={{ price: product.priceRange.maxVariantPrice }}
+                      showCompareAtPrice={false}
+                    />
+                  </span>
+                </div>
+              ) : (
+                <VariantPrices
+                  variant={selectedVariant}
+                  showCompareAtPrice={showSalePrice}
+                  className="text-2xl/none"
+                />
+              )}
+              {children}
+              {showShortDescription && (
+                <p className="leading-relaxed">{summary}</p>
+              )}
+              {isBundle && (
+                <div className="space-y-3">
+                  <h4 className="text-2xl">Bundled Products</h4>
+                  <BundledVariants
+                    variants={bundledVariants as ProductVariantComponent[]}
+                  />
+                </div>
+              )}
+              <ProductVariants
+                productOptions={productOptions}
+                selectedVariant={selectedVariant}
+                combinedListing={combinedListing}
+              />
+              {!combinedListing && (
+                <>
+                  <Quantity value={quantity} onChange={setQuantity} />
+                  <div className="space-y-2">
+                    <AddToCartButton
+                      disabled={!selectedVariant?.availableForSale}
+                      lines={[
+                        {
+                          merchandiseId: selectedVariant?.id,
+                          quantity,
+                          selectedVariant,
+                        },
+                      ]}
+                      data-test="add-to-cart"
+                      className="w-full uppercase"
+                    >
+                      {atcButtonText}
+                    </AddToCartButton>
+                    {selectedVariant?.availableForSale && (
+                      <ShopPayButton
+                        width="100%"
+                        variantIdsAndQuantities={[
+                          {
+                            id: selectedVariant?.id,
+                            quantity,
+                          },
+                        ]}
+                        storeDomain={storeDomain}
                       />
-                      {isDiscounted(
-                        selectedVariant.price as MoneyV2,
-                        selectedVariant.compareAtPrice as MoneyV2
-                      ) &&
-                        showSalePrice && (
-                          <CompareAtPrice
-                            data={selectedVariant.compareAtPrice as MoneyV2}
-                            className=""
-                          />
-                        )}
-                    </div>
+                    )}
                   </div>
-                ) : (
-                  <Money
-                    withoutTrailingZeros
-                    data={priceRange.minVariantPrice}
-                    as="div"
-                    className=""
-                  />
-                )}
-                {children}
-                <ProductVariants productOptions={productOptions} />
-                <Quantity value={quantity} onChange={setQuantity} />
-              </div>
-              <div className="space-y-2 py-3 sp-button" style={{ "--shop-pay-button-height": "54px" } as React.CSSProperties}>
-                <AddToCartButton
-                  disabled={!selectedVariant?.availableForSale}
-                  lines={[
-                    {
-                      merchandiseId: selectedVariant?.id,
-                      quantity,
-                      selectedVariant,
-                    },
-                  ]}
-                  data-test="add-to-cart"
-                  className="w-full uppercase !py-[17px]"
-                >
-                  {selectedVariant.availableForSale
-                    ? addToCartText
-                    : soldOutText}
-                </AddToCartButton>
-                {selectedVariant?.availableForSale && (
-                  <ShopPayButton
-                    width="100%"
-                    variantIdsAndQuantities={[
-                      {
-                        id: selectedVariant?.id,
-                        quantity,
-                      },
-                    ]}
-                    storeDomain={storeDomain}
-                  />
-                )}
-              </div>
+                </>
+              )}
               <ProductDetails
                 showShippingPolicy={showShippingPolicy}
                 showRefundPolicy={showRefundPolicy}
@@ -215,7 +243,7 @@ const ProductInformation = forwardRef<
 export default ProductInformation;
 
 export const schema = createSchema({
-  type: "product-information",
+  type: "main-product",
   title: "Main product",
   childTypes: ["judgeme"],
   limit: 1,
@@ -285,39 +313,39 @@ export const schema = createSchema({
             data.mediaLayout === "slider",
         },
         {
-          label: "Show dots",
-          name: "showDots",
-          type: "switch",
-          defaultValue: true,
-          condition: (data: ProductInformationData) =>
-            data.mediaLayout === "slider",
-        },
-        {
-          label: "Navigation style",
-          name: "navigationStyle",
-          type: "select",
-          defaultValue: "corner",
-          configs: {
-            options: [
-              { value: "corner", label: "Corner" },
-              { value: "sides", label: "Sides" },
-            ],
-          },
-          condition: (data: ProductInformationData) =>
-            data.mediaLayout === "slider",
-        },
-        {
           label: "Enable zoom",
           name: "enableZoom",
           type: "switch",
           defaultValue: true,
         },
         {
-          type: "switch",
-          label: "Show badges on product media",
-          name: "showBadgesOnProductMedia",
-          defaultValue: true,
-          helpText: "Display sale, new, and best seller badges on product images",
+          type: "select",
+          name: "zoomTrigger",
+          label: "Zoom trigger",
+          defaultValue: "both",
+          configs: {
+            options: [
+              { value: "image", label: "Click on image" },
+              { value: "button", label: "Click on zoom button" },
+              { value: "both", label: "Both" },
+            ],
+          },
+          condition: (data: ProductInformationData) => data.enableZoom === true,
+        },
+        {
+          type: "select",
+          name: "zoomButtonVisibility",
+          label: "When to show zoom button",
+          defaultValue: "hover",
+          configs: {
+            options: [
+              { value: "always", label: "Always" },
+              { value: "hover", label: "On hover" },
+            ],
+          },
+          condition: (data: ProductInformationData) =>
+            data.enableZoom === true &&
+            (data.zoomTrigger === "button" || data.zoomTrigger === "both"),
         },
       ],
     },
@@ -330,6 +358,13 @@ export const schema = createSchema({
           name: "addToCartText",
           defaultValue: "Add to cart",
           placeholder: "Add to cart",
+        },
+        {
+          type: "text",
+          label: "Bundle add to cart text",
+          name: "addBundleToCartText",
+          defaultValue: "Add bundle to cart",
+          placeholder: "Add bundle to cart",
         },
         {
           type: "text",
@@ -348,6 +383,12 @@ export const schema = createSchema({
           type: "switch",
           label: "Show sale price",
           name: "showSalePrice",
+          defaultValue: true,
+        },
+        {
+          type: "switch",
+          label: "Show short description",
+          name: "showShortDescription",
           defaultValue: true,
         },
         {

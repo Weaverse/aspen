@@ -1,41 +1,59 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.0.6/schema.json",
-  "extends": ["./node_modules/@weaverse/biome/biome.json"],
-  "files": {
-    "includes": [
-      "**",
-      "!**/public/**",
-      "!**/node_modules/**",
-      "!**/build/**",
-      "!**/dist/**",
-      "!**/storefront-api.generated.d.ts",
-      "!**/customer-account-api.generated.d.ts",
-      "!**/.shopify/**",
-      "!**/.react-router/**",
-      "!**/app/styles/app.css"
-    ]
-  },
+  "$schema": "https://biomejs.dev/schemas/2.1.2/schema.json",
+  "extends": ["ultracite", "./node_modules/@weaverse/biome/biome.json"],
   "linter": {
     "rules": {
+      "style": {
+        "useThrowNewError": "warn",
+        "useFilenamingConvention": "off",
+        "noParameterAssign": "off",
+        "noNestedTernary": "off"
+      },
       "suspicious": {
         "noExplicitAny": "off",
+        "useAwait": "off",
         "noArrayIndexKey": "off"
       },
       "nursery": {
-        "useUniqueElementIds": "off"
+        "useUniqueElementIds": "off",
+        "useSortedClasses": {
+          "level": "on",
+          "fix": "safe",
+          "options": {
+            "functions": ["clsx", "cva", "cn"]
+          }
+        },
+        "noNoninteractiveElementInteractions": "off"
       },
       "correctness": {
         "noUnusedVariables": "off"
       },
-      "a11y": {
-        "noSvgWithoutTitle": "off"
+      "performance": {
+        "noNamespaceImport": "off",
+        "useTopLevelRegex": "off"
+      },
+      "complexity": {
+        "noExcessiveCognitiveComplexity": {
+          "level": "error",
+          "options": {
+            "maxAllowedComplexity": 50
+          }
+        }
+      }
+    }
+  },
+  "assist": {
+    "actions": {
+      "source": {
+        "useSortedAttributes": "off"
       }
     }
   },
   "javascript": {
     "formatter": {
       "quoteStyle": "double",
-      "semicolons": "always"
+      "semicolons": "always",
+      "trailingCommas": "all"
     }
   }
 }
