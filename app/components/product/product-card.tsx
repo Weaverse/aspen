@@ -22,12 +22,13 @@ import {
 import { ProductCardOptions } from "./product-card-options";
 import { QuickShopTrigger } from "./quick-shop";
 import { VariantPrices } from "./variant-prices";
+import { isCombinedListing } from "~/utils/combined-listings";
 
 const styleVariants = cva("", {
   variants: {
     alignment: {
       left: "text-left",
-      center: "text-center", 
+      center: "text-center",
       right: "text-right",
     },
   },
@@ -111,7 +112,7 @@ export function ProductCard({
     <div
       className={clsx(
         "group rounded-(--pcard-radius) transition-all hover:border hover:border-[#DBD7D1]",
-        className
+        className,
       )}
       style={
         {
@@ -191,26 +192,26 @@ export function ProductCard({
         <div
           className={clsx(
             "py-3 flex flex-col gap-2",
-            isVertical && styleVariants({ alignment: pcardAlignment })
+            isVertical && styleVariants({ alignment: pcardAlignment }),
           )}
         >
           {pcardShowVendor && (
             <div className="uppercase text-body-subtle">{product.vendor}</div>
           )}
           <div className="md:hidden block">
-              <ProductCardOptions
-                product={product}
-                selectedVariant={selectedVariant}
-                setSelectedVariant={setSelectedVariant}
-              />
-            </div>
+            <ProductCardOptions
+              product={product}
+              selectedVariant={selectedVariant}
+              setSelectedVariant={setSelectedVariant}
+            />
+          </div>
           <NavLink
             to={`/products/${product.handle}?${params.toString()}`}
             prefetch="intent"
             className={({ isTransitioning }) =>
               clsx(
                 "font-bold ",
-                isTransitioning && "[view-transition-name:product-image]"
+                isTransitioning && "[view-transition-name:product-image]",
               )
             }
           >
@@ -221,13 +222,19 @@ export function ProductCard({
               "flex",
               isVertical
                 ? "title-and-price flex-col gap-1"
-                : "justify-between gap-4"
+                : "justify-between gap-4",
             )}
           >
-            {pcardShowLowestPrice ? (
+            {pcardShowLowestPrice || isCombinedListing(product) ? (
               <div className="flex gap-1">
                 <span>From</span>
                 <Money withoutTrailingZeros data={minVariantPrice} />
+                {isCombinedListing(product) && (
+                  <>
+                    <span>–</span>
+                    <Money withoutTrailingZeros data={maxVariantPrice} />
+                  </>
+                )}
               </div>
             ) : (
               <VariantPrices
