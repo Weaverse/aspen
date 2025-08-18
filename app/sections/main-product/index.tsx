@@ -70,8 +70,6 @@ const ProductInformation = forwardRef<
     showThumbnails,
     children,
     enableZoom,
-    zoomTrigger,
-    zoomButtonVisibility,
     ...rest
   } = props;
   const [quantity, setQuantity] = useState<number>(1);
@@ -121,8 +119,6 @@ const ProductInformation = forwardRef<
             selectedVariant={selectedVariant}
             showThumbnails={showThumbnails}
             enableZoom={enableZoom}
-            zoomTrigger={zoomTrigger}
-            zoomButtonVisibility={zoomButtonVisibility}
           />
           <div>
             <div
@@ -317,35 +313,6 @@ export const schema = createSchema({
           name: "enableZoom",
           type: "switch",
           defaultValue: true,
-        },
-        {
-          type: "select",
-          name: "zoomTrigger",
-          label: "Zoom trigger",
-          defaultValue: "both",
-          configs: {
-            options: [
-              { value: "image", label: "Click on image" },
-              { value: "button", label: "Click on zoom button" },
-              { value: "both", label: "Both" },
-            ],
-          },
-          condition: (data: ProductInformationData) => data.enableZoom === true,
-        },
-        {
-          type: "select",
-          name: "zoomButtonVisibility",
-          label: "When to show zoom button",
-          defaultValue: "hover",
-          configs: {
-            options: [
-              { value: "always", label: "Always" },
-              { value: "hover", label: "On hover" },
-            ],
-          },
-          condition: (data: ProductInformationData) =>
-            data.enableZoom === true &&
-            (data.zoomTrigger === "button" || data.zoomTrigger === "both"),
         },
       ],
     },

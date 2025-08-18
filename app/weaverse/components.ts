@@ -61,7 +61,7 @@ import * as NewsLetterForm from "~/sections/newsletter/newsletter-form";
 import * as OurTeam from "~/sections/our-team";
 import * as OurTeamMembers from "~/sections/our-team/team-members";
 import * as Page from "~/sections/page";
-import * as ProductInformation from "~/sections/product-information";
+import * as ProductInformation from "~/sections/main-product/index";
 import * as PromotionGrid from "~/sections/promotion-grid";
 import * as GridItems from "~/sections/promotion-grid/grid-items";
 import * as PromotionGridItem from "~/sections/promotion-grid/item";
