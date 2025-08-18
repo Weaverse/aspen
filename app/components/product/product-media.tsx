@@ -18,7 +18,7 @@ import { Swiper, type SwiperClass, SwiperSlide } from "swiper/react";
 import { Image } from "~/components/image";
 import type { ImageAspectRatio } from "~/types/image";
 import { cn } from "~/utils/cn";
-import { getImageAspectRatio } from "~/utils/image";
+import { calculateAspectRatio } from "~/utils/image";
 import { ZoomModal } from "./media-zoom";
 
 const variants = cva(
@@ -101,7 +101,7 @@ export function ProductMedia(props: ProductMediaProps) {
               data={image}
               loading={idx === 0 ? "eager" : "lazy"}
               width={1660}
-              aspectRatio={getImageAspectRatio(image, imageAspectRatio)}
+              aspectRatio={calculateAspectRatio(image, imageAspectRatio)}
               className={clsx(
                 "object-cover w-[80vw] max-w-none lg:w-full lg:h-full",
                 gridSize === "mix" && idx % 3 === 0 && "lg:col-span-2",
@@ -299,7 +299,7 @@ function Media({
         loading={index === 0 ? "eager" : "lazy"}
         className="object-cover w-full h-auto"
         width={2048}
-        aspectRatio={getImageAspectRatio(image, imageAspectRatio)}
+        aspectRatio={calculateAspectRatio(image, imageAspectRatio)}
         sizes="auto"
       />
     );
