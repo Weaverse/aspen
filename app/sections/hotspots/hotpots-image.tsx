@@ -3,7 +3,7 @@ import { createSchema, IMAGES_PLACEHOLDERS } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
 import { Image } from "~/components/image";
 import type { ImageAspectRatio } from "~/types/image";
-import { getImageAspectRatio } from "~/utils/image";
+import { calculateAspectRatio } from "~/utils/image";
 import { useHotspotsContext } from "./hotpots";
 
 interface HotspotsProps
@@ -31,7 +31,7 @@ let HotspotsImage = forwardRef<HTMLDivElement, HotspotsProps>((props, ref) => {
   return (
       <div ref={ref} {...rest}
         className="relative w-full"
-        style={{ aspectRatio: getImageAspectRatio(imageData, finalAspectRatio) }}
+        style={{ aspectRatio: calculateAspectRatio(imageData, finalAspectRatio) }}
       >
         <Image
           data={imageData}
