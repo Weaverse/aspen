@@ -4,7 +4,7 @@ import type { ProductVariantFragment } from "storefront-api.generated";
 import { cn } from "~/utils/cn";
 import { isDiscounted } from "~/utils/product";
 
-function CompareAtPrice({
+export function CompareAtPrice({
   data,
   className,
 }: {

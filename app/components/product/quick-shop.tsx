@@ -20,7 +20,7 @@ import { Skeleton } from "~/components/skeleton";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import type { ProductData } from "~/routes/($locale).api.product";
 import { isDiscounted } from "~/utils/product";
-import { CompareAtPrice } from "../compare-at-price";
+import { CompareAtPrice } from "./variant-prices";
 
 // Helper function from ProductDetails
 function getExcerpt(text: string) {
@@ -304,9 +304,21 @@ export function QuickShop({
   );
 }
 
-export function QuickShopTrigger({ productHandle }: { productHandle: string }) {
+export function QuickShopTrigger({ 
+  productHandle,
+  showOnHover = true,
+  buttonType,
+  buttonText,
+  panelType,
+}: { 
+  productHandle: string;
+  showOnHover?: boolean;
+  buttonType?: string;
+  buttonText?: string;
+  panelType?: string;
+}) {
   const {
-    quickShopButtonTextOpen
+    quickShopButtonTextOpen,
   } = useThemeSettings();
   const [open, setOpen] = useState(false);
   const [showDescription, setShowDescription] = useState(false);
@@ -347,11 +359,10 @@ export function QuickShopTrigger({ productHandle }: { productHandle: string }) {
             "bg-white rounded-full",
             "flex items-center justify-center p-0",
             // Desktop: Hide initially, show on hover with text
-            "lg:opacity-0 lg:inset-x-4 lg:w-auto lg:h-auto lg:rounded-none",
+            showOnHover ? "lg:opacity-0 lg:inset-x-4 lg:w-auto lg:h-auto lg:rounded-none" : "lg:opacity-100 lg:inset-x-4 lg:w-auto lg:h-auto lg:rounded-none",
             "lg:px-6 lg:py-3",
             "lg:text-(--btn-secondary-text) lg:bg-(--btn-secondary-bg) lg:border-(--btn-secondary-bg)",
-            "lg:-translate-y-1.5 lg:-translate-x-2",
-            "lg:group-hover:opacity-100 lg:group-hover:translate-x-0 lg:group-hover:translate-y-2",
+            showOnHover ? "lg:-translate-y-1.5 lg:-translate-x-2 lg:group-hover:opacity-100 lg:group-hover:translate-x-0 lg:group-hover:translate-y-2" : "",
             "lg:font-normal lg:whitespace-nowrap",
           )}
         >
@@ -370,7 +381,7 @@ export function QuickShopTrigger({ productHandle }: { productHandle: string }) {
             />
           </svg>
           {/* Text for desktop */}
-          <span className="hidden lg:inline uppercase">{quickShopButtonTextOpen}</span>
+          <span className="hidden lg:inline uppercase">{buttonText || quickShopButtonTextOpen}</span>
         </button>
       </Dialog.Trigger>
       <Dialog.Portal>
