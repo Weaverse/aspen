@@ -9,6 +9,12 @@ import type { JudgemeReviewsData } from "~/utils/judgeme";
 
 export function ReviewForm({ reviews }: { reviews: JudgemeReviewsData }) {
   const { product } = useLoaderData<typeof productRouteLoader>();
+  
+  // Check if product exists before using
+  if (!product) {
+    return null;
+  }
+  
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
   const [isFormVisible, setIsFormVisible] = useState(false);
@@ -86,7 +92,7 @@ export function ReviewForm({ reviews }: { reviews: JudgemeReviewsData }) {
             <div className="flex flex-col gap-6">
               <span
                 className={clsx(
-                  "font-heading font-semibold text-xl uppercase",
+                  "ff-heading font-semibold text-xl uppercase",
                   reviews.reviews.length === 0 && "text-center",
                 )}
               >

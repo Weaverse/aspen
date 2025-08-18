@@ -6,6 +6,12 @@ import type { loader as productLoader } from "~/routes/($locale).products.$produ
 
 export function ProductDetails({ showShippingPolicy, showRefundPolicy }) {
   const { shop, product } = useLoaderData<typeof productLoader>();
+  
+  // Check if product exists before destructuring
+  if (!product) {
+    return null;
+  }
+  
   const { description } = product;
   const { shippingPolicy, refundPolicy } = shop;
   const details = [
