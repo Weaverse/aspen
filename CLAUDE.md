@@ -2,200 +2,170 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Overview
+## Development Commands
 
-This is **Pilot**, a Shopify Hydrogen theme powered by Weaverse - a visual page builder for Hydrogen storefronts. The project is built with React, TypeScript, React Router 7, and Tailwind CSS v4. It runs on Node.js 20+ and uses Biome for linting/formatting.
+### Core Development
+- `npm run dev` - Start development server on port 3456 with codegen
+- `npm run dev:ca` - Start dev server with customer account API (unstable)
+- `npm run build` - Build for production with codegen
+- `npm run preview` - Preview production build
+- `npm run start` - Start production server
+- `npm run typecheck` - Run TypeScript type checking
+- `npm run codegen` - Generate GraphQL types and schema
 
-## Essential Commands
-
-### Development
-```bash
-npm run dev        # Start development server on port 3456
-npm run dev:ca     # Start with customer account push (unstable)
-npm run build      # Production build with GraphQL codegen
-npm run preview    # Preview production build
-npm start          # Start production server
-npm run clean      # Clean all build artifacts and dependencies
-```
-
-### Code Quality (Always run before committing)
-```bash
-npm run biome      # Check for linting/formatting errors
-npm run biome:fix  # Fix linting/formatting errors
-npm run format     # Format code with Biome
-npm run typecheck  # Run TypeScript type checking
-```
+### Code Quality
+- `npm run biome` - Run linting (error level only)
+- `npm run biome:fix` - Auto-fix linting issues
+- `npm run format` - Format code with Biome
+- `npm run format:check` - Check formatting without changes
 
 ### Testing
-```bash
-npm run e2e        # Run Playwright E2E tests
-npm run e2e:ui     # Run tests with UI mode
-```
+- `npm run e2e` - Run Playwright end-to-end tests
+- `npm run e2e:ui` - Run Playwright tests with UI
 
-### GraphQL
-```bash
-npm run codegen    # Generate TypeScript types from GraphQL
-```
+### Maintenance
+- `npm run clean` - Remove build artifacts and dependencies
 
 ## Architecture Overview
 
-### Route Structure
-All routes follow the pattern `($locale).{route}.tsx` to support internationalization:
-- Homepage: `($locale)._index.tsx`
-- Products: `($locale).products.$productHandle.tsx`
-- Collections: `($locale).collections.$collectionHandle.tsx`
-- Account: `($locale).account.*`
-- API routes: `($locale).api.*`
-- Cart operations: `($locale).cart.*`
-- Policies & Pages: `($locale).pages.$pageHandle.tsx`, `($locale).policies.$policyHandle.tsx`
+This is a **Shopify Hydrogen storefront** built with **React Router v7** (not Remix) and integrated with **Weaverse** for visual page building. Key architectural decisions:
 
-### Key Architectural Patterns
+### Framework Stack
+- **Hydrogen 2025.5.0** - Shopify's React framework for commerce
+- **React Router v7** - File-based routing (NOT Remix - see import rules below)
+- **Weaverse** - Visual page builder with component system
+- **Vite** - Build tool and dev server
+- **Biome** - Linting and formatting (replaces ESLint/Prettier)
+- **TailwindCSS v4** - Styling with CSS-in-JS approach
 
-1. **Parallel Data Loading**: Every page route loads Weaverse data alongside GraphQL queries using `Promise.all()`:
-   ```typescript
-   const [{ shop, product }, weaverseData, productReviews] = await Promise.all([
-     storefront.query(PRODUCT_QUERY, { variables }),
-     weaverse.loadPage({ type: "PRODUCT", handle }),
-     getJudgeMeProductReviews({ context, handle }),
-   ]);
-   ```
-
-2. **Component Structure**:
-   - `/app/sections/` - Weaverse visual builder sections with schema exports and optional loaders
-   - `/app/components/` - Reusable UI components organized by feature (cart/, product/, layout/, customer/)
-   - Each Weaverse section must export: default component + schema + optional loader
-
-3. **Data Fetching**:
-   - GraphQL fragments in `/app/graphql/fragments.ts`
-   - Complete queries in `/app/graphql/queries.ts`
-   - Route loaders handle all data fetching server-side
-   - Use `routeHeaders` for consistent cache control
-
-4. **Styling**:
-   - Tailwind CSS v4 with custom utilities
-   - class-variance-authority (cva) for component variants
-   - Use the `cn()` utility from `/app/utils/cn.ts` for class merging
-   - Biome's `useSortedClasses` enabled for `clsx`, `cva`, and `cn` functions
-
-5. **Type Safety**:
-   - GraphQL types are auto-generated via codegen
-   - Path alias `~/` maps to `/app/` directory
-   - Strict TypeScript configuration
-   - Two separate codegen outputs:
-     - `storefront-api.generated.d.ts` - For all storefront queries (excludes account routes)
-     - `customer-account-api.generated.d.ts` - For customer account queries (only in `*.account*.{ts,tsx,js,jsx}` files)
-
-### Important Integrations
-
-- **Weaverse**: Visual page builder - sections must be registered in `/app/weaverse/components.ts`
-- **Judge.me**: Product reviews integration via utilities in `/app/utils/judgeme.ts`
-- **Analytics**: Shopify Analytics integrated throughout components
-- **Customer Accounts**: New Shopify Customer Account API support (OAuth-based)
-- **Radix UI**: For accessible UI primitives (accordion, dialog, dropdown, etc.)
-- **Swiper**: For carousel/slideshow functionality
-
-### Weaverse Section Development
-
-1. **Creating a New Section**:
-   ```typescript
-   // app/sections/my-section/index.tsx
-   import { createSchema, type HydrogenComponentProps } from '@weaverse/hydrogen';
-   import { forwardRef } from 'react';
-   
-   interface MyProps extends HydrogenComponentProps {
-     heading: string;
-   }
-   
-   const MySection = forwardRef<HTMLElement, MyProps>((props, ref) => {
-     // Component implementation
-   });
-   
-   export default MySection;
-   
-   export const schema = createSchema({
-     type: 'my-section',
-     title: 'My Section',
-     settings: [/* ... */]
-   });
-   
-   // Optional loader for server-side data fetching
-   export const loader = async ({ weaverse, data }) => {
-     // Fetch data
-   };
-   ```
-
-2. **Register in `/app/weaverse/components.ts`**:
-   ```typescript
-   import * as MySection from "~/sections/my-section";
-   export const components = [
-     // ... existing components
-     MySection,
-   ];
-   ```
-
-### Route Data Loading Pattern
-
-```typescript
-export async function loader({ params, request, context }: LoaderFunctionArgs) {
-  const { handle } = params;
-  invariant(handle, "Missing handle param");
-  
-  const { storefront, weaverse } = context;
-  
-  // Parallel data loading
-  const [shopifyData, weaverseData, thirdPartyData] = await Promise.all([
-    storefront.query(QUERY, { variables }),
-    weaverse.loadPage({ type: "PAGE_TYPE", handle }),
-    fetchThirdPartyData(),
-  ]);
-  
-  // Handle errors
-  if (!shopifyData.resource) {
-    throw new Response("Not found", { status: 404 });
-  }
-  
-  return data({
-    shopifyData,
-    weaverseData,
-    thirdPartyData,
-  });
-}
+### Key Directory Structure
+```
+app/
+├── components/          # Reusable UI components
+├── sections/           # Weaverse page-building sections
+├── routes/             # File-based routing (React Router)
+├── weaverse/           # Weaverse integration and config
+├── hooks/              # Custom React hooks
+├── utils/              # Utility functions
+├── graphql/            # GraphQL fragments and queries
+└── styles/             # Global styles
 ```
 
+### Critical Import Rules
+**ALWAYS use React Router imports, NEVER Remix:**
+```js
+// ✅ CORRECT
+import { useLoaderData, Link, Form } from 'react-router';
+
+// ❌ WRONG
+import { useLoaderData, Link, Form } from '@remix-run/react';
+```
+
+### Weaverse Integration
+- All page content is managed through Weaverse's visual builder
+- Components must be registered in `app/weaverse/components.ts`
+- Section components live in `app/sections/` with proper schema exports
+- Theme settings defined in `app/weaverse/schema.server.ts`
+- Use `withWeaverse` HOC on root App component
+
+### Component Architecture
+- **Components**: Small, reusable UI elements (`app/components/`)
+- **Sections**: Full-width page-building blocks (`app/sections/`)
+- **Weaverse Schema**: Every section must export a `schema` object using `createSchema()`
+- **Data Loading**: Use component `loader` functions for server-side data fetching
+
+### Styling Approach
+- **TailwindCSS v4** with CSS-in-JS setup via Vite plugin
+- **Design tokens** managed through Weaverse theme settings
+- **Global styles** in `app/weaverse/style.tsx` driven by theme settings
+- **Component-specific** styles using Tailwind classes
+
+### GraphQL & Data Fetching
+- **Storefront API** for product/collection data
+- **Generated types** in `storefront-api.generated.d.ts` (DO NOT edit directly)
+- **Fragments** defined in `app/graphql/fragments.ts`
+- **Queries** in `app/graphql/queries.ts`
+- **Regenerate types** with `npm run codegen` after schema changes
+
+### Testing Setup
+- **Playwright** for end-to-end testing
+- Test files in `tests/` directory
+- Configuration in `playwright.config.ts`
+
+## Development Workflows
+
+### Adding New Weaverse Sections
+1. Create component in `app/sections/[section-name]/index.tsx`
+2. Export default component with `forwardRef`
+3. Export `schema` object with `createSchema()`
+4. Optionally export `loader` function for data fetching
+5. Register in `app/weaverse/components.ts`
+
+### Component Schema Requirements
+```tsx
+export let schema = createSchema({
+  type: 'my-section',
+  title: 'My Section',
+  settings: [  // Use "settings", NOT "inspector"
+    {
+      group: 'Content',
+      inputs: [
+        {
+          type: 'text',
+          name: 'heading',
+          label: 'Heading',
+          defaultValue: 'Default heading',
+        },
+      ],
+    },
+  ],
+});
+```
+
+### File-based Routing
+- Routes in `app/routes/` follow React Router v7 conventions
+- Locale-aware routes: `($locale).page-name.tsx`
+- Dynamic routes: `($locale).products.$productHandle.tsx`
+- API routes: `($locale).api.endpoint.ts`
+
+### Code Quality Standards
+- **TypeScript**: Strict mode disabled, but use types where beneficial
+- **Linting**: Biome configuration in `biome.json` (extends `@weaverse/biome`)
+- **Formatting**: Double quotes, semicolons required
+- **Imports**: Use `~/*` alias for app directory imports
+
 ### Environment Configuration
+Required environment variables:
+- `PUBLIC_STORE_DOMAIN` - Shopify store domain
+- `PUBLIC_STOREFRONT_API_TOKEN` - Storefront API access token
+- `WEAVERSE_PROJECT_ID` - Weaverse project identifier
+- `SESSION_SECRET` - Session encryption key
 
-Required environment variables are defined in `env.d.ts`. The project uses `@shopify/hydrogen` and `@shopify/remix-oxygen` for environment handling.
+### Performance Considerations
+- **Server-side rendering** with hydration
+- **Component lazy loading** via Vite warming
+- **GraphQL caching** using Hydrogen's cache strategies
+- **Image optimization** with Shopify CDN
+- **Asset inlining** disabled for CSP compliance
 
-### Testing Strategy
+## Common Tasks
 
-- E2E tests use Playwright and are located in `/tests/`
-- Tests run against `localhost:3456` (same as dev server)
-- Focus on critical user flows: cart operations, checkout process
-- Run individual tests: `npx playwright test tests/cart.test.ts`
+### Updating GraphQL Schema
+1. Modify queries in `app/graphql/`
+2. Run `npm run codegen`
+3. Update TypeScript types as needed
 
-### Biome Configuration
+### Adding Theme Settings
+1. Edit `app/weaverse/schema.server.ts`
+2. Add corresponding styles in `app/weaverse/style.tsx`
+3. Use `useThemeSettings()` hook in components
 
-The project extends from `ultracite` and `@weaverse/biome` configurations with these customizations:
-- Double quotes for strings
-- Semicolons always
-- Trailing commas
-- Max cognitive complexity: 50
-- Sorted Tailwind classes in `clsx`, `cva`, and `cn` functions
+### Debugging
+- **Dev tools**: http://localhost:3456/graphiql
+- **Network requests**: http://localhost:3456/debug-network
+- **Hydrogen logs**: Check terminal output during development
 
-## Code Conventions
-
-- **Naming**: camelCase for variables/functions, PascalCase for components, kebab-case for files, ALL_CAPS for constants
-- **Formatting**: 2 spaces indentation, double quotes, semicolons, trailing commas
-- **TypeScript**: Always type function parameters and returns, avoid `any`, use interfaces for data structures
-- **React**: Functional components with hooks only, small focused components, forwardRef for Weaverse sections
-- **Async**: Use async/await, proper error handling with try/catch
-- **Imports**: Use `~/` path alias for app directory imports
-
-## Common Pitfalls to Avoid
-
-1. **GraphQL Codegen**: Always run `npm run codegen` after modifying GraphQL queries/fragments
-2. **Weaverse Registration**: New sections must be registered in `/app/weaverse/components.ts`
-3. **Route Caching**: Use `routeHeaders` export for consistent cache control
-4. **Customer Account Queries**: Only use in `*.account*.{ts,tsx}` files
-5. **Parallel Loading**: Always use `Promise.all()` for multiple data fetches in loaders
-6. **Type Safety**: Never use `any` type, properly type all Weaverse section props
+### Deployment
+- **Shopify Oxygen**: Native Hydrogen deployment platform
+- **Build command**: `npm run build`
+- **Environment**: Ensure all env vars are configured

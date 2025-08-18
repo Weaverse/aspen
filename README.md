@@ -1,37 +1,36 @@
-<h1 align="center">Pilot - Shopify Hydrogen Theme</h1>
+<h1 align="center">Aspen - Shopify Hydrogen Theme</h1>
 
 <div align="center">
 
-📚 [Read the docs](https://weaverse.io/docs) | 🗣 [Join our community on Slack](https://join.slack.com/t/weaversecommunity/shared_invite/zt-235bv7d80-velzJU8CpZIHWdrzFwAdXg) | 🐞 [Report a bug](https://github.com/weaverse/pilot/issues)
+📚 [Read the docs](https://weaverse.io/docs) | 🗣 [Join our community on Slack](https://join.slack.com/t/weaversecommunity/shared_invite/zt-235bv7d80-velzJU8CpZIHWdrzFwAdXg) | 🐞 [Report a bug](https://github.com/weaverse/aspen/issues)
 
 </div>
 
-![Weaverse + Hydrogen + Shopify](https://cdn.shopify.com/s/files/1/0693/8201/3220/files/Logos.png?v=1695811776)
-
-_Pilot is an innovative Shopify theme, powered by Hydrogen, React Router 7, and Weaverse, designed to create lightning-fast storefronts with exceptional performance. This theme combines a collection of powerful tools and features to streamline your Shopify development experience._
+_Aspen is a sophisticated Shopify theme crafted specifically for home furniture and interior design stores. Powered by Hydrogen, React Router, and Weaverse, this theme delivers lightning-fast storefronts with exceptional performance and elegant design aesthetics perfect for showcasing furniture collections, home decor, and interior design services._
 
 ## Demo
 
-- Live store: https://pilot.weaverse.dev
-- Customizing Pilot on Weaverse Studio: https://studio.weaverse.io/demo
-  ![pilot.weaverse.dev](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/pilot.weavverse.dev_0b0b2f77-b79e-4524-8cf5-bc22d6ec4ba9.png?v=1744963684)
+- Live store: https://weaverse-aspen-furniture.fly.dev/
+- Customizing Aspen on Weaverse Studio: https://studio.weaverse.io/demo?theme=aspen
+  
+![aspen.weaverse.dev](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/aspen-preview-desktop.png?v=1755162368)
 
 ## What's included
 
-- React Router 7
-- Hydrogen
+![Weaverse + Hydrogen + Shopify](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/weaverse-x-hydrogen-x-shopify.png?v=1755245801)
+
+- React Router v7
+- Hydrogen 2025.5.0
 - Oxygen
 - Shopify CLI
 - Biome (ESLint, Prettier alternative)
-- GraphQL code generator
-- TypeScript with strict configuration
-- Tailwind CSS v4
-- Radix UI for accessible components
-- class-variance-authority (cva) for component variants
-- Swiper for carousels
-- Judge.me reviews integration
-- New Shopify Customer Account API (OAuth-based)
+- GraphQL generator
+- TypeScript and JavaScript flavors
+- Tailwind CSS v4 (via Vite)
+- Radix UI components
+- New Shopify customer account API
 - Full-featured setup of components and routes
+- Furniture-specific sections and layouts
 - Fully customizable inside [Weaverse Studio](https://weaverse.io)
 
 ## Deployment
@@ -46,13 +45,13 @@ _Pilot is an innovative Shopify theme, powered by Hydrogen, React Router 7, and 
 - Node.js version 20.0.0 or higher
 - npm or pnpm package manager
 
-**Follow these steps to get started with Pilot and begin crafting your Hydrogen-driven storefront:**
+**Follow these steps to get started with Aspen and begin crafting your furniture store:**
 
 1. Install [Weaverse Hydrogen Customizer](https://apps.shopify.com/weaverse) from Shopify App Store.
-2. Create new Hydrogen storefront inside Weaverse.
+2. Create new Hydrogen storefront inside Weaverse and select the Aspen theme.
 3. Initialize the project and start a local dev server with `@weaverse/cli` tool as instructed in the Weaverse Studio.
    ![Create new Weaverse Shopify Hydrogen project](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/new_hydrogen_project.png?v=1735008500)
-4. Open **Weaverse Studio** to start customizing and tailoring your storefront according to your preferences.
+4. Open **Weaverse Studio** to start customizing your furniture store with specialized sections for product showcases, room inspirations, and interior design content.
 
 ## Quick Start Commands
 
@@ -324,7 +323,7 @@ export const components: HydrogenComponent[] = [
 
 Weaverse provides a convenient way to customize your theme inside the **Weaverse Studio**. You can add new sections, customize existing ones, and change the theme settings.
 
-![Weaverse Studio](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/weaverse_studio.png?v=1735017805)
+![Aspen in Weaverse Studio](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/aspen-demo.png?v=1755246830)
 
 ### Project Structure
 
@@ -378,4 +377,4 @@ This project is provided under the [MIT License](LICENSE).
 
 ---
 
-Let **Weaverse** & **Pilot** empower your Shopify store with top-notch performance and unmatched customization possibilities! 🚀
+Let **Weaverse** & **Aspen** empower your furniture store with top-notch performance, elegant design, and unmatched customization possibilities perfectly tailored for the home furniture and interior design industry! 🪑🏠
