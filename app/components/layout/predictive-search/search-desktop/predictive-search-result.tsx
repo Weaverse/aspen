@@ -1,7 +1,7 @@
 import { Money } from "@shopify/hydrogen";
 import type { MoneyV2 } from "@shopify/hydrogen/storefront-api-types";
 import clsx from "clsx";
-import { CompareAtPrice } from "~/components/compare-at-price";
+import { CompareAtPrice } from "~/components/product/variant-prices";
 import { Image } from "~/components/image";
 import { Link } from "~/components/link";
 import { RevealUnderline } from "~/reveal-underline";

@@ -72,13 +72,13 @@ const ScrollingText = forwardRef<HTMLElement, ScrollingProps>((props, ref) => {
         !visibleOnMobile && "hidden sm:block"
       )}
     >
-      <div className="sm:hidden block text-center font-heading text-base" dangerouslySetInnerHTML={{ __html: content }}>
+      <div className="sm:hidden block text-center ff-heading text-base" dangerouslySetInnerHTML={{ __html: content }}>
       </div>
       <ul className="hidden list-none sm:inline-flex">
         {Array.from({ length: 50 }).map((_, i) => (
           <li
             key={i}
-            className="animate-marquee whitespace-nowrap font-heading font-medium text-[var(--text-color)] pr-[var(--gap)]"
+            className="animate-marquee whitespace-nowrap ff-heading font-medium text-[var(--text-color)] pr-[var(--gap)]"
             style={{
               fontSize: `${textSize}px`,
             }}

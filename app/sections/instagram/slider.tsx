@@ -97,7 +97,7 @@ let InstagramSlider = forwardRef<HTMLDivElement, InstagramSliderProps>(
                         rel="noreferrer"
                       >
                         <InstagramLogo className="h-7 w-7 text-white" />
-                        <span className="font-heading text-xl font-medium text-white">
+                        <span className="ff-heading text-xl font-medium text-white">
                           {item.username}
                         </span>
                       </a>

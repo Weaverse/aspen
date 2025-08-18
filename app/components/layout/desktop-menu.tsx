@@ -59,7 +59,7 @@ export function DesktopMenu() {
                   {hasSubmenu ? (
                     <span
                       className={cn(
-                        "font-heading relative cursor-pointer",
+                        "ff-heading relative cursor-pointer",
                         "after:absolute after:left-0 after:bottom-[-2px] after:w-full after:h-[2px] after:bg-current",
                         "after:opacity-0 hover:after:opacity-100 group-data-[state=open]:after:opacity-100",
                         "after:transition-opacity after:duration-[360ms] after:ease-[cubic-bezier(0.22,1,0.36,1)]",
@@ -71,7 +71,7 @@ export function DesktopMenu() {
                     <Link to={to} className="transition-none">
                       <span
                         className={cn(
-                          "font-heading relative cursor-pointer",
+                          "ff-heading relative cursor-pointer",
                           "after:absolute after:left-0 after:bottom-[-2px] after:w-full after:h-[2px] after:bg-current",
                           "after:opacity-0 hover:after:opacity-100 group-data-[state=open]:after:opacity-100",
                           "after:transition-opacity after:duration-[360ms] after:ease-[cubic-bezier(0.22,1,0.36,1)]",
