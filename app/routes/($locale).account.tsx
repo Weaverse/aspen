@@ -59,7 +59,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
 }
 
 export default function Authenticated() {
-  const data = useLoaderData<typeof loader>();
+  const loaderData = useLoaderData<typeof loader>();
   const outlet = useOutlet();
   const matches = useMatches();
 
@@ -76,16 +76,16 @@ export default function Authenticated() {
       return (
         <>
           <OutletModal cancelLink="/account">
-            <Outlet context={{ customer: data.customer }} />
+            <Outlet context={{ customer: loaderData.customer }} />
           </OutletModal>
-          <Account {...data} customer={data.customer} />
+          <Account {...loaderData} customer={loaderData.customer} />
         </>
       );
     }
-    return <Outlet context={{ customer: data.customer }} />;
+    return <Outlet context={{ customer: loaderData.customer }} />;
   }
 
-  return <Account {...data} customer={data.customer} />;
+  return <Account {...loaderData} customer={loaderData.customer} />;
 }
 
 interface AccountType {
@@ -109,10 +109,10 @@ function Account({ customer, heading, featuredData }: AccountType) {
         <Form method="post" action={usePrefixPathWithLocale("/account/logout")}>
           <button
             type="submit"
-            className="text-body-subtle group flex gap-2 items-center"
+            className="group flex items-center gap-2 text-body-subtle"
           >
-            <SignOutIcon className="w-4 h-4" />
-            <span className="group-hover:underline underline-offset-4">
+            <SignOutIcon className="h-4 w-4" />
+            <span className="underline-offset-4 group-hover:underline">
               Sign out
             </span>
           </button>
@@ -135,7 +135,7 @@ function Account({ customer, heading, featuredData }: AccountType) {
                     <ProductCard
                       key={product.id}
                       product={product}
-                      className="snap-start w-80"
+                      className="w-80 snap-start"
                     />
                   ))}
                 </Swimlane>

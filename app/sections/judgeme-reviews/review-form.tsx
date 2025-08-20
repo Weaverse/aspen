@@ -9,6 +9,12 @@ import type { JudgemeReviewsData } from "~/utils/judgeme";
 
 export function ReviewForm({ reviews }: { reviews: JudgemeReviewsData }) {
   const { product } = useLoaderData<typeof productRouteLoader>();
+  
+  // Check if product exists before using
+  if (!product) {
+    return null;
+  }
+  
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
   const [isFormVisible, setIsFormVisible] = useState(false);
@@ -20,23 +26,21 @@ export function ReviewForm({ reviews }: { reviews: JudgemeReviewsData }) {
   const submittable = rating > 0;
 
   useEffect(() => {
-    if (fetcher.data) {
+    if ((fetcher.data as Response)?.ok) {
       // setMessage((fetcher.data as Response)?.message || "");
-      if ((fetcher.data as Response).ok) {
-        setIsFormVisible(false);
-        setIsPopupVisible(true);
-        setRating(0);
-        setHover(0);
-        (formRef as React.MutableRefObject<HTMLFormElement>).current?.reset();
-      }
+      setIsFormVisible(false);
+      setIsPopupVisible(true);
+      setRating(0);
+      setHover(0);
+      (formRef as React.RefObject<HTMLFormElement>).current?.reset();
     }
   }, [fetcher.data]);
 
   return (
     <div
       className={clsx(
-        "w-full flex flex-col gap-5",
-        reviews.reviews.length !== 0 && "lg:w-1/3 md:w-2/5",
+        "flex w-full flex-col gap-5",
+        reviews.reviews.length !== 0 && "md:w-2/5 lg:w-1/3",
       )}
     >
       {reviews.reviews.length !== 0 || !isFormVisible ? (
@@ -46,10 +50,10 @@ export function ReviewForm({ reviews }: { reviews: JudgemeReviewsData }) {
             reviews.reviews.length === 0 ? "items-center" : "items-start",
           )}
         >
-          <p className="uppercase font-bold text-lg mb-1.5">
+          <p className="mb-1.5 font-bold text-lg uppercase">
             product reviews ({reviews.reviewNumber})
           </p>
-          <div className="flex justify-start items-center gap-3">
+          <div className="flex items-center justify-start gap-3">
             {reviews?.rating ? (
               <>
                 <h4 className="font-medium">{reviews.rating.toFixed(1)}</h4>
@@ -75,29 +79,29 @@ export function ReviewForm({ reviews }: { reviews: JudgemeReviewsData }) {
       {isFormVisible && (
         <div
           className={clsx(
-            "bg-line-subtle p-6 w-full",
+            "w-full bg-line-subtle p-6",
             reviews.reviews.length === 0 && "flex justify-center",
           )}
         >
           <div
             className={clsx(
-              "w-full flex flex-col gap-4",
-              reviews.reviews.length === 0 && "lg:w-1/3 md:w-2/5",
+              "flex w-full flex-col gap-4",
+              reviews.reviews.length === 0 && "md:w-2/5 lg:w-1/3",
             )}
           >
             <div className="flex flex-col gap-6">
               <span
                 className={clsx(
-                  "font-heading font-semibold text-xl uppercase",
+                  "ff-heading font-semibold text-xl uppercase",
                   reviews.reviews.length === 0 && "text-center",
                 )}
               >
                 WRITE YOUR REVIEW
               </span>
               <div className="flex flex-col gap-3">
-                <span className="text-base font-bold">Rating</span>
+                <span className="font-bold text-base">Rating</span>
                 <div className="flex items-center pr-1">
-                  {[...Array(5)].map((_, index) => {
+                  {[...new Array(5)].map((_, index) => {
                     const ratingValue = index + 1;
                     return (
                       <div
@@ -135,7 +139,7 @@ export function ReviewForm({ reviews }: { reviews: JudgemeReviewsData }) {
               <div className="mb-4">
                 <label
                   htmlFor="name"
-                  className="block text-gray-700 font-bold mb-2"
+                  className="mb-2 block font-bold text-gray-700"
                 >
                   Your name
                 </label>
@@ -144,13 +148,13 @@ export function ReviewForm({ reviews }: { reviews: JudgemeReviewsData }) {
                   type="text"
                   id="name"
                   name="name"
-                  className="w-full border px-3 py-3 border-line outline-hidden focus-visible:border-line"
+                  className="w-full border border-line px-3 py-3 outline-hidden focus-visible:border-line"
                 />
               </div>
               <div className="mb-4">
                 <label
                   htmlFor="email"
-                  className="block text-gray-700 font-bold mb-2"
+                  className="mb-2 block font-bold text-gray-700"
                 >
                   Your email
                 </label>
@@ -159,13 +163,13 @@ export function ReviewForm({ reviews }: { reviews: JudgemeReviewsData }) {
                   id="email"
                   name="email"
                   required
-                  className="w-full border px-3 py-3 border-line outline-hidden focus-visible:border-line"
+                  className="w-full border border-line px-3 py-3 outline-hidden focus-visible:border-line"
                 />
               </div>
               <div className="mb-4">
                 <label
                   htmlFor="title"
-                  className="block text-gray-700 font-bold mb-2"
+                  className="mb-2 block font-bold text-gray-700"
                 >
                   Review title
                 </label>
@@ -174,30 +178,30 @@ export function ReviewForm({ reviews }: { reviews: JudgemeReviewsData }) {
                   id="title"
                   name="title"
                   required
-                  className="w-full border px-3 py-3 border-line outline-hidden focus-visible:border-line"
+                  className="w-full border border-line px-3 py-3 outline-hidden focus-visible:border-line"
                 />
               </div>
               <div className="mb-4">
                 <label
                   htmlFor="review-body"
-                  className="block text-gray-700 font-bold mb-2"
+                  className="mb-2 block font-bold text-gray-700"
                 >
                   Your review
                 </label>
                 <textarea
                   id="review-body"
                   name="body"
-                  className="w-full border px-3 py-3 border-line outline-hidden focus-visible:border-line"
+                  className="w-full border border-line px-3 py-3 outline-hidden focus-visible:border-line"
                   rows={4}
                 />
               </div>
               {message && (
-                <div className="bg-red-100 border-l-4 border-red-500 text-red-700 py-1 px-2 mb-6 flex gap-1 w-fit">
+                <div className="mb-6 flex w-fit gap-1 border-red-500 border-l-4 bg-red-100 px-2 py-1 text-red-700">
                   <p className="font-semibold">ERROR:</p>
                   <p>{message}</p>
                 </div>
               )}
-              <div className="flex gap-3 justify-end">
+              <div className="flex justify-end gap-3">
                 <Button
                   variant="outline"
                   onClick={() => setIsFormVisible(false)}
@@ -220,7 +224,7 @@ export function ReviewForm({ reviews }: { reviews: JudgemeReviewsData }) {
       {isPopupVisible && (
         <div
           className={clsx(
-            "flex flex-col gap-6 p-6 bg-line-subtle",
+            "flex flex-col gap-6 bg-line-subtle p-6",
             reviews.reviews.length === 0 && "items-center",
           )}
           role="alert"

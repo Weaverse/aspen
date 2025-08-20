@@ -9,17 +9,20 @@ import { Button } from "~/components/button";
 import { Link } from "~/components/link";
 import { Tooltip, TooltipContent, TooltipTrigger } from "~/components/tooltip";
 import { RevealUnderline } from "~/reveal-underline";
-import { isLightColor } from "~/utils/misc";
+import { cn } from "~/utils/cn";
+import { isLightColor, isValidColor } from "~/utils/misc";
 import { OPTIONS_AS_SWATCH } from "./product-option-values";
 
 export function ProductCardOptions({
   product,
   selectedVariant,
   setSelectedVariant,
+  className,
 }: {
   product: ProductCardFragment;
   selectedVariant: ProductVariantFragment;
   setSelectedVariant: (variant: ProductVariantFragment) => void;
+  className?: string;
 }) {
   const { pcardShowOptionValues, pcardOptionToShow, pcardMaxOptionValues } =
     useThemeSettings();
@@ -28,7 +31,7 @@ export function ProductCardOptions({
     options.find(({ name }) => name === pcardOptionToShow) || {};
   const restCount = optionValues?.length - pcardMaxOptionValues;
 
-  if (!pcardShowOptionValues || !optionValues?.length) {
+  if (!(pcardShowOptionValues && optionValues?.length)) {
     return null;
   }
 
@@ -41,25 +44,21 @@ export function ProductCardOptions({
   const asSwatch = OPTIONS_AS_SWATCH.includes(pcardOptionToShow);
 
   return (
-    <div className="flex flex-wrap items-center gap-1 pt-1 px-2">
+    <div className={cn("flex flex-wrap items-center gap-1 pt-1", className)}>
       {optionValues
         .slice(0, pcardMaxOptionValues)
         .map(({ name, swatch, firstSelectableVariant }) => {
           if (asSwatch) {
             const swatchColor = swatch?.color || name;
-            console.log(swatch?.color);
-            
             return (
               <Tooltip key={name}>
                 <TooltipTrigger>
                   <button
                     type="button"
-                    className={clsx(
-                      "size-3 flex aspect-square",
-                      "transition-(outline-color) outline-solid outline-offset-2 outline-1",
-                      selectedValue === name
-                        ? "outline-line"
-                        : "outline-transparent hover:outline-line",
+                    className={cn(
+                      "flex aspect-square size-4.5",
+                      "border border-transparent transition-all",
+                      selectedValue === name ? "border-[#A79D95] p-0.5" : "p-0",
                     )}
                     onClick={() => {
                       setSelectedVariant(firstSelectableVariant);
@@ -68,16 +67,17 @@ export function ProductCardOptions({
                     {swatch?.image?.previewImage ? (
                       <Image
                         data={swatch.image.previewImage}
-                        className="w-full h-full object-cover object-center"
+                        className="h-full w-full object-cover object-center"
                         width={200}
                         sizes="auto"
                       />
                     ) : (
                       <span
                         className={clsx(
-                          "w-full h-full inline-block text-[0px]",
-                          isLightColor(swatch?.color || name) &&
-                            "border-[0.5px] border-line-subtle",
+                          "inline-block h-full w-full text-[0px]",
+                          (!isValidColor(swatchColor) ||
+                            isLightColor(swatchColor)) &&
+                            "border border-line-subtle",
                         )}
                         style={{ backgroundColor: swatchColor }}
                       >
@@ -96,9 +96,9 @@ export function ProductCardOptions({
               variant="outline"
               animate={false}
               className={clsx(
-                "px-2 py-1 text-sm text-center border border-line-subtle transition-colors",
+                "border border-line-subtle px-2 py-1 text-center text-sm transition-colors",
                 selectedValue === name &&
-                  "bg-body border-body text-body-inverse",
+                  "border-body bg-body text-body-inverse",
               )}
               onClick={() => {
                 setSelectedVariant(firstSelectableVariant);
@@ -109,7 +109,7 @@ export function ProductCardOptions({
           );
         })}
       {restCount > 0 && (
-        <Link to={`/products/${handle}`} className="mt-1">
+        <Link to={`/products/${handle}`} className="mt-1 pl-0.5">
           <RevealUnderline>+{restCount}</RevealUnderline>
         </Link>
       )}

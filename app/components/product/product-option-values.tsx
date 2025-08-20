@@ -1,8 +1,9 @@
 import { CaretDownIcon, CaretUpIcon, CheckIcon } from "@phosphor-icons/react";
 import * as Select from "@radix-ui/react-select";
 import { Image, type MappedProductOptions } from "@shopify/hydrogen";
-import clsx from "clsx";
 import { useNavigate } from "react-router";
+import type { ProductVariantFragment } from "storefront-api.generated";
+import { cn } from "~/utils/cn";
 import { isLightColor, isValidColor } from "~/utils/misc";
 
 /*
@@ -16,13 +17,19 @@ export const OPTIONS_AS_SWATCH = OPTIONS_WITH_SWATCH;
 
 export function ProductOptionValues({
   option,
+  onVariantChange,
+  combinedListing,
 }: {
   option: MappedProductOptions;
+  onVariantChange?: (variant: ProductVariantFragment) => void;
+  combinedListing?: boolean;
 }) {
   const navigate = useNavigate();
   const { name: optionName, optionValues } = option || {};
 
-  if (!optionName) return null;
+  if (!optionName) {
+    return null;
+  }
 
   const selectedValue = optionValues.find((v) => v.selected)?.name;
   const selectedOption = optionValues.find((v) => v.selected);
@@ -44,7 +51,7 @@ export function ProductOptionValues({
             />
           ) : showSwatch && selectedOption.swatch?.color ? (
             <div
-              className={clsx(
+              className={cn(
                 "w-3 h-3",
                 (!isValidColor(selectedOption.swatch.color) || 
                  isLightColor(selectedOption.swatch.color)) &&
@@ -54,7 +61,7 @@ export function ProductOptionValues({
             />
           ) : showSwatch ? (
             <div
-              className={clsx(
+              className={cn(
                 "w-3 h-3",
                 (!isValidColor(selectedOption.name) || 
                  isLightColor(selectedOption.name)) &&
@@ -76,19 +83,25 @@ export function ProductOptionValues({
         </div>
       )}
 
-      {/* Dropdown */}
+      {/* Dropdown for ALL options */}
       <Select.Root
         value={selectedValue}
         onValueChange={(v) => {
           const found = optionValues.find(({ name: value }) => value === v);
           if (found) {
-            const to = found.isDifferentProduct
-              ? `/products/${found.handle}?${found.variantUriQuery}`
-              : `?${found.variantUriQuery}`;
-            if (found.isDifferentProduct) {
-              window.location.href = to;
+            if (onVariantChange && found.firstSelectableVariant) {
+              onVariantChange(found.firstSelectableVariant);
             } else {
-              navigate(to, { replace: true });
+              const to = found.isDifferentProduct
+                ? `/products/${found.handle}?${found.variantUriQuery}`
+                : `?${found.variantUriQuery}`;
+              // Use client-side navigation to avoid full page reloads
+              // Honor combinedListing semantics: do not replace history when switching products if combined listing
+              if (found.isDifferentProduct) {
+                navigate(to, { replace: !combinedListing });
+              } else {
+                navigate(to, { replace: true });
+              }
             }
           }
         }}
@@ -112,7 +125,7 @@ export function ProductOptionValues({
                 <Select.Item
                   key={value}
                   value={value}
-                  className={clsx(
+                  className={cn(
                     "flex gap-3 cursor-pointer w-full items-center hover:bg-gray-100 outline-hidden h-10 select-none px-3 py-2 rounded",
                     !available && "text-body-subtle line-through opacity-50",
                   )}
@@ -130,7 +143,7 @@ export function ProductOptionValues({
                         />
                       ) : showSwatch && swatch?.color ? (
                         <div
-                          className={clsx(
+                          className={cn(
                             "w-full h-full",
                             (!isValidColor(swatch.color) || isLightColor(swatch.color)) &&
                             "border border-line-subtle"
@@ -139,7 +152,7 @@ export function ProductOptionValues({
                         />
                       ) : showSwatch ? (
                         <div
-                          className={clsx(
+                          className={cn(
                             "w-full h-full",
                             (!isValidColor(value) || isLightColor(value)) &&
                             "border border-line-subtle"

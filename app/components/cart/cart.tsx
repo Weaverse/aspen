@@ -15,7 +15,7 @@ import type { CartApiQueryFragment } from "storefront-api.generated";
 import { Button } from "~/components/button";
 import { Image } from "~/components/image";
 import { Link } from "~/components/link";
-import { getImageAspectRatio } from "~/utils/image";
+import { calculateAspectRatio } from "~/utils/image";
 import { toggleCartDrawer } from "../layout/cart-drawer";
 import { CartBestSellers } from "./cart-best-sellers";
 import { useThemeSettings } from "@weaverse/hydrogen";
@@ -372,7 +372,7 @@ function CartLineItem({
               layout === "drawer" ? "w-36 h-auto" : "w-full h-full rounded",
             )}
             alt={title}
-            aspectRatio={getImageAspectRatio(image, "1/1")}
+            aspectRatio={calculateAspectRatio(image, "1/1")}
           />
         )}
       </div>

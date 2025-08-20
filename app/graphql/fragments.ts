@@ -32,6 +32,28 @@ export const PRODUCT_VARIANT_FRAGMENT = `#graphql
       title
       handle
     }
+    requiresComponents
+    components(first: 10) {
+      nodes {
+        productVariant {
+          id
+          title
+          product {
+            handle
+          }
+        }
+        quantity
+      }
+    }
+    groupedBy(first: 10) {
+      nodes {
+        id
+        title
+        product {
+          handle
+        }
+      }
+    }
   }
 ` as const;
 
@@ -64,6 +86,7 @@ export const PRODUCT_CARD_FRAGMENT = `#graphql
     publishedAt
     handle
     vendor
+    tags
     images(first: 50) {
       nodes {
         id
@@ -99,6 +122,12 @@ export const PRODUCT_CARD_FRAGMENT = `#graphql
       caseInsensitiveMatch: true
     ) {
       ...ProductVariant
+    }
+    # Check if the product is a bundle
+    isBundle: selectedOrFirstAvailableVariant(ignoreUnknownOptions: true, selectedOptions: { name: "", value: ""}) {
+      ...on ProductVariant {
+        requiresComponents
+      }
     }
   }
   ${PRODUCT_OPTION_FRAGMENT}

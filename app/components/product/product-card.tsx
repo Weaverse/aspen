@@ -1,7 +1,6 @@
 import { Money, mapSelectedProductOptionToObject } from "@shopify/hydrogen";
 import type { MoneyV2 } from "@shopify/hydrogen/storefront-api-types";
 import { useThemeSettings } from "@weaverse/hydrogen";
-import { cva } from "class-variance-authority";
 import clsx from "clsx";
 import { useState } from "react";
 import type {
@@ -11,19 +10,26 @@ import type {
 import { Image } from "~/components/image";
 import { Link } from "~/components/link";
 import { NavLink } from "~/components/nav-link";
-import { VariantPrices } from "~/components/variant-prices";
-import { RevealUnderline } from "~/reveal-underline";
-import { getImageAspectRatio } from "~/utils/image";
-import { BestSellerBadge, NewBadge, SaleBadge, SoldOutBadge } from "./badges";
+import { calculateAspectRatio } from "~/utils/image";
+import { cva } from "class-variance-authority";
+import {
+  BestSellerBadge,
+  BundleBadge,
+  NewBadge,
+  SaleBadge,
+  SoldOutBadge,
+} from "./badges";
 import { ProductCardOptions } from "./product-card-options";
 import { QuickShopTrigger } from "./quick-shop";
+import { VariantPrices } from "./variant-prices";
+import { isCombinedListing } from "~/utils/combined-listings";
 
 const styleVariants = cva("", {
   variants: {
     alignment: {
-      left: "",
-      center: "text-center [&_.title-and-price]:items-center",
-      right: "text-right [&_.title-and-price]:items-end",
+      left: "text-left",
+      center: "text-center",
+      right: "text-right",
     },
   },
 });
@@ -55,6 +61,8 @@ export function ProductCard({
     pcardShowBestSellerBadges,
     pcardShowNewBadges,
     pcardShowOutOfStockBadges,
+    pcardShowQuickShopOnHover,
+    pcardShowBundleBadge,
   } = useThemeSettings();
 
   const [selectedVariant, setSelectedVariant] =
@@ -65,14 +73,15 @@ export function ProductCard({
   const firstVariant = product.selectedOrFirstAvailableVariant;
   const params = new URLSearchParams(
     mapSelectedProductOptionToObject(
-      (selectedVariant || firstVariant)?.selectedOptions || []
-    )
+      (selectedVariant || firstVariant)?.selectedOptions || [],
+    ),
   );
 
   const isVertical = pcardTitlePricesAlignment === "vertical";
   const isBestSellerProduct = badges
     .filter(Boolean)
     .some(({ key, value }) => key === "best_seller" && value === "true");
+  const isBundle = Boolean(product?.isBundle?.requiresComponents);
 
   // Helper function to get badge position classes
   const getBadgePositionClasses = (position: string = "top-right") => {
@@ -103,13 +112,13 @@ export function ProductCard({
     <div
       className={clsx(
         "group rounded-(--pcard-radius) transition-all hover:border hover:border-[#DBD7D1]",
-        className
+        className,
       )}
       style={
         {
           backgroundColor: pcardBackgroundColor,
           "--pcard-radius": `${pcardBorderRadius}px`,
-          "--pcard-image-ratio": getImageAspectRatio(image, pcardImageRatio),
+          "--pcard-image-ratio": calculateAspectRatio(image, pcardImageRatio),
         } as React.CSSProperties
       }
     >
@@ -155,6 +164,7 @@ export function ProductCard({
             </Link>
           )}
           <div className={getBadgePositionClasses(pcardBadgesPosition)}>
+            {isBundle && pcardShowBundleBadge && <BundleBadge />}
             {pcardShowSaleBadges && (
               <SaleBadge
                 price={minVariantPrice as MoneyV2}
@@ -169,31 +179,39 @@ export function ProductCard({
             )}
             {pcardShowOutOfStockBadges && <SoldOutBadge />}
           </div>
-          <QuickShopTrigger productHandle={product.handle} />
+          {pcardEnableQuickShop && (
+            <QuickShopTrigger
+              productHandle={product.handle}
+              showOnHover={pcardShowQuickShopOnHover}
+              buttonType={pcardQuickShopButtonType}
+              buttonText={pcardQuickShopButtonText}
+              panelType={pcardQuickShopPanelType}
+            />
+          )}
         </div>
         <div
           className={clsx(
             "py-3 flex flex-col gap-2",
-            isVertical && styleVariants({ alignment: pcardAlignment })
+            isVertical && styleVariants({ alignment: pcardAlignment }),
           )}
         >
           {pcardShowVendor && (
             <div className="uppercase text-body-subtle">{product.vendor}</div>
           )}
           <div className="md:hidden block">
-              <ProductCardOptions
-                product={product}
-                selectedVariant={selectedVariant}
-                setSelectedVariant={setSelectedVariant}
-              />
-            </div>
+            <ProductCardOptions
+              product={product}
+              selectedVariant={selectedVariant}
+              setSelectedVariant={setSelectedVariant}
+            />
+          </div>
           <NavLink
             to={`/products/${product.handle}?${params.toString()}`}
             prefetch="intent"
             className={({ isTransitioning }) =>
               clsx(
                 "font-bold ",
-                isTransitioning && "[view-transition-name:product-image]"
+                isTransitioning && "[view-transition-name:product-image]",
               )
             }
           >
@@ -204,13 +222,19 @@ export function ProductCard({
               "flex",
               isVertical
                 ? "title-and-price flex-col gap-1"
-                : "justify-between gap-4"
+                : "justify-between gap-4",
             )}
           >
-            {pcardShowLowestPrice ? (
+            {pcardShowLowestPrice || isCombinedListing(product) ? (
               <div className="flex gap-1">
                 <span>From</span>
                 <Money withoutTrailingZeros data={minVariantPrice} />
+                {isCombinedListing(product) && (
+                  <>
+                    <span>–</span>
+                    <Money withoutTrailingZeros data={maxVariantPrice} />
+                  </>
+                )}
               </div>
             ) : (
               <VariantPrices

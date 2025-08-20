@@ -8,7 +8,7 @@ import { Button } from "~/components/button";
 import { layoutInputs, Section, type SectionProps } from "~/components/section";
 import Heading, { headingInputs, type HeadingProps } from "~/components/heading";
 import type { ImageAspectRatio } from "~/types/image";
-import { getImageAspectRatio, getImageLoadingPriority } from "~/utils/image";
+import { calculateAspectRatio, getImageLoadingPriority } from "~/utils/image";
 
 interface BlogsProps
   extends Omit<ArticleCardProps, "article" | "blogHandle" | "loading">,
@@ -170,7 +170,7 @@ export function ArticleCard({
               <Image
                 alt={article.image.altText || article.title}
                 data={article.image}
-                aspectRatio={getImageAspectRatio(article.image, imageAspectRatio)}
+                aspectRatio={calculateAspectRatio(article.image, imageAspectRatio)}
                 loading={loading}
                 sizes="(min-width: 768px) 50vw, 100vw"
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"

@@ -28,9 +28,9 @@ import { layoutInputs, Section } from "~/components/section";
 import { PRODUCT_QUERY } from "~/graphql/queries";
 import { useAnimation } from "~/hooks/use-animation";
 import { isDiscounted } from "~/utils/product";
-import { CompareAtPrice } from "~/components/compare-at-price";
-import { ProductDetails } from "../product-information/product-details";
-import { ProductVariants } from "~/components/product/variants";
+import { CompareAtPrice } from "~/components/product/variant-prices";
+import { ProductDetails } from "../main-product/product-details";
+import { ProductVariants } from "../main-product/variants";
 
 interface SingleProductData {
   productsCount: number;
@@ -229,7 +229,10 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
                   )}
                   {children}
                   {shouldRenderVariants ? (
-                    <ProductVariants productOptions={productOptions} />
+                    <ProductVariants 
+                      productOptions={productOptions} 
+                      selectedVariant={currentVariant}
+                    />
                   ) : null}
                   <Quantity value={quantity} onChange={setQuantity} />
                 </div>
@@ -263,8 +266,6 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
                 />
               )}
               <ProductDetails
-                product={product}
-                shop={loaderData?.shop}
                 showShippingPolicy={showShippingPolicy}
                 showRefundPolicy={showRefundPolicy}
               />

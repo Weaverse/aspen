@@ -437,10 +437,10 @@
   }
 }
 
-.font-heading {
+.ff-heading {
   font-family: var(--font-sans);
 }
-.font-body {
+.ff-body {
   font-family: var(--font-serif);
 }
 

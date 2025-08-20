@@ -5,36 +5,39 @@ import {
   ShopPayButton,
   useOptimisticVariant,
 } from "@shopify/hydrogen";
-import type { MoneyV2 } from "@shopify/hydrogen/storefront-api-types";
+import type {
+  MoneyV2,
+  ProductVariantComponent,
+} from "@shopify/hydrogen/storefront-api-types";
 import { createSchema } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { forwardRef, useState } from "react";
 import { useLoaderData } from "react-router";
-import { CompareAtPrice } from "~/components/compare-at-price";
-import { Link } from "~/components/link";
+import { CompareAtPrice } from "~/components/product/variant-prices";
 import { AddToCartButton } from "~/components/product/add-to-cart-button";
-import {
-  BestSellerBadge,
-  NewBadge,
-  SaleBadge,
-} from "~/components/product/badges";
+import { ProductBadges } from "~/components/product/badges";
+import { BundledVariants } from "~/components/product/bundled-variants";
 import {
   ProductMedia,
   type ProductMediaProps,
 } from "~/components/product/product-media";
 import { Quantity } from "~/components/product/quantity";
-import { ProductVariants } from "~/components/product/variants";
+import { VariantPrices } from "~/components/product/variant-prices";
 import { layoutInputs, Section, type SectionProps } from "~/components/section";
 import type { loader as productRouteLoader } from "~/routes/($locale).products.$productHandle";
+import { isCombinedListing } from "~/utils/combined-listings";
 import { isDiscounted } from "~/utils/product";
 import { ProductDetails } from "./product-details";
+import { ProductVariants } from "./variants";
 
 interface ProductInformationData
   extends Omit<ProductMediaProps, "selectedVariant" | "media"> {
   addToCartText: string;
+  addBundleToCartText: string;
   soldOutText: string;
   showVendor: boolean;
   showSalePrice: boolean;
+  showShortDescription: boolean;
   showShippingPolicy: boolean;
   showRefundPolicy: boolean;
   showBadgesOnProductMedia?: boolean;
@@ -49,7 +52,7 @@ const ProductInformation = forwardRef<
   // Optimistically selects a variant with given available variant information
   const selectedVariant = useOptimisticVariant(
     product?.selectedOrFirstAvailableVariant,
-    getAdjacentAndFirstAvailableVariants(product)
+    getAdjacentAndFirstAvailableVariants(product),
   );
 
   // Get the product options array
@@ -60,9 +63,11 @@ const ProductInformation = forwardRef<
 
   const {
     addToCartText,
+    addBundleToCartText,
     soldOutText,
     showVendor,
     showSalePrice,
+    showShortDescription,
     showShippingPolicy,
     showRefundPolicy,
     mediaLayout,
@@ -78,12 +83,19 @@ const ProductInformation = forwardRef<
   } = props;
   const [quantity, setQuantity] = useState<number>(1);
 
-  if (product) {
-    const { title, handle, vendor, priceRange, publishedAt, badges } = product;
+  const isBundle = Boolean(product?.isBundle?.requiresComponents);
+  const bundledVariants = isBundle ? product?.isBundle?.components.nodes : null;
+  const combinedListing = isCombinedListing(product);
 
-    const isBestSellerProduct = badges
-      .filter(Boolean)
-      .some(({ key, value }) => key === "best_seller" && value === "true");
+  if (product) {
+    const { title, handle, vendor, summary, priceRange, publishedAt, badges } =
+      product;
+    let atcButtonText = "Add to cart";
+    if (selectedVariant.availableForSale) {
+      atcButtonText = isBundle ? addBundleToCartText : addToCartText;
+    } else {
+      atcButtonText = soldOutText;
+    }
 
     return (
       <Section ref={ref} {...rest} overflow="unset">
@@ -99,7 +111,21 @@ const ProductInformation = forwardRef<
             mediaLayout={mediaLayout}
             gridSize={gridSize}
             imageAspectRatio={imageAspectRatio}
-            media={product?.media.nodes}
+            media={
+              combinedListing && product?.featuredImage
+                ? [
+                    {
+                      __typename: "MediaImage",
+                      id: product.featuredImage.id,
+                      mediaContentType: "IMAGE",
+                      alt: product.featuredImage.altText,
+                      previewImage: product.featuredImage,
+                      image: product.featuredImage,
+                    },
+                    ...(product?.media?.nodes || []),
+                  ]
+                : product?.media?.nodes || []
+            }
             selectedVariant={selectedVariant}
             showThumbnails={showThumbnails}
             enableZoom={enableZoom}
@@ -109,13 +135,11 @@ const ProductInformation = forwardRef<
             badges={
               <>
                 {selectedVariant && (
-                  <SaleBadge
-                    price={selectedVariant.price as MoneyV2}
-                    compareAtPrice={selectedVariant.compareAtPrice as MoneyV2}
+                  <ProductBadges
+                    product={product}
+                    selectedVariant={selectedVariant}
                   />
                 )}
-                <NewBadge publishedAt={publishedAt} />
-                {isBestSellerProduct && <BestSellerBadge />}
               </>
             }
           />
@@ -128,10 +152,37 @@ const ProductInformation = forwardRef<
                 {showVendor && vendor && (
                   <span className="text-body-subtle">{vendor}</span>
                 )}
-                <h1 className="h3 tracking-tight!">{title}</h1>
+                <h3 className="font-normal uppercase tracking-tight">
+                  {title}
+                </h3>
               </div>
+
               <div className="space-y-5 divide-y divide-line-subtle [&>*:not(:last-child)]:pb-3">
-                {selectedVariant ? (
+                {combinedListing ? (
+                  <div className="flex justify-between">
+                    <span className="font-normal uppercase">Price Range</span>
+                    <div className="flex gap-2 text-2xl/none">
+                      <span className="flex gap-1">
+                        From
+                        <VariantPrices
+                          variant={{
+                            price: product.priceRange.minVariantPrice,
+                          }}
+                          showCompareAtPrice={false}
+                        />
+                      </span>
+                      <span className="flex gap-1">
+                        To
+                        <VariantPrices
+                          variant={{
+                            price: product.priceRange.maxVariantPrice,
+                          }}
+                          showCompareAtPrice={false}
+                        />
+                      </span>
+                    </div>
+                  </div>
+                ) : (
                   <div className="flex justify-between">
                     <span className="font-normal uppercase">Price</span>
                     <div className="flex items-center gap-2">
@@ -143,7 +194,7 @@ const ProductInformation = forwardRef<
                       />
                       {isDiscounted(
                         selectedVariant.price as MoneyV2,
-                        selectedVariant.compareAtPrice as MoneyV2
+                        selectedVariant.compareAtPrice as MoneyV2,
                       ) &&
                         showSalePrice && (
                           <CompareAtPrice
@@ -153,51 +204,73 @@ const ProductInformation = forwardRef<
                         )}
                     </div>
                   </div>
-                ) : (
-                  <Money
-                    withoutTrailingZeros
-                    data={priceRange.minVariantPrice}
-                    as="div"
-                    className=""
-                  />
                 )}
+
                 {children}
-                <ProductVariants productOptions={productOptions} />
-                <Quantity value={quantity} onChange={setQuantity} />
+
+                {isBundle && (
+                  <div className="space-y-3">
+                    <h4 className="text-2xl">Bundled Products</h4>
+                    <BundledVariants
+                      variants={bundledVariants as ProductVariantComponent[]}
+                    />
+                  </div>
+                )}
+
+                <ProductVariants
+                  productOptions={productOptions}
+                  selectedVariant={selectedVariant}
+                  combinedListing={combinedListing}
+                />
+
+                {!combinedListing && (
+                  <Quantity value={quantity} onChange={setQuantity} />
+                )}
               </div>
-              <div className="space-y-2 py-3 sp-button" style={{ "--shop-pay-button-height": "54px" } as React.CSSProperties}>
-                <AddToCartButton
-                  disabled={!selectedVariant?.availableForSale}
-                  lines={[
+
+              {!combinedListing && (
+                <div
+                  className="space-y-2 py-3 sp-button"
+                  style={
                     {
-                      merchandiseId: selectedVariant?.id,
-                      quantity,
-                      selectedVariant,
-                    },
-                  ]}
-                  data-test="add-to-cart"
-                  className="w-full uppercase !py-[17px]"
+                      "--shop-pay-button-height": "54px",
+                    } as React.CSSProperties
+                  }
                 >
-                  {selectedVariant.availableForSale
-                    ? addToCartText
-                    : soldOutText}
-                </AddToCartButton>
-                {selectedVariant?.availableForSale && (
-                  <ShopPayButton
-                    width="100%"
-                    variantIdsAndQuantities={[
+                  <AddToCartButton
+                    disabled={!selectedVariant?.availableForSale}
+                    lines={[
                       {
-                        id: selectedVariant?.id,
+                        merchandiseId: selectedVariant?.id,
                         quantity,
+                        selectedVariant,
                       },
                     ]}
-                    storeDomain={storeDomain}
-                  />
-                )}
-              </div>
+                    data-test="add-to-cart"
+                    className="w-full uppercase !py-[17px]"
+                  >
+                    {atcButtonText}
+                  </AddToCartButton>
+                  {selectedVariant?.availableForSale && (
+                    <ShopPayButton
+                      width="100%"
+                      variantIdsAndQuantities={[
+                        {
+                          id: selectedVariant?.id,
+                          quantity,
+                        },
+                      ]}
+                      storeDomain={storeDomain}
+                    />
+                  )}
+                </div>
+              )}
+
               <ProductDetails
                 showShippingPolicy={showShippingPolicy}
                 showRefundPolicy={showRefundPolicy}
+                showShortDescription={showShortDescription}
+                product={product}
               />
             </div>
           </div>
@@ -215,7 +288,7 @@ const ProductInformation = forwardRef<
 export default ProductInformation;
 
 export const schema = createSchema({
-  type: "product-information",
+  type: "main-product",
   title: "Main product",
   childTypes: ["judgeme"],
   limit: 1,
@@ -317,7 +390,8 @@ export const schema = createSchema({
           label: "Show badges on product media",
           name: "showBadgesOnProductMedia",
           defaultValue: true,
-          helpText: "Display sale, new, and best seller badges on product images",
+          helpText:
+            "Display sale, new, and best seller badges on product images",
         },
       ],
     },
@@ -330,6 +404,13 @@ export const schema = createSchema({
           name: "addToCartText",
           defaultValue: "Add to cart",
           placeholder: "Add to cart",
+        },
+        {
+          type: "text",
+          label: "Bundle add to cart text",
+          name: "addBundleToCartText",
+          defaultValue: "Add bundle to cart",
+          placeholder: "Add bundle to cart",
         },
         {
           type: "text",
@@ -348,6 +429,12 @@ export const schema = createSchema({
           type: "switch",
           label: "Show sale price",
           name: "showSalePrice",
+          defaultValue: true,
+        },
+        {
+          type: "switch",
+          label: "Show short description",
+          name: "showShortDescription",
           defaultValue: true,
         },
         {

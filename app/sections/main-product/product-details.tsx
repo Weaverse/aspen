@@ -7,6 +7,7 @@ import type { loader as productLoader } from "~/routes/($locale).products.$produ
 interface ProductDetailsProps {
   showShippingPolicy: boolean;
   showRefundPolicy: boolean;
+  showShortDescription?: boolean;
   product?: any;
   shop?: any;
 }
@@ -14,6 +15,7 @@ interface ProductDetailsProps {
 export function ProductDetails({ 
   showShippingPolicy, 
   showRefundPolicy, 
+  showShortDescription = true,
   product: propProduct, 
   shop: propShop 
 }: ProductDetailsProps) {
@@ -37,8 +39,8 @@ export function ProductDetails({
   const { description, summary } = product || {};
   const { shippingPolicy, refundPolicy } = shop || {};
   const details = [
+    showShortDescription && summary && { title: "Summary", content: summary },
     description && { title: "Description", content: description },
-    summary && { title: "Summary", content: summary },
     showShippingPolicy &&
       shippingPolicy?.body && {
         title: "Shipping",

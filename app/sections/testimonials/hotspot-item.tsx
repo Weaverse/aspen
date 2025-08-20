@@ -7,7 +7,7 @@ import { IMAGES_PLACEHOLDERS } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
 import { Image } from "~/components/image";
 import type { ImageAspectRatio } from "~/types/image";
-import { getImageAspectRatio } from "~/utils/image";
+import { calculateAspectRatio } from "~/utils/image";
 
 interface HotspotsTestimonialProps extends HydrogenComponentProps {
   image: string;
@@ -27,7 +27,7 @@ let HotspotsTestimonial = forwardRef<HTMLDivElement, HotspotsTestimonialProps>(
         ref={ref}
         {...rest}
         className="relative h-full w-full overflow-hidden"
-        style={{ aspectRatio: getImageAspectRatio(imageData, aspectRatio) }}
+        style={{ aspectRatio: calculateAspectRatio(imageData, aspectRatio) }}
       >
         <Image
           data={imageData}
