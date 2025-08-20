@@ -229,7 +229,10 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
                   )}
                   {children}
                   {shouldRenderVariants ? (
-                    <ProductVariants productOptions={productOptions} />
+                    <ProductVariants 
+                      productOptions={productOptions} 
+                      selectedVariant={currentVariant}
+                    />
                   ) : null}
                   <Quantity value={quantity} onChange={setQuantity} />
                 </div>
@@ -263,8 +266,6 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
                 />
               )}
               <ProductDetails
-                product={product}
-                shop={loaderData?.shop}
                 showShippingPolicy={showShippingPolicy}
                 showRefundPolicy={showRefundPolicy}
               />

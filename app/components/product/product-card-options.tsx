@@ -56,9 +56,9 @@ export function ProductCardOptions({
                   <button
                     type="button"
                     className={cn(
-                      "flex aspect-square size-4.5 rounded-full",
+                      "flex aspect-square size-4.5",
                       "border border-transparent transition-all",
-                      selectedValue === name ? "border-gray-800 p-0.5" : "p-0",
+                      selectedValue === name ? "border-[#A79D95] p-0.5" : "p-0",
                     )}
                     onClick={() => {
                       setSelectedVariant(firstSelectableVariant);
@@ -67,14 +67,14 @@ export function ProductCardOptions({
                     {swatch?.image?.previewImage ? (
                       <Image
                         data={swatch.image.previewImage}
-                        className="h-full w-full rounded-full object-cover object-center"
+                        className="h-full w-full object-cover object-center"
                         width={200}
                         sizes="auto"
                       />
                     ) : (
                       <span
                         className={clsx(
-                          "inline-block h-full w-full rounded-full text-[0px]",
+                          "inline-block h-full w-full text-[0px]",
                           (!isValidColor(swatchColor) ||
                             isLightColor(swatchColor)) &&
                             "border border-line-subtle",

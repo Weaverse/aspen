@@ -20,15 +20,14 @@ export function ProductVariants({
 
   return (
     <div className="space-y-5" data-motion="fade-up">
-      <div className="product-form space-y-5">
+      <div className="product-form space-y-7 divide-y divide-line-subtle [&>*:not(:last-child)]:pb-3">
         {productOptions.map((option) => {
           const { name } = option;
           const selected = selectedOptions.find((opt) => opt.name === name);
           return (
-            <div className="product-options space-y-2" key={name}>
+            <div className="product-options flex justify-between items-center" key={name}>
               <legend className="leading-tight">
-                <span className="font-bold">{name}</span>
-                {selected?.value && <span>: {selected.value}</span>}
+                <span className="font-normal uppercase">{name}</span>
               </legend>
               <ProductOptionValues
                 option={option}

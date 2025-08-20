@@ -4,18 +4,43 @@ import clsx from "clsx";
 import { Link, useLoaderData } from "react-router";
 import type { loader as productLoader } from "~/routes/($locale).products.$productHandle";
 
-export function ProductDetails({ showShippingPolicy, showRefundPolicy }) {
-  const { shop, product } = useLoaderData<typeof productLoader>();
+interface ProductDetailsProps {
+  showShippingPolicy: boolean;
+  showRefundPolicy: boolean;
+  showShortDescription?: boolean;
+  product?: any;
+  shop?: any;
+}
+
+export function ProductDetails({ 
+  showShippingPolicy, 
+  showRefundPolicy, 
+  showShortDescription = true,
+  product: propProduct, 
+  shop: propShop 
+}: ProductDetailsProps) {
+  // Try to get data from props first, fallback to useLoaderData if available
+  let product, shop;
   
-  // Check if product exists before destructuring
+  try {
+    const loaderData = useLoaderData<typeof productLoader>();
+    product = propProduct || loaderData?.product;
+    shop = propShop || loaderData?.shop;
+  } catch {
+    // If useLoaderData fails (not in route context), use props
+    product = propProduct;
+    shop = propShop;
+  }
+
   if (!product) {
     return null;
   }
-  
-  const { description } = product;
-  const { shippingPolicy, refundPolicy } = shop;
+
+  const { description, summary } = product || {};
+  const { shippingPolicy, refundPolicy } = shop || {};
   const details = [
-    { title: "Description", content: description },
+    showShortDescription && summary && { title: "Summary", content: summary },
+    description && { title: "Description", content: description },
     showShippingPolicy &&
       shippingPolicy?.body && {
         title: "Shipping",
@@ -30,21 +55,32 @@ export function ProductDetails({ showShippingPolicy, showRefundPolicy }) {
       },
   ].filter(Boolean);
 
+  if (details.length === 0) {
+    return null;
+  }
+
   return (
     <Accordion.Root type="multiple">
-      {details.map(({ title, content, learnMore }) => (
-        <Accordion.Item key={title} value={title}>
+      {details.map(({ title, content, learnMore }, index) => (
+        <Accordion.Item 
+          key={title} 
+          value={title}
+          className={clsx(
+            index === details.length - 1 && "border-b border-line-subtle",
+            "data-[state=open]:pb-6",
+          )}
+        >
           <Accordion.Trigger
             className={clsx([
-              "flex w-full justify-between py-4 font-bold",
-              "border-line-subtle border-b",
+              "flex justify-between py-6 w-full",
+              "border-t border-line-subtle",
               "data-[state=open]:[&>.minus]:inline-block",
               "data-[state=open]:[&>.plus]:hidden",
             ])}
           >
-            <span>{title}</span>
-            <MinusIcon className="minus hidden h-4 w-4" />
-            <PlusIcon className="plus h-4 w-4" />
+            <span className="uppercase font-normal">{title}</span>
+            <MinusIcon className="w-4 h-4 minus hidden" />
+            <PlusIcon className="w-4 h-4 plus" />
           </Accordion.Trigger>
           <Accordion.Content
             style={
@@ -63,12 +99,12 @@ export function ProductDetails({ showShippingPolicy, showRefundPolicy }) {
           >
             <div
               suppressHydrationWarning
-              className="prose dark:prose-invert py-2.5"
+              className="prose dark:prose-invert"
               dangerouslySetInnerHTML={{ __html: content }}
             />
             {learnMore && (
               <Link
-                className="border-line-subtle border-b pb-px text-body-subtle"
+                className="pb-px border-b border-line-subtle text-body-subtle"
                 to={learnMore}
               >
                 Learn more
