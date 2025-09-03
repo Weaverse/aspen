@@ -5,17 +5,17 @@ import { forwardRef } from "react";
 import { useLoaderData } from "react-router";
 import type { CollectionsQuery } from "storefront-api.generated";
 import { variants } from "~/components/link";
-import { type OverlayProps, overlayInputs } from "~/components/overlay";
 import type { ImageAspectRatio } from "~/types/image";
 import { cn } from "~/utils/cn";
 import { getImageLoadingPriority } from "~/utils/image";
 import { CollectionCard } from "./collection-card";
 
-interface CollectionsItemsProps extends OverlayProps {
+interface CollectionsItemsProps {
   prevButtonText: string;
   nextButtonText: string;
   imageAspectRatio: ImageAspectRatio;
   collectionNameColor: string;
+  gap: number;
 }
 
 const CollectionsItems = forwardRef<HTMLDivElement, CollectionsItemsProps>(
@@ -26,12 +26,14 @@ const CollectionsItems = forwardRef<HTMLDivElement, CollectionsItemsProps>(
       nextButtonText,
       imageAspectRatio,
       collectionNameColor,
-      enableOverlay,
-      overlayColor,
-      overlayColorHover,
-      overlayOpacity,
+      gap = 24,
       ...rest
     } = props;
+
+    const style = {
+      "--gap": `${gap}px`,
+    } as React.CSSProperties;
+
     return (
       <div ref={ref} {...rest}>
         <Pagination connection={collections}>
@@ -51,7 +53,12 @@ const CollectionsItems = forwardRef<HTMLDivElement, CollectionsItemsProps>(
                   {isLoading ? "Loading..." : prevButtonText}
                 </PreviousLink>
               )}
-              <div className="grid w-full grid-cols-1 gap-x-6 gap-y-8 lg:grid-cols-2 lg:gap-y-12 xl:grid-cols-3">
+              <div
+                className={cn(
+                  "grid w-full grid-cols-2 gap-(--gap) md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3",
+                )}
+                style={style}
+              >
                 {nodes.map((collection, i) => (
                   <CollectionCard
                     key={collection.id}
@@ -59,10 +66,6 @@ const CollectionsItems = forwardRef<HTMLDivElement, CollectionsItemsProps>(
                     imageAspectRatio={imageAspectRatio}
                     collectionNameColor={collectionNameColor}
                     loading={getImageLoadingPriority(i, 2)}
-                    enableOverlay={enableOverlay}
-                    overlayColor={overlayColor}
-                    overlayColorHover={overlayColorHover}
-                    overlayOpacity={overlayOpacity}
                   />
                 ))}
               </div>
@@ -107,6 +110,23 @@ export const schema = createSchema({
       ],
     },
     {
+      group: "Collection grid",
+      inputs: [
+        {
+          type: "range",
+          name: "gap",
+          label: "Gap between items",
+          defaultValue: 24,
+          configs: {
+            min: 0,
+            max: 80,
+            step: 4,
+            unit: "px",
+          },
+        },
+      ],
+    },
+    {
       group: "Collection card",
       inputs: [
         {
@@ -131,13 +151,7 @@ export const schema = createSchema({
           name: "collectionNameColor",
           label: "Collection name color",
           defaultValue: "#fff",
-          condition: (data) => data.contentPosition === "over",
         },
-        {
-          type: "heading",
-          label: "Overlay",
-        },
-        ...overlayInputs,
       ],
     },
   ],

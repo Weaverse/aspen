@@ -4,6 +4,7 @@ import { useThemeSettings } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { colord } from "colord";
 import type {
+  ProductCardFragment,
   ProductQuery,
   ProductVariantFragment,
 } from "storefront-api.generated";
@@ -175,6 +176,62 @@ export function ProductBadges({
       ) : (
         <SoldOutBadge />
       )}
+    </div>
+  );
+}
+
+export function ProductCardBadges({
+  product,
+  selectedVariant,
+  className = "",
+  showBundle = true,
+  showSale = true,
+  showBestSeller = true,
+  showNew = true,
+  showSoldOut = true,
+}: {
+  product: ProductCardFragment;
+  selectedVariant?: ProductVariantFragment | null;
+  className?: string;
+  showBundle?: boolean;
+  showSale?: boolean;
+  showBestSeller?: boolean;
+  showNew?: boolean;
+  showSoldOut?: boolean;
+}) {
+  if (!product) {
+    return null;
+  }
+
+  const variant = selectedVariant || product.selectedOrFirstAvailableVariant;
+  const isBundle = Boolean(product?.isBundle?.requiresComponents);
+  const { publishedAt, badges } = product;
+
+  const isBestSellerProduct = badges
+    .filter(Boolean)
+    .some(({ key, value }) => key === "best_seller" && value === "true");
+
+  // Check if product is sold out (no available variants)
+  const isSoldOut = !product.selectedOrFirstAvailableVariant?.availableForSale;
+
+  return (
+    <div
+      className={cn("flex items-center gap-1 text-sm empty:hidden", className)}
+    >
+      {showBundle && isBundle && <BundleBadge />}
+
+      {showSale && !isSoldOut && variant && (
+        <SaleBadge
+          price={variant.price as MoneyV2}
+          compareAtPrice={variant.compareAtPrice as MoneyV2}
+        />
+      )}
+
+      {showNew && <NewBadge publishedAt={publishedAt} />}
+
+      {showBestSeller && isBestSellerProduct && <BestSellerBadge />}
+
+      {showSoldOut && isSoldOut && <SoldOutBadge />}
     </div>
   );
 }

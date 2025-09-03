@@ -23,10 +23,10 @@ import { ZoomModal } from "./media-zoom";
 
 const variants = cva(
   [
-    "w-full grid justify-start gap-2 lg:gap-1",
+    "grid w-full justify-start gap-2 lg:gap-1",
     "lg:grid-cols-1",
     "grid-flow-col lg:grid-flow-row",
-    "overflow-x-scroll scroll-px-6",
+    "scroll-px-6 overflow-x-scroll",
     "snap-x snap-mandatory",
   ],
   {
@@ -49,6 +49,10 @@ export interface ProductMediaProps extends VariantProps<typeof variants> {
   enableZoom?: boolean;
   showDots?: boolean;
   navigationStyle?: "corner" | "sides";
+  arrowsColor?: "primary" | "secondary";
+  arrowsShape?: "rounded-sm" | "circle" | "square";
+  zoomColor?: "primary" | "secondary";
+  zoomShape?: "rounded-sm" | "circle" | "square";
   showBadges?: boolean;
   badges?: React.ReactNode;
 }
@@ -64,12 +68,42 @@ export function ProductMedia(props: ProductMediaProps) {
     enableZoom,
     showDots = false,
     navigationStyle = "corner",
+    arrowsColor = "primary",
+    arrowsShape = "circle",
+    zoomColor = "primary",
+    zoomShape = "circle",
     showBadges = false,
     badges,
   } = props;
 
-  // Base navigation button styling
-  const baseButtonClasses = "rounded-full p-2 text-center border border-transparent transition-all duration-200 text-gray-900 bg-white hover:bg-gray-800 hover:text-white disabled:cursor-not-allowed disabled:text-body-subtle pointer-events-auto";
+  // Base navigation button styling + dynamic color/shape helpers
+  const colorClasses = (color: "primary" | "secondary") =>
+    color === "secondary"
+      ? [
+          "text-(--btn-secondary-text)",
+          "bg-(--btn-secondary-bg)",
+          "border-(--btn-secondary-bg)",
+          "hover:text-(--btn-secondary-text)",
+          "hover:bg-(--btn-secondary-bg)",
+          "hover:border-(--btn-secondary-bg)",
+        ]
+      : [
+          "text-(--btn-primary-text)",
+          "bg-(--btn-primary-bg)",
+          "border-(--btn-primary-bg)",
+          "hover:text-(--btn-primary-text)",
+          "hover:bg-(--btn-primary-bg)",
+          "hover:border-(--btn-primary-bg)",
+        ];
+
+  const shapeClass = (shape: "rounded-sm" | "circle" | "square") => {
+    if (shape === "circle") return "rounded-full";
+    if (shape === "square") return "";
+    return "rounded-md"; // closest to rounded-sm in existing styles
+  };
+
+  const baseButtonClasses =
+    "p-2 text-center border transition-all duration-200 pointer-events-auto";
 
   const [swiper, setSwiper] = useState<SwiperClass | null>(null);
   const [thumbsSwiper, setThumbsSwiper] = useState<SwiperClass | null>(null);
@@ -103,7 +137,7 @@ export function ProductMedia(props: ProductMediaProps) {
               width={1660}
               aspectRatio={calculateAspectRatio(image, imageAspectRatio)}
               className={clsx(
-                "object-cover w-[80vw] max-w-none lg:w-full lg:h-full",
+                "w-[80vw] max-w-none object-cover lg:h-full lg:w-full",
                 gridSize === "mix" && idx % 3 === 0 && "lg:col-span-2",
               )}
               sizes="auto"
@@ -115,17 +149,17 @@ export function ProductMedia(props: ProductMediaProps) {
   }
 
   return (
-    <div className="overflow-hidden product-media-slider">
+    <div className="product-media-slider overflow-hidden">
       <div
         className={clsx(
-          "flex items-start gap-4 [--thumbs-width:0px] overflow-hidden",
+          "flex items-start gap-4 overflow-hidden [--thumbs-width:0px]",
           showThumbnails && "md:[--thumbs-width:8rem]",
         )}
       >
         {showThumbnails && (
           <div
             className={clsx(
-              "shrink-0 hidden md:block",
+              "hidden shrink-0 md:block",
               "h-[450px] w-[calc(var(--thumbs-width,0px)-1rem)]",
               "opacity-0 transition-opacity duration-300",
             )}
@@ -138,7 +172,7 @@ export function ProductMedia(props: ProductMediaProps) {
               watchSlidesProgress
               rewind
               freeMode
-              className="w-full h-full overflow-visible"
+              className="h-full w-full overflow-visible"
               onInit={(sw) => {
                 sw.el.parentElement.style.opacity = "1";
               }}
@@ -150,7 +184,7 @@ export function ProductMedia(props: ProductMediaProps) {
                     key={id}
                     className={cn(
                       "relative",
-                      "p-1 border transition-colors cursor-pointer border-transparent h-auto!",
+                      "h-auto! cursor-pointer border border-transparent p-1 transition-colors",
                       "[&.swiper-slide-thumb-active]:border-line",
                     )}
                   >
@@ -162,12 +196,12 @@ export function ProductMedia(props: ProductMediaProps) {
                       loading="lazy"
                       width={200}
                       aspectRatio="1/1"
-                      className="object-cover w-full h-auto"
+                      className="h-auto w-full object-cover"
                       sizes="auto"
                     />
                     {mediaContentType === "VIDEO" && (
-                      <div className="absolute bottom-2 right-2 bg-gray-900 text-white p-0.5">
-                        <VideoCameraIcon className="w-4 h-4" />
+                      <div className="absolute right-2 bottom-2 bg-gray-900 p-0.5 text-white">
+                        <VideoCameraIcon className="h-4 w-4" />
                       </div>
                     )}
                   </SwiperSlide>
@@ -186,13 +220,21 @@ export function ProductMedia(props: ProductMediaProps) {
             autoHeight
             loop
             navigation={{
-              nextEl: navigationStyle === "corner" ? ".media_slider__next--corner" : ".media_slider__next--sides",
-              prevEl: navigationStyle === "corner" ? ".media_slider__prev--corner" : ".media_slider__prev--sides",
+              nextEl:
+                navigationStyle === "corner"
+                  ? ".media_slider__next--corner"
+                  : ".media_slider__next--sides",
+              prevEl:
+                navigationStyle === "corner"
+                  ? ".media_slider__prev--corner"
+                  : ".media_slider__prev--sides",
             }}
             pagination={{ type: "fraction" }}
             modules={[Pagination, Navigation, Thumbs]}
-            className="overflow-visible md:overflow-hidden pb-10 md:pb-0 md:[&_.swiper-pagination]:hidden"
-            onSlideChange={(swiper) => setActiveSlide(swiper.realIndex || swiper.activeIndex)}
+            className="overflow-visible pb-10 md:overflow-hidden md:pb-0 md:[&_.swiper-pagination]:hidden"
+            onSlideChange={(swiper) =>
+              setActiveSlide(swiper.realIndex || swiper.activeIndex)
+            }
           >
             {media.map((media, idx) => (
               <SwiperSlide key={media.id} className="bg-gray-100">
@@ -205,50 +247,75 @@ export function ProductMedia(props: ProductMediaProps) {
                   <button
                     type="button"
                     className={clsx(
-                      "absolute top-2 right-2 md:right-6 md:top-6",
-                      "p-2 text-center border border-transparent rounded-full",
-                      "transition-all duration-200",
-                      "text-gray-900 bg-white hover:bg-gray-800 hover:text-white",
+                      "absolute top-2 right-2 md:top-6 md:right-6",
+                      baseButtonClasses,
+                      colorClasses(zoomColor),
+                      shapeClass(zoomShape),
                     )}
                     onClick={() => {
                       setZoomMediaId(media.id);
                       setZoomModalOpen(true);
                     }}
                   >
-                    <MagnifyingGlassPlusIcon className="w-5 h-5" />
+                    <MagnifyingGlassPlusIcon className="h-5 w-5" />
                   </button>
                 )}
               </SwiperSlide>
             ))}
           </Swiper>
-          
+
           {/* Navigation Buttons */}
-          <div className={clsx(
-            "absolute z-[5] hidden md:flex items-center gap-2",
-            {
-              "bottom-6 right-6": navigationStyle === "corner",
-              "inset-0 justify-between items-center pointer-events-none": navigationStyle === "sides"
-            }
-          )}>
+          <div
+            className={clsx(
+              "absolute z-[5] hidden items-center gap-2 md:flex",
+              {
+                "right-6 bottom-6": navigationStyle === "corner",
+                "pointer-events-none inset-0 items-center justify-between":
+                  navigationStyle === "sides",
+              },
+            )}
+          >
             <button
               type="button"
               className={clsx(
                 `media_slider__prev--${navigationStyle}`,
                 baseButtonClasses,
-                navigationStyle === "sides" && "ml-4"
+                colorClasses(arrowsColor),
+                shapeClass(arrowsShape),
+                navigationStyle === "sides" && "ml-4",
               )}
             >
-              <ArrowLeftIcon className="w-4.5 h-4.5" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                className="translate-x-0.5 translate-y-0.5"
+              >
+                <path d="M4.75397 12.207L5.46106 11.4999L2.46116 8.50003L15.5 8.50003V7.5L2.46125 7.5L5.46106 4.50019L4.75397 3.7931L0.546938 8.00006L4.75397 12.207Z" />
+              </svg>
             </button>
             <button
               type="button"
               className={clsx(
                 `media_slider__next--${navigationStyle}`,
                 baseButtonClasses,
-                navigationStyle === "sides" && "mr-4"
+                colorClasses(arrowsColor),
+                shapeClass(arrowsShape),
+                navigationStyle === "sides" && "mr-4",
               )}
             >
-              <ArrowRightIcon className="w-4.5 h-4.5" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                className="translate-x-0.5 translate-y-0.5"
+              >
+                <path d="M11.246 3.79297L10.5389 4.50006L13.5388 7.49997H0.5V8.5H13.5387L10.5389 11.4998L11.246 12.2069L15.4531 7.99994L11.246 3.79297Z" />
+              </svg>
             </button>
           </div>
 
@@ -263,7 +330,7 @@ export function ProductMedia(props: ProductMediaProps) {
 
           {/* Badges Overlay */}
           {showBadges && badges && (
-            <div className="absolute top-2.5 left-2.5 flex items-center gap-2 z-[5]">
+            <div className="absolute top-2.5 left-2.5 z-[5] flex items-center gap-2">
               {badges}
             </div>
           )}
@@ -297,7 +364,7 @@ function Media({
       <Image
         data={{ ...image, altText: alt || "Product image" }}
         loading={index === 0 ? "eager" : "lazy"}
-        className="object-cover w-full h-auto"
+        className="h-auto w-full object-cover"
         width={2048}
         aspectRatio={calculateAspectRatio(image, imageAspectRatio)}
         sizes="auto"
@@ -310,7 +377,7 @@ function Media({
       <video
         controls
         aria-label={mediaVideo.alt || "Product video"}
-        className="w-full h-auto object-cover"
+        className="h-auto w-full object-cover"
         style={{ aspectRatio: imageAspectRatio }}
         onError={console.error}
       >
@@ -361,40 +428,46 @@ interface ProductMediaDotsProps {
   onDotClick: (index: number) => void;
 }
 
-function ProductMediaDots({ slidesCount, activeIndex, onDotClick }: ProductMediaDotsProps) {
+function ProductMediaDots({
+  slidesCount,
+  activeIndex,
+  onDotClick,
+}: ProductMediaDotsProps) {
   if (slidesCount === 0) return null;
 
   // Calculate maximum width for dots container (80% of image width)
-  const maxContainerWidth = 'min(320px, 80vw)';
-  
+  const maxContainerWidth = "min(320px, 80vw)";
+
   // Calculate individual dot width based on slides count
   const calculateDotWidth = (count: number) => {
-    if (count <= 4) return '48px'; // w-12 equivalent
-    if (count <= 6) return '32px'; // w-8 equivalent  
-    if (count <= 8) return '24px'; // w-6 equivalent
-    return '16px'; // w-4 equivalent for many slides
+    if (count <= 4) return "48px"; // w-12 equivalent
+    if (count <= 6) return "32px"; // w-8 equivalent
+    if (count <= 8) return "24px"; // w-6 equivalent
+    return "16px"; // w-4 equivalent for many slides
   };
 
   const dotWidth = calculateDotWidth(slidesCount);
 
   return (
-    <div 
-      className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[5] flex justify-center items-center gap-0"
-      style={{ 
+    <div
+      className="-translate-x-1/2 absolute bottom-6 left-1/2 z-[5] flex items-center justify-center gap-0"
+      style={{
         maxWidth: maxContainerWidth,
-        width: 'fit-content'
+        width: "fit-content",
       }}
     >
       {Array.from({ length: slidesCount }, (_, index) => (
         <button
           key={index}
           type="button"
-          className={cn(dotVariants({ 
-            isActive: index <= activeIndex  // Progressive fill like before
-          }))}
-          style={{ 
+          className={cn(
+            dotVariants({
+              isActive: index <= activeIndex, // Progressive fill like before
+            }),
+          )}
+          style={{
             width: dotWidth,
-            minWidth: dotWidth 
+            minWidth: dotWidth,
           }}
           onClick={() => onDotClick(index)}
           aria-label={`Go to slide ${index + 1}`}

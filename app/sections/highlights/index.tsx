@@ -13,7 +13,7 @@ let variants = cva("w-full", {
   variants: {
     alignment: {
       left: "text-left",
-      center: "text-center", 
+      center: "text-center",
       right: "text-right",
     },
   },
@@ -24,12 +24,7 @@ let variants = cva("w-full", {
 
 let Highlights = forwardRef<HTMLElement, HighlightsProps & SectionProps>(
   (props, ref) => {
-    let { 
-      children,
-      backgroundColor = "#FFFFFF",
-      alignment,
-      ...rest 
-    } = props;
+    let { children, backgroundColor = "#FFFFFF", alignment, ...rest } = props;
 
     return (
       <Section
@@ -38,15 +33,15 @@ let Highlights = forwardRef<HTMLElement, HighlightsProps & SectionProps>(
         className={variants({ alignment })}
         style={{ backgroundColor }}
       >
-        <div 
-          style={{ 
+        <div
+          style={{
             backgroundColor,
             borderRadius: "0px 40px 40px 40px",
             paddingTop: "5rem",
-            paddingBottom: "5rem"
+            paddingBottom: "5rem",
           }}
         >
-          <div className="grid items-center justify-center grid-cols-1 md:grid-cols-3 gap-4 max-w-7xl mx-auto border border-[#A79D95]">
+          <div className="mx-auto grid max-w-7xl grid-cols-1 items-center justify-center gap-4 border border-[#A79D95] md:grid-cols-3">
             {children}
           </div>
         </div>
@@ -92,27 +87,29 @@ export let schema = createSchema({
         children: [
           {
             type: "paragraph",
-            content: "The best of every modern style from minimalist to mid century.",
-            color: "#29231E",
-          },
-        ],
-      },
-      {
-        type: "highlights-badge", 
-        iconType: "square",
-        badgeTextColor: "#29231E",
-        showBorder: true,
-        children: [
-          {
-            type: "paragraph",
-            content: "Quality furniture made to last through moves and milestones.",
+            content:
+              "The best of every modern style from minimalist to mid century.",
             color: "#29231E",
           },
         ],
       },
       {
         type: "highlights-badge",
-        iconType: "triangle", 
+        iconType: "square",
+        badgeTextColor: "#29231E",
+        showBorder: true,
+        children: [
+          {
+            type: "paragraph",
+            content:
+              "Quality furniture made to last through moves and milestones.",
+            color: "#29231E",
+          },
+        ],
+      },
+      {
+        type: "highlights-badge",
+        iconType: "triangle",
         badgeTextColor: "#29231E",
         showBorder: false,
         children: [
@@ -125,4 +122,4 @@ export let schema = createSchema({
       },
     ],
   },
-}); 
+});

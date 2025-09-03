@@ -1,10 +1,10 @@
-import type { HydrogenComponent } from '@weaverse/hydrogen';
-import { forwardRef, useState, Children } from 'react';
-import type { ReactNode } from 'react';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Pagination } from 'swiper/modules';
-import 'swiper/css';
-import 'swiper/css/pagination';
+import type { HydrogenComponent } from "@weaverse/hydrogen";
+import type { ReactNode } from "react";
+import { Children, forwardRef, useState } from "react";
+import { Pagination } from "swiper/modules";
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/css";
+import "swiper/css/pagination";
 
 interface VideoItemsProps {
   gap?: number;
@@ -22,7 +22,7 @@ let VideoItems = forwardRef<HTMLElement, VideoItemsProps>((props, ref) => {
       <div
         ref={ref as any}
         className="hidden md:grid md:grid-cols-2 lg:grid-cols-3"
-        style={{ gap: gap }}
+        style={{ gap }}
       >
         {props.children}
       </div>
@@ -40,7 +40,7 @@ let VideoItems = forwardRef<HTMLElement, VideoItemsProps>((props, ref) => {
             <SwiperSlide key={index}>{child}</SwiperSlide>
           ))}
         </Swiper>
-        <div className="mt-10 text-center font-open-sans text-sm leading-4 tracking-[0.02em] text-[#29231E]">
+        <div className="mt-10 text-center font-open-sans text-[#29231E] text-sm leading-4 tracking-[0.02em]">
           {activeIndex + 1}/{totalSlides}
         </div>
       </div>
@@ -48,64 +48,64 @@ let VideoItems = forwardRef<HTMLElement, VideoItemsProps>((props, ref) => {
   );
 });
 
-export let schema: HydrogenComponent['schema'] = {
-  type: 'video--items',
-  title: 'Videos',
+export let schema: HydrogenComponent["schema"] = {
+  type: "video--items",
+  title: "Videos",
   inspector: [
     {
-      group: 'Videos',
+      group: "Videos",
       inputs: [
         {
-          type: 'range',
-          name: 'gap',
-          label: 'Items gap',
+          type: "range",
+          name: "gap",
+          label: "Items gap",
           defaultValue: 16,
           configs: {
             min: 16,
             max: 40,
             step: 8,
-            unit: 'px',
+            unit: "px",
           },
         },
       ],
     },
   ],
-  childTypes: ['video--item'],
+  childTypes: ["video--item"],
   presets: {
     children: [
       {
-        type: 'video--item',
+        type: "video--item",
         video: {
-          url: 'https://cdn.shopify.com/videos/c/o/v/cd5b45e50cc542e99b4f2d964154638a.webm',
-          alt: 'Video 1',
-          mediaContentType: 'VIDEO',
+          url: "https://cdn.shopify.com/videos/c/o/v/cd5b45e50cc542e99b4f2d964154638a.webm",
+          alt: "Video 1",
+          mediaContentType: "VIDEO",
         },
-        date: 'August 30, 2023',
-        author: 'Alexia Jacquot',
+        date: "August 30, 2023",
+        author: "Alexia Jacquot",
       },
       {
-        type: 'video--item',
+        type: "video--item",
         video: {
-          url: 'https://cdn.shopify.com/videos/c/o/v/4f8e7bc773bd49138b00903c987d528b.webm',
-          alt: 'Video 2',
-          mediaContentType: 'VIDEO',
+          url: "https://cdn.shopify.com/videos/c/o/v/4f8e7bc773bd49138b00903c987d528b.webm",
+          alt: "Video 2",
+          mediaContentType: "VIDEO",
         },
-        date: 'August 30, 2023',
-        author: 'Alexia Jacquot',
+        date: "August 30, 2023",
+        author: "Alexia Jacquot",
       },
       {
-        type: 'video--item',
+        type: "video--item",
         video: {
-          url: 'https://cdn.shopify.com/videos/c/o/v/e63ad074b7404e84a96ceeec6cc466c5.webm',
-          alt: 'Video 3',
-          mediaContentType: 'VIDEO',
+          url: "https://cdn.shopify.com/videos/c/o/v/e63ad074b7404e84a96ceeec6cc466c5.webm",
+          alt: "Video 3",
+          mediaContentType: "VIDEO",
         },
-        date: 'August 30, 2023',
-        author: 'Alexia Jacquot',
+        date: "August 30, 2023",
+        author: "Alexia Jacquot",
       },
     ],
   },
 };
 
-VideoItems.displayName = 'VideoItems';
-export default VideoItems; 
+VideoItems.displayName = "VideoItems";
+export default VideoItems;

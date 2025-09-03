@@ -10,9 +10,9 @@ interface HotspotsProps
 let variants = cva("flex flex-col [&_.paragraph]:mx-[unset]", {
   variants: {
     contentPosition: {
-      left: "justify-center items-start [&_.paragraph]:[text-align:left]",
-      center: "justify-center items-center [&_.paragraph]:[text-align:center]",
-      right: "justify-center items-end [&_.paragraph]:[text-align:right]",
+      left: "items-start justify-center [&_.paragraph]:[text-align:left]",
+      center: "items-center justify-center [&_.paragraph]:[text-align:center]",
+      right: "items-end justify-center [&_.paragraph]:[text-align:right]",
     },
     gap: {
       0: "gap-0",

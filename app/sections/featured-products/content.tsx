@@ -1,9 +1,12 @@
 import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
 import { cva, type VariantProps } from "class-variance-authority";
 import { forwardRef } from "react";
-import Heading, { headingInputs, type HeadingProps } from "~/components/heading";
+import Heading, {
+  type HeadingProps,
+  headingInputs,
+} from "~/components/heading";
+import Link, { type LinkProps, linkInputs } from "~/components/link";
 import Paragraph, { type ParagraphProps } from "~/components/paragraph";
-import Link, { linkInputs, type LinkProps } from "~/components/link";
 
 interface FeaturedProductsLoaderData
   extends HydrogenComponentProps,
@@ -38,9 +41,9 @@ interface FeaturedProductsLoaderData
 let variants = cva("flex flex-col [&_.paragraph]:mx-[unset]", {
   variants: {
     contentPosition: {
-      left: "justify-center items-start [&_.paragraph]:[text-align:left]",
-      center: "justify-center items-center [&_.paragraph]:[text-align:center]",
-      right: "justify-center items-end [&_.paragraph]:[text-align:right]",
+      left: "items-start justify-center [&_.paragraph]:[text-align:left]",
+      center: "items-center justify-center [&_.paragraph]:[text-align:center]",
+      right: "items-end justify-center [&_.paragraph]:[text-align:right]",
     },
     gap: {
       0: "gap-0",
@@ -71,8 +74,8 @@ const FeaturedContentProducts = forwardRef<
   HTMLDivElement,
   FeaturedProductsLoaderData
 >((props, ref) => {
-  const { 
-    gap, 
+  const {
+    gap,
     contentPosition,
     displayMode = "vertical",
     // Heading props
@@ -107,15 +110,15 @@ const FeaturedContentProducts = forwardRef<
     backgroundColorHover,
     borderColorHover,
     textColorDecor,
-    ...rest 
+    ...rest
   } = props;
-  
+
   if (displayMode === "horizontal") {
     return (
       <div
         ref={ref}
         {...rest}
-        className="flex justify-between items-center w-full"
+        className="flex w-full items-center justify-between"
       >
         {headingContent && (
           <Heading
@@ -146,7 +149,7 @@ const FeaturedContentProducts = forwardRef<
             textColorDecor={textColorDecor}
             openInNewTab={openInNewTab}
             to={to}
-            className="w-fit flex-shrink-0 mr-1"
+            className="mr-1 w-fit flex-shrink-0"
           >
             {buttonContent}
           </Link>
@@ -245,7 +248,8 @@ export const schema = createSchema({
               { value: "right", label: "right" },
             ],
           },
-          condition: (data: FeaturedProductsLoaderData) => data.displayMode === "vertical",
+          condition: (data: FeaturedProductsLoaderData) =>
+            data.displayMode === "vertical",
         },
         {
           type: "range",
@@ -258,7 +262,8 @@ export const schema = createSchema({
             step: 4,
             unit: "px",
           },
-          condition: (data: FeaturedProductsLoaderData) => data.displayMode === "vertical",
+          condition: (data: FeaturedProductsLoaderData) =>
+            data.displayMode === "vertical",
         },
       ],
     },
@@ -290,9 +295,11 @@ export const schema = createSchema({
           type: "richtext",
           name: "paragraphContent",
           label: "Paragraph content",
-          defaultValue: "Discover nomad, our best-selling and most-awarded modular seating.",
+          defaultValue:
+            "Discover nomad, our best-selling and most-awarded modular seating.",
           placeholder: "Enter paragraph text",
-          condition: (data: FeaturedProductsLoaderData) => data.displayMode === "vertical",
+          condition: (data: FeaturedProductsLoaderData) =>
+            data.displayMode === "vertical",
         },
         {
           type: "select",
@@ -305,13 +312,15 @@ export const schema = createSchema({
             ],
           },
           defaultValue: "p",
-          condition: (data: FeaturedProductsLoaderData) => data.displayMode === "vertical",
+          condition: (data: FeaturedProductsLoaderData) =>
+            data.displayMode === "vertical",
         },
         {
           type: "color",
           name: "paragraphColor",
           label: "Text color",
-          condition: (data: FeaturedProductsLoaderData) => data.displayMode === "vertical",
+          condition: (data: FeaturedProductsLoaderData) =>
+            data.displayMode === "vertical",
         },
         {
           type: "select",
@@ -335,7 +344,8 @@ export const schema = createSchema({
             ],
           },
           defaultValue: "base",
-          condition: (data: FeaturedProductsLoaderData) => data.displayMode === "vertical",
+          condition: (data: FeaturedProductsLoaderData) =>
+            data.displayMode === "vertical",
         },
         {
           type: "toggle-group",
@@ -352,7 +362,8 @@ export const schema = createSchema({
             ],
           },
           defaultValue: "full",
-          condition: (data: FeaturedProductsLoaderData) => data.displayMode === "vertical",
+          condition: (data: FeaturedProductsLoaderData) =>
+            data.displayMode === "vertical",
         },
         {
           type: "toggle-group",
@@ -361,12 +372,17 @@ export const schema = createSchema({
           configs: {
             options: [
               { value: "left", label: "Left", icon: "align-start-vertical" },
-              { value: "center", label: "Center", icon: "align-center-vertical" },
+              {
+                value: "center",
+                label: "Center",
+                icon: "align-center-vertical",
+              },
               { value: "right", label: "Right", icon: "align-end-vertical" },
             ],
           },
           defaultValue: "left",
-          condition: (data: FeaturedProductsLoaderData) => data.displayMode === "vertical",
+          condition: (data: FeaturedProductsLoaderData) =>
+            data.displayMode === "vertical",
         },
       ],
     },
@@ -380,12 +396,14 @@ export const schema = createSchema({
           defaultValue: "EXPLORE NOW",
           placeholder: "Enter button text",
         },
-        ...linkInputs.map((input) => {
-          if (input.name === "text") {
-            return null;
-          }
-          return input;
-        }).filter(Boolean),
+        ...linkInputs
+          .map((input) => {
+            if (input.name === "text") {
+              return null;
+            }
+            return input;
+          })
+          .filter(Boolean),
       ],
     },
   ],
@@ -393,7 +411,8 @@ export const schema = createSchema({
     displayMode: "vertical",
     gap: 32,
     headingContent: "Featured products",
-    paragraphContent: "Discover nomad, our best-selling and most-awarded modular seating.",
+    paragraphContent:
+      "Discover nomad, our best-selling and most-awarded modular seating.",
     buttonContent: "EXPLORE NOW",
     variant: "decor",
   },

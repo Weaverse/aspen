@@ -1,20 +1,15 @@
-import {
-  ArrowLeftIcon,
-  ArrowRightIcon,
-  CaretLeftIcon,
-  CaretRightIcon,
-} from "@phosphor-icons/react";
+import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import clsx from "clsx";
-import React from "react";
+import type React from "react";
 import { useSwiper } from "swiper/react";
 
 const variants = cva(
   [
     "hidden md:block",
-    "absolute bottom-0 -translate-y-1/2 z-1",
-    "p-2 text-center cursor-pointer",
+    "-translate-y-1/2 absolute bottom-0 z-1",
+    "cursor-pointer p-2 text-center",
     "border border-transparent",
     "transition-all duration-200",
   ],
@@ -44,7 +39,7 @@ const variants = cva(
         circle: "rounded-full",
       },
       disabled: {
-        true: "opacity-75 cursor-not-allowed",
+        true: "cursor-not-allowed opacity-75",
         false: "",
       },
       showArrowsOnHover: { true: "", false: "" },
@@ -131,7 +126,15 @@ export function Arrows(props: SlideshowArrowsProps) {
         {arrowsIcon === "caret" ? (
           <CaretLeftIcon style={{ width: iconSize, height: iconSize }} />
         ) : (
-          <ArrowLeftIcon style={{ width: iconSize, height: iconSize }} />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 16 16"
+            width={iconSize}
+            height={iconSize}
+            fill="currentColor"
+          >
+            <path d="M4.75397 12.207L5.46106 11.4999L2.46116 8.50003L15.5 8.50003V7.5L2.46125 7.5L5.46106 4.50019L4.75397 3.7931L0.546938 8.00006L4.75397 12.207Z" />
+          </svg>
         )}
       </button>
       <button
@@ -151,7 +154,18 @@ export function Arrows(props: SlideshowArrowsProps) {
         {arrowsIcon === "caret" ? (
           <CaretRightIcon style={{ width: iconSize, height: iconSize }} />
         ) : (
-          <ArrowRightIcon style={{ width: iconSize, height: iconSize }} />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 16 16"
+            width={iconSize}
+            height={iconSize}
+            fill="currentColor"
+          >
+            <path
+              d="M4.75397 12.207L5.46106 11.4999L2.46116 8.50003L15.5 8.50003V7.5L2.46125 7.5L5.46106 4.50019L4.75397 3.7931L0.546938 8.00006L4.75397 12.207Z"
+              transform="translate(16,0) scale(-1,1)"
+            />
+          </svg>
         )}
       </button>
     </>

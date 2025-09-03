@@ -1,11 +1,11 @@
 import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
 import Heading, {
-  headingInputs,
   type HeadingProps,
+  headingInputs,
 } from "~/components/heading";
+import Link, { type LinkProps, linkInputs } from "~/components/link";
 import Paragraph, { type ParagraphProps } from "~/components/paragraph";
-import Link, { linkInputs, type LinkProps } from "~/components/link";
 
 interface InstagramContentProps
   extends HydrogenComponentProps,
@@ -100,7 +100,7 @@ let InstagramContent = forwardRef<HTMLDivElement, InstagramContentProps>(
       <div
         ref={ref}
         {...rest}
-        className={"flex flex-col gap-6 lg:w-1/4 w-full"}
+        className={"flex w-full flex-col gap-6 lg:w-1/4"}
       >
         <div className="flex flex-col gap-2">
           {headingContent && (

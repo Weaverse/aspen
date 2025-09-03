@@ -1,3 +1,4 @@
+import { ArrowRight } from "@phosphor-icons/react";
 import { createSchema } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
 import { Link, useLoaderData } from "react-router";
@@ -6,7 +7,6 @@ import Heading from "~/components/heading";
 import { layoutInputs, Section, type SectionProps } from "~/components/section";
 import { getImageLoadingPriority } from "~/utils/image";
 import { ArticleCard, type ArticleCardProps } from "./blogs";
-import { ArrowRight } from "@phosphor-icons/react";
 
 interface RelatedArticlesProps
   extends Omit<ArticleCardProps, "article" | "blogHandle" | "loading">,
@@ -33,34 +33,38 @@ const RelatedArticles = forwardRef<HTMLElement, RelatedArticlesProps>(
       imageAspectRatio,
       ...rest
     } = props;
-    
+
     if (relatedArticles.length > 0) {
       return (
-        <Section ref={ref} {...rest} className="py-10 px-10">
+        <Section ref={ref} {...rest} className="px-10 py-10">
           {/* Header section with title and view all button */}
-          <div className="flex items-center justify-between w-full mb-10">
+          <div className="mb-10 flex w-full items-center justify-between">
             <div className="flex items-center gap-2">
-              <h2 className="font-tenor text-[26px] leading-[1.1] tracking-[0.02em] text-[#29231E] uppercase">
+              <h2 className="font-tenor text-[#29231E] text-[26px] uppercase leading-[1.1] tracking-[0.02em]">
                 {heading}
               </h2>
             </div>
             {showViewAll && (
               <div className="flex items-center gap-2">
-                <Link 
+                <Link
                   to={`/blogs/${blog.handle}`}
-                  className="flex items-center gap-2.5 py-1 px-1 text-[#29231E] hover:opacity-70 transition-opacity"
+                  className="flex items-center gap-2.5 px-1 py-1 text-[#29231E] transition-opacity hover:opacity-70"
                 >
-                  <span className="font-open-sans text-sm leading-[1em] tracking-[0.02em] uppercase">
+                  <span className="font-open-sans text-sm uppercase leading-[1em] tracking-[0.02em]">
                     {viewAllText}
                   </span>
-                  <ArrowRight size={20} weight="regular" className="text-[#29231E]" />
+                  <ArrowRight
+                    size={20}
+                    weight="regular"
+                    className="text-[#29231E]"
+                  />
                 </Link>
               </div>
             )}
           </div>
 
           {/* Articles grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
+          <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-3">
             {relatedArticles.slice(0, 3).map((article, i) => (
               <div key={article.id} className="flex flex-col gap-5">
                 <ArticleCard

@@ -1,25 +1,26 @@
+import { ArrowLeftIcon, ArrowRightIcon } from "@phosphor-icons/react";
 import { createSchema, IMAGES_PLACEHOLDERS } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
-import { forwardRef, type ReactNode, useEffect, useState, useRef } from "react";
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination, Autoplay } from 'swiper/modules';
-import { ArrowLeftIcon, ArrowRightIcon } from "@phosphor-icons/react";
+import { forwardRef, type ReactNode, useEffect, useRef, useState } from "react";
+import type { Swiper as SwiperType } from "swiper";
+import { Autoplay, Navigation, Pagination } from "swiper/modules";
+import { Swiper, SwiperSlide } from "swiper/react";
 import type { SectionProps } from "~/components/section";
-import type { Swiper as SwiperType } from 'swiper';
-import 'swiper/css';
-import 'swiper/css/navigation';
-import 'swiper/css/pagination';
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
 
-type GridItemProps = VariantProps<typeof variants> & SectionProps & {
-  slidesToShow?: number;
-  autoPlay?: boolean;
-  autoPlayDelay?: number;
-  enableDots?: boolean;
-  enableNavigation?: boolean;
-};
+type GridItemProps = VariantProps<typeof variants> &
+  SectionProps & {
+    slidesToShow?: number;
+    autoPlay?: boolean;
+    autoPlayDelay?: number;
+    enableDots?: boolean;
+    enableNavigation?: boolean;
+  };
 
-let variants = cva("relative promotion-slider md:px-8 px-5", {
+let variants = cva("promotion-slider relative px-5 md:px-8", {
   variants: {
     slidesToShow: {
       1: "",
@@ -30,7 +31,7 @@ let variants = cva("relative promotion-slider md:px-8 px-5", {
     gap: {
       0: "[&_.swiper-slide]:mr-0",
       4: "[&_.swiper-slide]:mr-1",
-      8: "[&_.swiper-slide]:mr-2", 
+      8: "[&_.swiper-slide]:mr-2",
       12: "[&_.swiper-slide]:mr-3",
       16: "[&_.swiper-slide]:mr-4",
       20: "[&_.swiper-slide]:mr-5",
@@ -52,51 +53,59 @@ let variants = cva("relative promotion-slider md:px-8 px-5", {
   },
 });
 
-let PromotionSlider = forwardRef<HTMLDivElement, GridItemProps>((props, ref) => {
-  let { 
-    children, 
-    slidesToShow = 2, 
-    gap = 20, 
-    autoPlay = false, 
-    autoPlayDelay = 5000,
-    enableDots = true,
-    enableNavigation = true,
-    ...rest 
-  } = props;
+let PromotionSlider = forwardRef<HTMLDivElement, GridItemProps>(
+  (props, ref) => {
+    let {
+      children,
+      slidesToShow = 2,
+      gap = 20,
+      autoPlay = false,
+      autoPlayDelay = 5000,
+      enableDots = true,
+      enableNavigation = true,
+      ...rest
+    } = props;
 
-  const [swiperKey, setSwiperKey] = useState(0);
-  const swiperRef = useRef<SwiperType | null>(null);
-  const prevButtonRef = useRef<HTMLButtonElement>(null);
-  const nextButtonRef = useRef<HTMLButtonElement>(null);
+    const [swiperKey, setSwiperKey] = useState(0);
+    const swiperRef = useRef<SwiperType | null>(null);
+    const prevButtonRef = useRef<HTMLButtonElement>(null);
+    const nextButtonRef = useRef<HTMLButtonElement>(null);
 
-  const childrenArray = Array.isArray(children) ? children : children ? [children] : [];
-  const totalSlides = childrenArray.length;
+    const childrenArray = Array.isArray(children)
+      ? children
+      : children
+        ? [children]
+        : [];
+    const totalSlides = childrenArray.length;
 
-  useEffect(() => {
-    setSwiperKey(prev => prev + 1);
-  }, [slidesToShow, enableDots, enableNavigation, autoPlay, autoPlayDelay]);
+    useEffect(() => {
+      setSwiperKey((prev) => prev + 1);
+    }, [slidesToShow, enableDots, enableNavigation, autoPlay, autoPlayDelay]);
 
-  if (totalSlides === 0) {
-    return <div ref={ref} {...rest} className={variants({ slidesToShow, gap })} />;
-  }
-
-  const handlePrevClick = () => {
-    if (swiperRef.current) {
-      swiperRef.current.slidePrev();
+    if (totalSlides === 0) {
+      return (
+        <div ref={ref} {...rest} className={variants({ slidesToShow, gap })} />
+      );
     }
-  };
 
-  const handleNextClick = () => {
-    if (swiperRef.current) {
-      swiperRef.current.slideNext();
-    }
-  };
+    const handlePrevClick = () => {
+      if (swiperRef.current) {
+        swiperRef.current.slidePrev();
+      }
+    };
 
-  return (
-    <div ref={ref} {...rest} className={variants({ slidesToShow, gap })}>
-      {/* Custom Swiper Styles */}
-      <style dangerouslySetInnerHTML={{
-        __html: `
+    const handleNextClick = () => {
+      if (swiperRef.current) {
+        swiperRef.current.slideNext();
+      }
+    };
+
+    return (
+      <div ref={ref} {...rest} className={variants({ slidesToShow, gap })}>
+        {/* Custom Swiper Styles */}
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
           .promotion-slider .swiper-pagination-bullet {
             width: 12px !important;
             height: 12px !important;
@@ -116,88 +125,100 @@ let PromotionSlider = forwardRef<HTMLDivElement, GridItemProps>((props, ref) => 
           .promotion-slider .swiper-pagination-custom {
             position: static !important;
           }
-        `
-      }} />
-      
-      {enableNavigation && totalSlides > slidesToShow && (
-        <>
-          <button 
-            ref={prevButtonRef}
-            type="button" 
-            onClick={handlePrevClick}
-            className="swiper-button-prev-custom absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white shadow-lg rounded-full p-3 transition-all duration-200 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <ArrowLeftIcon className="w-6 h-6 text-gray-800" />
-          </button>
-          <button 
-            ref={nextButtonRef}
-            type="button" 
-            onClick={handleNextClick}
-            className="swiper-button-next-custom absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white shadow-lg rounded-full p-3 transition-all duration-200 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <ArrowRightIcon className="w-6 h-6 text-gray-800" />
-          </button>
-        </>
-      )}
-      
-      <Swiper
-        key={swiperKey}
-        onSwiper={(swiper) => {
-          swiperRef.current = swiper;
-        }}
-        modules={[Navigation, Pagination, Autoplay]}
-        spaceBetween={gap}
-        slidesPerView={slidesToShow}
-        navigation={enableNavigation ? {
-          prevEl: prevButtonRef.current,
-          nextEl: nextButtonRef.current,
-        } : false}
-        pagination={enableDots ? {
-          clickable: true,
-          bulletClass: 'swiper-pagination-bullet',
-          bulletActiveClass: 'swiper-pagination-bullet-active',
-          el: '.swiper-pagination-custom',
-        } : false}
-        autoplay={autoPlay && totalSlides > slidesToShow ? {
-          delay: autoPlayDelay * 1000,
-          disableOnInteraction: false,
-          pauseOnMouseEnter: false,
-        } : false}
-        loop={totalSlides > slidesToShow}
-        breakpoints={{
-          320: {
-            slidesPerView: 1,
-            spaceBetween: gap / 2,
-          },
-          640: {
-            slidesPerView: Math.min(2, slidesToShow),
-            spaceBetween: gap,
-          },
-          768: {
-            slidesPerView: Math.min(3, slidesToShow),
-            spaceBetween: gap,
-          },
-          1024: {
-            slidesPerView: slidesToShow,
-            spaceBetween: gap,
-          },
-        }}
-        className="w-full"
-      >
-        {childrenArray.map((child, index) => (
-          <SwiperSlide key={index}>
-            {child as ReactNode}
-          </SwiperSlide>
-        ))}
-      </Swiper>
+        `,
+          }}
+        />
 
-      {/* Custom Pagination Dots */}
-      {enableDots && totalSlides > slidesToShow && (
-        <div className="swiper-pagination-custom flex justify-center space-x-2 mt-6" />
-      )}
-    </div>
-  );
-});
+        {enableNavigation && totalSlides > slidesToShow && (
+          <>
+            <button
+              ref={prevButtonRef}
+              type="button"
+              onClick={handlePrevClick}
+              className="swiper-button-prev-custom -translate-y-1/2 absolute top-1/2 left-2 z-10 rounded-full bg-white/90 p-3 shadow-lg transition-all duration-200 hover:scale-110 hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <ArrowLeftIcon className="h-6 w-6 text-gray-800" />
+            </button>
+            <button
+              ref={nextButtonRef}
+              type="button"
+              onClick={handleNextClick}
+              className="swiper-button-next-custom -translate-y-1/2 absolute top-1/2 right-2 z-10 rounded-full bg-white/90 p-3 shadow-lg transition-all duration-200 hover:scale-110 hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <ArrowRightIcon className="h-6 w-6 text-gray-800" />
+            </button>
+          </>
+        )}
+
+        <Swiper
+          key={swiperKey}
+          onSwiper={(swiper) => {
+            swiperRef.current = swiper;
+          }}
+          modules={[Navigation, Pagination, Autoplay]}
+          spaceBetween={gap}
+          slidesPerView={slidesToShow}
+          navigation={
+            enableNavigation
+              ? {
+                  prevEl: prevButtonRef.current,
+                  nextEl: nextButtonRef.current,
+                }
+              : false
+          }
+          pagination={
+            enableDots
+              ? {
+                  clickable: true,
+                  bulletClass: "swiper-pagination-bullet",
+                  bulletActiveClass: "swiper-pagination-bullet-active",
+                  el: ".swiper-pagination-custom",
+                }
+              : false
+          }
+          autoplay={
+            autoPlay && totalSlides > slidesToShow
+              ? {
+                  delay: autoPlayDelay * 1000,
+                  disableOnInteraction: false,
+                  pauseOnMouseEnter: false,
+                }
+              : false
+          }
+          loop={totalSlides > slidesToShow}
+          breakpoints={{
+            320: {
+              slidesPerView: 1,
+              spaceBetween: gap / 2,
+            },
+            640: {
+              slidesPerView: Math.min(2, slidesToShow),
+              spaceBetween: gap,
+            },
+            768: {
+              slidesPerView: Math.min(3, slidesToShow),
+              spaceBetween: gap,
+            },
+            1024: {
+              slidesPerView: slidesToShow,
+              spaceBetween: gap,
+            },
+          }}
+          className="w-full"
+        >
+          {childrenArray.map((child, index) => (
+            <SwiperSlide key={index}>{child as ReactNode}</SwiperSlide>
+          ))}
+        </Swiper>
+
+        {/* Custom Pagination Dots */}
+        {enableDots && totalSlides > slidesToShow && (
+          <div className="swiper-pagination-custom mt-6 flex justify-center space-x-2" />
+        )}
+      </div>
+    );
+  },
+);
 
 export default PromotionSlider;
 

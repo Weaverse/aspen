@@ -65,35 +65,39 @@ const CountdownTimer = forwardRef<
     <div
       ref={ref}
       {...rest}
-      className="countdown--timer grid grid-cols-2 lg:grid-cols-4 text-(--timer-color) py-3 sm:py-0"
+      className="countdown--timer grid grid-cols-2 py-3 text-(--timer-color) sm:py-0 lg:grid-cols-4"
       data-motion="fade-up"
       style={timerStyle}
     >
       <div className="flex items-end">
-        <div className="text-4xl leading-tight md:text-5xl font-medium flex items-end">
+        <div className="flex items-end font-medium text-4xl leading-tight md:text-5xl">
           <div className="px-6">{remainingTime?.days || 0}</div>
         </div>
-        <div className="text-sm text-center md:text-base capitalize">Days</div>
+        <div className="text-center text-sm capitalize md:text-base">Days</div>
       </div>
       <div className="flex items-end">
-        <div className="text-4xl leading-tight md:text-5xl font-medium flex items-end">
+        <div className="flex items-end font-medium text-4xl leading-tight md:text-5xl">
           <div className="px-6">{formatNumber(remainingTime?.hours || 0)}</div>
         </div>
-        <div className="text-sm text-center md:text-base capitalize">hours</div>
+        <div className="text-center text-sm capitalize md:text-base">hours</div>
       </div>
       <div className="flex items-end">
-        <div className="text-4xl leading-tight md:text-5xl font-medium flex items-end">
-          <div className="px-6">{formatNumber(remainingTime?.minutes || 0)}</div>
+        <div className="flex items-end font-medium text-4xl leading-tight md:text-5xl">
+          <div className="px-6">
+            {formatNumber(remainingTime?.minutes || 0)}
+          </div>
         </div>
-        <div className="text-sm text-center md:text-base capitalize">
+        <div className="text-center text-sm capitalize md:text-base">
           minutes
         </div>
       </div>
       <div className="flex items-end">
-        <div className="text-4xl leading-tight md:text-5xl font-medium flex items-end">
-          <div className="px-6">{formatNumber(remainingTime?.seconds || 0)}</div>
+        <div className="flex items-end font-medium text-4xl leading-tight md:text-5xl">
+          <div className="px-6">
+            {formatNumber(remainingTime?.seconds || 0)}
+          </div>
         </div>
-        <div className="text-sm text-center md:text-base capitalize">
+        <div className="text-center text-sm capitalize md:text-base">
           seconds
         </div>
       </div>

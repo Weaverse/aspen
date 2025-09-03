@@ -16,4 +16,4 @@ export const ImageWithTextContext = createContext<ImageWithTextContextType>({
   setImageAspectRatio: () => {},
 });
 
-export const useImageWithTextContext = () => useContext(ImageWithTextContext); 
+export const useImageWithTextContext = () => useContext(ImageWithTextContext);

@@ -1,8 +1,13 @@
 import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
-import { forwardRef, useState, useEffect } from "react";
-import Heading, { headingInputs, type HeadingProps } from "~/components/heading";
+import { forwardRef, useEffect, useState } from "react";
+import Heading, {
+  type HeadingProps,
+  headingInputs,
+} from "~/components/heading";
 
-export interface HighlightsBadgeProps extends HydrogenComponentProps, Omit<HeadingProps, "content"> {
+export interface HighlightsBadgeProps
+  extends HydrogenComponentProps,
+    Omit<HeadingProps, "content"> {
   iconType?: string;
   customIcon?: string;
   badgeTextColor?: string;
@@ -13,7 +18,7 @@ export interface HighlightsBadgeProps extends HydrogenComponentProps, Omit<Headi
 
 let HighlightsBadge = forwardRef<HTMLDivElement, HighlightsBadgeProps>(
   (props, ref) => {
-    let { 
+    let {
       children,
       iconType = "circle",
       customIcon = "",
@@ -31,83 +36,79 @@ let HighlightsBadge = forwardRef<HTMLDivElement, HighlightsBadgeProps>(
       minSize,
       maxSize,
       animate,
-      ...rest 
+      ...rest
     } = props;
     const [imageError, setImageError] = useState(false);
     useEffect(() => {
       setImageError(false);
     }, [customIcon]);
     const isInlineSVG = (content: string) => {
-      return content.trim().startsWith('<svg');
+      return content.trim().startsWith("<svg");
     };
     const renderIcon = (type: string) => {
       switch (type) {
         case "circle":
           return (
-            <div 
-              className="w-10 h-10 rounded-full flex-shrink-0"
+            <div
+              className="h-10 w-10 flex-shrink-0 rounded-full"
               style={{ backgroundColor: badgeTextColor }}
             />
           );
         case "square":
           return (
-            <div 
-              className="w-9 h-9 flex-shrink-0"
+            <div
+              className="h-9 w-9 flex-shrink-0"
               style={{ backgroundColor: badgeTextColor }}
             />
           );
         case "triangle":
           return (
-            <div 
-              className="w-12 h-12 flex-shrink-0"
-              style={{ 
+            <div
+              className="h-12 w-12 flex-shrink-0"
+              style={{
                 clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)",
-                backgroundColor: badgeTextColor 
+                backgroundColor: badgeTextColor,
               }}
             />
           );
         case "custom":
           if (!customIcon) {
             return (
-              <div 
-                className="w-12 h-12 flex-shrink-0 border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 text-xs"
-              >
+              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center border-2 border-gray-300 border-dashed text-gray-400 text-xs">
                 No Icon
               </div>
             );
           }
           if (imageError && !isInlineSVG(customIcon)) {
             return (
-              <div 
-                className="w-12 h-12 border-2 border-dashed border-red-300 flex items-center justify-center text-red-400 text-xs flex-shrink-0"
-              >
+              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center border-2 border-red-300 border-dashed text-red-400 text-xs">
                 Error
               </div>
             );
           }
           if (isInlineSVG(customIcon)) {
             const modifiedSVG = customIcon.replace(
-              /fill="[^"]*"/g, 
-              `fill="${badgeTextColor}"`
+              /fill="[^"]*"/g,
+              `fill="${badgeTextColor}"`,
             );
-            
+
             return (
-              <div 
-                className="w-12 h-12 flex-shrink-0 flex items-center justify-center"
+              <div
+                className="flex h-12 w-12 flex-shrink-0 items-center justify-center"
                 dangerouslySetInnerHTML={{ __html: modifiedSVG }}
               />
             );
           }
           return (
-            <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center">
-              <img 
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center">
+              <img
                 src={customIcon}
                 alt="Custom Icon"
-                className="max-w-full max-h-full object-contain"
-                style={{ 
-                  filter: customIcon.toLowerCase().endsWith('.svg') ? 
-                    `brightness(0) saturate(100%) invert(${badgeTextColor === '#29231E' ? '10%' : '90%'})` : 
-                    'none'
+                className="max-h-full max-w-full object-contain"
+                style={{
+                  filter: customIcon.toLowerCase().endsWith(".svg")
+                    ? `brightness(0) saturate(100%) invert(${badgeTextColor === "#29231E" ? "10%" : "90%"})`
+                    : "none",
                 }}
                 onError={() => setImageError(true)}
                 onLoad={() => setImageError(false)}
@@ -119,18 +120,20 @@ let HighlightsBadge = forwardRef<HTMLDivElement, HighlightsBadgeProps>(
       }
     };
     return (
-      <div 
+      <div
         ref={ref}
         {...rest}
-        className={"flex flex-col justify-center items-center gap-0 px-4 py-8 md:gap-5 md:px-8 md:py-16 h-full"}
+        className={
+          "flex h-full flex-col items-center justify-center gap-0 px-4 py-8 md:gap-5 md:px-8 md:py-16"
+        }
       >
         {/* Icon container với vị trí cố định */}
-        <div className="flex-shrink-0 w-full flex justify-center items-center">
+        <div className="flex w-full flex-shrink-0 items-center justify-center">
           {renderIcon(iconType)}
         </div>
-        
+
         {/* Text container với vị trí cố định */}
-        <div className="flex-1 w-full flex justify-center items-start text-center">
+        <div className="flex w-full flex-1 items-start justify-center text-center">
           {headingContent && (
             <Heading
               content={headingContent}
@@ -181,7 +184,8 @@ export let schema = createSchema({
           type: "textarea",
           name: "customIcon",
           label: "Custom Icon",
-          placeholder: "Paste SVG code or enter image URL (e.g., https://example.com/icon.svg)",
+          placeholder:
+            "Paste SVG code or enter image URL (e.g., https://example.com/icon.svg)",
           helpText: "Supports SVG code, image URLs (JPG, PNG, SVG files)",
           condition: "iconType.eq.custom",
         },
@@ -201,7 +205,8 @@ export let schema = createSchema({
           type: "text",
           name: "headingContent",
           label: "Heading content",
-          defaultValue: "Quality furniture made to last through moves and milestones.",
+          defaultValue:
+            "Quality furniture made to last through moves and milestones.",
           placeholder: "Enter heading text",
         },
         ...headingInputs.map((input) => {
@@ -219,7 +224,8 @@ export let schema = createSchema({
   presets: {
     iconType: "circle",
     badgeTextColor: "#29231E",
-    headingContent: "Quality furniture made to last through moves and milestones.",
+    headingContent:
+      "Quality furniture made to last through moves and milestones.",
     color: "#29231E",
   },
-}); 
+});

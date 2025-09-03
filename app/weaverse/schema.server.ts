@@ -868,7 +868,8 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "text",
           label: "Cart title empty state",
           name: "cartTitleEmpty",
-          defaultValue: "Looks like you haven’t added anything yet, let’s get you started!",
+          defaultValue:
+            "Looks like you haven’t added anything yet, let’s get you started!",
         },
         {
           type: "text",
@@ -894,7 +895,7 @@ export const themeSchema: HydrogenThemeSchema = {
           name: "freeShippingThreshold",
           defaultValue: "50",
           placeholder: "Only numeric values can be entered.",
-        }
+        },
       ],
     },
     {
@@ -915,7 +916,8 @@ export const themeSchema: HydrogenThemeSchema = {
           label: "Show badges on product media",
           name: "showBadgesOnProductMedia",
           defaultValue: true,
-          helpText: "Display sale, new, and best seller badges on product images",
+          helpText:
+            "Display sale, new, and best seller badges on product images",
         },
         {
           type: "heading",
@@ -947,7 +949,7 @@ export const themeSchema: HydrogenThemeSchema = {
           name: "showCompareAtPrice",
           defaultValue: true,
         },
-      ]
+      ],
     },
     {
       group: "Animations and effects",

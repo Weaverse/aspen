@@ -24,11 +24,11 @@ import {
 } from "~/components/product/badges";
 import { ProductMedia } from "~/components/product/product-media";
 import { Quantity } from "~/components/product/quantity";
+import { CompareAtPrice } from "~/components/product/variant-prices";
 import { layoutInputs, Section } from "~/components/section";
 import { PRODUCT_QUERY } from "~/graphql/queries";
 import { useAnimation } from "~/hooks/use-animation";
 import { isDiscounted } from "~/utils/product";
-import { CompareAtPrice } from "~/components/product/variant-prices";
 import { ProductDetails } from "../main-product/product-details";
 import { ProductVariants } from "../main-product/variants";
 
@@ -74,7 +74,7 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
     if (!product) {
       return (
         <Section ref={ref} {...rest}>
-          <div className="container px-4 md:px-6 mx-auto">
+          <div className="container mx-auto px-4 md:px-6">
             <div className="grid items-start gap-6 lg:grid-cols-2 lg:gap-12 xl:grid-cols-2">
               <Image
                 data={{
@@ -87,7 +87,7 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
                 aspectRatio="1/1"
                 sizes="auto"
               />
-              <div className="flex flex-col justify-start items-start gap-4">
+              <div className="flex flex-col items-start justify-start gap-4">
                 <SoldOutBadge />
                 <h3 data-motion="fade-up" className="tracking-tight">
                   EXAMPLE PRODUCT TITLE
@@ -156,7 +156,7 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
     return (
       <Section ref={ref} {...rest}>
         <div ref={scope}>
-          <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2 lg:gap-12 fade-up">
+          <div className="fade-up grid grid-cols-1 items-start gap-6 lg:grid-cols-2 lg:gap-12">
             <ProductMedia
               mediaLayout="slider"
               enableZoom={true}
@@ -229,8 +229,8 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
                   )}
                   {children}
                   {shouldRenderVariants ? (
-                    <ProductVariants 
-                      productOptions={productOptions} 
+                    <ProductVariants
+                      productOptions={productOptions}
                       selectedVariant={currentVariant}
                     />
                   ) : null}
@@ -247,7 +247,7 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
                   },
                 ]}
                 variant="primary"
-                className="w-full -mt-2"
+                className="-mt-2 w-full"
                 data-test="add-to-cart"
               >
                 {atcText}

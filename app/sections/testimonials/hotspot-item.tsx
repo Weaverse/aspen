@@ -1,5 +1,5 @@
 import type {
-    HydrogenComponentProps,
+  HydrogenComponentProps,
   HydrogenComponentSchema,
   WeaverseImage,
 } from "@weaverse/hydrogen";
@@ -35,12 +35,10 @@ let HotspotsTestimonial = forwardRef<HTMLDivElement, HotspotsTestimonialProps>(
           className="z-0 h-full w-full object-cover"
           data-motion="zoom-in"
         />
-        <div className="absolute inset-0 z-10">
-          {children}
-        </div>
+        <div className="absolute inset-0 z-10">{children}</div>
       </div>
     );
-  }
+  },
 );
 
 export default HotspotsTestimonial;

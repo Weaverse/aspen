@@ -1,6 +1,6 @@
 import { Money, mapSelectedProductOptionToObject } from "@shopify/hydrogen";
-import type { MoneyV2 } from "@shopify/hydrogen/storefront-api-types";
 import { useThemeSettings } from "@weaverse/hydrogen";
+import { cva } from "class-variance-authority";
 import clsx from "clsx";
 import { useState } from "react";
 import type {
@@ -10,19 +10,12 @@ import type {
 import { Image } from "~/components/image";
 import { Link } from "~/components/link";
 import { NavLink } from "~/components/nav-link";
+import { isCombinedListing } from "~/utils/combined-listings";
 import { calculateAspectRatio } from "~/utils/image";
-import { cva } from "class-variance-authority";
-import {
-  BestSellerBadge,
-  BundleBadge,
-  NewBadge,
-  SaleBadge,
-  SoldOutBadge,
-} from "./badges";
+import { ProductCardBadges } from "./badges";
 import { ProductCardOptions } from "./product-card-options";
 import { QuickShopTrigger } from "./quick-shop";
 import { VariantPrices } from "./variant-prices";
-import { isCombinedListing } from "~/utils/combined-listings";
 
 const styleVariants = cva("", {
   variants: {
@@ -78,40 +71,34 @@ export function ProductCard({
   );
 
   const isVertical = pcardTitlePricesAlignment === "vertical";
-  const isBestSellerProduct = badges
-    .filter(Boolean)
-    .some(({ key, value }) => key === "best_seller" && value === "true");
   const isBundle = Boolean(product?.isBundle?.requiresComponents);
 
   // Helper function to get badge position classes
-  const getBadgePositionClasses = (position: string = "top-right") => {
+  const getBadgePositionClasses = (position = "top-right") => {
     switch (position) {
       case "top-left":
         return "flex gap-1 absolute top-2.5 left-2.5";
       case "top-center":
         return "flex gap-1 absolute top-2.5 left-1/2 -translate-x-1/2";
-      case "top-right":
       default:
         return "flex gap-1 absolute top-2.5 right-2.5";
     }
   };
 
   let [image, secondImage] = images.nodes;
-  if (selectedVariant) {
-    if (selectedVariant.image) {
-      image = selectedVariant.image;
-      const imageUrl = image.url;
-      const imageIndex = images.nodes.findIndex(({ url }) => url === imageUrl);
-      if (imageIndex > 0 && imageIndex < images.nodes.length - 1) {
-        secondImage = images.nodes[imageIndex + 1];
-      }
+  if (selectedVariant?.image) {
+    image = selectedVariant.image;
+    const imageUrl = image.url;
+    const imageIndex = images.nodes.findIndex(({ url }) => url === imageUrl);
+    if (imageIndex > 0 && imageIndex < images.nodes.length - 1) {
+      secondImage = images.nodes[imageIndex + 1];
     }
   }
 
   return (
     <div
       className={clsx(
-        "group rounded-(--pcard-radius) transition-all hover:border hover:border-[#DBD7D1]",
+        "group rounded-(--pcard-radius) border border-transparent transition-colors duration-300 hover:border-[#DBD7D1]",
         className,
       )}
       style={
@@ -123,15 +110,15 @@ export function ProductCard({
       }
     >
       <div
-        className="transition-transform duration-300 group-hover:scale-95 rounded-(--pcard-radius) overflow-hidden"
+        className="overflow-hidden rounded-(--pcard-radius) transition-transform duration-300 group-hover:scale-95"
         style={{ backgroundColor: pcardBackgroundColor }}
       >
-        <div className="relative group">
+        <div className="group relative">
           {image && (
             <Link
               to={`/products/${product.handle}?${params.toString()}`}
               prefetch="intent"
-              className="overflow-hidden rounded-t-(--pcard-radius) block group relative aspect-(--pcard-image-ratio) bg-gray-100"
+              className="group relative block aspect-(--pcard-image-ratio) overflow-hidden rounded-t-(--pcard-radius) bg-gray-100"
             >
               <Image
                 className={clsx([
@@ -150,7 +137,7 @@ export function ProductCard({
                 <Image
                   className={clsx([
                     "absolute inset-0",
-                    "transition-opacity duration-300 opacity-0 group-hover:opacity-100",
+                    "opacity-0 transition-opacity duration-300 group-hover:opacity-100",
                   ])}
                   sizes="auto"
                   width={700}
@@ -164,20 +151,15 @@ export function ProductCard({
             </Link>
           )}
           <div className={getBadgePositionClasses(pcardBadgesPosition)}>
-            {isBundle && pcardShowBundleBadge && <BundleBadge />}
-            {pcardShowSaleBadges && (
-              <SaleBadge
-                price={minVariantPrice as MoneyV2}
-                compareAtPrice={maxVariantPrice as MoneyV2}
-              />
-            )}
-            {pcardShowBestSellerBadges && isBestSellerProduct && (
-              <BestSellerBadge />
-            )}
-            {pcardShowNewBadges && (
-              <NewBadge publishedAt={product.publishedAt} />
-            )}
-            {pcardShowOutOfStockBadges && <SoldOutBadge />}
+            <ProductCardBadges
+              product={product}
+              selectedVariant={selectedVariant}
+              showBundle={pcardShowBundleBadge}
+              showSale={pcardShowSaleBadges}
+              showBestSeller={pcardShowBestSellerBadges}
+              showNew={pcardShowNewBadges}
+              showSoldOut={pcardShowOutOfStockBadges}
+            />
           </div>
           {pcardEnableQuickShop && (
             <QuickShopTrigger
@@ -191,14 +173,14 @@ export function ProductCard({
         </div>
         <div
           className={clsx(
-            "py-3 flex flex-col gap-2",
+            "flex flex-col gap-2 py-3",
             isVertical && styleVariants({ alignment: pcardAlignment }),
           )}
         >
           {pcardShowVendor && (
-            <div className="uppercase text-body-subtle">{product.vendor}</div>
+            <div className="text-body-subtle uppercase">{product.vendor}</div>
           )}
-          <div className="md:hidden block">
+          <div className="block md:hidden">
             <ProductCardOptions
               product={product}
               selectedVariant={selectedVariant}
@@ -210,7 +192,7 @@ export function ProductCard({
             prefetch="intent"
             className={({ isTransitioning }) =>
               clsx(
-                "font-bold ",
+                "font-bold",
                 isTransitioning && "[view-transition-name:product-image]",
               )
             }
@@ -242,7 +224,7 @@ export function ProductCard({
                 showCompareAtPrice={pcardShowSalePrice}
               />
             )}
-            <div className="md:block hidden">
+            <div className="hidden md:block">
               <ProductCardOptions
                 product={product}
                 selectedVariant={selectedVariant}

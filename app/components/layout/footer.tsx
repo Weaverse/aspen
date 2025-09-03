@@ -2,8 +2,8 @@ import {
   FacebookLogoIcon,
   InstagramLogoIcon,
   LinkedinLogoIcon,
-  XLogoIcon,
   Plus,
+  XLogoIcon,
 } from "@phosphor-icons/react";
 import * as Accordion from "@radix-ui/react-accordion";
 import { Image } from "@shopify/hydrogen";
@@ -24,12 +24,12 @@ const variants = cva("", {
     width: {
       full: "",
       stretch: "",
-      fixed: "max-w-(--page-width) mx-auto",
+      fixed: "mx-auto max-w-(--page-width)",
     },
     padding: {
       full: "",
       stretch: "px-3 md:px-10 lg:px-16",
-      fixed: "px-3 md:px-4 lg:px-6 mx-auto",
+      fixed: "mx-auto px-3 md:px-4 lg:px-6",
     },
   },
 });
@@ -61,12 +61,12 @@ export function Footer() {
 
   useEffect(() => {
     if (newsLetterResponse) {
-      if (!newsLetterResponse.ok) {
+      if (newsLetterResponse.ok) {
+        setMessage("Thank you for signing up! 🎉");
+      } else {
         setError(
           newsLetterResponse.error || "An error occurred while signing up.",
         );
-      } else {
-        setMessage("Thank you for signing up! 🎉");
       }
     }
   }, [newsLetterResponse]);
@@ -97,13 +97,13 @@ export function Footer() {
   return (
     <footer
       className={cn(
-        "w-full bg-(--color-footer-bg) text-(--color-footer-text) pt-5 lg:pt-7",
+        "w-full bg-(--color-footer-bg) pt-5 text-(--color-footer-text) lg:pt-7",
         variants({ padding: footerWidth }),
       )}
     >
-      <div className={cn("w-full h-full", variants({ width: footerWidth }))}>
-        <div className="md:space-y-6 md:divide-y divide-line-subtle">
-          <div className="w-full grid lg:grid-cols-2 grid-cols-1 gap-0 md:gap-8 md:pb-6 pb-0">
+      <div className={cn("h-full w-full", variants({ width: footerWidth }))}>
+        <div className="divide-line-subtle md:space-y-6 md:divide-y">
+          <div className="grid w-full grid-cols-1 gap-0 pb-0 md:gap-8 md:pb-6 lg:grid-cols-2">
             {footerLogoData ? (
               <div
                 className="relative md:order-none lg:order-1"
@@ -113,7 +113,7 @@ export function Footer() {
                   data={footerLogoData}
                   sizes="auto"
                   width={500}
-                  className="w-full h-full object-contain object-left"
+                  className="h-full w-full object-contain object-left"
                 />
               </div>
             ) : (
@@ -121,8 +121,8 @@ export function Footer() {
                 {shopName}
               </div>
             )}
-            <div className="hidden gap-4 lg:hidden md:flex">
-              <div className="flex flex-col gap-2 w-full">
+            <div className="hidden gap-4 md:flex lg:hidden">
+              <div className="flex w-full flex-col gap-2">
                 <div className="flex flex-col gap-6">
                   <span className="font-semibold">{addressTitle}</span>
                   <div className="space-y-2">
@@ -136,7 +136,7 @@ export function Footer() {
                   </div>
                 )}
               </div>
-              <div className="flex flex-col gap-6 w-full">
+              <div className="flex w-full flex-col gap-6">
                 <span className="font-semibold">{newsletterTitle}</span>
                 <div className="space-y-2">
                   <p>{newsletterDescription}</p>
@@ -149,14 +149,14 @@ export function Footer() {
                     action="/api/klaviyo"
                     method="POST"
                     encType="multipart/form-data"
-                    className="flex gap-3 h-[54px]"
+                    className="flex h-[54px] gap-3"
                   >
                     <input
                       name="email"
                       type="email"
                       required
                       placeholder={newsletterPlaceholder}
-                      className="text-body bg-white focus-visible:outline-hidden px-3 placeholder:text-[#918379] border border-line-subtle lg:w-80 w-full"
+                      className="w-full border border-line-subtle bg-white px-3 text-body placeholder:text-[#918379] focus-visible:outline-hidden lg:w-80"
                     />
                     <Button
                       variant="primary"
@@ -169,13 +169,13 @@ export function Footer() {
                   </fetcher.Form>
                   <div className="h-8">
                     {error && (
-                      <div className="bg-red-100 border-l-4 border-red-500 text-red-700 py-1 px-2 mb-6 flex gap-1 w-fit">
+                      <div className="mb-6 flex w-fit gap-1 border-red-500 border-l-4 bg-red-100 px-2 py-1 text-red-700">
                         <p className="font-semibold">ERROR:</p>
                         <p>{error}</p>
                       </div>
                     )}
                     {message && (
-                      <div className="bg-green-100 border-l-4 border-green-500 text-green-700 py-1 px-2 mb-6 flex gap-1 w-fit">
+                      <div className="mb-6 flex w-fit gap-1 border-green-500 border-l-4 bg-green-100 px-2 py-1 text-green-700">
                         <p>{message}</p>
                       </div>
                     )}
@@ -183,7 +183,7 @@ export function Footer() {
                 </div>
               </div>
             </div>
-            <div className="flex flex-col gap-2 md:order-none lg:order-3 lg:flex md:hidden">
+            <div className="flex flex-col gap-2 md:order-none md:hidden lg:order-3 lg:flex">
               <div className="flex flex-col gap-6">
                 <span className="font-semibold">{addressTitle}</span>
                 <div className="space-y-2">
@@ -197,11 +197,11 @@ export function Footer() {
                 </div>
               ) : null}
             </div>
-            <div className="lg:block md:hidden block order-2">
+            <div className="order-2 block md:hidden lg:block">
               <FooterMenu />
             </div>
 
-            <div className="flex flex-col gap-6 lg:w-fit w-full order-4 md:order-none lg:order-4 lg:flex md:hidden pt-6 md:pt-0">
+            <div className="order-4 flex w-full flex-col gap-6 pt-6 md:order-none md:hidden md:pt-0 lg:order-4 lg:flex lg:w-fit">
               <span className="font-semibold">{newsletterTitle}</span>
               <div className="space-y-2">
                 <p>{newsletterDescription}</p>
@@ -214,14 +214,14 @@ export function Footer() {
                   action="/api/klaviyo"
                   method="POST"
                   encType="multipart/form-data"
-                  className="flex gap-3 h-[54px]"
+                  className="flex h-[54px] gap-3"
                 >
                   <input
                     name="email"
                     type="email"
                     required
                     placeholder={newsletterPlaceholder}
-                    className="text-body bg-white focus-visible:outline-hidden px-3 placeholder:text-[#918379] border border-line-subtle lg:w-80 w-full"
+                    className="w-full border border-line-subtle bg-white px-3 text-body placeholder:text-[#918379] focus-visible:outline-hidden lg:w-80"
                   />
                   <Button
                     variant="primary"
@@ -236,13 +236,13 @@ export function Footer() {
                   (message && (
                     <div className="h-8">
                       {error && (
-                        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 py-1 px-2 mb-6 flex gap-1 w-fit">
+                        <div className="mb-6 flex w-fit gap-1 border-red-500 border-l-4 bg-red-100 px-2 py-1 text-red-700">
                           <p className="font-semibold">ERROR:</p>
                           <p>{error}</p>
                         </div>
                       )}
                       {message && (
-                        <div className="bg-green-100 border-l-4 border-green-500 text-green-700 py-1 px-2 mb-6 flex gap-1 w-fit">
+                        <div className="mb-6 flex w-fit gap-1 border-green-500 border-l-4 bg-green-100 px-2 py-1 text-green-700">
                           <p>{message}</p>
                         </div>
                       )}
@@ -252,20 +252,20 @@ export function Footer() {
             </div>
           </div>
           <div>
-            <div className="lg:hidden md:block hidden">
+            <div className="hidden md:block lg:hidden">
               <FooterMenu />
             </div>
-            <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 justify-center items-center pb-6 pt-6 md:pt-0 gap-y-6">
+            <div className="grid grid-cols-1 items-center justify-center gap-y-6 pt-6 pb-6 md:grid-cols-2 md:pt-0 lg:grid-cols-3">
               <p className="order-3 md:col-span-2 lg:order-none lg:col-span-1">
                 {copyright}
               </p>
-              <div className="flex justify-start lg:justify-center items-center order-1">
+              <div className="order-1 flex items-center justify-start lg:justify-center">
                 <CountrySelector
                   inputClassName="px-4 py-2"
                   enableFlag={false}
                 />
               </div>
-              <div className="flex gap-4 justify-start md:justify-end order-2">
+              <div className="order-2 flex justify-start gap-4 md:justify-end">
                 {SOCIAL_ACCOUNTS.map((social) =>
                   social.to ? (
                     <Link
@@ -295,7 +295,7 @@ function FooterMenu() {
     <Accordion.Root
       type="multiple"
       defaultValue={items.map(({ id }) => id)}
-      className="w-full grid lg:grid-cols-4 lg:gap-8 md:grid-cols-3 md:gap-5 pt-0 md:pt-9"
+      className="grid w-full pt-0 md:grid-cols-3 md:gap-5 md:pt-9 lg:grid-cols-4 lg:gap-8"
     >
       {items.map(({ id, to, title, items: subItems }) => {
         const isEmpty = !subItems || subItems.length === 0;
@@ -304,15 +304,10 @@ function FooterMenu() {
           <Accordion.Item
             key={id}
             value={id}
-            className="flex flex-col border-b border-line-subtle md:border-none"
+            className="flex flex-col border-line-subtle border-b md:border-none"
           >
-            {!isEmpty ? (
-              <Accordion.Trigger className="flex py-4 justify-between items-center md:hidden text-left font-medium data-[state=open]:[&>svg]:rotate-90">
-                <span>{title}</span>
-                <Plus className="w-4 h-4 transition-transform rotate-0" />
-              </Accordion.Trigger>
-            ) : (
-              <div className="py-4 md:hidden text-left font-medium">
+            {isEmpty ? (
+              <div className="py-4 text-left font-medium md:hidden">
                 {["#", "/"].includes(to) ? (
                   <span>{title}</span>
                 ) : (
@@ -321,15 +316,22 @@ function FooterMenu() {
                   </Link>
                 )}
               </div>
+            ) : (
+              <Accordion.Trigger className="flex items-center justify-between py-4 text-left font-medium md:hidden data-[state=open]:[&>svg]:rotate-90">
+                <span>{title}</span>
+                <Plus className="h-4 w-4 rotate-0 transition-transform" />
+              </Accordion.Trigger>
             )}
 
-            <div className="font-semibold hidden md:block">
-              {!isEmpty ? (
-                <span>{title}</span>
-              ) : ["#", "/"].includes(to) ? (
-                title
+            <div className="hidden font-semibold md:block">
+              {isEmpty ? (
+                ["#", "/"].includes(to) ? (
+                  title
+                ) : (
+                  <Link to={to}>{title}</Link>
+                )
               ) : (
-                <Link to={to}>{title}</Link>
+                <span>{title}</span>
               )}
             </div>
 
@@ -349,7 +351,7 @@ function FooterMenu() {
                   "data-[state=open]:animate-expand",
                 ])}
               >
-                <div className="pb-4 lg:pt-6 flex flex-col gap-2">
+                <div className="flex flex-col gap-2 pb-4 lg:pt-6">
                   {subItems.map(({ id, to, title }) => (
                     <Link to={to} key={id} className="relative w-fit">
                       <RevealUnderline className="[--underline-color:var(--color-footer-text)]">

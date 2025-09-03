@@ -9,12 +9,12 @@ import type { JudgemeReviewsData } from "~/utils/judgeme";
 
 export function ReviewForm({ reviews }: { reviews: JudgemeReviewsData }) {
   const { product } = useLoaderData<typeof productRouteLoader>();
-  
+
   // Check if product exists before using
   if (!product) {
     return null;
   }
-  
+
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
   const [isFormVisible, setIsFormVisible] = useState(false);

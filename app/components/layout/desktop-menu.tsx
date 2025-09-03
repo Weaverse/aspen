@@ -24,7 +24,7 @@ export function DesktopMenu() {
         onValueChange={setValue}
         onMouseLeave={() => setValue(null)}
       >
-        <nav className="hidden lg:flex grow justify-center h-full desktop-menu">
+        <nav className="desktop-menu hidden h-full grow justify-center lg:flex">
           {items.map((menuItem) => {
             const { id, items = [], title, to } = menuItem;
             const level = getMaxDepth(menuItem);
@@ -36,9 +36,9 @@ export function DesktopMenu() {
                 <Menubar.Trigger
                   asChild={!hasSubmenu}
                   className={clsx([
-                    "cursor-pointer px-3 py-2 h-full flex items-center gap-1.5",
+                    "flex h-full cursor-pointer items-center gap-1.5 px-3 py-2",
                     'data-[state="open"]:[&>svg]:rotate-180',
-                    "focus:outline-hidden uppercase",
+                    "uppercase focus:outline-hidden",
                   ])}
                   onMouseEnter={() => {
                     if (openMenuBy === "hover" && value !== id) {
@@ -60,7 +60,7 @@ export function DesktopMenu() {
                     <span
                       className={cn(
                         "ff-heading relative cursor-pointer",
-                        "after:absolute after:left-0 after:bottom-[-2px] after:w-full after:h-[2px] after:bg-current",
+                        "after:absolute after:bottom-[-2px] after:left-0 after:h-[2px] after:w-full after:bg-current",
                         "after:opacity-0 hover:after:opacity-100 group-data-[state=open]:after:opacity-100",
                         "after:transition-opacity after:duration-[360ms] after:ease-[cubic-bezier(0.22,1,0.36,1)]",
                       )}
@@ -72,7 +72,7 @@ export function DesktopMenu() {
                       <span
                         className={cn(
                           "ff-heading relative cursor-pointer",
-                          "after:absolute after:left-0 after:bottom-[-2px] after:w-full after:h-[2px] after:bg-current",
+                          "after:absolute after:bottom-[-2px] after:left-0 after:h-[2px] after:w-full after:bg-current",
                           "after:opacity-0 hover:after:opacity-100 group-data-[state=open]:after:opacity-100",
                           "after:transition-opacity after:duration-[360ms] after:ease-[cubic-bezier(0.22,1,0.36,1)]",
                         )}
@@ -86,8 +86,8 @@ export function DesktopMenu() {
                   <Menubar.Content
                     className={cn([
                       "px-3 md:px-4 lg:px-6",
-                      "bg-(--color-header-bg-hover) shadow-lg border-t border-line-subtle mt-1.5 lg:mt-3",
-                      isDropdown ? "py-6 max-w-[300px]" : "w-screen py-8",
+                      "mt-1.5 border-line-subtle border-t bg-(--color-header-bg-hover) shadow-lg lg:mt-3",
+                      isDropdown ? "max-w-[300px] py-6" : "w-screen py-8",
                     ])}
                   >
                     {isDropdown ? (
@@ -110,7 +110,7 @@ export function DesktopMenu() {
 function DropdownSubMenu({ items }: { items: SingleMenuItem[] }) {
   return (
     <ul
-      className="space-y-1.5 animate-fade-in"
+      className="animate-fade-in space-y-1.5"
       style={{ "--fade-in-duration": "150ms" } as React.CSSProperties}
     >
       {items.map(({ id, to, title }) => (
@@ -118,9 +118,9 @@ function DropdownSubMenu({ items }: { items: SingleMenuItem[] }) {
           key={id}
           to={to}
           prefetch="intent"
-          className="transition-none block"
+          className="block transition-none"
         >
-          <span className="font-normal line-clamp-2">{title}</span>
+          <span className="line-clamp-2 font-normal">{title}</span>
         </Link>
       ))}
     </ul>
@@ -129,7 +129,7 @@ function DropdownSubMenu({ items }: { items: SingleMenuItem[] }) {
 
 function MegaMenu({ items }: { items: SingleMenuItem[] }) {
   return (
-    <div className="max-w-(--page-width) mx-auto flex gap-4">
+    <div className="mx-auto flex max-w-(--page-width) gap-4">
       {items.map(({ id, title, to, items: children, resource }, idx) =>
         resource?.image && children.length === 0 ? (
           <SlideIn
@@ -146,14 +146,14 @@ function MegaMenu({ items }: { items: SingleMenuItem[] }) {
                 "flex flex-col gap-5",
               ])}
             >
-              <div className="relative overflow-hidden max-w-72 w-72 aspect-square">
+              <div className="relative aspect-square w-72 max-w-72 overflow-hidden">
                 <Image
                   sizes="auto"
                   data={resource.image}
-                  className="w-full h-full object-cover"
+                  className="h-full w-full object-cover"
                   width={300}
                 />
-                <div className="absolute inset-0 bg-black opacity-0 group-hover/item:opacity-20 transition-opacity duration-300"></div>
+                <div className="absolute inset-0 bg-black opacity-0 transition-opacity duration-300 group-hover/item:opacity-20" />
               </div>
               <span>{title}</span>
             </Link>
@@ -161,7 +161,7 @@ function MegaMenu({ items }: { items: SingleMenuItem[] }) {
         ) : (
           <SlideIn
             key={id}
-            className="grow max-w-72 space-y-4"
+            className="max-w-72 grow space-y-4"
             style={{ "--idx": idx } as React.CSSProperties}
           >
             <Link
@@ -199,7 +199,7 @@ function SlideIn(props: {
   return (
     <div
       className={cn(
-        "opacity-0 animate-slide-left [animation-delay:calc(var(--idx)*0.1s+0.1s)]",
+        "animate-slide-left opacity-0 [animation-delay:calc(var(--idx)*0.1s+0.1s)]",
         className,
       )}
       style={

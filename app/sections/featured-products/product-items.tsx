@@ -1,12 +1,31 @@
+import { ArrowLeft, ArrowRight } from "@phosphor-icons/react";
 import { createSchema, useParentInstance } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
-import { forwardRef } from "react";
+import clsx from "clsx";
+import { forwardRef, useMemo, useState } from "react";
+import { Navigation } from "swiper/modules";
+import { Swiper, SwiperSlide } from "swiper/react";
 import { ProductCard } from "~/components/product/product-card";
-import { Swimlane } from "~/components/swimlane";
+import "swiper/css";
+import "swiper/css/navigation";
+import Link from "~/components/link";
 
-const variants = cva("", {
+type ItemsPerRowType = "2" | "3" | "4" | "5";
+type GapType = 8 | 12 | 16 | 20 | 24 | 28 | 32;
+
+const productItemsVariants = cva("", {
   variants: {
+    layout: {
+      grid: "grid",
+      carousel: "",
+    },
+    itemsPerRow: {
+      "2": "grid-cols-2",
+      "3": "grid-cols-3",
+      "4": "grid-cols-4",
+      "5": "grid-cols-5",
+    },
     gap: {
       8: "gap-2",
       12: "gap-3",
@@ -17,30 +36,273 @@ const variants = cva("", {
       32: "gap-8",
     },
   },
+  compoundVariants: [
+    {
+      layout: "grid",
+      gap: 8,
+      className: "gap-2",
+    },
+    {
+      layout: "grid",
+      gap: 12,
+      className: "gap-3",
+    },
+    {
+      layout: "grid",
+      gap: 16,
+      className: "gap-4",
+    },
+    {
+      layout: "grid",
+      gap: 20,
+      className: "gap-5",
+    },
+    {
+      layout: "grid",
+      gap: 24,
+      className: "gap-6",
+    },
+    {
+      layout: "grid",
+      gap: 28,
+      className: "gap-7",
+    },
+    {
+      layout: "grid",
+      gap: 32,
+      className: "gap-8",
+    },
+  ],
   defaultVariants: {
+    layout: "carousel",
+    itemsPerRow: "4",
     gap: 16,
   },
 });
 
-interface ProductItemsProps extends VariantProps<typeof variants> {}
+interface ProductItemsProps extends VariantProps<typeof productItemsVariants> {
+  layout?: "grid" | "carousel";
+  slidesPerView?: number;
+  itemsPerRow?: ItemsPerRowType;
+  gap?: GapType;
+  productsToShow?: number;
+  arrowsColor?: "primary" | "secondary";
+  arrowsShape?: "rounded-sm" | "circle" | "square";
+}
 
 const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
   (props, ref) => {
-    const { gap, ...rest } = props;
+    const {
+      gap = 16,
+      layout = "carousel",
+      slidesPerView = 4,
+      itemsPerRow = "4" as ItemsPerRowType,
+      productsToShow = 4,
+      arrowsColor = "primary",
+      arrowsShape = "rounded-sm",
+      ...rest
+    } = props;
     const parent = useParentInstance();
-    const products = parent.data?.loaderData?.products;
+    const productsConnection = parent.data?.loaderData?.products;
+
+    const [activeSlide, setActiveSlide] = useState(0);
+    const [isBeginning, setIsBeginning] = useState(true);
+    const [isEnd, setIsEnd] = useState(false);
+
+    if (!productsConnection?.nodes?.length) {
+      return null;
+    }
+
+    const totalProducts = productsConnection.nodes.length;
+    const maxProductsToShow = productsToShow;
+    const displayedProducts = productsConnection.nodes.slice(
+      0,
+      maxProductsToShow,
+    );
+    const hasMoreProducts = totalProducts > maxProductsToShow;
+
+    const arrowColorClasses = useMemo(() => {
+      return arrowsColor === "secondary"
+        ? [
+            "text-(--btn-secondary-text)",
+            "bg-(--btn-secondary-bg)",
+            "border-(--btn-secondary-bg)",
+            "hover:text-(--btn-secondary-text)",
+            "hover:bg-(--btn-secondary-bg)",
+            "hover:border-(--btn-secondary-bg)",
+          ]
+        : [
+            "text-(--btn-primary-text)",
+            "bg-(--btn-primary-bg)",
+            "border-(--btn-primary-bg)",
+            "hover:text-(--btn-primary-text)",
+            "hover:bg-(--btn-primary-bg)",
+            "hover:border-(--btn-primary-bg)",
+          ];
+    }, [arrowsColor]);
+
+    const arrowShapeClasses = useMemo(() => {
+      if (arrowsShape === "circle") return "rounded-full";
+      if (arrowsShape === "square") return "";
+      return "rounded-md"; // rounded-sm -> use closest tailwind rounding
+    }, [arrowsShape]);
+
+    if (layout === "grid") {
+      return (
+        <div ref={ref} {...rest} className="relative">
+          <div className="md:hidden">
+            <Swiper
+              key={`swiper-grid-mobile-${gap}`}
+              slidesPerView={1.2}
+              centeredSlides={true}
+              spaceBetween={gap}
+              loop={true}
+              onSlideChange={(swiper) => setActiveSlide(swiper.activeIndex)}
+              navigation={{
+                nextEl: ".featured-products-next",
+                prevEl: ".featured-products-prev",
+              }}
+              modules={[Navigation]}
+              className="mb-6 w-full py-4"
+            >
+              {displayedProducts.map((product) => (
+                <SwiperSlide key={product.id}>
+                  <div className="relative h-full">
+                    <ProductCard product={product} className="h-full w-full" />
+                  </div>
+                </SwiperSlide>
+              ))}
+            </Swiper>
+
+            <div className="flex justify-center gap-2 md:hidden">
+              <button
+                type="button"
+                className={clsx(
+                  "featured-products-prev border p-4",
+                  arrowColorClasses,
+                  arrowShapeClasses,
+                )}
+                aria-label="Previous product"
+              >
+                <ArrowLeft className="" size={16} />
+              </button>
+
+              <button
+                type="button"
+                className={clsx(
+                  "featured-products-next border p-4",
+                  arrowColorClasses,
+                  arrowShapeClasses,
+                )}
+                aria-label="Next product"
+              >
+                <ArrowRight className="" size={16} />
+              </button>
+            </div>
+          </div>
+
+          <div className="hidden md:block">
+            <div
+              className={clsx(
+                "grid",
+                productItemsVariants({ layout, itemsPerRow, gap }),
+              )}
+            >
+              {displayedProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  className="h-full w-full"
+                />
+              ))}
+            </div>
+
+            {hasMoreProducts && (
+              <div className="mt-8 flex justify-center">
+                <Link to="/products" variant="outline" className="uppercase">
+                  See More Products
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
 
     return (
-      <div ref={ref} {...rest}>
-        <Swimlane className={variants({ gap })}>
-          {products?.nodes?.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              className="w-80 snap-start"
-            />
+      <div ref={ref} {...rest} className="relative">
+        <Swiper
+          key={`swiper-carousel-${slidesPerView}-${gap}`}
+          slidesPerView={1}
+          spaceBetween={gap * 2}
+          onSlideChange={(swiper) => {
+            setActiveSlide(swiper.activeIndex);
+            setIsBeginning(swiper.isBeginning);
+            setIsEnd(swiper.isEnd);
+          }}
+          onSwiper={(swiper) => {
+            setIsBeginning(swiper.isBeginning);
+            setIsEnd(swiper.isEnd);
+          }}
+          breakpoints={{
+            640: {
+              slidesPerView: Math.min(2, slidesPerView || 4),
+              spaceBetween: gap * 2,
+            },
+            768: {
+              slidesPerView: Math.min(3, slidesPerView || 4),
+              spaceBetween: gap * 2.5,
+            },
+            1024: {
+              slidesPerView: slidesPerView || 4,
+              spaceBetween: gap * 3,
+            },
+          }}
+          navigation={{
+            nextEl: ".featured-products-next",
+            prevEl: ".featured-products-prev",
+          }}
+          modules={[Navigation]}
+          className="mb-6 w-full py-4"
+        >
+          {displayedProducts.map((product, index) => (
+            <SwiperSlide key={index}>
+              <div className="relative h-full">
+                <ProductCard product={product} className="h-full" />
+              </div>
+            </SwiperSlide>
           ))}
-        </Swimlane>
+        </Swiper>
+
+        <div className="flex justify-center gap-2">
+          <button
+            type="button"
+            disabled={isBeginning}
+            className={clsx(
+              "featured-products-prev border p-4",
+              arrowColorClasses,
+              arrowShapeClasses,
+              isBeginning ? "cursor-not-allowed opacity-50" : "opacity-100",
+            )}
+            aria-label="Previous product"
+          >
+            <ArrowLeft className="" size={16} />
+          </button>
+
+          <button
+            type="button"
+            disabled={isEnd}
+            className={clsx(
+              "featured-products-next border p-4",
+              arrowColorClasses,
+              arrowShapeClasses,
+              isEnd ? "cursor-not-allowed opacity-50" : "opacity-100",
+            )}
+            aria-label="Next product"
+          >
+            <ArrowRight className="" size={16} />
+          </button>
+        </div>
       </div>
     );
   },
@@ -53,8 +315,47 @@ export const schema = createSchema({
   title: "Product items",
   settings: [
     {
-      group: "Product items",
+      group: "Layout",
       inputs: [
+        {
+          type: "select",
+          name: "layout",
+          label: "Display mode",
+          configs: {
+            options: [
+              { value: "carousel", label: "Carousel" },
+              { value: "grid", label: "Grid" },
+            ],
+          },
+          defaultValue: "carousel",
+        },
+        {
+          type: "range",
+          name: "slidesPerView",
+          label: "Products per view (Desktop)",
+          configs: {
+            min: 1,
+            max: 6,
+            step: 1,
+          },
+          defaultValue: 4,
+          condition: (data) => data.layout === "carousel",
+        },
+        {
+          type: "select",
+          name: "itemsPerRow",
+          label: "Products per row (Desktop)",
+          configs: {
+            options: [
+              { value: "2", label: "2" },
+              { value: "3", label: "3" },
+              { value: "4", label: "4" },
+              { value: "5", label: "5" },
+            ],
+          },
+          defaultValue: "4",
+          condition: (data) => data.layout === "grid",
+        },
         {
           type: "range",
           name: "gap",
@@ -65,6 +366,51 @@ export const schema = createSchema({
             step: 4,
           },
           defaultValue: 16,
+        },
+        {
+          type: "range",
+          name: "productsToShow",
+          label: "Number of products to show",
+          configs: {
+            min: 1,
+            max: 12,
+            step: 1,
+          },
+          defaultValue: 4,
+          helpText:
+            "Maximum number of products to display. If more products are available, a 'See More Products' button will appear.",
+        },
+      ],
+    },
+    {
+      group: "Arrows",
+      inputs: [
+        {
+          type: "select",
+          label: "Arrows color",
+          name: "arrowsColor",
+          configs: {
+            options: [
+              { value: "primary", label: "Primary" },
+              { value: "secondary", label: "Secondary" },
+            ],
+          },
+          defaultValue: "primary",
+          condition: (data: ProductItemsProps) => data.layout === "carousel",
+        },
+        {
+          type: "toggle-group",
+          label: "Arrows shape",
+          name: "arrowsShape",
+          configs: {
+            options: [
+              { value: "rounded-sm", label: "Rounded", icon: "squircle" },
+              { value: "circle", label: "Circle", icon: "circle" },
+              { value: "square", label: "Square", icon: "square" },
+            ],
+          },
+          defaultValue: "rounded-sm",
+          condition: (data: ProductItemsProps) => data.layout === "carousel",
         },
       ],
     },

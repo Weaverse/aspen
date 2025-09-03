@@ -7,23 +7,23 @@ import {
 import { useThemeSettings } from "@weaverse/hydrogen";
 import { cva } from "class-variance-authority";
 import { useEffect, useRef } from "react";
+import { Link } from "react-router";
+import { Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { cn } from "~/utils/cn";
 import { CountrySelector } from "./country-selector";
-import { Navigation } from "swiper/modules";
-import { Link } from "react-router";
 
 let variants = cva("", {
   variants: {
     width: {
-      full: "w-full h-full",
-      stretch: "w-full h-full",
-      fixed: "w-full h-full max-w-(--page-width) mx-auto",
+      full: "h-full w-full",
+      stretch: "h-full w-full",
+      fixed: "mx-auto h-full w-full max-w-(--page-width)",
     },
     padding: {
       full: "",
       stretch: "px-3 md:px-10 lg:px-16",
-      fixed: "px-3 md:px-4 lg:px-6 mx-auto",
+      fixed: "mx-auto px-3 md:px-4 lg:px-6",
     },
   },
 });
@@ -60,22 +60,22 @@ export function ScrollingAnnouncement() {
     {
       name: "Instagram",
       to: socialInstagramAnnouncement,
-      icon: <InstagramLogo className="w-5 h-5" />,
+      icon: <InstagramLogo className="h-5 w-5" />,
     },
     {
       name: "X",
       to: socialXAnnouncement,
-      icon: <XLogo className="w-5 h-5" />,
+      icon: <XLogo className="h-5 w-5" />,
     },
     {
       name: "LinkedIn",
       to: socialLinkedInAnnouncement,
-      icon: <LinkedinLogo className="w-5 h-5" />,
+      icon: <LinkedinLogo className="h-5 w-5" />,
     },
     {
       name: "Facebook",
       to: socialFacebookAnnouncement,
-      icon: <FacebookLogo className="w-5 h-5" />,
+      icon: <FacebookLogo className="h-5 w-5" />,
     },
   ];
 
@@ -114,7 +114,7 @@ export function ScrollingAnnouncement() {
     <div
       id="announcement-bar"
       ref={ref}
-      className="w-full flex justify-center items-center overflow-visible lg:px-6 md:px-6 px-5 z-10"
+      className="z-10 flex w-full items-center justify-center overflow-visible px-5 md:px-6 lg:px-6"
       style={
         {
           minHeight: `${topbarHeight}px`,
@@ -127,11 +127,11 @@ export function ScrollingAnnouncement() {
     >
       <div
         className={cn(
-          "grid md:grid-cols-3 md:gap-8 justify-center items-center py-1 grid-cols-1",
+          "grid grid-cols-1 items-center justify-center py-1 md:grid-cols-3 md:gap-8",
           variants({ width: announcementWidth }),
         )}
       >
-        <div className="md:flex gap-4 justify-start hidden">
+        <div className="hidden justify-start gap-4 md:flex">
           {socialItems.map((social) =>
             social.to ? (
               <Link
@@ -161,7 +161,7 @@ export function ScrollingAnnouncement() {
             {slides.map((slide, idx) => (
               <SwiperSlide key={idx}>
                 <div
-                  className="text-center px-12 py-1 overflow-hidden text-ellipsis whitespace-nowrap [&_p]:inline [&_p]:m-0"
+                  className="overflow-hidden text-ellipsis whitespace-nowrap px-12 py-1 text-center [&_p]:m-0 [&_p]:inline"
                   dangerouslySetInnerHTML={{ __html: slide }}
                 />
               </SwiperSlide>
@@ -170,7 +170,7 @@ export function ScrollingAnnouncement() {
 
           <button
             type="button"
-            className="announcement-prev absolute left-0 top-1/2 -translate-y-1/2 z-10 p-2"
+            className="announcement-prev -translate-y-1/2 absolute top-1/2 left-0 z-10 p-2"
             style={{ backgroundColor: topbarBgColor } as React.CSSProperties}
             aria-label="Previous slide"
           >
@@ -191,7 +191,7 @@ export function ScrollingAnnouncement() {
 
           <button
             type="button"
-            className="announcement-next absolute right-0 top-1/2 -translate-y-1/2 z-10 p-2"
+            className="announcement-next -translate-y-1/2 absolute top-1/2 right-0 z-10 p-2"
             style={{ backgroundColor: topbarBgColor } as React.CSSProperties}
             aria-label="Next slide"
           >
@@ -209,7 +209,7 @@ export function ScrollingAnnouncement() {
             </svg>
           </button>
         </div>
-        <div className="md:flex justify-end hidden">
+        <div className="hidden justify-end md:flex">
           <CountrySelector inputClassName="px-4 py-1" enableFlag={false} />
         </div>
       </div>

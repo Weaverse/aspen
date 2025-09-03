@@ -3,9 +3,7 @@ import { createSchema } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
 import { layoutInputs, Section } from "~/components/section";
 
-interface HotspotsProps
-  extends HydrogenComponentProps {}
-
+interface HotspotsProps extends HydrogenComponentProps {}
 
 let Hotspots = forwardRef<HTMLElement, HotspotsProps>((props, ref) => {
   let { children, ...rest } = props;
@@ -26,17 +24,13 @@ export default Hotspots;
 export const schema = createSchema({
   type: "hotspots",
   title: "Hotspots",
-  childTypes: [
-    "hotspots-container",
-    "hotspots-content",
-  ],
+  childTypes: ["hotspots-container", "hotspots-content"],
   settings: [
     {
       group: "Layout",
       inputs: [
         ...layoutInputs.filter(
-          (inp) =>
-            inp.name !== "divider" && inp.name !== "borderRadius",
+          (inp) => inp.name !== "divider" && inp.name !== "borderRadius",
         ),
       ],
     },

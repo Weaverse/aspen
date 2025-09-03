@@ -23,12 +23,15 @@ export function QuickShopVariants({
     <div className="space-y-5" data-motion="fade-up">
       <div className="product-form space-y-7 divide-y divide-line-subtle [&>*:not(:last-child)]:pb-3">
         {productOptions.map((option) => (
-          <div className="product-options flex justify-between items-center" key={option.name}>
+          <div
+            className="product-options flex items-center justify-between"
+            key={option.name}
+          >
             <legend className="leading-tight">
               <span className="font-normal uppercase">{option.name}</span>
             </legend>
-            <QuickShopOptionValues 
-              option={option} 
+            <QuickShopOptionValues
+              option={option}
               onVariantChange={onVariantChange}
             />
           </div>
@@ -36,4 +39,4 @@ export function QuickShopVariants({
       </div>
     </div>
   );
-} 
+}

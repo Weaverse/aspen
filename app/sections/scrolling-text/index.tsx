@@ -2,15 +2,15 @@ import type {
   HydrogenComponentProps,
   HydrogenComponentSchema,
 } from "@weaverse/hydrogen";
-import { type VariantProps, cva } from "class-variance-authority";
+import { cva, type VariantProps } from "class-variance-authority";
 import { type CSSProperties, forwardRef } from "react";
 import { cn } from "~/utils/cn";
 
 let variants = cva("", {
   variants: {
     width: {
-      full: "w-full h-full",
-      fixed: "w-full h-full container mx-auto",
+      full: "h-full w-full",
+      fixed: "container mx-auto h-full w-full",
     },
   },
 });
@@ -69,22 +69,23 @@ const ScrollingText = forwardRef<HTMLElement, ScrollingProps>((props, ref) => {
         "border-y border-y-[var(--border-color)]",
         "overflow-hidden",
         variants({ width: scrollWidth }),
-        !visibleOnMobile && "hidden sm:block"
+        !visibleOnMobile && "hidden sm:block",
       )}
     >
-      <div className="sm:hidden block text-center ff-heading text-base" dangerouslySetInnerHTML={{ __html: content }}>
-      </div>
+      <div
+        className="ff-heading block text-center text-base sm:hidden"
+        dangerouslySetInnerHTML={{ __html: content }}
+      />
       <ul className="hidden list-none sm:inline-flex">
         {Array.from({ length: 50 }).map((_, i) => (
           <li
             key={i}
-            className="animate-marquee whitespace-nowrap ff-heading font-medium text-[var(--text-color)] pr-[var(--gap)]"
+            className="ff-heading animate-marquee whitespace-nowrap pr-[var(--gap)] font-medium text-[var(--text-color)]"
             style={{
               fontSize: `${textSize}px`,
             }}
             dangerouslySetInnerHTML={{ __html: content }}
-          >
-          </li>
+          />
         ))}
       </ul>
     </section>
@@ -174,17 +175,17 @@ export let schema: HydrogenComponentSchema = {
           },
         },
         {
-            type: "range",
-            label: "Scrolling speed",
-            name: "topbarScrollingSpeed",
-            configs: {
-              min: 1,
-              max: 20,
-              step: 1,
-              unit: "x",
-            },
-            defaultValue: 1,
+          type: "range",
+          label: "Scrolling speed",
+          name: "topbarScrollingSpeed",
+          configs: {
+            min: 1,
+            max: 20,
+            step: 1,
+            unit: "x",
           },
+          defaultValue: 1,
+        },
         {
           type: "range",
           name: "gap",

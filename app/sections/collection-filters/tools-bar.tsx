@@ -31,18 +31,18 @@ export function ToolsBar({
   const { collection } = useLoaderData<CollectionQuery>();
   return (
     <div className="py-3">
-      <div className="gap-4 md:gap-8 flex w-full items-center justify-between h-full">
-        <div className="md:block hidden h-full space-y-3.5">
+      <div className="flex items-stretch justify-between gap-4 md:gap-8">
+        <div className="hidden flex-col justify-start gap-4 self-stretch md:flex">
           <h4 className="uppercase tracking-tighter">{collection.title}</h4>
           {showProductsCount && (
-            <span className="hidden md:inline uppercase">
+            <span className="hidden py-2 uppercase md:inline">
               products ({collection?.products.nodes.length})
             </span>
           )}
         </div>
         {(enableSort || (enableFilter && filtersPosition === "drawer")) && (
-          <div className="flex flex-col w-full gap-4 justify-end md:w-fit">
-            <div className="flex w-full justify-between items-end md:justify-end md:w-fit gap-2">
+          <div className="flex w-full flex-col justify-end gap-4 md:w-fit">
+            <div className="flex w-full items-end justify-between gap-2 md:w-fit md:justify-end">
               <LayoutSwitcher
                 gridSizeDesktop={gridSizeDesktop}
                 gridSizeMobile={gridSizeMobile}
@@ -53,7 +53,7 @@ export function ToolsBar({
               )}
             </div>
             {enableSort && (
-              <div className="w-full flex justify-end">
+              <div className="flex w-full justify-end">
                 <Sort />
               </div>
             )}
@@ -75,7 +75,7 @@ function FiltersDrawer({
         <Button
           variant="outline"
           className={cn(
-            "flex items-center gap-1.5 border py-2 h-12",
+            "flex h-12 items-center gap-1.5 border py-2",
             filtersPosition === "sidebar" && "lg:hidden",
           )}
           animate={false}
@@ -86,28 +86,28 @@ function FiltersDrawer({
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay
-          className="fixed inset-0 bg-black/50 data-[state=open]:animate-fade-in z-10"
+          className="fixed inset-0 z-10 bg-black/50 data-[state=open]:animate-fade-in"
           style={{ "--fade-in-duration": "100ms" } as React.CSSProperties}
         />
         <Dialog.Content
           className={clsx([
-            "fixed inset-y-0 w-full md:max-w-[430px] bg-(--color-background) py-4 z-10",
+            "fixed inset-y-0 z-10 w-full bg-(--color-background) py-4 md:max-w-[430px]",
             "right-0 data-[state=open]:animate-enter-from-right",
           ])}
           aria-describedby={undefined}
         >
           <div className="space-y-1">
-            <div className="flex gap-2 items-center justify-between px-4">
+            <div className="flex items-center justify-between gap-2 px-4">
               <Dialog.Title asChild className="py-2.5 font-semibold uppercase">
                 <span>Filters</span>
               </Dialog.Title>
               <Dialog.Close asChild>
                 <button
                   type="button"
-                  className="p-2 translate-x-2"
+                  className="translate-x-2 p-2"
                   aria-label="Close filters drawer"
                 >
-                  <XIcon className="w-4 h-4" />
+                  <XIcon className="h-4 w-4" />
                 </button>
               </Dialog.Close>
             </div>

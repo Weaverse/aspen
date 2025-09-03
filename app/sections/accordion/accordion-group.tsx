@@ -1,10 +1,13 @@
-import type { HydrogenComponentProps, HydrogenComponentSchema } from "@weaverse/hydrogen";
-import { forwardRef } from "react";
 import * as RadixAccordion from "@radix-ui/react-accordion";
+import type {
+  HydrogenComponentProps,
+  HydrogenComponentSchema,
+} from "@weaverse/hydrogen";
+import { forwardRef } from "react";
 
-interface AccordionGroupProps extends HydrogenComponentProps{
-    allowMultiple: boolean;
-};
+interface AccordionGroupProps extends HydrogenComponentProps {
+  allowMultiple: boolean;
+}
 
 const AccordionGroup = forwardRef<HTMLDivElement, AccordionGroupProps>(
   (props, ref) => {
@@ -14,13 +17,13 @@ const AccordionGroup = forwardRef<HTMLDivElement, AccordionGroupProps>(
       <div ref={ref} {...rest}>
         <RadixAccordion.Root
           type="multiple"
-          className="accordion--group w-full grid gap-4"
+          className="accordion--group grid w-full gap-4"
         >
           {children}
         </RadixAccordion.Root>
       </div>
     );
-  }
+  },
 );
 
 export default AccordionGroup;
@@ -31,8 +34,7 @@ export const schema: HydrogenComponentSchema = {
   inspector: [
     {
       group: "Accordion settings",
-      inputs: [
-      ],
+      inputs: [],
     },
   ],
   childTypes: ["accordion--item", "subheading", "heading", "paragraph"],
@@ -61,11 +63,11 @@ export const schema: HydrogenComponentSchema = {
       },
       {
         type: "accordion--item",
-        icon: 'https://cdn.shopify.com/s/files/1/0816/6326/3017/files/s2379451-main-zoom.webp?v=1729049475',
+        icon: "https://cdn.shopify.com/s/files/1/0816/6326/3017/files/s2379451-main-zoom.webp?v=1729049475",
         title: "Do shopping fees change according to sizes?",
         content:
           "Yes, we offer a discount for larger sizes. Contact our customer service team to learn more about our size-specific discounts.",
-      }
+      },
     ],
   },
 };

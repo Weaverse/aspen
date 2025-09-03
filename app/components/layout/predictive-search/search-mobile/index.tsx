@@ -1,15 +1,15 @@
 import { ArrowRight, MagnifyingGlass, X } from "@phosphor-icons/react";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
+import clsx from "clsx";
 import { type MutableRefObject, useEffect, useState } from "react";
+import { useLocation } from "react-router";
 import Link from "~/components/link";
 import { usePredictiveSearch } from "~/hooks/use-predictive-search";
 import { cn } from "~/utils/cn";
-import { PredictiveSearchResult } from "./predictive-search-result";
 import { PredictiveSearchForm } from "../search-form";
 import { PopularSearch } from "./PopularSearch";
-import clsx from "clsx";
-import { useLocation } from "react-router";
+import { PredictiveSearchResult } from "./predictive-search-result";
 
 export function PredictiveSearchButtonMobile({ setIsSearchOpen }) {
   let [open, setOpen] = useState(false);
@@ -32,20 +32,20 @@ export function PredictiveSearchButtonMobile({ setIsSearchOpen }) {
     >
       <Dialog.Trigger
         asChild
-        className="flex lg:hidden h-8 w-8 items-center justify-center focus-visible:outline-none"
+        className="flex h-8 w-8 items-center justify-center focus-visible:outline-none lg:hidden"
       >
         <button type="button">
-          <MagnifyingGlass className="w-5 h-5" />
+          <MagnifyingGlass className="h-5 w-5" />
         </button>
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay
-          className="fixed inset-0 bg-black/50 data-[state=open]:animate-fade-in z-10"
+          className="fixed inset-0 z-10 bg-black/50 data-[state=open]:animate-fade-in"
           style={{ "--fade-in-duration": "100ms" } as React.CSSProperties}
         />
         <Dialog.Content
           className={cn([
-            "fixed inset-y-0 w-screen max-w-[400px] bg-(--color-header-bg) z-10",
+            "fixed inset-y-0 z-10 w-screen max-w-[400px] bg-(--color-header-bg)",
             "left-0 data-[state=open]:animate-enter-from-left",
             "focus-visible:outline-none",
           ])}
@@ -58,22 +58,19 @@ export function PredictiveSearchButtonMobile({ setIsSearchOpen }) {
             <Dialog.Title>Predictive search</Dialog.Title>
           </VisuallyHidden.Root>
           <div className="relative px-5 pt-3">
-            <div className="flex gap-2 items-center justify-between py-2.5">
+            <div className="flex items-center justify-between gap-2 py-2.5">
               <Dialog.Title asChild className="">
                 <span className="font-semibold uppercase">Search</span>
               </Dialog.Title>
               <Dialog.Close asChild>
-                <button
-                  type="button"
-                  aria-label="Close cart drawer"
-                >
-                  <X className="w-4 h-4" />
+                <button type="button" aria-label="Close cart drawer">
+                  <X className="h-4 w-4" />
                 </button>
               </Dialog.Close>
             </div>
             <PredictiveSearchForm>
               {({ fetchResults, inputRef }) => (
-                <div className="flex items-center gap-3 max-w-(--page-width) mx-auto my-4 border-b border-line-subtle">
+                <div className="mx-auto my-4 flex max-w-(--page-width) items-center gap-3 border-line-subtle border-b">
                   <MagnifyingGlass className="h-5 w-5 shrink-0 text-gray-500" />
                   <input
                     name="q"
@@ -87,7 +84,7 @@ export function PredictiveSearchButtonMobile({ setIsSearchOpen }) {
                     placeholder="Enter a keyword"
                     ref={inputRef}
                     autoComplete="off"
-                    className="focus-visible:outline-none w-full h-full py-4"
+                    className="h-full w-full py-4 focus-visible:outline-none"
                   />
                 </div>
               )}
@@ -116,21 +113,21 @@ function PredictiveSearchResults() {
     );
   }
   return (
-    <div className="w-full z-10 bg-[--color-header-bg]">
-      <div className="flex flex-col gap-6 overflow-y-auto max-w-(--page-width) mx-auto max-h-[80vh]">
+    <div className="z-10 w-full bg-[--color-header-bg]">
+      <div className="mx-auto flex max-h-[80vh] max-w-(--page-width) flex-col gap-6 overflow-y-auto">
         <div className="flex flex-col gap-4 divide-y divide-line">
           <PredictiveSearchResult type="queries" items={queries?.items} />
         </div>
         <div className="">
-          <div className="flex gap-6 border-b border-line-subtle">
+          <div className="flex gap-6 border-line-subtle border-b">
             {["articles", "products"].map((type) => (
               <button
                 key={type}
                 type="button"
                 className={clsx(
-                  "relative uppercase font-normal px-3 py-1 transition",
+                  "relative px-3 py-1 font-normal uppercase transition",
                   activeType === type
-                    ? "border-b border-[#A79D95] font-medium text-body -mb-[2px]"
+                    ? "-mb-[2px] border-[#A79D95] border-b font-medium text-body"
                     : "text-body-subtle",
                 )}
                 onClick={() => setActiveType(type)}
@@ -139,7 +136,7 @@ function PredictiveSearchResults() {
               </button>
             ))}
           </div>
-          <div className="flex flex-col gap-4 mt-4">
+          <div className="mt-4 flex flex-col gap-4">
             {activeType === "articles" && (
               <PredictiveSearchResult type="articles" items={articles?.items} />
             )}
@@ -155,10 +152,10 @@ function PredictiveSearchResults() {
               <Link
                 to={`/search?q=${searchTerm.current}`}
                 variant="secondary"
-                className="flex items-center gap-2 w-fit"
+                className="flex w-fit items-center gap-2"
               >
-                <span className=" uppercase">View all Products</span>
-                <ArrowRight className="w-4 h-4" />
+                <span className="uppercase">View all Products</span>
+                <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
           )}

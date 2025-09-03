@@ -14,11 +14,11 @@ import { components } from "~/weaverse/components";
 import { themeSchema } from "~/weaverse/schema.server";
 
 // React Router v7 Headers polyfill for getSetCookie compatibility
-if (typeof Headers !== 'undefined' && !Headers.prototype.getSetCookie) {
-  Headers.prototype.getSetCookie = function() {
+if (typeof Headers !== "undefined" && !Headers.prototype.getSetCookie) {
+  Headers.prototype.getSetCookie = function () {
     const setCookieValues = [];
     for (const [key, value] of this.entries()) {
-      if (key.toLowerCase() === 'set-cookie') {
+      if (key.toLowerCase() === "set-cookie") {
         setCookieValues.push(value);
       }
     }
@@ -27,32 +27,32 @@ if (typeof Headers !== 'undefined' && !Headers.prototype.getSetCookie) {
 }
 
 // Additional polyfill to ensure Headers has proper Set-Cookie handling methods
-if (typeof Headers !== 'undefined') {
+if (typeof Headers !== "undefined") {
   const originalSet = Headers.prototype.set;
   const originalAppend = Headers.prototype.append;
   const originalGet = Headers.prototype.get;
-  
-  Headers.prototype.set = function(name, value) {
-    if (name.toLowerCase() === 'set-cookie') {
+
+  Headers.prototype.set = function (name, value) {
+    if (name.toLowerCase() === "set-cookie") {
       // Store set-cookie values for later retrieval
       if (!this._setCookies) this._setCookies = [];
       this._setCookies = [value];
     }
     return originalSet.call(this, name, value);
   };
-  
-  Headers.prototype.append = function(name, value) {
-    if (name.toLowerCase() === 'set-cookie') {
+
+  Headers.prototype.append = function (name, value) {
+    if (name.toLowerCase() === "set-cookie") {
       // Store set-cookie values for later retrieval
       if (!this._setCookies) this._setCookies = [];
       this._setCookies.push(value);
     }
     return originalAppend.call(this, name, value);
   };
-  
+
   // Ensure getSetCookie always works
   if (!Headers.prototype.getSetCookie) {
-    Headers.prototype.getSetCookie = function() {
+    Headers.prototype.getSetCookie = function () {
       return this._setCookies || [];
     };
   }

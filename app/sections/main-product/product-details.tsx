@@ -12,16 +12,16 @@ interface ProductDetailsProps {
   shop?: any;
 }
 
-export function ProductDetails({ 
-  showShippingPolicy, 
-  showRefundPolicy, 
+export function ProductDetails({
+  showShippingPolicy,
+  showRefundPolicy,
   showShortDescription = true,
-  product: propProduct, 
-  shop: propShop 
+  product: propProduct,
+  shop: propShop,
 }: ProductDetailsProps) {
   // Try to get data from props first, fallback to useLoaderData if available
   let product, shop;
-  
+
   try {
     const loaderData = useLoaderData<typeof productLoader>();
     product = propProduct || loaderData?.product;
@@ -62,25 +62,25 @@ export function ProductDetails({
   return (
     <Accordion.Root type="multiple">
       {details.map(({ title, content, learnMore }, index) => (
-        <Accordion.Item 
-          key={title} 
+        <Accordion.Item
+          key={title}
           value={title}
           className={clsx(
-            index === details.length - 1 && "border-b border-line-subtle",
+            index === details.length - 1 && "border-line-subtle border-b",
             "data-[state=open]:pb-6",
           )}
         >
           <Accordion.Trigger
             className={clsx([
-              "flex justify-between py-6 w-full",
-              "border-t border-line-subtle",
+              "flex w-full justify-between py-6",
+              "border-line-subtle border-t",
               "data-[state=open]:[&>.minus]:inline-block",
               "data-[state=open]:[&>.plus]:hidden",
             ])}
           >
-            <span className="uppercase font-normal">{title}</span>
-            <MinusIcon className="w-4 h-4 minus hidden" />
-            <PlusIcon className="w-4 h-4 plus" />
+            <span className="font-normal uppercase">{title}</span>
+            <MinusIcon className="minus hidden h-4 w-4" />
+            <PlusIcon className="plus h-4 w-4" />
           </Accordion.Trigger>
           <Accordion.Content
             style={
@@ -99,12 +99,12 @@ export function ProductDetails({
           >
             <div
               suppressHydrationWarning
-              className="prose dark:prose-invert"
+              className="prose dark:prose-invert !text-[#29231E] font-normal"
               dangerouslySetInnerHTML={{ __html: content }}
             />
             {learnMore && (
               <Link
-                className="pb-px border-b border-line-subtle text-body-subtle"
+                className="border-line-subtle border-b pb-px text-body-subtle"
                 to={learnMore}
               >
                 Learn more
