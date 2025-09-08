@@ -11,7 +11,7 @@ export function PopularSearch() {
 
   return (
     <div className="mx-auto flex max-w-(--page-width) flex-col gap-4">
-      <h3 className="font-semibold text-sm uppercase">Popular Searches</h3>
+      <span className="font-normal uppercase">Popular Searches</span>
       <ul className="flex flex-col gap-2">
         {popularSearches.map((search, index) => (
           <li key={index}>
@@ -19,7 +19,7 @@ export function PopularSearch() {
               to={`/search?q=${encodeURIComponent(search)}`}
               className="hover:-translate-y-1 block w-fit transition-transform duration-200"
             >
-              <span className="text-sm">{search}</span>
+              <span>{search}</span>
             </Link>
           </li>
         ))}

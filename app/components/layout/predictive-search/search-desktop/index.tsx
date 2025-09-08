@@ -109,7 +109,7 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
 }
 
 function PredictiveSearchResults() {
-  const [activeType, setActiveType] = useState("articles");
+  const [activeType, setActiveType] = useState("products");
   const { results, totalResults, searchTerm } = usePredictiveSearch();
   const queries = results?.find(({ type }) => type === "queries");
   const articles = results?.find(({ type }) => type === "articles");
@@ -129,8 +129,8 @@ function PredictiveSearchResults() {
           <PredictiveSearchResult type="queries" items={queries?.items} />
         </div>
         <div className="w-4/5">
-          <div className="flex gap-6 border-line-subtle border-b">
-            {["articles", "products"].map((type) => {
+          <div className="relative flex gap-6 border-line-subtle border-b">
+            {["products", "articles"].map((type) => {
               const itemCount =
                 type === "articles"
                   ? articles?.items?.length || 0
@@ -143,7 +143,7 @@ function PredictiveSearchResults() {
                   className={clsx(
                     "relative px-3 py-1 font-normal transition",
                     activeType === type
-                      ? "-mb-[2px] border-line border-b text-[#524B46]"
+                      ? "text-[#524B46] after:absolute after:right-0 after:bottom-0 after:left-0 after:h-[1px] after:translate-y-[1px] after:bg-[#A79D95]"
                       : "text-[#918379]",
                   )}
                   onClick={() => setActiveType(type)}

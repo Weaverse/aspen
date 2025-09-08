@@ -99,7 +99,7 @@ export function PredictiveSearchButtonMobile({ setIsSearchOpen }) {
 }
 
 function PredictiveSearchResults() {
-  const [activeType, setActiveType] = useState("articles");
+  const [activeType, setActiveType] = useState("products");
   let { results, totalResults, searchTerm } = usePredictiveSearch();
   let queries = results?.find(({ type }) => type === "queries");
   let articles = results?.find(({ type }) => type === "articles");
@@ -119,15 +119,15 @@ function PredictiveSearchResults() {
           <PredictiveSearchResult type="queries" items={queries?.items} />
         </div>
         <div className="">
-          <div className="flex gap-6 border-line-subtle border-b">
-            {["articles", "products"].map((type) => (
+          <div className="relative flex gap-6 border-line-subtle border-b">
+            {["products", "articles"].map((type) => (
               <button
                 key={type}
                 type="button"
                 className={clsx(
                   "relative px-3 py-1 font-normal uppercase transition",
                   activeType === type
-                    ? "-mb-[2px] border-[#A79D95] border-b font-medium text-body"
+                    ? "font-medium text-body after:absolute after:right-0 after:bottom-0 after:left-0 after:h-[2px] after:translate-y-[1px] after:bg-[#A79D95]"
                     : "text-body-subtle",
                 )}
                 onClick={() => setActiveType(type)}
@@ -148,7 +148,7 @@ function PredictiveSearchResults() {
             )}
           </div>
           {activeType === "products" && products?.items?.length > 0 && (
-            <div className="mt-4">
+            <div className="mt-9">
               <Link
                 to={`/search?q=${searchTerm.current}`}
                 variant="secondary"
@@ -170,7 +170,7 @@ function NoResults({ searchTerm }: { searchTerm: MutableRefObject<string> }) {
     return null;
   }
   return (
-    <p className="w-[640px] bg-[--color-header-bg] p-6">
+    <p className="w-[640px] bg-[--color-header-bg]">
       No results found for <q>{searchTerm.current}</q>
     </p>
   );
