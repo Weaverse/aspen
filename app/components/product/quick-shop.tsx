@@ -354,19 +354,19 @@ export function QuickShopTrigger({
           type="button"
           className={clsx(
             // Mobile/Tablet: Always visible circular button at bottom right
-            "absolute right-4 bottom-4 h-12 w-12 md:opacity-100",
+            "absolute right-4 bottom-4 md:opacity-100",
             "rounded-full bg-white",
             "flex items-center justify-center p-0",
             // Desktop: Hide initially, show on hover with text
             showOnHover
               ? "lg:inset-x-4 lg:h-auto lg:w-auto lg:rounded-none lg:opacity-0"
               : "lg:inset-x-4 lg:h-auto lg:w-auto lg:rounded-none lg:opacity-100",
-            "lg:px-6 lg:py-3",
+            "lg:px-6 lg:py-5",
             "lg:border-(--btn-secondary-bg) lg:bg-(--btn-secondary-bg) lg:text-(--btn-secondary-text)",
             showOnHover
               ? "lg:-translate-y-1.5 lg:-translate-x-2 lg:group-hover:translate-x-0 lg:group-hover:translate-y-2 lg:group-hover:opacity-100"
               : "",
-            "lg:whitespace-nowrap lg:font-normal",
+            "lg:whitespace-nowrap lg:font-normal lg:leading-3.5",
           )}
         >
           {/* Shopping bag icon for mobile/tablet */}
