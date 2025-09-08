@@ -453,3 +453,50 @@
   background: none !important;
   font-weight: 600 !important;
 }
+
+/* Hide scrollbar utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
+/* Drag scroll utilities */
+.drag-scroll {
+  scroll-behavior: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Footer menu accordion animations */
+@keyframes expand {
+  from {
+    height: 0;
+    opacity: 0;
+  }
+  to {
+    height: var(--expand-to);
+    opacity: 1;
+  }
+}
+
+@keyframes collapse {
+  from {
+    height: var(--collapse-from);
+    opacity: 1;
+  }
+  to {
+    height: 0;
+    opacity: 0;
+  }
+}
+
+.animate-expand {
+  animation: expand var(--expand-duration, 0.3s) ease-out;
+}
+
+.animate-collapse {
+  animation: collapse var(--collapse-duration, 0.3s) ease-in;
+}

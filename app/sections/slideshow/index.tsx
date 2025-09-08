@@ -104,9 +104,7 @@ const Slideshow = forwardRef<
         ].filter(Boolean)}
       >
         {children.map((child, idx) => (
-          <SwiperSlide key={idx} className="bg-white">
-            {child}
-          </SwiperSlide>
+          <SwiperSlide key={idx}>{child}</SwiperSlide>
         ))}
         {showArrows && <Arrows {...props} />}
         {showDots && <Dots {...props} slidesCount={children.length} />}
