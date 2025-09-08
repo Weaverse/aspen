@@ -47,7 +47,7 @@ const BlogPost = forwardRef<HTMLElement, BlogPostProps>((props, ref) => {
             <Image data={image} sizes="90vw" />
           </div>
         )}
-        <article className="prose mx-auto py-20 lg:max-w-4xl">
+        <article className="lg:prose px-5 py-20 lg:mx-auto lg:max-w-4xl lg:px-0">
           <div className="mb-3 space-y-5 text-left">
             <h3 className="h3 !mt-0 !mb-8 !tracking-tighter font-normal leading-tight!">
               {title}
