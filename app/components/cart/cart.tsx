@@ -62,7 +62,7 @@ function CartDetails({
             "grid grid-cols-1 grid-rows-[1fr_auto] px-4 pt-6",
             enableFreeShipping ? "h-[calc(100vh-100px)]" : "h-[100vh]",
           ],
-          layout === "page" && ["flex gap-10 lg:gap-5"],
+          layout === "page" && ["flex flex-col gap-10 lg:flex-row lg:gap-5"],
         )}
       >
         <div
@@ -79,21 +79,33 @@ function CartDetails({
         <CartSummary cost={cart.cost} layout={layout}>
           <CartDiscounts discountCodes={cart.discountCodes} />
           {layout === "page" && (
-            <div className="flex flex-col gap-6 border-line-subtle border-y py-6">
+            <>
+              <div className="flex flex-col gap-6 border-line-subtle border-y py-6">
+                <div className="flex items-center justify-between font-medium">
+                  <span className="font-normal">Subtotal</span>
+                  <span className="font-normal">
+                    {cart?.cost?.subtotalAmount?.amount ? (
+                      <Money data={cart?.cost?.subtotalAmount} />
+                    ) : (
+                      "-"
+                    )}
+                  </span>
+                </div>
+                <span className="font-normal text-[#918379]">
+                  Shipping & taxes calculated at checkout
+                </span>
+              </div>
               <div className="flex items-center justify-between font-medium">
-                <span className="font-normal">Subtotal</span>
-                <span className="font-normal">
-                  {cart?.cost?.subtotalAmount?.amount ? (
-                    <Money data={cart?.cost?.subtotalAmount} />
+                <span className="font-semibold">Total</span>
+                <span className="font-semibold">
+                  {cart?.cost?.totalAmount?.amount ? (
+                    <Money data={cart?.cost?.totalAmount} />
                   ) : (
                     "-"
                   )}
                 </span>
               </div>
-              <span className="font-normal text-[#918379]">
-                Shipping & taxes calculated at checkout
-              </span>
-            </div>
+            </>
           )}
           <CartCheckoutActions checkoutUrl={cart.checkoutUrl} layout={layout} />
         </CartSummary>
@@ -169,12 +181,12 @@ function CartDiscounts({
       <UpdateDiscountForm discountCodes={codes}>
         <div className="flex items-center gap-3">
           <input
-            className="grow rounded-none border border-line p-3 leading-tight!"
+            className="grow rounded-none border border-line bg-white px-4 py-5 leading-tight!"
             type="text"
             name="discountCode"
             placeholder="Discount code"
           />
-          <Button variant="outline" className="leading-tight!">
+          <Button variant="outline" className="!px-6 !py-5 leading-tight!">
             Apply
           </Button>
         </div>
@@ -225,7 +237,7 @@ function CartLines({
     >
       <ul
         className={clsx(
-          layout === "page" && "flex flex-col",
+          layout === "page" && "flex flex-col gap-6",
           layout === "drawer" && "grid gap-5",
         )}
       >
@@ -264,7 +276,7 @@ function CartCheckoutActions({
         </Link>
       )}
       <a href={checkoutUrl} target="_self">
-        <Button className="w-full">Continue to Checkout</Button>
+        <Button className="!px-6 !py-5 w-full">CHECKOUT</Button>
       </a>
     </div>
   );
@@ -284,7 +296,8 @@ function CartSummary({
       className={clsx(
         layout === "drawer" &&
           "sticky bottom-0 grid gap-4 border-line-subtle border-t bg-white p-4",
-        layout === "page" && "flex w-full flex-col gap-6 px-6 pb-6 lg:w-1/3",
+        layout === "page" &&
+          "flex w-full flex-col gap-6 px-6 pb-6 md:mx-auto md:w-1/2 lg:mx-0 lg:w-1/3",
       )}
     >
       {layout === "page" && (
@@ -350,7 +363,7 @@ function CartLineItem({
       className={clsx(
         layout === "drawer"
           ? "flex gap-4"
-          : "flex h-full items-center bg-white",
+          : "flex h-full flex-col items-center bg-white md:flex-row",
       )}
       style={{
         display: optimisticData?.action === "remove" ? "none" : "flex",
@@ -358,10 +371,7 @@ function CartLineItem({
     >
       {/* Thumbnail */}
       <div
-        className={clsx(
-          "shrink-0",
-          layout === "drawer" ? "" : "h-[360px] w-[360px]",
-        )}
+        className={clsx(layout === "drawer" ? "shrink-0" : "h-[360px] w-full")}
       >
         {image && (
           <Image
@@ -382,7 +392,9 @@ function CartLineItem({
       <div
         className={clsx(
           "flex flex-col",
-          layout === "drawer" ? "grow justify-between" : "h-[360px] p-6",
+          layout === "drawer"
+            ? "grow justify-between"
+            : "h-full w-full p-6 md:h-[360px]",
         )}
       >
         {layout === "page" ? (
