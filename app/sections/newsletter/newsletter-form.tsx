@@ -28,22 +28,22 @@ const NewsLetterForm = forwardRef<HTMLDivElement, NewsLetterInputProps>(
         <Form
           method="POST"
           action="/api/customer"
-          className="flex w-full items-center"
+          className="flex w-full items-stretch gap-2"
           data-motion="fade-up"
         >
-          <div className="flex grow items-center border-y border-r-0 border-l">
+          <div className="flex h-[54px] grow items-center border border-line-subtle">
             <EnvelopeSimpleIcon className="mr-1.5 ml-3 h-5 w-5 shrink-0" />
             <input
               name="email"
               type="email"
               required
               placeholder={placeholder}
-              className="w-full bg-transparent py-3 pr-3 pl-1.5 leading-tight focus:outline-hidden"
+              className="h-full w-full bg-transparent pr-3 pl-1.5 leading-tight focus:outline-hidden"
             />
           </div>
           <Button
             type="submit"
-            className="gap-3"
+            className="h-[54px] gap-3"
             loading={state === "submitting"}
           >
             {buttonText}
