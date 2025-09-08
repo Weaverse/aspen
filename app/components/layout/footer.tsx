@@ -2,6 +2,7 @@ import {
   FacebookLogoIcon,
   InstagramLogoIcon,
   LinkedinLogoIcon,
+  Minus,
   Plus,
   XLogoIcon,
 } from "@phosphor-icons/react";
@@ -214,7 +215,7 @@ export function Footer() {
                   action="/api/klaviyo"
                   method="POST"
                   encType="multipart/form-data"
-                  className="flex h-[54px] gap-3"
+                  className="flex h-[54px] gap-2"
                 >
                   <input
                     name="email"
@@ -291,14 +292,36 @@ export function Footer() {
 function FooterMenu() {
   const { footerMenu } = useShopMenu();
   const items = footerMenu.items as unknown as SingleMenuItem[];
+  const [openItems, setOpenItems] = useState<string[]>([]);
+
+  // On desktop, open all items by default
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        // md breakpoint
+        setOpenItems(items.map(({ id }) => id));
+      } else {
+        setOpenItems([]); // Close all on mobile
+      }
+    };
+
+    // Initial setup
+    handleResize();
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [items]);
+
   return (
     <Accordion.Root
       type="multiple"
-      defaultValue={items.map(({ id }) => id)}
+      value={openItems}
+      onValueChange={setOpenItems}
       className="grid w-full pt-0 md:grid-cols-3 md:gap-5 md:pt-9 lg:grid-cols-4 lg:gap-8"
     >
       {items.map(({ id, to, title, items: subItems }) => {
         const isEmpty = !subItems || subItems.length === 0;
+        const isOpen = openItems.includes(id);
 
         return (
           <Accordion.Item
@@ -317,9 +340,26 @@ function FooterMenu() {
                 )}
               </div>
             ) : (
-              <Accordion.Trigger className="flex items-center justify-between py-4 text-left font-medium md:hidden data-[state=open]:[&>svg]:rotate-90">
+              <Accordion.Trigger className="group flex items-center justify-between py-4 text-left font-medium transition-all duration-200 hover:text-opacity-80 md:hidden">
                 <span>{title}</span>
-                <Plus className="h-4 w-4 rotate-0 transition-transform" />
+                <div className="relative h-4 w-4">
+                  <Plus
+                    className={clsx(
+                      "absolute h-4 w-4 transition-all duration-300 ease-in-out",
+                      isOpen
+                        ? "rotate-90 scale-0 opacity-0"
+                        : "rotate-0 scale-100 opacity-100",
+                    )}
+                  />
+                  <Minus
+                    className={clsx(
+                      "absolute h-4 w-4 transition-all duration-300 ease-in-out",
+                      isOpen
+                        ? "rotate-0 scale-100 opacity-100"
+                        : "rotate-90 scale-0 opacity-0",
+                    )}
+                  />
+                </div>
               </Accordion.Trigger>
             )}
 
@@ -339,19 +379,19 @@ function FooterMenu() {
               <Accordion.Content
                 style={
                   {
-                    "--expand-duration": "0.15s",
+                    "--expand-duration": "0.3s",
                     "--expand-to": "var(--radix-accordion-content-height)",
-                    "--collapse-duration": "0.15s",
+                    "--collapse-duration": "0.3s",
                     "--collapse-from": "var(--radix-accordion-content-height)",
                   } as React.CSSProperties
                 }
                 className={clsx([
-                  "overflow-hidden",
+                  "overflow-hidden transition-all",
                   "data-[state=closed]:animate-collapse",
                   "data-[state=open]:animate-expand",
                 ])}
               >
-                <div className="flex flex-col gap-2 pb-4 lg:pt-6">
+                <div className="fade-in flex animate-in flex-col gap-2 pt-2 pb-4 duration-200 lg:pt-6">
                   {subItems.map(({ id, to, title }) => (
                     <Link to={to} key={id} className="relative w-fit">
                       <RevealUnderline className="[--underline-color:var(--color-footer-text)]">
