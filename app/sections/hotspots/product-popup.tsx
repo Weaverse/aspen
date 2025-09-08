@@ -1,3 +1,4 @@
+import { ShoppingBagIcon } from "@phosphor-icons/react";
 import { Money } from "@shopify/hydrogen";
 import type { MediaImage } from "@shopify/hydrogen/storefront-api-types";
 import { IMAGES_PLACEHOLDERS } from "@weaverse/hydrogen";
@@ -8,14 +9,13 @@ import type {
   ProductQuery,
   ProductVariantFragment,
 } from "storefront-api.generated";
-import { AddToCartButton } from "~/components/product/add-to-cart-button";
 import { Image } from "~/components/image";
 import { Link } from "~/components/link";
+import { AddToCartButton } from "~/components/product/add-to-cart-button";
 import { OPTIONS_AS_SWATCH } from "~/components/product/product-option-values";
 import { Tooltip, TooltipContent, TooltipTrigger } from "~/components/tooltip";
 import { isLightColor } from "~/utils/misc";
 import type { HotspotsItemData } from "./item";
-import { ShoppingBagIcon } from "@phosphor-icons/react";
 
 interface ProductPopupProps
   extends Omit<HotspotsItemData, "icon" | "iconSize" | "product"> {
@@ -41,7 +41,7 @@ const PRODUCT_PLACEHOLDER: Partial<ProductQuery["product"]> = {
       },
     ],
   },
-  // @ts-ignore
+  // @ts-expect-error
   variants: {
     nodes: [
       {
@@ -104,7 +104,7 @@ function ProductColorOptions({
                   <button
                     type="button"
                     className={clsx(
-                      "w-2.5 h-2.5 overflow-hidden transition-(outline-color) outline-solid outline-offset-1 outline-1",
+                      "h-2.5 w-2.5 overflow-hidden outline-1 outline-solid outline-offset-1 transition-(outline-color)",
                       isSelected
                         ? "outline-gray-800"
                         : "outline-transparent hover:outline-gray-400",
@@ -114,9 +114,9 @@ function ProductColorOptions({
                         "border border-gray-300",
                     )}
                     style={
-                      !swatch?.image?.previewImage
-                        ? { backgroundColor: swatchColor }
-                        : undefined
+                      swatch?.image?.previewImage
+                        ? undefined
+                        : { backgroundColor: swatchColor }
                     }
                     onClick={() => {
                       if (firstSelectableVariant) {
@@ -127,7 +127,7 @@ function ProductColorOptions({
                     {swatch?.image?.previewImage ? (
                       <Image
                         data={swatch.image.previewImage}
-                        className="w-full h-full object-cover object-center"
+                        className="h-full w-full object-cover object-center"
                         width={10}
                         height={10}
                         sizes="10px"
@@ -145,7 +145,7 @@ function ProductColorOptions({
 }
 
 export function ProductPopup({
-  // @ts-ignore
+  // @ts-expect-error
   product = PRODUCT_PLACEHOLDER,
   offsetX,
   offsetY,
@@ -195,15 +195,15 @@ export function ProductPopup({
         } as CSSProperties
       }
     >
-      <div className="bg-white shadow-[0_0_8px_rgba(115,99,81,0.2)] p-2 sm:p-2.5 md:p-3 flex flex-col gap-2 sm:gap-3 overflow-hidden">
+      <div className="flex flex-col gap-2 overflow-hidden bg-white p-2 shadow-[0_0_8px_rgba(115,99,81,0.2)] sm:gap-3 sm:p-2.5 md:p-3">
         {/* Thumbnail */}
         {featuredImage && (
-          <div className="w-full aspect-square overflow-hidden bg-gray-100">
+          <div className="aspect-square w-full overflow-hidden bg-gray-100">
             <Image
               data={featuredImage}
               alt={product.title}
               sizes="(max-width: 640px) 160px, (max-width: 768px) 192px, 208px"
-              className="w-full h-full object-cover"
+              className="h-full w-full object-cover"
             />
           </div>
         )}
@@ -211,10 +211,10 @@ export function ProductPopup({
         {/* Info Section */}
         <div className="flex flex-col gap-1 sm:gap-1.5">
           {/* Title */}
-          <h3 className="font-semibold text-xs sm:text-sm md:text-sm leading-tight text-[#29231E] tracking-[0.02em] uppercase line-clamp-1">
+          <h3 className="line-clamp-1 font-semibold text-[#29231E] text-xs uppercase leading-tight tracking-[0.02em] sm:text-sm md:text-sm">
             {product.title}
           </h3>
-          <div className="flex justify-between items-center">
+          <div className="flex items-center justify-between">
             {/* Price */}
             {showPrice && (
               <div className="flex items-center gap-1.5">
@@ -223,7 +223,7 @@ export function ProductPopup({
                     withoutTrailingZeros
                     data={compareAtPrice}
                     as="span"
-                    className="text-xs sm:text-sm line-through text-gray-400"
+                    className="text-gray-400 text-xs line-through sm:text-sm"
                   />
                 )}
                 {price && (
@@ -231,7 +231,7 @@ export function ProductPopup({
                     withoutTrailingZeros
                     data={price}
                     as="span"
-                    className="text-xs sm:text-sm font-normal text-[#29231E] tracking-[0.02em]"
+                    className="font-normal text-[#29231E] text-xs tracking-[0.02em] sm:text-sm"
                   />
                 )}
               </div>
@@ -252,7 +252,7 @@ export function ProductPopup({
             <Link
               to={`/products/${product.handle}`}
               variant="secondary"
-              className="!p-0 w-full flex justify-center items-center"
+              className="!p-0 flex w-full items-center justify-center uppercase"
             >
               {viewDetailsLinkText}
             </Link>
@@ -270,7 +270,7 @@ export function ProductPopup({
                   ]
                 : []
             }
-            className="bg-[#908379] hover:bg-[#7a6f66] text-white transition-colors flex items-center justify-center !py-4 !px-6 h-12"
+            className="!py-4 !px-6 flex h-12 items-center justify-center bg-[#908379] text-white transition-colors hover:bg-[#7a6f66]"
           >
             <ShoppingBagIcon size={16} />
           </AddToCartButton>

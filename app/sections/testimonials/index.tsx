@@ -2,14 +2,13 @@ import { createSchema } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
 import { backgroundInputs } from "~/components/background-image";
 import type { SectionProps } from "~/components/section";
-import { Section, layoutInputs } from "~/components/section";
+import { layoutInputs, Section } from "~/components/section";
 
 type TestimonialProps = SectionProps;
 
 const TestimonialIndex = forwardRef<HTMLElement, TestimonialProps>(
-  
   (props, ref) => {
-      const { children, ...rest } = props;
+    const { children, ...rest } = props;
 
     return (
       <Section

@@ -4,7 +4,11 @@ import type {
   HydrogenComponentSchema,
 } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
-import { Section, sectionSettings, type SectionProps } from "~/components/section";
+import {
+  Section,
+  type SectionProps,
+  sectionSettings,
+} from "~/components/section";
 import { InstagramProvider } from "./context";
 
 type InstagramData = {
@@ -25,20 +29,12 @@ type InstagramProps = HydrogenComponentProps<
   SectionProps;
 
 const Instagram = forwardRef<HTMLElement, InstagramProps>((props, ref) => {
-  let {
-    instagramToken,
-    loaderData,
-    children,
-    ...rest
-  } = props;
+  let { instagramToken, loaderData, children, ...rest } = props;
 
   return (
-    <Section
-      ref={ref}
-      {...rest}
-    >
+    <Section ref={ref} {...rest}>
       <InstagramProvider value={{ loaderData }}>
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-center gap-10">
+        <div className="flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-center lg:gap-4">
           {children}
         </div>
       </InstagramProvider>
@@ -49,14 +45,14 @@ const Instagram = forwardRef<HTMLElement, InstagramProps>((props, ref) => {
 export default Instagram;
 
 export let loader = async (args: ComponentLoaderArgs<InstagramData>) => {
-  let {weaverse, data} = args;
+  let { weaverse, data } = args;
   if (data.instagramToken) {
     try {
       let API = `https://graph.instagram.com/me/media?fields=id,media_url,username&access_token=${data.instagramToken}`;
       let res = await weaverse.fetchWithCache(API);
       return res;
     } catch (error) {
-      console.error('Error fetching Instagram data:', error);
+      console.error("Error fetching Instagram data:", error);
       return null;
     }
   }
@@ -89,7 +85,8 @@ export const schema: HydrogenComponentSchema = {
         type: "instagram--content",
         title: "Instagram",
         subtitle: "@instagram",
-        description: "Meet the room edits: real life shots of our furniture in action. (We like to think we style our furniture well, but we can't help but show off how you do it.)",
+        description:
+          "Meet the room edits: real life shots of our furniture in action. (We like to think we style our furniture well, but we can't help but show off how you do it.)",
         alignment: "center",
       },
       {

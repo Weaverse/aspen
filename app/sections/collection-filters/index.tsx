@@ -80,13 +80,15 @@ const CollectionFilters = forwardRef<HTMLElement, CollectionFiltersProps>(
         : collection.image;
       return (
         <Section ref={ref} {...rest} overflow="unset">
-          <div className="lg:py-8 py-5">
+          <div className="py-5 lg:py-8">
             {showBreadcrumb && (
               <BreadCrumb page={collection.title} className="mb-2.5" />
             )}
-            <h4 className="md:hidden block uppercase tracking-tighter">{collection.title}</h4>
+            <h4 className="block uppercase tracking-tighter md:hidden">
+              {collection.title}
+            </h4>
             {showDescription && collection.description && (
-              <p className="text-body-subtle mt-2.5">
+              <p className="mt-2.5 text-body-subtle">
                 {collection.description}
               </p>
             )}
@@ -114,7 +116,7 @@ const CollectionFilters = forwardRef<HTMLElement, CollectionFiltersProps>(
             gridSizeDesktop={gridSizeDesktop}
             gridSizeMobile={gridSizeMobile}
             onGridSizeChange={(v, context) => {
-              if (context === 'desktop') {
+              if (context === "desktop") {
                 setGridSizeDesktop(v);
               } else {
                 setGridSizeMobile(v);
@@ -124,8 +126,8 @@ const CollectionFilters = forwardRef<HTMLElement, CollectionFiltersProps>(
           />
           <div className="flex gap-5 pt-3 pb-8 lg:pb-20">
             {enableFilter && filtersPosition === "sidebar" && (
-              <div className="hidden lg:block shrink-0 w-72">
-                <div className="space-y-4 sticky top-[calc(var(--height-nav)+40px)]">
+              <div className="hidden w-72 shrink-0 lg:block">
+                <div className="sticky top-[calc(var(--height-nav)+40px)] space-y-4">
                   <div className="font-bold uppercase">Filters</div>
                   <Filters />
                 </div>

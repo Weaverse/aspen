@@ -17,19 +17,19 @@ export function MobileMenu() {
     <Dialog.Root>
       <Dialog.Trigger
         asChild
-        className="relative flex lg:hidden items-center justify-center w-8 h-8 focus-visible:outline-hidden"
+        className="relative flex h-8 w-8 items-center justify-center focus-visible:outline-hidden lg:hidden"
       >
         <MenuTrigger />
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay
-          className="fixed inset-0 bg-black/50 data-[state=open]:animate-fade-in z-10"
+          className="fixed inset-0 z-10 bg-black/50 data-[state=open]:animate-fade-in"
           style={{ "--fade-in-duration": "100ms" } as React.CSSProperties}
         />
         <Dialog.Content
           className={cn([
-            "fixed inset-0 h-screen bg-(--color-header-bg-hover) pt-4 pb-2 z-10",
-            "left-0 -translate-x-full data-[state=open]:translate-x-0 data-[state=open]:animate-enter-from-left",
+            "fixed inset-0 z-10 h-screen bg-(--color-header-bg-hover) pt-4 pb-2",
+            "-translate-x-full left-0 data-[state=open]:translate-x-0 data-[state=open]:animate-enter-from-left",
             "focus-visible:outline-hidden",
             "uppercase",
           ])}
@@ -39,12 +39,12 @@ export function MobileMenu() {
           aria-describedby={undefined}
         >
           <Dialog.Title asChild>
-            <div className="px-4 uppercase font-semibold">Menu</div>
+            <div className="px-4 font-semibold uppercase">Menu</div>
           </Dialog.Title>
           <Dialog.Close asChild>
-            <XIcon className="w-5 h-5 fixed top-4 right-4" />
+            <XIcon className="fixed top-4 right-4 h-5 w-5" />
           </Dialog.Close>
-          <div className="mt-4 border-t border-line-subtle" />
+          <div className="mt-4 border-line-subtle border-t" />
           <div className="py-2">
             <ScrollArea className="h-[calc(100vh-5rem)]">
               <div className="space-y-1 px-4">
@@ -81,10 +81,10 @@ function CollapsibleMenuItem({ item }: { item: SingleMenuItem }) {
       <Collapsible.Trigger asChild>
         <button
           type="button"
-          className='py-3 w-full flex items-center gap-4 justify-between data-[state="open"]:[&>svg]:rotate-90'
+          className='flex w-full items-center justify-between gap-4 py-3 data-[state="open"]:[&>svg]:rotate-90'
         >
           <span className="uppercase">{title}</span>
-          <CaretRightIcon className="w-4 h-4" />
+          <CaretRightIcon className="h-4 w-4" />
         </button>
       </Collapsible.Trigger>
       <Collapsible.Content className="pl-4">
@@ -100,8 +100,8 @@ const MenuTrigger = forwardRef<HTMLButtonElement, Dialog.DialogTriggerProps>(
   (props, ref) => {
     return (
       <button ref={ref} type="button" {...props}>
-        <ListIcon className="w-5 h-5" />
+        <ListIcon className="h-5 w-5" />
       </button>
     );
-  }
+  },
 );

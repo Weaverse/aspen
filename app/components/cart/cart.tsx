@@ -1,4 +1,5 @@
 import { CaretDown, TrashIcon, X } from "@phosphor-icons/react";
+import * as Select from "@radix-ui/react-select";
 import {
   CartForm,
   Money,
@@ -8,6 +9,7 @@ import {
   useOptimisticData,
 } from "@shopify/hydrogen";
 import type { Cart as CartType } from "@shopify/hydrogen/storefront-api-types";
+import { useThemeSettings } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { useEffect, useRef, useState } from "react";
 import useScroll from "react-use/esm/useScroll";
@@ -18,7 +20,6 @@ import { Link } from "~/components/link";
 import { calculateAspectRatio } from "~/utils/image";
 import { toggleCartDrawer } from "../layout/cart-drawer";
 import { CartBestSellers } from "./cart-best-sellers";
-import { useThemeSettings } from "@weaverse/hydrogen";
 
 type CartLine = OptimisticCart<CartApiQueryFragment>["lines"]["nodes"][0];
 type Layouts = "page" | "drawer";
@@ -61,16 +62,16 @@ function CartDetails({
             "grid grid-cols-1 grid-rows-[1fr_auto] px-4 pt-6",
             enableFreeShipping ? "h-[calc(100vh-100px)]" : "h-[100vh]",
           ],
-          layout === "page" && ["flex lg:gap-5 gap-10"],
+          layout === "page" && ["flex flex-col gap-10 lg:flex-row lg:gap-5"],
         )}
       >
         <div
           className={clsx(
             layout === "drawer"
-              ? `overflow-y-auto max-h-full pr-3 ${
+              ? `max-h-full overflow-y-auto pr-3 ${
                   enableFreeShipping ? "pb-5" : "pb-16"
                 }`
-              : "lg:w-2/3 w-full",
+              : "w-full lg:w-2/3",
           )}
         >
           <CartLines lines={cart?.lines?.nodes} layout={layout} />
@@ -78,21 +79,33 @@ function CartDetails({
         <CartSummary cost={cart.cost} layout={layout}>
           <CartDiscounts discountCodes={cart.discountCodes} />
           {layout === "page" && (
-            <div className="border-y border-line-subtle py-6 flex flex-col gap-6">
+            <>
+              <div className="flex flex-col gap-6 border-line-subtle border-y py-6">
+                <div className="flex items-center justify-between font-medium">
+                  <span className="font-normal">Subtotal</span>
+                  <span className="font-normal">
+                    {cart?.cost?.subtotalAmount?.amount ? (
+                      <Money data={cart?.cost?.subtotalAmount} />
+                    ) : (
+                      "-"
+                    )}
+                  </span>
+                </div>
+                <span className="font-normal text-[#918379]">
+                  Shipping & taxes calculated at checkout
+                </span>
+              </div>
               <div className="flex items-center justify-between font-medium">
-                <span className="font-normal">Subtotal</span>
-                <span className="font-normal">
-                  {cart?.cost?.subtotalAmount?.amount ? (
-                    <Money data={cart?.cost?.subtotalAmount} />
+                <span className="font-semibold">Total</span>
+                <span className="font-semibold">
+                  {cart?.cost?.totalAmount?.amount ? (
+                    <Money data={cart?.cost?.totalAmount} />
                   ) : (
                     "-"
                   )}
                 </span>
               </div>
-              <span className="font-normal text-[#918379]">
-                Shipping & taxes calculated at checkout
-              </span>
-            </div>
+            </>
           )}
           <CartCheckoutActions checkoutUrl={cart.checkoutUrl} layout={layout} />
         </CartSummary>
@@ -104,19 +117,19 @@ function CartDetails({
 function CartProgression({ cost }: { cost: CartApiQueryFragment["cost"] }) {
   let { freeShippingThreshold } = useThemeSettings();
 
-  let subtotal = parseFloat(cost?.subtotalAmount?.amount || "0");
-  let threshold = parseFloat(freeShippingThreshold || "100");
+  let subtotal = Number.parseFloat(cost?.subtotalAmount?.amount || "0");
+  let threshold = Number.parseFloat(freeShippingThreshold || "100");
   let progress = Math.min((subtotal / threshold) * 100, 100);
   let amountRemaining = Math.max(threshold - subtotal, 0);
   return (
-    <div className="w-full rounded-lg flex flex-col gap-2 px-6 pt-6">
-      <div className="relative w-full h-1 bg-[#F2F0EE] rounded-full overflow-hidden">
+    <div className="flex w-full flex-col gap-2 rounded-lg px-6 pt-6">
+      <div className="relative h-1 w-full overflow-hidden rounded-full bg-[#F2F0EE]">
         <div
           className="h-full bg-[#A79D95] transition-all duration-300"
           style={{ width: `${progress}%` }}
-        ></div>
+        />
       </div>
-      <p className="text-sm text-gray-700 mb-2">
+      <p className="mb-2 text-gray-700 text-sm">
         {amountRemaining > 0 ? (
           <>
             You're <b>${amountRemaining.toFixed(2)}</b> away from free shipping!
@@ -155,7 +168,7 @@ function CartDiscounts({
               <button type="button">
                 <TrashIcon
                   aria-hidden="true"
-                  className="h-[18px] w-[18px] mr-1"
+                  className="mr-1 h-[18px] w-[18px]"
                 />
               </button>
             </UpdateDiscountForm>
@@ -168,12 +181,12 @@ function CartDiscounts({
       <UpdateDiscountForm discountCodes={codes}>
         <div className="flex items-center gap-3">
           <input
-            className="p-3 border border-line rounded-none leading-tight! grow"
+            className="grow rounded-none border border-line bg-white px-4 py-5 leading-tight!"
             type="text"
             name="discountCode"
             placeholder="Discount code"
           />
-          <Button variant="outline" className="leading-tight!">
+          <Button variant="outline" className="!px-6 !py-5 leading-tight!">
             Apply
           </Button>
         </div>
@@ -217,14 +230,14 @@ function CartLines({
     <div
       ref={scrollRef}
       className={clsx([
-        y > 0 ? "border-t border-line-subtle" : "",
+        y > 0 ? "border-line-subtle border-t" : "",
         layout === "page" && "w-full",
         layout === "drawer" && "transition",
       ])}
     >
       <ul
         className={clsx(
-          layout === "page" && "flex flex-col",
+          layout === "page" && "flex flex-col gap-6",
           layout === "drawer" && "grid gap-5",
         )}
       >
@@ -257,13 +270,13 @@ function CartCheckoutActions({
         <Link
           variant="outline"
           to="/cart"
-          className="w-full flex justify-center"
+          className="flex w-full justify-center"
         >
           View cart
         </Link>
       )}
       <a href={checkoutUrl} target="_self">
-        <Button className="w-full">Continue to Checkout</Button>
+        <Button className="!px-6 !py-5 w-full">CHECKOUT</Button>
       </a>
     </div>
   );
@@ -282,12 +295,13 @@ function CartSummary({
     <div
       className={clsx(
         layout === "drawer" &&
-          "sticky bottom-0 grid gap-4 border-t border-line-subtle p-4 bg-white",
-        layout === "page" && "flex flex-col gap-6 px-6 pb-6 lg:w-1/3 w-full",
+          "sticky bottom-0 grid gap-4 border-line-subtle border-t bg-white p-4",
+        layout === "page" &&
+          "flex w-full flex-col gap-6 px-6 pb-6 md:mx-auto md:w-1/2 lg:mx-0 lg:w-1/3",
       )}
     >
       {layout === "page" && (
-        <span className="font-semibold uppercase border-b border-line-subtle pb-6">
+        <span className="border-line-subtle border-b pb-6 font-semibold uppercase">
           Order summary
         </span>
       )}
@@ -349,7 +363,7 @@ function CartLineItem({
       className={clsx(
         layout === "drawer"
           ? "flex gap-4"
-          : "flex items-center h-full bg-white",
+          : "flex h-full flex-col items-center bg-white md:flex-row",
       )}
       style={{
         display: optimisticData?.action === "remove" ? "none" : "flex",
@@ -357,10 +371,7 @@ function CartLineItem({
     >
       {/* Thumbnail */}
       <div
-        className={clsx(
-          "shrink-0",
-          layout === "drawer" ? "" : "w-[360px] h-[360px]",
-        )}
+        className={clsx(layout === "drawer" ? "shrink-0" : "h-[360px] w-full")}
       >
         {image && (
           <Image
@@ -369,7 +380,7 @@ function CartLineItem({
             data={image}
             className={clsx(
               "!object-cover",
-              layout === "drawer" ? "w-36 h-auto" : "w-full h-full rounded",
+              layout === "drawer" ? "h-auto w-36" : "h-full w-full rounded",
             )}
             alt={title}
             aspectRatio={calculateAspectRatio(image, "1/1")}
@@ -381,31 +392,33 @@ function CartLineItem({
       <div
         className={clsx(
           "flex flex-col",
-          layout === "drawer" ? "grow justify-between" : "p-6 h-[360px]",
+          layout === "drawer"
+            ? "grow justify-between"
+            : "h-full w-full p-6 md:h-[360px]",
         )}
       >
         {layout === "page" ? (
           // Page Layout - New Design
-          <div className="flex flex-col justify-between h-full">
+          <div className="flex h-full flex-col justify-between">
             <div>
               {/* Title and Close Button */}
-              <div className="flex items-center justify-between gap-1 mb-4">
+              <div className="mb-4 flex items-center justify-between gap-1">
                 <div className="flex-1">
                   {product?.handle ? (
                     <Link to={url} onClick={() => toggleCartDrawer(false)}>
-                      <span className="font-semibold uppercase line-clamp-1">
+                      <span className="line-clamp-1 font-semibold uppercase">
                         {product?.title || ""}
                       </span>
                     </Link>
                   ) : (
-                    <p className="font-semibold tracking-wide line-clamp-1">
+                    <p className="line-clamp-1 font-semibold tracking-wide">
                       {product?.title || ""}
                     </p>
                   )}
                 </div>
                 <ItemRemoveButton
                   lineId={id}
-                  className="w-4 h-4"
+                  className="h-4 w-4"
                   layout={layout}
                 />
               </div>
@@ -443,7 +456,7 @@ function CartLineItem({
                 <div>
                   {product?.handle ? (
                     <Link to={url} onClick={() => toggleCartDrawer(false)}>
-                      <span className="font-semibold uppercase line-clamp-1">
+                      <span className="line-clamp-1 font-semibold uppercase">
                         {product?.title || ""}
                       </span>
                     </Link>
@@ -451,10 +464,10 @@ function CartLineItem({
                     <p>{product?.title || ""}</p>
                   )}
                 </div>
-                <div className="text-sm text-gray-500 space-y-0.5">{title}</div>
+                <div className="space-y-0.5 text-gray-500 text-sm">{title}</div>
               </div>
             </div>
-            <div className="flex items-center gap-2 justify-between">
+            <div className="flex items-center justify-between gap-2">
               <CartLineQuantityAdjust
                 line={line}
                 isLastItem={isLastItem}
@@ -489,9 +502,9 @@ function ItemRemoveButton({
         className={clsx("flex items-center justify-center", className)}
         type="submit"
       >
-        {layout === "page" && <X className="w-4 h-4" />}
+        {layout === "page" && <X className="h-4 w-4" />}
         {layout === "drawer" && (
-          <span className="underline uppercase">Remove</span>
+          <span className="uppercase underline">Remove</span>
         )}
       </button>
       <OptimisticInput id={lineId} data={{ action: "remove" }} />
@@ -509,7 +522,6 @@ function CartLineQuantityAdjust({
   layout: Layouts;
 }) {
   let optimisticData = useOptimisticData<OptimisticData>(line?.id);
-  const [isOpen, setIsOpen] = useState(false);
 
   if (!line || typeof line?.quantity === "undefined") {
     return null;
@@ -519,90 +531,85 @@ function CartLineQuantityAdjust({
   let { id: lineId, isOptimistic } = line;
 
   const quantities = [1, 2, 3, 4, 5];
-
+  const [selectedQty, setSelectedQty] = useState<number>(optimisticQuantity);
+  const submitBtnRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
-    if (!isOpen) return;
-
-    function handleClickOutside(event: MouseEvent) {
-      const target = event.target as HTMLElement;
-      if (!target.closest(".quantity-selector")) {
-        setIsOpen(false);
-      }
+    if (selectedQty !== optimisticQuantity) {
+      submitBtnRef.current?.click();
     }
+  }, [selectedQty, optimisticQuantity]);
+  // Keep local selected quantity in sync if line quantity changes elsewhere
+  useEffect(() => {
+    setSelectedQty(optimisticQuantity);
+  }, [optimisticQuantity]);
 
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
-  }, [isOpen]);
+  // Ensure the select shows the actual quantity even if it's outside default options
+  const optionValues = Array.from(
+    new Set<number>([...quantities, optimisticQuantity, selectedQty]),
+  ).sort((a, b) => a - b);
 
   return (
     <>
       <label htmlFor={`quantity-${lineId}`} className="sr-only">
         Quantity, {optimisticQuantity}
       </label>
-      <div className="relative quantity-selector">
-        <button
-          className={clsx(
-            "flex gap-2 items-center py-2 min-w-[80px] relative bg-white",
-            layout === "page" ? "" : "",
-          )}
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsOpen(!isOpen);
-          }}
-          type="button"
+      <div className="quantity-selector relative">
+        <Select.Root
+          value={String(selectedQty)}
+          onValueChange={(v) => setSelectedQty(Number(v))}
           disabled={isOptimistic}
         >
-          <span
-            className={clsx(layout === "page" ? "text-sm font-medium" : "")}
-          >
-            QTY
-          </span>
-          <span
+          <Select.Trigger
             className={clsx(
-              "flex-1 text-center",
-              layout === "page" ? "text-sm" : "",
+              "inline-flex min-w-[80px] items-center justify-between gap-2 bg-white px-3 py-2 outline-hidden",
+              layout === "page" ? "" : "",
             )}
+            aria-label="Select quantity"
           >
-            {optimisticQuantity}
-          </span>
-          <CaretDown className={clsx(layout === "page" ? "w-3 h-3" : "")} />
-        </button>
+            <span
+              className={clsx(layout === "page" ? "font-medium text-sm" : "")}
+            >
+              QTY
+            </span>
+            <span
+              className={clsx(
+                "flex-1 text-center",
+                layout === "page" ? "text-sm" : "",
+              )}
+            >
+              <Select.Value />
+            </span>
+            <Select.Icon className="shrink-0">
+              <CaretDown className={clsx(layout === "page" ? "h-3 w-3" : "")} />
+            </Select.Icon>
+          </Select.Trigger>
+          <Select.Portal>
+            <Select.Content className="z-50 overflow-hidden rounded bg-white shadow-[0px_10px_38px_-10px_rgba(22,23,24,0.35),0px_10px_20px_-15px_rgba(22,23,24,0.2)]">
+              <Select.Viewport className="p-1">
+                {optionValues.map((quantity) => (
+                  <Select.Item
+                    key={quantity}
+                    value={String(quantity)}
+                    className="flex h-8 w-full cursor-pointer select-none items-center justify-center rounded px-3 py-1 outline-hidden hover:bg-gray-100"
+                  >
+                    <Select.ItemText>{quantity}</Select.ItemText>
+                  </Select.Item>
+                ))}
+              </Select.Viewport>
+            </Select.Content>
+          </Select.Portal>
+        </Select.Root>
 
-        {isOpen && (
-          <div
-            className={clsx(
-              "absolute left-0 bg-white shadow-2xl rounded-md z-10 min-w-[80px]",
-              isLastItem ? "bottom-full mb-1" : "top-full mt-1",
-            )}
-          >
-            {quantities.map((qty) => (
-              <CartForm
-                key={qty}
-                route="/cart"
-                action={CartForm.ACTIONS.LinesUpdate}
-                inputs={{
-                  lines: [{ id: lineId, quantity: qty }],
-                }}
-              >
-                <button
-                  className={clsx(
-                    "w-full text-center px-4 py-2 text-sm hover:bg-gray-100 transition",
-                    qty === optimisticQuantity
-                      ? "bg-gray-200 text-primary font-medium"
-                      : "text-gray-700",
-                  )}
-                  type="submit"
-                  disabled={isOptimistic || qty === optimisticQuantity}
-                >
-                  {qty}
-                  {qty === optimisticQuantity && (
-                    <OptimisticInput id={lineId} data={{ quantity: qty }} />
-                  )}
-                </button>
-              </CartForm>
-            ))}
-          </div>
-        )}
+        <CartForm
+          route="/cart"
+          action={CartForm.ACTIONS.LinesUpdate}
+          inputs={{
+            lines: [{ id: lineId, quantity: selectedQty }],
+          }}
+        >
+          <button ref={submitBtnRef} type="submit" className="hidden" />
+          <OptimisticInput id={lineId} data={{ quantity: selectedQty }} />
+        </CartForm>
       </div>
     </>
   );
@@ -617,7 +624,7 @@ function CartLinePrice({
   priceType?: "regular" | "compareAt";
   [key: string]: any;
 }) {
-  if (!line?.cost?.amountPerQuantity || !line?.cost?.totalAmount) return null;
+  if (!(line?.cost?.amountPerQuantity && line?.cost?.totalAmount)) return null;
 
   const moneyV2 =
     priceType === "regular"
@@ -633,7 +640,7 @@ function CartLinePrice({
       withoutTrailingZeros
       {...passthroughProps}
       data={moneyV2}
-      className="text-sm mr-2"
+      className="mr-2 text-sm"
     />
   );
 }
@@ -656,12 +663,12 @@ function CartEmpty({
       ref={scrollRef}
       className={clsx(
         layout === "drawer" && [
-          "content-start space-y-12 px-5 pb-5 transition overflow-y-scroll h-screen-dynamic w-[400px]",
+          "h-screen-dynamic w-[400px] content-start space-y-12 overflow-y-scroll px-5 pb-5 transition",
           y > 0 ? "border-t" : "",
         ],
         layout === "page" && [
           hidden ? "" : "grid",
-          "pb-12 w-full md:items-start gap-4 md:gap-8 lg:gap-12",
+          "w-full gap-4 pb-12 md:items-start md:gap-8 lg:gap-12",
         ],
       )}
       hidden={hidden}

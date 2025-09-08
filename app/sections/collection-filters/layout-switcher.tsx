@@ -23,7 +23,7 @@ export function LayoutSwitcher({
     <div
       className={cn(
         "flex flex-row-reverse md:flex-row",
-        "[&>button]:text-[#F2F0EE] [&>button]:border-[#F2F0EE]",
+        "[&>button]:border-[#F2F0EE] [&>button]:text-[#F2F0EE]",
         '[&>button[data-active="true"]]:text-[#A79D95]',
         '[&>button[data-active="true"]]:border-[#A79D95]',
         className,
@@ -38,9 +38,9 @@ export function LayoutSwitcher({
             type="button"
             data-active={gridSizeMobile === col}
             onClick={() => onGridSizeChange(col, "mobile")}
-            className="border w-12 h-12 flex md:hidden items-center justify-center"
+            className="flex h-12 w-12 items-center justify-center border md:hidden"
           >
-            <Icon className="w-[50px] h-[50px]" />
+            <Icon className="h-[50px] w-[50px]" />
           </button>
         );
       })}
@@ -54,9 +54,9 @@ export function LayoutSwitcher({
             type="button"
             data-active={gridSizeDesktop === col}
             onClick={() => onGridSizeChange(col, "desktop")}
-            className="border w-12 h-12 hidden md:flex items-center justify-center"
+            className="hidden h-12 w-12 items-center justify-center border md:flex"
           >
-            <Icon className="w-[50px] h-[50px]" />
+            <Icon className="h-[50px] w-[50px]" />
           </button>
         );
       })}

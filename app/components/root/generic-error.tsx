@@ -39,7 +39,7 @@ export function GenericError({
           }}
         />
       )}
-      <Link variant="outline" to="/" className="w-fit">
+      <Link variant="outline" to="/" className="w-fit uppercase">
         Take me to the home page
       </Link>
     </Section>

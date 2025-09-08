@@ -1,13 +1,13 @@
 import { UserIcon } from "@phosphor-icons/react";
+import { useThemeSettings } from "@weaverse/hydrogen";
+import { cva } from "class-variance-authority";
+import { Suspense, useState } from "react";
 import {
   Await,
   useLocation,
   useRouteError,
   useRouteLoaderData,
 } from "react-router";
-import { useThemeSettings } from "@weaverse/hydrogen";
-import { cva } from "class-variance-authority";
-import { Suspense, useState } from "react";
 import useWindowScroll from "react-use/esm/useWindowScroll";
 import Link from "~/components/link";
 import { Logo } from "~/components/logo";
@@ -17,20 +17,20 @@ import { DEFAULT_LOCALE } from "~/utils/const";
 import { CartDrawer } from "./cart-drawer";
 import { DesktopMenu } from "./desktop-menu";
 import { MobileMenu } from "./mobile-menu";
-import { PredictiveSearchButtonMobile } from "./predictive-search/search-mobile";
 import { PredictiveSearchButtonDesktop } from "./predictive-search/search-desktop";
+import { PredictiveSearchButtonMobile } from "./predictive-search/search-mobile";
 
 const variants = cva("", {
   variants: {
     width: {
-      full: "w-full h-(--height-nav)",
-      stretch: "w-full h-(--height-nav)",
-      fixed: "w-full h-(--height-nav) max-w-(--page-width) mx-auto",
+      full: "h-(--height-nav) w-full",
+      stretch: "h-(--height-nav) w-full",
+      fixed: "mx-auto h-(--height-nav) w-full max-w-(--page-width)",
     },
     padding: {
       full: "",
       stretch: "px-3 md:px-10 lg:px-16",
-      fixed: "px-3 md:px-4 lg:px-6 mx-auto",
+      fixed: "mx-auto px-3 md:px-4 lg:px-6",
     },
   },
 });
@@ -56,22 +56,22 @@ export function Header() {
   return (
     <header
       className={cn(
-        "w-full z-10",
+        "z-10 w-full",
         "transition-all duration-300 ease-in-out",
         "bg-(--color-header-bg) hover:bg-(--color-header-bg-hover)",
         "text-(--color-header-text) hover:text-(--color-header-text)",
-        "border-b border-line-subtle",
+        "border-line-subtle border-b",
         variants({ padding: headerWidth }),
         scrolled ? "shadow-none" : "shadow-none",
         enableTransparent
           ? [
-              "fixed w-screen group/header",
+              "group/header fixed w-screen",
               "top-(--topbar-height,var(--initial-topbar-height))",
             ]
           : "sticky top-0",
         isTransparent
           ? [
-              "bg-transparent border-transparent",
+              "border-transparent bg-transparent",
               "text-(--color-transparent-header-text)",
               "[&_.cart-count]:text-(--color-header-text)",
               "[&_.cart-count]:bg-(--color-transparent-header-text)",
@@ -85,22 +85,22 @@ export function Header() {
               "[&_.cart-count]:bg-(--color-header-text)",
               "[&_.main-logo]:opacity-100",
               "[&_.transparent-logo]:opacity-0",
-            ]
+            ],
       )}
     >
       <div
         className={cn(
-          "py-1.5 lg:py-3 flex items-center justify-between gap-2 lg:gap-8",
-          variants({ width: headerWidth })
+          "flex items-center justify-between gap-2 py-1.5 lg:gap-8 lg:py-3",
+          variants({ width: headerWidth }),
         )}
       >
         <MobileMenu />
         <PredictiveSearchButtonMobile setIsSearchOpen={setIsSearchOpen} />
         <Logo />
         <DesktopMenu />
-        <div className="flex items-center gap-1 z-1">
+        <div className="z-1 flex items-center gap-1">
           <PredictiveSearchButtonDesktop setIsSearchOpen={setIsSearchOpen} />
-          <AccountLink className="relative flex items-center justify-center w-8 h-8" />
+          <AccountLink className="relative flex h-8 w-8 items-center justify-center" />
           <CartDrawer />
         </div>
       </div>
@@ -114,15 +114,15 @@ function AccountLink({ className }: { className?: string }) {
 
   return (
     <Suspense fallback="Sign in">
-      <Await resolve={isLoggedIn}  errorElement="Sign in">
+      <Await resolve={isLoggedIn} errorElement="Sign in">
         {(isLoggedIn) =>
           isLoggedIn ? (
             <Link prefetch="intent" to="/account" className={className}>
-              <UserIcon className="w-5 h-5" />
+              <UserIcon className="h-5 w-5" />
             </Link>
           ) : (
             <Link to="/account/login" className={className}>
-              <UserIcon className="w-5 h-5" />
+              <UserIcon className="h-5 w-5" />
             </Link>
           )
         }

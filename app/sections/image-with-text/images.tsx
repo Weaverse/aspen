@@ -1,8 +1,8 @@
 import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
-import { forwardRef, Children, useEffect } from "react";
-import { useImageWithTextContext } from "./context";
-import type { ImageAspectRatioType } from "./context";
+import { Children, forwardRef, useEffect } from "react";
 import { cn } from "~/utils/cn";
+import type { ImageAspectRatioType } from "./context";
+import { useImageWithTextContext } from "./context";
 
 interface ImageWithTextImageProps extends HydrogenComponentProps {
   imageAspectRatio: ImageAspectRatioType;
@@ -13,7 +13,7 @@ let ImageWithTextImages = forwardRef<HTMLDivElement, ImageWithTextImageProps>(
     let { imageAspectRatio, children, ...rest } = props;
     const { setImageCount, setImageAspectRatio } = useImageWithTextContext();
     const imageCount = Children.count(children);
-    
+
     useEffect(() => {
       setImageCount(imageCount);
       setImageAspectRatio(imageAspectRatio);
@@ -23,12 +23,15 @@ let ImageWithTextImages = forwardRef<HTMLDivElement, ImageWithTextImageProps>(
       <div
         ref={ref}
         {...rest}
-        className={cn("w-full h-full flex", imageCount  <= 1 ? "md:w-1/2 w-full aspect-square" : "")}
+        className={cn(
+          "flex h-full w-full",
+          imageCount <= 1 ? "aspect-square w-full md:w-1/2" : "",
+        )}
       >
         {children}
       </div>
     );
-  }
+  },
 );
 
 export default ImageWithTextImages;

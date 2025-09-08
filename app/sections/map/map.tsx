@@ -1,10 +1,10 @@
-import { type HydrogenComponentSchema } from "@weaverse/hydrogen";
-import { createContext, forwardRef, useState, useRef, useEffect } from "react";
+import * as AccordionPrimitive from "@radix-ui/react-accordion";
+import type { HydrogenComponentSchema } from "@weaverse/hydrogen";
+import clsx from "clsx";
+import { createContext, forwardRef, useEffect, useRef, useState } from "react";
 import Heading from "~/components/heading";
 import type { SectionProps } from "~/components/section";
 import { Section, sectionSettings } from "~/components/section";
-import * as AccordionPrimitive from "@radix-ui/react-accordion";
-import clsx from "clsx";
 
 interface MapSectionProps extends SectionProps {
   heading?: string;
@@ -21,7 +21,7 @@ function adjustColor(hex: string, amount: number) {
       .join("");
   }
 
-  const num = parseInt(color, 16);
+  const num = Number.parseInt(color, 16);
   const r = Math.min(255, Math.max(0, ((num >> 16) & 0xff) + amount));
   const g = Math.min(255, Math.max(0, ((num >> 8) & 0xff) + amount));
   const b = Math.min(255, Math.max(0, (num & 0xff) + amount));
@@ -49,7 +49,7 @@ let MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
   // Track which item is active in accordion mode and its address for the map
   const [activeItem, setActiveItem] = useState<number | null>(null);
   const [activeAddress, setActiveAddress] = useState<string>(
-    props.defaultAddress || "New York"
+    props.defaultAddress || "New York",
   );
   const triggerRef = useRef<HTMLDivElement | null>(null);
   const [highlightBg, setHighlightBg] = useState<string | null>(null);
@@ -81,16 +81,16 @@ let MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
         <div
           ref={triggerRef}
           className={clsx(
-            "flex justify-center relative md:flex-row flex-col-reverse gap-10",
-            layoutMap === "list" ? "" : "items-center"
+            "relative flex flex-col-reverse justify-center gap-10 md:flex-row",
+            layoutMap === "list" ? "" : "items-center",
           )}
         >
           {/* List & Accordion layouts - Left column */}
           <div
             className={clsx(
               layoutMap === "list"
-                ? "flex flex-col md:gap-16 gap-10 md:w-1/3 w-full"
-                : "flex flex-col md:gap-8 gap-8 md:w-1/2 w-full md:absolute md:-translate-x-1/2 z-1 p-10 bg-(--form-bg-color)"
+                ? "flex w-full flex-col gap-10 md:w-1/3 md:gap-16"
+                : "md:-translate-x-1/2 z-1 flex w-full flex-col gap-8 bg-(--form-bg-color) p-10 md:absolute md:w-1/2 md:gap-8",
             )}
             style={{ "--form-bg-color": highlightBg } as React.CSSProperties}
           >
@@ -105,16 +105,16 @@ let MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
 
             {/* Content */}
             {layoutMap === "list" ? (
-              <div className="flex flex-col relative">{children}</div>
+              <div className="relative flex flex-col">{children}</div>
             ) : (
-              <div className="bg-(--section-bg-color) rounded-md overflow-hidden">
+              <div className="overflow-hidden rounded-md bg-(--section-bg-color)">
                 <AccordionPrimitive.Root
                   type="single"
                   defaultValue="item-0"
                   className="w-full"
                   onValueChange={(value) => {
                     if (value) {
-                      const index = parseInt(value.replace("item-", ""));
+                      const index = Number.parseInt(value.replace("item-", ""));
                       setActiveItem(index);
                     }
                   }}
@@ -126,16 +126,16 @@ let MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
           </div>
 
           {/* Map container - Right column */}
-          <div className="w-full md:w-3/4 md:ml-auto relative">
+          <div className="relative w-full md:ml-auto md:w-3/4">
             {/* Map that displays the active address */}
-            <div className="w-full bg-gray-100 rounded-md overflow-hidden md:aspect-[16/12] aspect-[3/4]">
+            <div className="aspect-[3/4] w-full overflow-hidden rounded-md bg-gray-100 md:aspect-[16/12]">
               {/* We use the same iframe for both layouts now */}
               <iframe
                 key={activeAddress}
-                className="w-full h-full"
+                className="h-full w-full"
                 title="Google map embedded frame"
                 src={`https://maps.google.com/maps?t=m&q=${encodeURIComponent(
-                  activeAddress
+                  activeAddress,
                 )}&ie=UTF8&&output=embed`}
                 style={{ border: 0 }}
                 allowFullScreen

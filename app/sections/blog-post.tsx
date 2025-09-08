@@ -47,19 +47,19 @@ const BlogPost = forwardRef<HTMLElement, BlogPostProps>((props, ref) => {
             <Image data={image} sizes="90vw" />
           </div>
         )}
-        <article className="prose lg:max-w-4xl mx-auto py-20">
-          <div className="space-y-5 text-left mb-3">
-            <h3 className="h3 !mt-0 !mb-8 leading-tight! !tracking-tighter font-normal">{title}</h3>
+        <article className="lg:prose px-5 py-20 lg:mx-auto lg:max-w-4xl lg:px-0">
+          <div className="mb-3 space-y-5 text-left">
+            <h3 className="h3 !mt-0 !mb-8 !tracking-tighter font-normal leading-tight!">
+              {title}
+            </h3>
             {(formattedDate || author?.name) && (
-              <span className="flex items-center text-[#918379] gap-0.5 text-[14px]">
+              <span className="flex items-center gap-0.5 text-[#918379] text-[14px]">
                 {formattedDate && author?.name ? (
                   <>
                     {formattedDate} - {author.name}
                   </>
                 ) : (
-                  <>
-                    {formattedDate || author?.name}
-                  </>
+                  formattedDate || author?.name
                 )}
               </span>
             )}
@@ -71,8 +71,8 @@ const BlogPost = forwardRef<HTMLElement, BlogPostProps>((props, ref) => {
             />
             {(showTags || showShareButtons) && (
               <>
-                <div className="border-t border-line-subtle w-1/3 mx-auto" />
-                <div className="flex flex-col md:flex-row items-center justify-between gap-2">
+                <div className="mx-auto w-1/3 border-line-subtle border-t" />
+                <div className="flex flex-col items-center justify-between gap-2 md:flex-row">
                   {showTags && (
                     <div>
                       <strong>Tags:</strong>
@@ -80,7 +80,7 @@ const BlogPost = forwardRef<HTMLElement, BlogPostProps>((props, ref) => {
                     </div>
                   )}
                   {showShareButtons && (
-                    <div className="flex gap-2 items-center">
+                    <div className="flex items-center gap-2">
                       <strong>Share:</strong>
                       <FacebookShareButton url={articleUrl}>
                         <FacebookLogoIcon size={24} />

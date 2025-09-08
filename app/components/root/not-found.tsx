@@ -25,11 +25,11 @@ export function NotFound({ type = "page" }: { type?: string }) {
             What you can do?
           </div>
           <div className="flex flex-col items-center justify-center gap-4 pt-4 md:flex-row">
-            <Link variant="outline" to="/products">
+            <Link variant="outline" to="/products" className="uppercase">
               Shop our products
             </Link>
             <span>Or</span>
-            <Link variant="underline" to="/">
+            <Link variant="underline" to="/" className="uppercase">
               Take me to the home page
             </Link>
           </div>

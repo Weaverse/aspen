@@ -25,7 +25,10 @@ export function ProductVariants({
           const { name } = option;
           const selected = selectedOptions.find((opt) => opt.name === name);
           return (
-            <div className="product-options flex justify-between items-center" key={name}>
+            <div
+              className="product-options flex items-center justify-between"
+              key={name}
+            >
               <legend className="leading-tight">
                 <span className="font-normal uppercase">{name}</span>
               </legend>

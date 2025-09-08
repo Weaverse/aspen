@@ -1,9 +1,10 @@
 import { Money } from "@shopify/hydrogen";
 import type { MoneyV2 } from "@shopify/hydrogen/storefront-api-types";
 import clsx from "clsx";
-import { CompareAtPrice } from "~/components/product/variant-prices";
+import { useRef } from "react";
 import { Image } from "~/components/image";
 import { Link } from "~/components/link";
+import { CompareAtPrice } from "~/components/product/variant-prices";
 import { RevealUnderline } from "~/reveal-underline";
 import type {
   NormalizedPredictiveSearchResultItem,
@@ -18,24 +19,86 @@ type SearchResultTypeProps = {
 
 export function PredictiveSearchResult({ items, type }: SearchResultTypeProps) {
   const isSuggestions = type === "queries";
+  const scrollRef = useRef<HTMLUListElement>(null);
+  const isDragging = useRef(false);
+
+  // Drag scrolling functionality for queries
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (type !== "queries" || !scrollRef.current) return;
+
+    e.preventDefault();
+    const slider = scrollRef.current;
+    const startX = e.pageX;
+    const scrollLeft = slider.scrollLeft;
+    isDragging.current = false;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!scrollRef.current) return;
+
+      e.preventDefault();
+      isDragging.current = true;
+
+      const x = e.pageX;
+      const walk = (x - startX) * 1.5; // Adjust scroll speed
+      scrollRef.current.scrollLeft = scrollLeft - walk;
+    };
+
+    const handleMouseUp = () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+      document.removeEventListener("mouseleave", handleMouseUp);
+
+      if (scrollRef.current) {
+        scrollRef.current.style.cursor = "grab";
+      }
+
+      // Reset dragging state after a brief delay
+      setTimeout(() => {
+        isDragging.current = false;
+      }, 100);
+    };
+
+    const handleMouseLeave = () => {
+      handleMouseUp();
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+    document.addEventListener("mouseleave", handleMouseLeave);
+
+    slider.style.cursor = "grabbing";
+  };
 
   return (
     <div key={type} className="predictive-search-result flex flex-col gap-4">
       {isSuggestions && (
-        <span className="uppercase font-normal border-b border-line-subtle pb-3">
+        <span className="border-line-subtle border-b pb-3 font-normal uppercase">
           {isSuggestions && "Suggestions"}
         </span>
       )}
       {items?.length ? (
         <ul
+          ref={scrollRef}
           className={clsx(
-            type === "queries" && "space-y-1",
+            type === "queries" &&
+              "scrollbar-hide drag-scroll flex cursor-grab select-none gap-3 overflow-x-auto pb-2",
             type === "articles" && "space-y-3",
-            type === "products" && "space-y-4"
+            type === "products" && "space-y-4",
           )}
+          onMouseDown={handleMouseDown}
+          style={{
+            userSelect: type === "queries" ? "none" : "auto",
+            WebkitUserSelect: type === "queries" ? "none" : "auto",
+            msUserSelect: type === "queries" ? "none" : "auto",
+          }}
         >
           {items.map((item: NormalizedPredictiveSearchResultItem) => (
-            <SearchResultItem item={item} key={item.id} />
+            <SearchResultItem
+              item={item}
+              key={item.id}
+              type={type}
+              isDragging={isDragging}
+            />
           ))}
         </ul>
       ) : (
@@ -49,6 +112,8 @@ export function PredictiveSearchResult({ items, type }: SearchResultTypeProps) {
 
 type SearchResultItemProps = {
   item: NormalizedPredictiveSearchResultItem;
+  type: NormalizedPredictiveSearchResults[number]["type"];
+  isDragging?: React.MutableRefObject<boolean>;
 };
 
 function SearchResultItem({
@@ -60,22 +125,37 @@ function SearchResultItem({
     price,
     title,
     url,
-    vendor,
+    // vendor,
     styledTitle,
   },
+  type,
+  isDragging,
 }: SearchResultItemProps) {
+  const isQuery = type === "queries";
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (isQuery && isDragging?.current) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  };
+
   return (
-    <li key={id}>
+    <li key={id} className={clsx(isQuery && "shrink-0")}>
       <Link
-        className="flex gap-4"
+        className={clsx(
+          isQuery ? "block" : "flex gap-4",
+          isQuery && "whitespace-nowrap",
+        )}
         to={
           __typename === "SearchQuerySuggestion" || !url
             ? `/search?q=${id}`
             : url
         }
         data-type={__typename}
+        onClick={handleClick}
       >
-        {__typename === "Product" && (
+        {!isQuery && __typename === "Product" && (
           <div className="h-20 w-20 shrink-0">
             {image?.url && (
               <Image
@@ -87,32 +167,42 @@ function SearchResultItem({
             )}
           </div>
         )}
-        <div className="space-y-1">
-          {vendor && (
-            <div className="text-body-subtle text-sm">By {vendor}</div>
-          )}
-          {styledTitle ? (
-            <RevealUnderline as="div">
-              <span dangerouslySetInnerHTML={{ __html: styledTitle }} />
-            </RevealUnderline>
+        {isQuery ? (
+          // Simple title for query suggestions
+          styledTitle ? (
+            <span dangerouslySetInnerHTML={{ __html: styledTitle }} />
           ) : (
-            <div
-              className={clsx(
-                __typename === "Product" ? "line-clamp-1" : "line-clamp-2"
-              )}
-            >
-              <RevealUnderline>{title}</RevealUnderline>
-            </div>
-          )}
-          {price && (
-            <div className="flex gap-2 text-sm pt-1">
-              <Money withoutTrailingZeros data={price as MoneyV2} />
-              {isDiscounted(price as MoneyV2, compareAtPrice as MoneyV2) && (
-                <CompareAtPrice data={compareAtPrice as MoneyV2} />
-              )}
-            </div>
-          )}
-        </div>
+            <span>{title}</span>
+          )
+        ) : (
+          // Full layout for products and articles
+          <div className="flex flex-col justify-center gap-1">
+            {/* {vendor && (
+              <div className="text-body-subtle text-sm">By {vendor}</div>
+            )} */}
+            {styledTitle ? (
+              <RevealUnderline as="div">
+                <span dangerouslySetInnerHTML={{ __html: styledTitle }} />
+              </RevealUnderline>
+            ) : (
+              <div
+                className={clsx(
+                  __typename === "Product" ? "line-clamp-1" : "line-clamp-2",
+                )}
+              >
+                <span className="font-normal uppercase">{title}</span>
+              </div>
+            )}
+            {price && (
+              <div className="flex gap-2">
+                <Money withoutTrailingZeros data={price as MoneyV2} />
+                {isDiscounted(price as MoneyV2, compareAtPrice as MoneyV2) && (
+                  <CompareAtPrice data={compareAtPrice as MoneyV2} />
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </Link>
     </li>
   );

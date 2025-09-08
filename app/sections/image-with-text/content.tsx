@@ -2,11 +2,11 @@ import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import { forwardRef } from "react";
-import { useImageWithTextContext } from "./context";
 import { cn } from "~/utils/cn";
+import { useImageWithTextContext } from "./context";
 
 const variants = cva(
-  "grow flex flex-col py-6 px-4 md:px-8 md:py-8 [&_.paragraph]:mx-[unset] [&_.paragraph]:w-auto",
+  "flex grow flex-col px-4 py-6 md:px-8 md:py-8 [&_.paragraph]:mx-[unset] [&_.paragraph]:w-auto",
   {
     variants: {
       gap: {
@@ -24,22 +24,23 @@ const variants = cva(
         "20": "gap-20",
       },
       contentPosition: {
-        "top left": "justify-start items-start [&_.paragraph]:text-left",
-        "top center": "justify-start items-center [&_.paragraph]:text-center",
-        "top right": "justify-start items-end [&_.paragraph]:text-right",
-        "center left": "justify-center items-start [&_.paragraph]:text-left",
-        "center center": "justify-center items-center [&_.paragraph]:text-center",
-        "center right": "justify-center items-end [&_.paragraph]:text-right",
-        "bottom left": "justify-end items-start [&_.paragraph]:text-left",
-        "bottom center": "justify-end items-center [&_.paragraph]:text-center",
-        "bottom right": "justify-end items-end [&_.paragraph]:text-right",
+        "top left": "items-start justify-start [&_.paragraph]:text-left",
+        "top center": "items-center justify-start [&_.paragraph]:text-center",
+        "top right": "items-end justify-start [&_.paragraph]:text-right",
+        "center left": "items-start justify-center [&_.paragraph]:text-left",
+        "center center":
+          "items-center justify-center [&_.paragraph]:text-center",
+        "center right": "items-end justify-center [&_.paragraph]:text-right",
+        "bottom left": "items-start justify-end [&_.paragraph]:text-left",
+        "bottom center": "items-center justify-end [&_.paragraph]:text-center",
+        "bottom right": "items-end justify-end [&_.paragraph]:text-right",
       },
     },
     defaultVariants: {
       gap: "5",
       contentPosition: "center center",
     },
-  }
+  },
 );
 
 interface ImageWithTextContentProps
@@ -59,9 +60,8 @@ const ImageWithTextContent = forwardRef<
       {...rest}
       className={cn(
         variants({ gap, contentPosition }),
-        imageCount > 1 &&
-          "absolute inset-0 flex z-1 w-full",
-        imageCount <= 1 && "md:w-1/2 w-full aspect-square"
+        imageCount > 1 && "absolute inset-0 z-1 flex w-full",
+        imageCount <= 1 && "aspect-square w-full md:w-1/2",
       )}
       data-content-with-images={imageCount}
     >

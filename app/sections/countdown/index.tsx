@@ -8,7 +8,7 @@ import type { SectionProps } from "~/components/section";
 import { Section } from "~/components/section";
 import { cn } from "~/utils/cn";
 
-const variants = cva("flex justify-center items-end", {
+const variants = cva("flex items-end justify-center", {
   variants: {
     height: {
       small: "h-[40vh] lg:h-[50vh]",
@@ -34,16 +34,16 @@ const Countdown = forwardRef<HTMLElement, CountdownProps>((props, ref) => {
     <Section ref={ref} {...rest}>
       <div
         className={cn(
-          isScenario2 ? "flex justify-center items-end" : variants({ height })
+          isScenario2 ? "flex items-end justify-center" : variants({ height }),
         )}
         style={{ gap }}
       >
         <div
           className={cn(
-            "grid grid-cols-1 md:grid-cols-2 gap-y-4 justify-items-center [&_.paragraph]:text-center",
+            "grid grid-cols-1 justify-items-center gap-y-4 md:grid-cols-2 [&_.paragraph]:text-center",
             isScenario2
-              ? "[&_.heading]:order-1 md:[&_.subheading]:order-3 md:[&_.countdown--timer]:order-2 [&_.button]:order-4 [&_.subheading]:order-2 [&_.countdown--timer]:order-3"
-              : "[&_.heading]:order-1 md:[&_.subheading]:order-2 md:[&_.countdown--timer]:order-3 [&_.button]:order-4 [&_.countdown--timer]:order-2 [&_.subheading]:order-3"
+              ? "[&_.button]:order-4 [&_.countdown--timer]:order-3 md:[&_.countdown--timer]:order-2 [&_.heading]:order-1 [&_.subheading]:order-2 md:[&_.subheading]:order-3"
+              : "[&_.button]:order-4 [&_.countdown--timer]:order-2 md:[&_.countdown--timer]:order-3 [&_.heading]:order-1 [&_.subheading]:order-3 md:[&_.subheading]:order-2",
           )}
         >
           {children}

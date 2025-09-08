@@ -7,22 +7,25 @@ import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import { forwardRef } from "react";
 import { backgroundInputs } from "~/components/background-image";
+import Heading, {
+  type HeadingProps,
+  headingInputs,
+} from "~/components/heading";
+import Link, { type LinkProps, linkInputs } from "~/components/link";
 import { overlayInputs } from "~/components/overlay";
 import type { OverlayAndBackgroundProps } from "~/components/overlay-and-background";
 import { OverlayAndBackground } from "~/components/overlay-and-background";
+import Paragraph, { type ParagraphProps } from "~/components/paragraph";
 import { layoutInputs } from "~/components/section";
 import { useAnimation } from "~/hooks/use-animation";
 import { cn } from "~/utils/cn";
-import Heading, { headingInputs, type HeadingProps } from "~/components/heading";
-import Paragraph, { type ParagraphProps } from "~/components/paragraph";
-import Link, { linkInputs, type LinkProps } from "~/components/link";
 
-const variants = cva("w-full h-full flex justify-center items-end", {
+const variants = cva("flex h-full w-full items-end justify-center", {
   variants: {
     width: {
       full: "",
       stretch: "px-3 md:px-10 lg:px-16",
-      fixed: "max-w-(--page-width) mx-auto px-3 md:px-10 lg:px-16",
+      fixed: "mx-auto max-w-(--page-width) px-3 md:px-10 lg:px-16",
     },
     verticalPadding: {
       none: "",
@@ -145,7 +148,7 @@ const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
 
   // Generate dynamic classes for subheading text
   const subheadingClasses = [
-    `text-${subheadingAlignment || 'left'}`,
+    `text-${subheadingAlignment || "left"}`,
     subheadingSize === "large" ? "text-lg" : "text-base",
     subheadingWeight === "medium" ? "font-medium" : "font-normal",
   ].join(" ");
@@ -154,12 +157,17 @@ const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
   const SubheadingTag = subheadingTag;
 
   return (
-    <div ref={scope} {...rest} className="w-full h-full" style={{ "--gap": `${gap}px` } as React.CSSProperties}>
+    <div
+      ref={scope}
+      {...rest}
+      className="h-full w-full"
+      style={{ "--gap": `${gap}px` } as React.CSSProperties}
+    >
       <OverlayAndBackground {...props} />
       <div className={cn(variants({ width, gap, verticalPadding }))}>
-        <div className="flex flex-col md:flex-row gap-4 md:gap-6 max-w-full">
+        <div className="flex max-w-full flex-col gap-4 md:flex-row md:gap-6">
           {/* Left Column */}
-          <div className="flex flex-col gap-(--gap) w-full md:w-1/2">
+          <div className="flex w-full flex-col gap-(--gap) md:w-1/2">
             {headingContent && (
               <Heading
                 content={headingContent}
@@ -177,17 +185,17 @@ const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
               />
             )}
             {subheadingContent && (
-              <SubheadingTag 
-                className={subheadingClasses} 
+              <SubheadingTag
+                className={subheadingClasses}
                 style={{ color: subheadingColor }}
               >
                 {subheadingContent}
               </SubheadingTag>
             )}
           </div>
-          
+
           {/* Right Column */}
-          <div className="flex flex-col gap-(--gap) w-full md:w-1/2 [&_.paragraph]:mx-[unset]">
+          <div className="flex w-full flex-col gap-(--gap) md:w-1/2 [&_.paragraph]:mx-[unset]">
             {paragraphContent && (
               <Paragraph
                 content={paragraphContent}
@@ -319,7 +327,11 @@ export const schema = createSchema({
           configs: {
             options: [
               { value: "left", label: "Left", icon: "align-start-vertical" },
-              { value: "center", label: "Center", icon: "align-center-vertical" },
+              {
+                value: "center",
+                label: "Center",
+                icon: "align-center-vertical",
+              },
               { value: "right", label: "Right", icon: "align-end-vertical" },
             ],
           },
@@ -334,7 +346,8 @@ export const schema = createSchema({
           type: "richtext",
           name: "paragraphContent",
           label: "Paragraph content",
-          defaultValue: "Use this text to share information about your brand with your customers. Describe a product, share announcements, or welcome customers to your store.",
+          defaultValue:
+            "Use this text to share information about your brand with your customers. Describe a product, share announcements, or welcome customers to your store.",
           placeholder: "Enter paragraph text",
         },
         {
@@ -400,7 +413,11 @@ export const schema = createSchema({
           configs: {
             options: [
               { value: "left", label: "Left", icon: "align-start-vertical" },
-              { value: "center", label: "Center", icon: "align-center-vertical" },
+              {
+                value: "center",
+                label: "Center",
+                icon: "align-center-vertical",
+              },
               { value: "right", label: "Right", icon: "align-end-vertical" },
             ],
           },
@@ -418,12 +435,14 @@ export const schema = createSchema({
           defaultValue: "Shop all",
           placeholder: "Enter button text",
         },
-        ...linkInputs.map((input) => {
-          if (input.name === "text") {
-            return null;
-          }
-          return input;
-        }).filter(Boolean),
+        ...linkInputs
+          .map((input) => {
+            if (input.name === "text") {
+              return null;
+            }
+            return input;
+          })
+          .filter(Boolean),
       ],
     },
     {
@@ -446,7 +465,8 @@ export const schema = createSchema({
     color: "#fff",
     size: "scale",
     subheadingColor: "#fff",
-    paragraphContent: "Wide inventory of furniture with plenty of essentials that no home would be complete without.",
+    paragraphContent:
+      "Wide inventory of furniture with plenty of essentials that no home would be complete without.",
     paragraphColor: "#fff",
     paragraphWidth: "full",
     buttonContent: "Shop all",

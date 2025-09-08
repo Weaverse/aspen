@@ -3,11 +3,10 @@ import { clsx } from "clsx";
 import type { CSSProperties } from "react";
 import { Image } from "~/components/image";
 import { Link } from "~/components/link";
-import { Overlay, type OverlayProps } from "~/components/overlay";
 import type { ImageAspectRatio } from "~/types/image";
 import { calculateAspectRatio } from "~/utils/image";
 
-interface CollectionCardProps extends OverlayProps {
+interface CollectionCardProps {
   collection: Collection;
   imageAspectRatio: ImageAspectRatio;
   collectionNameColor: string;
@@ -19,10 +18,6 @@ export function CollectionCard({
   imageAspectRatio,
   collectionNameColor,
   loading,
-  enableOverlay,
-  overlayColor,
-  overlayColorHover,
-  overlayOpacity,
 }: CollectionCardProps) {
   if (collection.products.nodes.length === 0) {
     return null;
@@ -44,7 +39,7 @@ export function CollectionCard({
   return (
     <Link
       to={`/collections/${collection.handle}`}
-      className="flex flex-col gap-2 relative"
+      className="relative flex flex-col gap-2"
       style={
         {
           "--aspect-ratio": calculateAspectRatio(
@@ -65,20 +60,16 @@ export function CollectionCard({
             className={clsx(
               "absolute inset-0 z-0",
               "transition-all duration-300",
-              "scale-100 will-change-transform group-hover:scale-[1.03]",
             )}
           />
         ) : null}
-        <span style={{ color: collectionNameColor }} className="z-1 absolute bottom-0 left-0 uppercase p-4">
+        <span
+          style={{ color: collectionNameColor }}
+          className="absolute bottom-0 left-0 z-1 p-4 uppercase"
+        >
           {collection.title}
         </span>
-        <Overlay
-          enableOverlay={enableOverlay}
-          overlayColor={overlayColor}
-          overlayColorHover={overlayColorHover}
-          overlayOpacity={overlayOpacity}
-          className="z-0"
-        />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/50 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
       </div>
     </Link>
   );

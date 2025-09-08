@@ -1,9 +1,9 @@
 import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
 
-interface InformationItemProps extends HydrogenComponentProps{
-    // allowMultiple: boolean;
-};
+interface InformationItemProps extends HydrogenComponentProps {
+  // allowMultiple: boolean;
+}
 
 const InformationItem = forwardRef<HTMLDivElement, InformationItemProps>(
   (props, ref) => {
@@ -14,7 +14,7 @@ const InformationItem = forwardRef<HTMLDivElement, InformationItemProps>(
         {children}
       </div>
     );
-  }
+  },
 );
 
 export default InformationItem;
@@ -42,13 +42,13 @@ export const schema = createSchema({
         type: "paragraph",
         content: "Email",
         alignment: "left",
-        width: "full"
+        width: "full",
       },
       {
         type: "paragraph",
         content: "support@archercommerce.com",
         alignment: "left",
-        width: "full"
+        width: "full",
       },
     ],
   },

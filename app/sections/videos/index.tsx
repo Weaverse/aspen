@@ -1,7 +1,11 @@
-import type { HydrogenComponent } from '@weaverse/hydrogen';
-import { forwardRef } from 'react';
-import type { ReactNode } from 'react';
-import { Section, type SectionProps, sectionSettings } from '~/components/section';
+import type { HydrogenComponent } from "@weaverse/hydrogen";
+import type { ReactNode } from "react";
+import { forwardRef } from "react";
+import {
+  Section,
+  type SectionProps,
+  sectionSettings,
+} from "~/components/section";
 
 interface VideosProps extends SectionProps {
   children?: ReactNode;
@@ -12,28 +16,28 @@ let Videos = forwardRef<HTMLElement, VideosProps>((props, ref) => {
 
   return (
     <Section ref={ref} {...rest}>
-        {children}
+      {children}
     </Section>
   );
 });
 
-export let schema: HydrogenComponent['schema'] = {
-  title: 'Videos',
-  type: 'videos',
+export let schema: HydrogenComponent["schema"] = {
+  title: "Videos",
+  type: "videos",
   inspector: sectionSettings,
-  childTypes: ['heading', 'video--items'],
+  childTypes: ["heading", "video--items"],
   presets: {
     children: [
       {
-        type: 'heading',
-        content: 'VIDEOS',
+        type: "heading",
+        content: "VIDEOS",
       },
       {
-        type: 'video--items',
+        type: "video--items",
       },
     ],
   },
 };
 
-Videos.displayName = 'Videos';
-export default Videos; 
+Videos.displayName = "Videos";
+export default Videos;

@@ -4,7 +4,10 @@ import type {
   HydrogenComponentSchema,
 } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
-import Heading, { headingInputs, type HeadingProps } from "~/components/heading";
+import Heading, {
+  type HeadingProps,
+  headingInputs,
+} from "~/components/heading";
 
 interface TestimonialContentProps
   extends Omit<HeadingProps, "as">,
@@ -47,7 +50,7 @@ let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
       children,
       ...rest
     } = props;
-    
+
     // Generate dynamic classes for description text
     const descriptionClasses = [
       `text-${subHeadingAlignment}`,
@@ -57,7 +60,7 @@ let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
 
     // Create the description element based on the selected tag
     const DescriptionTag = subHeadingTag;
-    
+
     const handlePrevSlide = () => {
       // Using global variable approach
       if (window.testimonialSwiper) {
@@ -67,11 +70,11 @@ let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
         document.dispatchEvent(
           new CustomEvent("testimonial-prev-slide", {
             detail: { swiper: window.testimonialSwiper },
-          })
+          }),
         );
       }
     };
-    
+
     const handleNextSlide = () => {
       // Using global variable approach
       if (window.testimonialSwiper) {
@@ -81,7 +84,7 @@ let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
         document.dispatchEvent(
           new CustomEvent("testimonial-next-slide", {
             detail: { swiper: window.testimonialSwiper },
-          })
+          }),
         );
       }
     };
@@ -97,7 +100,7 @@ let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
       <div
         ref={ref}
         {...rest}
-        className="flex flex-col justify-center gap-5 flex-1"
+        className="flex flex-1 flex-col justify-center gap-5"
       >
         {content && (
           <Heading
@@ -119,8 +122,8 @@ let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
           <div className="flex flex-col gap-5">
             <Quotes size={32} className="rotate-180" />
             {description && (
-              <DescriptionTag 
-                className={`testimonial-description ${descriptionClasses}`} 
+              <DescriptionTag
+                className={`testimonial-description ${descriptionClasses}`}
                 style={{ color: subHeadingColor }}
               >
                 {description}
@@ -133,32 +136,32 @@ let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
               <p className="text-base">{author}</p>
             </div>
             <div className="flex gap-2">
-               <span
-                 onClick={handlePrevSlide}
-                 className="bg-[#EDEAE6] h-fit w-fit p-4 rounded-full cursor-pointer"
-               >
-                  <ArrowLeft
-                    size={16} 
-                    weight="thin" 
-                    className="transition-opacity hover:opacity-70" 
-                  />
-                </span>
-               <span
-                 onClick={handleNextSlide}
-                 className="bg-[#EDEAE6] h-fit w-fit p-4 rounded-full cursor-pointer"
-               >
-                  <ArrowRight
-                    size={16} 
-                    weight="thin" 
-                    className="transition-opacity hover:opacity-70" 
-                  />
-                </span>
+              <span
+                onClick={handlePrevSlide}
+                className="h-fit w-fit cursor-pointer rounded-full bg-[#EDEAE6] p-4"
+              >
+                <ArrowLeft
+                  size={16}
+                  weight="thin"
+                  className="transition-opacity hover:opacity-70"
+                />
+              </span>
+              <span
+                onClick={handleNextSlide}
+                className="h-fit w-fit cursor-pointer rounded-full bg-[#EDEAE6] p-4"
+              >
+                <ArrowRight
+                  size={16}
+                  weight="thin"
+                  className="transition-opacity hover:opacity-70"
+                />
+              </span>
             </div>
           </div>
         </div>
       </div>
     );
-  }
+  },
 );
 
 export default TestimonialContent;

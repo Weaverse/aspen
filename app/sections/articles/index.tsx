@@ -1,22 +1,22 @@
+import { ArrowRight } from "@phosphor-icons/react";
 import {
-  IMAGES_PLACEHOLDERS,
   type ComponentLoaderArgs,
   type HydrogenComponentProps,
   type HydrogenComponentSchema,
+  IMAGES_PLACEHOLDERS,
   type WeaverseBlog,
 } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { type CSSProperties, forwardRef, useState } from "react";
+import { backgroundInputs } from "~/components/background-image";
+import { Button } from "~/components/button";
+import Heading, {
+  type HeadingProps,
+  headingInputs,
+} from "~/components/heading";
 import { Image } from "~/components/image";
 import Link from "~/components/link";
-import { Button } from "~/components/button";
-import { ArrowRight } from "@phosphor-icons/react";
 import { layoutInputs, Section } from "~/components/section";
-import { backgroundInputs } from "~/components/background-image";
-import Heading, {
-  headingInputs,
-  type HeadingProps,
-} from "~/components/heading";
 
 type ArticleData = {
   blogs: WeaverseBlog;
@@ -146,7 +146,7 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
           {viewAllText && (
             <Link
               to={blogs?.handle ? `/blogs/${blogs.handle}` : "#"}
-              className="flex items-center justify-center gap-2 text-sm cursor-pointer font-medium uppercase tracking-wider text-(--accent-color) hover:opacity-80 transition-opacity"
+              className="flex cursor-pointer items-center justify-center gap-2 font-medium text-(--accent-color) text-sm uppercase tracking-wider transition-opacity hover:opacity-80"
             >
               {viewAllText}
               <svg
@@ -179,28 +179,28 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
                 data-motion="slide-in"
                 className="block h-full cursor-pointer"
               >
-                <div className="flex w-full h-full flex-col gap-4">
+                <div className="flex h-full w-full flex-col gap-4">
                   {idx.image && (
-                    <div className="overflow-hidden rounded-(--border-radius) aspect-square">
+                    <div className="aspect-square overflow-hidden rounded-(--border-radius)">
                       <Image
                         data={idx.image}
                         sizes="auto"
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                     </div>
                   )}
                   <div className="flex flex-col gap-3">
-                    <h5 className="font-normal text-(--accent-color) line-clamp-3">
+                    <h5 className="line-clamp-3 font-normal text-(--accent-color)">
                       {idx.title}
                     </h5>
                     {showSeperator && (
-                      <div className="w-full border-b border-(--accent-color) opacity-20"></div>
+                      <div className="w-full border-(--accent-color) border-b opacity-20" />
                     )}
                     <p className="line-clamp-2 text-(--accent-color) opacity-80">
                       {idx.excerpt}
                     </p>
                     {showPublishedDate && idx.publishedAt && (
-                      <div className="flex mt-4 gap-1 text-(--accent-color) text-sm opacity-80">
+                      <div className="mt-4 flex gap-1 text-(--accent-color) text-sm opacity-80">
                         <time className="">
                           {new Date(idx.publishedAt).toLocaleDateString(
                             "en-US",
@@ -221,7 +221,7 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
           ))}
         </div>
         {hasMoreArticles && (
-          <div className="flex justify-center mt-8">
+          <div className="mt-8 flex justify-center">
             <Button onClick={handleLoadMore} variant={buttonVariant}>
               {buttonText}
             </Button>

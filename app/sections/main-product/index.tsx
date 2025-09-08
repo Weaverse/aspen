@@ -13,7 +13,6 @@ import { createSchema } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { forwardRef, useState } from "react";
 import { useLoaderData } from "react-router";
-import { CompareAtPrice } from "~/components/product/variant-prices";
 import { AddToCartButton } from "~/components/product/add-to-cart-button";
 import { ProductBadges } from "~/components/product/badges";
 import { BundledVariants } from "~/components/product/bundled-variants";
@@ -22,7 +21,10 @@ import {
   type ProductMediaProps,
 } from "~/components/product/product-media";
 import { Quantity } from "~/components/product/quantity";
-import { VariantPrices } from "~/components/product/variant-prices";
+import {
+  CompareAtPrice,
+  VariantPrices,
+} from "~/components/product/variant-prices";
 import { layoutInputs, Section, type SectionProps } from "~/components/section";
 import type { loader as productRouteLoader } from "~/routes/($locale).products.$productHandle";
 import { isCombinedListing } from "~/utils/combined-listings";
@@ -78,6 +80,10 @@ const ProductInformation = forwardRef<
     enableZoom,
     showDots,
     navigationStyle,
+    arrowsColor,
+    arrowsShape,
+    zoomColor,
+    zoomShape,
     showBadgesOnProductMedia,
     ...rest
   } = props;
@@ -101,9 +107,9 @@ const ProductInformation = forwardRef<
       <Section ref={ref} {...rest} overflow="unset">
         <div
           className={clsx([
-            "space-y-5 lg:space-y-0 lg:grid",
+            "space-y-5 lg:grid lg:space-y-0",
             "lg:gap-[clamp(30px,5%,60px)]",
-            "lg:grid-cols-[1fr_clamp(360px,45%,480px)]",
+            "lg:grid-cols-[1fr_clamp(360px,25%,480px)]",
           ])}
         >
           <ProductMedia
@@ -131,16 +137,18 @@ const ProductInformation = forwardRef<
             enableZoom={enableZoom}
             showDots={showDots}
             navigationStyle={navigationStyle}
+            arrowsColor={arrowsColor}
+            arrowsShape={arrowsShape}
+            zoomColor={zoomColor}
+            zoomShape={zoomShape}
             showBadges={showBadgesOnProductMedia}
             badges={
-              <>
-                {selectedVariant && (
-                  <ProductBadges
-                    product={product}
-                    selectedVariant={selectedVariant}
-                  />
-                )}
-              </>
+              selectedVariant && (
+                <ProductBadges
+                  product={product}
+                  selectedVariant={selectedVariant}
+                />
+              )
             }
           />
           <div>
@@ -230,7 +238,7 @@ const ProductInformation = forwardRef<
 
               {!combinedListing && (
                 <div
-                  className="space-y-2 py-3 sp-button"
+                  className="sp-button space-y-2 py-3"
                   style={
                     {
                       "--shop-pay-button-height": "54px",
@@ -247,7 +255,7 @@ const ProductInformation = forwardRef<
                       },
                     ]}
                     data-test="add-to-cart"
-                    className="w-full uppercase !py-[17px]"
+                    className="!py-[17px] w-full uppercase"
                   >
                     {atcButtonText}
                   </AddToCartButton>
@@ -366,6 +374,10 @@ export const schema = createSchema({
             data.mediaLayout === "slider",
         },
         {
+          type: "heading",
+          label: "Navigation",
+        },
+        {
           label: "Navigation style",
           name: "navigationStyle",
           type: "select",
@@ -380,10 +392,72 @@ export const schema = createSchema({
             data.mediaLayout === "slider",
         },
         {
+          type: "select",
+          label: "Arrows color",
+          name: "arrowsColor",
+          configs: {
+            options: [
+              { value: "primary", label: "Primary" },
+              { value: "secondary", label: "Secondary" },
+            ],
+          },
+          defaultValue: "primary",
+          condition: (data: ProductInformationData) =>
+            data.mediaLayout === "slider",
+        },
+        {
+          type: "toggle-group",
+          label: "Arrows shape",
+          name: "arrowsShape",
+          configs: {
+            options: [
+              { value: "rounded-sm", label: "Rounded", icon: "squircle" },
+              { value: "circle", label: "Circle", icon: "circle" },
+              { value: "square", label: "Square", icon: "square" },
+            ],
+          },
+          defaultValue: "circle",
+          condition: (data: ProductInformationData) =>
+            data.mediaLayout === "slider",
+        },
+        {
+          type: "heading",
+          label: "Zooms",
+        },
+        {
           label: "Enable zoom",
           name: "enableZoom",
           type: "switch",
           defaultValue: true,
+        },
+        {
+          type: "select",
+          label: "Zoom button color",
+          name: "zoomColor",
+          configs: {
+            options: [
+              { value: "primary", label: "Primary" },
+              { value: "secondary", label: "Secondary" },
+            ],
+          },
+          defaultValue: "primary",
+          condition: (data: ProductInformationData) =>
+            data.mediaLayout === "slider" && data.enableZoom === true,
+        },
+        {
+          type: "toggle-group",
+          label: "Zoom button shape",
+          name: "zoomShape",
+          configs: {
+            options: [
+              { value: "rounded-sm", label: "Rounded", icon: "squircle" },
+              { value: "circle", label: "Circle", icon: "circle" },
+              { value: "square", label: "Square", icon: "square" },
+            ],
+          },
+          defaultValue: "circle",
+          condition: (data: ProductInformationData) =>
+            data.mediaLayout === "slider" && data.enableZoom === true,
         },
         {
           type: "switch",

@@ -39,7 +39,7 @@ export function Sort() {
 
   return (
     <DropdownMenu.Root>
-      <DropdownMenu.Trigger className="flex w-fit items-center justify-end gap-1.5 h-12 py-2.5 focus-visible:outline-hidden">
+      <DropdownMenu.Trigger className="flex h-12 w-fit items-center justify-end gap-1.5 py-2.5 focus-visible:outline-hidden">
         <span className="inline uppercase">
           Sort by: <span className="font-semibold">{currentSort.label}</span>
         </span>
@@ -58,7 +58,7 @@ export function Sort() {
                 <Link
                   to={`${location.pathname}?${params.toString()}`}
                   className={cn(
-                    "hover:underline underline-offset-[6px] hover:outline-hidden",
+                    "underline-offset-[6px] hover:underline hover:outline-hidden",
                     currentSort.key === key && "font-bold",
                   )}
                   preventScrollReset

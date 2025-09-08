@@ -1,12 +1,15 @@
 import { createSchema } from "@weaverse/hydrogen";
-import { forwardRef, type CSSProperties, useState } from "react";
+import { type CSSProperties, forwardRef, useState } from "react";
 import { useLoaderData } from "react-router";
 import type { ArticleFragment, BlogQuery } from "storefront-api.generated";
+import { Button } from "~/components/button";
+import Heading, {
+  type HeadingProps,
+  headingInputs,
+} from "~/components/heading";
 import { Image } from "~/components/image";
 import { Link } from "~/components/link";
-import { Button } from "~/components/button";
 import { layoutInputs, Section, type SectionProps } from "~/components/section";
-import Heading, { headingInputs, type HeadingProps } from "~/components/heading";
 import type { ImageAspectRatio } from "~/types/image";
 import { calculateAspectRatio, getImageLoadingPriority } from "~/utils/image";
 
@@ -72,7 +75,7 @@ const Blogs = forwardRef<HTMLElement, BlogsProps>((props, ref) => {
 
   // Handle load more
   const handleLoadMore = () => {
-    setVisibleCount(prev => Math.min(prev + loadMoreCount, articles.length));
+    setVisibleCount((prev) => Math.min(prev + loadMoreCount, articles.length));
   };
 
   if (blog) {
@@ -98,7 +101,7 @@ const Blogs = forwardRef<HTMLElement, BlogsProps>((props, ref) => {
             alignment={alignment}
           />
         )}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-4 gap-y-12">
+        <div className="grid grid-cols-1 gap-x-4 gap-y-12 lg:grid-cols-3">
           {visibleArticles.map((article, i) => (
             <ArticleCard
               key={article.id}
@@ -116,7 +119,7 @@ const Blogs = forwardRef<HTMLElement, BlogsProps>((props, ref) => {
           ))}
         </div>
         {hasMoreArticles && (
-          <div className="flex justify-center mt-12">
+          <div className="mt-12 flex justify-center">
             <Button onClick={handleLoadMore} variant={buttonVariant}>
               {buttonText}
             </Button>
@@ -161,28 +164,31 @@ export function ArticleCard({
         to={`/blogs/${blogHandle}/${article.handle}`}
         className="block h-full cursor-pointer"
       >
-        <div className="flex w-full h-full flex-col gap-4">
+        <div className="flex h-full w-full flex-col gap-4">
           {article.image && (
-            <div 
-              className="overflow-hidden aspect-square"
+            <div
+              className="aspect-square overflow-hidden"
               style={{ borderRadius: imageBorderRadius }}
             >
               <Image
                 alt={article.image.altText || article.title}
                 data={article.image}
-                aspectRatio={calculateAspectRatio(article.image, imageAspectRatio)}
+                aspectRatio={calculateAspectRatio(
+                  article.image,
+                  imageAspectRatio,
+                )}
                 loading={loading}
                 sizes="(min-width: 768px) 50vw, 100vw"
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
             </div>
           )}
           <div className="flex flex-col gap-3">
-            <h5 className="font-normal text-(--accent-color) line-clamp-3 tracking-tighter">
+            <h5 className="line-clamp-3 font-normal text-(--accent-color) tracking-tighter">
               {article.title}
             </h5>
             {showSeperator && (
-              <div className="w-full border-b border-(--accent-color) opacity-20"></div>
+              <div className="w-full border-(--accent-color) border-b opacity-20" />
             )}
             {showExcerpt && (
               <p className="line-clamp-3 text-(--accent-color) opacity-80">
@@ -190,12 +196,12 @@ export function ArticleCard({
               </p>
             )}
             {(showDate || showAuthor) && (
-              <div className="flex mt-4 gap-1 text-(--accent-color) opacity-80">
+              <div className="mt-4 flex gap-1 text-(--accent-color) opacity-80">
                 {showDate && (
                   <time>
                     {new Date(article.publishedAt).toLocaleDateString("en-US", {
                       year: "numeric",
-                      month: "long", 
+                      month: "long",
                       day: "numeric",
                     })}
                   </time>
@@ -206,7 +212,7 @@ export function ArticleCard({
             )}
             {showReadmore && (
               <div className="mt-2">
-                <span className="text-(--accent-color) underline opacity-80 hover:opacity-100 transition-opacity uppercase">
+                <span className="text-(--accent-color) uppercase underline opacity-80 transition-opacity hover:opacity-100">
                   Read more →
                 </span>
               </div>
@@ -239,15 +245,17 @@ export const schema = createSchema({
           defaultValue: true,
           helpText: "Toggle to show or hide the blog title heading",
         },
-        ...headingInputs.filter(input => input.name !== "content").map((input) => {
-          if (input.name === "as") {
-            return {
-              ...input,
-              name: "headingTagName",
-            };
-          }
-          return input;
-        }),
+        ...headingInputs
+          .filter((input) => input.name !== "content")
+          .map((input) => {
+            if (input.name === "as") {
+              return {
+                ...input,
+                name: "headingTagName",
+              };
+            }
+            return input;
+          }),
       ],
     },
     {
@@ -263,7 +271,8 @@ export const schema = createSchema({
             max: 12,
             step: 3,
           },
-          helpText: "Number of articles to show initially (recommended: 6 for 2 rows of 3 columns)"
+          helpText:
+            "Number of articles to show initially (recommended: 6 for 2 rows of 3 columns)",
         },
         {
           type: "range",
@@ -275,7 +284,7 @@ export const schema = createSchema({
             max: 12,
             step: 3,
           },
-          helpText: "Number of articles to load when clicking 'Load More'"
+          helpText: "Number of articles to load when clicking 'Load More'",
         },
       ],
     },

@@ -19,17 +19,17 @@ const AccordionSection = forwardRef<HTMLElement, AccordionSectionProps>(
       <Section ref={ref} {...rest}>
         <div
           className={clsx(
-            "w-full h-full grid items-center lg:gap-16 md:gap-12 gap-8",
+            "grid h-full w-full items-center gap-8 md:gap-12 lg:gap-16",
             accordionLayout === "row"
-              ? "justify-start grid-cols-1 md:[&_.accordion--group]:grid-cols-2 [&_.accordion--group]:grid-cols-1"
-              : "md:grid-cols-2 grid-cols-1"
+              ? "grid-cols-1 justify-start [&_.accordion--group]:grid-cols-1 md:[&_.accordion--group]:grid-cols-2"
+              : "grid-cols-1 md:grid-cols-2",
           )}
         >
           {children}
         </div>
       </Section>
     );
-  }
+  },
 );
 
 export default AccordionSection;

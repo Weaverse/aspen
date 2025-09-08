@@ -1,7 +1,4 @@
-import {
-  createSchema,
-  type HydrogenComponentProps,
-} from "@weaverse/hydrogen";
+import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
 import { cva, type VariantProps } from "class-variance-authority";
 import { forwardRef } from "react";
 
@@ -31,10 +28,9 @@ let variants = cva("", {
   },
 });
 
-interface ContentInformationProps extends VariantProps<typeof variants>, HydrogenComponentProps {
-}
-
-
+interface ContentInformationProps
+  extends VariantProps<typeof variants>,
+    HydrogenComponentProps {}
 
 const ContentInformation = forwardRef<HTMLDivElement, ContentInformationProps>(
   (props, ref) => {
@@ -45,7 +41,7 @@ const ContentInformation = forwardRef<HTMLDivElement, ContentInformationProps>(
         {children}
       </div>
     );
-  }
+  },
 );
 
 export default ContentInformation;

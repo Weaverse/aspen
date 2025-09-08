@@ -1,14 +1,19 @@
-import {
-  IMAGES_PLACEHOLDERS,
-  type HydrogenComponentProps,
-  type HydrogenComponentSchema,
-  type WeaverseImage,
-} from "@weaverse/hydrogen";
-import React, { forwardRef, type CSSProperties, useRef, useEffect } from "react";
+import { List } from "@phosphor-icons/react";
 // import { IconArrowSlideRight, IconArrowSlideLeft, IconImageBlank } from '~/components/Icon';
 import { Image } from "@shopify/hydrogen";
+import {
+  type HydrogenComponentProps,
+  type HydrogenComponentSchema,
+  IMAGES_PLACEHOLDERS,
+  type WeaverseImage,
+} from "@weaverse/hydrogen";
 import clsx from "clsx";
-import { List } from "@phosphor-icons/react";
+import React, {
+  type CSSProperties,
+  forwardRef,
+  useEffect,
+  useRef,
+} from "react";
 
 interface BeforeAndAfterProps extends HydrogenComponentProps {
   beforeImage1: WeaverseImage | string;
@@ -52,8 +57,8 @@ const BeforeAndAfter = forwardRef<HTMLDivElement, BeforeAndAfterProps>(
         x: e.clientX,
         y: e.clientY,
       };
-      const currentLeftWidth = parseFloat(
-        window.getComputedStyle(resizerRef.current as Element).left
+      const currentLeftWidth = Number.parseFloat(
+        window.getComputedStyle(resizerRef.current as Element).left,
       );
 
       const handleMouseMove = (e: MouseEvent) => {
@@ -84,8 +89,8 @@ const BeforeAndAfter = forwardRef<HTMLDivElement, BeforeAndAfterProps>(
         x: touch.clientX,
         y: touch.clientY,
       };
-      const currentLeftWidth = parseFloat(
-        window.getComputedStyle(resizerRef.current as Element).left
+      const currentLeftWidth = Number.parseFloat(
+        window.getComputedStyle(resizerRef.current as Element).left,
       );
 
       const handleTouchMove = (e: TouchEvent) => {
@@ -116,7 +121,7 @@ const BeforeAndAfter = forwardRef<HTMLDivElement, BeforeAndAfterProps>(
       const firstHalfEle = firstHalfRef.current;
       const resizerEle = resizerRef.current;
 
-      if (!container || !firstHalfEle || !resizerEle) {
+      if (!(container && firstHalfEle && resizerEle)) {
         return;
       }
 
@@ -135,7 +140,7 @@ const BeforeAndAfter = forwardRef<HTMLDivElement, BeforeAndAfterProps>(
       const resizerEle = resizerRef.current;
       const secondHalfEle = secondHalfRef.current;
 
-      if (!container || !firstHalfEle || !resizerEle || !secondHalfEle) {
+      if (!(container && firstHalfEle && resizerEle && secondHalfEle)) {
         return;
       }
 
@@ -153,7 +158,7 @@ const BeforeAndAfter = forwardRef<HTMLDivElement, BeforeAndAfterProps>(
       const resizerEle = resizerRef.current;
       const secondHalfEle = secondHalfRef.current;
 
-      if (!container || !firstHalfEle || !resizerEle || !secondHalfEle) {
+      if (!(container && firstHalfEle && resizerEle && secondHalfEle)) {
         return;
       }
 
@@ -168,13 +173,13 @@ const BeforeAndAfter = forwardRef<HTMLDivElement, BeforeAndAfterProps>(
     useEffect(() => {
       const resizerEle = resizerRef.current;
       const containerEle = containerRef.current;
-      if (!resizerEle || !containerEle) return;
+      if (!(resizerEle && containerEle)) return;
       const defaultWidth = 50;
       resizerEle.style.left = `${defaultWidth}%`;
       updateWidth(
         (defaultWidth * containerRef.current.getBoundingClientRect().width) /
           100,
-        0
+        0,
       );
     }, [afterImage]);
 
@@ -191,15 +196,15 @@ const BeforeAndAfter = forwardRef<HTMLDivElement, BeforeAndAfterProps>(
         data-motion="slide-in"
         ref={containerRef}
         {...rest}
-        className="w-full relative h-[var(--slider-height-mobile)] sm:h-[var(--slider-height-desktop)] select-none"
+        className="relative h-[var(--slider-height-mobile)] w-full select-none sm:h-[var(--slider-height-desktop)]"
         style={sliderStyle}
       >
-        <div className="left-0 absolute top-0 h-full w-full" ref={firstHalfRef}>
+        <div className="absolute top-0 left-0 h-full w-full" ref={firstHalfRef}>
           {afterImage && (
             <Image
               data={afterImage}
               sizes="auto"
-              className="h-full w-full box-border object-cover object-center"
+              className="box-border h-full w-full object-cover object-center"
             />
           )}
         </div>
@@ -208,23 +213,23 @@ const BeforeAndAfter = forwardRef<HTMLDivElement, BeforeAndAfterProps>(
           onMouseDown={handleMouseDown}
           onTouchStart={handleTouchStart}
           className={clsx(
-            "select-none touch-none left-1/2 absolute flex items-center top-0 h-full transform z-10",
+            "absolute top-0 left-1/2 z-10 flex h-full transform touch-none select-none items-center",
             {
               "-translate-x-full": !showList,
               "-translate-x-1": showList,
-            }
+            },
           )}
         >
           <div className="relative h-full">
             {/* Separator Bar */}
-            <div className="h-full bg-[var(--separator-color)] cursor-ew-resize w-[var(--separator-width)] relative" />
+            <div className="relative h-full w-[var(--separator-width)] cursor-ew-resize bg-[var(--separator-color)]" />
 
             {/* List Icon */}
             {showList && (
-              <div className="absolute flex items-center justify-center top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
+              <div className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 z-20 flex items-center justify-center">
                 <List
                   size={32}
-                  className="text-[var(--list-color)] transform rotate-90 bg-[var(--separator-color)] rounded-full p-1"
+                  className="rotate-90 transform rounded-full bg-[var(--separator-color)] p-1 text-[var(--list-color)]"
                 />
               </div>
             )}
@@ -235,13 +240,13 @@ const BeforeAndAfter = forwardRef<HTMLDivElement, BeforeAndAfterProps>(
             <Image
               data={beforeImage}
               sizes="auto"
-              className="h-full w-full box-border object-cover object-center"
+              className="box-border h-full w-full object-cover object-center"
             />
           )}
         </div>
       </div>
     );
-  }
+  },
 );
 
 export default BeforeAndAfter;

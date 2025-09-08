@@ -1,3 +1,5 @@
+import { CaretLeftIcon, XIcon } from "@phosphor-icons/react";
+import * as Dialog from "@radix-ui/react-dialog";
 import {
   getAdjacentAndFirstAvailableVariants,
   getProductOptions,
@@ -5,16 +7,14 @@ import {
   ShopPayButton,
 } from "@shopify/hydrogen";
 import type { MoneyV2 } from "@shopify/hydrogen/storefront-api-types";
-import { XIcon, CaretLeftIcon } from "@phosphor-icons/react";
-import * as Dialog from "@radix-ui/react-dialog";
 import { useThemeSettings } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { useEffect, useState } from "react";
-import { useFetcher, Link } from "react-router";
+import { Link, useFetcher } from "react-router";
 import { AddToCartButton } from "~/components/product/add-to-cart-button";
 import { ProductMedia } from "~/components/product/product-media";
-import { QuickShopVariants } from "~/components/product/quick-shop-variants";
 import { Quantity } from "~/components/product/quantity";
+import { QuickShopVariants } from "~/components/product/quick-shop-variants";
 import { ScrollArea } from "~/components/scroll-area";
 import { Skeleton } from "~/components/skeleton";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
@@ -64,18 +64,16 @@ function ProductDetailsContent({
   return (
     <div className="flex flex-col items-center gap-9 px-6">
       {details.map(({ title, content, learnMore }) => (
-        <div key={title} className="flex flex-col items-center gap-6 w-full">
-          <span className="font-normal uppercase w-full">
-            {title}
-          </span>
+        <div key={title} className="flex w-full flex-col items-center gap-6">
+          <span className="w-full font-normal uppercase">{title}</span>
           <div
             suppressHydrationWarning
-            className="font-normal w-full prose prose-sm prose-neutral max-w-none [&>p]:mb-4 [&>ul]:mb-4 [&>ol]:mb-4"
+            className="prose prose-sm prose-neutral w-full max-w-none font-normal [&>ol]:mb-4 [&>p]:mb-4 [&>ul]:mb-4"
             dangerouslySetInnerHTML={{ __html: content }}
           />
           {learnMore && (
             <Link
-              className="pb-px border-b border-line-subtle text-body-subtle text-sm w-full"
+              className="w-full border-line-subtle border-b pb-px text-body-subtle text-sm"
               to={learnMore}
             >
               Learn more
@@ -105,26 +103,26 @@ function ProductDescriptionDrawer({
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay
-          className="fixed inset-0 bg-black/50 data-[state=open]:animate-fade-in z-20"
+          className="fixed inset-0 z-20 bg-black/50 data-[state=open]:animate-fade-in"
           style={{ "--fade-in-duration": "150ms" } as React.CSSProperties}
         />
         <Dialog.Content
           className={clsx([
-            "fixed inset-y-0 w-full md:max-w-[430px] bg-background py-2.5 z-20",
-            "right-0 data-[state=open]:animate-enter-from-right shadow-2xl",
+            "fixed inset-y-0 z-20 w-full bg-background py-2.5 md:max-w-[430px]",
+            "right-0 shadow-2xl data-[state=open]:animate-enter-from-right",
           ])}
           aria-describedby={undefined}
         >
-          <div className="h-full flex flex-col">
+          <div className="flex h-full flex-col">
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-3 flex-shrink-0">
+            <div className="flex flex-shrink-0 items-center justify-between px-5 py-3">
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => onOpenChange(false)}
-                  className="flex items-center justify-center w-4 h-4"
+                  className="flex h-4 w-4 items-center justify-center"
                 >
-                  <CaretLeftIcon className="w-4 h-4 text-[#29231E]" />
+                  <CaretLeftIcon className="h-4 w-4 text-[#29231E]" />
                 </button>
                 <Dialog.Title asChild>
                   <span className="font-semibold uppercase">DESCRIPTION</span>
@@ -133,9 +131,9 @@ function ProductDescriptionDrawer({
               <button
                 type="button"
                 onClick={onCloseAll || (() => onOpenChange(false))}
-                className="flex items-center justify-center w-4 h-4"
+                className="flex h-4 w-4 items-center justify-center"
               >
-                <XIcon className="w-4 h-4 text-[#29231E]" />
+                <XIcon className="h-4 w-4 text-[#29231E]" />
               </button>
             </div>
 
@@ -156,12 +154,12 @@ function ProductDescriptionDrawer({
   );
 }
 
-export function QuickShop({ 
-  data, 
-  showDescription, 
+export function QuickShop({
+  data,
+  showDescription,
   setShowDescription,
-  onCloseAll 
-}: { 
+  onCloseAll,
+}: {
   data: ProductData;
   showDescription?: boolean;
   setShowDescription?: (show: boolean) => void;
@@ -170,7 +168,7 @@ export function QuickShop({
   const themeSettings = useThemeSettings();
   const { product, storeDomain } = data || {};
   const [internalShowDescription, setInternalShowDescription] = useState(false);
-  
+
   const isDescriptionOpen = showDescription ?? internalShowDescription;
   const setDescriptionOpen = setShowDescription ?? setInternalShowDescription;
 
@@ -210,10 +208,13 @@ export function QuickShop({
   const { price, compareAtPrice } = selectedVariant;
   return (
     <>
-      <div className="space-y-6" style={{ "--shop-pay-button-height": "48px" } as React.CSSProperties}>
+      <div
+        className="space-y-6"
+        style={{ "--shop-pay-button-height": "48px" } as React.CSSProperties}
+      >
         {/* Product Image */}
-        <div className="aspect-square w-full overflow-hidden relative bg-gray-100 rounded-lg">
-          <div className="absolute inset-0 [&_.swiper]:!h-full [&_.swiper-slide]:!h-full [&_.swiper-wrapper]:!h-full">
+        <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-gray-100">
+          <div className="[&_.swiper]:!h-full [&_.swiper-slide]:!h-full [&_.swiper-wrapper]:!h-full absolute inset-0">
             <ProductMedia
               mediaLayout="slider"
               media={product?.media.nodes}
@@ -228,10 +229,10 @@ export function QuickShop({
         {/* Product Details */}
         <div className="space-y-6">
           {/* Product Title & Price */}
-          <h4 className="font-medium leading-tight line-clamp-2">{title}</h4>
+          <h4 className="line-clamp-2 font-medium leading-tight">{title}</h4>
           <button
             type="button"
-            className="underline cursor-pointer"
+            className="cursor-pointer underline"
             onClick={() => setDescriptionOpen(true)}
           >
             <span>View Description</span>
@@ -269,7 +270,7 @@ export function QuickShop({
                 },
               ]}
               data-test="add-to-cart"
-              className="w-full h-12"
+              className="h-12 w-full"
             >
               {atcText}
             </AddToCartButton>
@@ -283,7 +284,7 @@ export function QuickShop({
                     quantity,
                   },
                 ]}
-                className="w-full h-12"
+                className="h-12 w-full"
                 storeDomain={storeDomain}
               />
             )}
@@ -304,22 +305,20 @@ export function QuickShop({
   );
 }
 
-export function QuickShopTrigger({ 
+export function QuickShopTrigger({
   productHandle,
   showOnHover = true,
   buttonType,
   buttonText,
   panelType,
-}: { 
+}: {
   productHandle: string;
   showOnHover?: boolean;
   buttonType?: string;
   buttonText?: string;
   panelType?: string;
 }) {
-  const {
-    quickShopButtonTextOpen,
-  } = useThemeSettings();
+  const { quickShopButtonTextOpen } = useThemeSettings();
   const [open, setOpen] = useState(false);
   const [showDescription, setShowDescription] = useState(false);
   const { load, data, state } = useFetcher<ProductData>();
@@ -340,13 +339,13 @@ export function QuickShopTrigger({
   }, [open, apiPath]);
 
   return (
-    <Dialog.Root 
-      open={open} 
+    <Dialog.Root
+      open={open}
       onOpenChange={(isOpen) => {
-        if (!isOpen) {
-          closeAllDrawers();
-        } else {
+        if (isOpen) {
           setOpen(isOpen);
+        } else {
+          closeAllDrawers();
         }
       }}
     >
@@ -355,59 +354,65 @@ export function QuickShopTrigger({
           type="button"
           className={clsx(
             // Mobile/Tablet: Always visible circular button at bottom right
-            "absolute bottom-4 right-4 w-12 h-12 md:opacity-100",
-            "bg-white rounded-full",
+            "absolute right-4 bottom-4 md:opacity-100",
+            "rounded-full bg-white",
             "flex items-center justify-center p-0",
             // Desktop: Hide initially, show on hover with text
-            showOnHover ? "lg:opacity-0 lg:inset-x-4 lg:w-auto lg:h-auto lg:rounded-none" : "lg:opacity-100 lg:inset-x-4 lg:w-auto lg:h-auto lg:rounded-none",
-            "lg:px-6 lg:py-3",
-            "lg:text-(--btn-secondary-text) lg:bg-(--btn-secondary-bg) lg:border-(--btn-secondary-bg)",
-            showOnHover ? "lg:-translate-y-1.5 lg:-translate-x-2 lg:group-hover:opacity-100 lg:group-hover:translate-x-0 lg:group-hover:translate-y-2" : "",
-            "lg:font-normal lg:whitespace-nowrap",
+            showOnHover
+              ? "lg:inset-x-4 lg:h-auto lg:w-auto lg:rounded-none lg:opacity-0"
+              : "lg:inset-x-4 lg:h-auto lg:w-auto lg:rounded-none lg:opacity-100",
+            "lg:px-6 lg:py-5",
+            "lg:border-(--btn-secondary-bg) lg:bg-(--btn-secondary-bg) lg:text-(--btn-secondary-text)",
+            showOnHover
+              ? "lg:-translate-y-1.5 lg:-translate-x-2 lg:group-hover:translate-x-0 lg:group-hover:translate-y-2 lg:group-hover:opacity-100"
+              : "",
+            "lg:whitespace-nowrap lg:font-normal lg:leading-3.5",
           )}
         >
           {/* Shopping bag icon for mobile/tablet */}
-          <svg 
-            className="w-5 h-5 text-[#29231E] lg:hidden" 
-            fill="none" 
-            stroke="currentColor" 
+          <svg
+            className="h-5 w-5 text-[#29231E] lg:hidden"
+            fill="none"
+            stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              strokeWidth={1.5} 
-              d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" 
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
             />
           </svg>
           {/* Text for desktop */}
-          <span className="hidden lg:inline uppercase">{buttonText || quickShopButtonTextOpen}</span>
+          <span className="hidden uppercase lg:inline">
+            {buttonText || quickShopButtonTextOpen}
+          </span>
         </button>
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay
-          className="fixed inset-0 bg-black/50 data-[state=open]:animate-fade-in z-10"
+          className="fixed inset-0 z-10 bg-black/50 data-[state=open]:animate-fade-in"
           style={{ "--fade-in-duration": "150ms" } as React.CSSProperties}
         />
         <Dialog.Content
           className={clsx([
-            "fixed inset-y-0 w-full md:max-w-[430px] bg-background py-2.5 z-10",
-            "right-0 data-[state=open]:animate-enter-from-right shadow-2xl",
+            "fixed inset-y-0 z-10 w-full bg-background py-2.5 md:max-w-[430px]",
+            "right-0 shadow-2xl data-[state=open]:animate-enter-from-right",
           ])}
           aria-describedby={undefined}
         >
-          <div className="h-full flex flex-col">
+          <div className="flex h-full flex-col">
             {/* Header */}
-            <div className="flex items-center justify-between px-5 flex-shrink-0 py-3">
+            <div className="flex flex-shrink-0 items-center justify-between px-5 py-3">
               <Dialog.Title asChild>
                 <span className="font-semibold uppercase">Quick Shop</span>
               </Dialog.Title>
               <button
                 type="button"
                 onClick={closeAllDrawers}
-                className="p-1 hover:bg-gray-100 rounded transition-colors"
+                className="rounded p-1 transition-colors hover:bg-gray-100"
               >
-                <XIcon className="w-5 h-5" />
+                <XIcon className="h-5 w-5" />
               </button>
             </div>
 
@@ -417,47 +422,47 @@ export function QuickShopTrigger({
                 {state === "loading" ? (
                   <div className="space-y-6">
                     {/* Image skeleton */}
-                    <div className="aspect-square w-full overflow-hidden relative bg-gray-100 rounded-lg">
-                      <Skeleton className="w-full h-full rounded-lg" />
+                    <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-gray-100">
+                      <Skeleton className="h-full w-full rounded-lg" />
                     </div>
 
                     {/* Content skeleton */}
                     <div className="space-y-6">
                       {/* Title & Price */}
                       <div className="space-y-3">
-                        <Skeleton className="w-3/4 h-7" />
-                        <Skeleton className="w-1/3 h-6" />
+                        <Skeleton className="h-7 w-3/4" />
+                        <Skeleton className="h-6 w-1/3" />
                       </div>
 
                       {/* Variants */}
                       <div className="space-y-3">
-                        <Skeleton className="w-1/4 h-5" />
+                        <Skeleton className="h-5 w-1/4" />
                         <div className="flex gap-2">
-                          <Skeleton className="w-12 h-10" />
-                          <Skeleton className="w-12 h-10" />
-                          <Skeleton className="w-12 h-10" />
+                          <Skeleton className="h-10 w-12" />
+                          <Skeleton className="h-10 w-12" />
+                          <Skeleton className="h-10 w-12" />
                         </div>
                       </div>
 
                       {/* Quantity & Buttons */}
                       <div className="space-y-4">
                         <div className="flex items-center gap-3">
-                          <Skeleton className="w-16 h-5" />
-                          <Skeleton className="w-24 h-10" />
+                          <Skeleton className="h-5 w-16" />
+                          <Skeleton className="h-10 w-24" />
                         </div>
-                        <Skeleton className="w-full h-12" />
+                        <Skeleton className="h-12 w-full" />
                       </div>
                     </div>
                   </div>
                 ) : data ? (
-                  <QuickShop 
-                    data={data as ProductData} 
+                  <QuickShop
+                    data={data as ProductData}
                     showDescription={showDescription}
                     setShowDescription={setShowDescription}
                     onCloseAll={closeAllDrawers}
                   />
                 ) : (
-                  <div className="text-center py-8">
+                  <div className="py-8 text-center">
                     <p className="text-body-subtle">
                       Failed to load product data
                     </p>

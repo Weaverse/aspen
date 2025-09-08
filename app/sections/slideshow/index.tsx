@@ -6,7 +6,6 @@ import {
 } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
-import clsx from "clsx";
 import { forwardRef } from "react";
 import { Autoplay, EffectFade } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -105,9 +104,7 @@ const Slideshow = forwardRef<
         ].filter(Boolean)}
       >
         {children.map((child, idx) => (
-          <SwiperSlide key={idx} className="bg-white">
-            {child}
-          </SwiperSlide>
+          <SwiperSlide key={idx}>{child}</SwiperSlide>
         ))}
         {showArrows && <Arrows {...props} />}
         {showDots && <Dots {...props} slidesCount={children.length} />}

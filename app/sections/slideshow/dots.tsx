@@ -10,17 +10,14 @@ export interface SlideshowDotsProps extends VariantProps<typeof variants> {
 }
 
 const variants = cva(
-  [
-    "slideshow-dots",
-    "absolute z-1 w-full flex justify-center items-center",
-  ],
+  ["slideshow-dots", "absolute z-1 flex w-full items-center justify-center"],
   {
     variants: {
       dotsPosition: {
-        top: "left-0! right-0! top-10! bottom-auto!",
-        bottom: "left-0! right-0! bottom-10! top-auto!",
-        left: "top-0! bottom-0! flex-col left-5! right-auto!",
-        right: "top-0! bottom-0! flex-col right-5! left-auto!",
+        top: "top-10! right-0! bottom-auto! left-0!",
+        bottom: "top-auto! right-0! bottom-10! left-0!",
+        left: "top-0! right-auto! bottom-0! left-5! flex-col",
+        right: "top-0! right-5! bottom-0! left-auto! flex-col",
       },
       dotsColor: {
         light: "",
@@ -37,8 +34,8 @@ const variants = cva(
 const dotVariants = cva(
   [
     "dot cursor-pointer",
-    "w-12 h-1 p-0",
-    "transition-all duration-300 fade-in",
+    "h-1 w-12 p-0",
+    "fade-in transition-all duration-300",
     "border-0 outline-none",
   ],
   {
@@ -59,7 +56,7 @@ const dotVariants = cva(
         className: "!bg-white",
       },
       {
-        dotsColor: "dark", 
+        dotsColor: "dark",
         isActive: true,
         className: "!bg-[#A79D95]",
       },
@@ -81,13 +78,13 @@ export function Dots(props: SlideshowDotsProps) {
     };
 
     // Listen for slide changes
-    swiper.on('slideChange', handleSlideChange);
-    
+    swiper.on("slideChange", handleSlideChange);
+
     // Set initial active index
     handleSlideChange();
 
     return () => {
-      swiper.off('slideChange', handleSlideChange);
+      swiper.off("slideChange", handleSlideChange);
     };
   }, [swiper]);
 
@@ -106,10 +103,10 @@ export function Dots(props: SlideshowDotsProps) {
           key={index}
           type="button"
           className={clsx(
-            dotVariants({ 
-              dotsColor, 
-              isActive: index <= activeIndex 
-            })
+            dotVariants({
+              dotsColor,
+              isActive: index <= activeIndex,
+            }),
           )}
           onClick={() => handleDotClick(index)}
           aria-label={`Go to slide ${index + 1}`}

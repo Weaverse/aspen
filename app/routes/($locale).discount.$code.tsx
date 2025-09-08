@@ -37,7 +37,7 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   }
 
   const result = await cart.updateDiscountCodes([code]);
-  
+
   /**
    * Manual workaround for React Router v7 compatibility issue with cart.setCartId()
    */

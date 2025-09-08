@@ -7,12 +7,12 @@ import { ReviewList } from "./review-list";
 
 const ReviewIndex = forwardRef<HTMLDivElement>((props, ref) => {
   const { productReviews } = useLoaderData<typeof productRouteLoader>();
-  
+
   // Check if productReviews exists before using
   if (!productReviews) {
     return null;
   }
-  
+
   return (
     <div
       ref={ref}

@@ -11,14 +11,15 @@ interface InstagramContextType {
 }
 
 const defaultContextValue: InstagramContextType = {
-  loaderData: null
+  loaderData: null,
 };
 
-const InstagramContext = createContext<InstagramContextType>(defaultContextValue);
+const InstagramContext =
+  createContext<InstagramContextType>(defaultContextValue);
 
 export const InstagramProvider = InstagramContext.Provider;
 
 export const useInstagramContext = (): InstagramContextType => {
   const context = useContext(InstagramContext);
   return context;
-}; 
+};

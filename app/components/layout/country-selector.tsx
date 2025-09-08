@@ -80,13 +80,13 @@ export function CountrySelector({
   };
 
   return (
-    <div ref={observerRef} className={cn("grid gap-4 w-48", wrapperClassName)}>
+    <div ref={observerRef} className={cn("grid w-48 gap-4", wrapperClassName)}>
       <Popover.Root>
         <Popover.Trigger asChild>
           <button
             type="button"
             className={cn(
-              "w-full border border-[#A79D95] overflow-clip cursor-pointer text-left outline-hidden flex items-center gap-2",
+              "flex w-full cursor-pointer items-center gap-2 overflow-clip border border-[#A79D95] text-left outline-hidden",
               inputClassName,
             )}
             aria-label="Select country"
@@ -99,12 +99,12 @@ export function CountrySelector({
               />
             )}
             <span>{selectedLocale.label}</span>
-            <CaretDownIcon className="ml-auto w-4 h-4" />
+            <CaretDownIcon className="ml-auto h-4 w-4" />
           </button>
         </Popover.Trigger>
         <Popover.Portal>
           <Popover.Content className="z-10">
-            <div className="w-48 max-h-40 overflow-auto py-2 bg-[#3b352c] my-2">
+            <div className="my-2 max-h-40 w-48 overflow-auto bg-[#3b352c] py-2">
               {countries &&
                 Object.keys(countries).map((countryPath) => {
                   const countryLocale = countries[countryPath];
@@ -128,7 +128,7 @@ export function CountrySelector({
                           },
                         })
                       }
-                      className="text-white bg-[#3b352c] hover:bg-[#4a423a] w-full p-2 transition flex gap-2 items-center text-left cursor-pointer py-2 px-4 text-sm"
+                      className="flex w-full cursor-pointer items-center gap-2 bg-[#3b352c] p-2 px-4 py-2 text-left text-sm text-white transition hover:bg-[#4a423a]"
                     >
                       {enableFlag && (
                         <ReactCountryFlag
@@ -140,7 +140,7 @@ export function CountrySelector({
                       <span>{countryLocale.label}</span>
                       {isSelected ? (
                         <span className="ml-auto">
-                          <CheckCircleIcon className="w-5 h-5" />
+                          <CheckCircleIcon className="h-5 w-5" />
                         </span>
                       ) : null}
                     </Popover.Close>

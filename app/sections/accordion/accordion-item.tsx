@@ -1,12 +1,13 @@
+import { MinusCircle, PlusCircle } from "@phosphor-icons/react";
+import * as Accordion from "@radix-ui/react-accordion";
+import { Image } from "@shopify/hydrogen";
 import type {
   HydrogenComponentProps,
   HydrogenComponentSchema,
 } from "@weaverse/hydrogen";
-import * as Accordion from "@radix-ui/react-accordion";
-import { MinusCircle, PlusCircle } from "@phosphor-icons/react";
-import React, { forwardRef, useEffect, useRef, useState } from "react";
+import type React from "react";
+import { forwardRef, useEffect, useRef, useState } from "react";
 import { cn } from "~/utils/cn";
-import { Image } from "@shopify/hydrogen";
 
 interface AccordionItemProps extends HydrogenComponentProps {
   title: string;
@@ -26,7 +27,7 @@ function adjustColor(hex: string, amount: number) {
       .join("");
   }
 
-  const num = parseInt(color, 16);
+  const num = Number.parseInt(color, 16);
   const r = Math.min(255, Math.max(0, ((num >> 16) & 0xff) + amount));
   const g = Math.min(255, Math.max(0, ((num >> 8) & 0xff) + amount));
   const b = Math.min(255, Math.max(0, (num & 0xff) + amount));
@@ -87,18 +88,18 @@ const AccordionItem = forwardRef<HTMLDivElement, AccordionItemProps>(
           <Accordion.Trigger
             ref={triggerRef}
             style={{ backgroundColor: highlightBg } as React.CSSProperties}
-            className="group flex gap-3 w-full items-center p-4 text-left mb-1"
+            className="group mb-1 flex w-full items-center gap-3 p-4 text-left"
           >
             {renderIcon()}
-            <span className="text-base font-medium">{title}</span>
-            <div className="relative h-5 w-5 ml-auto">
+            <span className="font-medium text-base">{title}</span>
+            <div className="relative ml-auto h-5 w-5">
               <PlusCircle
                 className="absolute inset-0 h-full w-full transition-opacity duration-200 group-data-[state=open]:opacity-0"
                 fill="#918379"
                 aria-hidden
               />
               <MinusCircle
-                className="absolute inset-0 h-full w-full transition-opacity duration-200 opacity-0 group-data-[state=open]:opacity-100"
+                className="absolute inset-0 h-full w-full opacity-0 transition-opacity duration-200 group-data-[state=open]:opacity-100"
                 fill="#918379"
                 aria-hidden
               />
@@ -118,14 +119,14 @@ const AccordionItem = forwardRef<HTMLDivElement, AccordionItemProps>(
           className={cn(
             "overflow-hidden",
             "data-[state=closed]:animate-collapse",
-            "data-[state=open]:animate-expand"
+            "data-[state=open]:animate-expand",
           )}
         >
           <div className="p-4">{content}</div>
         </Accordion.Content>
       </Accordion.Item>
     );
-  }
+  },
 );
 
 export default AccordionItem;

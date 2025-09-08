@@ -1,6 +1,9 @@
-import type { HydrogenComponent, WeaverseBlog, WeaverseVideo } from "@weaverse/hydrogen";
-import { forwardRef } from "react";
-import { Suspense, lazy } from "react";
+import type {
+  HydrogenComponent,
+  WeaverseBlog,
+  WeaverseVideo,
+} from "@weaverse/hydrogen";
+import { forwardRef, lazy, Suspense } from "react";
 import { Link } from "react-router";
 
 const ReactPlayer = lazy(() => import("react-player"));
@@ -58,12 +61,12 @@ let VideoItem = forwardRef<HTMLElement, VideoItemProps>((props, ref) => {
               className="aspect-[3/4] object-cover"
             />
           </Suspense>
-          <div className="absolute bottom-0 left-0 right-0 bg-[rgba(211,195,167,0.9)] p-3">
+          <div className="absolute right-0 bottom-0 left-0 bg-[rgba(211,195,167,0.9)] p-3">
             <div className="flex flex-col gap-1">
-              <p className="font-open-sans text-sm font-semibold leading-[1.6] tracking-[0.02em] text-[#29231E]">
-                {videoHandle?.handle || '@videohandle'}
+              <p className="font-open-sans font-semibold text-[#29231E] text-sm leading-[1.6] tracking-[0.02em]">
+                {videoHandle?.handle || "@videohandle"}
               </p>
-              <p className="font-open-sans text-sm leading-[1.6] tracking-[0.02em] text-[#29231E]">
+              <p className="font-open-sans text-[#29231E] text-sm leading-[1.6] tracking-[0.02em]">
                 {date} — {author}
               </p>
             </div>

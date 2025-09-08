@@ -3,28 +3,37 @@ import { forwardRef, useState } from "react";
 import { backgroundInputs } from "~/components/background-image";
 import type { SectionProps } from "~/components/section";
 import { layoutInputs, Section } from "~/components/section";
-import { ImageWithTextContext, type ImageAspectRatioType } from "./context";
 import { cn } from "~/utils/cn";
+import { type ImageAspectRatioType, ImageWithTextContext } from "./context";
 
 type ImageWithTextProps = SectionProps;
 
 const ImageWithText = forwardRef<HTMLElement, ImageWithTextProps>(
   (props, ref) => {
     const { children, ...rest } = props;
-    
+
     const [imageCount, setImageCount] = useState(0);
-    const [imageAspectRatio, setImageAspectRatio] = useState<ImageAspectRatioType>("1/1");
+    const [imageAspectRatio, setImageAspectRatio] =
+      useState<ImageAspectRatioType>("1/1");
 
     return (
-      <ImageWithTextContext.Provider value={{ imageCount, setImageCount, imageAspectRatio, setImageAspectRatio }}>
+      <ImageWithTextContext.Provider
+        value={{
+          imageCount,
+          setImageCount,
+          imageAspectRatio,
+          setImageAspectRatio,
+        }}
+      >
         <Section
           ref={ref}
           {...rest}
           containerClassName={cn(
             "px-0 sm:px-0",
-            imageCount <= 1 
+            imageCount <= 1
               ? "flex flex-col md:flex-row"
-              : imageCount > 1 && "flex flex-row relative aspect-square md:aspect-[unset] lg:aspect-auto"
+              : imageCount > 1 &&
+                  "relative flex aspect-square flex-row md:aspect-[unset] lg:aspect-auto",
           )}
         >
           {children}
