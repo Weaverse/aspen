@@ -31,7 +31,7 @@ const NewsLetterForm = forwardRef<HTMLDivElement, NewsLetterInputProps>(
           className="flex w-full items-stretch gap-2"
           data-motion="fade-up"
         >
-          <div className="flex h-[54px] grow items-center border border-line-subtle">
+          <div className="flex h-[54px] grow items-center border border-line-subtle bg-white">
             <EnvelopeSimpleIcon className="mr-1.5 ml-3 h-5 w-5 shrink-0" />
             <input
               name="email"
