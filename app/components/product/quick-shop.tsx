@@ -210,10 +210,10 @@ export function QuickShop({
     <>
       <div
         className="space-y-6"
-        style={{ "--shop-pay-button-height": "48px" } as React.CSSProperties}
+        style={{ "--shop-pay-button-height": "54px" } as React.CSSProperties}
       >
         {/* Product Image */}
-        <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-gray-100">
+        <div className="relative aspect-square w-full overflow-hidden bg-gray-100">
           <div className="[&_.swiper]:!h-full [&_.swiper-slide]:!h-full [&_.swiper-wrapper]:!h-full absolute inset-0">
             <ProductMedia
               mediaLayout="slider"
@@ -270,7 +270,7 @@ export function QuickShop({
                 },
               ]}
               data-test="add-to-cart"
-              className="h-12 w-full"
+              className="h-[54px] w-full"
             >
               {atcText}
             </AddToCartButton>
@@ -284,7 +284,7 @@ export function QuickShop({
                     quantity,
                   },
                 ]}
-                className="h-12 w-full"
+                className="h-[54px] w-full"
                 storeDomain={storeDomain}
               />
             )}
@@ -359,7 +359,7 @@ export function QuickShopTrigger({
             "flex items-center justify-center p-0",
             // Desktop: Hide initially, show on hover with text
             showOnHover
-              ? "lg:inset-x-4 lg:h-auto lg:w-auto lg:rounded-none lg:opacity-0"
+              ? "p-4 lg:inset-x-4 lg:h-auto lg:w-auto lg:rounded-none lg:opacity-0"
               : "lg:inset-x-4 lg:h-auto lg:w-auto lg:rounded-none lg:opacity-100",
             "lg:px-6 lg:py-5",
             "lg:border-(--btn-secondary-bg) lg:bg-(--btn-secondary-bg) lg:text-(--btn-secondary-text)",
@@ -422,8 +422,8 @@ export function QuickShopTrigger({
                 {state === "loading" ? (
                   <div className="space-y-6">
                     {/* Image skeleton */}
-                    <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-gray-100">
-                      <Skeleton className="h-full w-full rounded-lg" />
+                    <div className="relative aspect-square w-full overflow-hidden bg-gray-100">
+                      <Skeleton className="h-full w-full" />
                     </div>
 
                     {/* Content skeleton */}
