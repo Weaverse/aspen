@@ -181,12 +181,15 @@ function CartDiscounts({
       <UpdateDiscountForm discountCodes={codes}>
         <div className="flex items-center gap-3">
           <input
-            className="grow rounded-none border border-line bg-white px-4 py-5 leading-tight!"
+            className="h-[54px] grow rounded-none border border-line bg-white px-4 py-5 leading-tight!"
             type="text"
             name="discountCode"
             placeholder="Discount code"
           />
-          <Button variant="outline" className="!px-6 !py-5 leading-tight!">
+          <Button
+            variant="outline"
+            className="!px-6 !py-5 h-[54px] leading-tight!"
+          >
             Apply
           </Button>
         </div>
@@ -270,13 +273,13 @@ function CartCheckoutActions({
         <Link
           variant="outline"
           to="/cart"
-          className="flex w-full justify-center"
+          className="flex h-[54px] w-full items-center justify-center"
         >
           View cart
         </Link>
       )}
       <a href={checkoutUrl} target="_self">
-        <Button className="!px-6 !py-5 w-full">CHECKOUT</Button>
+        <Button className="!px-6 !py-5 h-[54px] w-full">CHECKOUT</Button>
       </a>
     </div>
   );

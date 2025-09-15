@@ -51,7 +51,7 @@ export function AddToCartButton({
             <Button
               type="submit"
               variant="primary"
-              className={cn(className, "px-6 py-5")}
+              className={cn(className, "!border-none px-6 py-5")}
               disabled={disabled ?? fetcher.state !== "idle"}
               onClick={() => toggleCartDrawer(true)}
               {...props}

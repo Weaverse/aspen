@@ -330,7 +330,7 @@ export function ProductMedia(props: ProductMediaProps) {
 
           {/* Badges Overlay */}
           {showBadges && badges && (
-            <div className="absolute top-2.5 left-2.5 z-[5] flex items-center gap-2">
+            <div className="absolute top-2.5 left-2.5 z-[1] flex items-center gap-2">
               {badges}
             </div>
           )}

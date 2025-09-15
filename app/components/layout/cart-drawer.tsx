@@ -38,16 +38,13 @@ export function CartDrawer() {
               {cart?.totalQuantity > 0 && (
                 <div
                   className={clsx(
-                    // "cart-count",
-                    "-right-1.5 absolute top-0",
-                    "flex h-4.5 min-w-4.5 items-center justify-center rounded-full px-1 text-center",
-                    "text-center font-normal text-[12px] leading-none",
-                    "transition-colors duration-300",
-                    // "group-hover/header:bg-(--color-header-text)",
-                    // "group-hover/header:text-(--color-header-bg)"
+                    "-right-2 -top-1 absolute",
+                    "flex h-5 min-w-5 items-center justify-center",
+                    "font-medium text-[11px] leading-none",
+                    "px-1 py-0.5",
                   )}
                 >
-                  <span className="-mr-px">{cart?.totalQuantity}</span>
+                  <span>{cart?.totalQuantity}</span>
                 </div>
               )}
             </Dialog.Trigger>

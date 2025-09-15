@@ -255,7 +255,7 @@ const ProductInformation = forwardRef<
                       },
                     ]}
                     data-test="add-to-cart"
-                    className="!py-[17px] w-full uppercase"
+                    className="h-[54px] w-full uppercase"
                   >
                     {atcButtonText}
                   </AddToCartButton>

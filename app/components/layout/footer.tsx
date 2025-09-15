@@ -30,7 +30,7 @@ const variants = cva("", {
     padding: {
       full: "",
       stretch: "px-3 md:px-10 lg:px-16",
-      fixed: "mx-auto px-3 md:px-4 lg:px-6",
+      fixed: "mx-auto px-5 pt-14 md:px-8 md:pt-14 lg:px-10 lg:pt-16",
     },
   },
 });
@@ -124,7 +124,7 @@ export function Footer() {
             )}
             <div className="hidden gap-4 md:flex lg:hidden">
               <div className="flex w-full flex-col gap-2">
-                <div className="flex flex-col gap-6">
+                <div className="flex flex-col gap-2">
                   <span className="font-semibold">{addressTitle}</span>
                   <div className="space-y-2">
                     <p>{storeAddress}</p>
@@ -185,7 +185,7 @@ export function Footer() {
               </div>
             </div>
             <div className="flex flex-col gap-2 md:order-none md:hidden lg:order-3 lg:flex">
-              <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-2">
                 <span className="font-semibold">{addressTitle}</span>
                 <div className="space-y-2">
                   <p>{storeAddress}</p>
@@ -202,7 +202,7 @@ export function Footer() {
               <FooterMenu />
             </div>
 
-            <div className="order-4 flex w-full flex-col gap-6 pt-6 md:order-none md:hidden md:pt-0 lg:order-4 lg:flex lg:w-fit">
+            <div className="order-4 flex w-full flex-col gap-4 pt-6 md:order-none md:hidden md:pt-0 lg:order-4 lg:flex lg:w-fit">
               <span className="font-semibold">{newsletterTitle}</span>
               <div className="space-y-2">
                 <p>{newsletterDescription}</p>
@@ -317,7 +317,7 @@ function FooterMenu() {
       type="multiple"
       value={openItems}
       onValueChange={setOpenItems}
-      className="grid w-full pt-0 md:grid-cols-3 md:gap-5 md:pt-9 lg:grid-cols-4 lg:gap-8"
+      className="grid w-full pt-0 md:grid-cols-4 md:gap-5 md:pt-9 lg:grid-cols-4 lg:gap-8"
     >
       {items.map(({ id, to, title, items: subItems }) => {
         const isEmpty = !subItems || subItems.length === 0;
@@ -391,7 +391,7 @@ function FooterMenu() {
                   "data-[state=open]:animate-expand",
                 ])}
               >
-                <div className="fade-in flex animate-in flex-col gap-2 pt-2 pb-4 duration-200 lg:pt-6">
+                <div className="fade-in flex animate-in flex-col gap-2 pt-4 pb-4 duration-200">
                   {subItems.map(({ id, to, title }) => (
                     <Link to={to} key={id} className="relative w-fit">
                       <RevealUnderline className="[--underline-color:var(--color-footer-text)]">
