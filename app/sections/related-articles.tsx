@@ -36,7 +36,7 @@ const RelatedArticles = forwardRef<HTMLElement, RelatedArticlesProps>(
 
     if (relatedArticles.length > 0) {
       return (
-        <Section ref={ref} {...rest} className="px-10 py-10">
+        <Section ref={ref} {...rest} className="py-10">
           {/* Header section with title and view all button */}
           <div className="mb-10 flex w-full items-center justify-between">
             <div className="flex items-center gap-2">

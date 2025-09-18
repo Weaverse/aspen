@@ -374,7 +374,11 @@ function CartLineItem({
     >
       {/* Thumbnail */}
       <div
-        className={clsx(layout === "drawer" ? "shrink-0" : "h-[360px] w-full")}
+        className={clsx(
+          layout === "drawer"
+            ? "shrink-0"
+            : "aspect-square w-full md:h-[360px] md:w-fit",
+        )}
       >
         {image && (
           <Image

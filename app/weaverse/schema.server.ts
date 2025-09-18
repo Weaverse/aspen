@@ -949,6 +949,78 @@ export const themeSchema: HydrogenThemeSchema = {
           name: "showCompareAtPrice",
           defaultValue: true,
         },
+        {
+          type: "heading",
+          label: "Navigation",
+        },
+        {
+          type: "select",
+          label: "Navigation style",
+          name: "quickShopNavigationStyle",
+          configs: {
+            options: [
+              { value: "corner", label: "Corner" },
+              { value: "sides", label: "Sides" },
+            ],
+          },
+          defaultValue: "corner",
+        },
+        {
+          type: "select",
+          label: "Arrows color",
+          name: "quickShopArrowsColor",
+          configs: {
+            options: [
+              { value: "primary", label: "Primary" },
+              { value: "secondary", label: "Secondary" },
+            ],
+          },
+          defaultValue: "primary",
+        },
+        {
+          type: "toggle-group",
+          label: "Arrows shape",
+          name: "quickShopArrowsShape",
+          configs: {
+            options: [
+              { value: "rounded-sm", label: "Rounded", icon: "squircle" },
+              { value: "circle", label: "Circle", icon: "circle" },
+              { value: "square", label: "Square", icon: "square" },
+            ],
+          },
+          defaultValue: "circle",
+        },
+        {
+          type: "heading",
+          label: "Zoom",
+        },
+        {
+          type: "select",
+          label: "Zoom button color",
+          name: "quickShopZoomColor",
+          configs: {
+            options: [
+              { value: "primary", label: "Primary" },
+              { value: "secondary", label: "Secondary" },
+            ],
+          },
+          defaultValue: "primary",
+          condition: (data) => data.enableZoom === true,
+        },
+        {
+          type: "toggle-group",
+          label: "Zoom button shape",
+          name: "quickShopZoomShape",
+          configs: {
+            options: [
+              { value: "rounded-sm", label: "Rounded", icon: "squircle" },
+              { value: "circle", label: "Circle", icon: "circle" },
+              { value: "square", label: "Square", icon: "square" },
+            ],
+          },
+          defaultValue: "circle",
+          condition: (data) => data.enableZoom === true,
+        },
       ],
     },
     {

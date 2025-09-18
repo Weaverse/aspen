@@ -99,7 +99,7 @@ export function ProductDetails({
           >
             <div
               suppressHydrationWarning
-              className="prose dark:prose-invert !text-[#29231E] font-normal"
+              className="prose dark:prose-invert !text-body-subtle font-normal"
               dangerouslySetInnerHTML={{ __html: content }}
             />
             {learnMore && (

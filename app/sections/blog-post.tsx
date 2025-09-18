@@ -47,9 +47,9 @@ const BlogPost = forwardRef<HTMLElement, BlogPostProps>((props, ref) => {
             <Image data={image} sizes="90vw" />
           </div>
         )}
-        <article className="lg:prose px-5 py-20 lg:mx-auto lg:max-w-4xl lg:px-0">
+        <article className="prose max-w-4xl px-5 py-20 md:mx-auto lg:px-0">
           <div className="mb-3 space-y-5 text-left">
-            <h3 className="h3 !mt-0 !mb-8 !tracking-tighter font-normal leading-tight!">
+            <h3 className="h3 !mt-0 !mb-8 !tracking-tighter !font-normal leading-tight!">
               {title}
             </h3>
             {(formattedDate || author?.name) && (

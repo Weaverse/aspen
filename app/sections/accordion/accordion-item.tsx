@@ -122,7 +122,7 @@ const AccordionItem = forwardRef<HTMLDivElement, AccordionItemProps>(
             "data-[state=open]:animate-expand",
           )}
         >
-          <div className="p-4">{content}</div>
+          <div className="p-4 text-body-subtle">{content}</div>
         </Accordion.Content>
       </Accordion.Item>
     );

@@ -1,6 +1,7 @@
 import { SlidersIcon, XIcon } from "@phosphor-icons/react";
 import * as Dialog from "@radix-ui/react-dialog";
 import clsx from "clsx";
+import { useState } from "react";
 import { useLoaderData } from "react-router";
 import type { CollectionQuery } from "storefront-api.generated";
 import { Button } from "~/components/button";
@@ -69,8 +70,23 @@ function FiltersDrawer({
 }: {
   filtersPosition: ToolsBarProps["filtersPosition"];
 }) {
+  const [open, setOpen] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      setIsAnimating(false);
+      setOpen(true);
+    } else {
+      setIsAnimating(true);
+      setTimeout(() => {
+        setOpen(false);
+        setIsAnimating(false);
+      }, 300);
+    }
+  };
   return (
-    <Dialog.Root>
+    <Dialog.Root open={open} onOpenChange={handleOpenChange}>
       <Dialog.Trigger asChild>
         <Button
           variant="outline"
@@ -86,13 +102,17 @@ function FiltersDrawer({
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay
-          className="fixed inset-0 z-10 bg-black/50 data-[state=open]:animate-fade-in"
-          style={{ "--fade-in-duration": "100ms" } as React.CSSProperties}
+          className={clsx(
+            "fixed inset-0 z-10 bg-black/50 transition-opacity duration-300",
+            open && !isAnimating ? "opacity-100" : "opacity-0",
+          )}
         />
         <Dialog.Content
           className={clsx([
-            "fixed inset-y-0 z-10 w-full bg-(--color-background) py-4 md:max-w-[430px]",
-            "right-0 data-[state=open]:animate-enter-from-right",
+            "fixed inset-y-0 right-0 z-10 w-full bg-(--color-background) py-4 md:max-w-[430px]",
+            "transition-transform duration-300 ease-in-out",
+            "data-[state=open]:animate-enter-from-right",
+            open && !isAnimating ? "translate-x-0" : "translate-x-full",
           ])}
           aria-describedby={undefined}
         >

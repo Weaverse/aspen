@@ -14,14 +14,11 @@ export function RevealUnderline({
     <Component
       className={cn(
         [
-          "[--underline-color:var(--color-text)]",
-          "pb-[3px]",
-          "bg-size-[0%_1px]",
-          "inline bg-no-repeat",
-          "bg-position-[left_calc(1em+4px)]",
-          "[transition:background_200ms_ease-in-out]",
-          "hover:bg-size-[100%_1px]",
-          "bg-[linear-gradient(to_right,var(--underline-color),var(--underline-color))]",
+          "ff-heading",
+          "relative inline cursor-pointer",
+          "after:absolute after:bottom-[-0.5px] after:left-0 after:h-[1px] after:w-full after:bg-[#6A4E4E]",
+          "after:opacity-0 hover:after:opacity-100 group-data-[state=open]:after:opacity-100",
+          "after:transition-opacity after:duration-[360ms] after:ease-[cubic-bezier(0.22,1,0.36,1)]",
         ],
         className,
       )}

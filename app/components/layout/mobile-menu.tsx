@@ -20,6 +20,7 @@ export function MobileMenu() {
     null,
   );
   const [mainMenuOpen, setMainMenuOpen] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   if (!headerMenu) return <MenuTrigger />;
 
@@ -29,8 +30,21 @@ export function MobileMenu() {
     setMainMenuOpen(false);
   };
 
+  const handleMainOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      setIsAnimating(false);
+      setMainMenuOpen(true);
+    } else {
+      setIsAnimating(true);
+      setTimeout(() => {
+        setMainMenuOpen(false);
+        setIsAnimating(false);
+      }, 300);
+    }
+  };
+
   return (
-    <Dialog.Root open={mainMenuOpen} onOpenChange={setMainMenuOpen}>
+    <Dialog.Root open={mainMenuOpen} onOpenChange={handleMainOpenChange}>
       <Dialog.Trigger
         asChild
         className="relative flex h-8 w-8 items-center justify-center focus-visible:outline-hidden lg:hidden"
@@ -39,19 +53,20 @@ export function MobileMenu() {
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay
-          className="fixed inset-0 z-10 bg-black/50 data-[state=open]:animate-fade-in"
-          style={{ "--fade-in-duration": "100ms" } as React.CSSProperties}
+          className={cn([
+            "fixed inset-0 z-10 bg-black/50 transition-opacity duration-300",
+            mainMenuOpen && !isAnimating ? "opacity-100" : "opacity-0",
+          ])}
         />
         <Dialog.Content
           className={cn([
-            "fixed inset-0 z-10 h-screen bg-(--color-header-bg-hover) pt-4 pb-2",
-            "-translate-x-full left-0 data-[state=open]:translate-x-0 data-[state=open]:animate-enter-from-left",
+            "fixed inset-0 left-0 z-10 h-screen bg-(--color-header-bg-hover) pt-4 pb-2",
+            "transition-transform duration-300 ease-in-out",
+            "data-[state=open]:animate-enter-from-left",
+            mainMenuOpen && !isAnimating ? "translate-x-0" : "-translate-x-full",
             "focus-visible:outline-hidden",
             "uppercase",
           ])}
-          style={
-            { "--enter-from-left-duration": "200ms" } as React.CSSProperties
-          }
           aria-describedby={undefined}
         >
           <Dialog.Title asChild>
@@ -132,23 +147,39 @@ function SubMenuDialog({
   onClose: () => void;
   onCloseAll: () => void;
 }) {
+  const [open, setOpen] = useState(true);
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      setIsAnimating(false);
+      setOpen(true);
+    } else {
+      setIsAnimating(true);
+      setTimeout(() => {
+        setOpen(false);
+        setIsAnimating(false);
+        onClose();
+      }, 300);
+    }
+  };
   return (
-    <Dialog.Root open={true} onOpenChange={onClose}>
+    <Dialog.Root open={open} onOpenChange={handleOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay
-          className="fixed inset-0 z-20 bg-black/50 data-[state=open]:animate-fade-in"
-          style={{ "--fade-in-duration": "100ms" } as React.CSSProperties}
+          className={cn([
+            "fixed inset-0 z-20 bg-black/50 transition-opacity duration-300",
+            open && !isAnimating ? "opacity-100" : "opacity-0",
+          ])}
         />
         <Dialog.Content
           className={cn([
-            "fixed inset-0 z-20 h-screen bg-(--color-header-bg-hover) pt-4 pb-2",
-            "-translate-x-full left-0 data-[state=open]:translate-x-0 data-[state=open]:animate-enter-from-left",
+            "fixed inset-0 left-0 z-20 h-screen bg-(--color-header-bg-hover) pt-4 pb-2",
+            "transition-transform duration-300 ease-in-out",
+            open && !isAnimating ? "translate-x-0" : "-translate-x-full",
             "focus-visible:outline-hidden",
             "uppercase",
           ])}
-          style={
-            { "--enter-from-left-duration": "200ms" } as React.CSSProperties
-          }
           aria-describedby={undefined}
         >
           <div className="flex items-center justify-between px-4">

@@ -13,6 +13,7 @@ import { PredictiveSearchResult } from "./predictive-search-result";
 
 export function PredictiveSearchButtonMobile({ setIsSearchOpen }) {
   let [open, setOpen] = useState(false);
+  let [isAnimating, setIsAnimating] = useState(false);
   let location = useLocation();
   let [searchQuery, setSearchQuery] = useState("");
 
@@ -26,8 +27,18 @@ export function PredictiveSearchButtonMobile({ setIsSearchOpen }) {
     <Dialog.Root
       open={open}
       onOpenChange={(value) => {
-        setOpen(value);
-        setIsSearchOpen(value);
+        if (value) {
+          setIsAnimating(false);
+          setOpen(true);
+          setIsSearchOpen(true);
+        } else {
+          setIsAnimating(true);
+          setIsSearchOpen(false);
+          setTimeout(() => {
+            setOpen(false);
+            setIsAnimating(false);
+          }, 300);
+        }
       }}
     >
       <Dialog.Trigger
@@ -40,18 +51,19 @@ export function PredictiveSearchButtonMobile({ setIsSearchOpen }) {
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay
-          className="fixed inset-0 z-10 bg-black/50 data-[state=open]:animate-fade-in"
-          style={{ "--fade-in-duration": "100ms" } as React.CSSProperties}
+          className={clsx(
+            "fixed inset-0 z-10 bg-black/50 transition-opacity duration-300",
+            open && !isAnimating ? "opacity-100" : "opacity-0",
+          )}
         />
         <Dialog.Content
           className={cn([
-            "fixed inset-y-0 z-10 w-screen max-w-[400px] bg-(--color-header-bg)",
-            "left-0 data-[state=open]:animate-enter-from-left",
+            "fixed inset-y-0 left-0 z-10 w-screen max-w-[400px] bg-(--color-header-bg)",
+            "transition-transform duration-300 ease-in-out",
+            "data-[state=open]:animate-enter-from-left",
+            open && !isAnimating ? "translate-x-0" : "-translate-x-full",
             "focus-visible:outline-none",
           ])}
-          style={
-            { "--enter-from-left-duration": "300ms" } as React.CSSProperties
-          }
           aria-describedby={undefined}
         >
           <VisuallyHidden.Root asChild>

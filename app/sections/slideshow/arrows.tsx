@@ -9,7 +9,7 @@ const variants = cva(
   [
     "hidden md:block",
     "-translate-y-1/2 absolute bottom-0 z-1",
-    "cursor-pointer p-2 text-center",
+    "cursor-pointer p-4 text-center",
     "border border-transparent",
     "transition-all duration-200",
   ],

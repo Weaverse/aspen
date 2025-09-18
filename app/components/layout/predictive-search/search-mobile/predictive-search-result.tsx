@@ -190,7 +190,7 @@ function SearchResultItem({
                   __typename === "Product" ? "line-clamp-1" : "line-clamp-2",
                 )}
               >
-                <span className="font-normal uppercase">{title}</span>
+                <span className="font-normal">{title}</span>
               </div>
             )}
             {price && (

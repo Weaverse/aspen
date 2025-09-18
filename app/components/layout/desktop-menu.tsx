@@ -60,7 +60,7 @@ export function DesktopMenu() {
                     <span
                       className={cn(
                         "ff-heading relative cursor-pointer",
-                        "after:absolute after:bottom-[-2px] after:left-0 after:h-[2px] after:w-full after:bg-current",
+                        "after:absolute after:bottom-[-0.5px] after:left-0 after:h-[2px] after:w-full after:bg-[#6A4E4E]",
                         "after:opacity-0 hover:after:opacity-100 group-data-[state=open]:after:opacity-100",
                         "after:transition-opacity after:duration-[360ms] after:ease-[cubic-bezier(0.22,1,0.36,1)]",
                       )}
@@ -72,7 +72,7 @@ export function DesktopMenu() {
                       <span
                         className={cn(
                           "ff-heading relative cursor-pointer",
-                          "after:absolute after:bottom-[-2px] after:left-0 after:h-[2px] after:w-full after:bg-current",
+                          "after:absolute after:bottom-[-0.5px] after:left-0 after:h-[2px] after:w-full after:bg-[#6A4E4E]",
                           "after:opacity-0 hover:after:opacity-100 group-data-[state=open]:after:opacity-100",
                           "after:transition-opacity after:duration-[360ms] after:ease-[cubic-bezier(0.22,1,0.36,1)]",
                         )}
@@ -86,7 +86,7 @@ export function DesktopMenu() {
                   <Menubar.Content
                     className={cn([
                       "px-3 md:px-4 lg:px-6",
-                      "mt-1.5 border-line-subtle border-t bg-(--color-header-bg-hover) shadow-lg lg:mt-3",
+                      "mt-1.5 border-line-subtle border-t bg-(--color-header-bg-hover) lg:mt-3",
                       isDropdown ? "max-w-[300px] py-6" : "w-screen py-8",
                     ])}
                   >

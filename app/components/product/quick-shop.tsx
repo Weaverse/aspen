@@ -98,18 +98,35 @@ function ProductDescriptionDrawer({
   onCloseAll?: () => void;
 }) {
   const { product } = data;
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      setIsAnimating(false);
+      onOpenChange(true);
+    } else {
+      setIsAnimating(true);
+      setTimeout(() => {
+        onOpenChange(false);
+        setIsAnimating(false);
+      }, 300);
+    }
+  };
 
   return (
-    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+    <Dialog.Root open={open} onOpenChange={handleOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay
-          className="fixed inset-0 z-20 bg-black/50 data-[state=open]:animate-fade-in"
-          style={{ "--fade-in-duration": "150ms" } as React.CSSProperties}
+          className={clsx(
+            "fixed inset-0 z-20 bg-black/50 transition-opacity duration-300",
+            open && !isAnimating ? "opacity-100" : "opacity-0",
+          )}
         />
         <Dialog.Content
           className={clsx([
-            "fixed inset-y-0 z-20 w-full bg-background py-2.5 md:max-w-[430px]",
-            "right-0 shadow-2xl data-[state=open]:animate-enter-from-right",
+            "fixed inset-y-0 right-0 z-20 w-full bg-background py-2.5 md:max-w-[430px]",
+            "shadow-2xl transition-transform duration-300 ease-in-out",
+            open && !isAnimating ? "translate-x-0" : "translate-x-full",
           ])}
           aria-describedby={undefined}
         >
@@ -197,6 +214,11 @@ export function QuickShop({
     unavailableText,
     showCompareAtPrice,
     hideUnavailableOptions,
+    quickShopNavigationStyle,
+    quickShopArrowsColor,
+    quickShopArrowsShape,
+    quickShopZoomColor,
+    quickShopZoomShape,
   } = themeSettings;
 
   const { title } = product;
@@ -222,6 +244,11 @@ export function QuickShop({
               showThumbnails={false}
               imageAspectRatio={"1/1"}
               enableZoom={enableZoom}
+              navigationStyle={quickShopNavigationStyle}
+              arrowsColor={quickShopArrowsColor}
+              arrowsShape={quickShopArrowsShape}
+              zoomColor={quickShopZoomColor}
+              zoomShape={quickShopZoomShape}
             />
           </div>
         </div>
@@ -320,6 +347,7 @@ export function QuickShopTrigger({
 }) {
   const { quickShopButtonTextOpen } = useThemeSettings();
   const [open, setOpen] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
   const [showDescription, setShowDescription] = useState(false);
   const { load, data, state } = useFetcher<ProductData>();
   const apiPath = usePrefixPathWithLocale(
@@ -343,9 +371,16 @@ export function QuickShopTrigger({
       open={open}
       onOpenChange={(isOpen) => {
         if (isOpen) {
-          setOpen(isOpen);
+          setIsAnimating(false);
+          setOpen(true);
         } else {
-          closeAllDrawers();
+          setIsAnimating(true);
+          // Close description first
+          setShowDescription(false);
+          setTimeout(() => {
+            setOpen(false);
+            setIsAnimating(false);
+          }, 300);
         }
       }}
     >
@@ -391,13 +426,17 @@ export function QuickShopTrigger({
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay
-          className="fixed inset-0 z-10 bg-black/50 data-[state=open]:animate-fade-in"
-          style={{ "--fade-in-duration": "150ms" } as React.CSSProperties}
+          className={clsx(
+            "fixed inset-0 z-10 bg-black/50 transition-opacity duration-300",
+            open && !isAnimating ? "opacity-100" : "opacity-0",
+          )}
         />
         <Dialog.Content
           className={clsx([
-            "fixed inset-y-0 z-10 w-full bg-background py-2.5 md:max-w-[430px]",
-            "right-0 shadow-2xl data-[state=open]:animate-enter-from-right",
+            "fixed inset-y-0 right-0 z-10 w-full bg-background py-2.5 md:max-w-[430px]",
+            "shadow-2xl transition-transform duration-300 ease-in-out",
+            "data-[state=open]:animate-enter-from-right",
+            open && !isAnimating ? "translate-x-0" : "translate-x-full",
           ])}
           aria-describedby={undefined}
         >
