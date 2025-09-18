@@ -1,6 +1,9 @@
 @import "swiper/swiper-bundle.css" layer(base);
 @import "tailwindcss" source("../../app");
 @plugin "@tailwindcss/typography";
+/* Load font-face rules at CSS level to avoid JS-timed injection (reduces FOUT) */
+@import "@fontsource/tenor-sans/400.css" layer(base);
+@import "@fontsource-variable/open-sans/index.css" layer(base);
 
 @theme {
   --font-sans: Tenor Sans, ui-sans-serif, system-ui, sans-serif;
@@ -174,6 +177,27 @@
 }
 
 @layer base {
+  /* Ensure fonts render immediately with fallback, then swap to custom */
+  @font-face {
+    font-family: "Tenor Sans";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: local("Tenor Sans"),
+      url("/node_modules/@fontsource/tenor-sans/files/tenor-sans-latin-400-normal.woff2")
+        format("woff2");
+  }
+  @font-face {
+    font-family: "Open Sans Variable";
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: local("Open Sans"),
+      url(
+          "/node_modules/@fontsource-variable/open-sans/files/open-sans-latin-wght-normal.woff2"
+        )
+        format("woff2-variations");
+  }
   *,
   ::after,
   ::before,

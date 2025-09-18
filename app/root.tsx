@@ -1,5 +1,7 @@
 import "@fontsource/tenor-sans";
 import "@fontsource-variable/open-sans";
+import tenorSansWoff2Url from "@fontsource/tenor-sans/files/tenor-sans-latin-400-normal.woff2?url";
+import openSansVarWoff2Url from "@fontsource-variable/open-sans/files/open-sans-latin-wght-normal.woff2?url";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import type { SeoConfig } from "@shopify/hydrogen";
 import { Analytics, getSeoMeta, useNonce } from "@shopify/hydrogen";
@@ -47,6 +49,21 @@ export const links: LinksFunction = () => {
     {
       rel: "preconnect",
       href: "https://shop.app",
+    },
+    // Preload self-hosted fonts emitted by Vite to minimize flash
+    {
+      rel: "preload",
+      href: tenorSansWoff2Url as unknown as string,
+      as: "font",
+      type: "font/woff2",
+      crossOrigin: "anonymous",
+    },
+    {
+      rel: "preload",
+      href: openSansVarWoff2Url as unknown as string,
+      as: "font",
+      type: "font/woff2",
+      crossOrigin: "anonymous",
     },
     { rel: "icon", type: "image/svg+xml", href: "/favicon.ico" },
   ];
