@@ -66,7 +66,7 @@ function SearchResultItem({
   return (
     <li key={id}>
       <Link
-        className="flex flex-col gap-4"
+        className="flex flex-col gap-5"
         to={
           __typename === "SearchQuerySuggestion" || !url
             ? `/search?q=${id}`
@@ -86,7 +86,7 @@ function SearchResultItem({
             )}
           </div>
         )}
-        <div className="space-y-1">
+        <div className="flex flex-col gap-2">
           {styledTitle ? (
             <RevealUnderline as="div">
               <span dangerouslySetInnerHTML={{ __html: styledTitle }} />
@@ -109,7 +109,7 @@ function SearchResultItem({
             </div>
           )}
           {price && (
-            <div className="flex gap-2 pt-1">
+            <div className="flex gap-2">
               <Money withoutTrailingZeros data={price as MoneyV2} />
               {isDiscounted(price as MoneyV2, compareAtPrice as MoneyV2) && (
                 <CompareAtPrice data={compareAtPrice as MoneyV2} />

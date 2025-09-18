@@ -1,5 +1,4 @@
 import {
-  ArrowRightIcon,
   MagnifyingGlassIcon,
   XIcon,
 } from "@phosphor-icons/react";
@@ -19,19 +18,33 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
   const [open, setOpen] = useState(false);
   const location = useLocation();
   let [searchQuery, setSearchQuery] = useState("");
+  let [hasSearched, setHasSearched] = useState(false);
+  let [isAnimating, setIsAnimating] = useState(false);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: close the dialog when the location changes, aka when the user navigates to a search result page
   useEffect(() => {
     setOpen(false);
     setIsSearchOpen(false);
+    setHasSearched(false);
+    setSearchQuery("");
   }, [location]);
 
   return (
     <Dialog.Root
       open={open}
       onOpenChange={(value) => {
-        setOpen(value);
-        setIsSearchOpen(value);
+        if (value) {
+          setIsAnimating(false);
+          setOpen(true);
+          setIsSearchOpen(true);
+        } else {
+          setIsAnimating(true);
+          setIsSearchOpen(false);
+          setTimeout(() => {
+            setOpen(false);
+            setIsAnimating(false);
+          }, 300);
+        }
       }}
     >
       <Dialog.Trigger
@@ -44,21 +57,21 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay
-          className="fixed inset-0 top-[calc(var(--height-nav)+var(--topbar-height))] z-3 bg-black/50 data-[state=open]:animate-fade-in"
-          style={{ "--fade-in-duration": "100ms" } as React.CSSProperties}
+          className={clsx(
+            "fixed inset-0 top-[calc(var(--height-nav)+var(--topbar-height))] z-3 bg-black/50 transition-opacity duration-300",
+            open && !isAnimating ? "opacity-100" : "opacity-0",
+          )}
         />
         <Dialog.Content
           className={cn([
             "fixed inset-x-0 top-[calc(var(--height-nav)+var(--topbar-height))] z-3 bg-(--color-header-bg)",
             "border-line-subtle border-t",
             "min-h-[300px]",
-            "-translate-y-full data-[state=open]:translate-y-0",
+            "transition-transform duration-300 ease-in-out",
             "data-[state=open]:animate-enter-from-top",
+            open && !isAnimating ? "translate-y-0" : "-translate-y-full",
             "focus-visible:outline-hidden",
           ])}
-          style={
-            { "--enter-from-top-duration": "200ms" } as React.CSSProperties
-          }
           aria-describedby={undefined}
         >
           <VisuallyHidden.Root asChild>
@@ -68,16 +81,42 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
             <PredictiveSearchForm>
               {({ fetchResults, inputRef }) => (
                 <div className="mx-auto mb-6 flex max-w-(--page-width) items-center gap-3 border-line-subtle border-b px-3">
-                  <MagnifyingGlassIcon className="h-5 w-5 shrink-0 text-gray-500" />
+                  <button
+                    type="button"
+                    className="shrink-0 p-1 text-gray-500 hover:text-gray-700"
+                    onClick={() => {
+                      if (inputRef.current && inputRef.current.value.trim()) {
+                        const value = inputRef.current.value.trim();
+                        setSearchQuery(value);
+                        setHasSearched(true);
+                        fetchResults(value);
+                      }
+                    }}
+                  >
+                    <MagnifyingGlassIcon className="h-5 w-5" />
+                  </button>
                   <input
                     name="q"
                     type="search"
                     onChange={(e) => {
                       const value = e.target.value;
                       setSearchQuery(value);
-                      fetchResults(value);
+                      // Nếu input rỗng thì clear search results
+                      if (!value.trim()) {
+                        fetchResults("");
+                      }
                     }}
-                    onFocus={(e) => fetchResults(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        if (inputRef.current && inputRef.current.value.trim()) {
+                          const value = inputRef.current.value.trim();
+                          setSearchQuery(value);
+                          setHasSearched(true);
+                          fetchResults(value);
+                        }
+                      }
+                    }}
                     placeholder="Enter a keyword"
                     ref={inputRef}
                     autoComplete="off"
@@ -85,11 +124,12 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
                   />
                   <button
                     type="button"
-                    className="shrink-0 p-1 text-gray-500"
+                    className="shrink-0 p-1 text-gray-500 hover:text-gray-700"
                     onClick={() => {
                       if (inputRef.current) {
                         inputRef.current.value = "";
                         setSearchQuery("");
+                        setHasSearched(false);
                         fetchResults("");
                       }
                     }}
@@ -99,7 +139,7 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
                 </div>
               )}
             </PredictiveSearchForm>
-            {searchQuery === "" && <PopularSearch />}
+            {!hasSearched && <PopularSearch />}
             <PredictiveSearchResults />
           </div>
         </Dialog.Content>
@@ -154,7 +194,7 @@ function PredictiveSearchResults() {
               );
             })}
           </div>
-          <div className="mt-5 flex flex-col gap-4 px-4">
+          <div className="mt-5 flex flex-col gap-4">
             {activeType === "articles" && (
               <PredictiveSearchResult type="articles" items={articles?.items} />
             )}
@@ -170,7 +210,7 @@ function PredictiveSearchResults() {
               <Link
                 to={`/search?q=${searchTerm.current}`}
                 variant="secondary"
-                className="flex w-fit items-center gap-2"
+                className="flex w-fit items-center gap-2 h-[54px] px-6 py-5"
               >
                 <span className="uppercase">View all Products</span>
               </Link>
