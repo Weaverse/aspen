@@ -175,7 +175,7 @@ export function ProductPopup({
       className={clsx(
         "absolute z-10 transition-all duration-300",
         "invisible opacity-0",
-        "w-40 sm:w-48 md:w-52", // Responsive: 160px → 192px → 208px
+        "w-40 sm:w-48 md:w-[220px]", // Responsive: 160px → 192px → 220px
         "max-w-[calc(100vw-24px)]", // Always leave 12px margin on each side
         "min-w-[160px]", // Minimum width to ensure content readability
         "translate-x-[calc(var(--translate-x-ratio)*var(--spot-size))]",
@@ -202,7 +202,7 @@ export function ProductPopup({
             <Image
               data={featuredImage}
               alt={product.title}
-              sizes="(max-width: 640px) 160px, (max-width: 768px) 192px, 208px"
+              sizes="(max-width: 640px) 160px, (max-width: 768px) 192px, 220px"
               className="h-full w-full object-cover"
             />
           </div>
