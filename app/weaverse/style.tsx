@@ -20,11 +20,17 @@ export function GlobalStyle() {
       footerText,
       buttonPrimaryBg,
       buttonPrimaryColor,
+      buttonPrimaryBgHover,
+      buttonPrimaryColorHover,
       buttonSecondaryBg,
       buttonSecondaryColor,
+      buttonSecondaryBgHover,
+      buttonSecondaryColorHover,
       buttonOutlineText,
-      buttonOutlineBackground,
       buttonOutlineBorder,
+      buttonOutlineTextHover,
+      buttonOutlineBackgroundHover,
+      buttonOutlineBorderHover,
       comparePriceTextColor,
       discountBadge,
       newBadge,
@@ -75,11 +81,17 @@ export function GlobalStyle() {
               /* Colors (buttons & links) */
               --btn-primary-bg: ${buttonPrimaryBg};
               --btn-primary-text: ${buttonPrimaryColor};
+              --btn-primary-bg-hover: ${buttonPrimaryBgHover};
+              --btn-primary-text-hover: ${buttonPrimaryColorHover};
               --btn-secondary-bg: ${buttonSecondaryBg};
               --btn-secondary-text: ${buttonSecondaryColor};
+              --btn-secondary-bg-hover: ${buttonSecondaryBgHover};
+              --btn-secondary-text-hover: ${buttonSecondaryColorHover};
               --btn-outline-text: ${buttonOutlineText};
-              --btn-outline-background: ${buttonOutlineBackground};
               --btn-outline-border: ${buttonOutlineBorder};
+              --btn-outline-text-hover: ${buttonOutlineTextHover};
+              --btn-outline-background-hover: ${buttonOutlineBackgroundHover};
+              --btn-outline-border-hover: ${buttonOutlineBorderHover};
 
               /* Colors (product) */
               --color-compare-price-text: ${comparePriceTextColor};
