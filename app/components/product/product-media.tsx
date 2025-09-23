@@ -1,6 +1,4 @@
 import {
-  ArrowLeftIcon,
-  ArrowRightIcon,
   MagnifyingGlassPlusIcon,
   VideoCameraIcon,
 } from "@phosphor-icons/react";
@@ -51,6 +49,8 @@ export interface ProductMediaProps extends VariantProps<typeof variants> {
   navigationStyle?: "corner" | "sides";
   arrowsColor?: "primary" | "secondary";
   arrowsShape?: "rounded-sm" | "circle" | "square";
+  arrowsZoomColor?: "primary" | "secondary" | "outline";
+  arrowsZoomShape?: "rounded-sm" | "circle" | "square";
   zoomColor?: "primary" | "secondary";
   zoomShape?: "rounded-sm" | "circle" | "square";
   showBadges?: boolean;
@@ -70,6 +70,8 @@ export function ProductMedia(props: ProductMediaProps) {
     navigationStyle = "corner",
     arrowsColor = "primary",
     arrowsShape = "circle",
+    arrowsZoomColor = "primary",
+    arrowsZoomShape = "circle",
     zoomColor = "primary",
     zoomShape = "circle",
     showBadges = false,
@@ -343,6 +345,8 @@ export function ProductMedia(props: ProductMediaProps) {
           setZoomMediaId={setZoomMediaId}
           open={zoomModalOpen}
           onOpenChange={setZoomModalOpen}
+          arrowsColor={arrowsZoomColor}
+          arrowsShape={arrowsZoomShape}
         />
       )}
     </div>
