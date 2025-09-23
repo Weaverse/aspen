@@ -86,7 +86,7 @@ export function PriceRangeFilter({
         ))}
       </Slider.Root>
       <div className="flex items-center gap-4">
-        <div className="flex shrink items-center gap-1 border border-line-subtle bg-gray-50 px-4">
+        <div className="flex shrink items-center gap-1 border border-line-subtle bg-white px-4">
           <VisuallyHidden.Root asChild>
             <label htmlFor="minPrice" aria-label="Min price">
               Min price
@@ -111,7 +111,7 @@ export function PriceRangeFilter({
           />
         </div>
         <span>To</span>
-        <div className="flex items-center gap-1 border border-line-subtle bg-gray-50 px-4">
+        <div className="flex items-center gap-1 border border-line-subtle bg-white px-4">
           <VisuallyHidden.Root asChild>
             <label htmlFor="maxPrice" aria-label="Max price">
               Max price

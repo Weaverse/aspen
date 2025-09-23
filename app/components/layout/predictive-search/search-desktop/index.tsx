@@ -5,8 +5,8 @@ import {
 import * as Dialog from "@radix-ui/react-dialog";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import clsx from "clsx";
-import { type MutableRefObject, useEffect, useState } from "react";
-import { useLocation } from "react-router";
+import { type MutableRefObject, useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router";
 import Link from "~/components/link";
 import { usePredictiveSearch } from "~/hooks/use-predictive-search";
 import { cn } from "~/utils/cn";
@@ -17,9 +17,11 @@ import { PredictiveSearchResult } from "./predictive-search-result";
 export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
   const [open, setOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   let [searchQuery, setSearchQuery] = useState("");
   let [hasSearched, setHasSearched] = useState(false);
   let [isAnimating, setIsAnimating] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: close the dialog when the location changes, aka when the user navigates to a search result page
   useEffect(() => {
@@ -101,10 +103,18 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
                     onChange={(e) => {
                       const value = e.target.value;
                       setSearchQuery(value);
-                      // Nếu input rỗng thì clear search results
-                      if (!value.trim()) {
-                        fetchResults("");
+                      const trimmed = value.trim();
+                      setHasSearched(Boolean(trimmed));
+                      if (debounceRef.current) {
+                        clearTimeout(debounceRef.current);
                       }
+                      if (!trimmed) {
+                        fetchResults("");
+                        return;
+                      }
+                      debounceRef.current = setTimeout(() => {
+                        fetchResults(trimmed);
+                      }, 300);
                     }}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
@@ -113,7 +123,14 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
                           const value = inputRef.current.value.trim();
                           setSearchQuery(value);
                           setHasSearched(true);
-                          fetchResults(value);
+                          try {
+                            const raw = localStorage.getItem("searchHistory");
+                            const parsed = raw ? JSON.parse(raw) : [];
+                            const next = Array.isArray(parsed) ? parsed : [];
+                            next.push(value.toLowerCase());
+                            localStorage.setItem("searchHistory", JSON.stringify(next));
+                          } catch {}
+                          navigate(`/search?q=${encodeURIComponent(value)}`);
                         }
                       }
                     }}

@@ -43,6 +43,8 @@ interface ProductInformationData
   showShippingPolicy: boolean;
   showRefundPolicy: boolean;
   showBadgesOnProductMedia?: boolean;
+  arrowsZoomColor?: "primary" | "secondary" | "outline";
+  arrowsZoomShape?: "rounded-sm" | "circle" | "square";
 }
 
 const ProductInformation = forwardRef<
@@ -82,6 +84,8 @@ const ProductInformation = forwardRef<
     navigationStyle,
     arrowsColor,
     arrowsShape,
+    arrowsZoomColor,
+    arrowsZoomShape,
     zoomColor,
     zoomShape,
     showBadgesOnProductMedia,
@@ -141,6 +145,8 @@ const ProductInformation = forwardRef<
             arrowsShape={arrowsShape}
             zoomColor={zoomColor}
             zoomShape={zoomShape}
+            arrowsZoomColor={arrowsZoomColor}
+            arrowsZoomShape={arrowsZoomShape}
             showBadges={showBadgesOnProductMedia}
             badges={
               selectedVariant && (
@@ -399,6 +405,7 @@ export const schema = createSchema({
             options: [
               { value: "primary", label: "Primary" },
               { value: "secondary", label: "Secondary" },
+              { value: "outline", label: "Outline" },
             ],
           },
           defaultValue: "primary",
@@ -429,6 +436,36 @@ export const schema = createSchema({
           name: "enableZoom",
           type: "switch",
           defaultValue: true,
+        },
+        {
+          type: "select",
+          label: "Zoom arrows color",
+          name: "arrowsZoomColor",
+          configs: {
+            options: [
+              { value: "primary", label: "Primary" },
+              { value: "secondary", label: "Secondary" },
+              { value: "outline", label: "Outline" },
+            ],
+          },
+          defaultValue: "primary",
+          condition: (data: ProductInformationData) =>
+            data.mediaLayout === "slider" && data.enableZoom === true,
+        },
+        {
+          type: "toggle-group",
+          label: "Zoom arrows shape",
+          name: "arrowsZoomShape",
+          configs: {
+            options: [
+              { value: "rounded-sm", label: "Rounded", icon: "squircle" },
+              { value: "circle", label: "Circle", icon: "circle" },
+              { value: "square", label: "Square", icon: "square" },
+            ],
+          },
+          defaultValue: "circle",
+          condition: (data: ProductInformationData) =>
+            data.mediaLayout === "slider" && data.enableZoom === true,
         },
         {
           type: "select",

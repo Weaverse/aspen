@@ -15,7 +15,6 @@ import type {
   Media_Video_Fragment,
   MediaFragment,
 } from "storefront-api.generated";
-import { Button } from "~/components/button";
 import { Image } from "~/components/image";
 import { ScrollArea } from "~/components/scroll-area";
 import { Spinner } from "~/components/spinner";
@@ -28,12 +27,16 @@ export function ZoomModal({
   setZoomMediaId,
   open,
   onOpenChange,
+  arrowsColor = "primary",
+  arrowsShape = "circle",
 }: {
   media: MediaFragment[];
   zoomMediaId: string;
   setZoomMediaId: (id: string) => void;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  arrowsColor?: "primary" | "secondary" | "outline";
+  arrowsShape?: "rounded-sm" | "circle" | "square";
 }) {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [isImageLoading, setIsImageLoading] = useState(false);
@@ -176,26 +179,94 @@ export function ZoomModal({
               <XIcon className="h-6 w-6" />
             </Dialog.Close>
             <div className="absolute right-10 bottom-10 left-10 flex items-center justify-center gap-2 md:left-auto">
-              <Button
-                variant="secondary"
-                className="border-line-subtle"
+              <button
+                type="button"
+                className={clsx(
+                  "p-2 text-center border transition-all duration-200",
+                  arrowsColor === "secondary"
+                    ? [
+                        "text-(--btn-secondary-text)",
+                        "bg-(--btn-secondary-bg)",
+                        "border-(--btn-secondary-bg)",
+                        "hover:text-(--btn-secondary-text)",
+                        "hover:bg-(--btn-secondary-bg)",
+                        "hover:border-(--btn-secondary-bg)",
+                      ]
+                    : arrowsColor === "outline"
+                    ? [
+                        "text-(--btn-outline-text)",
+                        "bg-(--btn-outline-bg)",
+                        "border-(--btn-outline-border)",
+                        "hover:text-(--btn-outline-text)",
+                        "hover:bg-(--btn-outline-bg)",
+                        "hover:border-(--btn-outline-border)",
+                      ]
+                    : [
+                        "text-(--btn-primary-text)",
+                        "bg-(--btn-primary-bg)",
+                        "border-(--btn-primary-bg)",
+                        "hover:text-(--btn-primary-text)",
+                        "hover:bg-(--btn-primary-bg)",
+                        "hover:border-(--btn-primary-bg)",
+                      ],
+                  arrowsShape === "circle"
+                    ? "rounded-full"
+                    : arrowsShape === "square"
+                    ? ""
+                    : "rounded-md",
+                )}
                 onClick={() => {
                   setZoomMediaId(prevMedia.id);
                   scrollToMedia(prevMedia.id);
                 }}
+                aria-label="Previous media"
               >
                 <ArrowLeftIcon className="h-4.5 w-4.5" />
-              </Button>
-              <Button
-                variant="secondary"
-                className="border-line-subtle"
+              </button>
+              <button
+                type="button"
+                className={clsx(
+                  "p-2 text-center border transition-all duration-200",
+                  arrowsColor === "secondary"
+                    ? [
+                        "text-(--btn-secondary-text)",
+                        "bg-(--btn-secondary-bg)",
+                        "border-(--btn-secondary-bg)",
+                        "hover:text-(--btn-secondary-text)",
+                        "hover:bg-(--btn-secondary-bg)",
+                        "hover:border-(--btn-secondary-bg)",
+                      ]
+                    : arrowsColor === "outline"
+                    ? [
+                        "text-gray-900",
+                        "bg-transparent",
+                        "border-gray-300",
+                        "hover:text-white",
+                        "hover:bg-gray-900",
+                        "hover:border-gray-900",
+                      ]
+                    : [
+                        "text-(--btn-primary-text)",
+                        "bg-(--btn-primary-bg)",
+                        "border-(--btn-primary-bg)",
+                        "hover:text-(--btn-primary-text)",
+                        "hover:bg-(--btn-primary-bg)",
+                        "hover:border-(--btn-primary-bg)",
+                      ],
+                  arrowsShape === "circle"
+                    ? "rounded-full"
+                    : arrowsShape === "square"
+                    ? ""
+                    : "rounded-md",
+                )}
                 onClick={() => {
                   setZoomMediaId(nextMedia.id);
                   scrollToMedia(nextMedia.id);
                 }}
+                aria-label="Next media"
               >
                 <ArrowRightIcon className="h-4.5 w-4.5" />
-              </Button>
+              </button>
             </div>
           </div>
         </Dialog.Content>

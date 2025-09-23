@@ -217,6 +217,8 @@ export function QuickShop({
     quickShopNavigationStyle,
     quickShopArrowsColor,
     quickShopArrowsShape,
+    quickShopArrowsZoomColor,
+    quickShopArrowsZoomShape,
     quickShopZoomColor,
     quickShopZoomShape,
   } = themeSettings;
@@ -245,6 +247,8 @@ export function QuickShop({
               imageAspectRatio={"1/1"}
               enableZoom={enableZoom}
               navigationStyle={quickShopNavigationStyle}
+              arrowsZoomColor={quickShopArrowsZoomColor}
+              arrowsZoomShape={quickShopArrowsZoomShape}
               arrowsColor={quickShopArrowsColor}
               arrowsShape={quickShopArrowsShape}
               zoomColor={quickShopZoomColor}

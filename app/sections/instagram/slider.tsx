@@ -70,7 +70,7 @@ let InstagramSlider = forwardRef<HTMLDivElement, InstagramSliderProps>(
         <div className="flex aspect-square w-full items-center justify-center rounded bg-[#EBE8E5]">
           <ImageIcon
             size={120}
-            className="!h-[120px] !w-[120px] text-[#524B46] opacity-80"
+            className="!h-[50px] !w-[50px] text-[#524B46] opacity-60"
           />
         </div>
       );

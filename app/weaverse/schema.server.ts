@@ -365,12 +365,24 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "Background color",
           name: "buttonPrimaryBg",
-          defaultValue: "#908379",
+          defaultValue: "#7D6756",
         },
         {
           type: "color",
           label: "Text color",
           name: "buttonPrimaryColor",
+          defaultValue: "#F1EEEA",
+        },
+        {
+          type: "color",
+          label: "Background color (hover)",
+          name: "buttonPrimaryBgHover",
+          defaultValue: "#8E8177",
+        },
+        {
+          type: "color",
+          label: "Text color (hover)",
+          name: "buttonPrimaryColorHover",
           defaultValue: "#F1EEEA",
         },
         {
@@ -387,7 +399,19 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "Text color",
           name: "buttonSecondaryColor",
-          defaultValue: "#24211E",
+          defaultValue: "#29231E",
+        },
+        {
+          type: "color",
+          label: "Background color (hover)",
+          name: "buttonSecondaryBgHover",
+          defaultValue: "#E9E7E4",
+        },
+        {
+          type: "color",
+          label: "Text color (hover)",
+          name: "buttonSecondaryColorHover",
+          defaultValue: "#29231E",
         },
         {
           type: "heading",
@@ -403,11 +427,29 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "Background color",
           name: "buttonOutlineBackground",
-          defaultValue: "#A79D95",
+          defaultValue: "#NA",
         },
         {
           type: "color",
           label: "Border color",
+          name: "buttonOutlineBorder",
+          defaultValue: "#A79D95",
+        },
+        {
+          type: "color",
+          label: "Text color (hover)",
+          name: "buttonOutlineText",
+          defaultValue: "#524B46",
+        },
+        {
+          type: "color",
+          label: "Background color (hover)",
+          name: "buttonOutlineBackground",
+          defaultValue: "#E9E7E4",
+        },
+        {
+          type: "color",
+          label: "Border color (hover)",
           name: "buttonOutlineBorder",
           defaultValue: "#A79D95",
         },
@@ -993,6 +1035,31 @@ export const themeSchema: HydrogenThemeSchema = {
         {
           type: "heading",
           label: "Zoom",
+        },
+        {
+          type: "select",
+          label: "Arrows zoom button color",
+          name: "quickShopArrowsZoomColor",
+          configs: {
+            options: [
+              { value: "primary", label: "Primary" },
+              { value: "secondary", label: "Secondary" },
+            ],
+          },
+          defaultValue: "primary",
+        },
+        {
+          type: "toggle-group",
+          label: "Arrows zoom button shape",
+          name: "quickShopArrowsZoomShape",
+          configs: {
+            options: [
+              { value: "rounded-sm", label: "Rounded", icon: "squircle" },
+              { value: "circle", label: "Circle", icon: "circle" },
+              { value: "square", label: "Square", icon: "square" },
+            ],
+          },
+          defaultValue: "circle",
         },
         {
           type: "select",
