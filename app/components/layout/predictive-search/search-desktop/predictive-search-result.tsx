@@ -88,7 +88,7 @@ function SearchResultItem({
         )}
         <div className="flex flex-col gap-2">
           {styledTitle ? (
-            <RevealUnderline as="div">
+            <RevealUnderline as="div" className="w-fit">
               <span dangerouslySetInnerHTML={{ __html: styledTitle }} />
             </RevealUnderline>
           ) : (
@@ -97,7 +97,7 @@ function SearchResultItem({
                 __typename === "Product" ? "line-clamp-1" : "line-clamp-2",
               )}
             >
-              <span
+              <RevealUnderline
                 className={clsx(
                   __typename === "Product"
                     ? "line-clamp-1 font-semibold uppercase"
@@ -105,7 +105,7 @@ function SearchResultItem({
                 )}
               >
                 {title}
-              </span>
+              </RevealUnderline>
             </div>
           )}
           {price && (

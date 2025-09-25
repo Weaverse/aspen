@@ -14,7 +14,10 @@ export function PopularSearch() {
 
   useEffect(() => {
     try {
-      const raw = typeof window !== "undefined" ? localStorage.getItem("searchHistory") : null;
+      const raw =
+        typeof window !== "undefined"
+          ? localStorage.getItem("searchHistory")
+          : null;
       const parsed = raw ? (JSON.parse(raw) as string[]) : [];
       if (Array.isArray(parsed) && parsed.length > 0) {
         const counts = new Map<string, number>();
