@@ -182,7 +182,7 @@ export function ZoomModal({
               <button
                 type="button"
                 className={clsx(
-                  "p-2 text-center border transition-all duration-200",
+                  "border p-2 text-center transition-all duration-200",
                   arrowsColor === "secondary"
                     ? [
                         "text-(--btn-secondary-text)",
@@ -193,27 +193,27 @@ export function ZoomModal({
                         "hover:border-(--btn-secondary-bg)",
                       ]
                     : arrowsColor === "outline"
-                    ? [
-                        "text-(--btn-outline-text)",
-                        "bg-(--btn-outline-bg)",
-                        "border-(--btn-outline-border)",
-                        "hover:text-(--btn-outline-text)",
-                        "hover:bg-(--btn-outline-bg)",
-                        "hover:border-(--btn-outline-border)",
-                      ]
-                    : [
-                        "text-(--btn-primary-text)",
-                        "bg-(--btn-primary-bg)",
-                        "border-(--btn-primary-bg)",
-                        "hover:text-(--btn-primary-text)",
-                        "hover:bg-(--btn-primary-bg)",
-                        "hover:border-(--btn-primary-bg)",
-                      ],
+                      ? [
+                          "text-(--btn-outline-text)",
+                          "bg-(--btn-outline-bg)",
+                          "border-(--btn-outline-border)",
+                          "hover:text-(--btn-outline-text)",
+                          "hover:bg-(--btn-outline-bg)",
+                          "hover:border-(--btn-outline-border)",
+                        ]
+                      : [
+                          "text-(--btn-primary-text)",
+                          "bg-(--btn-primary-bg)",
+                          "border-(--btn-primary-bg)",
+                          "hover:text-(--btn-primary-text)",
+                          "hover:bg-(--btn-primary-bg)",
+                          "hover:border-(--btn-primary-bg)",
+                        ],
                   arrowsShape === "circle"
                     ? "rounded-full"
                     : arrowsShape === "square"
-                    ? ""
-                    : "rounded-md",
+                      ? ""
+                      : "rounded-md",
                 )}
                 onClick={() => {
                   setZoomMediaId(prevMedia.id);
@@ -226,7 +226,7 @@ export function ZoomModal({
               <button
                 type="button"
                 className={clsx(
-                  "p-2 text-center border transition-all duration-200",
+                  "border p-2 text-center transition-all duration-200",
                   arrowsColor === "secondary"
                     ? [
                         "text-(--btn-secondary-text)",
@@ -237,27 +237,27 @@ export function ZoomModal({
                         "hover:border-(--btn-secondary-bg)",
                       ]
                     : arrowsColor === "outline"
-                    ? [
-                        "text-gray-900",
-                        "bg-transparent",
-                        "border-gray-300",
-                        "hover:text-white",
-                        "hover:bg-gray-900",
-                        "hover:border-gray-900",
-                      ]
-                    : [
-                        "text-(--btn-primary-text)",
-                        "bg-(--btn-primary-bg)",
-                        "border-(--btn-primary-bg)",
-                        "hover:text-(--btn-primary-text)",
-                        "hover:bg-(--btn-primary-bg)",
-                        "hover:border-(--btn-primary-bg)",
-                      ],
+                      ? [
+                          "text-gray-900",
+                          "bg-transparent",
+                          "border-gray-300",
+                          "hover:text-white",
+                          "hover:bg-gray-900",
+                          "hover:border-gray-900",
+                        ]
+                      : [
+                          "text-(--btn-primary-text)",
+                          "bg-(--btn-primary-bg)",
+                          "border-(--btn-primary-bg)",
+                          "hover:text-(--btn-primary-text)",
+                          "hover:bg-(--btn-primary-bg)",
+                          "hover:border-(--btn-primary-bg)",
+                        ],
                   arrowsShape === "circle"
                     ? "rounded-full"
                     : arrowsShape === "square"
-                    ? ""
-                    : "rounded-md",
+                      ? ""
+                      : "rounded-md",
                 )}
                 onClick={() => {
                   setZoomMediaId(nextMedia.id);
