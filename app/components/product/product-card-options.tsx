@@ -44,7 +44,7 @@ export function ProductCardOptions({
   const asSwatch = OPTIONS_AS_SWATCH.includes(pcardOptionToShow);
 
   return (
-    <div className={cn("flex flex-wrap items-center gap-1 pt-1", className)}>
+    <div className={cn("flex flex-wrap items-center gap-1 px-1", className)}>
       {optionValues
         .slice(0, pcardMaxOptionValues)
         .map(({ name, swatch, firstSelectableVariant }) => {
@@ -56,9 +56,11 @@ export function ProductCardOptions({
                   <button
                     type="button"
                     className={cn(
-                      "flex aspect-square size-4.5",
-                      "border border-transparent transition-all",
-                      selectedValue === name ? "border-[#A79D95] p-0.5" : "p-0",
+                      "flex aspect-square size-3",
+                      "outline-1 outline-solid",
+                      selectedValue === name
+                        ? "outline-[#A79D95]"
+                        : "outline-[#DBD7D1] hover:outline-[#A79D95]",
                     )}
                     onClick={() => {
                       setSelectedVariant(firstSelectableVariant);
@@ -75,9 +77,9 @@ export function ProductCardOptions({
                       <span
                         className={clsx(
                           "inline-block h-full w-full text-[0px]",
-                          (!isValidColor(swatchColor) ||
-                            isLightColor(swatchColor)) &&
-                            "border border-line-subtle",
+                          // (!isValidColor(swatchColor) ||
+                          //   isLightColor(swatchColor)) &&
+                          //   "border border-line-subtle",
                         )}
                         style={{ backgroundColor: swatchColor }}
                       >
