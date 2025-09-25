@@ -15,7 +15,7 @@ export function CartDrawer() {
   const { publish } = useAnalytics();
   const [open, setOpen] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
-  
+
   const toggleCart = (newOpen: boolean) => {
     if (newOpen) {
       setOpen(true);
@@ -30,7 +30,7 @@ export function CartDrawer() {
       }, 300);
     }
   };
-  
+
   toggleCartDrawer = toggleCart;
 
   const handleOpenChange = (newOpen: boolean) => {
@@ -73,7 +73,7 @@ export function CartDrawer() {
               <Dialog.Overlay
                 className={clsx(
                   "fixed inset-0 z-10 bg-black/50 transition-opacity duration-300",
-                  open && !isAnimating ? "opacity-100" : "opacity-0"
+                  open && !isAnimating ? "opacity-100" : "opacity-0",
                 )}
               />
               <Dialog.Content
@@ -81,9 +81,7 @@ export function CartDrawer() {
                   "fixed inset-y-0 right-0 z-10 w-screen max-w-[430px] bg-background py-4",
                   "transition-transform duration-300 ease-in-out",
                   "data-[state=open]:animate-enter-from-right",
-                  open && !isAnimating 
-                    ? "translate-x-0" 
-                    : "translate-x-full",
+                  open && !isAnimating ? "translate-x-0" : "translate-x-full",
                 ])}
                 aria-describedby={undefined}
               >
