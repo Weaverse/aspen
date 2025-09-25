@@ -388,7 +388,7 @@ function FiltersDrawer({
           aria-describedby={undefined}
         >
           <div className="space-y-1">
-            <div className="flex items-center justify-between gap-2 px-4">
+            <div className="flex items-center justify-between gap-2 px-5">
               <Dialog.Title asChild className="py-2.5 font-semibold uppercase">
                 <span>Filters</span>
               </Dialog.Title>
@@ -403,7 +403,7 @@ function FiltersDrawer({
               </Dialog.Close>
             </div>
             <ScrollArea className="max-h-[calc(100vh-4.5rem)]" size="sm">
-              <FiltersSearchPage className="px-4" />
+              <FiltersSearchPage className="px-[52px]" />
             </ScrollArea>
           </div>
         </Dialog.Content>
