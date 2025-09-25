@@ -106,8 +106,8 @@ function ProductColorOptions({
                     className={clsx(
                       "h-2.5 w-2.5 overflow-hidden outline-1 outline-solid outline-offset-1 transition-(outline-color)",
                       isSelected
-                        ? "outline-gray-800"
-                        : "outline-transparent hover:outline-gray-400",
+                        ? "outline-[#A79D95]"
+                        : "outline-[#DBD7D1] hover:outline-[#A79D95]",
                       // Apply background directly to button when it's a solid color
                       !swatch?.image?.previewImage &&
                         isLightColor(swatchColor) &&

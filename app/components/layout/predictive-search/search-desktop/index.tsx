@@ -1,7 +1,4 @@
-import {
-  MagnifyingGlassIcon,
-  XIcon,
-} from "@phosphor-icons/react";
+import { MagnifyingGlassIcon, XIcon } from "@phosphor-icons/react";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import clsx from "clsx";
@@ -128,7 +125,10 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
                             const parsed = raw ? JSON.parse(raw) : [];
                             const next = Array.isArray(parsed) ? parsed : [];
                             next.push(value.toLowerCase());
-                            localStorage.setItem("searchHistory", JSON.stringify(next));
+                            localStorage.setItem(
+                              "searchHistory",
+                              JSON.stringify(next),
+                            );
                           } catch {}
                           navigate(`/search?q=${encodeURIComponent(value)}`);
                         }
@@ -227,7 +227,7 @@ function PredictiveSearchResults() {
               <Link
                 to={`/search?q=${searchTerm.current}`}
                 variant="secondary"
-                className="flex w-fit items-center gap-2 h-[54px] px-6 py-5"
+                className="flex h-[54px] w-fit items-center gap-2 px-6 py-5"
               >
                 <span className="uppercase">View all Products</span>
               </Link>

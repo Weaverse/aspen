@@ -63,7 +63,9 @@ export function MobileMenu() {
             "fixed inset-0 left-0 z-10 h-screen bg-(--color-header-bg-hover) pt-4 pb-2",
             "transition-transform duration-300 ease-in-out",
             "data-[state=open]:animate-enter-from-left",
-            mainMenuOpen && !isAnimating ? "translate-x-0" : "-translate-x-full",
+            mainMenuOpen && !isAnimating
+              ? "translate-x-0"
+              : "-translate-x-full",
             "focus-visible:outline-hidden",
             "uppercase",
           ])}
