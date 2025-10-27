@@ -62,30 +62,14 @@ let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
     const DescriptionTag = subHeadingTag;
 
     const handlePrevSlide = () => {
-      // Using global variable approach
       if (window.testimonialSwiper) {
         window.testimonialSwiper.slidePrev();
-      } else {
-        // Fallback to custom event
-        document.dispatchEvent(
-          new CustomEvent("testimonial-prev-slide", {
-            detail: { swiper: window.testimonialSwiper },
-          }),
-        );
       }
     };
 
     const handleNextSlide = () => {
-      // Using global variable approach
       if (window.testimonialSwiper) {
         window.testimonialSwiper.slideNext();
-      } else {
-        // Fallback to custom event
-        document.dispatchEvent(
-          new CustomEvent("testimonial-next-slide", {
-            detail: { swiper: window.testimonialSwiper },
-          }),
-        );
       }
     };
 

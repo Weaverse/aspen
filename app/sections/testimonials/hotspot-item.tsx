@@ -26,7 +26,7 @@ let HotspotsTestimonial = forwardRef<HTMLDivElement, HotspotsTestimonialProps>(
       <div
         ref={ref}
         {...rest}
-        className="relative h-full w-full overflow-hidden"
+        className="relative h-full w-full flex-1 overflow-hidden"
         style={{ aspectRatio: calculateAspectRatio(imageData, aspectRatio) }}
       >
         <Image
