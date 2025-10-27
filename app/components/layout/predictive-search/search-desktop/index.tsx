@@ -2,6 +2,7 @@ import { MagnifyingGlassIcon, XIcon } from "@phosphor-icons/react";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import clsx from "clsx";
+import { AnimatePresence, motion } from "framer-motion";
 import { type MutableRefObject, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 import Link from "~/components/link";
@@ -17,7 +18,6 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
   const navigate = useNavigate();
   let [searchQuery, setSearchQuery] = useState("");
   let [hasSearched, setHasSearched] = useState(false);
-  let [isAnimating, setIsAnimating] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: close the dialog when the location changes, aka when the user navigates to a search result page
@@ -29,137 +29,140 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
   }, [location]);
 
   return (
-    <Dialog.Root
-      open={open}
-      onOpenChange={(value) => {
-        if (value) {
-          setIsAnimating(false);
-          setOpen(true);
-          setIsSearchOpen(true);
-        } else {
-          setIsAnimating(true);
-          setIsSearchOpen(false);
-          setTimeout(() => {
-            setOpen(false);
-            setIsAnimating(false);
-          }, 300);
-        }
-      }}
-    >
+    <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger
         asChild
         className="hidden h-8 w-8 items-center justify-center focus-visible:outline-hidden lg:flex"
       >
-        <button type="button">
+        <button type="button" onClick={() => setIsSearchOpen(true)}>
           <MagnifyingGlassIcon className="h-5 w-5" />
         </button>
       </Dialog.Trigger>
-      <Dialog.Portal>
-        <Dialog.Overlay
-          className={clsx(
-            "fixed inset-0 top-[calc(var(--height-nav)+var(--topbar-height))] z-3 bg-black/50 transition-opacity duration-300",
-            open && !isAnimating ? "opacity-100" : "opacity-0",
+      <Dialog.Portal forceMount>
+        <AnimatePresence>
+          {open && (
+            <>
+              <Dialog.Overlay forceMount>
+                <motion.div
+                  className="fixed inset-0 top-[calc(var(--height-nav)+var(--topbar-height))] z-3 bg-black/50 backdrop-blur-xs"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                />
+              </Dialog.Overlay>
+              <Dialog.Content
+                forceMount
+                onCloseAutoFocus={(e) => e.preventDefault()}
+                className="fixed inset-x-0 top-[calc(var(--height-nav)+var(--topbar-height))] z-3"
+                aria-describedby={undefined}
+              >
+                <motion.div
+                  initial={{ y: "-100%" }}
+                  animate={{ y: 0 }}
+                  exit={{ y: "-100%" }}
+                  transition={{
+                    type: "spring",
+                    damping: 25,
+                    stiffness: 150,
+                  }}
+                  className="min-h-[300px] w-full border-line-subtle border-t bg-(--color-header-bg)"
+                >
+                  <VisuallyHidden.Root asChild>
+                    <Dialog.Title>Predictive search</Dialog.Title>
+                  </VisuallyHidden.Root>
+                  <div className="relative p-6">
+                    <PredictiveSearchForm>
+                      {({ fetchResults, inputRef }) => (
+                        <div className="mx-auto mb-6 flex max-w-(--page-width) items-center gap-3 border-line-subtle border-b px-3">
+                          <button
+                            type="button"
+                            className="shrink-0 p-1 text-gray-500 hover:text-gray-700"
+                            onClick={() => {
+                              if (inputRef.current?.value.trim()) {
+                                const value = inputRef.current.value.trim();
+                                setSearchQuery(value);
+                                setHasSearched(true);
+                                fetchResults(value);
+                              }
+                            }}
+                          >
+                            <MagnifyingGlassIcon className="h-5 w-5" />
+                          </button>
+                          <input
+                            name="q"
+                            type="search"
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              setSearchQuery(value);
+                              const trimmed = value.trim();
+                              setHasSearched(Boolean(trimmed));
+                              if (debounceRef.current) {
+                                clearTimeout(debounceRef.current);
+                              }
+                              if (!trimmed) {
+                                fetchResults("");
+                                return;
+                              }
+                              debounceRef.current = setTimeout(() => {
+                                fetchResults(trimmed);
+                              }, 300);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                if (inputRef.current?.value.trim()) {
+                                  const value = inputRef.current.value.trim();
+                                  setSearchQuery(value);
+                                  setHasSearched(true);
+                                  try {
+                                    const raw =
+                                      localStorage.getItem("searchHistory");
+                                    const parsed = raw ? JSON.parse(raw) : [];
+                                    const next = Array.isArray(parsed)
+                                      ? parsed
+                                      : [];
+                                    next.push(value.toLowerCase());
+                                    localStorage.setItem(
+                                      "searchHistory",
+                                      JSON.stringify(next),
+                                    );
+                                  } catch {}
+                                  navigate(
+                                    `/search?q=${encodeURIComponent(value)}`,
+                                  );
+                                }
+                              }
+                            }}
+                            placeholder="Enter a keyword"
+                            ref={inputRef}
+                            autoComplete="off"
+                            className="h-full w-full py-4 focus-visible:outline-hidden"
+                          />
+                          <button
+                            type="button"
+                            className="shrink-0 p-1 text-gray-500 hover:text-gray-700"
+                            onClick={() => {
+                              if (inputRef.current) {
+                                inputRef.current.value = "";
+                                setSearchQuery("");
+                                setHasSearched(false);
+                                fetchResults("");
+                              }
+                            }}
+                          >
+                            <XIcon className="h-5 w-5" />
+                          </button>
+                        </div>
+                      )}
+                    </PredictiveSearchForm>
+                    {!hasSearched && <PopularSearch />}
+                    <PredictiveSearchResults />
+                  </div>
+                </motion.div>
+              </Dialog.Content>
+            </>
           )}
-        />
-        <Dialog.Content
-          className={cn([
-            "fixed inset-x-0 top-[calc(var(--height-nav)+var(--topbar-height))] z-3 bg-(--color-header-bg)",
-            "border-line-subtle border-t",
-            "min-h-[300px]",
-            "transition-transform duration-300 ease-in-out",
-            "data-[state=open]:animate-enter-from-top",
-            open && !isAnimating ? "translate-y-0" : "-translate-y-full",
-            "focus-visible:outline-hidden",
-          ])}
-          aria-describedby={undefined}
-        >
-          <VisuallyHidden.Root asChild>
-            <Dialog.Title>Predictive search</Dialog.Title>
-          </VisuallyHidden.Root>
-          <div className="relative p-6">
-            <PredictiveSearchForm>
-              {({ fetchResults, inputRef }) => (
-                <div className="mx-auto mb-6 flex max-w-(--page-width) items-center gap-3 border-line-subtle border-b px-3">
-                  <button
-                    type="button"
-                    className="shrink-0 p-1 text-gray-500 hover:text-gray-700"
-                    onClick={() => {
-                      if (inputRef.current && inputRef.current.value.trim()) {
-                        const value = inputRef.current.value.trim();
-                        setSearchQuery(value);
-                        setHasSearched(true);
-                        fetchResults(value);
-                      }
-                    }}
-                  >
-                    <MagnifyingGlassIcon className="h-5 w-5" />
-                  </button>
-                  <input
-                    name="q"
-                    type="search"
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      setSearchQuery(value);
-                      const trimmed = value.trim();
-                      setHasSearched(Boolean(trimmed));
-                      if (debounceRef.current) {
-                        clearTimeout(debounceRef.current);
-                      }
-                      if (!trimmed) {
-                        fetchResults("");
-                        return;
-                      }
-                      debounceRef.current = setTimeout(() => {
-                        fetchResults(trimmed);
-                      }, 300);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        if (inputRef.current && inputRef.current.value.trim()) {
-                          const value = inputRef.current.value.trim();
-                          setSearchQuery(value);
-                          setHasSearched(true);
-                          try {
-                            const raw = localStorage.getItem("searchHistory");
-                            const parsed = raw ? JSON.parse(raw) : [];
-                            const next = Array.isArray(parsed) ? parsed : [];
-                            next.push(value.toLowerCase());
-                            localStorage.setItem(
-                              "searchHistory",
-                              JSON.stringify(next),
-                            );
-                          } catch {}
-                          navigate(`/search?q=${encodeURIComponent(value)}`);
-                        }
-                      }
-                    }}
-                    placeholder="Enter a keyword"
-                    ref={inputRef}
-                    autoComplete="off"
-                    className="h-full w-full py-4 focus-visible:outline-hidden"
-                  />
-                  <button
-                    type="button"
-                    className="shrink-0 p-1 text-gray-500 hover:text-gray-700"
-                    onClick={() => {
-                      if (inputRef.current) {
-                        inputRef.current.value = "";
-                        setSearchQuery("");
-                        setHasSearched(false);
-                        fetchResults("");
-                      }
-                    }}
-                  >
-                    <XIcon className="h-5 w-5" />
-                  </button>
-                </div>
-              )}
-            </PredictiveSearchForm>
-            {!hasSearched && <PopularSearch />}
-            <PredictiveSearchResults />
-          </div>
-        </Dialog.Content>
+        </AnimatePresence>
       </Dialog.Portal>
     </Dialog.Root>
   );

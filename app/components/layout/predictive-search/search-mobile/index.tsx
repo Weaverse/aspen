@@ -2,6 +2,7 @@ import { ArrowRight, MagnifyingGlass, X } from "@phosphor-icons/react";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import clsx from "clsx";
+import { AnimatePresence, motion } from "framer-motion";
 import { type MutableRefObject, useEffect, useState } from "react";
 import { useLocation } from "react-router";
 import Link from "~/components/link";
@@ -13,7 +14,6 @@ import { PredictiveSearchResult } from "./predictive-search-result";
 
 export function PredictiveSearchButtonMobile({ setIsSearchOpen }) {
   let [open, setOpen] = useState(false);
-  let [isAnimating, setIsAnimating] = useState(false);
   let location = useLocation();
   let [searchQuery, setSearchQuery] = useState("");
 
@@ -24,87 +24,91 @@ export function PredictiveSearchButtonMobile({ setIsSearchOpen }) {
   }, [location]);
 
   return (
-    <Dialog.Root
-      open={open}
-      onOpenChange={(value) => {
-        if (value) {
-          setIsAnimating(false);
-          setOpen(true);
-          setIsSearchOpen(true);
-        } else {
-          setIsAnimating(true);
-          setIsSearchOpen(false);
-          setTimeout(() => {
-            setOpen(false);
-            setIsAnimating(false);
-          }, 300);
-        }
-      }}
-    >
+    <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger
         asChild
         className="flex h-8 w-8 items-center justify-center focus-visible:outline-none lg:hidden"
       >
-        <button type="button">
+        <button type="button" onClick={() => setIsSearchOpen(true)}>
           <MagnifyingGlass className="h-5 w-5" />
         </button>
       </Dialog.Trigger>
-      <Dialog.Portal>
-        <Dialog.Overlay
-          className={clsx(
-            "fixed inset-0 z-10 bg-black/50 transition-opacity duration-300",
-            open && !isAnimating ? "opacity-100" : "opacity-0",
+      <Dialog.Portal forceMount>
+        <AnimatePresence>
+          {open && (
+            <>
+              <Dialog.Overlay forceMount>
+                <motion.div
+                  className="fixed inset-0 z-10 bg-black/50 backdrop-blur-xs"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                />
+              </Dialog.Overlay>
+              <Dialog.Content
+                forceMount
+                onCloseAutoFocus={(e) => e.preventDefault()}
+                className="fixed inset-y-0 left-0 z-10"
+                aria-describedby={undefined}
+              >
+                <motion.div
+                  initial={{ x: "-100vw" }}
+                  animate={{ x: 0 }}
+                  exit={{ x: "-100vw" }}
+                  transition={{
+                    type: "spring",
+                    damping: 25,
+                    stiffness: 150,
+                  }}
+                  className="h-full w-full max-w-[400px] bg-(--color-header-bg)"
+                >
+                  <VisuallyHidden.Root asChild>
+                    <Dialog.Title>Predictive search</Dialog.Title>
+                  </VisuallyHidden.Root>
+                  <div className="relative px-5 pt-3">
+                    <div className="flex items-center justify-between gap-2 py-2.5">
+                      <Dialog.Title asChild className="">
+                        <span className="font-semibold uppercase">Search</span>
+                      </Dialog.Title>
+                      <Dialog.Close asChild>
+                        <button
+                          type="button"
+                          onClick={() => setIsSearchOpen(false)}
+                          aria-label="Close search drawer"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </Dialog.Close>
+                    </div>
+                    <PredictiveSearchForm>
+                      {({ fetchResults, inputRef }) => (
+                        <div className="mx-auto my-4 flex max-w-(--page-width) items-center gap-3 border-line-subtle border-b">
+                          <MagnifyingGlass className="h-5 w-5 shrink-0 text-gray-500" />
+                          <input
+                            name="q"
+                            type="search"
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              setSearchQuery(value);
+                              fetchResults(value);
+                            }}
+                            onFocus={(e) => fetchResults(e.target.value)}
+                            placeholder="Enter a keyword"
+                            ref={inputRef}
+                            autoComplete="off"
+                            className="h-full w-full py-4 focus-visible:outline-none"
+                          />
+                        </div>
+                      )}
+                    </PredictiveSearchForm>
+                    {searchQuery === "" && <PopularSearch />}
+                    <PredictiveSearchResults />
+                  </div>
+                </motion.div>
+              </Dialog.Content>
+            </>
           )}
-        />
-        <Dialog.Content
-          className={cn([
-            "fixed inset-y-0 left-0 z-10 w-screen max-w-[400px] bg-(--color-header-bg)",
-            "transition-transform duration-300 ease-in-out",
-            "data-[state=open]:animate-enter-from-left",
-            open && !isAnimating ? "translate-x-0" : "-translate-x-full",
-            "focus-visible:outline-none",
-          ])}
-          aria-describedby={undefined}
-        >
-          <VisuallyHidden.Root asChild>
-            <Dialog.Title>Predictive search</Dialog.Title>
-          </VisuallyHidden.Root>
-          <div className="relative px-5 pt-3">
-            <div className="flex items-center justify-between gap-2 py-2.5">
-              <Dialog.Title asChild className="">
-                <span className="font-semibold uppercase">Search</span>
-              </Dialog.Title>
-              <Dialog.Close asChild>
-                <button type="button" aria-label="Close cart drawer">
-                  <X className="h-4 w-4" />
-                </button>
-              </Dialog.Close>
-            </div>
-            <PredictiveSearchForm>
-              {({ fetchResults, inputRef }) => (
-                <div className="mx-auto my-4 flex max-w-(--page-width) items-center gap-3 border-line-subtle border-b">
-                  <MagnifyingGlass className="h-5 w-5 shrink-0 text-gray-500" />
-                  <input
-                    name="q"
-                    type="search"
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      setSearchQuery(value);
-                      fetchResults(value);
-                    }}
-                    onFocus={(e) => fetchResults(e.target.value)}
-                    placeholder="Enter a keyword"
-                    ref={inputRef}
-                    autoComplete="off"
-                    className="h-full w-full py-4 focus-visible:outline-none"
-                  />
-                </div>
-              )}
-            </PredictiveSearchForm>
-            {searchQuery === "" && <PopularSearch />}
-            <PredictiveSearchResults />
-          </div>
-        </Dialog.Content>
+        </AnimatePresence>
       </Dialog.Portal>
     </Dialog.Root>
   );

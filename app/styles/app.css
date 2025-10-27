@@ -67,6 +67,8 @@
   --animate-marquee: marquee var(--marquee-duration, 15s) linear infinite;
   --animate-underline-toggle: underline-toggle 400ms linear;
   --animate-fade-in: fade-in var(--fade-in-duration, 0.5s) ease-in forwards;
+  --animate-scale-in: scale-in 200ms ease forwards;
+  --animate-scale-out: scale-out 200ms ease forwards;
   --animate-expand: expand var(--expand-duration, 0.3s)
     cubic-bezier(0.87, 0, 0.13, 1) forwards;
   --animate-collapse: collapse var(--collapse-duration, 0.3s)
@@ -88,6 +90,26 @@
     }
     100% {
       opacity: 1;
+    }
+  }
+  @keyframes scale-in {
+    0% {
+      opacity: 0;
+      transform: rotateX(-10deg) scale(0.9);
+    }
+    100% {
+      opacity: 1;
+      transform: rotateX(0) scale(1);
+    }
+  }
+  @keyframes scale-out {
+    0% {
+      opacity: 1;
+      transform: rotateX(0) scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: rotateX(-10deg) scale(0.95);
     }
   }
   @keyframes expand {
