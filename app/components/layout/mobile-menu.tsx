@@ -59,6 +59,7 @@ export function MobileMenu() {
           ])}
         />
         <Dialog.Content
+          onCloseAutoFocus={(e) => e.preventDefault()}
           className={cn([
             "fixed inset-0 left-0 z-10 h-screen bg-(--color-header-bg-hover) pt-4 pb-2",
             "transition-transform duration-300 ease-in-out",
@@ -175,6 +176,7 @@ function SubMenuDialog({
           ])}
         />
         <Dialog.Content
+          onCloseAutoFocus={(e) => e.preventDefault()}
           className={cn([
             "fixed inset-0 left-0 z-20 h-screen bg-(--color-header-bg-hover) pt-4 pb-2",
             "transition-transform duration-300 ease-in-out",
