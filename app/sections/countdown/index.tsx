@@ -22,28 +22,47 @@ const variants = cva("flex items-end justify-center", {
   },
 });
 
-interface CountdownProps extends VariantProps<typeof variants>, SectionProps {
+interface CountdownProps
+  extends VariantProps<typeof variants>,
+    SectionProps {
   scenario?: "scenario1" | "scenario2";
 }
 
 const Countdown = forwardRef<HTMLElement, CountdownProps>((props, ref) => {
-  const { children, height, gap = 24, scenario = "scenario1", ...rest } = props;
+  const {
+    children,
+    height,
+    scenario = "scenario1",
+    verticalPadding,
+    ...rest
+  } = props;
   const isScenario2 = scenario === "scenario2";
 
   return (
-    <Section ref={ref} {...rest}>
+    <Section
+      ref={ref}
+      {...rest}
+      verticalPadding={isScenario2 ? undefined : verticalPadding}
+    >
       <div
         className={cn(
           isScenario2 ? "flex items-end justify-center" : variants({ height }),
         )}
-        style={{ gap }}
+        style={
+          isScenario2 && typeof verticalPadding === "number"
+            ? { paddingTop: verticalPadding, paddingBottom: verticalPadding }
+            : undefined
+        }
       >
         <div
           className={cn(
-            "grid grid-cols-1 justify-items-center gap-y-4 md:grid-cols-2 [&_.paragraph]:text-center",
+            "grid grid-cols-1 gap-x-6 gap-y-4",
             isScenario2
-              ? "[&_.button]:order-4 [&_.countdown--timer]:order-3 md:[&_.countdown--timer]:order-2 [&_.heading]:order-1 [&_.subheading]:order-2 md:[&_.subheading]:order-3"
-              : "[&_.button]:order-4 [&_.countdown--timer]:order-2 md:[&_.countdown--timer]:order-3 [&_.heading]:order-1 [&_.subheading]:order-3 md:[&_.subheading]:order-2",
+              ? "md:grid-cols-3 md:grid-rows-2 md:gap-x-4"
+              : "md:grid-cols-2",
+            isScenario2
+              ? "[&_.button]:order-4 [&_.button]:justify-self-center md:[&_.button]:col-start-3 md:[&_.button]:row-span-2 md:[&_.button]:row-start-1 md:[&_.button]:self-center [&_.countdown--timer]:order-3 md:[&_.countdown--timer]:col-start-2 md:[&_.countdown--timer]:row-span-2 md:[&_.countdown--timer]:row-start-1 md:[&_.countdown--timer]:self-center [&_.heading]:order-1 md:[&_.heading]:col-start-1 md:[&_.heading]:row-start-1 [&_.subheading]:order-2 md:[&_.subheading]:col-start-1 md:[&_.subheading]:row-start-2"
+              : "[&_.button]:order-4 [&_.button]:justify-self-center [&_.countdown--timer]:order-2 md:[&_.countdown--timer]:order-3 [&_.heading]:order-1 [&_.subheading]:order-3 md:[&_.subheading]:order-2",
           )}
         >
           {children}
@@ -65,12 +84,12 @@ export const schema = createSchema({
         {
           type: "toggle-group",
           name: "scenario",
-          label: "Content scenario",
+          label: "Layout",
           defaultValue: "scenario1",
           configs: {
             options: [
-              { value: "scenario1", label: "Scenario 1" },
-              { value: "scenario2", label: "Scenario 2" },
+              { value: "scenario1", label: "Style 1" },
+              { value: "scenario2", label: "Style 2" },
             ],
           },
         },
@@ -103,18 +122,6 @@ export const schema = createSchema({
           condition: "scenario.eq.scenario1",
         },
         {
-          type: "range",
-          name: "gap",
-          label: "Content spacing",
-          configs: {
-            min: 16,
-            max: 64,
-            step: 8,
-            unit: "px",
-          },
-          defaultValue: 24,
-        },
-        {
           type: "select",
           name: "verticalPadding",
           label: "Vertical padding",
@@ -127,6 +134,20 @@ export const schema = createSchema({
             ],
           },
           defaultValue: "medium",
+          condition: "scenario.eq.scenario1",
+        },
+        {
+          type: "range",
+          name: "verticalPadding",
+          label: "Vertical padding",
+          configs: {
+            min: 0,
+            max: 200,
+            step: 8,
+            unit: "px",
+          },
+          defaultValue: 80,
+          condition: "scenario.eq.scenario2",
         },
         {
           type: "range",
@@ -145,7 +166,12 @@ export const schema = createSchema({
     { group: "Background", inputs: backgroundInputs },
     { group: "Overlay", inputs: overlayInputs },
   ],
-  childTypes: ["heading", "subheading", "countdown--timer", "button"],
+  childTypes: [
+    "countdown--heading",
+    "subheading",
+    "countdown--timer",
+    "button",
+  ],
   presets: {
     backgroundImage: IMAGES_PLACEHOLDERS.banner_2,
     width: "stretch",
@@ -154,7 +180,7 @@ export const schema = createSchema({
     verticalPadding: "large",
     children: [
       {
-        type: "heading",
+        type: "countdown--heading",
         content: "Sale ends in",
         color: "white",
       },
