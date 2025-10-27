@@ -31,6 +31,9 @@ export interface ScrollingProps
   topbarScrollingSpeed?: number;
   gap?: number;
   visibleOnMobile?: boolean;
+  layoutStyle?: "style1" | "style2";
+  iconUrls?: string;
+  iconSize?: number;
 }
 
 const ScrollingText = forwardRef<HTMLElement, ScrollingProps>((props, ref) => {
@@ -46,8 +49,56 @@ const ScrollingText = forwardRef<HTMLElement, ScrollingProps>((props, ref) => {
     topbarScrollingSpeed,
     gap,
     visibleOnMobile,
+    layoutStyle = "style1",
+    iconUrls = "",
+    iconSize = 24,
     ...rest
   } = props;
+  const parseIcons = (text: string) => {
+    const items: Array<{ content: string; isSvg: boolean }> = [];
+    const lines = text.split("\n");
+    let currentSvg = "";
+    let inSvg = false;
+
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+
+      if (trimmedLine.startsWith("<svg")) {
+        inSvg = true;
+        currentSvg = line;
+
+        if (trimmedLine.includes("</svg>")) {
+          items.push({
+            content: currentSvg,
+            isSvg: true,
+          });
+          currentSvg = "";
+          inSvg = false;
+        }
+      } else if (inSvg) {
+        currentSvg += `\n${line}`;
+
+        if (trimmedLine.includes("</svg>")) {
+          items.push({
+            content: currentSvg,
+            isSvg: true,
+          });
+          currentSvg = "";
+          inSvg = false;
+        }
+      } else if (trimmedLine && !inSvg) {
+        // It's a URL or other content
+        items.push({
+          content: trimmedLine,
+          isSvg: false,
+        });
+      }
+    }
+
+    return items;
+  };
+
+  const icons = parseIcons(iconUrls);
 
   let sectionStyle: CSSProperties = {
     "--text-color": textColor,
@@ -57,6 +108,7 @@ const ScrollingText = forwardRef<HTMLElement, ScrollingProps>((props, ref) => {
     "--vertical-margin": `${verticalMargin}px`,
     "--marquee-duration": `${MAX_DURATION / topbarScrollingSpeed}s`,
     "--gap": `${gap}px`,
+    "--icon-size": `${iconSize}px`,
   } as CSSProperties;
 
   return (
@@ -72,21 +124,89 @@ const ScrollingText = forwardRef<HTMLElement, ScrollingProps>((props, ref) => {
         !visibleOnMobile && "hidden sm:block",
       )}
     >
-      <div
-        className="ff-heading block text-center text-base sm:hidden"
-        dangerouslySetInnerHTML={{ __html: content }}
-      />
-      <ul className="hidden list-none sm:inline-flex">
-        {Array.from({ length: 50 }).map((_, i) => (
-          <li
-            key={i}
-            className="ff-heading animate-marquee whitespace-nowrap pr-[var(--gap)] font-medium text-[var(--text-color)]"
+      <div className="ff-heading block text-center text-base sm:hidden">
+        {layoutStyle === "style2" && icons.length > 0 && (
+          <span
+            className="mr-2 inline-flex items-center justify-center align-middle [&_svg]:h-full [&_svg]:w-full"
             style={{
-              fontSize: `${textSize}px`,
+              width: `${iconSize}px`,
+              height: `${iconSize}px`,
+              flexShrink: 0,
             }}
-            dangerouslySetInnerHTML={{ __html: content }}
-          />
-        ))}
+          >
+            {icons[0].isSvg ? (
+              <span
+                dangerouslySetInnerHTML={{ __html: icons[0].content }}
+                className="inline-flex h-full w-full items-center justify-center"
+              />
+            ) : (
+              <img
+                src={icons[0].content}
+                alt="icon"
+                className="h-full w-full object-contain"
+              />
+            )}
+          </span>
+        )}
+        <span dangerouslySetInnerHTML={{ __html: content }} />
+      </div>
+      <ul className="hidden list-none sm:inline-flex">
+        {(() => {
+          const createItems = (startKey: number) => {
+            const baseRepetitions = 25;
+            const repetitions =
+              layoutStyle === "style2" && icons.length > 0
+                ? Math.ceil(baseRepetitions / icons.length) * icons.length
+                : baseRepetitions;
+
+            return Array.from({ length: repetitions }).map((_, i) => {
+              const iconIndex =
+                layoutStyle === "style2" && icons.length > 0
+                  ? i % icons.length
+                  : 0;
+              const currentIcon = icons[iconIndex];
+
+              return (
+                <li
+                  key={`${startKey}-${i}`}
+                  className="ff-heading animate-marquee whitespace-nowrap pr-[var(--gap)] font-medium text-[var(--text-color)]"
+                  style={{
+                    fontSize: `${textSize}px`,
+                  }}
+                >
+                  {layoutStyle === "style2" && icons.length > 0 && (
+                    <span
+                      className="mr-2 inline-flex items-center justify-center align-middle [&_svg]:h-full [&_svg]:w-full"
+                      style={{
+                        width: `${iconSize}px`,
+                        height: `${iconSize}px`,
+                        flexShrink: 0,
+                      }}
+                    >
+                      {currentIcon.isSvg ? (
+                        <span
+                          dangerouslySetInnerHTML={{
+                            __html: currentIcon.content,
+                          }}
+                          className="inline-flex h-full w-full items-center justify-center"
+                        />
+                      ) : (
+                        <img
+                          src={currentIcon.content}
+                          alt="icon"
+                          className="h-full w-full object-contain"
+                        />
+                      )}
+                    </span>
+                  )}
+                  <span dangerouslySetInnerHTML={{ __html: content }} />
+                </li>
+              );
+            });
+          };
+
+          return [...createItems(0), ...createItems(1)];
+        })()}
       </ul>
     </section>
   );
@@ -101,6 +221,41 @@ export let schema: HydrogenComponentSchema = {
     {
       group: "Scrolling Text",
       inputs: [
+        {
+          type: "toggle-group",
+          name: "layoutStyle",
+          label: "Layout style",
+          defaultValue: "style1",
+          configs: {
+            options: [
+              { label: "Style 1", value: "style1" },
+              { label: "Style 2", value: "style2" },
+            ],
+          },
+        },
+        {
+          type: "textarea",
+          name: "iconUrls",
+          label: "Icons (one per line)",
+          placeholder: "<svg>...</svg>\nhttps://example.com/icon.png",
+          defaultValue: "",
+          condition: (data: ScrollingProps) => data.layoutStyle === "style2",
+          helpText:
+            "Enter inline SVG code or image URLs (PNG, JPEG). Each line = one icon. Icons will rotate through the scrolling text.",
+        },
+        {
+          type: "range",
+          name: "iconSize",
+          label: "Icon size",
+          defaultValue: 24,
+          configs: {
+            min: 16,
+            max: 64,
+            step: 2,
+            unit: "px",
+          },
+          condition: (data: ScrollingProps) => data.layoutStyle === "style2",
+        },
         {
           type: "richtext",
           name: "content",
