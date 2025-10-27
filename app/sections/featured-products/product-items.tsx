@@ -1,5 +1,10 @@
 import { ArrowLeft, ArrowRight } from "@phosphor-icons/react";
-import { createSchema, useParentInstance } from "@weaverse/hydrogen";
+import {
+  type ComponentLoaderArgs,
+  createSchema,
+  type HydrogenComponentProps,
+  type WeaverseCollection,
+} from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import clsx from "clsx";
@@ -10,6 +15,7 @@ import { ProductCard } from "~/components/product/product-card";
 import "swiper/css";
 import "swiper/css/navigation";
 import Link from "~/components/link";
+import { PRODUCT_CARD_FRAGMENT } from "~/graphql/fragments";
 
 type ItemsPerRowType = "2" | "3" | "4" | "5";
 type GapType = 8 | 12 | 16 | 20 | 24 | 28 | 32;
@@ -80,7 +86,10 @@ const productItemsVariants = cva("", {
   },
 });
 
-interface ProductItemsProps extends VariantProps<typeof productItemsVariants> {
+interface ProductItemsProps
+  extends VariantProps<typeof productItemsVariants>,
+    HydrogenComponentProps<Awaited<ReturnType<typeof loader>>> {
+  collection: WeaverseCollection;
   layout?: "grid" | "carousel";
   slidesPerView?: number;
   itemsPerRow?: ItemsPerRowType;
@@ -93,6 +102,8 @@ interface ProductItemsProps extends VariantProps<typeof productItemsVariants> {
 const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
   (props, ref) => {
     const {
+      loaderData,
+      collection,
       gap = 16,
       layout = "carousel",
       slidesPerView = 4,
@@ -102,23 +113,13 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
       arrowsShape = "rounded-sm",
       ...rest
     } = props;
-    const parent = useParentInstance();
-    const productsConnection = parent.data?.loaderData?.products;
-
     const [activeSlide, setActiveSlide] = useState(0);
     const [isBeginning, setIsBeginning] = useState(true);
     const [isEnd, setIsEnd] = useState(false);
-
-    if (!productsConnection?.nodes?.length) {
-      return null;
-    }
-
-    const totalProducts = productsConnection.nodes.length;
+    const productsConnection = loaderData?.products ?? [];
+    const totalProducts = productsConnection.length;
     const maxProductsToShow = productsToShow;
-    const displayedProducts = productsConnection.nodes.slice(
-      0,
-      maxProductsToShow,
-    );
+    const displayedProducts = productsConnection.slice(0, maxProductsToShow);
     const hasMoreProducts = totalProducts > maxProductsToShow;
 
     const arrowColorClasses = useMemo(() => {
@@ -144,8 +145,16 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
     const arrowShapeClasses = useMemo(() => {
       if (arrowsShape === "circle") return "rounded-full";
       if (arrowsShape === "square") return "";
-      return "rounded-md"; // rounded-sm -> use closest tailwind rounding
+      return "rounded-md";
     }, [arrowsShape]);
+
+    if (!productsConnection.length) {
+      return (
+        <div ref={ref} className="py-8 text-center text-gray-500">
+          No products found.
+        </div>
+      );
+    }
 
     if (layout === "grid") {
       return (
@@ -310,6 +319,41 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
 
 export default ProductItems;
 
+const PRODUCTS_BY_COLLECTION_QUERY = `#graphql
+  query productsByCollection(
+    $handle: String!,
+    $country: CountryCode,
+    $language: LanguageCode
+  )
+  @inContext(country: $country, language: $language) {
+    collection(handle: $handle) {
+      id
+      title
+      handle
+      products(first: 16) {
+        nodes {
+          ...ProductCard
+        }
+      }
+    }
+  }
+  ${PRODUCT_CARD_FRAGMENT}
+`;
+
+export const loader = async ({ weaverse, data }: ComponentLoaderArgs) => {
+  const { language, country } = weaverse.storefront.i18n;
+  const collectionHandle = data.collection.handle;
+  const res = await weaverse.storefront.query(PRODUCTS_BY_COLLECTION_QUERY, {
+    variables: {
+      handle: collectionHandle,
+      country,
+      language,
+    },
+  });
+  const products = res?.collection?.products?.nodes ?? [];
+  return { collection: data.collection, products };
+};
+
 export const schema = createSchema({
   type: "featured-products-items",
   title: "Product items",
@@ -317,6 +361,11 @@ export const schema = createSchema({
     {
       group: "Layout",
       inputs: [
+        {
+          type: "collection",
+          name: "collection",
+          label: "Collection",
+        },
         {
           type: "select",
           name: "layout",
