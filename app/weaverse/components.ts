@@ -27,6 +27,7 @@ import * as ColumnsWithImages from "~/sections/columns-with-images";
 import * as ColumnWithImageItem from "~/sections/columns-with-images/column";
 import * as ColumnsWithImagesItems from "~/sections/columns-with-images/items";
 import * as Countdown from "~/sections/countdown";
+import * as CountdownHeading from "~/sections/countdown/heading";
 import * as CountDownTimer from "~/sections/countdown/timer";
 import * as FeaturedCollections from "~/sections/featured-collections";
 import * as FeaturedCollectionItems from "~/sections/featured-collections/collection-items";
@@ -75,10 +76,11 @@ import * as SlideShowSlide from "~/sections/slideshow/slide";
 import * as Spacer from "~/sections/spacer";
 import * as TestimonialContent from "~/sections/testimonials/content";
 import * as TestimonialHotspotsItems from "~/sections/testimonials/hotspot-item";
-import * as TestimonialHotspots from "~/sections/testimonials/hotspots";
 import * as Testimonial from "~/sections/testimonials/index";
 import * as TestimonialHotspotsItem from "~/sections/testimonials/item";
+import * as TestimonialItem from "~/sections/testimonials/testimonials-item";
 import * as VideoEmbed from "~/sections/video-embed";
+import * as VideoEmbedContent from "~/sections/video-embed/content";
 import * as VideoEmbedItem from "~/sections/video-embed/video";
 import * as Videos from "~/sections/videos";
 import * as VideoItems from "~/sections/videos/items";
@@ -106,6 +108,7 @@ export const components: HydrogenComponent[] = [
   Blogs,
   Page,
   VideoEmbed,
+  VideoEmbedContent,
   VideoEmbedItem,
   Videos,
   VideoItems,
@@ -136,6 +139,7 @@ export const components: HydrogenComponent[] = [
   HotspotsContainer,
   HotspotsImage,
   Countdown,
+  CountdownHeading,
   CountDownTimer,
   NewsLetter,
   NewsLetterForm,
@@ -146,8 +150,8 @@ export const components: HydrogenComponent[] = [
   FeaturedContentProducts,
   FeaturedProductItems,
   Testimonial,
+  TestimonialItem,
   TestimonialContent,
-  TestimonialHotspots,
   TestimonialHotspotsItem,
   TestimonialHotspotsItems,
   ImageGallery,
