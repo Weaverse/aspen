@@ -123,6 +123,29 @@ export function ProductMedia(props: ProductMediaProps) {
     }
   }, [selectedVariant]);
 
+  // Cleanup swiper when layout changes
+  useEffect(() => {
+    return () => {
+      if (swiper) {
+        swiper.destroy(true, true);
+        setSwiper(null);
+      }
+    };
+  }, [mediaLayout]);
+
+  // Force navigation update when swiper is ready or navigation settings change
+  useEffect(() => {
+    if (swiper && mediaLayout === "slider") {
+      const timeout = setTimeout(() => {
+        swiper.update();
+        if (swiper.navigation) {
+          swiper.navigation.update();
+        }
+      }, 100);
+      return () => clearTimeout(timeout);
+    }
+  }, [swiper, navigationStyle, arrowsColor, arrowsShape]);
+
   if (mediaLayout === "grid") {
     return (
       <div className={variants({ gridSize })}>
@@ -214,29 +237,59 @@ export function ProductMedia(props: ProductMediaProps) {
         )}
         <div className="relative w-[calc(100%-var(--thumbs-width,0px))]">
           <Swiper
-            key={`media-slider-${navigationStyle}`}
-            onSwiper={setSwiper}
+            key={`media-slider-${mediaLayout}-${navigationStyle}`}
+            onSwiper={(swiperInstance) => {
+              setSwiper(swiperInstance);
+              // Force navigation update when swiper is ready
+              setTimeout(() => {
+                if (
+                  swiperInstance.navigation &&
+                  swiperInstance.navigation.update
+                ) {
+                  swiperInstance.navigation.update();
+                }
+              }, 200);
+            }}
             thumbs={{ swiper: thumbsSwiper }}
             slidesPerView={1}
             spaceBetween={4}
             autoHeight
             loop
-            navigation={{
-              nextEl:
-                navigationStyle === "corner"
-                  ? ".media_slider__next--corner"
-                  : ".media_slider__next--sides",
-              prevEl:
-                navigationStyle === "corner"
-                  ? ".media_slider__prev--corner"
-                  : ".media_slider__prev--sides",
-            }}
+            navigation={
+              mediaLayout === "slider"
+                ? {
+                    nextEl:
+                      navigationStyle === "corner"
+                        ? ".media_slider__next--corner"
+                        : ".media_slider__next--sides",
+                    prevEl:
+                      navigationStyle === "corner"
+                        ? ".media_slider__prev--corner"
+                        : ".media_slider__prev--sides",
+                  }
+                : false
+            }
             pagination={{ type: "fraction" }}
             modules={[Pagination, Navigation, Thumbs]}
             className="overflow-visible pb-10 md:overflow-hidden md:pb-0 md:[&_.swiper-pagination]:hidden"
             onSlideChange={(swiper) =>
               setActiveSlide(swiper.realIndex || swiper.activeIndex)
             }
+            onInit={(swiper) => {
+              // Force update navigation after Swiper is fully initialized
+              setTimeout(() => {
+                swiper.update();
+                if (swiper.navigation && swiper.navigation.update) {
+                  swiper.navigation.update();
+                }
+                // Also try to re-initialize navigation elements
+                if (swiper.params.navigation) {
+                  swiper.navigation.destroy();
+                  swiper.navigation.init();
+                  swiper.navigation.update();
+                }
+              }, 150);
+            }}
           >
             {media.map((media, idx) => (
               <SwiperSlide key={media.id} className="bg-gray-100">
@@ -267,66 +320,68 @@ export function ProductMedia(props: ProductMediaProps) {
           </Swiper>
 
           {/* Navigation Buttons */}
-          <div
-            className={clsx(
-              "absolute z-[5] hidden items-center gap-2 md:flex",
-              {
-                "right-6 bottom-6": navigationStyle === "corner",
-                "pointer-events-none inset-0 items-center justify-between":
-                  navigationStyle === "sides",
-              },
-            )}
-          >
-            <button
-              type="button"
+          {swiper && mediaLayout === "slider" && (
+            <div
               className={clsx(
-                `media_slider__prev--${navigationStyle}`,
-                baseButtonClasses,
-                colorClasses(arrowsColor),
-                shapeClass(arrowsShape),
-                navigationStyle === "sides" && "ml-4",
+                "absolute z-[5] hidden items-center gap-2 md:flex",
+                {
+                  "right-6 bottom-6": navigationStyle === "corner",
+                  "pointer-events-none inset-0 items-center justify-between":
+                    navigationStyle === "sides",
+                },
               )}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                className="translate-x-0.5 translate-y-0.5"
+              <button
+                type="button"
+                className={clsx(
+                  `media_slider__prev--${navigationStyle}`,
+                  baseButtonClasses,
+                  colorClasses(arrowsColor),
+                  shapeClass(arrowsShape),
+                  navigationStyle === "sides" && "ml-4",
+                )}
               >
-                <path d="M4.75397 12.207L5.46106 11.4999L2.46116 8.50003L15.5 8.50003V7.5L2.46125 7.5L5.46106 4.50019L4.75397 3.7931L0.546938 8.00006L4.75397 12.207Z" />
-              </svg>
-            </button>
-            <button
-              type="button"
-              className={clsx(
-                `media_slider__next--${navigationStyle}`,
-                baseButtonClasses,
-                colorClasses(arrowsColor),
-                shapeClass(arrowsShape),
-                navigationStyle === "sides" && "mr-4",
-              )}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                className="translate-x-0.5 translate-y-0.5"
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  className="translate-x-0.5 translate-y-0.5"
+                >
+                  <path d="M4.75397 12.207L5.46106 11.4999L2.46116 8.50003L15.5 8.50003V7.5L2.46125 7.5L5.46106 4.50019L4.75397 3.7931L0.546938 8.00006L4.75397 12.207Z" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                className={clsx(
+                  `media_slider__next--${navigationStyle}`,
+                  baseButtonClasses,
+                  colorClasses(arrowsColor),
+                  shapeClass(arrowsShape),
+                  navigationStyle === "sides" && "mr-4",
+                )}
               >
-                <path d="M11.246 3.79297L10.5389 4.50006L13.5388 7.49997H0.5V8.5H13.5387L10.5389 11.4998L11.246 12.2069L15.4531 7.99994L11.246 3.79297Z" />
-              </svg>
-            </button>
-          </div>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  className="translate-x-0.5 translate-y-0.5"
+                >
+                  <path d="M11.246 3.79297L10.5389 4.50006L13.5388 7.49997H0.5V8.5H13.5387L10.5389 11.4998L11.246 12.2069L15.4531 7.99994L11.246 3.79297Z" />
+                </svg>
+              </button>
+            </div>
+          )}
 
           {/* Dots Navigation */}
-          {showDots && (
+          {showDots && swiper && (
             <ProductMediaDots
               slidesCount={media.length}
               activeIndex={activeSlide}
-              onDotClick={(index) => swiper?.slideTo(index)}
+              onDotClick={(index) => swiper.slideTo(index)}
             />
           )}
 
