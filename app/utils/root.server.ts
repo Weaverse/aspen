@@ -105,7 +105,12 @@ async function getLayoutData({ storefront, env }: AppLoadContext) {
       )
     : undefined;
 
-  return { shop: data.shop, headerMenu, footerMenu };
+  return {
+    shop: data.shop,
+    headerMenu,
+    footerMenu,
+    paymentSettings: data.paymentSettings,
+  };
 }
 
 type Swatch = {
@@ -296,6 +301,10 @@ const LAYOUT_QUERY = `#graphql
     }
     footerMenu: menu(handle: $footerMenuHandle) {
       ...Menu
+    }
+    paymentSettings {
+      acceptedCardBrands
+      supportedDigitalWallets
     }
   }
   fragment Shop on Shop {
