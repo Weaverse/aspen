@@ -7,6 +7,7 @@ import {
   IMAGES_PLACEHOLDERS,
   type WeaverseProduct,
 } from "@weaverse/hydrogen";
+import clsx from "clsx";
 import { forwardRef, useState } from "react";
 import type {
   ProductQuery,
@@ -16,12 +17,7 @@ import { Button } from "~/components/button";
 import { Image } from "~/components/image";
 import Link from "~/components/link";
 import { AddToCartButton } from "~/components/product/add-to-cart-button";
-import {
-  BestSellerBadge,
-  NewBadge,
-  SaleBadge,
-  SoldOutBadge,
-} from "~/components/product/badges";
+import { ProductBadges, SoldOutBadge } from "~/components/product/badges";
 import { ProductMedia } from "~/components/product/product-media";
 import { Quantity } from "~/components/product/quantity";
 import { CompareAtPrice } from "~/components/product/variant-prices";
@@ -35,10 +31,29 @@ import { ProductVariants } from "../main-product/variants";
 interface SingleProductData {
   productsCount: number;
   product: WeaverseProduct;
+  // Product Media settings
+  mediaLayout: "grid" | "slider";
+  gridSize: "1x1" | "2x2" | "mix";
+  imageAspectRatio: "adapt" | "1/1" | "3/4" | "4/3";
   showThumbnails: boolean;
-  showSalePrice?: boolean;
-  showShippingPolicy?: boolean;
-  showRefundPolicy?: boolean;
+  showDots: boolean;
+  navigationStyle: "corner" | "sides";
+  arrowsColor: "primary" | "secondary";
+  arrowsShape: "rounded-sm" | "circle" | "square";
+  enableZoom: boolean;
+  arrowsZoomColor: "primary" | "secondary" | "outline";
+  arrowsZoomShape: "rounded-sm" | "circle" | "square";
+  zoomColor: "primary" | "secondary";
+  zoomShape: "rounded-sm" | "circle" | "square";
+  showBadgesOnProductMedia: boolean;
+  // Product information settings
+  addToCartText: string;
+  soldOutText: string;
+  showVendor: boolean;
+  showSalePrice: boolean;
+  showShortDescription: boolean;
+  showShippingPolicy: boolean;
+  showRefundPolicy: boolean;
 }
 
 type SingleProductProps = HydrogenComponentProps<
@@ -52,21 +67,35 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
       loaderData,
       children,
       product: _product,
+      // Product Media props
+      mediaLayout,
+      gridSize,
+      imageAspectRatio,
       showThumbnails,
+      showDots,
+      navigationStyle,
+      arrowsColor,
+      arrowsShape,
+      enableZoom,
+      arrowsZoomColor,
+      arrowsZoomShape,
+      zoomColor,
+      zoomShape,
+      showBadgesOnProductMedia,
+      // Product information props
+      addToCartText,
+      soldOutText,
+      showVendor,
       showSalePrice = true,
+      showShortDescription,
       showShippingPolicy = true,
       showRefundPolicy = true,
       ...rest
     } = props;
     const { storeDomain, product } = loaderData || {};
     const [quantity, setQuantity] = useState<number>(1);
-    const [selectedVariant, setSelectedVariant] =
-      useState<ProductVariantFragment | null>(null);
+    const currentVariant = product?.selectedOrFirstAvailableVariant;
     const [scope] = useAnimation(ref);
-
-    // Use the selected variant or fall back to the first available variant
-    const currentVariant =
-      selectedVariant || product?.selectedOrFirstAvailableVariant;
 
     // Get price range for when no variant is selected
     const priceRange = product?.priceRange;
@@ -145,70 +174,80 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
     }
 
     const atcText = currentVariant?.availableForSale
-      ? "Add to Cart"
+      ? addToCartText || "Add to Cart"
       : currentVariant?.quantityAvailable === -1
         ? "Unavailable"
-        : "Sold Out";
-    const isBestSellerProduct = product.badges
-      .filter(Boolean)
-      .some(({ key, value }) => key === "best_seller" && value === "true");
+        : soldOutText || "Sold Out";
 
     return (
-      <Section ref={ref} {...rest}>
+      <Section ref={ref} {...rest} overflow="unset">
         <div ref={scope}>
-          <div className="fade-up grid grid-cols-1 items-start gap-6 lg:grid-cols-2 lg:gap-12">
+          <div
+            className={clsx([
+              "space-y-5 lg:grid lg:space-y-0",
+              "lg:gap-[clamp(30px,5%,60px)]",
+              "lg:grid-cols-[1fr_clamp(360px,25%,480px)]",
+            ])}
+          >
             <ProductMedia
-              mediaLayout="slider"
-              enableZoom={true}
-              imageAspectRatio="1/1"
+              mediaLayout={mediaLayout || "slider"}
+              gridSize={gridSize || "2x2"}
+              imageAspectRatio={imageAspectRatio || "1/1"}
               media={product?.media.nodes}
               selectedVariant={currentVariant}
               showThumbnails={showThumbnails}
+              enableZoom={enableZoom}
+              showDots={showDots}
+              navigationStyle={navigationStyle}
+              arrowsColor={arrowsColor}
+              arrowsShape={arrowsShape}
+              zoomColor={zoomColor}
+              zoomShape={zoomShape}
+              arrowsZoomColor={arrowsZoomColor}
+              arrowsZoomShape={arrowsZoomShape}
+              showBadges={showBadgesOnProductMedia}
+              badges={
+                currentVariant && (
+                  <ProductBadges
+                    product={product}
+                    selectedVariant={currentVariant}
+                  />
+                )
+              }
             />
-            <div
-              className="flex flex-col justify-start space-y-5"
-              data-motion="slide-in"
-            >
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 text-sm empty:hidden">
-                  {currentVariant?.availableForSale ? (
-                    <>
-                      {currentVariant && (
-                        <SaleBadge
-                          price={currentVariant.price as MoneyV2}
-                          compareAtPrice={
-                            currentVariant.compareAtPrice as MoneyV2
-                          }
-                        />
-                      )}
-                      <NewBadge publishedAt={product.publishedAt} />
-                      {isBestSellerProduct && <BestSellerBadge />}
-                    </>
-                  ) : (
-                    <SoldOutBadge />
+            <div>
+              <div
+                className="sticky flex flex-col justify-start space-y-5"
+                style={{ top: "calc(var(--height-nav) + 20px)" }}
+                data-motion="slide-in"
+              >
+                <div className="flex flex-col gap-2">
+                  {showVendor && product.vendor && (
+                    <span className="text-body-subtle">{product.vendor}</span>
                   )}
+                  <h3 className="font-normal uppercase tracking-tight">
+                    {product?.title}
+                  </h3>
                 </div>
-                <h3 data-motion="fade-up" className="tracking-tight">
-                  {product?.title}
-                </h3>
+
                 <div className="space-y-5 divide-y divide-line-subtle [&>*:not(:last-child)]:pb-3">
-                  {selectedVariant ? (
+                  {currentVariant ? (
                     <div className="flex justify-between">
                       <span className="font-normal uppercase">Price</span>
                       <div className="flex items-center gap-2">
                         <Money
                           withoutTrailingZeros
-                          data={selectedVariant.price}
+                          data={currentVariant.price}
                           as="span"
                           className=""
                         />
                         {isDiscounted(
-                          selectedVariant.price as MoneyV2,
-                          selectedVariant.compareAtPrice as MoneyV2,
+                          currentVariant.price as MoneyV2,
+                          currentVariant.compareAtPrice as MoneyV2,
                         ) &&
                           showSalePrice && (
                             <CompareAtPrice
-                              data={selectedVariant.compareAtPrice as MoneyV2}
+                              data={currentVariant.compareAtPrice as MoneyV2}
                               className=""
                             />
                           )}
@@ -227,56 +266,71 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
                       )}
                     </div>
                   )}
+
                   {children}
+
                   {shouldRenderVariants ? (
                     <ProductVariants
                       productOptions={productOptions}
                       selectedVariant={currentVariant}
                     />
                   ) : null}
+
                   <Quantity value={quantity} onChange={setQuantity} />
                 </div>
-              </div>
-              <AddToCartButton
-                disabled={!currentVariant?.availableForSale}
-                lines={[
-                  {
-                    merchandiseId: currentVariant?.id,
-                    quantity,
-                    selectedVariant: currentVariant,
-                  },
-                ]}
-                variant="primary"
-                className="-mt-2 w-full"
-                data-test="add-to-cart"
-              >
-                {atcText}
-              </AddToCartButton>
-              {currentVariant?.availableForSale && (
-                <ShopPayButton
-                  width="100%"
-                  variantIdsAndQuantities={[
+
+                <div
+                  className="sp-button space-y-2 py-3"
+                  style={
                     {
-                      id: currentVariant?.id,
-                      quantity,
-                    },
-                  ]}
-                  storeDomain={storeDomain}
-                  className="-mt-2"
+                      "--shop-pay-button-height": "54px",
+                    } as React.CSSProperties
+                  }
+                >
+                  <AddToCartButton
+                    disabled={!currentVariant?.availableForSale}
+                    lines={[
+                      {
+                        merchandiseId: currentVariant?.id,
+                        quantity,
+                        selectedVariant: currentVariant,
+                      },
+                    ]}
+                    data-test="add-to-cart"
+                    className="h-[54px] w-full uppercase"
+                  >
+                    {atcText}
+                  </AddToCartButton>
+                  {currentVariant?.availableForSale && (
+                    <ShopPayButton
+                      width="100%"
+                      variantIdsAndQuantities={[
+                        {
+                          id: currentVariant?.id,
+                          quantity,
+                        },
+                      ]}
+                      storeDomain={storeDomain}
+                    />
+                  )}
+                </div>
+
+                <ProductDetails
+                  showShippingPolicy={showShippingPolicy}
+                  showRefundPolicy={showRefundPolicy}
+                  showShortDescription={showShortDescription}
+                  product={product}
                 />
-              )}
-              <ProductDetails
-                showShippingPolicy={showShippingPolicy}
-                showRefundPolicy={showRefundPolicy}
-              />
-              <Link
-                to={`/products/${product.handle}`}
-                prefetch="intent"
-                variant="underline"
-                className="w-fit"
-              >
-                View full details →
-              </Link>
+
+                <Link
+                  to={`/products/${product.handle}`}
+                  prefetch="intent"
+                  variant="underline"
+                  className="w-fit"
+                >
+                  View full details →
+                </Link>
+              </div>
             </div>
           </div>
         </div>
@@ -316,10 +370,7 @@ export const schema = createSchema({
   title: "Single product",
   childTypes: ["judgeme"],
   settings: [
-    {
-      group: "Layout",
-      inputs: layoutInputs,
-    },
+    { group: "Layout", inputs: layoutInputs },
     {
       group: "Product",
       inputs: [
@@ -335,37 +386,244 @@ export const schema = createSchema({
       group: "Product Media",
       inputs: [
         {
+          type: "select",
+          name: "imageAspectRatio",
+          label: "Aspect ratio",
+          defaultValue: "adapt",
+          configs: {
+            options: [
+              { value: "adapt", label: "Adapt to image" },
+              { value: "1/1", label: "Square (1/1)" },
+              { value: "3/4", label: "Portrait (3/4)" },
+              { value: "4/3", label: "Landscape (4/3)" },
+            ],
+          },
+        },
+        {
+          type: "toggle-group",
+          name: "mediaLayout",
+          label: "Layout",
+          configs: {
+            options: [
+              {
+                label: "Grid",
+                value: "grid",
+                icon: "grid-2x2",
+              },
+              {
+                label: "Slider",
+                value: "slider",
+                icon: "slideshow-outline",
+              },
+            ],
+          },
+          defaultValue: "slider",
+        },
+        {
+          type: "select",
+          name: "gridSize",
+          label: "Grid size",
+          defaultValue: "2x2",
+          configs: {
+            options: [
+              { label: "1x1", value: "1x1" },
+              { label: "2x2", value: "2x2" },
+              { label: "Mix", value: "mix" },
+            ],
+          },
+          condition: (data: SingleProductData) => data.mediaLayout === "grid",
+        },
+        {
           label: "Show thumbnails",
           name: "showThumbnails",
           type: "switch",
-          defaultValue: false,
+          defaultValue: true,
+          condition: (data: SingleProductData) => data.mediaLayout === "slider",
+        },
+        {
+          label: "Show dots",
+          name: "showDots",
+          type: "switch",
+          defaultValue: true,
+          condition: (data: SingleProductData) => data.mediaLayout === "slider",
+        },
+        {
+          type: "heading",
+          label: "Navigation",
+        },
+        {
+          label: "Navigation style",
+          name: "navigationStyle",
+          type: "select",
+          defaultValue: "corner",
+          configs: {
+            options: [
+              { value: "corner", label: "Corner" },
+              { value: "sides", label: "Sides" },
+            ],
+          },
+          condition: (data: SingleProductData) => data.mediaLayout === "slider",
+        },
+        {
+          type: "select",
+          label: "Arrows color",
+          name: "arrowsColor",
+          configs: {
+            options: [
+              { value: "primary", label: "Primary" },
+              { value: "secondary", label: "Secondary" },
+            ],
+          },
+          defaultValue: "primary",
+          condition: (data: SingleProductData) => data.mediaLayout === "slider",
+        },
+        {
+          type: "toggle-group",
+          label: "Arrows shape",
+          name: "arrowsShape",
+          configs: {
+            options: [
+              { value: "rounded-sm", label: "Rounded", icon: "squircle" },
+              { value: "circle", label: "Circle", icon: "circle" },
+              { value: "square", label: "Square", icon: "square" },
+            ],
+          },
+          defaultValue: "circle",
+          condition: (data: SingleProductData) => data.mediaLayout === "slider",
+        },
+        {
+          type: "heading",
+          label: "Zooms",
+        },
+        {
+          label: "Enable zoom",
+          name: "enableZoom",
+          type: "switch",
+          defaultValue: true,
+        },
+        {
+          type: "select",
+          label: "Zoom arrows color",
+          name: "arrowsZoomColor",
+          configs: {
+            options: [
+              { value: "primary", label: "Primary" },
+              { value: "secondary", label: "Secondary" },
+              { value: "outline", label: "Outline" },
+            ],
+          },
+          defaultValue: "primary",
+          condition: (data: SingleProductData) =>
+            data.mediaLayout === "slider" && data.enableZoom === true,
+        },
+        {
+          type: "toggle-group",
+          label: "Zoom arrows shape",
+          name: "arrowsZoomShape",
+          configs: {
+            options: [
+              { value: "rounded-sm", label: "Rounded", icon: "squircle" },
+              { value: "circle", label: "Circle", icon: "circle" },
+              { value: "square", label: "Square", icon: "square" },
+            ],
+          },
+          defaultValue: "circle",
+          condition: (data: SingleProductData) =>
+            data.mediaLayout === "slider" && data.enableZoom === true,
+        },
+        {
+          type: "select",
+          label: "Zoom button color",
+          name: "zoomColor",
+          configs: {
+            options: [
+              { value: "primary", label: "Primary" },
+              { value: "secondary", label: "Secondary" },
+            ],
+          },
+          defaultValue: "primary",
+          condition: (data: SingleProductData) =>
+            data.mediaLayout === "slider" && data.enableZoom === true,
+        },
+        {
+          type: "toggle-group",
+          label: "Zoom button shape",
+          name: "zoomShape",
+          configs: {
+            options: [
+              { value: "rounded-sm", label: "Rounded", icon: "squircle" },
+              { value: "circle", label: "Circle", icon: "circle" },
+              { value: "square", label: "Square", icon: "square" },
+            ],
+          },
+          defaultValue: "circle",
+          condition: (data: SingleProductData) =>
+            data.mediaLayout === "slider" && data.enableZoom === true,
+        },
+        {
+          type: "switch",
+          label: "Show badges on product media",
+          name: "showBadgesOnProductMedia",
+          defaultValue: true,
+          helpText:
+            "Display sale, new, and best seller badges on product images",
         },
       ],
     },
     {
-      group: "Product Options",
+      group: "Product information",
       inputs: [
         {
+          type: "text",
+          label: "Add to cart text",
+          name: "addToCartText",
+          defaultValue: "Add to cart",
+          placeholder: "Add to cart",
+        },
+        {
+          type: "text",
+          label: "Sold out text",
+          name: "soldOutText",
+          defaultValue: "Sold out",
+          placeholder: "Sold out",
+        },
+        {
+          type: "switch",
+          label: "Show vendor",
+          name: "showVendor",
+          defaultValue: false,
+        },
+        {
+          type: "switch",
           label: "Show sale price",
           name: "showSalePrice",
-          type: "switch",
           defaultValue: true,
         },
         {
+          type: "switch",
+          label: "Show short description",
+          name: "showShortDescription",
+          defaultValue: true,
+        },
+        {
+          type: "switch",
           label: "Show shipping policy",
           name: "showShippingPolicy",
-          type: "switch",
           defaultValue: true,
         },
         {
+          type: "switch",
           label: "Show refund policy",
           name: "showRefundPolicy",
-          type: "switch",
           defaultValue: true,
         },
       ],
     },
   ],
+  presets: {
+    mediaLayout: "slider",
+    gridSize: "2x2",
+  },
 });
 
 export default SingleProduct;

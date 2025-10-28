@@ -7,9 +7,11 @@ export function useShopMenu() {
   const shopName = layout?.shop?.name;
   const headerMenu = layout?.headerMenu as EnhancedMenu;
   const footerMenu = layout?.footerMenu as EnhancedMenu;
+  const paymentSettings = layout?.paymentSettings;
   return {
     shopName,
     headerMenu,
     footerMenu,
+    paymentSettings,
   };
 }

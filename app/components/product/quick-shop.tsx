@@ -9,6 +9,7 @@ import {
 import type { MoneyV2 } from "@shopify/hydrogen/storefront-api-types";
 import { useThemeSettings } from "@weaverse/hydrogen";
 import clsx from "clsx";
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Link, useFetcher } from "react-router";
 import { AddToCartButton } from "~/components/product/add-to-cart-button";
@@ -97,75 +98,79 @@ function ProductDescriptionDrawer({
   onOpenChange: (open: boolean) => void;
   onCloseAll?: () => void;
 }) {
-  const { product } = data;
-  const [isAnimating, setIsAnimating] = useState(false);
-
-  const handleOpenChange = (nextOpen: boolean) => {
-    if (nextOpen) {
-      setIsAnimating(false);
-      onOpenChange(true);
-    } else {
-      setIsAnimating(true);
-      setTimeout(() => {
-        onOpenChange(false);
-        setIsAnimating(false);
-      }, 300);
-    }
-  };
-
   return (
-    <Dialog.Root open={open} onOpenChange={handleOpenChange}>
-      <Dialog.Portal>
-        <Dialog.Overlay
-          className={clsx(
-            "fixed inset-0 z-20 bg-black/50 transition-opacity duration-300",
-            open && !isAnimating ? "opacity-100" : "opacity-0",
-          )}
-        />
-        <Dialog.Content
-          className={clsx([
-            "fixed inset-y-0 right-0 z-20 w-full bg-background py-2.5 md:max-w-[430px]",
-            "shadow-2xl transition-transform duration-300 ease-in-out",
-            open && !isAnimating ? "translate-x-0" : "translate-x-full",
-          ])}
-          aria-describedby={undefined}
-        >
-          <div className="flex h-full flex-col">
-            {/* Header */}
-            <div className="flex flex-shrink-0 items-center justify-between px-5 py-3">
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => onOpenChange(false)}
-                  className="flex h-4 w-4 items-center justify-center"
-                >
-                  <CaretLeftIcon className="h-4 w-4 text-[#29231E]" />
-                </button>
-                <Dialog.Title asChild>
-                  <span className="font-semibold uppercase">DESCRIPTION</span>
-                </Dialog.Title>
-              </div>
-              <button
-                type="button"
-                onClick={onCloseAll || (() => onOpenChange(false))}
-                className="flex h-4 w-4 items-center justify-center"
-              >
-                <XIcon className="h-4 w-4 text-[#29231E]" />
-              </button>
-            </div>
-
-            {/* Content */}
-            <ScrollArea className="flex-1" size="sm">
-              <div className="px-5 py-4">
-                <ProductDetailsContent
-                  data={data}
-                  showShippingPolicy={true}
-                  showRefundPolicy={true}
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Portal forceMount>
+        <AnimatePresence>
+          {open && (
+            <>
+              <Dialog.Overlay forceMount>
+                <motion.div
+                  className="fixed inset-0 z-20 bg-black/50 backdrop-blur-xs"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
                 />
-              </div>
-            </ScrollArea>
-          </div>
-        </Dialog.Content>
+              </Dialog.Overlay>
+              <Dialog.Content
+                forceMount
+                onCloseAutoFocus={(e) => e.preventDefault()}
+                className="fixed inset-y-0 right-0 z-20"
+                aria-describedby={undefined}
+              >
+                <motion.div
+                  initial={{ x: "100%" }}
+                  animate={{ x: 0 }}
+                  exit={{ x: "100%" }}
+                  transition={{
+                    type: "spring",
+                    damping: 25,
+                    stiffness: 150,
+                  }}
+                  className="h-full w-screen max-w-[430px] bg-background py-2.5"
+                >
+                  <div className="flex h-full flex-col">
+                    {/* Header */}
+                    <div className="flex flex-shrink-0 items-center justify-between px-5 py-3">
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => onOpenChange(false)}
+                          className="flex h-4 w-4 items-center justify-center"
+                        >
+                          <CaretLeftIcon className="h-4 w-4 text-[#29231E]" />
+                        </button>
+                        <Dialog.Title asChild>
+                          <span className="font-semibold uppercase">
+                            DESCRIPTION
+                          </span>
+                        </Dialog.Title>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={onCloseAll || (() => onOpenChange(false))}
+                        className="flex h-4 w-4 items-center justify-center"
+                      >
+                        <XIcon className="h-4 w-4 text-[#29231E]" />
+                      </button>
+                    </div>
+
+                    {/* Content */}
+                    <ScrollArea className="flex-1" size="sm">
+                      <div className="px-5 py-4">
+                        <ProductDetailsContent
+                          data={data}
+                          showShippingPolicy={true}
+                          showRefundPolicy={true}
+                        />
+                      </div>
+                    </ScrollArea>
+                  </div>
+                </motion.div>
+              </Dialog.Content>
+            </>
+          )}
+        </AnimatePresence>
       </Dialog.Portal>
     </Dialog.Root>
   );
@@ -339,19 +344,14 @@ export function QuickShop({
 export function QuickShopTrigger({
   productHandle,
   showOnHover = true,
-  buttonType,
   buttonText,
-  panelType,
 }: {
   productHandle: string;
   showOnHover?: boolean;
-  buttonType?: string;
   buttonText?: string;
-  panelType?: string;
 }) {
   const { quickShopButtonTextOpen } = useThemeSettings();
   const [open, setOpen] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
   const [showDescription, setShowDescription] = useState(false);
   const { load, data, state } = useFetcher<ProductData>();
   const apiPath = usePrefixPathWithLocale(
@@ -371,23 +371,7 @@ export function QuickShopTrigger({
   }, [open, apiPath]);
 
   return (
-    <Dialog.Root
-      open={open}
-      onOpenChange={(isOpen) => {
-        if (isOpen) {
-          setIsAnimating(false);
-          setOpen(true);
-        } else {
-          setIsAnimating(true);
-          // Close description first
-          setShowDescription(false);
-          setTimeout(() => {
-            setOpen(false);
-            setIsAnimating(false);
-          }, 300);
-        }
-      }}
-    >
+    <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger asChild>
         <button
           type="button"
@@ -428,93 +412,112 @@ export function QuickShopTrigger({
           </span>
         </button>
       </Dialog.Trigger>
-      <Dialog.Portal>
-        <Dialog.Overlay
-          className={clsx(
-            "fixed inset-0 z-10 bg-black/50 transition-opacity duration-300",
-            open && !isAnimating ? "opacity-100" : "opacity-0",
-          )}
-        />
-        <Dialog.Content
-          className={clsx([
-            "fixed inset-y-0 right-0 z-10 w-full bg-background py-2.5 md:max-w-[430px]",
-            "shadow-2xl transition-transform duration-300 ease-in-out",
-            "data-[state=open]:animate-enter-from-right",
-            open && !isAnimating ? "translate-x-0" : "translate-x-full",
-          ])}
-          aria-describedby={undefined}
-        >
-          <div className="flex h-full flex-col">
-            {/* Header */}
-            <div className="flex flex-shrink-0 items-center justify-between px-5 py-3">
-              <Dialog.Title asChild>
-                <span className="font-semibold uppercase">Quick Shop</span>
-              </Dialog.Title>
-              <button
-                type="button"
-                onClick={closeAllDrawers}
-                className="rounded p-1 transition-colors hover:bg-gray-100"
+      <Dialog.Portal forceMount>
+        <AnimatePresence>
+          {open && (
+            <>
+              <Dialog.Overlay forceMount>
+                <motion.div
+                  className="fixed inset-0 z-10 bg-black/50 backdrop-blur-xs"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                />
+              </Dialog.Overlay>
+              <Dialog.Content
+                forceMount
+                onCloseAutoFocus={(e) => e.preventDefault()}
+                className="fixed inset-y-0 right-0 z-10"
+                aria-describedby={undefined}
               >
-                <XIcon className="h-5 w-5" />
-              </button>
-            </div>
-
-            {/* Content */}
-            <ScrollArea className="flex-1" size="sm">
-              <div className="px-5 py-4">
-                {state === "loading" ? (
-                  <div className="space-y-6">
-                    {/* Image skeleton */}
-                    <div className="relative aspect-square w-full overflow-hidden bg-gray-100">
-                      <Skeleton className="h-full w-full" />
+                <motion.div
+                  initial={{ x: "100%" }}
+                  animate={{ x: 0 }}
+                  exit={{ x: "100%" }}
+                  transition={{
+                    type: "spring",
+                    damping: 25,
+                    stiffness: 150,
+                  }}
+                  className="h-full w-screen max-w-[430px] bg-background py-2.5"
+                >
+                  <div className="flex h-full flex-col">
+                    {/* Header */}
+                    <div className="flex flex-shrink-0 items-center justify-between px-5 py-3">
+                      <Dialog.Title asChild>
+                        <span className="font-semibold uppercase">
+                          Quick Shop
+                        </span>
+                      </Dialog.Title>
+                      <button
+                        type="button"
+                        onClick={closeAllDrawers}
+                        className="rounded p-1 transition-colors hover:bg-gray-100"
+                      >
+                        <XIcon className="h-5 w-5" />
+                      </button>
                     </div>
 
-                    {/* Content skeleton */}
-                    <div className="space-y-6">
-                      {/* Title & Price */}
-                      <div className="space-y-3">
-                        <Skeleton className="h-7 w-3/4" />
-                        <Skeleton className="h-6 w-1/3" />
-                      </div>
+                    {/* Content */}
+                    <ScrollArea className="flex-1" size="sm">
+                      <div className="px-5 py-4">
+                        {state === "loading" ? (
+                          <div className="space-y-6">
+                            {/* Image skeleton */}
+                            <div className="relative aspect-square w-full overflow-hidden bg-gray-100">
+                              <Skeleton className="h-full w-full" />
+                            </div>
 
-                      {/* Variants */}
-                      <div className="space-y-3">
-                        <Skeleton className="h-5 w-1/4" />
-                        <div className="flex gap-2">
-                          <Skeleton className="h-10 w-12" />
-                          <Skeleton className="h-10 w-12" />
-                          <Skeleton className="h-10 w-12" />
-                        </div>
-                      </div>
+                            {/* Content skeleton */}
+                            <div className="space-y-6">
+                              {/* Title & Price */}
+                              <div className="space-y-3">
+                                <Skeleton className="h-7 w-3/4" />
+                                <Skeleton className="h-6 w-1/3" />
+                              </div>
 
-                      {/* Quantity & Buttons */}
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-3">
-                          <Skeleton className="h-5 w-16" />
-                          <Skeleton className="h-10 w-24" />
-                        </div>
-                        <Skeleton className="h-12 w-full" />
+                              {/* Variants */}
+                              <div className="space-y-3">
+                                <Skeleton className="h-5 w-1/4" />
+                                <div className="flex gap-2">
+                                  <Skeleton className="h-10 w-12" />
+                                  <Skeleton className="h-10 w-12" />
+                                  <Skeleton className="h-10 w-12" />
+                                </div>
+                              </div>
+
+                              {/* Quantity & Buttons */}
+                              <div className="space-y-4">
+                                <div className="flex items-center gap-3">
+                                  <Skeleton className="h-5 w-16" />
+                                  <Skeleton className="h-10 w-24" />
+                                </div>
+                                <Skeleton className="h-12 w-full" />
+                              </div>
+                            </div>
+                          </div>
+                        ) : data ? (
+                          <QuickShop
+                            data={data as ProductData}
+                            showDescription={showDescription}
+                            setShowDescription={setShowDescription}
+                            onCloseAll={closeAllDrawers}
+                          />
+                        ) : (
+                          <div className="py-8 text-center">
+                            <p className="text-body-subtle">
+                              Failed to load product data
+                            </p>
+                          </div>
+                        )}
                       </div>
-                    </div>
+                    </ScrollArea>
                   </div>
-                ) : data ? (
-                  <QuickShop
-                    data={data as ProductData}
-                    showDescription={showDescription}
-                    setShowDescription={setShowDescription}
-                    onCloseAll={closeAllDrawers}
-                  />
-                ) : (
-                  <div className="py-8 text-center">
-                    <p className="text-body-subtle">
-                      Failed to load product data
-                    </p>
-                  </div>
-                )}
-              </div>
-            </ScrollArea>
-          </div>
-        </Dialog.Content>
+                </motion.div>
+              </Dialog.Content>
+            </>
+          )}
+        </AnimatePresence>
       </Dialog.Portal>
     </Dialog.Root>
   );

@@ -90,7 +90,7 @@ export function Header() {
     >
       <div
         className={cn(
-          "flex items-center justify-between gap-2 py-1.5 lg:gap-8 lg:py-3",
+          "flex items-center justify-between gap-2 lg:gap-8",
           variants({ width: headerWidth }),
         )}
       >

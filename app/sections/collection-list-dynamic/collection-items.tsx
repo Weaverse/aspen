@@ -14,155 +14,6 @@ import { Image } from "~/components/image";
 import Link from "~/components/link";
 import { useAnimation } from "~/hooks/use-animation";
 
-// --- Color helpers for randomized per-item background color ---
-function seededRandom(seed: number) {
-  // Simple LCG for deterministic randomness per index
-  let m = 0x80_00_00_00; // 2**31
-  let a = 1_103_515_245;
-  let c = 12_345;
-  let state = (seed >>> 0) % m;
-  state = (a * state + c) % m;
-  return state / (m - 1);
-}
-
-function hexToRgba(hex: string) {
-  let clean = hex.replace(/^#/, "");
-  if (clean.length === 3) {
-    clean = clean
-      .split("")
-      .map((ch) => ch + ch)
-      .join("");
-  }
-  let a = 255;
-  if (clean.length === 8) {
-    a = Number.parseInt(clean.slice(6, 8), 16);
-    clean = clean.slice(0, 6);
-  }
-  const r = Number.parseInt(clean.slice(0, 2), 16);
-  const g = Number.parseInt(clean.slice(2, 4), 16);
-  const b = Number.parseInt(clean.slice(4, 6), 16);
-  return { r, g, b, a: a / 255 };
-}
-
-function rgbaToHex({
-  r,
-  g,
-  b,
-  a,
-}: {
-  r: number;
-  g: number;
-  b: number;
-  a: number;
-}) {
-  const toHex = (n: number) => n.toString(16).padStart(2, "0");
-  const alpha = Math.round(a * 255);
-  return `#${toHex(r)}${toHex(g)}${toHex(b)}${alpha === 255 ? "" : toHex(alpha)}`;
-}
-
-function rgbaToHsl(r: number, g: number, b: number) {
-  r /= 255;
-  g /= 255;
-  b /= 255;
-  const max = Math.max(r, g, b),
-    min = Math.min(r, g, b);
-  let h = 0,
-    s = 0,
-    l = (max + min) / 2;
-  if (max !== min) {
-    const d = max - min;
-    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    // biome-ignore lint/style/useDefaultSwitchClause: <explanation>
-    switch (max) {
-      case r:
-        h = (g - b) / d + (g < b ? 6 : 0);
-        break;
-      case g:
-        h = (b - r) / d + 2;
-        break;
-      case b:
-        h = (r - g) / d + 4;
-        break;
-    }
-    h /= 6;
-  }
-  return { h: h * 360, s: s * 100, l: l * 100 };
-}
-
-function hslToRgba(h: number, s: number, l: number, a: number) {
-  h /= 360;
-  s /= 100;
-  l /= 100;
-  let r: number, g: number, b: number;
-  if (s === 0) {
-    r = g = b = l; // achromatic
-  } else {
-    const hue2rgb = (p: number, q: number, t: number) => {
-      if (t < 0) t += 1;
-      if (t > 1) t -= 1;
-      if (t < 1 / 6) return p + (q - p) * 6 * t;
-      if (t < 1 / 2) return q;
-      if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-      return p;
-    };
-    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-    const p = 2 * l - q;
-    r = hue2rgb(p, q, h + 1 / 3);
-    g = hue2rgb(p, q, h);
-    b = hue2rgb(p, q, h - 1 / 3);
-  }
-  return {
-    r: Math.round(r * 255),
-    g: Math.round(g * 255),
-    b: Math.round(b * 255),
-    a,
-  };
-}
-
-function randomizeColor(baseHex: string, seed: number) {
-  try {
-    const rgba = hexToRgba(baseHex);
-    const hsl = rgbaToHsl(rgba.r, rgba.g, rgba.b);
-
-    // Use golden-angle sequence to distribute hues distinctly across items
-    const GOLDEN_ANGLE = 137.507_764_05;
-    let seqHue = (hsl.h + seed * GOLDEN_ANGLE) % 360; // many unique hues
-
-    // Hue jitter ±20° for organic variety
-    const hueJitter = seededRandom(seed + 11) * 40 - 20; // -20..+20
-    let newH = (seqHue + hueJitter + 360) % 360;
-
-    // Avoid greenish hues (roughly 90°–150°)
-    if (newH >= 90 && newH <= 150) {
-      const push = seededRandom(seed + 12) > 0.5 ? 40 : -40; // push towards yellow/orange or blue/purple
-      newH = (newH + push + 360) % 360;
-    }
-
-    // Saturation: if near gray, bump; else jitter to 60–90 range
-    let newS =
-      hsl.s < 20
-        ? 50 + seededRandom(seed + 13) * 30
-        : 60 + seededRandom(seed + 14) * 30; // 50..80 or 60..90
-    newS = Math.max(0, Math.min(100, newS));
-
-    // Lightness jitter ±15%
-    let newL = Math.max(
-      0,
-      Math.min(100, hsl.l + (seededRandom(seed + 15) * 30 - 15)),
-    );
-
-    // Darken every 3rd item slightly for depth
-    if (seed % 3 === 1) {
-      newL = Math.max(0, Math.min(100, newL - 10));
-    }
-
-    const out = hslToRgba(newH, newS, newL, rgba.a);
-    return rgbaToHex(out);
-  } catch {
-    return baseHex;
-  }
-}
-
 interface CollectionWithProducts {
   id: string;
   title: string;
@@ -226,7 +77,7 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
     }, [layout]);
 
     if (!collections?.length) {
-      collections = Array(activeLayout === "showcase" ? 2 : 3).fill(
+      collections = new Array(activeLayout === "showcase" ? 2 : 3).fill(
         COLLECTION_PLACEHOLDER,
       );
     }
@@ -240,21 +91,10 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
       ind?: number,
     ) => {
       if (activeLayout === "slider") {
-        // Per-item style override for randomized background color
-        const randomizedBg =
-          typeof ind === "number"
-            ? ind === 0
-              ? collectionBackgroundColor
-              : randomizeColor(collectionBackgroundColor, ind + 1)
-            : collectionBackgroundColor;
-        const perItemStyle = {
-          "--collection-bg-color": randomizedBg,
-        } as React.CSSProperties;
         return (
           <div
             key={collection.id + ind}
             className="flex aspect-[3/4] h-full w-full flex-col gap-5 bg-(--collection-bg-color) p-4"
-            style={perItemStyle}
           >
             {collection?.image && (
               <div className="relative h-full w-full overflow-hidden">

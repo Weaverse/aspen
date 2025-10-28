@@ -27,18 +27,18 @@ type Layouts = "page" | "drawer";
 export function Cart({
   layout,
   onClose,
-  cart,
+  cart: originalCart,
 }: {
   layout: Layouts;
   onClose?: () => void;
   cart: CartApiQueryFragment;
 }) {
-  const optimisticCart = useOptimisticCart<CartApiQueryFragment>(cart);
-  const linesCount = Boolean(optimisticCart?.lines?.nodes?.length || 0);
+  const cart = useOptimisticCart<CartApiQueryFragment>(originalCart);
+  const linesCount = Boolean(cart?.lines?.nodes?.length || 0);
   const cartHasItems = !!cart && cart.totalQuantity > 0;
 
   if (cartHasItems) {
-    return <CartDetails cart={optimisticCart} layout={layout} />;
+    return <CartDetails cart={cart} layout={layout} />;
   }
   return <CartEmpty hidden={linesCount} onClose={onClose} layout={layout} />;
 }

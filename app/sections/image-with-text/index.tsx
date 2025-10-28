@@ -58,7 +58,7 @@ export const schema = createSchema({
   childTypes: ["image-with-text--content", "image-with-text--images"],
   presets: {
     verticalPadding: "none",
-    backgroundColor: "#dbe3d6",
+    backgroundColor: "#F0F0EF",
     backgroundFor: "content",
     children: [
       { type: "image-with-text--images" },

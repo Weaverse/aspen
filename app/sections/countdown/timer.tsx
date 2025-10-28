@@ -1,6 +1,11 @@
-import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
+import {
+  createSchema,
+  type HydrogenComponentProps,
+  useParentInstance,
+} from "@weaverse/hydrogen";
 import type { CSSProperties } from "react";
 import { forwardRef, useEffect, useState } from "react";
+import { cn } from "~/utils/cn";
 
 const ONE_SEC = 1000;
 const ONE_MIN = ONE_SEC * 60;
@@ -29,13 +34,24 @@ function formatNumber(num: number): string {
 type CountDownTimerData = {
   textColor: string;
   endTime: number;
+  layout?: "horizontal" | "vertical";
 };
 
 const CountdownTimer = forwardRef<
   HTMLDivElement,
   CountDownTimerData & HydrogenComponentProps
 >((props, ref) => {
-  const { textColor, endTime, ...rest } = props;
+  const { textColor, endTime, layout, ...rest } = props;
+  // Get parent scenario using Weaverse's useParentInstance hook
+  const parent = useParentInstance();
+  const parentScenario = parent?.data?.scenario as
+    | "scenario1"
+    | "scenario2"
+    | undefined;
+
+  // Auto-detect layout: if scenario2, use vertical; otherwise use provided layout or default to horizontal
+  const effectiveLayout =
+    parentScenario === "scenario2" ? "vertical" : layout || "horizontal";
   const [remainingTime, setRemainingTime] = useState(
     calculateRemainingTime(endTime),
   );
@@ -61,45 +77,55 @@ const CountdownTimer = forwardRef<
     "--timer-color": textColor,
   } as CSSProperties;
 
+  const isVertical = effectiveLayout === "vertical";
+
+  const itemClass = cn(
+    "flex",
+    isVertical ? ["flex-col", "items-center", "gap-2"] : "items-end",
+  );
+
   return (
     <div
       ref={ref}
       {...rest}
-      className="countdown--timer grid grid-cols-2 py-3 text-(--timer-color) sm:py-0 lg:grid-cols-4"
+      className={cn(
+        "countdown--timer inline-grid py-3 text-(--timer-color) sm:py-0",
+        parentScenario === "scenario2" ? "grid-cols-4" : "grid-cols-2 lg:grid-cols-4",
+      )}
       data-motion="fade-up"
       style={timerStyle}
     >
-      <div className="flex items-end">
+      <div className={itemClass}>
         <div className="flex items-end font-medium text-4xl leading-tight md:text-5xl">
-          <div className="px-6">{remainingTime?.days || 0}</div>
+          <div className="ff-heading px-6 leading-10">
+            {remainingTime?.days || 0}
+          </div>
         </div>
-        <div className="text-center text-sm capitalize md:text-base">Days</div>
+        <div className="text-sm capitalize md:text-base">Days</div>
       </div>
-      <div className="flex items-end">
+      <div className={itemClass}>
         <div className="flex items-end font-medium text-4xl leading-tight md:text-5xl">
-          <div className="px-6">{formatNumber(remainingTime?.hours || 0)}</div>
+          <div className="ff-heading px-6 leading-10">
+            {formatNumber(remainingTime?.hours || 0)}
+          </div>
         </div>
-        <div className="text-center text-sm capitalize md:text-base">hours</div>
+        <div className="text-sm capitalize md:text-base">hours</div>
       </div>
-      <div className="flex items-end">
+      <div className={itemClass}>
         <div className="flex items-end font-medium text-4xl leading-tight md:text-5xl">
-          <div className="px-6">
+          <div className="ff-heading px-6 leading-10">
             {formatNumber(remainingTime?.minutes || 0)}
           </div>
         </div>
-        <div className="text-center text-sm capitalize md:text-base">
-          minutes
-        </div>
+        <div className="text-sm capitalize md:text-base">minutes</div>
       </div>
-      <div className="flex items-end">
+      <div className={itemClass}>
         <div className="flex items-end font-medium text-4xl leading-tight md:text-5xl">
-          <div className="px-6">
+          <div className="ff-heading px-6 leading-10">
             {formatNumber(remainingTime?.seconds || 0)}
           </div>
         </div>
-        <div className="text-center text-sm capitalize md:text-base">
-          seconds
-        </div>
+        <div className="text-sm capitalize md:text-base">seconds</div>
       </div>
     </div>
   );
