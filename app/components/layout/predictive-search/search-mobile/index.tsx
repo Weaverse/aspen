@@ -7,7 +7,6 @@ import { type MutableRefObject, useEffect, useState } from "react";
 import { useLocation } from "react-router";
 import Link from "~/components/link";
 import { usePredictiveSearch } from "~/hooks/use-predictive-search";
-import { cn } from "~/utils/cn";
 import { PredictiveSearchForm } from "../search-form";
 import { PopularSearch } from "./PopularSearch";
 import { PredictiveSearchResult } from "./predictive-search-result";

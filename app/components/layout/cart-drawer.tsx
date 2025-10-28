@@ -7,7 +7,7 @@ import { Await, useRouteLoaderData } from "react-router";
 import { Cart } from "~/components/cart/cart";
 import Link from "~/components/link";
 import type { RootLoader } from "~/root";
-import { AnimatedDrawer } from "../Animate-Drawer";
+import { AnimatedDrawer } from "../animate-drawer";
 
 export let toggleCartDrawer = (_open: boolean) => {};
 

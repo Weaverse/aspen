@@ -3,7 +3,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { useState } from "react";
 import { useLoaderData } from "react-router";
 import type { CollectionQuery } from "storefront-api.generated";
-import { AnimatedDrawer } from "~/components/Animate-Drawer";
+import { AnimatedDrawer } from "~/components/animate-drawer";
 import { Button } from "~/components/button";
 import { ScrollArea } from "~/components/scroll-area";
 import { cn } from "~/utils/cn";
