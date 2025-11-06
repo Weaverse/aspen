@@ -43,7 +43,7 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
             <>
               <Dialog.Overlay forceMount>
                 <motion.div
-                  className="fixed inset-0 top-[calc(var(--height-nav)+var(--topbar-height))] z-3 bg-black/50 backdrop-blur-xs"
+                  className="fixed inset-0 top-[calc(var(--height-nav)+var(--topbar-height))] z-9 bg-black/50 backdrop-blur-xs"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
@@ -52,7 +52,7 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
               <Dialog.Content
                 forceMount
                 onCloseAutoFocus={(e) => e.preventDefault()}
-                className="fixed inset-x-0 top-[calc(var(--height-nav)+var(--topbar-height))] z-3"
+                className="fixed inset-x-0 top-[calc(var(--height-nav)+var(--topbar-height))] z-9"
                 aria-describedby={undefined}
               >
                 <motion.div
@@ -176,13 +176,13 @@ function PredictiveSearchResults() {
 
   if (!totalResults) {
     return (
-      <div className="z-10 mx-auto flex max-w-(--page-width) items-center justify-start">
+      <div className="z-9 mx-auto flex max-w-(--page-width) items-center justify-start">
         <NoResults searchTerm={searchTerm} />
       </div>
     );
   }
   return (
-    <div className="z-10 w-full bg-(--color-header-bg)">
+    <div className="z-9 w-full bg-(--color-header-bg)">
       <div className="mx-auto flex max-w-(--page-width) gap-6 overflow-hidden py-6">
         <div className="flex w-1/5 flex-col gap-4 divide-y divide-line">
           <PredictiveSearchResult type="queries" items={queries?.items} />
