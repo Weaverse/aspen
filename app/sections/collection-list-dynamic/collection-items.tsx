@@ -158,11 +158,26 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
     if (activeLayout === "slider") {
       return (
         <div ref={scope} {...rest} className="w-full">
-          <Swiper spaceBetween={gap} slidesPerView={"auto"} className="w-full">
+          <Swiper
+            spaceBetween={gap}
+            slidesPerView={1.2}
+            breakpoints={{
+              640: {
+                slidesPerView: 2.2,
+              },
+              1024: {
+                slidesPerView: 3.2,
+              },
+              1280: {
+                slidesPerView: 3.5,
+              },
+            }}
+            className="w-full"
+          >
             {collections.map((collection, ind) => (
               <SwiperSlide
                 key={collection.id + ind}
-                className="group relative h-fit max-w-[380px]"
+                className="group relative h-fit"
                 data-motion="slide-in"
                 style={style}
               >
@@ -402,7 +417,7 @@ export let schema: HydrogenComponentSchema = {
           type: "color",
           name: "collectionBackgroundColor",
           label: "Collection background color",
-          defaultValue: "#CABDB7E5",
+          defaultValue: "#7F7866",
         },
       ],
     },
