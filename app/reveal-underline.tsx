@@ -14,7 +14,6 @@ export function RevealUnderline({
     <Component
       className={cn(
         [
-          "ff-heading",
           "relative inline cursor-pointer",
           "after:absolute after:bottom-[-0.5px] after:left-0 after:h-[1px] after:w-full after:bg-[#6A4E4E]",
           "after:opacity-0 hover:after:opacity-100 group-data-[state=open]:after:opacity-100",
