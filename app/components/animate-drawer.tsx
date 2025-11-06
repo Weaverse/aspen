@@ -30,7 +30,7 @@ export function AnimatedDrawer({ open, children }) {
                   damping: 25,
                   stiffness: 150,
                 }}
-                className="h-full w-screen max-w-[400px] bg-background py-4"
+                className="h-full w-screen max-w-[430px] bg-background py-4"
               >
                 {children}
               </motion.div>
