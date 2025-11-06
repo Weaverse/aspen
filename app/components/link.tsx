@@ -15,54 +15,57 @@ import {
 import type { RootLoader } from "~/root";
 import { cn } from "~/utils/cn";
 
-export const variants = cva(["button inline-flex transition-colors"], {
-  variants: {
-    variant: {
-      primary: [
-        "px-4 py-3",
-        "text-(--btn-primary-text)",
-        "bg-(--btn-primary-bg)",
-        "hover:text-(--btn-primary-text-hover)",
-        "hover:bg-(--btn-primary-bg-hover)",
-      ],
-      secondary: [
-        "px-4 py-3",
-        "text-(--btn-secondary-text)",
-        "bg-(--btn-secondary-bg)",
-        "hover:text-(--btn-secondary-text-hover)",
-        "hover:bg-(--btn-secondary-bg-hover)",
-      ],
-      outline: [
-        "border px-4 py-3",
-        "text-(--btn-outline-text)",
-        "bg-transparent",
-        "border-(--btn-outline-border)",
-        "hover:text-(--btn-outline-text-hover)",
-        "hover:bg-(--btn-outline-background-hover)",
-        "hover:border-(--btn-outline-border-hover)",
-      ],
-      decor: [
-        "border-none bg-transparent p-0",
-        "group inline-flex items-center gap-1 text-(--btn-text-decor)",
-      ],
-      custom: [
-        "border px-4 py-3",
-        "text-(--btn-text)",
-        "bg-(--btn-bg)",
-        "border-(--btn-border)",
-        "hover:text-(--btn-text-hover)",
-        "hover:bg-(--btn-bg-hover)",
-        "hover:border-(--btn-border-hover)",
-      ],
-      underline: [
-        "relative bg-transparent pb-1 text-body",
-        "after:absolute after:bottom-0.5 after:left-0 after:h-px after:w-full after:bg-body",
-        "after:origin-right after:scale-x-100 after:transition-transform",
-        "hover:after:origin-left hover:after:animate-underline-toggle",
-      ],
+export const variants = cva(
+  ["button inline-flex leading-none transition-colors"],
+  {
+    variants: {
+      variant: {
+        primary: [
+          "px-6 py-5",
+          "text-(--btn-primary-text)",
+          "bg-(--btn-primary-bg)",
+          "hover:text-(--btn-primary-text-hover)",
+          "hover:bg-(--btn-primary-bg-hover)",
+        ],
+        secondary: [
+          "px-6 py-5",
+          "text-(--btn-secondary-text)",
+          "bg-(--btn-secondary-bg)",
+          "hover:text-(--btn-secondary-text-hover)",
+          "hover:bg-(--btn-secondary-bg-hover)",
+        ],
+        outline: [
+          "border px-6 py-5",
+          "text-(--btn-outline-text)",
+          "bg-transparent",
+          "border-(--btn-outline-border)",
+          "hover:text-(--btn-outline-text-hover)",
+          "hover:bg-(--btn-outline-background-hover)",
+          "hover:border-(--btn-outline-border-hover)",
+        ],
+        decor: [
+          "border-none bg-transparent p-0",
+          "group inline-flex items-center gap-1 text-(--btn-text-decor)",
+        ],
+        custom: [
+          "border px-6 py-5",
+          "text-(--btn-text)",
+          "bg-(--btn-bg)",
+          "border-(--btn-border)",
+          "hover:text-(--btn-text-hover)",
+          "hover:bg-(--btn-bg-hover)",
+          "hover:border-(--btn-border-hover)",
+        ],
+        underline: [
+          "relative bg-transparent pb-1 text-body",
+          "after:absolute after:bottom-0.5 after:left-0 after:h-px after:w-full after:bg-body",
+          "after:origin-right after:scale-x-100 after:transition-transform",
+          "hover:after:origin-left hover:after:animate-underline-toggle",
+        ],
+      },
     },
   },
-});
+);
 
 export interface LinkStyles {
   backgroundColor: string;
