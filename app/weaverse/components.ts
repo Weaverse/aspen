@@ -27,7 +27,8 @@ import * as ColumnsWithImages from "~/sections/columns-with-images";
 import * as ColumnWithImageItem from "~/sections/columns-with-images/column";
 import * as ColumnsWithImagesItems from "~/sections/columns-with-images/items";
 import * as Countdown from "~/sections/countdown";
-import * as CountdownHeading from "~/sections/countdown/heading";
+import * as ButtonCountDown from "~/sections/countdown/button";
+import * as CountdownSubHeading from "~/sections/countdown/subheading";
 import * as CountDownTimer from "~/sections/countdown/timer";
 import * as FeaturedCollections from "~/sections/featured-collections";
 import * as FeaturedCollectionItems from "~/sections/featured-collections/collection-items";
@@ -139,7 +140,8 @@ export const components: HydrogenComponent[] = [
   HotspotsContainer,
   HotspotsImage,
   Countdown,
-  CountdownHeading,
+  CountdownSubHeading,
+  ButtonCountDown,
   CountDownTimer,
   NewsLetter,
   NewsLetterForm,
