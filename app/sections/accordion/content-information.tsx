@@ -68,7 +68,7 @@ export const schema = createSchema({
       ],
     },
   ],
-  childTypes: ["subheading", "heading", "information--item"],
+  childTypes: ["subheading", "heading", "paragraph"],
   presets: {
     children: [
       {
@@ -82,13 +82,22 @@ export const schema = createSchema({
         alignment: "left",
       },
       {
-        type: "information--item",
+        type: "paragraph",
+        content: "<p>Email</p><p>support@archercommerce.com</p>",
+        width: "full",
+        alignment: "left",
       },
       {
-        type: "information--item",
+        type: "paragraph",
+        content: "<p>Email</p><p>support@archercommerce.com</p>",
+        width: "full",
+        alignment: "left",
       },
       {
-        type: "information--item",
+        type: "paragraph",
+        content: "<p>Email</p><p>support@archercommerce.com</p>",
+        width: "full",
+        alignment: "left",
       },
     ],
   },
