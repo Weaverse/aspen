@@ -30,8 +30,6 @@ import * as Countdown from "~/sections/countdown";
 import * as ButtonCountDown from "~/sections/countdown/button";
 import * as CountdownSubHeading from "~/sections/countdown/subheading";
 import * as CountDownTimer from "~/sections/countdown/timer";
-import * as FeaturedCollections from "~/sections/featured-collections";
-import * as FeaturedCollectionItems from "~/sections/featured-collections/collection-items";
 import * as FeaturedProducts from "~/sections/featured-products";
 import * as FeaturedContentProducts from "~/sections/featured-products/content";
 import * as FeaturedProductItems from "~/sections/featured-products/product-items";
@@ -61,8 +59,6 @@ import * as Address from "~/sections/map/address";
 import * as MapSection from "~/sections/map/map";
 import * as NewsLetter from "~/sections/newsletter";
 import * as NewsLetterForm from "~/sections/newsletter/newsletter-form";
-import * as OurTeam from "~/sections/our-team";
-import * as OurTeamMembers from "~/sections/our-team/team-members";
 import * as Page from "~/sections/page";
 import * as PromotionGrid from "~/sections/promotion-grid";
 import * as PromotionGridItemContent from "~/sections/promotion-grid/content";
@@ -103,8 +99,6 @@ export const components: HydrogenComponent[] = [
   Articles,
   BeforeAndAfter,
   BeforeAndAfterSlide,
-  FeaturedCollections,
-  FeaturedCollectionItems,
   BlogPost,
   Blogs,
   Page,
@@ -172,8 +166,6 @@ export const components: HydrogenComponent[] = [
   Judgeme,
   JudgemeReview,
   ReviewIndex,
-  OurTeam,
-  OurTeamMembers,
   SlideShow,
   SlideShowSlide,
   Spacer,
