@@ -11,7 +11,7 @@ const TestimonialItem = forwardRef<HTMLDivElement, TestimonialProps>(
       <div
         ref={ref}
         {...rest}
-        className="flex h-full flex-col gap-10 px-0 px-5 md:flex-row md:px-10"
+        className="flex h-full flex-col gap-10 md:flex-row"
       >
         {children}
       </div>
