@@ -140,6 +140,7 @@ function SingleMenu({ menuItem }: { menuItem: SingleMenuItem }) {
 
 function DropdownMenu({ menuItem }: { menuItem: SingleMenuItem }) {
   const [open, setOpen] = useState(false);
+  const { openMenuBy } = useThemeSettings();
   const { items: childItems = [], title } = menuItem;
   return (
     <div className="h-full" onMouseLeave={() => setOpen(false)}>
@@ -150,7 +151,9 @@ function DropdownMenu({ menuItem }: { menuItem: SingleMenuItem }) {
             "uppercase focus:outline-hidden",
           ])}
           onMouseEnter={() => {
-            setOpen(true);
+            if (openMenuBy === "hover") {
+              setOpen(true);
+            }
           }}
         >
           <span
@@ -166,10 +169,11 @@ function DropdownMenu({ menuItem }: { menuItem: SingleMenuItem }) {
         </Trigger>
         <Content
           align="start"
-          // sideOffset={30}
           className={cn(
-            "flex min-w-48 animate-fade-in flex-col gap-1.5 border-line-subtle border-t bg-(--color-header-bg-hover)",
+            "shadow-header origin-[top_center] overflow-hidden",
+            "flex min-w-48 flex-col gap-1.5 border-line-subtle border-t bg-(--color-header-bg-hover)",
             "px-3 py-6 md:px-4 lg:px-6",
+            'data-[state="closed"]:animate-scale-out data-[state="open"]:animate-scale-in',
           )}
           onCloseAutoFocus={(e) => e.preventDefault()}
         >
