@@ -245,7 +245,7 @@ export const linkContentInputs: InspectorGroup["inputs"] = [
     type: "color",
     name: "textColorDecor",
     label: "Text color decor",
-    defaultValue: "#fff",
+    defaultValue: "#29231E",
     condition: "variant.eq.decor",
   },
 ];
