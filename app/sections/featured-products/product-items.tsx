@@ -9,7 +9,7 @@ import {
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import clsx from "clsx";
-import { forwardRef, useMemo, useState } from "react";
+import { forwardRef, useEffect, useMemo, useState } from "react";
 import { Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { ProductCard } from "~/components/product/product-card";
@@ -117,6 +117,20 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
     const [activeSlide, setActiveSlide] = useState(0);
     const [isBeginning, setIsBeginning] = useState(true);
     const [isEnd, setIsEnd] = useState(false);
+    const [isSwiperInitialized, setIsSwiperInitialized] = useState(false);
+
+    useEffect(() => {
+      setIsSwiperInitialized(false);
+    }, [layout, gap, slidesPerView, itemsPerRow]);
+
+    useEffect(() => {
+      if (!isSwiperInitialized) {
+        const fallbackTimer = setTimeout(() => {
+          setIsSwiperInitialized(true);
+        }, 500);
+        return () => clearTimeout(fallbackTimer);
+      }
+    }, [isSwiperInitialized]);
 
     let productsConnection = loaderData?.products ?? [];
 
@@ -178,12 +192,22 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
               spaceBetween={gap}
               loop={true}
               onSlideChange={(swiper) => setActiveSlide(swiper.activeIndex)}
+              onSwiper={() => {
+                requestAnimationFrame(() => {
+                  requestAnimationFrame(() => {
+                    setIsSwiperInitialized(true);
+                  });
+                });
+              }}
               navigation={{
                 nextEl: ".featured-products-next",
                 prevEl: ".featured-products-prev",
               }}
               modules={[Navigation]}
-              className="mb-6 w-full py-4"
+              className={clsx(
+                "mb-6 w-full py-4 transition-opacity duration-300",
+                isSwiperInitialized ? "opacity-100" : "opacity-0",
+              )}
             >
               {displayedProducts.map((product) => (
                 <SwiperSlide key={product.id}>
@@ -263,6 +287,11 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
           onSwiper={(swiper) => {
             setIsBeginning(swiper.isBeginning);
             setIsEnd(swiper.isEnd);
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                setIsSwiperInitialized(true);
+              });
+            });
           }}
           breakpoints={{
             640: {
@@ -283,7 +312,10 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
             prevEl: ".featured-products-prev",
           }}
           modules={[Navigation]}
-          className="mb-6 w-full py-4"
+          className={clsx(
+            "mb-6 w-full py-4 transition-opacity duration-300",
+            isSwiperInitialized ? "opacity-100" : "opacity-0",
+          )}
         >
           {displayedProducts.map((product, index) => (
             <SwiperSlide key={index}>
