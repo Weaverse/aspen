@@ -193,10 +193,8 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
               loop={true}
               onSlideChange={(swiper) => setActiveSlide(swiper.activeIndex)}
               onSwiper={() => {
-                requestAnimationFrame(() => {
                   requestAnimationFrame(() => {
                     setIsSwiperInitialized(true);
-                  });
                 });
               }}
               navigation={{
@@ -288,9 +286,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
             setIsBeginning(swiper.isBeginning);
             setIsEnd(swiper.isEnd);
             requestAnimationFrame(() => {
-              requestAnimationFrame(() => {
                 setIsSwiperInitialized(true);
-              });
             });
           }}
           breakpoints={{
