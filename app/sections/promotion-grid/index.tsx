@@ -1,7 +1,5 @@
 import { createSchema } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
-import { backgroundInputs } from "~/components/background-image";
-import { overlayInputs } from "~/components/overlay";
 import type { SectionProps } from "~/components/section";
 import { layoutInputs, Section } from "~/components/section";
 
@@ -23,11 +21,7 @@ export default PromotionGrid;
 export const schema = createSchema({
   type: "promotion-grid",
   title: "Promotion grid",
-  settings: [
-    { group: "Layout", inputs: layoutInputs },
-    { group: "Background", inputs: backgroundInputs },
-    { group: "Overlay", inputs: overlayInputs },
-  ],
+  settings: [{ group: "Layout", inputs: layoutInputs }],
   childTypes: ["grid-items", "promotion-grid-content"],
   presets: {
     children: [

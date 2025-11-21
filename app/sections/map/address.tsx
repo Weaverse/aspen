@@ -13,15 +13,13 @@ import { MapContext } from "./map";
 interface AddressProps {
   address: string;
   nameStore: string;
-  heading: string;
   phoneNumber?: string;
   openingHours?: string;
   openingHoursSat?: string;
 }
 
-let Address = forwardRef<HTMLDivElement, AddressProps>((props, ref) => {
+let Address = forwardRef<HTMLDivElement, AddressProps>((props, _ref) => {
   let {
-    heading,
     address,
     nameStore,
     phoneNumber,
@@ -32,31 +30,29 @@ let Address = forwardRef<HTMLDivElement, AddressProps>((props, ref) => {
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Use the MapContext to get layout information and active item state
   const {
     layoutMap,
     activeItem,
     setActiveItem,
-    activeAddress,
     setActiveAddress,
+    registerAddress,
   } = useContext(MapContext);
 
-  // Generate a unique id for this address instance and item index
   const [instanceId] = useState(() => Math.random().toString(36).substring(7));
   const [itemIndex] = useState(() => {
-    // Create a stable numeric index from the instanceId for Accordion.Item value
     return Number.parseInt(instanceId, 36) % 1000;
   });
 
-  // Update active address when this component mounts or address changes
+  useEffect(() => {
+    registerAddress(address);
+  }, [address, registerAddress]);
+
   useEffect(() => {
     if (itemIndex === 0) {
-      // If this is the first address item
-      setActiveAddress(address); // Set it as the default active address
+      setActiveAddress(address);
     }
   }, [address, itemIndex, setActiveAddress]);
 
-  // Determine if this accordion item is open
   const isAccordionOpen = activeItem === itemIndex;
 
   useEffect(() => {
@@ -79,7 +75,6 @@ let Address = forwardRef<HTMLDivElement, AddressProps>((props, ref) => {
   useEffect(() => {
     if (isAccordionOpen) {
       setActiveAddress(address);
-      console.log(`Set active address: ${address}`);
     }
   }, [isAccordionOpen, address, setActiveAddress]);
 

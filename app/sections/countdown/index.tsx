@@ -11,9 +11,9 @@ import { cn } from "~/utils/cn";
 const variants = cva("flex items-end justify-center", {
   variants: {
     height: {
-      small: "h-[40vh] lg:h-[50vh]",
-      medium: "h-[50vh] lg:h-[60vh]",
-      large: "h-[70vh] lg:h-[80vh]",
+      small: "min-h-fit py-12 lg:h-[50vh] lg:py-0",
+      medium: "min-h-fit py-12 lg:h-[60vh] lg:py-0",
+      large: "min-h-fit py-12 lg:h-[80vh] lg:py-0",
       full: "",
     },
     defaultVariants: {
@@ -22,9 +22,7 @@ const variants = cva("flex items-end justify-center", {
   },
 });
 
-interface CountdownProps
-  extends VariantProps<typeof variants>,
-    SectionProps {
+interface CountdownProps extends VariantProps<typeof variants>, SectionProps {
   scenario?: "scenario1" | "scenario2";
 }
 
@@ -56,13 +54,13 @@ const Countdown = forwardRef<HTMLElement, CountdownProps>((props, ref) => {
       >
         <div
           className={cn(
-            "grid grid-cols-1 gap-x-6 gap-y-4",
+            "grid grid-cols-1 gap-x-10 gap-y-4",
             isScenario2
               ? "md:grid-cols-3 md:grid-rows-2 md:gap-x-4"
               : "md:grid-cols-2",
             isScenario2
-              ? "[&_.button]:order-4 [&_.button]:justify-self-center md:[&_.button]:col-start-3 md:[&_.button]:row-span-2 md:[&_.button]:row-start-1 md:[&_.button]:self-center [&_.countdown--timer]:order-3 md:[&_.countdown--timer]:col-start-2 md:[&_.countdown--timer]:row-span-2 md:[&_.countdown--timer]:row-start-1 md:[&_.countdown--timer]:self-center [&_.heading]:order-1 md:[&_.heading]:col-start-1 md:[&_.heading]:row-start-1 [&_.subheading]:order-2 md:[&_.subheading]:col-start-1 md:[&_.subheading]:row-start-2"
-              : "[&_.button]:order-4 [&_.button]:justify-self-center [&_.countdown--timer]:order-2 md:[&_.countdown--timer]:order-3 [&_.heading]:order-1 [&_.subheading]:order-3 md:[&_.subheading]:order-2",
+              ? "[&_.button-countdown]:order-4 [&_.button-countdown]:h-fit md:[&_.button-countdown]:col-start-3 md:[&_.button-countdown]:row-span-2 md:[&_.button-countdown]:row-start-1 md:[&_.button-countdown]:self-center [&_.countdown--timer]:order-3 md:[&_.countdown--timer]:col-start-2 md:[&_.countdown--timer]:row-span-2 md:[&_.countdown--timer]:row-start-1 md:[&_.countdown--timer]:self-center [&_.paragraph]:order-2 md:[&_.paragraph]:col-start-1 md:[&_.paragraph]:row-start-2 [&_.subheading]:order-1 md:[&_.subheading]:col-start-1 md:[&_.subheading]:row-start-1"
+              : "[&_.button-countdown]:order-4 [&_.button-countdown]:h-fit [&_.countdown--timer]:order-2 md:[&_.countdown--timer]:order-3 [&_.paragraph]:order-3 md:[&_.paragraph]:order-2 [&_.subheading]:order-1",
           )}
         >
           {children}
@@ -167,10 +165,10 @@ export const schema = createSchema({
     { group: "Overlay", inputs: overlayInputs },
   ],
   childTypes: [
-    "countdown--heading",
-    "subheading",
+    "subheading--countdown",
+    "paragraph",
     "countdown--timer",
-    "button",
+    "button--countdown",
   ],
   presets: {
     backgroundImage: IMAGES_PLACEHOLDERS.banner_2,
@@ -180,12 +178,12 @@ export const schema = createSchema({
     verticalPadding: "large",
     children: [
       {
-        type: "countdown--heading",
+        type: "subheading--countdown",
         content: "Sale ends in",
         color: "white",
       },
       {
-        type: "subheading",
+        type: "paragraph",
         content: "Use this timer to create urgency and boost sales.",
         width: "full",
         color: "white",
@@ -195,7 +193,7 @@ export const schema = createSchema({
         textColor: "white",
       },
       {
-        type: "button",
+        type: "button--countdown",
         text: "Shop now",
         variant: "custom",
         backgroundColor: "#00000000",

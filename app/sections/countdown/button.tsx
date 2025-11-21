@@ -15,57 +15,54 @@ import {
 import type { RootLoader } from "~/root";
 import { cn } from "~/utils/cn";
 
-export const variants = cva(
-  ["button inline-flex leading-none transition-colors"],
-  {
-    variants: {
-      variant: {
-        primary: [
-          "px-6 py-5",
-          "text-(--btn-primary-text)",
-          "bg-(--btn-primary-bg)",
-          "hover:text-(--btn-primary-text-hover)",
-          "hover:bg-(--btn-primary-bg-hover)",
-        ],
-        secondary: [
-          "px-6 py-5",
-          "text-(--btn-secondary-text)",
-          "bg-(--btn-secondary-bg)",
-          "hover:text-(--btn-secondary-text-hover)",
-          "hover:bg-(--btn-secondary-bg-hover)",
-        ],
-        outline: [
-          "border px-6 py-5",
-          "text-(--btn-outline-text)",
-          "bg-transparent",
-          "border-(--btn-outline-border)",
-          "hover:text-(--btn-outline-text-hover)",
-          "hover:bg-(--btn-outline-background-hover)",
-          "hover:border-(--btn-outline-border-hover)",
-        ],
-        decor: [
-          "border-none bg-transparent p-0",
-          "group inline-flex items-center gap-1 text-(--btn-text-decor)",
-        ],
-        custom: [
-          "border px-6 py-5",
-          "text-(--btn-text)",
-          "bg-(--btn-bg)",
-          "border-(--btn-border)",
-          "hover:text-(--btn-text-hover)",
-          "hover:bg-(--btn-bg-hover)",
-          "hover:border-(--btn-border-hover)",
-        ],
-        underline: [
-          "relative bg-transparent pb-1 text-body",
-          "after:absolute after:bottom-0.5 after:left-0 after:h-px after:w-full after:bg-body",
-          "after:origin-right after:scale-x-100 after:transition-transform",
-          "hover:after:origin-left hover:after:animate-underline-toggle",
-        ],
-      },
+export const variants = cva(["button inline-flex transition-colors"], {
+  variants: {
+    variant: {
+      primary: [
+        "px-4 py-3",
+        "text-(--btn-primary-text)",
+        "bg-(--btn-primary-bg)",
+        "hover:text-(--btn-primary-text-hover)",
+        "hover:bg-(--btn-primary-bg-hover)",
+      ],
+      secondary: [
+        "px-4 py-3",
+        "text-(--btn-secondary-text)",
+        "bg-(--btn-secondary-bg)",
+        "hover:text-(--btn-secondary-text-hover)",
+        "hover:bg-(--btn-secondary-bg-hover)",
+      ],
+      outline: [
+        "border px-4 py-3",
+        "text-(--btn-outline-text)",
+        "bg-transparent",
+        "border-(--btn-outline-border)",
+        "hover:text-(--btn-outline-text-hover)",
+        "hover:bg-(--btn-outline-background-hover)",
+        "hover:border-(--btn-outline-border-hover)",
+      ],
+      decor: [
+        "border-none bg-transparent p-0",
+        "group inline-flex items-center gap-1 text-(--btn-text-decor)",
+      ],
+      custom: [
+        "border px-4 py-3",
+        "text-(--btn-text)",
+        "bg-(--btn-bg)",
+        "border-(--btn-border)",
+        "hover:text-(--btn-text-hover)",
+        "hover:bg-(--btn-bg-hover)",
+        "hover:border-(--btn-border-hover)",
+      ],
+      underline: [
+        "relative bg-transparent pb-1 text-body",
+        "after:absolute after:bottom-0.5 after:left-0 after:h-px after:w-full after:bg-body",
+        "after:origin-right after:scale-x-100 after:transition-transform",
+        "hover:after:origin-left hover:after:animate-underline-toggle",
+      ],
     },
   },
-);
+});
 
 export interface LinkStyles {
   backgroundColor: string;
@@ -83,6 +80,7 @@ export interface LinkData
     VariantProps<typeof variants> {
   text?: string;
   openInNewTab?: boolean;
+  alignment?: "left" | "center" | "right";
 }
 
 export interface LinkProps
@@ -128,6 +126,7 @@ export const Link = forwardRef(
       text,
       variant,
       openInNewTab,
+      alignment = "center",
       className,
       style,
       textColor,
@@ -165,38 +164,47 @@ export const Link = forwardRef(
       return null;
     }
 
+    const alignmentClasses = cn(
+      "flex w-full",
+      alignment === "left" && "justify-start",
+      alignment === "center" && "justify-center",
+      alignment === "right" && "justify-end",
+    );
+
     return (
-      <RemixLink
-        ref={ref}
-        viewTransition={enableViewTransition}
-        to={href}
-        style={style}
-        target={openInNewTab ? "_blank" : undefined}
-        className={cn(variants({ variant, className }))}
-        {...rest}
-      >
-        {variant === "decor" ? (
-          <span className="inline-flex items-center gap-2.5">
-            {children || text}
-            <span className="transform transition-transform duration-300 group-hover:translate-x-1">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 20 20"
-                fill="none"
-              >
-                <path
-                  d="M14.0575 4.74121L13.1737 5.62508L16.9236 9.37496H0.625V10.625H16.9234L13.1737 14.3748L14.0575 15.2586L19.3163 9.99992L14.0575 4.74121Z"
-                  fill="currentColor"
-                />
-              </svg>
+      <div className={cn("button-countdown", alignmentClasses)}>
+        <RemixLink
+          ref={ref}
+          viewTransition={enableViewTransition}
+          to={href}
+          style={style}
+          target={openInNewTab ? "_blank" : undefined}
+          className={cn(variants({ variant, className }))}
+          {...rest}
+        >
+          {variant === "decor" ? (
+            <span className="inline-flex items-center gap-2.5">
+              {children || text}
+              <span className="transform transition-transform duration-300 group-hover:translate-x-1">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                >
+                  <path
+                    d="M14.0575 4.74121L13.1737 5.62508L16.9236 9.37496H0.625V10.625H16.9234L13.1737 14.3748L14.0575 15.2586L19.3163 9.99992L14.0575 4.74121Z"
+                    fill="currentColor"
+                  />
+                </svg>
+              </span>
             </span>
-          </span>
-        ) : (
-          children || text
-        )}
-      </RemixLink>
+          ) : (
+            children || text
+          )}
+        </RemixLink>
+      </div>
     );
   },
 );
@@ -242,10 +250,23 @@ export const linkContentInputs: InspectorGroup["inputs"] = [
     defaultValue: "primary",
   },
   {
+    type: "toggle-group",
+    name: "alignment",
+    label: "Alignment",
+    configs: {
+      options: [
+        { value: "left", label: "Left", icon: "align-start-vertical" },
+        { value: "center", label: "Center", icon: "align-center-vertical" },
+        { value: "right", label: "Right", icon: "align-end-vertical" },
+      ],
+    },
+    defaultValue: "center",
+  },
+  {
     type: "color",
     name: "textColorDecor",
     label: "Text color decor",
-    defaultValue: "#29231E",
+    defaultValue: "#fff",
     condition: "variant.eq.decor",
   },
 ];
@@ -304,7 +325,7 @@ export const linkInputs: InspectorGroup["inputs"] = [
 ];
 
 export const schema = createSchema({
-  type: "button",
+  type: "button--countdown",
   title: "Button",
   settings: [
     {

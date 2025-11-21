@@ -156,7 +156,7 @@ const PromotionGridItem = forwardRef<HTMLDivElement, PromotionItemProps>(
 
     // Generate dynamic classes for subheading text
     const subheadingClasses = [
-      `text-${subheadingAlignment || "left"}`,
+      `text-${subheadingAlignment || "center"}`,
       subheadingSize === "large" ? "text-lg" : "text-base",
       subheadingWeight === "medium" ? "font-medium" : "font-normal",
     ].join(" ");
@@ -206,6 +206,7 @@ const PromotionGridItem = forwardRef<HTMLDivElement, PromotionItemProps>(
         </div>
         {paragraphContent && (
           <Paragraph
+            className="ff-heading"
             content={paragraphContent}
             as={paragraphTag}
             color={paragraphColor}
@@ -289,33 +290,24 @@ export const schema = createSchema({
           label: "Heading content",
           placeholder: "Enter heading text",
         },
-        {
-          type: "select",
-          name: "headingTagName",
-          label: "HTML tag",
-          configs: {
-            options: [
-              { value: "h1", label: "<h1>" },
-              { value: "h2", label: "<h2>" },
-              { value: "h3", label: "<h3>" },
-              { value: "h4", label: "<h4>" },
-              { value: "h5", label: "<h5>" },
-              { value: "h6", label: "<h6>" },
-            ],
-          },
-          defaultValue: "h2",
-        },
         ...headingInputs.map((input) => {
           if (input.name === "as") {
             return {
               ...input,
               name: "headingTagName",
+              label: "Text size",
             } as any;
           }
           if (input.name === "content") {
             return {
               ...input,
               name: "headingContent",
+            } as any;
+          }
+          if (input.name === "alignment") {
+            return {
+              ...input,
+              defaultValue: "center",
             } as any;
           }
           return input as any;
@@ -390,7 +382,7 @@ export const schema = createSchema({
               { value: "right", label: "Right", icon: "align-end-vertical" },
             ],
           },
-          defaultValue: "left",
+          defaultValue: "center",
         },
       ],
     },
@@ -474,7 +466,7 @@ export const schema = createSchema({
               { value: "right", label: "Right", icon: "align-end-vertical" },
             ],
           },
-          defaultValue: "left",
+          defaultValue: "center",
         },
       ],
     },
@@ -499,7 +491,7 @@ export const schema = createSchema({
     },
   ],
   presets: {
-    contentPosition: "bottom right",
+    contentPosition: "center center",
     backgroundImage: IMAGES_PLACEHOLDERS.collection_3,
     enableOverlay: true,
     overlayColor: "#0c0c0c",

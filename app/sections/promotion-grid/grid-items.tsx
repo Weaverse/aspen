@@ -1,4 +1,3 @@
-import { ArrowLeftIcon, ArrowRightIcon } from "@phosphor-icons/react";
 import {
   createSchema,
   IMAGES_PLACEHOLDERS,
@@ -11,33 +10,36 @@ import {
   type ReactNode,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
-import type { Swiper as SwiperType } from "swiper";
-import { Autoplay, Navigation, Pagination } from "swiper/modules";
+import { Autoplay } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { BackgroundImage } from "~/components/background-image";
-// import Heading from "~/components/heading";
 import Link from "~/components/link";
 import { Overlay } from "~/components/overlay";
 import Paragraph from "~/components/paragraph";
 import type { SectionProps } from "~/components/section";
 import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/pagination";
+import { cn } from "~/utils/cn";
+import type { PromotionArrowsProps } from "./arrows";
+import { Arrows } from "./arrows";
+import type { PromotionDotsProps } from "./dots";
+import { Dots } from "./dots";
 
 type GridItemProps = VariantProps<typeof variants> &
-  SectionProps & {
+  SectionProps &
+  PromotionArrowsProps &
+  PromotionDotsProps & {
     layout?: "slider" | "tabs";
     slidesToShow?: number;
     autoPlay?: boolean;
     autoPlayDelay?: number;
-    enableDots?: boolean;
-    enableNavigation?: boolean;
+    showDots?: boolean;
+    showArrows?: boolean;
+    tabsHeight?: number;
   };
 
-let variants = cva("promotion-slider relative px-5 md:px-8", {
+let variants = cva("promotion-slider group relative px-0 md:px-8", {
   variants: {
     slidesToShow: {
       1: "",
@@ -85,28 +87,27 @@ const getContentPositionClasses = (position: string) => {
   return positionMap[position] || "items-start justify-start";
 };
 
-// Tabs Layout Component
 const TabsLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
-  const { tabsData, activeTab, setActiveTab, rest } = props;
+  const { tabsData, activeTab, setActiveTab, tabsHeight = 600, rest } = props;
+  const [displayedTab, setDisplayedTab] = useState(activeTab);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [currentTab, setCurrentTab] = useState(activeTab);
 
-  // Handle smooth tab transitions
   useEffect(() => {
-    if (activeTab !== currentTab) {
+    if (activeTab !== displayedTab) {
       setIsTransitioning(true);
       const timer = setTimeout(() => {
-        setCurrentTab(activeTab);
+        setDisplayedTab(activeTab);
         setIsTransitioning(false);
-      }, 300); // Half the total transition time
+      }, 500);
       return () => clearTimeout(timer);
     }
-  }, [activeTab, currentTab]);
+  }, [activeTab, displayedTab]);
 
-  const activeTabData = tabsData[currentTab];
-  const SubheadingTag = activeTabData?.subheadingTag || "p";
+  const activeTabData = tabsData[activeTab];
+  const displayedTabData = tabsData[displayedTab];
+  const SubheadingTag = displayedTabData?.subheadingTag || "p";
 
-  if (!activeTabData) {
+  if (!(activeTabData && displayedTabData)) {
     return null;
   }
 
@@ -114,34 +115,115 @@ const TabsLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
     <div
       ref={ref}
       {...rest}
-      className="promotion-tabs relative aspect-video px-5 md:px-8"
+      className="promotion-tabs relative"
+      style={{ height: `${tabsHeight}px` }}
     >
-      {/* Tab Content */}
+      <style>
+        {`
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+        `}
+      </style>
       <div className="promotion-tab-content relative h-full w-full overflow-hidden">
-        {/* Background and Overlay */}
         <div className="absolute inset-0">
-          <div
-            className={`absolute inset-0 transition-opacity duration-600 ease-in-out ${
-              isTransitioning ? "opacity-0" : "opacity-100"
-            }`}
-          >
-            <BackgroundImage backgroundImage={activeTabData.backgroundImage} />
+          <div className="absolute inset-0">
+            <BackgroundImage
+              backgroundImage={displayedTabData.backgroundImage}
+            />
             <Overlay
-              enableOverlay={activeTabData.enableOverlay}
-              overlayColor={activeTabData.overlayColor}
-              overlayColorHover={activeTabData.overlayColorHover}
-              overlayOpacity={activeTabData.overlayOpacity}
+              enableOverlay={displayedTabData.enableOverlay}
+              overlayColor={displayedTabData.overlayColor}
+              overlayColorHover={displayedTabData.overlayColorHover}
+              overlayOpacity={displayedTabData.overlayOpacity}
             />
           </div>
+
+          {isTransitioning && activeTab !== displayedTab && (
+            <div
+              className="absolute inset-0 animate-fadeIn"
+              style={{
+                animation: "fadeIn 500ms ease-in-out forwards",
+              }}
+            >
+              <BackgroundImage
+                backgroundImage={activeTabData.backgroundImage}
+              />
+              <Overlay
+                enableOverlay={activeTabData.enableOverlay}
+                overlayColor={activeTabData.overlayColor}
+                overlayColorHover={activeTabData.overlayColorHover}
+                overlayOpacity={activeTabData.overlayOpacity}
+              />
+            </div>
+          )}
         </div>
 
-        <div className="relative flex h-full flex-col">
-          {/* Tab Navigation */}
-          <div className="z-3 flex w-full flex-wrap justify-center gap-2 pt-32">
+        <div className="relative flex h-full flex-col md:flex-col-reverse">
+          {/* Content Section */}
+          <div
+            className={cn(
+              "relative z-2 mx-auto flex max-w-(--page-width) flex-1 flex-col gap-4 p-6 transition-all duration-500 ease-in-out sm:h-full sm:p-8",
+              getContentPositionClasses(displayedTabData.contentPosition),
+              isTransitioning ? "opacity-80" : "opacity-100",
+            )}
+          >
+            <div className="flex flex-col gap-2">
+              {displayedTabData.subheadingContent && (
+                <SubheadingTag
+                  className={`text-${displayedTabData.subheadingAlignment || "left"} ${
+                    displayedTabData.subheadingSize === "large"
+                      ? "text-lg"
+                      : "text-base"
+                  } ${
+                    displayedTabData.subheadingWeight === "medium"
+                      ? "font-medium"
+                      : "font-normal"
+                  }`}
+                  style={{ color: displayedTabData.subheadingColor }}
+                >
+                  {displayedTabData.subheadingContent}
+                </SubheadingTag>
+              )}
+            </div>
+            {displayedTabData.paragraphContent && (
+              <Paragraph
+                className="ff-heading"
+                content={displayedTabData.paragraphContent}
+                as={displayedTabData.paragraphTag}
+                color={displayedTabData.paragraphColor}
+                textSize={displayedTabData.paragraphSize}
+                alignment={displayedTabData.paragraphAlignment}
+                width={displayedTabData.paragraphWidth}
+              />
+            )}
+            {displayedTabData.buttonContent && (
+              <Link
+                variant={displayedTabData.variant}
+                textColor={displayedTabData.textColor}
+                backgroundColor={displayedTabData.backgroundColor}
+                borderColor={displayedTabData.borderColor}
+                textColorHover={displayedTabData.textColorHover}
+                backgroundColorHover={displayedTabData.backgroundColorHover}
+                borderColorHover={displayedTabData.borderColorHover}
+                textColorDecor={displayedTabData.textColorDecor}
+                openInNewTab={displayedTabData.openInNewTab}
+                to={displayedTabData.to}
+                className="w-fit"
+              >
+                {displayedTabData.buttonContent}
+              </Link>
+            )}
+          </div>
+
+          {/* Tabs Section */}
+          <div className="z-3 flex w-full flex-wrap justify-center gap-2 pt-4 pb-8 md:pt-32 md:pb-0">
             {tabsData.map((tab: any, index: number) => (
               <button
                 key={tab.id}
                 type="button"
+                onClick={() => setActiveTab(index)}
                 onMouseEnter={() => setActiveTab(index)}
                 className={`group relative overflow-hidden transition-all duration-500 ease-in-out ${
                   activeTab === index
@@ -149,18 +231,16 @@ const TabsLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
                     : "text-[#918379] hover:text-white"
                 }`}
               >
-                {/* Border animation - slides down from center */}
                 <div
-                  className={`absolute inset-x-0 top-1 h-1 origin-center bg-white transition-all duration-500 ease-in-out ${
+                  className={`absolute inset-x-0 h-1 origin-center bg-white transition-all duration-500 ease-in-out ${
                     activeTab === index
-                      ? "-translate-y-1 opacity-100"
-                      : "group-hover:-translate-y-1 translate-y-0 opacity-0 group-hover:opacity-100"
+                      ? "sm:-translate-y-1 bottom-0 opacity-100 sm:top-1"
+                      : "sm:group-hover:-translate-y-1 bottom-0 translate-y-1 opacity-0 group-hover:opacity-100 sm:top-1 sm:translate-y-0"
                   }`}
                 />
 
-                {/* Text animation - subtle scale effect */}
                 <span
-                  className={`ff-heading relative block px-6 pt-1 font-normal text-2xl transition-all duration-500 ease-in-out ${
+                  className={`ff-heading relative block px-4 pt-0 pb-1 font-normal text-[26px] transition-all duration-500 ease-in-out sm:px-6 sm:pt-1 sm:pb-0 sm:text-[44px] ${
                     activeTab === index ? "scale-105" : "group-hover:scale-105"
                   }`}
                 >
@@ -169,63 +249,6 @@ const TabsLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
               </button>
             ))}
           </div>
-
-          {/* Content with smooth fade transition */}
-          <div
-            className={`relative z-2 flex h-full flex-col gap-4 p-8 transition-all duration-600 ease-in-out ${getContentPositionClasses(
-              activeTabData.contentPosition,
-            )} ${
-              isTransitioning
-                ? "translate-y-2 opacity-0"
-                : "translate-y-0 opacity-100"
-            }`}
-          >
-            <div className="flex flex-col gap-2">
-              {activeTabData.subheadingContent && (
-                <SubheadingTag
-                  className={`text-${activeTabData.subheadingAlignment || "left"} ${
-                    activeTabData.subheadingSize === "large"
-                      ? "text-lg"
-                      : "text-base"
-                  } ${
-                    activeTabData.subheadingWeight === "medium"
-                      ? "font-medium"
-                      : "font-normal"
-                  }`}
-                  style={{ color: activeTabData.subheadingColor }}
-                >
-                  {activeTabData.subheadingContent}
-                </SubheadingTag>
-              )}
-            </div>
-            {activeTabData.paragraphContent && (
-              <Paragraph
-                content={activeTabData.paragraphContent}
-                as={activeTabData.paragraphTag}
-                color={activeTabData.paragraphColor}
-                textSize={activeTabData.paragraphSize}
-                alignment={activeTabData.paragraphAlignment}
-                width={activeTabData.paragraphWidth}
-              />
-            )}
-            {activeTabData.buttonContent && (
-              <Link
-                variant={activeTabData.variant}
-                textColor={activeTabData.textColor}
-                backgroundColor={activeTabData.backgroundColor}
-                borderColor={activeTabData.borderColor}
-                textColorHover={activeTabData.textColorHover}
-                backgroundColorHover={activeTabData.backgroundColorHover}
-                borderColorHover={activeTabData.borderColorHover}
-                textColorDecor={activeTabData.textColorDecor}
-                openInNewTab={activeTabData.openInNewTab}
-                to={activeTabData.to}
-                className="w-fit"
-              >
-                {activeTabData.buttonContent}
-              </Link>
-            )}
-          </div>
         </div>
       </div>
     </div>
@@ -233,101 +256,33 @@ const TabsLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
 });
 
 // Slider Layout Component
-const SliderLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
-  const {
+let SliderLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
+  let {
     childrenArray,
     totalSlides,
     slidesToShow,
     gap,
-    enableNavigation,
-    enableDots,
+    showArrows,
+    showDots,
     autoPlay,
     autoPlayDelay,
     swiperKey,
-    swiperRef,
-    prevButtonRef,
-    nextButtonRef,
-    handlePrevClick,
-    handleNextClick,
+    arrowsIcon,
+    iconSize,
+    showArrowsOnHover,
+    arrowsColor,
+    arrowsShape,
+    dotsColor,
     rest,
   } = props;
 
   return (
     <div ref={ref} {...rest} className={variants({ slidesToShow, gap })}>
-      {/* Custom Swiper Styles */}
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-          .promotion-slider .swiper-pagination-bullet {
-            width: 12px !important;
-            height: 12px !important;
-            background: rgb(209 213 219) !important;
-            border-radius: 50% !important;
-            cursor: pointer !important;
-            transition: all 0.2s !important;
-            opacity: 1 !important;
-          }
-          .promotion-slider .swiper-pagination-bullet:hover {
-            background: rgb(107 114 128) !important;
-          }
-          .promotion-slider .swiper-pagination-bullet-active {
-            background: rgb(31 41 55) !important;
-            transform: scale(1.1) !important;
-          }
-          .promotion-slider .swiper-pagination-custom {
-            position: static !important;
-          }
-        `,
-        }}
-      />
-
-      {enableNavigation && totalSlides > slidesToShow && (
-        <>
-          <button
-            ref={prevButtonRef}
-            type="button"
-            onClick={handlePrevClick}
-            className="swiper-button-prev-custom -translate-y-1/2 absolute top-1/2 left-2 z-10 rounded-full bg-white/90 p-3 shadow-lg transition-all duration-200 hover:scale-110 hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <ArrowLeftIcon className="h-6 w-6 text-gray-800" />
-          </button>
-          <button
-            ref={nextButtonRef}
-            type="button"
-            onClick={handleNextClick}
-            className="swiper-button-next-custom -translate-y-1/2 absolute top-1/2 right-2 z-10 rounded-full bg-white/90 p-3 shadow-lg transition-all duration-200 hover:scale-110 hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <ArrowRightIcon className="h-6 w-6 text-gray-800" />
-          </button>
-        </>
-      )}
-
       <Swiper
         key={swiperKey}
-        onSwiper={(swiper) => {
-          swiperRef.current = swiper;
-        }}
-        modules={[Navigation, Pagination, Autoplay]}
+        modules={[Autoplay]}
         spaceBetween={gap}
         slidesPerView={slidesToShow}
-        navigation={
-          enableNavigation
-            ? {
-                prevEl: prevButtonRef.current,
-                nextEl: nextButtonRef.current,
-              }
-            : false
-        }
-        pagination={
-          enableDots
-            ? {
-                clickable: true,
-                bulletClass: "swiper-pagination-bullet",
-                bulletActiveClass: "swiper-pagination-bullet-active",
-                el: ".swiper-pagination-custom",
-              }
-            : false
-        }
         autoplay={
           autoPlay && totalSlides > slidesToShow
             ? {
@@ -358,15 +313,22 @@ const SliderLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
         }}
         className="w-full"
       >
-        {childrenArray.map((child: ReactNode, index: number) => (
-          <SwiperSlide key={index}>{child}</SwiperSlide>
-        ))}
+        {childrenArray.map((child: ReactNode, index: number) => {
+          return <SwiperSlide key={index}>{child}</SwiperSlide>;
+        })}
+        {showArrows && totalSlides > slidesToShow && (
+          <Arrows
+            arrowsIcon={arrowsIcon}
+            iconSize={iconSize}
+            showArrowsOnHover={showArrowsOnHover}
+            arrowsColor={arrowsColor}
+            arrowsShape={arrowsShape}
+          />
+        )}
+        {showDots && totalSlides > slidesToShow && (
+          <Dots dotsColor={dotsColor} slidesCount={totalSlides} />
+        )}
       </Swiper>
-
-      {/* Custom Pagination Dots */}
-      {enableDots && totalSlides > slidesToShow && (
-        <div className="swiper-pagination-custom mt-6 flex justify-center space-x-2" />
-      )}
     </div>
   );
 });
@@ -376,34 +338,26 @@ const extractTabsData = (childInstances: any, childrenArray: ReactNode[]) => {
     return [];
   }
 
-  // Extract data from both child instances and direct props
-  // Prioritize direct props for real-time updates, fallback to instance data
   return childrenArray.map((child: any, index: number) => {
-    // Get data directly from child props first for real-time updates
     const childProps = child?.props || {};
 
-    // Try to get data from child instances as fallback
     let instanceData = {};
     if (childInstances && childInstances[index]) {
       try {
         instanceData = childInstances[index].getSnapShot() || {};
       } catch (error) {
-        // If getSnapShot fails, use empty object
         instanceData = {};
       }
     }
 
-    // Helper function to get value with proper fallback
     const getValue = (
       propKey: string,
       instanceKey: string,
       defaultValue: any,
     ) => {
-      // First try direct props (real-time)
       if (childProps[propKey] !== undefined && childProps[propKey] !== null) {
         return childProps[propKey];
       }
-      // Then try instance data (fallback)
       if (
         instanceData[instanceKey] !== undefined &&
         instanceData[instanceKey] !== null
@@ -502,91 +456,87 @@ const extractTabsData = (childInstances: any, childrenArray: ReactNode[]) => {
 
 let PromotionSlider = forwardRef<HTMLDivElement, GridItemProps>(
   (props, ref) => {
-    const {
+    let {
       children,
       layout = "slider",
       slidesToShow = 2,
       gap = 20,
       autoPlay = false,
-      autoPlayDelay = 5000,
-      enableDots = true,
-      enableNavigation = true,
+      autoPlayDelay = 5,
+      showDots = true,
+      showArrows = true,
+      arrowsIcon = "caret",
+      iconSize = 24,
+      showArrowsOnHover = false,
+      arrowsColor = "white",
+      arrowsShape = "circle",
+      dotsColor = "light",
+      tabsHeight = 600,
       ...rest
     } = props;
 
-    const [swiperKey, setSwiperKey] = useState(0);
-    const [activeTab, setActiveTab] = useState(0);
-    const [refreshKey, setRefreshKey] = useState(0);
-    const swiperRef = useRef<SwiperType | null>(null);
-    const prevButtonRef = useRef<HTMLButtonElement>(null);
-    const nextButtonRef = useRef<HTMLButtonElement>(null);
-    const childInstances = useChildInstances();
+    let [swiperKey, setSwiperKey] = useState(0);
+    let [activeTab, setActiveTab] = useState(0);
+    let [refreshKey, setRefreshKey] = useState(0);
+    let childInstances = useChildInstances();
 
-    const childrenArray = Array.isArray(children)
+    let childrenArray = Array.isArray(children)
       ? (children as ReactNode[])
       : children
         ? [children as ReactNode]
         : [];
-    const totalSlides = childrenArray.length;
+    let totalSlides = childrenArray.length;
 
-    // Monitor child instances for changes in tab layout
     useEffect(() => {
       if (layout === "tabs" && childInstances?.length > 0) {
-        // Create a monitoring mechanism to detect changes in child instances
-        const checkInterval = setInterval(() => {
-          // Force a re-render by updating refresh key
-          setRefreshKey((prev) => prev + 1);
-        }, 1000); // Check every second
+        let checkInterval = setInterval(() => {
+          setRefreshKey((prev) => {
+            return prev + 1;
+          });
+        }, 1000);
 
-        return () => clearInterval(checkInterval);
+        return () => {
+          return clearInterval(checkInterval);
+        };
       }
     }, [layout, childInstances, childrenArray]);
 
-    // Create a stable key for children to detect changes
-    const childrenKey = useMemo(() => {
+    let childrenKey = useMemo(() => {
       return childrenArray
-        .map(
-          (child: any) =>
+        .map((child: any) => {
+          return (
             child?.props?.["data-wv-id"] ||
-            `child-${Math.random().toString(36).slice(2, 11)}`,
-        )
+            `child-${Math.random().toString(36).slice(2, 11)}`
+          );
+        })
         .join("-");
     }, [childrenArray]);
 
-    // Force refresh when layout is tabs and children might have changed
     useEffect(() => {
       if (layout === "tabs") {
-        setRefreshKey((prev) => prev + 1);
+        setRefreshKey((prev) => {
+          return prev + 1;
+        });
       }
     }, [layout, childrenKey]);
 
-    const tabsData = useMemo(
-      () =>
-        layout === "tabs" ? extractTabsData(childInstances, childrenArray) : [],
-      [childInstances, childrenArray, layout, refreshKey],
-    );
+    let tabsData = useMemo(() => {
+      return layout === "tabs"
+        ? extractTabsData(childInstances, childrenArray)
+        : [];
+    }, [childInstances, childrenArray, layout, refreshKey]);
 
     useEffect(() => {
-      setSwiperKey((prev) => prev + 1);
-    }, [slidesToShow, enableDots, enableNavigation, autoPlay, autoPlayDelay]);
+      setSwiperKey((prev) => {
+        return prev + 1;
+      });
+    }, [slidesToShow, showDots, showArrows, autoPlay, autoPlayDelay]);
 
     if (totalSlides === 0) {
       return (
         <div ref={ref} {...rest} className={variants({ slidesToShow, gap })} />
       );
     }
-
-    const handlePrevClick = () => {
-      if (swiperRef.current) {
-        swiperRef.current.slidePrev();
-      }
-    };
-
-    const handleNextClick = () => {
-      if (swiperRef.current) {
-        swiperRef.current.slideNext();
-      }
-    };
 
     if (layout === "tabs") {
       return (
@@ -595,6 +545,7 @@ let PromotionSlider = forwardRef<HTMLDivElement, GridItemProps>(
           tabsData={tabsData}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
+          tabsHeight={tabsHeight}
           rest={rest}
         />
       );
@@ -607,16 +558,17 @@ let PromotionSlider = forwardRef<HTMLDivElement, GridItemProps>(
         totalSlides={totalSlides}
         slidesToShow={slidesToShow}
         gap={gap}
-        enableNavigation={enableNavigation}
-        enableDots={enableDots}
+        showArrows={showArrows}
+        showDots={showDots}
         autoPlay={autoPlay}
         autoPlayDelay={autoPlayDelay}
         swiperKey={swiperKey}
-        swiperRef={swiperRef}
-        prevButtonRef={prevButtonRef}
-        nextButtonRef={nextButtonRef}
-        handlePrevClick={handlePrevClick}
-        handleNextClick={handleNextClick}
+        arrowsIcon={arrowsIcon}
+        iconSize={iconSize}
+        showArrowsOnHover={showArrowsOnHover}
+        arrowsColor={arrowsColor}
+        arrowsShape={arrowsShape}
+        dotsColor={dotsColor}
         rest={rest}
       />
     );
@@ -643,6 +595,19 @@ export let schema = createSchema({
             ],
           },
           defaultValue: "slider",
+        },
+        {
+          type: "range",
+          name: "tabsHeight",
+          label: "Tabs height",
+          configs: {
+            min: 400,
+            max: 1000,
+            step: 50,
+            unit: "px",
+          },
+          defaultValue: 600,
+          condition: "layout.eq.tabs",
         },
       ],
     },
@@ -684,7 +649,7 @@ export let schema = createSchema({
         {
           type: "range",
           name: "autoPlayDelay",
-          label: "Auto play delay (seconds)",
+          label: "Auto play delay",
           configs: {
             min: 2,
             max: 10,
@@ -694,19 +659,106 @@ export let schema = createSchema({
           defaultValue: 5,
           condition: "autoPlay.eq.true",
         },
+      ],
+    },
+    {
+      group: "Navigation",
+      inputs: [
+        {
+          type: "heading",
+          label: "Arrows",
+        },
         {
           type: "switch",
-          name: "enableDots",
+          name: "showArrows",
+          label: "Show arrows",
+          defaultValue: true,
+          condition: "layout.eq.slider",
+        },
+        {
+          type: "select",
+          name: "arrowsIcon",
+          label: "Arrow icon",
+          configs: {
+            options: [
+              { value: "caret", label: "Caret" },
+              { value: "arrow", label: "Arrow" },
+            ],
+          },
+          defaultValue: "caret",
+          condition: "showArrows.eq.true",
+        },
+        {
+          type: "range",
+          name: "iconSize",
+          label: "Icon size",
+          configs: {
+            min: 16,
+            max: 40,
+            step: 2,
+            unit: "px",
+          },
+          defaultValue: 24,
+          condition: "showArrows.eq.true",
+        },
+        {
+          type: "switch",
+          name: "showArrowsOnHover",
+          label: "Show arrows on hover",
+          defaultValue: false,
+          condition: "showArrows.eq.true",
+        },
+        {
+          type: "select",
+          name: "arrowsColor",
+          label: "Arrows color",
+          configs: {
+            options: [
+              { value: "primary", label: "Primary" },
+              { value: "secondary", label: "Secondary" },
+              { value: "white", label: "White" },
+            ],
+          },
+          defaultValue: "white",
+          condition: "showArrows.eq.true",
+        },
+        {
+          type: "toggle-group",
+          name: "arrowsShape",
+          label: "Arrows shape",
+          configs: {
+            options: [
+              { value: "square", label: "Square", icon: "square" },
+              { value: "rounded", label: "Rounded", icon: "squircle" },
+              { value: "circle", label: "Circle", icon: "circle" },
+            ],
+          },
+          defaultValue: "circle",
+          condition: "showArrows.eq.true",
+        },
+        {
+          type: "heading",
+          label: "Dots",
+        },
+        {
+          type: "switch",
+          name: "showDots",
           label: "Show dots",
           defaultValue: true,
           condition: "layout.eq.slider",
         },
         {
-          type: "switch",
-          name: "enableNavigation",
-          label: "Show navigation arrows",
-          defaultValue: true,
-          condition: "layout.eq.slider",
+          type: "select",
+          name: "dotsColor",
+          label: "Dots color",
+          configs: {
+            options: [
+              { value: "light", label: "Light" },
+              { value: "dark", label: "Dark" },
+            ],
+          },
+          defaultValue: "dark",
+          condition: "showDots.eq.true",
         },
       ],
     },
@@ -718,32 +770,39 @@ export let schema = createSchema({
     gap: 20,
     autoPlay: false,
     autoPlayDelay: 5,
-    enableDots: true,
-    enableNavigation: true,
+    showDots: true,
+    showArrows: true,
+    arrowsIcon: "caret",
+    iconSize: 24,
+    showArrowsOnHover: false,
+    arrowsColor: "white",
+    arrowsShape: "circle",
+    dotsColor: "light",
+    tabsHeight: 600,
     children: [
       {
         type: "promotion-grid-item",
-        contentPosition: "top left",
+        contentPosition: "center center",
         backgroundImage: IMAGES_PLACEHOLDERS.collection_1,
         enableOverlay: true,
         overlayColor: "#0c0c0c",
         overlayOpacity: 20,
-        headingContent: "Announce your promotion",
+        headingContent: "Heading",
         paragraphContent:
-          "Include the smaller details of your promotion in text below the title.",
+          "From mid-century modern to contemporary, our design language is intentionally universal; we design so you can settle in, comfortably, for the long haul.",
         buttonContent: "Shop now",
         variant: "decor",
       },
       {
         type: "promotion-grid-item",
-        contentPosition: "bottom right",
+        contentPosition: "center center",
         backgroundImage: IMAGES_PLACEHOLDERS.collection_2,
         enableOverlay: true,
         overlayColor: "#0c0c0c",
         overlayOpacity: 20,
-        headingContent: "Announce your promotion",
+        headingContent: "Heading",
         paragraphContent:
-          "Include the smaller details of your promotion in text below the title.",
+          "From mid-century modern to contemporary, our design language is intentionally universal; we design so you can settle in, comfortably, for the long haul.",
         buttonContent: "Shop promotion",
         variant: "decor",
       },
@@ -754,8 +813,9 @@ export let schema = createSchema({
         enableOverlay: true,
         overlayColor: "#0c0c0c",
         overlayOpacity: 20,
-        headingContent: "New Collection",
-        paragraphContent: "Discover our latest products and exclusive offers.",
+        headingContent: "Heading",
+        paragraphContent:
+          "From mid-century modern to contemporary, our design language is intentionally universal; we design so you can settle in, comfortably, for the long haul.",
         buttonContent: "Explore Now",
         variant: "decor",
       },

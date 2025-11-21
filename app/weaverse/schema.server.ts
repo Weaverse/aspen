@@ -1300,12 +1300,6 @@ export const themeSchema: HydrogenThemeSchema = {
           label: "Show Google Pay",
           defaultValue: true,
         },
-        {
-          type: "switch",
-          name: "showShopPayIcon",
-          label: "Show Shop Pay",
-          defaultValue: true,
-        },
       ],
     },
   ],

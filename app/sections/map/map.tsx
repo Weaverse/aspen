@@ -36,27 +36,46 @@ export const MapContext = createContext<{
   setActiveItem: (index: number | null) => void;
   activeAddress: string;
   setActiveAddress: (address: string) => void;
+  registerAddress: (address: string) => void;
 }>({
   layoutMap: "list",
   activeItem: null,
   setActiveItem: () => {},
   activeAddress: "",
   setActiveAddress: () => {},
+  registerAddress: () => {},
 });
 
 let MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
   let { heading, children, layoutMap = "list", ...rest } = props;
+
   // Track which item is active in accordion mode and its address for the map
   const [activeItem, setActiveItem] = useState<number | null>(null);
+  const [registeredAddresses, setRegisteredAddresses] = useState<string[]>([]);
   const [activeAddress, setActiveAddress] = useState<string>(
-    props.defaultAddress || "New York",
+    props.defaultAddress || "",
   );
+
+  let registerAddress = (address: string) => {
+    setRegisteredAddresses((prev) => {
+      if (!prev.includes(address)) {
+        return [...prev, address];
+      }
+      return prev;
+    });
+  };
+
+  useEffect(() => {
+    if (registeredAddresses.length > 0) {
+      setActiveAddress(props.defaultAddress || registeredAddresses[0]);
+    }
+  }, [registeredAddresses, props.defaultAddress]);
   const triggerRef = useRef<HTMLDivElement | null>(null);
   const [highlightBg, setHighlightBg] = useState<string | null>(null);
   useEffect(() => {
     const current = triggerRef.current;
     if (!current) return;
-    const sectionEl = current.closest("section") as HTMLElement | null; // hoặc closest()
+    const sectionEl = current.closest("section") as HTMLElement | null;
     if (sectionEl) {
       const raw = getComputedStyle(sectionEl)
         .getPropertyValue("--section-bg-color")
@@ -75,6 +94,7 @@ let MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
         setActiveItem,
         activeAddress,
         setActiveAddress,
+        registerAddress,
       }}
     >
       <Section ref={ref} {...rest}>
@@ -96,9 +116,7 @@ let MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
           >
             {/* Heading */}
             <div className="w-full md:px-0">
-              {heading && layoutMap === "list" ? (
-                <Heading content={heading} as="h6" alignment="left" />
-              ) : (
+              {heading && (
                 <Heading content={heading} as="h6" alignment="left" />
               )}
             </div>

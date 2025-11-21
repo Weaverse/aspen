@@ -53,7 +53,7 @@ export function CartDrawer() {
               <div className="flex h-full flex-col space-y-6">
                 <div className="flex items-center justify-between gap-2 px-4">
                   <Dialog.Title asChild className="text-base">
-                    <span className="font-bold">Cart</span>
+                    <span className="font-semibold uppercase">Cart</span>
                   </Dialog.Title>
                   <Dialog.Close asChild>
                     <button

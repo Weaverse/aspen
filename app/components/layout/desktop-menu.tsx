@@ -17,80 +17,70 @@ export function DesktopMenu() {
   const navigate = useNavigate();
 
   if (headerMenu?.items?.length) {
-    const items = headerMenu.items as unknown as SingleMenuItem[];
+    const menuItems = headerMenu.items as unknown as SingleMenuItem[];
+
     return (
-      <NavigationMenu.Root
-        value={value}
-        onValueChange={setValue}
-        className="flex h-full justify-center"
-      >
-        <NavigationMenu.List className="hidden h-full grow justify-center lg:flex">
-          {items.map((menuItem) => {
-            const { id, items = [], title, to } = menuItem;
-            const level = getMaxDepth(menuItem);
-            const hasSubmenu = level > 1;
-            const isDropdown =
-              level === 2 && items.every(({ resource }) => !resource?.image);
-            if (isDropdown) {
-              return <DropdownMenu key={id} menuItem={menuItem} />;
-            }
-            return (
-              <NavigationMenu.Item
-                key={id}
-                value={id}
-                className="flex h-full items-center"
-              >
-                <NavigationMenu.Trigger
-                  asChild={!hasSubmenu}
-                  className={clsx([
-                    "flex h-full cursor-pointer items-center gap-1.5 px-3 py-2",
-                    "uppercase focus:outline-hidden",
-                  ])}
-                  onMouseEnter={() => {
-                    if (openMenuBy === "hover" && value !== id) {
-                      setValue(id);
-                    }
-                  }}
-                  onPointerDown={
-                    hasSubmenu
-                      ? (e) => {
-                          // Allow navigation on left click while preserving submenu behavior
-                          if (e.button === 0 && !e.ctrlKey && !e.metaKey) {
-                            navigate(to);
-                          }
-                        }
-                      : undefined
-                  }
+      <div className="hidden h-full grow justify-center lg:flex">
+        {menuItems.map((menuItem) => {
+          const { id, items: subItems = [], title, to } = menuItem;
+          const level = getMaxDepth(menuItem);
+          const hasSubmenu = level > 1;
+          const isDropdown =
+            level === 2 && subItems.every(({ resource }) => !resource?.image);
+
+          // Single menu items without submenus
+          if (!hasSubmenu) {
+            return <SingleMenu key={id} menuItem={menuItem} />;
+          }
+
+          // Dropdown menus
+          if (isDropdown) {
+            return <DropdownMenu key={id} menuItem={menuItem} />;
+          }
+
+          // Mega menu items - each wrapped in its own NavigationMenu
+          return (
+            <NavigationMenu.Root
+              key={id}
+              value={value}
+              onValueChange={setValue}
+              className="flex h-full"
+            >
+              <NavigationMenu.List className="flex h-full">
+                <NavigationMenu.Item
+                  value={id}
+                  className="flex h-full items-center"
                 >
-                  {hasSubmenu ? (
-                    <span
-                      className={cn(
-                        "ff-heading relative cursor-pointer",
-                        "after:absolute after:bottom-[-0.5px] after:left-0 after:h-[2px] after:w-full after:bg-[#6A4E4E]",
-                        "after:opacity-0 hover:after:opacity-100 group-data-[state=open]:after:opacity-100",
-                        "after:transition-opacity after:duration-[360ms] after:ease-[cubic-bezier(0.22,1,0.36,1)]",
-                      )}
-                    >
-                      {title}
-                    </span>
-                  ) : (
+                  <NavigationMenu.Trigger
+                    className={clsx([
+                      "flex h-full cursor-pointer items-center gap-1.5 px-3 py-2",
+                      "uppercase focus:outline-hidden",
+                    ])}
+                    onMouseEnter={() => {
+                      if (openMenuBy === "hover" && value !== id) {
+                        setValue(id);
+                      }
+                    }}
+                    onPointerDown={(e) => {
+                      // Allow navigation on left click while preserving submenu behavior
+                      if (e.button === 0 && !e.ctrlKey && !e.metaKey) {
+                        navigate(to);
+                      }
+                    }}
+                  >
                     <NavigationMenu.Link asChild>
-                      <Link to={to} className="transition-none">
-                        <span
-                          className={cn(
-                            "ff-heading relative cursor-pointer",
-                            "after:absolute after:bottom-[-0.5px] after:left-0 after:h-[2px] after:w-full after:bg-[#6A4E4E]",
-                            "after:opacity-0 hover:after:opacity-100 group-data-[state=open]:after:opacity-100",
-                            "after:transition-opacity after:duration-[360ms] after:ease-[cubic-bezier(0.22,1,0.36,1)]",
-                          )}
-                        >
-                          {title}
-                        </span>
-                      </Link>
+                      <span
+                        className={cn(
+                          "ff-heading relative cursor-pointer",
+                          "after:absolute after:bottom-[-0.5px] after:left-0 after:h-[2px] after:w-full after:bg-[#6A4E4E]",
+                          "after:opacity-0 hover:after:opacity-100 group-data-[state=open]:after:opacity-100",
+                          "after:transition-opacity after:duration-[360ms] after:ease-[cubic-bezier(0.22,1,0.36,1)]",
+                        )}
+                      >
+                        {title}
+                      </span>
                     </NavigationMenu.Link>
-                  )}
-                </NavigationMenu.Trigger>
-                {level > 1 && (
+                  </NavigationMenu.Trigger>
                   <NavigationMenu.Content
                     className={cn([
                       "absolute top-0 left-0 w-screen py-8",
@@ -98,32 +88,60 @@ export function DesktopMenu() {
                       "border-line-subtle border-t bg-(--color-header-bg-hover)",
                     ])}
                   >
-                    <MegaMenu items={items} />
+                    <MegaMenu items={subItems} />
                   </NavigationMenu.Content>
-                )}
-              </NavigationMenu.Item>
-            );
-          })}
-        </NavigationMenu.List>
-        <div className="absolute inset-x-0 top-full flex w-full justify-center shadow-header">
-          <NavigationMenu.Viewport
-            className={cn(
-              "relative origin-[top_center] overflow-hidden bg-(--color-header-bg-hover)",
-              'data-[state="closed"]:animate-scale-out data-[state="open"]:animate-scale-in',
-              "transition-[width,_height] duration-200",
-              "h-[var(--radix-navigation-menu-viewport-height)] w-full",
-            )}
-          />
-        </div>
-      </NavigationMenu.Root>
+                </NavigationMenu.Item>
+              </NavigationMenu.List>
+              <div className="absolute inset-x-0 top-full flex w-full justify-center shadow-header">
+                <NavigationMenu.Viewport
+                  className={cn(
+                    "relative origin-[top_center] overflow-hidden bg-(--color-header-bg-hover)",
+                    'data-[state="closed"]:animate-scale-out data-[state="open"]:animate-scale-in',
+                    "transition-[width,_height] duration-200",
+                    "h-[var(--radix-navigation-menu-viewport-height)] w-full",
+                  )}
+                />
+              </div>
+            </NavigationMenu.Root>
+          );
+        })}
+      </div>
     );
   }
   return null;
 }
 
+function SingleMenu({ menuItem }: { menuItem: SingleMenuItem }) {
+  const { title, to } = menuItem;
+  return (
+    <div className="flex h-full items-center">
+      <Link
+        to={to}
+        prefetch="intent"
+        className={clsx([
+          "flex h-full cursor-pointer items-center gap-1.5 px-3 py-2",
+          "uppercase transition-none focus:outline-hidden",
+        ])}
+      >
+        <span
+          className={cn(
+            "ff-heading relative cursor-pointer",
+            "after:absolute after:bottom-[-0.5px] after:left-0 after:h-[2px] after:w-full after:bg-[#6A4E4E]",
+            "after:opacity-0 hover:after:opacity-100",
+            "after:transition-opacity after:duration-[360ms] after:ease-[cubic-bezier(0.22,1,0.36,1)]",
+          )}
+        >
+          {title}
+        </span>
+      </Link>
+    </div>
+  );
+}
+
 function DropdownMenu({ menuItem }: { menuItem: SingleMenuItem }) {
   const [open, setOpen] = useState(false);
-  const { items: childItems = [], title, to } = menuItem;
+  const { openMenuBy } = useThemeSettings();
+  const { items: childItems = [], title } = menuItem;
   return (
     <div className="h-full" onMouseLeave={() => setOpen(false)}>
       <Root open={open} onOpenChange={setOpen} modal={false}>
@@ -133,7 +151,9 @@ function DropdownMenu({ menuItem }: { menuItem: SingleMenuItem }) {
             "uppercase focus:outline-hidden",
           ])}
           onMouseEnter={() => {
-            setOpen(true);
+            if (openMenuBy === "hover") {
+              setOpen(true);
+            }
           }}
         >
           <span
@@ -149,10 +169,11 @@ function DropdownMenu({ menuItem }: { menuItem: SingleMenuItem }) {
         </Trigger>
         <Content
           align="start"
-          // sideOffset={30}
           className={cn(
-            "flex min-w-48 animate-fade-in flex-col gap-1.5 border-line-subtle border-t bg-(--color-header-bg-hover)",
+            "shadow-header origin-[top_center] overflow-hidden",
+            "flex min-w-48 flex-col gap-1.5 border-line-subtle border-t bg-(--color-header-bg-hover)",
             "px-3 py-6 md:px-4 lg:px-6",
+            'data-[state="closed"]:animate-scale-out data-[state="open"]:animate-scale-in',
           )}
           onCloseAutoFocus={(e) => e.preventDefault()}
         >

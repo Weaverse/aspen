@@ -4,23 +4,58 @@ import type {
   HydrogenComponentSchema,
 } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
+import { useAccordionContext } from "./index";
 
 interface AccordionGroupProps extends HydrogenComponentProps {
   allowMultiple: boolean;
+  accordionBackgroundColor: string;
+  accordionTextColor: string;
 }
 
 const AccordionGroup = forwardRef<HTMLDivElement, AccordionGroupProps>(
   (props, ref) => {
-    let { children, ...rest } = props;
+    let { children, accordionBackgroundColor, accordionTextColor, ...rest } =
+      props;
+
+    // Get layout from accordion context
+    const { layout } = useAccordionContext();
+
+    let style = {
+      "--accordion-bg-color": accordionBackgroundColor,
+      "--accordion-text-color": accordionTextColor,
+    } as React.CSSProperties;
+
+    // Distribute children for row layout
+    const childArray = Array.isArray(children) ? children : [children];
+    const leftColumn = childArray.filter((_, index) => index % 2 === 0);
+    const rightColumn = childArray.filter((_, index) => index % 2 === 1);
 
     return (
-      <div ref={ref} {...rest}>
-        <RadixAccordion.Root
-          type="multiple"
-          className="accordion--group grid w-full gap-4"
-        >
-          {children}
-        </RadixAccordion.Root>
+      <div ref={ref} {...rest} style={style}>
+        {layout === "row" ? (
+          <div key="row-layout" className="grid w-full grid-cols-2 gap-4">
+            <RadixAccordion.Root
+              type="multiple"
+              className="accordion--group flex w-full flex-col gap-4"
+            >
+              {leftColumn}
+            </RadixAccordion.Root>
+            <RadixAccordion.Root
+              type="multiple"
+              className="accordion--group flex w-full flex-col gap-4"
+            >
+              {rightColumn}
+            </RadixAccordion.Root>
+          </div>
+        ) : (
+          <RadixAccordion.Root
+            key="column-layout"
+            type="multiple"
+            className="accordion--group flex w-full flex-col gap-4"
+          >
+            {children}
+          </RadixAccordion.Root>
+        )}
       </div>
     );
   },
@@ -34,7 +69,20 @@ export const schema: HydrogenComponentSchema = {
   inspector: [
     {
       group: "Accordion settings",
-      inputs: [],
+      inputs: [
+        {
+          type: "color",
+          label: "Accordion background color",
+          name: "accordionBackgroundColor",
+          defaultValue: "#F3F3F3",
+        },
+        {
+          type: "color",
+          label: "Accordion text color",
+          name: "accordionTextColor",
+          defaultValue: "#524B46",
+        },
+      ],
     },
   ],
   childTypes: ["accordion--item", "subheading", "heading", "paragraph"],

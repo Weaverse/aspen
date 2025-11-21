@@ -69,12 +69,22 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
     const [activeLayout, setActiveLayout] = useState<
       "grid" | "slider" | "showcase"
     >(layout);
+    const [isSwiperInitialized, setIsSwiperInitialized] = useState(false);
 
     let collections: CollectionWithProducts[] = loaderData || [];
 
     useEffect(() => {
       setActiveLayout(layout);
+      setIsSwiperInitialized(false);
     }, [layout]);
+    useEffect(() => {
+      if (activeLayout === "slider" && !isSwiperInitialized) {
+        const fallbackTimer = setTimeout(() => {
+          setIsSwiperInitialized(true);
+        }, 500);
+        return () => clearTimeout(fallbackTimer);
+      }
+    }, [activeLayout, isSwiperInitialized]);
 
     if (!collections?.length) {
       collections = new Array(activeLayout === "showcase" ? 2 : 3).fill(
@@ -92,7 +102,8 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
     ) => {
       if (activeLayout === "slider") {
         return (
-          <div
+          <Link
+            to={`/collections/${collection.handle}`}
             key={collection.id + ind}
             className="flex aspect-[3/4] h-full w-full flex-col gap-5 bg-(--collection-bg-color) p-4"
           >
@@ -105,10 +116,7 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/50 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
               </div>
             )}
-            <Link
-              to={`/collections/${collection.handle}`}
-              className="flex w-full flex-col gap-1 text-(--collection-name-color)"
-            >
+            <div className="flex w-full flex-col gap-1 text-(--collection-name-color)">
               <h3
                 className={clsx(
                   "line-clamp-1 font-medium text-lg uppercase leading-snug group-hover:underline",
@@ -117,8 +125,8 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
                 {collection.title}
               </h3>
               <p>{collection.products?.nodes?.length || 0} Products</p>
-            </Link>
-          </div>
+            </div>
+          </Link>
         );
       }
       return (
@@ -154,15 +162,37 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
       );
     };
 
-    // Render different layouts based on the activeLayout
     if (activeLayout === "slider") {
       return (
         <div ref={scope} {...rest} className="w-full">
-          <Swiper spaceBetween={gap} slidesPerView={"auto"} className="w-full">
+          <Swiper
+            spaceBetween={gap}
+            slidesPerView={1.2}
+            breakpoints={{
+              640: {
+                slidesPerView: 2.2,
+              },
+              1024: {
+                slidesPerView: 3.2,
+              },
+              1280: {
+                slidesPerView: 3.5,
+              },
+            }}
+            onSwiper={() => {
+              requestAnimationFrame(() => {
+                  setIsSwiperInitialized(true);
+              });
+            }}
+            className={clsx(
+              "w-full transition-opacity duration-300",
+              isSwiperInitialized ? "opacity-100" : "opacity-0",
+            )}
+          >
             {collections.map((collection, ind) => (
               <SwiperSlide
                 key={collection.id + ind}
-                className="group relative h-fit max-w-[380px]"
+                className="group relative h-fit"
                 data-motion="slide-in"
                 style={style}
               >
@@ -174,28 +204,20 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
       );
     }
 
-    // Showcase layout requires special treatment
     if (activeLayout === "showcase") {
-      // Trường hợp đặc biệt cho showcase layout theo thiết kế Figma
-
       if (collections.length >= 3) {
-        // Đối với 3 collection trở lên, hiển thị 2 collection bên trái, 1 bên phải, còn lại ở dưới
         const firstTwo = collections.slice(0, 2);
         const third = collections[2];
         const remaining = collections.length > 3 ? collections.slice(3) : [];
 
         return (
           <div ref={scope} {...rest} className="w-full" style={style}>
-            {/* Main showcase layout - 2 columns */}
             <div className="mb-10 grid gap-[var(--gap)] md:grid-cols-2">
-              {/* Left column - 2 collections stacked */}
               <div className="flex flex-col gap-[var(--gap)]">
                 {firstTwo.map((collection, ind) =>
                   renderCollectionContent(collection, ind),
                 )}
               </div>
-
-              {/* Right column - 1 collection full height */}
               <Link
                 to={`/collections/${third.handle}`}
                 className="group relative h-full"
@@ -223,8 +245,6 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
                 </h3>
               </Link>
             </div>
-
-            {/* Remaining collections in 2-column grid */}
             {remaining.length > 0 && (
               <div className="grid gap-[var(--gap)] md:grid-cols-2">
                 {remaining.map((collection, ind) =>
@@ -235,7 +255,6 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
           </div>
         );
       }
-      // Đối với 1-2 collection, hiển thị dạng grid-col-2 đơn giản
       return (
         <div ref={scope} {...rest} className="w-full" style={style}>
           <div className="grid gap-[var(--gap)] md:grid-cols-2">
@@ -246,8 +265,6 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
         </div>
       );
     }
-
-    // Grid layout
     return (
       <div
         ref={scope}
@@ -283,13 +300,9 @@ let COLLECTION_PLACEHOLDER: CollectionWithProducts = {
     nodes: [],
   },
 };
-
-// Set displayName for component reference
 CollectionItems.displayName = "CollectionItems";
 
 export default CollectionItems;
-
-// GraphQL query moved from parent component
 let COLLECTIONS_QUERY = `#graphql
   query collectionByIds($country: CountryCode, $language: LanguageCode, $ids: [ID!]!)
   @inContext(country: $country, language: $language) {
@@ -402,7 +415,7 @@ export let schema: HydrogenComponentSchema = {
           type: "color",
           name: "collectionBackgroundColor",
           label: "Collection background color",
-          defaultValue: "#CABDB7E5",
+          defaultValue: "#7F7866",
         },
       ],
     },

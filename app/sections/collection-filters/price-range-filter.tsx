@@ -67,7 +67,7 @@ export function PriceRangeFilter({
         className="relative flex h-4 w-full items-center"
       >
         <Slider.Track className="relative h-1 grow rounded-full bg-gray-200">
-          <Slider.Range className="absolute h-full rounded-full bg-gray-800" />
+          <Slider.Range className="absolute h-full rounded-full bg-line" />
         </Slider.Track>
         {["from", "to"].map((s: "from" | "to") => (
           <Slider.Thumb
@@ -79,7 +79,7 @@ export function PriceRangeFilter({
               thumbRef.current = s;
             }}
             className={clsx(
-              "block h-4 w-4 cursor-grab rounded-full bg-gray-800 shadow-md",
+              "block h-4 w-4 cursor-grab rounded-full bg-line shadow-md",
               "focus-visible:outline-hidden",
             )}
           />

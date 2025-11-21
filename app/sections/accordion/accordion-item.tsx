@@ -6,7 +6,7 @@ import type {
   HydrogenComponentSchema,
 } from "@weaverse/hydrogen";
 import type React from "react";
-import { forwardRef, useEffect, useRef, useState } from "react";
+import { forwardRef } from "react";
 import { cn } from "~/utils/cn";
 
 interface AccordionItemProps extends HydrogenComponentProps {
@@ -18,41 +18,9 @@ interface AccordionItemProps extends HydrogenComponentProps {
 const isSvgString = (icon: string) =>
   icon.trim().startsWith("<svg") || icon.trim().startsWith("<?xml");
 
-function adjustColor(hex: string, amount: number) {
-  let color = hex.replace("#", "");
-  if (color.length === 3) {
-    color = color
-      .split("")
-      .map((c) => c + c)
-      .join("");
-  }
-
-  const num = Number.parseInt(color, 16);
-  const r = Math.min(255, Math.max(0, ((num >> 16) & 0xff) + amount));
-  const g = Math.min(255, Math.max(0, ((num >> 8) & 0xff) + amount));
-  const b = Math.min(255, Math.max(0, (num & 0xff) + amount));
-
-  return "#" + [r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("");
-}
-
 const AccordionItem = forwardRef<HTMLDivElement, AccordionItemProps>(
   (props, ref) => {
     const { title, content, icon, ...rest } = props;
-    const triggerRef = useRef<HTMLButtonElement | null>(null);
-    const [highlightBg, setHighlightBg] = useState<string | null>(null);
-    useEffect(() => {
-      const current = triggerRef.current;
-      if (!current) return;
-      const sectionEl = current.closest("section") as HTMLElement | null; // hoặc closest()
-      if (sectionEl) {
-        const raw = getComputedStyle(sectionEl)
-          .getPropertyValue("--section-bg-color")
-          .trim();
-        if (raw.startsWith("#")) {
-          setHighlightBg(adjustColor(raw, 20));
-        }
-      }
-    }, []);
 
     const renderIcon = () => {
       if (!icon) return null;
@@ -86,13 +54,17 @@ const AccordionItem = forwardRef<HTMLDivElement, AccordionItemProps>(
       >
         <Accordion.Header>
           <Accordion.Trigger
-            ref={triggerRef}
-            style={{ backgroundColor: highlightBg } as React.CSSProperties}
+            style={
+              {
+                backgroundColor: "var(--accordion-bg-color)",
+                color: "var(--accordion-text-color)",
+              } as React.CSSProperties
+            }
             className="group mb-1 flex w-full items-center gap-3 p-4 text-left"
           >
             {renderIcon()}
-            <span className="font-medium text-base">{title}</span>
-            <div className="relative ml-auto h-5 w-5">
+            <span className="flex-1 font-medium text-base">{title}</span>
+            <div className="relative ml-auto h-5 w-5 flex-shrink-0">
               <PlusCircle
                 className="absolute inset-0 h-full w-full transition-opacity duration-200 group-data-[state=open]:opacity-0"
                 fill="#918379"
@@ -113,7 +85,8 @@ const AccordionItem = forwardRef<HTMLDivElement, AccordionItemProps>(
               "--expand-duration": "0.25s",
               "--collapse-from": "var(--radix-accordion-content-height)",
               "--collapse-duration": "0.25s",
-              backgroundColor: highlightBg,
+              backgroundColor: "var(--accordion-bg-color)",
+              color: "var(--accordion-text-color)",
             } as React.CSSProperties
           }
           className={cn(
@@ -122,7 +95,7 @@ const AccordionItem = forwardRef<HTMLDivElement, AccordionItemProps>(
             "data-[state=open]:animate-expand",
           )}
         >
-          <div className="p-4 text-body-subtle">{content}</div>
+          <div className="p-4">{content}</div>
         </Accordion.Content>
       </Accordion.Item>
     );

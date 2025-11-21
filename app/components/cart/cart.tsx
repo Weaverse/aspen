@@ -59,7 +59,7 @@ function CartDetails({
       <div
         className={clsx(
           layout === "drawer" && [
-            "grid grid-cols-1 grid-rows-[1fr_auto] px-4 pt-6",
+            "grid grid-cols-1 grid-rows-[1fr_auto] px-4",
             enableFreeShipping ? "h-[calc(100vh-100px)]" : "h-[100vh]",
           ],
           layout === "page" && ["flex flex-col gap-10 lg:flex-row lg:gap-5"],
@@ -122,7 +122,7 @@ function CartProgression({ cost }: { cost: CartApiQueryFragment["cost"] }) {
   let progress = Math.min((subtotal / threshold) * 100, 100);
   let amountRemaining = Math.max(threshold - subtotal, 0);
   return (
-    <div className="flex w-full flex-col gap-2 rounded-lg px-6 pt-6">
+    <div className="flex w-full flex-col gap-2 rounded-lg px-6">
       <div className="relative h-1 w-full overflow-hidden rounded-full bg-[#F2F0EE]">
         <div
           className="h-full bg-[#A79D95] transition-all duration-300"
@@ -188,7 +188,7 @@ function CartDiscounts({
           />
           <Button
             variant="outline"
-            className="!px-6 !py-5 h-[54px] leading-tight!"
+            className="!px-6 !py-5 h-[54px] uppercase leading-tight!"
           >
             Apply
           </Button>
@@ -273,7 +273,7 @@ function CartCheckoutActions({
         <Link
           variant="outline"
           to="/cart"
-          className="flex h-[54px] w-full items-center justify-center"
+          className="flex h-[54px] w-full items-center justify-center uppercase"
         >
           View cart
         </Link>
@@ -298,7 +298,7 @@ function CartSummary({
     <div
       className={clsx(
         layout === "drawer" &&
-          "sticky bottom-0 grid gap-4 border-line-subtle border-t bg-white p-4",
+          "sticky bottom-0 grid gap-4 border-line-subtle border-t bg-white",
         layout === "page" &&
           "flex w-full flex-col gap-6 px-6 pb-6 md:mx-auto md:w-1/2 lg:mx-0 lg:w-1/3",
       )}
@@ -382,12 +382,14 @@ function CartLineItem({
       >
         {image && (
           <Image
-            width={layout === "drawer" ? 250 : 360}
-            height={layout === "drawer" ? 250 : 360}
+            width={layout === "drawer" ? 140 : 360}
+            height={layout === "drawer" ? 140 : 360}
             data={image}
             className={clsx(
               "!object-cover",
-              layout === "drawer" ? "h-auto w-36" : "h-full w-full rounded",
+              layout === "drawer"
+                ? "h-auto w-[140px]"
+                : "h-full w-full rounded",
             )}
             alt={title}
             aspectRatio={calculateAspectRatio(image, "1/1")}
@@ -459,7 +461,7 @@ function CartLineItem({
           // Drawer Layout - Original Design
           <>
             <div className="flex justify-between gap-4">
-              <div className="space-y-1">
+              <div className="space-y-3">
                 <div>
                   {product?.handle ? (
                     <Link to={url} onClick={() => toggleCartDrawer(false)}>
@@ -471,7 +473,7 @@ function CartLineItem({
                     <p>{product?.title || ""}</p>
                   )}
                 </div>
-                <div className="space-y-0.5 text-gray-500 text-sm">{title}</div>
+                <div className="space-y-0.5 font-normal">{title}</div>
               </div>
             </div>
             <div className="flex items-center justify-between gap-2">
@@ -568,7 +570,7 @@ function CartLineQuantityAdjust({
         >
           <Select.Trigger
             className={clsx(
-              "inline-flex min-w-[80px] items-center justify-between gap-2 bg-white px-3 py-2 outline-hidden",
+              "inline-flex min-w-[80px] items-center justify-between gap-2 bg-white outline-hidden",
               layout === "page" ? "" : "",
             )}
             aria-label="Select quantity"
@@ -647,7 +649,7 @@ function CartLinePrice({
       withoutTrailingZeros
       {...passthroughProps}
       data={moneyV2}
-      className="mr-2 text-sm"
+      className="mr-2 font-normal"
     />
   );
 }

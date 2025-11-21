@@ -15,6 +15,7 @@ import type {
   ProductCardFragment,
   SearchQuery,
 } from "storefront-api.generated";
+import { AnimatedDrawer } from "~/components/animate-drawer";
 import { Button } from "~/components/button";
 import { FiltersSearchPage } from "~/components/layout/filter-search-page";
 import { variants } from "~/components/link";
@@ -355,13 +356,16 @@ function NoResults() {
   );
 }
 
+export let toggleSearchFiltersDrawer = (_open: boolean) => {};
 function FiltersDrawer({
   filtersPosition,
 }: {
   filtersPosition: "sidebar" | "drawer";
 }) {
+  const [open, setOpen] = useState(false);
+  toggleSearchFiltersDrawer = setOpen;
   return (
-    <Dialog.Root>
+    <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger asChild>
         <Button
           variant="outline"
@@ -375,40 +379,27 @@ function FiltersDrawer({
           <span className="uppercase">Filter</span>
         </Button>
       </Dialog.Trigger>
-      <Dialog.Portal>
-        <Dialog.Overlay
-          className="fixed inset-0 z-10 bg-black/50 data-[state=open]:animate-fade-in"
-          style={{ "--fade-in-duration": "100ms" } as React.CSSProperties}
-        />
-        <Dialog.Content
-          onCloseAutoFocus={(e) => e.preventDefault()}
-          className={clsx([
-            "fixed inset-y-0 z-10 w-full bg-(--color-background) py-4 md:max-w-[430px]",
-            "right-0 data-[state=open]:animate-enter-from-right",
-          ])}
-          aria-describedby={undefined}
-        >
-          <div className="space-y-1">
-            <div className="flex items-center justify-between gap-2 px-5">
-              <Dialog.Title asChild className="py-2.5 font-semibold uppercase">
-                <span>Filters</span>
-              </Dialog.Title>
-              <Dialog.Close asChild>
-                <button
-                  type="button"
-                  className="translate-x-2 p-2"
-                  aria-label="Close filters drawer"
-                >
-                  <XIcon className="h-4 w-4" />
-                </button>
-              </Dialog.Close>
-            </div>
-            <ScrollArea className="max-h-[calc(100vh-4.5rem)]" size="sm">
-              <FiltersSearchPage className="px-[52px]" />
-            </ScrollArea>
+      <AnimatedDrawer open={open}>
+        <div className="space-y-1">
+          <div className="flex items-center justify-between gap-2 px-5">
+            <Dialog.Title asChild className="py-2.5 font-semibold uppercase">
+              <span>Filters</span>
+            </Dialog.Title>
+            <Dialog.Close asChild>
+              <button
+                type="button"
+                className="translate-x-2 p-2"
+                aria-label="Close filters drawer"
+              >
+                <XIcon className="h-4 w-4" />
+              </button>
+            </Dialog.Close>
           </div>
-        </Dialog.Content>
-      </Dialog.Portal>
+          <ScrollArea className="max-h-[calc(100vh-4.5rem)]" size="sm">
+            <FiltersSearchPage className="px-[52px]" />
+          </ScrollArea>
+        </div>
+      </AnimatedDrawer>
     </Dialog.Root>
   );
 }

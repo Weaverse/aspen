@@ -181,7 +181,7 @@ function SearchResultItem({
               <div className="text-body-subtle text-sm">By {vendor}</div>
             )} */}
             {styledTitle ? (
-              <RevealUnderline as="div">
+              <RevealUnderline as="div" className="ff-heading">
                 <span dangerouslySetInnerHTML={{ __html: styledTitle }} />
               </RevealUnderline>
             ) : (

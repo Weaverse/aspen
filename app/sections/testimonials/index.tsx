@@ -1,16 +1,34 @@
 import { createSchema } from "@weaverse/hydrogen";
-import { forwardRef, useEffect } from "react";
+import { forwardRef, useEffect, useState } from "react";
 import type { Swiper as SwiperType } from "swiper";
+import { EffectFade } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { backgroundInputs } from "~/components/background-image";
 import type { SectionProps } from "~/components/section";
 import { layoutInputs, Section } from "~/components/section";
+import "swiper/css";
+import "swiper/css/effect-fade";
 
 type TestimonialProps = SectionProps;
 
 const TestimonialIndex = forwardRef<HTMLElement, TestimonialProps>(
   (props, ref) => {
     const { children, ...rest } = props;
+    const [isSwiperInitialized, setIsSwiperInitialized] = useState(false);
+
+    useEffect(() => {
+      setIsSwiperInitialized(false);
+    }, [children]);
+
+    useEffect(() => {
+      if (!isSwiperInitialized) {
+        const fallbackTimer = setTimeout(() => {
+          setIsSwiperInitialized(true);
+        }, 500);
+        return () => clearTimeout(fallbackTimer);
+      }
+    }, [isSwiperInitialized]);
+
     useEffect(() => {
       // Event handler functions
       const handlePrevSlide = (event: Event) => {
@@ -43,16 +61,30 @@ const TestimonialIndex = forwardRef<HTMLElement, TestimonialProps>(
         document.removeEventListener("testimonial-next-slide", handleNextSlide);
       };
     }, []);
+
     return (
       <Section ref={ref} {...rest} containerClassName="overflow-hidden">
         <Swiper
           loop={true}
           slidesPerView={1}
-          className="mySwiper h-full w-full"
-          effect={"slide"}
+          spaceBetween={0}
+          effect="fade"
+          fadeEffect={{
+            crossFade: true,
+          }}
+          modules={[EffectFade]}
+          speed={500}
+          allowTouchMove={true}
+          className={`testimonial-swiper h-full w-full transition-opacity duration-300 ${
+            isSwiperInitialized ? "opacity-100" : "opacity-0"
+          }`}
           onSwiper={(swiperInstance) => {
-            // Store the Swiper instance in a global variable for easy access
             window.testimonialSwiper = swiperInstance;
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                setIsSwiperInitialized(true);
+              });
+            });
           }}
         >
           {Array.isArray(children)

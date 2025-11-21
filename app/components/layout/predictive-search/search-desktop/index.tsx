@@ -17,6 +17,7 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
   const navigate = useNavigate();
   let [searchQuery, setSearchQuery] = useState("");
   let [hasSearched, setHasSearched] = useState(false);
+  let [isSearching, setIsSearching] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: close the dialog when the location changes, aka when the user navigates to a search result page
@@ -25,10 +26,24 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
     setIsSearchOpen(false);
     setHasSearched(false);
     setSearchQuery("");
+    setIsSearching(false);
   }, [location]);
 
   return (
-    <Dialog.Root open={open} onOpenChange={setOpen}>
+    <Dialog.Root
+      open={open}
+      onOpenChange={(isOpen) => {
+        setOpen(isOpen);
+        if (!isOpen) {
+          if (debounceRef.current) {
+            clearTimeout(debounceRef.current);
+          }
+          setSearchQuery("");
+          setHasSearched(false);
+          setIsSearching(false);
+        }
+      }}
+    >
       <Dialog.Trigger
         asChild
         className="hidden h-8 w-8 items-center justify-center focus-visible:outline-hidden lg:flex"
@@ -43,7 +58,7 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
             <>
               <Dialog.Overlay forceMount>
                 <motion.div
-                  className="fixed inset-0 top-[calc(var(--height-nav)+var(--topbar-height))] z-3 bg-black/50 backdrop-blur-xs"
+                  className="fixed inset-0 top-[calc(var(--height-nav)+var(--topbar-height))] z-9 bg-black/50 backdrop-blur-xs"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
@@ -52,7 +67,7 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
               <Dialog.Content
                 forceMount
                 onCloseAutoFocus={(e) => e.preventDefault()}
-                className="fixed inset-x-0 top-[calc(var(--height-nav)+var(--topbar-height))] z-3"
+                className="fixed inset-x-0 top-[calc(var(--height-nav)+var(--topbar-height))] z-9"
                 aria-describedby={undefined}
               >
                 <motion.div
@@ -64,13 +79,13 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
                     damping: 25,
                     stiffness: 150,
                   }}
-                  className="min-h-[300px] w-full border-line-subtle border-t bg-(--color-header-bg)"
+                  className="w-full border-line-subtle border-t bg-(--color-header-bg)"
                 >
                   <VisuallyHidden.Root asChild>
                     <Dialog.Title>Predictive search</Dialog.Title>
                   </VisuallyHidden.Root>
                   <div className="relative p-6">
-                    <PredictiveSearchForm>
+                    <PredictiveSearchForm key={open ? "open" : "closed"}>
                       {({ fetchResults, inputRef }) => (
                         <div className="mx-auto mb-6 flex max-w-(--page-width) items-center gap-3 border-line-subtle border-b px-3">
                           <button
@@ -79,8 +94,12 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
                             onClick={() => {
                               if (inputRef.current?.value.trim()) {
                                 const value = inputRef.current.value.trim();
+                                if (debounceRef.current) {
+                                  clearTimeout(debounceRef.current);
+                                }
                                 setSearchQuery(value);
                                 setHasSearched(true);
+                                setIsSearching(false);
                                 fetchResults(value);
                               }
                             }}
@@ -94,15 +113,22 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
                               const value = e.target.value;
                               setSearchQuery(value);
                               const trimmed = value.trim();
-                              setHasSearched(Boolean(trimmed));
+
                               if (debounceRef.current) {
                                 clearTimeout(debounceRef.current);
                               }
+
                               if (!trimmed) {
+                                setHasSearched(false);
+                                setIsSearching(false);
                                 fetchResults("");
                                 return;
                               }
+
+                              setIsSearching(true);
                               debounceRef.current = setTimeout(() => {
+                                setHasSearched(true);
+                                setIsSearching(false);
                                 fetchResults(trimmed);
                               }, 300);
                             }}
@@ -111,8 +137,12 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
                                 e.preventDefault();
                                 if (inputRef.current?.value.trim()) {
                                   const value = inputRef.current.value.trim();
+                                  if (debounceRef.current) {
+                                    clearTimeout(debounceRef.current);
+                                  }
                                   setSearchQuery(value);
                                   setHasSearched(true);
+                                  setIsSearching(false);
                                   try {
                                     const raw =
                                       localStorage.getItem("searchHistory");
@@ -142,9 +172,13 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
                             className="shrink-0 p-1 text-gray-500 hover:text-gray-700"
                             onClick={() => {
                               if (inputRef.current) {
+                                if (debounceRef.current) {
+                                  clearTimeout(debounceRef.current);
+                                }
                                 inputRef.current.value = "";
                                 setSearchQuery("");
                                 setHasSearched(false);
+                                setIsSearching(false);
                                 fetchResults("");
                               }
                             }}
@@ -154,8 +188,71 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
                         </div>
                       )}
                     </PredictiveSearchForm>
-                    {!hasSearched && <PopularSearch />}
-                    <PredictiveSearchResults />
+                    <motion.div
+                      className="relative min-h-[200px] overflow-hidden"
+                      initial={false}
+                      animate={{
+                        height: hasSearched && !isSearching ? 460 : "auto",
+                      }}
+                      transition={{
+                        duration: 0.4,
+                        ease: [0.32, 0.72, 0, 1],
+                      }}
+                    >
+                      <AnimatePresence mode="wait" initial={false}>
+                        {!(hasSearched || isSearching) && (
+                          <motion.div
+                            key="popular"
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{
+                              duration: 0.4,
+                              ease: [0.32, 0.72, 0, 1],
+                              delay: 0.05,
+                            }}
+                          >
+                            <PopularSearch />
+                          </motion.div>
+                        )}
+                        {isSearching && (
+                          <motion.div
+                            key="searching"
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{
+                              duration: 0.4,
+                              ease: [0.32, 0.72, 0, 1],
+                              delay: 0.05,
+                            }}
+                            className="mx-auto flex max-w-(--page-width) items-center justify-center py-12"
+                          >
+                            <p className="text-gray-500 text-sm">
+                              Searching...
+                            </p>
+                          </motion.div>
+                        )}
+                        {hasSearched && !isSearching && (
+                          <motion.div
+                            key="results"
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{
+                              duration: 0.4,
+                              ease: [0.32, 0.72, 0, 1],
+                              delay: 0.05,
+                            }}
+                            className="h-[460px] overflow-y-auto"
+                          >
+                            <PredictiveSearchResults
+                              searchFetcher={undefined}
+                            />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
                   </div>
                 </motion.div>
               </Dialog.Content>
@@ -167,23 +264,25 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
   );
 }
 
-function PredictiveSearchResults() {
+function PredictiveSearchResults({ searchFetcher }: { searchFetcher?: any }) {
   const [activeType, setActiveType] = useState("products");
   const { results, totalResults, searchTerm } = usePredictiveSearch();
   const queries = results?.find(({ type }) => type === "queries");
   const articles = results?.find(({ type }) => type === "articles");
   const products = results?.find(({ type }) => type === "products");
 
+  const isLoading = searchFetcher?.state === "loading";
+
   if (!totalResults) {
     return (
-      <div className="z-10 mx-auto flex max-w-(--page-width) items-center justify-start">
+      <div className="z-9 mx-auto max-w-(--page-width)">
         <NoResults searchTerm={searchTerm} />
       </div>
     );
   }
   return (
-    <div className="z-10 w-full bg-(--color-header-bg)">
-      <div className="mx-auto flex max-w-(--page-width) gap-6 overflow-hidden py-6">
+    <div className="z-9 mx-auto max-w-(--page-width)">
+      <div className="flex gap-6 overflow-hidden py-6">
         <div className="flex w-1/5 flex-col gap-4 divide-y divide-line">
           <PredictiveSearchResult type="queries" items={queries?.items} />
         </div>
@@ -246,7 +345,7 @@ function NoResults({ searchTerm }: { searchTerm: MutableRefObject<string> }) {
     return null;
   }
   return (
-    <p className="w-[640px] bg-[--color-header-bg] p-6">
+    <p className="p-6">
       No results found for <q>{searchTerm.current}</q>
     </p>
   );

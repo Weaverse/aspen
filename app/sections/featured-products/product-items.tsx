@@ -3,12 +3,13 @@ import {
   type ComponentLoaderArgs,
   createSchema,
   type HydrogenComponentProps,
+  IMAGES_PLACEHOLDERS,
   type WeaverseCollection,
 } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import clsx from "clsx";
-import { forwardRef, useMemo, useState } from "react";
+import { forwardRef, useEffect, useMemo, useState } from "react";
 import { Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { ProductCard } from "~/components/product/product-card";
@@ -116,8 +117,36 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
     const [activeSlide, setActiveSlide] = useState(0);
     const [isBeginning, setIsBeginning] = useState(true);
     const [isEnd, setIsEnd] = useState(false);
-    const productsConnection = loaderData?.products ?? [];
-    const totalProducts = productsConnection.length;
+    const [isSwiperInitialized, setIsSwiperInitialized] = useState(false);
+
+    useEffect(() => {
+      setIsSwiperInitialized(false);
+    }, [layout, gap, slidesPerView, itemsPerRow]);
+
+    useEffect(() => {
+      if (!isSwiperInitialized) {
+        const fallbackTimer = setTimeout(() => {
+          setIsSwiperInitialized(true);
+        }, 500);
+        return () => clearTimeout(fallbackTimer);
+      }
+    }, [isSwiperInitialized]);
+
+    let productsConnection = loaderData?.products ?? [];
+
+    // Show placeholders if no products available
+    if (!productsConnection.length) {
+      const placeholderCount =
+        layout === "grid" ? Number(itemsPerRow) : slidesPerView;
+      productsConnection = new Array(placeholderCount)
+        .fill(null)
+        .map((_, index) => ({
+          ...PRODUCT_PLACEHOLDER,
+          id: `placeholder-${index}`,
+        }));
+    }
+
+    const totalProducts = loaderData?.products?.length ?? 0;
     const maxProductsToShow = productsToShow;
     const displayedProducts = productsConnection.slice(0, maxProductsToShow);
     const hasMoreProducts = totalProducts > maxProductsToShow;
@@ -143,18 +172,14 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
     }, [arrowsColor]);
 
     const arrowShapeClasses = useMemo(() => {
-      if (arrowsShape === "circle") return "rounded-full";
-      if (arrowsShape === "square") return "";
+      if (arrowsShape === "circle") {
+        return "rounded-full";
+      }
+      if (arrowsShape === "square") {
+        return "";
+      }
       return "rounded-md";
     }, [arrowsShape]);
-
-    if (!productsConnection.length) {
-      return (
-        <div ref={ref} className="py-8 text-center text-gray-500">
-          No products found.
-        </div>
-      );
-    }
 
     if (layout === "grid") {
       return (
@@ -167,12 +192,20 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
               spaceBetween={gap}
               loop={true}
               onSlideChange={(swiper) => setActiveSlide(swiper.activeIndex)}
+              onSwiper={() => {
+                  requestAnimationFrame(() => {
+                    setIsSwiperInitialized(true);
+                });
+              }}
               navigation={{
                 nextEl: ".featured-products-next",
                 prevEl: ".featured-products-prev",
               }}
               modules={[Navigation]}
-              className="mb-6 w-full py-4"
+              className={clsx(
+                "mb-6 w-full py-4 transition-opacity duration-300",
+                isSwiperInitialized ? "opacity-100" : "opacity-0",
+              )}
             >
               {displayedProducts.map((product) => (
                 <SwiperSlide key={product.id}>
@@ -252,6 +285,9 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
           onSwiper={(swiper) => {
             setIsBeginning(swiper.isBeginning);
             setIsEnd(swiper.isEnd);
+            requestAnimationFrame(() => {
+                setIsSwiperInitialized(true);
+            });
           }}
           breakpoints={{
             640: {
@@ -272,7 +308,10 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
             prevEl: ".featured-products-prev",
           }}
           modules={[Navigation]}
-          className="mb-6 w-full py-4"
+          className={clsx(
+            "mb-6 w-full py-4 transition-opacity duration-300",
+            isSwiperInitialized ? "opacity-100" : "opacity-0",
+          )}
         >
           {displayedProducts.map((product, index) => (
             <SwiperSlide key={index}>
@@ -317,6 +356,79 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
   },
 );
 
+const PRODUCT_PLACEHOLDER = {
+  id: "gid://shopify/Product/placeholder",
+  title: "Product Title",
+  handle: "product-placeholder",
+  vendor: "Vendor",
+  featuredImage: {
+    id: "gid://shopify/ProductImage/placeholder",
+    url: IMAGES_PLACEHOLDERS.product_1,
+    altText: "Product placeholder",
+    width: 1000,
+    height: 1000,
+  },
+  images: {
+    nodes: [
+      {
+        id: "gid://shopify/ProductImage/placeholder",
+        url: IMAGES_PLACEHOLDERS.product_1,
+        altText: "Product placeholder",
+        width: 1000,
+        height: 1000,
+      },
+    ],
+  },
+  badges: [],
+  publishedAt: new Date().toISOString(),
+  options: [],
+  priceRange: {
+    minVariantPrice: {
+      amount: "0.00",
+      currencyCode: "USD",
+    },
+    maxVariantPrice: {
+      amount: "0.00",
+      currencyCode: "USD",
+    },
+  },
+  compareAtPriceRange: {
+    minVariantPrice: {
+      amount: "0.00",
+      currencyCode: "USD",
+    },
+    maxVariantPrice: {
+      amount: "0.00",
+      currencyCode: "USD",
+    },
+  },
+  variants: {
+    nodes: [],
+  },
+  selectedOrFirstAvailableVariant: {
+    id: "gid://shopify/ProductVariant/placeholder",
+    title: "Default",
+    availableForSale: true,
+    selectedOptions: [],
+    image: {
+      id: "gid://shopify/ProductImage/placeholder",
+      url: IMAGES_PLACEHOLDERS.product_1,
+      altText: "Product placeholder",
+      width: 1000,
+      height: 1000,
+    },
+    price: {
+      amount: "0.00",
+      currencyCode: "USD",
+    },
+    compareAtPrice: null,
+    product: {
+      title: "Product Title",
+      handle: "product-placeholder",
+    },
+  },
+};
+
 export default ProductItems;
 
 const PRODUCTS_BY_COLLECTION_QUERY = `#graphql
@@ -342,7 +454,13 @@ const PRODUCTS_BY_COLLECTION_QUERY = `#graphql
 
 export const loader = async ({ weaverse, data }: ComponentLoaderArgs) => {
   const { language, country } = weaverse.storefront.i18n;
-  const collectionHandle = data.collection.handle;
+  const collectionHandle = data.collection?.handle;
+
+  // Return empty products if no collection is selected
+  if (!collectionHandle) {
+    return { collection: data.collection, products: [] };
+  }
+
   const res = await weaverse.storefront.query(PRODUCTS_BY_COLLECTION_QUERY, {
     variables: {
       handle: collectionHandle,
@@ -425,7 +543,7 @@ export const schema = createSchema({
             max: 12,
             step: 1,
           },
-          defaultValue: 4,
+          defaultValue: 8,
           helpText:
             "Maximum number of products to display. If more products are available, a 'See More Products' button will appear.",
         },

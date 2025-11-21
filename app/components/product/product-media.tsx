@@ -269,9 +269,9 @@ export function ProductMedia(props: ProductMediaProps) {
                   }
                 : false
             }
-            pagination={{ type: "fraction" }}
+            // pagination={{ type: "fraction" }}
             modules={[Pagination, Navigation, Thumbs]}
-            className="overflow-visible pb-10 md:overflow-hidden md:pb-0 md:[&_.swiper-pagination]:hidden"
+            className="overflow-visible pb-10 md:overflow-hidden md:pb-0"
             onSlideChange={(swiper) =>
               setActiveSlide(swiper.realIndex || swiper.activeIndex)
             }
@@ -322,14 +322,11 @@ export function ProductMedia(props: ProductMediaProps) {
           {/* Navigation Buttons */}
           {swiper && mediaLayout === "slider" && (
             <div
-              className={clsx(
-                "absolute z-[5] hidden items-center gap-2 md:flex",
-                {
-                  "right-6 bottom-6": navigationStyle === "corner",
-                  "pointer-events-none inset-0 items-center justify-between":
-                    navigationStyle === "sides",
-                },
-              )}
+              className={clsx("absolute z-[5] flex items-center gap-2", {
+                "right-6 bottom-6": navigationStyle === "corner",
+                "pointer-events-none inset-0 items-center justify-between":
+                  navigationStyle === "sides",
+              })}
             >
               <button
                 type="button"
@@ -493,16 +490,12 @@ function ProductMediaDots({
   onDotClick,
 }: ProductMediaDotsProps) {
   if (slidesCount === 0) return null;
-
-  // Calculate maximum width for dots container (80% of image width)
   const maxContainerWidth = "min(320px, 80vw)";
-
-  // Calculate individual dot width based on slides count
   const calculateDotWidth = (count: number) => {
-    if (count <= 4) return "48px"; // w-12 equivalent
-    if (count <= 6) return "32px"; // w-8 equivalent
-    if (count <= 8) return "24px"; // w-6 equivalent
-    return "16px"; // w-4 equivalent for many slides
+    if (count <= 4) return "48px";
+    if (count <= 6) return "32px";
+    if (count <= 8) return "24px";
+    return "16px";
   };
 
   const dotWidth = calculateDotWidth(slidesCount);
@@ -521,7 +514,7 @@ function ProductMediaDots({
           type="button"
           className={cn(
             dotVariants({
-              isActive: index <= activeIndex, // Progressive fill like before
+              isActive: index <= activeIndex,
             }),
           )}
           style={{

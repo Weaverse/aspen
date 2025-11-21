@@ -34,18 +34,23 @@ interface VideoItemProps {
   video: WeaverseVideo;
   date: string;
   author: string;
+  videoTitle: string;
   videoHandle: WeaverseBlog;
   contentBackgroundColor?: string;
 }
 
 let VideoItem = forwardRef<HTMLElement, VideoItemProps>((props, ref) => {
-  let { video, date, author, videoHandle, contentBackgroundColor } = props;
+  let { video, date, author, videoTitle, videoHandle, contentBackgroundColor } =
+    props;
 
   const Tag = videoHandle?.handle ? Link : "div";
   const hasVideo = video?.url?.trim();
 
   return (
-    <div ref={ref as any} className="flex aspect-[3/4] h-full w-full flex-col">
+    <div
+      ref={ref as any}
+      className="flex aspect-(--aspect-ratio) h-full w-full flex-col"
+    >
       <Tag to={`/blogs/${videoHandle?.handle}`} className="flex h-full w-full">
         <div className="relative h-full w-full overflow-hidden">
           {hasVideo ? (
@@ -109,7 +114,7 @@ let VideoItem = forwardRef<HTMLElement, VideoItemProps>((props, ref) => {
           >
             <div className="flex flex-col gap-1">
               <p className="font-open-sans font-semibold text-[#29231E] text-sm leading-[1.6] tracking-[0.02em]">
-                {videoHandle?.handle || "@videohandle"}
+                {videoTitle}
               </p>
               <p className="font-open-sans text-[#29231E] text-sm leading-[1.6] tracking-[0.02em]">
                 {date} — {author}
@@ -134,6 +139,12 @@ export let schema: HydrogenComponent["schema"] = {
           name: "video",
           label: "Video",
           helpText: "Support YouTube, Vimeo, MP4, WebM, and HLS streams.",
+        },
+        {
+          type: "text",
+          name: "videoTitle",
+          label: "Video title",
+          defaultValue: "Video title",
         },
         {
           type: "blog",
