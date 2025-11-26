@@ -6,13 +6,13 @@ import {
 } from "@phosphor-icons/react";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import * as Dialog from "@radix-ui/react-dialog";
+import { AnimatePresence, motion } from "framer-motion";
 import { forwardRef, useState } from "react";
 import { Image } from "~/components/image";
 import Link from "~/components/link";
 import { ScrollArea } from "~/components/scroll-area";
 import { useShopMenu } from "~/hooks/use-shop-menu";
 import type { SingleMenuItem } from "~/types/menu";
-import { cn } from "~/utils/cn";
 
 export function MobileMenu() {
   const { headerMenu } = useShopMenu();
@@ -20,7 +20,6 @@ export function MobileMenu() {
     null,
   );
   const [mainMenuOpen, setMainMenuOpen] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
 
   if (!headerMenu) return <MenuTrigger />;
 
@@ -30,70 +29,71 @@ export function MobileMenu() {
     setMainMenuOpen(false);
   };
 
-  const handleMainOpenChange = (nextOpen: boolean) => {
-    if (nextOpen) {
-      setIsAnimating(false);
-      setMainMenuOpen(true);
-    } else {
-      setIsAnimating(true);
-      setTimeout(() => {
-        setMainMenuOpen(false);
-        setIsAnimating(false);
-      }, 300);
-    }
-  };
-
   return (
-    <Dialog.Root open={mainMenuOpen} onOpenChange={handleMainOpenChange}>
+    <Dialog.Root open={mainMenuOpen} onOpenChange={setMainMenuOpen}>
       <Dialog.Trigger
         asChild
         className="relative flex h-8 w-8 items-center justify-center focus-visible:outline-hidden lg:hidden"
       >
         <MenuTrigger />
       </Dialog.Trigger>
-      <Dialog.Portal>
-        <Dialog.Overlay
-          className={cn([
-            "fixed inset-0 z-10 bg-black/50 transition-opacity duration-300",
-            mainMenuOpen && !isAnimating ? "opacity-100" : "opacity-0",
-          ])}
-        />
-        <Dialog.Content
-          onCloseAutoFocus={(e) => e.preventDefault()}
-          className={cn([
-            "fixed inset-0 left-0 z-10 h-screen bg-(--color-header-bg-hover) pt-4 pb-2",
-            "transition-transform duration-300 ease-in-out",
-            "data-[state=open]:animate-enter-from-left",
-            mainMenuOpen && !isAnimating
-              ? "translate-x-0"
-              : "-translate-x-full",
-            "focus-visible:outline-hidden",
-            "uppercase",
-          ])}
-          aria-describedby={undefined}
-        >
-          <Dialog.Title asChild>
-            <div className="px-4 font-semibold uppercase">Menu</div>
-          </Dialog.Title>
-          <Dialog.Close asChild>
-            <XIcon className="fixed top-4 right-4 h-5 w-5" />
-          </Dialog.Close>
-          <div className="mt-4 border-line-subtle border-t" />
-          <div className="py-2">
-            <ScrollArea className="h-[calc(100vh-5rem)]">
-              <div className="flex w-full flex-col gap-1 px-4">
-                {headerMenu.items.map((item) => (
-                  <TopLevelMenuItem
-                    key={item.id}
-                    item={item as unknown as SingleMenuItem}
-                    onOpenSubMenu={setActiveSubMenu}
-                    onCloseAll={closeAllMenus}
-                  />
-                ))}
-              </div>
-            </ScrollArea>
-          </div>
-        </Dialog.Content>
+      <Dialog.Portal forceMount>
+        <AnimatePresence>
+          {mainMenuOpen && (
+            <>
+              <Dialog.Overlay forceMount>
+                <motion.div
+                  className="fixed inset-0 z-10 bg-black/50 backdrop-blur-xs"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                />
+              </Dialog.Overlay>
+              <Dialog.Content
+                forceMount
+                onCloseAutoFocus={(e) => e.preventDefault()}
+                className="fixed inset-y-0 left-0 z-10"
+                aria-describedby={undefined}
+              >
+                <motion.div
+                  initial={{ x: "-100vw" }}
+                  animate={{ x: 0 }}
+                  exit={{ x: "-100vw" }}
+                  transition={{
+                    type: "spring",
+                    damping: 25,
+                    stiffness: 150,
+                  }}
+                  className="h-full w-[360px] bg-(--color-header-bg-hover) pt-4 pb-2 uppercase"
+                >
+                  <Dialog.Title asChild>
+                    <div className="px-4 font-semibold uppercase">Menu</div>
+                  </Dialog.Title>
+                  <Dialog.Close asChild>
+                    <button type="button" className="fixed top-4 right-4">
+                      <XIcon className="h-5 w-5" />
+                    </button>
+                  </Dialog.Close>
+                  <div className="mt-4 border-line-subtle border-t" />
+                  <div className="py-2">
+                    <ScrollArea className="h-[calc(100vh-5rem)]">
+                      <div className="flex w-full flex-col gap-1 px-4">
+                        {headerMenu.items.map((item) => (
+                          <TopLevelMenuItem
+                            key={item.id}
+                            item={item as unknown as SingleMenuItem}
+                            onOpenSubMenu={setActiveSubMenu}
+                            onCloseAll={closeAllMenus}
+                          />
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  </div>
+                </motion.div>
+              </Dialog.Content>
+            </>
+          )}
+        </AnimatePresence>
       </Dialog.Portal>
 
       {/* SubMenu Dialog */}
@@ -151,77 +151,88 @@ function SubMenuDialog({
   onCloseAll: () => void;
 }) {
   const [open, setOpen] = useState(true);
-  const [isAnimating, setIsAnimating] = useState(false);
+
+  const handleClose = () => {
+    setOpen(false);
+  };
 
   const handleOpenChange = (nextOpen: boolean) => {
-    if (nextOpen) {
-      setIsAnimating(false);
-      setOpen(true);
-    } else {
-      setIsAnimating(true);
-      setTimeout(() => {
-        setOpen(false);
-        setIsAnimating(false);
-        onClose();
-      }, 300);
-    }
+    setOpen(nextOpen);
   };
+
   return (
     <Dialog.Root open={open} onOpenChange={handleOpenChange}>
-      <Dialog.Portal>
-        <Dialog.Overlay
-          className={cn([
-            "fixed inset-0 z-20 bg-black/50 transition-opacity duration-300",
-            open && !isAnimating ? "opacity-100" : "opacity-0",
-          ])}
-        />
-        <Dialog.Content
-          onCloseAutoFocus={(e) => e.preventDefault()}
-          className={cn([
-            "fixed inset-0 left-0 z-20 h-screen bg-(--color-header-bg-hover) pt-4 pb-2",
-            "transition-transform duration-300 ease-in-out",
-            open && !isAnimating ? "translate-x-0" : "-translate-x-full",
-            "focus-visible:outline-hidden",
-            "uppercase",
-          ])}
-          aria-describedby={undefined}
-        >
-          <div className="flex items-center justify-between px-4">
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex h-6 w-6 items-center justify-center"
+      <Dialog.Portal forceMount>
+        <AnimatePresence onExitComplete={onClose}>
+          {open && (
+            <>
+              <Dialog.Overlay forceMount>
+                <motion.div
+                  className="fixed inset-0 z-20 bg-black/50 backdrop-blur-xs"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                />
+              </Dialog.Overlay>
+              <Dialog.Content
+                forceMount
+                onCloseAutoFocus={(e) => e.preventDefault()}
+                className="fixed inset-y-0 left-0 z-20"
+                aria-describedby={undefined}
               >
-                <CaretLeftIcon className="h-5 w-5" />
-              </button>
-              <Dialog.Title asChild>
-                <div className="font-semibold uppercase">{item.title}</div>
-              </Dialog.Title>
-            </div>
-            <button
-              type="button"
-              onClick={onCloseAll}
-              className="flex h-6 w-6 items-center justify-center"
-            >
-              <XIcon className="h-5 w-5" />
-            </button>
-          </div>
-          <div className="mt-4 border-line-subtle border-t" />
-          <div className="py-2">
-            <ScrollArea className="h-[calc(100vh-5rem)]">
-              <div className="flex w-full flex-col gap-1 px-4">
-                {item.items?.map((subItem) => (
-                  <CollapsibleMenuItem
-                    key={subItem.id}
-                    item={subItem}
-                    onClose={onCloseAll}
-                  />
-                ))}
-              </div>
-            </ScrollArea>
-          </div>
-        </Dialog.Content>
+                <motion.div
+                  initial={{ x: "-100vw" }}
+                  animate={{ x: 0 }}
+                  exit={{ x: "-100vw" }}
+                  transition={{
+                    type: "spring",
+                    damping: 25,
+                    stiffness: 150,
+                  }}
+                  className="h-full w-[360px] bg-(--color-header-bg-hover) pt-4 pb-2 uppercase"
+                >
+                  <div className="flex items-center justify-between px-4">
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={handleClose}
+                        className="flex h-6 w-6 items-center justify-center"
+                      >
+                        <CaretLeftIcon className="h-5 w-5" />
+                      </button>
+                      <Dialog.Title asChild>
+                        <div className="font-semibold uppercase">
+                          {item.title}
+                        </div>
+                      </Dialog.Title>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={onCloseAll}
+                      className="flex h-6 w-6 items-center justify-center"
+                    >
+                      <XIcon className="h-5 w-5" />
+                    </button>
+                  </div>
+                  <div className="mt-4 border-line-subtle border-t" />
+                  <div className="py-2">
+                    <ScrollArea className="h-[calc(100vh-5rem)]">
+                      <div className="flex w-full flex-col gap-1 px-4">
+                        {item.items?.map((subItem) => (
+                          <CollapsibleMenuItem
+                            key={subItem.id}
+                            item={subItem}
+                            onClose={onCloseAll}
+                          />
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  </div>
+                </motion.div>
+              </Dialog.Content>
+            </>
+          )}
+        </AnimatePresence>
       </Dialog.Portal>
     </Dialog.Root>
   );
@@ -282,8 +293,12 @@ function CollapsibleMenuItem({
         </button>
       </Collapsible.Trigger>
       <Collapsible.Content className="pl-4">
-        {items.map((item) => (
-          <CollapsibleMenuItem key={item.id} item={item} onClose={onClose} />
+        {items.map((subItem) => (
+          <CollapsibleMenuItem
+            key={subItem.id}
+            item={subItem}
+            onClose={onClose}
+          />
         ))}
       </Collapsible.Content>
     </Collapsible.Root>

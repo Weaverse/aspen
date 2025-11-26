@@ -64,7 +64,12 @@ function SearchResultItem({
   },
 }: SearchResultItemProps) {
   return (
-    <li key={id}>
+    <li
+      key={id}
+      className={clsx(
+        __typename === "Product" && "min-w-0 flex-[0_0_calc(25%-12px)]",
+      )}
+    >
       <Link
         className="flex flex-col gap-5"
         to={
@@ -75,20 +80,19 @@ function SearchResultItem({
         data-type={__typename}
       >
         {__typename === "Product" && (
-          <div className="shrink-0">
+          <div className="aspect-square w-full shrink-0">
             {image?.url && (
               <Image
                 alt={image.altText ?? ""}
                 src={image.url}
-                className="max-w-full"
                 aspectRatio="1/1"
               />
             )}
           </div>
         )}
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-1">
           {styledTitle ? (
-            <RevealUnderline as="div" className="w-fit">
+            <RevealUnderline as="div" className="ff-heading w-fit">
               <span dangerouslySetInnerHTML={{ __html: styledTitle }} />
             </RevealUnderline>
           ) : (
@@ -99,6 +103,7 @@ function SearchResultItem({
             >
               <RevealUnderline
                 className={clsx(
+                  "ff-heading",
                   __typename === "Product"
                     ? "line-clamp-1 font-semibold uppercase"
                     : "font-normal",

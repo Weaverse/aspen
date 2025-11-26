@@ -22,8 +22,8 @@ export default CollectionListDynamic;
 // Remove the COLLECTIONS_QUERY and loader since they'll be moved to collection-items
 
 export let schema: HydrogenComponentSchema = {
-  type: "collection-list-dynamic",
-  title: "Collection List Dynamic",
+  type: "feature-collection",
+  title: "Featured collections",
   childTypes: ["collection-content-dynamic", "collection-list-dynamic-items"],
   inspector: [
     {

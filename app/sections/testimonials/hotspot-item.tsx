@@ -10,17 +10,25 @@ import type { ImageAspectRatio } from "~/types/image";
 import { calculateAspectRatio } from "~/utils/image";
 
 interface HotspotsTestimonialProps extends HydrogenComponentProps {
-  image: string;
+  image: WeaverseImage | string;
   aspectRatio: ImageAspectRatio;
 }
 
 let HotspotsTestimonial = forwardRef<HTMLDivElement, HotspotsTestimonialProps>(
   (props, ref) => {
     let { image, aspectRatio, children, ...rest } = props;
-    let imageData: Partial<WeaverseImage> =
-      typeof image === "string"
-        ? { url: image, altText: "Hotspots image" }
-        : image;
+
+    let imageData: Partial<WeaverseImage>;
+    if (typeof image === "string") {
+      imageData = { url: image, altText: "Hotspots image" };
+    } else if (image && typeof image === "object") {
+      imageData = image;
+    } else {
+      imageData = {
+        url: IMAGES_PLACEHOLDERS.collection_1,
+        altText: "Hotspots image",
+      };
+    }
 
     return (
       <div
@@ -29,12 +37,14 @@ let HotspotsTestimonial = forwardRef<HTMLDivElement, HotspotsTestimonialProps>(
         className="relative h-full w-full flex-1 overflow-hidden"
         style={{ aspectRatio: calculateAspectRatio(imageData, aspectRatio) }}
       >
-        <Image
-          data={imageData}
-          sizes="auto"
-          className="z-0 h-full w-full object-cover"
-          data-motion="zoom-in"
-        />
+        {imageData.url && (
+          <Image
+            data={imageData}
+            sizes="auto"
+            className="z-0 h-full w-full object-cover"
+            data-motion="zoom-in"
+          />
+        )}
         <div className="absolute inset-0 z-10">{children}</div>
       </div>
     );

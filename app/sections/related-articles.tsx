@@ -3,7 +3,6 @@ import { createSchema } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
 import { Link, useLoaderData } from "react-router";
 import type { ArticleFragment } from "storefront-api.generated";
-import Heading from "~/components/heading";
 import { layoutInputs, Section, type SectionProps } from "~/components/section";
 import { getImageLoadingPriority } from "~/utils/image";
 import { ArticleCard, type ArticleCardProps } from "./blogs";
@@ -36,7 +35,7 @@ const RelatedArticles = forwardRef<HTMLElement, RelatedArticlesProps>(
 
     if (relatedArticles.length > 0) {
       return (
-        <Section ref={ref} {...rest} className="py-10">
+        <Section ref={ref} {...rest} className="">
           {/* Header section with title and view all button */}
           <div className="mb-10 flex w-full items-center justify-between">
             <div className="flex items-center gap-2">
@@ -64,9 +63,9 @@ const RelatedArticles = forwardRef<HTMLElement, RelatedArticlesProps>(
           </div>
 
           {/* Articles grid */}
-          <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="grid w-full grid-cols-1 gap-6 md:grid-cols-3 md:gap-4">
             {relatedArticles.slice(0, 3).map((article, i) => (
-              <div key={article.id} className="flex flex-col gap-5">
+              <div key={article.id} className="flex flex-col gap-4">
                 <ArticleCard
                   blogHandle={blog.handle}
                   article={article}

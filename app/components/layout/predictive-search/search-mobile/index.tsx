@@ -59,7 +59,7 @@ export function PredictiveSearchButtonMobile({ setIsSearchOpen }) {
                     damping: 25,
                     stiffness: 150,
                   }}
-                  className="h-full w-full max-w-[400px] bg-(--color-header-bg)"
+                  className="h-full w-[360px] bg-(--color-header-bg)"
                 >
                   <VisuallyHidden.Root asChild>
                     <Dialog.Title>Predictive search</Dialog.Title>

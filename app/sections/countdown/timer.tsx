@@ -80,52 +80,86 @@ const CountdownTimer = forwardRef<
   const isVertical = effectiveLayout === "vertical";
 
   const itemClass = cn(
-    "flex",
-    isVertical ? ["flex-col", "items-center", "gap-2"] : "items-end",
+    "flex items-end",
+    isVertical ? "flex-col items-center gap-2" : "gap-1",
   );
+
+  // Font size classes: scenario1 uses larger sizes (64px mobile, 80px desktop)
+  const numberFontClass =
+    parentScenario === "scenario1"
+      ? "text-[64px] md:text-[80px]"
+      : "text-4xl md:text-5xl";
+
+  // Padding classes: reduced padding on mobile for scenario1 to prevent overlap
+  const numberPaddingClass =
+    parentScenario === "scenario1" ? "px-1 md:px-3" : "px-6";
 
   return (
     <div
       ref={ref}
       {...rest}
       className={cn(
-        "countdown--timer inline-grid py-3 text-(--timer-color) sm:py-0",
-        parentScenario === "scenario2" ? "grid-cols-4" : "grid-cols-2 lg:grid-cols-4",
+        "countdown--timer inline-grid gap-x-1 py-3 text-(--timer-color) sm:gap-x-2 sm:py-0 md:gap-x-4",
+        parentScenario === "scenario2"
+          ? "grid-cols-4"
+          : "grid-cols-2 lg:grid-cols-4",
       )}
       data-motion="fade-up"
       style={timerStyle}
     >
       <div className={itemClass}>
-        <div className="flex items-end font-medium text-4xl leading-tight md:text-5xl">
-          <div className="ff-heading px-6 leading-10">
-            {remainingTime?.days || 0}
-          </div>
+        <div
+          className={cn(
+            "ff-heading !leading-[0.8] font-medium",
+            numberFontClass,
+            numberPaddingClass,
+          )}
+        >
+          {remainingTime?.days || 0}
         </div>
-        <div className="text-sm capitalize md:text-base">Days</div>
+        <div className="text-sm capitalize leading-none md:text-base">Days</div>
       </div>
       <div className={itemClass}>
-        <div className="flex items-end font-medium text-4xl leading-tight md:text-5xl">
-          <div className="ff-heading px-6 leading-10">
-            {formatNumber(remainingTime?.hours || 0)}
-          </div>
+        <div
+          className={cn(
+            "ff-heading !leading-[0.8] font-medium",
+            numberFontClass,
+            numberPaddingClass,
+          )}
+        >
+          {formatNumber(remainingTime?.hours || 0)}
         </div>
-        <div className="text-sm capitalize md:text-base">hours</div>
+        <div className="text-sm capitalize leading-none md:text-base">
+          hours
+        </div>
       </div>
       <div className={itemClass}>
-        <div className="flex items-end font-medium text-4xl leading-tight md:text-5xl">
-          <div className="ff-heading px-6 leading-10">
-            {formatNumber(remainingTime?.minutes || 0)}
-          </div>
+        <div
+          className={cn(
+            "ff-heading !leading-[0.8] font-medium",
+            numberFontClass,
+            numberPaddingClass,
+          )}
+        >
+          {formatNumber(remainingTime?.minutes || 0)}
         </div>
-        <div className="text-sm capitalize md:text-base">minutes</div>
+        <div className="text-sm capitalize leading-none md:text-base">
+          minutes
+        </div>
       </div>
       <div className={itemClass}>
-        <div className="flex items-end font-medium text-4xl leading-tight md:text-5xl">
-          <div className="ff-heading px-6 leading-10">
-            {formatNumber(remainingTime?.seconds || 0)}
-          </div>
+        <div
+          className={cn(
+            "ff-heading !leading-[0.8] font-medium",
+            numberFontClass,
+            numberPaddingClass,
+          )}
+        >
+          {formatNumber(remainingTime?.seconds || 0)}
         </div>
-        <div className="text-sm capitalize md:text-base">seconds</div>
+        <div className="text-sm capitalize leading-none md:text-base">
+          seconds
+        </div>
       </div>
     </div>
   );
