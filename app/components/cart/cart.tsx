@@ -1,4 +1,5 @@
 import { CaretDown, TrashIcon, X } from "@phosphor-icons/react";
+import * as Dialog from "@radix-ui/react-dialog";
 import * as Select from "@radix-ui/react-select";
 import {
   CartForm,
@@ -20,6 +21,11 @@ import { Link } from "~/components/link";
 import { calculateAspectRatio } from "~/utils/image";
 import { toggleCartDrawer } from "../layout/cart-drawer";
 import { CartBestSellers } from "./cart-best-sellers";
+import {
+  DiscountDialog,
+  GiftCardDialog,
+  NoteDialog,
+} from "./cart-summary-actions";
 
 type CartLine = OptimisticCart<CartApiQueryFragment>["lines"]["nodes"][0];
 type Layouts = "page" | "drawer";
@@ -43,6 +49,82 @@ export function Cart({
   return <CartEmpty hidden={linesCount} onClose={onClose} layout={layout} />;
 }
 
+// Dialog wrapper components with state management
+function CartNoteDialogWrapper({
+  cartNote,
+  cartNoteButtonText,
+}: {
+  cartNote: string;
+  cartNoteButtonText: string;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Dialog.Root open={open} onOpenChange={setOpen}>
+      <Dialog.Trigger asChild>
+        <button type="button" className="bg-[#F0EFED] p-3">
+          {cartNoteButtonText}
+        </button>
+      </Dialog.Trigger>
+      <NoteDialog
+        cartNote={cartNote}
+        open={open}
+        onClose={() => setOpen(false)}
+      />
+    </Dialog.Root>
+  );
+}
+
+function DiscountCodeDialogWrapper({
+  discountCodes,
+  discountCodeButtonText,
+}: {
+  discountCodes: CartApiQueryFragment["discountCodes"];
+  discountCodeButtonText: string;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Dialog.Root open={open} onOpenChange={setOpen}>
+      <Dialog.Trigger asChild>
+        <button type="button" className="bg-[#F0EFED] p-3">
+          {discountCodeButtonText}
+        </button>
+      </Dialog.Trigger>
+      <DiscountDialog
+        discountCodes={discountCodes}
+        open={open}
+        onClose={() => setOpen(false)}
+      />
+    </Dialog.Root>
+  );
+}
+
+function GiftCardDialogWrapper({
+  appliedGiftCards,
+  giftCardButtonText,
+}: {
+  appliedGiftCards: CartApiQueryFragment["appliedGiftCards"];
+  giftCardButtonText: string;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Dialog.Root open={open} onOpenChange={setOpen}>
+      <Dialog.Trigger asChild>
+        <button type="button" className="bg-[#F0EFED] p-3">
+          {giftCardButtonText}
+        </button>
+      </Dialog.Trigger>
+      <GiftCardDialog
+        appliedGiftCards={appliedGiftCards}
+        open={open}
+        onClose={() => setOpen(false)}
+      />
+    </Dialog.Root>
+  );
+}
+
 function CartDetails({
   layout,
   cart,
@@ -50,7 +132,23 @@ function CartDetails({
   layout: Layouts;
   cart: OptimisticCart<CartApiQueryFragment>;
 }) {
-  let { enableFreeShipping } = useThemeSettings();
+  let {
+    enableFreeShipping,
+    enableCartNote,
+    cartNoteButtonText,
+    enableDiscountCode,
+    discountCodeButtonText,
+    enableGiftCard,
+    giftCardButtonText,
+  } = useThemeSettings();
+
+  const { note, discountCodes, appliedGiftCards, isOptimistic } = cart;
+
+  // const isCartUpdating =
+  //   isOptimistic ||
+  //   dcRemoveFetcher.state !== "idle" ||
+  //   gcRemoveFetcher.state !== "idle";
+
   return (
     <>
       {layout === "drawer" && enableFreeShipping && (
@@ -77,7 +175,31 @@ function CartDetails({
           <CartLines lines={cart?.lines?.nodes} layout={layout} />
         </div>
         <CartSummary cost={cart.cost} layout={layout}>
-          <CartDiscounts discountCodes={cart.discountCodes} />
+          {(enableCartNote || enableDiscountCode || enableGiftCard) && (
+            <div className="mb-4 flex items-center justify-end gap-2">
+              {enableCartNote && (
+                <CartNoteDialogWrapper
+                  cartNote={note}
+                  cartNoteButtonText={cartNoteButtonText || "Add a note"}
+                />
+              )}
+              {enableDiscountCode && (
+                <DiscountCodeDialogWrapper
+                  discountCodes={discountCodes}
+                  discountCodeButtonText={
+                    discountCodeButtonText || "Discount code"
+                  }
+                />
+              )}
+              {enableGiftCard && (
+                <GiftCardDialogWrapper
+                  appliedGiftCards={appliedGiftCards}
+                  giftCardButtonText={giftCardButtonText || "Giftcard"}
+                />
+              )}
+            </div>
+          )}
+          {/* <CartDiscounts discountCodes={cart.discountCodes} /> */}
           {layout === "page" && (
             <>
               <div className="flex flex-col gap-6 border-line-subtle border-y py-6">
@@ -310,7 +432,7 @@ function CartSummary({
       )}
       {layout === "drawer" && (
         <dl className="grid">
-          <div className="flex items-center justify-between font-medium">
+          <div className="mt-5 flex items-center justify-between font-medium">
             <dt>Subtotal</dt>
             <dd>
               {cost?.subtotalAmount?.amount ? (
