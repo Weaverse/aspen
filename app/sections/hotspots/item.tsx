@@ -8,7 +8,7 @@ import {
 } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import type { CSSProperties } from "react";
-import { forwardRef, useRef, useState } from "react";
+import { forwardRef, useState } from "react";
 import { useFetcher } from "react-router";
 import type { ProductQuery } from "storefront-api.generated";
 import { QuickShop } from "~/components/product/quick-shop";
@@ -73,11 +73,11 @@ const HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>(
       `/api/product?handle=${product?.handle}`,
     );
 
-    // Handle click - open quick shop on mobile, popup on desktop
+    // Handle click - open quick shop on mobile and tablet, popup on desktop
     const handleClick = () => {
-      if (window.innerWidth < 768) {
-        // Mobile breakpoint
-        // On mobile, open QuickShop
+      if (window.innerWidth < 1024) {
+        // Mobile and tablet breakpoint
+        // On mobile and tablet, open QuickShop
         if (!quickShopData && state !== "loading") {
           load(apiPath);
         }
@@ -125,8 +125,8 @@ const HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>(
               onClick={handleClick}
             >
               <Icon style={{ width: iconSize, height: iconSize }} />
-              {/* Desktop popup */}
-              <div className="hidden md:block">
+              {/* Desktop popup - only on actual desktop screens (1024px+) */}
+              <div className="hidden lg:block">
                 <ProductPopup
                   product={loaderData?.product}
                   offsetX={offsetX}
@@ -144,14 +144,16 @@ const HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>(
         <Dialog.Root open={showQuickShop} onOpenChange={setShowQuickShop}>
           <Dialog.Portal>
             <Dialog.Overlay
-              className="fixed inset-0 z-10 bg-black/50 data-[state=open]:animate-fade-in"
-              style={{ "--fade-in-duration": "150ms" } as React.CSSProperties}
+              className={clsx(
+                "fixed inset-0 z-10 bg-black/50",
+                showQuickShop ? "animate-fade-in" : "animate-fade-out"
+              )}
             />
             <Dialog.Content
-              className={clsx([
-                "fixed inset-y-0 z-10 w-full bg-background py-2.5 md:max-w-[430px]",
-                "right-0 shadow-2xl data-[state=open]:animate-enter-from-right",
-              ])}
+              className={clsx(
+                "fixed inset-y-0 right-0 z-10 w-full bg-background py-2.5 md:max-w-[430px] lg:hidden shadow-2xl",
+                showQuickShop ? "animate-slide-in-right" : "animate-slide-out-right"
+              )}
               aria-describedby={undefined}
             >
               <div className="flex h-full flex-col">
@@ -205,17 +207,23 @@ export const loader = async (args: ComponentLoaderArgs<HotspotsItemData>) => {
   if (!data?.product) {
     return null;
   }
-  const productHandle = data.product.handle;
-  const { product } = await storefront.query<ProductQuery>(PRODUCT_QUERY, {
-    variables: {
-      handle: productHandle,
-      selectedOptions: [],
-      language: storefront.i18n.language,
-      country: storefront.i18n.country,
-    },
-  });
 
-  return { product };
+  try {
+    const productHandle = data.product.handle;
+    const { product } = await storefront.query<ProductQuery>(PRODUCT_QUERY, {
+      variables: {
+        handle: productHandle,
+        selectedOptions: [],
+        language: storefront.i18n.language,
+        country: storefront.i18n.country,
+      },
+    });
+
+    return { product };
+  } catch (error) {
+    console.error('Error loading hotspots product data:', error);
+    return null;
+  }
 };
 
 export const schema = createSchema({
