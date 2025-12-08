@@ -10,6 +10,8 @@ interface MapSectionProps extends SectionProps {
   heading?: string;
   layoutMap?: "accordion" | "list";
   defaultAddress?: string;
+  activeBackgroundColor?: string;
+  addressFontColor?: string;
 }
 
 function adjustColor(hex: string, amount: number) {
@@ -36,40 +38,79 @@ export const MapContext = createContext<{
   setActiveItem: (index: number | null) => void;
   activeAddress: string;
   setActiveAddress: (address: string) => void;
-  registerAddress: (address: string) => void;
+  registerAddress: (address: string) => number;
+  activeBackgroundColor: string;
+  addressFontColor: string;
 }>({
   layoutMap: "list",
   activeItem: null,
   setActiveItem: () => {},
   activeAddress: "",
   setActiveAddress: () => {},
-  registerAddress: () => {},
+  registerAddress: () => 0,
+  activeBackgroundColor: "#f3f4f6",
+  addressFontColor: "#524B46",
 });
 
 let MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
-  let { heading, children, layoutMap = "list", ...rest } = props;
+  let {
+    heading,
+    children,
+    layoutMap = "list",
+    activeBackgroundColor = "#f3f4f6",
+    addressFontColor = "#524B46",
+    ...rest
+  } = props;
 
   // Track which item is active in accordion mode and its address for the map
-  const [activeItem, setActiveItem] = useState<number | null>(null);
+  const [activeItem, setActiveItem] = useState<number | null>(
+    layoutMap === "list" ? 0 : null,
+  );
   const [registeredAddresses, setRegisteredAddresses] = useState<string[]>([]);
   const [activeAddress, setActiveAddress] = useState<string>(
     props.defaultAddress || "",
   );
+  const addressCounterRef = useRef(0);
+  const addressIndexMapRef = useRef<Map<string, number>>(new Map());
 
   let registerAddress = (address: string) => {
+    // If we already have an index for this address, return it
+    if (addressIndexMapRef.current.has(address)) {
+      return addressIndexMapRef.current.get(address)!;
+    }
+
+    // Assign a new index for this address
+    const currentIndex = addressCounterRef.current;
+    addressIndexMapRef.current.set(address, currentIndex);
+    addressCounterRef.current += 1;
+
     setRegisteredAddresses((prev) => {
       if (!prev.includes(address)) {
         return [...prev, address];
       }
       return prev;
     });
+
+    return currentIndex;
   };
 
   useEffect(() => {
-    if (registeredAddresses.length > 0) {
-      setActiveAddress(props.defaultAddress || registeredAddresses[0]);
+    if (registeredAddresses.length > 0 && !activeAddress) {
+      const firstAddress = props.defaultAddress || registeredAddresses[0];
+      setActiveAddress(firstAddress);
+
+      // Also set the first item as active if we're in list layout and no active item is set
+      if (layoutMap === "list" && activeItem === null) {
+        setActiveItem(0);
+      }
     }
-  }, [registeredAddresses, props.defaultAddress]);
+  }, [
+    registeredAddresses,
+    props.defaultAddress,
+    layoutMap,
+    activeItem,
+    activeAddress,
+  ]);
   const triggerRef = useRef<HTMLDivElement | null>(null);
   const [highlightBg, setHighlightBg] = useState<string | null>(null);
   useEffect(() => {
@@ -95,6 +136,8 @@ let MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
         activeAddress,
         setActiveAddress,
         registerAddress,
+        activeBackgroundColor,
+        addressFontColor,
       }}
     >
       <Section ref={ref} {...rest}>
@@ -173,7 +216,6 @@ export let schema: HydrogenComponentSchema = {
   title: "Map",
   childTypes: ["address-item"],
   inspector: [
-    ...sectionSettings,
     {
       group: "Content",
       inputs: [
@@ -195,8 +237,23 @@ export let schema: HydrogenComponentSchema = {
             ],
           },
         },
+        {
+          type: "color",
+          name: "activeBackgroundColor",
+          label: "Active background color",
+          defaultValue: "#f3f4f6",
+          helpText: "Background color for selected address in list layout",
+        },
+        {
+          type: "color",
+          name: "addressFontColor",
+          label: "Address font color",
+          defaultValue: "#524B46",
+          helpText: "Font color for address text in list layout",
+        },
       ],
     },
+    ...sectionSettings,
   ],
   presets: {
     children: [
