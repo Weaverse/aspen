@@ -84,6 +84,7 @@ export let schema: HydrogenComponent["schema"] = {
               { value: "3/4", label: "Portrait (3/4)" },
               { value: "4/3", label: "Landscape (4/3)" },
               { value: "16/9", label: "Video (16/9)" },
+              { value: "9/16", label: "Reel videos (9/16)" },
             ],
           },
         },
