@@ -490,6 +490,11 @@
   font-family: var(--font-serif);
 }
 
+/* Countdown specific styles */
+.countdown-wrapper .paragraph {
+  font-family: var(--font-sans) !important;
+}
+
 /* .animated-scope [data-motion] {
   opacity: 0;
 } */
@@ -545,4 +550,62 @@
 
 .animate-collapse {
   animation: collapse var(--collapse-duration, 0.3s) ease-in;
+}
+
+/* Slide animations for drawers */
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-out-right {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0.9;
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.animate-slide-out-right {
+  animation: slide-out-right 0.3s cubic-bezier(0.55, 0.055, 0.675, 0.19);
+}
+
+/* Fade animations for overlay */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+.animate-fade-out {
+  animation: fade-out 0.25s ease-in;
 }
