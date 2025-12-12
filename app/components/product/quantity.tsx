@@ -18,7 +18,7 @@ export function Quantity(props: QuantityProps) {
       className="flex items-center justify-between border-line-subtle border-b pb-3"
       data-motion="fade-up"
     >
-      <legend className="font-normal uppercase leading-tight">QTY</legend>
+      <legend className="font-semibold uppercase leading-tight">QTY</legend>
       <div className="w-fit">
         <Select.Root
           value={value.toString()}

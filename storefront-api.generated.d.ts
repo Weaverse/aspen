@@ -592,6 +592,24 @@ export type ProductQuery = {
               })
         >;
       };
+      sellingPlanGroups: {
+        edges: Array<{
+          node: Pick<StorefrontAPI.SellingPlanGroup, 'name'> & {
+            sellingPlans: {
+              edges: Array<{
+                node: Pick<
+                  StorefrontAPI.SellingPlan,
+                  'id' | 'name' | 'description' | 'recurringDeliveries'
+                > & {
+                  options: Array<
+                    Pick<StorefrontAPI.SellingPlanOption, 'name' | 'value'>
+                  >;
+                };
+              }>;
+            };
+          };
+        }>;
+      };
       seo: Pick<StorefrontAPI.Seo, 'description' | 'title'>;
     }
   >;
@@ -2892,7 +2910,12 @@ export type CartLineFragment = Pick<
     >;
   };
   sellingPlanAllocation?: StorefrontAPI.Maybe<{
-    sellingPlan: Pick<StorefrontAPI.SellingPlan, 'name'>;
+    sellingPlan: Pick<
+      StorefrontAPI.SellingPlan,
+      'id' | 'name' | 'description' | 'recurringDeliveries'
+    > & {
+      options: Array<Pick<StorefrontAPI.SellingPlanOption, 'name' | 'value'>>;
+    };
   }>;
   merchandise: Pick<
     StorefrontAPI.ProductVariant,
@@ -2959,6 +2982,11 @@ export type CartApiQueryFragment = Pick<
   StorefrontAPI.Cart,
   'updatedAt' | 'id' | 'checkoutUrl' | 'totalQuantity' | 'note'
 > & {
+  appliedGiftCards: Array<
+    Pick<StorefrontAPI.AppliedGiftCard, 'id' | 'lastCharacters'> & {
+      amountUsed: Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>;
+    }
+  >;
   buyerIdentity: Pick<
     StorefrontAPI.CartBuyerIdentity,
     'countryCode' | 'email' | 'phone'
@@ -2985,7 +3013,14 @@ export type CartApiQueryFragment = Pick<
             >;
           };
           sellingPlanAllocation?: StorefrontAPI.Maybe<{
-            sellingPlan: Pick<StorefrontAPI.SellingPlan, 'name'>;
+            sellingPlan: Pick<
+              StorefrontAPI.SellingPlan,
+              'id' | 'name' | 'description' | 'recurringDeliveries'
+            > & {
+              options: Array<
+                Pick<StorefrontAPI.SellingPlanOption, 'name' | 'value'>
+              >;
+            };
           }>;
           merchandise: Pick<
             StorefrontAPI.ProductVariant,

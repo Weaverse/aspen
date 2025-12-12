@@ -26,6 +26,7 @@ import {
   VariantPrices,
 } from "~/components/product/variant-prices";
 import { layoutInputs, Section, type SectionProps } from "~/components/section";
+import { SellingPlanSelector } from "~/components/subscriptions/selling-plan-selector";
 import type { loader as productRouteLoader } from "~/routes/($locale).products.$productHandle";
 import { isCombinedListing } from "~/utils/combined-listings";
 import { isDiscounted } from "~/utils/product";
@@ -92,6 +93,9 @@ const ProductInformation = forwardRef<
     ...rest
   } = props;
   const [quantity, setQuantity] = useState<number>(1);
+  const [selectedSellingPlanId, setSelectedSellingPlanId] = useState<
+    string | null
+  >(null);
 
   const isBundle = Boolean(product?.isBundle?.requiresComponents);
   const bundledVariants = isBundle ? product?.isBundle?.components.nodes : null;
@@ -174,7 +178,7 @@ const ProductInformation = forwardRef<
               <div className="space-y-5 divide-y divide-line-subtle [&>*:not(:last-child)]:pb-3">
                 {combinedListing ? (
                   <div className="flex justify-between">
-                    <span className="font-normal uppercase">Price Range</span>
+                    <span className="font-semibold uppercase">Price Range</span>
                     <div className="flex gap-2 text-2xl/none">
                       <span className="flex gap-1">
                         From
@@ -198,7 +202,7 @@ const ProductInformation = forwardRef<
                   </div>
                 ) : (
                   <div className="flex justify-between">
-                    <span className="font-normal uppercase">Price</span>
+                    <span className="font-semibold uppercase">Price</span>
                     <div className="flex items-center gap-2">
                       <Money
                         withoutTrailingZeros
@@ -240,6 +244,14 @@ const ProductInformation = forwardRef<
                 {!combinedListing && (
                   <Quantity value={quantity} onChange={setQuantity} />
                 )}
+
+                {!combinedListing && selectedVariant && (
+                  <SellingPlanSelector
+                    variant={selectedVariant}
+                    selectedSellingPlanId={selectedSellingPlanId}
+                    onSellingPlanChange={setSelectedSellingPlanId}
+                  />
+                )}
               </div>
 
               {!combinedListing && (
@@ -257,11 +269,34 @@ const ProductInformation = forwardRef<
                       {
                         merchandiseId: selectedVariant?.id,
                         quantity,
-                        selectedVariant,
+                        ...(selectedSellingPlanId && {
+                          sellingPlanId: selectedSellingPlanId,
+                        }),
                       },
                     ]}
                     data-test="add-to-cart"
                     className="h-[54px] w-full uppercase"
+                    onClick={() => {
+                      if (
+                        selectedSellingPlanId &&
+                        typeof window !== "undefined" &&
+                        (window as any).gtag
+                      ) {
+                        // Emit subscription analytics event
+                        (window as any).gtag(
+                          "event",
+                          "subscription_added_to_cart",
+                          {
+                            event_category: "ecommerce",
+                            product_id: product?.id,
+                            variant_id: selectedVariant?.id,
+                            selling_plan_id: selectedSellingPlanId,
+                            value: selectedVariant?.price?.amount,
+                            currency: selectedVariant?.price?.currencyCode,
+                          },
+                        );
+                      }
+                    }}
                   >
                     {atcButtonText}
                   </AddToCartButton>

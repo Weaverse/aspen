@@ -61,7 +61,7 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
     borderRadius = 8,
     showPublishedDate = true,
     // Load More props
-    initialCount = 3,
+    initialCount,
     loadMoreCount = 3,
     buttonVariant = "primary",
     buttonText = "Load More",
@@ -92,7 +92,7 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
     "--border-radius": `${borderRadius}px`,
   } as CSSProperties;
 
-  const defaultArticles = Array.from({ length: 3 }).map((_, i) => ({
+  const defaultArticles = Array.from({ length: 4 }).map((_, i) => ({
     id: i,
     title: "Trendy items for this Winter Fall 2025 season",
     excerpt:
@@ -253,7 +253,7 @@ query BlogSingle(
     $blogHandle: String!
   ) @inContext(language: $language) {
     blog(handle: $blogHandle) {
-      articles(first: 8) {
+      articles(first: 10) {
         nodes {
           author: authorV2 {
             name
@@ -343,10 +343,10 @@ export const schema: HydrogenComponentSchema = {
           defaultValue: 3,
           configs: {
             min: 1,
-            max: 8,
+            max: 10,
             step: 1,
           },
-          helpText: "Number of articles to show initially",
+          helpText: "Number of articles to show initially (max 10 available)",
         },
         {
           type: "range",
@@ -370,7 +370,7 @@ export const schema: HydrogenComponentSchema = {
             step: 1,
             unit: "px",
           },
-          defaultValue: 8,
+          defaultValue: 0,
         },
         {
           type: "switch",

@@ -16,7 +16,7 @@ export const variants = cva(
     variants: {
       variant: {
         primary: [
-          "border px-4 py-3",
+          "border px-6 py-5",
           "text-(--btn-primary-text)",
           "bg-(--btn-primary-bg)",
           "border-(--btn-primary-bg)",
@@ -24,7 +24,7 @@ export const variants = cva(
           "hover:bg-(--btn-primary-bg-hover)",
         ],
         secondary: [
-          "border px-4 py-3",
+          "border px-6 py-5",
           "text-(--btn-secondary-text)",
           "bg-(--btn-secondary-bg)",
           "border-(--btn-secondary-bg)",
@@ -32,7 +32,7 @@ export const variants = cva(
           "hover:bg-(--btn-secondary-bg-hover)",
         ],
         outline: [
-          "border px-4 py-3",
+          "border px-6 py-5",
           "text-(--btn-outline-text)",
           "bg-transparent",
           "border-(--btn-outline-border)",
@@ -45,7 +45,7 @@ export const variants = cva(
           "group inline-flex items-center gap-1 text-[--btn-text-decor]",
         ],
         custom: [
-          "border px-4 py-3",
+          "border px-6 py-5",
           "text-(--btn-text)",
           "bg-(--btn-bg)",
           "border-(--btn-border)",

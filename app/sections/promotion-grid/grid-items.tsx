@@ -12,7 +12,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { Autoplay } from "swiper/modules";
+import { Autoplay, Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { BackgroundImage } from "~/components/background-image";
 import Link from "~/components/link";
@@ -164,7 +164,7 @@ const TabsLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
           {/* Content Section */}
           <div
             className={cn(
-              "relative z-2 mx-auto flex max-w-(--page-width) flex-1 flex-col gap-4 p-6 transition-all duration-500 ease-in-out sm:h-full sm:p-8",
+              "relative z-2 mx-auto flex max-w-[720px] flex-1 flex-col gap-4 p-6 transition-all duration-500 ease-in-out sm:h-full sm:p-8",
               getContentPositionClasses(displayedTabData.contentPosition),
               isTransitioning ? "opacity-80" : "opacity-100",
             )}
@@ -280,7 +280,7 @@ let SliderLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
     <div ref={ref} {...rest} className={variants({ slidesToShow, gap })}>
       <Swiper
         key={swiperKey}
-        modules={[Autoplay]}
+        modules={[Autoplay, Navigation]}
         spaceBetween={gap}
         slidesPerView={slidesToShow}
         autoplay={
@@ -293,6 +293,10 @@ let SliderLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
             : false
         }
         loop={totalSlides > slidesToShow}
+        navigation={{
+          nextEl: ".promotion-arrow-next",
+          prevEl: ".promotion-arrow-prev",
+        }}
         breakpoints={{
           320: {
             slidesPerView: 1,
@@ -316,19 +320,19 @@ let SliderLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
         {childrenArray.map((child: ReactNode, index: number) => {
           return <SwiperSlide key={index}>{child}</SwiperSlide>;
         })}
-        {showArrows && totalSlides > slidesToShow && (
-          <Arrows
-            arrowsIcon={arrowsIcon}
-            iconSize={iconSize}
-            showArrowsOnHover={showArrowsOnHover}
-            arrowsColor={arrowsColor}
-            arrowsShape={arrowsShape}
-          />
-        )}
         {showDots && totalSlides > slidesToShow && (
           <Dots dotsColor={dotsColor} slidesCount={totalSlides} />
         )}
       </Swiper>
+      {showArrows && totalSlides > slidesToShow && (
+        <Arrows
+          arrowsIcon={arrowsIcon}
+          iconSize={iconSize}
+          showArrowsOnHover={showArrowsOnHover}
+          arrowsColor={arrowsColor}
+          arrowsShape={arrowsShape}
+        />
+      )}
     </div>
   );
 });

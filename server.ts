@@ -256,7 +256,14 @@ const CART_QUERY_FRAGMENT = `#graphql
     }
     sellingPlanAllocation {
       sellingPlan {
+        id
         name
+        description
+        recurringDeliveries
+        options {
+          name
+          value
+        }
       }
     }
     merchandise {
@@ -358,6 +365,13 @@ const CART_QUERY_FRAGMENT = `#graphql
   fragment CartApiQuery on Cart {
     updatedAt
     id
+    appliedGiftCards {
+      id
+      lastCharacters
+      amountUsed {
+        ...Money
+      }
+    }
     checkoutUrl
     totalQuantity
     buyerIdentity {
@@ -375,8 +389,6 @@ const CART_QUERY_FRAGMENT = `#graphql
     lines(first: $numCartLines) {
       nodes {
         ...CartLine
-      }
-      nodes {
         ...CartLineComponent
       }
     }

@@ -21,7 +21,7 @@ const variants = cva(
   [
     "promotion-grid-item",
     "group/overlay",
-    "relative flex aspect-square flex-col gap-4 overflow-hidden p-4",
+    "relative flex aspect-square flex-col gap-4 overflow-hidden px-10 py-4",
     "[&_.paragraph]:mx-[unset]",
   ],
   {
@@ -206,7 +206,6 @@ const PromotionGridItem = forwardRef<HTMLDivElement, PromotionItemProps>(
         </div>
         {paragraphContent && (
           <Paragraph
-            className="ff-heading"
             content={paragraphContent}
             as={paragraphTag}
             color={paragraphColor}

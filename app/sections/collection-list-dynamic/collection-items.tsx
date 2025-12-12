@@ -181,7 +181,7 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
             }}
             onSwiper={() => {
               requestAnimationFrame(() => {
-                  setIsSwiperInitialized(true);
+                setIsSwiperInitialized(true);
               });
             }}
             className={clsx(

@@ -28,7 +28,7 @@ export function QuickShopVariants({
             key={option.name}
           >
             <legend className="leading-tight">
-              <span className="font-normal uppercase">{option.name}</span>
+              <span className="font-semibold uppercase">{option.name}</span>
             </legend>
             <QuickShopOptionValues
               option={option}

@@ -170,7 +170,7 @@ function DropdownMenu({ menuItem }: { menuItem: SingleMenuItem }) {
         <Content
           align="start"
           className={cn(
-            "shadow-header origin-[top_center] overflow-hidden",
+            "origin-[top_center] overflow-hidden shadow-header",
             "flex min-w-48 flex-col gap-1.5 border-line-subtle border-t bg-(--color-header-bg-hover)",
             "px-3 py-6 md:px-4 lg:px-6",
             'data-[state="closed"]:animate-scale-out data-[state="open"]:animate-scale-in',

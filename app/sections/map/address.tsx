@@ -36,22 +36,22 @@ let Address = forwardRef<HTMLDivElement, AddressProps>((props, _ref) => {
     setActiveItem,
     setActiveAddress,
     registerAddress,
+    activeBackgroundColor,
+    addressFontColor,
   } = useContext(MapContext);
 
-  const [instanceId] = useState(() => Math.random().toString(36).substring(7));
-  const [itemIndex] = useState(() => {
-    return Number.parseInt(instanceId, 36) % 1000;
-  });
+  const [itemIndex, setItemIndex] = useState<number>(-1);
 
   useEffect(() => {
-    registerAddress(address);
-  }, [address, registerAddress]);
+    const index = registerAddress(address);
+    setItemIndex(index);
 
-  useEffect(() => {
-    if (itemIndex === 0) {
+    // Only set the address as active if this is the first address (index 0)
+    // and no other address has been set yet
+    if (index === 0) {
       setActiveAddress(address);
     }
-  }, [address, itemIndex, setActiveAddress]);
+  }, [address, registerAddress, setActiveAddress]);
 
   const isAccordionOpen = activeItem === itemIndex;
 
@@ -93,14 +93,20 @@ let Address = forwardRef<HTMLDivElement, AddressProps>((props, _ref) => {
         <div className="md:px-0" onClick={handleClick}>
           <div
             className={clsx(
-              "flex cursor-pointer items-center gap-2.5 p-3 text-[#524B46]/80 transition-colors hover:text-[#524B46]",
-              activeItem === itemIndex ? "bg-gray-100" : "",
+              "flex cursor-pointer items-center gap-2.5 p-3 transition-colors hover:opacity-80",
+              activeItem === itemIndex ? "" : "",
             )}
+            style={{
+              color: addressFontColor,
+              opacity: activeItem === itemIndex ? 1 : 0.8,
+              backgroundColor:
+                activeItem === itemIndex ? activeBackgroundColor : undefined,
+            }}
           >
             <MapPinLineIcon
               size={24}
               weight="light"
-              className="text-[#918379]"
+              style={{ color: addressFontColor }}
             />
             <div className="flex flex-col">
               <span className="font-medium text-base">{nameStore}</span>
@@ -135,10 +141,14 @@ let Address = forwardRef<HTMLDivElement, AddressProps>((props, _ref) => {
             <MapPinLineIcon
               size={18}
               weight="light"
-              className="flex-shrink-0 text-[#918379]"
+              className="flex-shrink-0"
+              style={{ color: addressFontColor }}
             />
             <div className="flex flex-col text-left">
-              <span className="font-semibold text-[#29231E] text-sm uppercase">
+              <span
+                className="font-semibold text-sm uppercase"
+                style={{ color: addressFontColor }}
+              >
                 {nameStore}
               </span>
             </div>
@@ -147,13 +157,15 @@ let Address = forwardRef<HTMLDivElement, AddressProps>((props, _ref) => {
             <PlusCircleIcon
               size={20}
               weight="regular"
-              className="absolute inset-0 h-full w-full text-[#524B46] transition-opacity duration-200 group-data-[state=open]:opacity-0"
+              className="absolute inset-0 h-full w-full transition-opacity duration-200 group-data-[state=open]:opacity-0"
+              style={{ color: addressFontColor }}
               aria-hidden
             />
             <MinusCircleIcon
               size={20}
               weight="regular"
-              className="absolute inset-0 h-full w-full text-[#524B46] opacity-0 transition-opacity duration-200 group-data-[state=open]:opacity-100"
+              className="absolute inset-0 h-full w-full opacity-0 transition-opacity duration-200 group-data-[state=open]:opacity-100"
+              style={{ color: addressFontColor }}
               aria-hidden
             />
           </div>
@@ -190,20 +202,34 @@ let Address = forwardRef<HTMLDivElement, AddressProps>((props, _ref) => {
               )}
             >
               {layoutMap !== "accordion" && (
-                <span className="font-semibold text-[#524B46] text-sm">
+                <span
+                  className="font-semibold text-sm"
+                  style={{ color: addressFontColor }}
+                >
                   Address:
                 </span>
               )}
-              <span className="mt-1 text-[#524B46] text-sm">{address}</span>
+              <span
+                className="mt-1 text-sm"
+                style={{ color: addressFontColor }}
+              >
+                {address}
+              </span>
 
               {phoneNumber && (
                 <div className="mt-2">
                   {layoutMap !== "accordion" && (
-                    <span className="font-semibold text-[#524B46] text-sm">
+                    <span
+                      className="font-semibold text-sm"
+                      style={{ color: addressFontColor }}
+                    >
                       Phone:
                     </span>
                   )}
-                  <span className="block text-[#524B46] text-sm">
+                  <span
+                    className="block text-sm"
+                    style={{ color: addressFontColor }}
+                  >
                     {phoneNumber}
                   </span>
                 </div>
@@ -214,9 +240,10 @@ let Address = forwardRef<HTMLDivElement, AddressProps>((props, _ref) => {
             {(openingHours || openingHoursSat) && (
               <div
                 className={cn(
-                  "text-[#524B46] text-sm",
+                  "text-sm",
                   layoutMap === "accordion" ? "mb-0 flex-1" : "mb-2",
                 )}
+                style={{ color: addressFontColor }}
               >
                 <div className="flex flex-col gap-2">
                   <span className="font-semibold">Opening hours:</span>
@@ -245,11 +272,21 @@ let Address = forwardRef<HTMLDivElement, AddressProps>((props, _ref) => {
       <div className="md:px-0" onClick={handleClick}>
         <div
           className={clsx(
-            "flex cursor-pointer items-center gap-2.5 p-3 text-[#524B46]/80 transition-colors hover:text-[#524B46]",
-            activeItem === itemIndex ? "bg-gray-100" : "",
+            "flex cursor-pointer items-center gap-2.5 p-3 transition-colors hover:opacity-80",
+            activeItem === itemIndex ? "" : "",
           )}
+          style={{
+            color: addressFontColor,
+            opacity: activeItem === itemIndex ? 1 : 0.8,
+            backgroundColor:
+              activeItem === itemIndex ? activeBackgroundColor : undefined,
+          }}
         >
-          <MapPinLineIcon size={24} weight="light" className="text-[#918379]" />
+          <MapPinLineIcon
+            size={24}
+            weight="light"
+            style={{ color: addressFontColor }}
+          />
           <div className="flex flex-col">
             <span className="font-medium text-base">{nameStore}</span>
             <span className="text-base">{address}</span>

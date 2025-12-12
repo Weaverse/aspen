@@ -74,6 +74,27 @@ export const PRODUCT_QUERY = `#graphql
           ...Media
         }
       }
+      sellingPlanGroups(first: 10) {
+        edges {
+          node {
+            name
+            sellingPlans(first: 20) {
+              edges {
+                node {
+                  id
+                  name
+                  description
+                  recurringDeliveries
+                  options {
+                    name
+                    value
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
       seo {
         description
         title

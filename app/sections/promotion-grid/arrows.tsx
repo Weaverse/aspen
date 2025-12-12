@@ -3,7 +3,6 @@ import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import clsx from "clsx";
 import type React from "react";
-import { useSwiper } from "swiper/react";
 
 let variants = cva(
   [
@@ -91,23 +90,6 @@ export function Arrows(props: PromotionArrowsProps) {
     showArrowsOnHover,
     arrowsShape,
   } = props;
-  let swiper = useSwiper();
-
-  let handlePrevClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (swiper) {
-      swiper.slidePrev();
-    }
-  };
-
-  let handleNextClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (swiper) {
-      swiper.slideNext();
-    }
-  };
 
   return (
     <>
@@ -122,7 +104,6 @@ export function Arrows(props: PromotionArrowsProps) {
             side: "left",
           }),
         )}
-        onClick={handlePrevClick}
       >
         {arrowsIcon === "caret" ? (
           <CaretLeftIcon style={{ width: iconSize, height: iconSize }} />
@@ -149,7 +130,6 @@ export function Arrows(props: PromotionArrowsProps) {
             side: "right",
           }),
         )}
-        onClick={handleNextClick}
       >
         {arrowsIcon === "caret" ? (
           <CaretRightIcon style={{ width: iconSize, height: iconSize }} />

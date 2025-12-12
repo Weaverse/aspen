@@ -1,4 +1,5 @@
 import { CaretDown, TrashIcon, X } from "@phosphor-icons/react";
+import * as Dialog from "@radix-ui/react-dialog";
 import * as Select from "@radix-ui/react-select";
 import {
   CartForm,
@@ -17,9 +18,15 @@ import type { CartApiQueryFragment } from "storefront-api.generated";
 import { Button } from "~/components/button";
 import { Image } from "~/components/image";
 import { Link } from "~/components/link";
+import { SubscriptionLineItem } from "~/components/subscriptions/subscription-line-item";
 import { calculateAspectRatio } from "~/utils/image";
 import { toggleCartDrawer } from "../layout/cart-drawer";
 import { CartBestSellers } from "./cart-best-sellers";
+import {
+  DiscountDialog,
+  GiftCardDialog,
+  NoteDialog,
+} from "./cart-summary-actions";
 
 type CartLine = OptimisticCart<CartApiQueryFragment>["lines"]["nodes"][0];
 type Layouts = "page" | "drawer";
@@ -43,6 +50,109 @@ export function Cart({
   return <CartEmpty hidden={linesCount} onClose={onClose} layout={layout} />;
 }
 
+// Dialog wrapper components with state management
+function CartNoteDialogWrapper({
+  cartNote,
+  cartNoteButtonText,
+  layout,
+}: {
+  cartNote: string;
+  cartNoteButtonText: string;
+  layout: Layouts;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Dialog.Root open={open} onOpenChange={setOpen}>
+      <Dialog.Trigger asChild>
+        <button
+          type="button"
+          className={clsx(
+            layout === "page" ? "bg-white" : "bg-[#F0EFED]",
+            "px-3 py-2",
+          )}
+        >
+          {cartNoteButtonText}
+        </button>
+      </Dialog.Trigger>
+      <NoteDialog
+        cartNote={cartNote}
+        open={open}
+        onClose={() => setOpen(false)}
+        layout={layout}
+      />
+    </Dialog.Root>
+  );
+}
+
+function DiscountCodeDialogWrapper({
+  discountCodes,
+  discountCodeButtonText,
+  layout,
+}: {
+  discountCodes: CartApiQueryFragment["discountCodes"];
+  discountCodeButtonText: string;
+  layout: Layouts;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Dialog.Root open={open} onOpenChange={setOpen}>
+      <Dialog.Trigger asChild>
+        <button
+          type="button"
+          className={clsx(
+            layout === "page" ? "bg-white" : "bg-[#F0EFED]",
+            "px-3 py-2",
+          )}
+        >
+          {discountCodeButtonText}
+        </button>
+      </Dialog.Trigger>
+      <DiscountDialog
+        discountCodes={discountCodes}
+        open={open}
+        onClose={() => setOpen(false)}
+        layout={layout}
+      />
+    </Dialog.Root>
+  );
+}
+
+function GiftCardDialogWrapper({
+  appliedGiftCards,
+  giftCardButtonText,
+  layout,
+}: {
+  appliedGiftCards: CartApiQueryFragment["appliedGiftCards"];
+  giftCardButtonText: string;
+  layout: Layouts;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Dialog.Root open={open} onOpenChange={setOpen}>
+      <Dialog.Trigger asChild>
+        <button
+          type="button"
+          className={clsx(
+            layout === "page" ? "bg-white" : "bg-[#F0EFED]",
+            "px-3 py-2",
+          )}
+        >
+          {giftCardButtonText}
+        </button>
+      </Dialog.Trigger>
+      <GiftCardDialog
+        appliedGiftCards={appliedGiftCards}
+        open={open}
+        onClose={() => setOpen(false)}
+        layout={layout}
+      />
+    </Dialog.Root>
+  );
+}
+
 function CartDetails({
   layout,
   cart,
@@ -50,7 +160,23 @@ function CartDetails({
   layout: Layouts;
   cart: OptimisticCart<CartApiQueryFragment>;
 }) {
-  let { enableFreeShipping } = useThemeSettings();
+  let {
+    enableFreeShipping,
+    enableCartNote,
+    cartNoteButtonText,
+    enableDiscountCode,
+    discountCodeButtonText,
+    enableGiftCard,
+    giftCardButtonText,
+  } = useThemeSettings();
+
+  const { note, discountCodes, appliedGiftCards, isOptimistic } = cart;
+
+  // const isCartUpdating =
+  //   isOptimistic ||
+  //   dcRemoveFetcher.state !== "idle" ||
+  //   gcRemoveFetcher.state !== "idle";
+
   return (
     <>
       {layout === "drawer" && enableFreeShipping && (
@@ -76,15 +202,48 @@ function CartDetails({
         >
           <CartLines lines={cart?.lines?.nodes} layout={layout} />
         </div>
-        <CartSummary cost={cart.cost} layout={layout}>
-          <CartDiscounts discountCodes={cart.discountCodes} />
+        <CartSummary
+          cost={cart.cost}
+          layout={layout}
+          isOptimistic={isOptimistic}
+        >
+          {(enableCartNote || enableDiscountCode || enableGiftCard) && (
+            <div className="mb-4 flex items-center justify-end gap-2">
+              {enableCartNote && (
+                <CartNoteDialogWrapper
+                  cartNote={note}
+                  layout={layout}
+                  cartNoteButtonText={cartNoteButtonText || "Add a note"}
+                />
+              )}
+              {enableDiscountCode && (
+                <DiscountCodeDialogWrapper
+                  discountCodes={discountCodes}
+                  layout={layout}
+                  discountCodeButtonText={
+                    discountCodeButtonText || "Discount code"
+                  }
+                />
+              )}
+              {enableGiftCard && (
+                <GiftCardDialogWrapper
+                  layout={layout}
+                  appliedGiftCards={appliedGiftCards}
+                  giftCardButtonText={giftCardButtonText || "Giftcard"}
+                />
+              )}
+            </div>
+          )}
+          {/* <CartDiscounts discountCodes={cart.discountCodes} /> */}
           {layout === "page" && (
             <>
               <div className="flex flex-col gap-6 border-line-subtle border-y py-6">
                 <div className="flex items-center justify-between font-medium">
                   <span className="font-normal">Subtotal</span>
                   <span className="font-normal">
-                    {cart?.cost?.subtotalAmount?.amount ? (
+                    {isOptimistic ? (
+                      <PriceLoadingSpinner />
+                    ) : cart?.cost?.subtotalAmount?.amount ? (
                       <Money data={cart?.cost?.subtotalAmount} />
                     ) : (
                       "-"
@@ -98,7 +257,9 @@ function CartDetails({
               <div className="flex items-center justify-between font-medium">
                 <span className="font-semibold">Total</span>
                 <span className="font-semibold">
-                  {cart?.cost?.totalAmount?.amount ? (
+                  {isOptimistic ? (
+                    <PriceLoadingSpinner />
+                  ) : cart?.cost?.totalAmount?.amount ? (
                     <Money data={cart?.cost?.totalAmount} />
                   ) : (
                     "-"
@@ -288,11 +449,13 @@ function CartCheckoutActions({
 function CartSummary({
   cost,
   layout,
+  isOptimistic = false,
   children = null,
 }: {
   children?: React.ReactNode;
   cost: CartApiQueryFragment["cost"];
   layout: Layouts;
+  isOptimistic?: boolean;
 }) {
   return (
     <div
@@ -310,10 +473,12 @@ function CartSummary({
       )}
       {layout === "drawer" && (
         <dl className="grid">
-          <div className="flex items-center justify-between font-medium">
+          <div className="mt-5 flex items-center justify-between font-medium">
             <dt>Subtotal</dt>
             <dd>
-              {cost?.subtotalAmount?.amount ? (
+              {isOptimistic ? (
+                <PriceLoadingSpinner />
+              ) : cost?.subtotalAmount?.amount ? (
                 <Money data={cost?.subtotalAmount} />
               ) : (
                 "-"
@@ -345,7 +510,7 @@ function CartLineItem({
 
   if (!line?.id) return null;
 
-  const { id, quantity, merchandise } = line;
+  const { id, quantity, merchandise, isOptimistic } = line;
 
   if (typeof quantity === "undefined" || !merchandise?.product) {
     return null;
@@ -364,14 +529,26 @@ function CartLineItem({
   return (
     <li
       className={clsx(
+        "relative transition-all duration-300",
         layout === "drawer"
           ? "flex gap-4"
           : "flex h-full flex-col items-center bg-white md:flex-row",
+        isOptimistic && optimisticData?.action !== "remove" && "opacity-70",
+        isOptimistic && "pointer-events-none",
+        optimisticData?.action === "remove" &&
+          "h-0 scale-95 overflow-hidden opacity-0",
       )}
-      style={{
-        display: optimisticData?.action === "remove" ? "none" : "flex",
-      }}
     >
+      {/* Loading Overlay - Only show for remove action */}
+      {isOptimistic && optimisticData?.action === "remove" && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/80 backdrop-blur-[2px]">
+          <div className="flex flex-col items-center gap-2">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-300 border-t-gray-900" />
+            <span className="text-gray-600 text-sm">Removing...</span>
+          </div>
+        </div>
+      )}
+
       {/* Thumbnail */}
       <div
         className={clsx(
@@ -440,12 +617,16 @@ function CartLineItem({
                   </span>
                 ))}
               </div>
+
+              {/* Subscription Information */}
+              <SubscriptionLineItem line={line as any} />
             </div>
 
             {/* Quantity and Pricing */}
             <div className="flex items-center justify-between">
               <div className="">
-                Item price: <CartLinePrice line={line} as="span" />
+                Item price:{" "}
+                <CartLinePrice line={line} as="span" isLoading={isOptimistic} />
               </div>
               <CartLineQuantityAdjust
                 line={line}
@@ -453,7 +634,7 @@ function CartLineItem({
                 layout={layout}
               />
               <div className="font-medium">
-                <CartLinePrice line={line} as="span" />
+                <CartLinePrice line={line} as="span" isLoading={isOptimistic} />
               </div>
             </div>
           </div>
@@ -474,6 +655,8 @@ function CartLineItem({
                   )}
                 </div>
                 <div className="space-y-0.5 font-normal">{title}</div>
+                {/* Subscription Information */}
+                <SubscriptionLineItem line={line as any} />
               </div>
             </div>
             <div className="flex items-center justify-between gap-2">
@@ -482,7 +665,7 @@ function CartLineItem({
                 isLastItem={isLastItem}
                 layout={layout}
               />
-              <CartLinePrice line={line} as="span" />
+              <CartLinePrice line={line} as="span" isLoading={isOptimistic} />
             </div>
             <ItemRemoveButton lineId={id} className="" layout={layout} />
           </>
@@ -531,26 +714,38 @@ function CartLineQuantityAdjust({
   layout: Layouts;
 }) {
   let optimisticData = useOptimisticData<OptimisticData>(line?.id);
+  const { id: lineId, isOptimistic } = line || {};
 
-  if (!line || typeof line?.quantity === "undefined") {
-    return null;
-  }
-
-  let optimisticQuantity = optimisticData?.quantity || line.quantity;
-  let { id: lineId, isOptimistic } = line;
-
+  // Always call hooks at the top level
   const quantities = [1, 2, 3, 4, 5];
+  const optimisticQuantity = optimisticData?.quantity || line?.quantity || 1;
   const [selectedQty, setSelectedQty] = useState<number>(optimisticQuantity);
   const submitBtnRef = useRef<HTMLButtonElement>(null);
+  const prevOptimisticQtyRef = useRef<number>(optimisticQuantity);
+
+  // Submit form when user intentionally changes quantity
   useEffect(() => {
-    if (selectedQty !== optimisticQuantity) {
+    // Only submit if the change came from user action, not from syncing with optimistic updates
+    if (
+      selectedQty !== prevOptimisticQtyRef.current &&
+      selectedQty !== optimisticQuantity
+    ) {
       submitBtnRef.current?.click();
     }
   }, [selectedQty, optimisticQuantity]);
-  // Keep local selected quantity in sync if line quantity changes elsewhere
+
+  // Keep local selected quantity in sync when optimistic quantity changes from server
   useEffect(() => {
-    setSelectedQty(optimisticQuantity);
+    if (prevOptimisticQtyRef.current !== optimisticQuantity) {
+      prevOptimisticQtyRef.current = optimisticQuantity;
+      setSelectedQty(optimisticQuantity);
+    }
   }, [optimisticQuantity]);
+
+  // Early return after hooks
+  if (!line || typeof line?.quantity === "undefined") {
+    return null;
+  }
 
   // Ensure the select shows the actual quantity even if it's outside default options
   const optionValues = Array.from(
@@ -624,13 +819,43 @@ function CartLineQuantityAdjust({
   );
 }
 
+function PriceLoadingSpinner({ className = "" }: { className?: string }) {
+  return (
+    <div className={`inline-flex items-center gap-2 ${className}`}>
+      <svg
+        className="h-4 w-4 animate-spin text-gray-400"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <circle
+          className="opacity-25"
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          strokeWidth="3"
+        />
+        <path
+          className="opacity-75"
+          fill="currentColor"
+          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+        />
+      </svg>
+      <span className="text-gray-400 text-sm">Loading...</span>
+    </div>
+  );
+}
+
 function CartLinePrice({
   line,
   priceType = "regular",
+  isLoading = false,
   ...passthroughProps
 }: {
   line: CartLine;
   priceType?: "regular" | "compareAt";
+  isLoading?: boolean;
   [key: string]: any;
 }) {
   if (!(line?.cost?.amountPerQuantity && line?.cost?.totalAmount)) return null;
@@ -644,12 +869,16 @@ function CartLinePrice({
     return null;
   }
 
+  if (isLoading) {
+    return <PriceLoadingSpinner className={passthroughProps.className} />;
+  }
+
   return (
     <Money
       withoutTrailingZeros
       {...passthroughProps}
       data={moneyV2}
-      className="mr-2 font-normal"
+      className="mr-2 font-semibold"
     />
   );
 }
