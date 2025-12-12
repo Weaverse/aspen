@@ -1,19 +1,68 @@
 import { XIcon } from "@phosphor-icons/react";
+import * as Dialog from "@radix-ui/react-dialog";
 import { CartForm } from "@shopify/hydrogen";
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { useFetcher } from "react-router";
 import type { CartApiQueryFragment } from "storefront-api.generated";
 import { Button } from "~/components/button";
 import { AnimatedBottomSheet } from "./animate-bottom-sheet";
 
+type DialogLayout = "page" | "drawer";
+
+function CenteredModal({
+  open,
+  children,
+}: {
+  open: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <Dialog.Portal forceMount>
+      <AnimatePresence>
+        {open && (
+          <>
+            <Dialog.Overlay forceMount>
+              <motion.div
+                className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              />
+            </Dialog.Overlay>
+            <Dialog.Content
+              forceMount
+              onCloseAutoFocus={(e) => e.preventDefault()}
+              className="-translate-x-1/2 -translate-y-1/2 fixed top-1/2 left-1/2 z-50 w-full max-w-md"
+              aria-describedby={undefined}
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+                className="w-full rounded-lg bg-white px-6 py-6 shadow-2xl"
+              >
+                {children}
+              </motion.div>
+            </Dialog.Content>
+          </>
+        )}
+      </AnimatePresence>
+    </Dialog.Portal>
+  );
+}
+
 export function NoteDialog({
   cartNote: currentNote,
   open,
   onClose,
+  layout = "drawer",
 }: {
   cartNote: string;
   open: boolean;
   onClose: () => void;
+  layout?: DialogLayout;
 }) {
   const [note, setNote] = useState(currentNote);
   const [submitted, setSubmitted] = useState(false);
@@ -43,8 +92,8 @@ export function NoteDialog({
     }
   }
 
-  return (
-    <AnimatedBottomSheet open={open}>
+  const content = (
+    <>
       <button
         type="button"
         className="absolute top-4 right-4 z-10 flex items-center justify-center"
@@ -82,7 +131,13 @@ export function NoteDialog({
           Add note
         </Button>
       </form>
-    </AnimatedBottomSheet>
+    </>
+  );
+
+  return layout === "page" ? (
+    <CenteredModal open={open}>{content}</CenteredModal>
+  ) : (
+    <AnimatedBottomSheet open={open}>{content}</AnimatedBottomSheet>
   );
 }
 
@@ -90,10 +145,12 @@ export function DiscountDialog({
   discountCodes = [],
   open,
   onClose,
+  layout = "drawer",
 }: {
   discountCodes: CartApiQueryFragment["discountCodes"];
   open: boolean;
   onClose: () => void;
+  layout?: DialogLayout;
 }) {
   const [code, setCode] = useState("");
   const fetcher = useFetcher();
@@ -123,8 +180,8 @@ export function DiscountDialog({
     }
   }
 
-  return (
-    <AnimatedBottomSheet open={open}>
+  const content = (
+    <>
       <button
         type="button"
         className="absolute top-4 right-4 z-10 flex items-center justify-center"
@@ -166,7 +223,13 @@ export function DiscountDialog({
           Apply
         </Button>
       </form>
-    </AnimatedBottomSheet>
+    </>
+  );
+
+  return layout === "page" ? (
+    <CenteredModal open={open}>{content}</CenteredModal>
+  ) : (
+    <AnimatedBottomSheet open={open}>{content}</AnimatedBottomSheet>
   );
 }
 
@@ -174,10 +237,12 @@ export function GiftCardDialog({
   appliedGiftCards = [],
   open,
   onClose,
+  layout = "drawer",
 }: {
   appliedGiftCards: CartApiQueryFragment["appliedGiftCards"];
   open: boolean;
   onClose: () => void;
+  layout?: DialogLayout;
 }) {
   const appliedGiftCardCodes = useRef<string[]>([]);
   const [code, setCode] = useState("");
@@ -219,8 +284,8 @@ export function GiftCardDialog({
     }
   }
 
-  return (
-    <AnimatedBottomSheet open={open}>
+  const content = (
+    <>
       <button
         type="button"
         className="absolute top-4 right-4 z-10 flex items-center justify-center"
@@ -262,6 +327,12 @@ export function GiftCardDialog({
           Apply
         </Button>
       </form>
-    </AnimatedBottomSheet>
+    </>
+  );
+
+  return layout === "page" ? (
+    <CenteredModal open={open}>{content}</CenteredModal>
+  ) : (
+    <AnimatedBottomSheet open={open}>{content}</AnimatedBottomSheet>
   );
 }
