@@ -1,6 +1,7 @@
 import { UserIcon } from "@phosphor-icons/react";
 import { useThemeSettings } from "@weaverse/hydrogen";
 import { cva } from "class-variance-authority";
+import clsx from "clsx";
 import { Suspense, useState } from "react";
 import {
   Await,
@@ -113,20 +114,21 @@ function AccountLink({ className }: { className?: string }) {
   const isLoggedIn = rootData?.isLoggedIn;
 
   return (
-    <Suspense fallback="Sign in">
-      <Await resolve={isLoggedIn} errorElement="Sign in">
-        {(isLoggedIn) =>
-          isLoggedIn ? (
-            <Link prefetch="intent" to="/account" className={className}>
+    <Link to="/account" className={clsx("transition-none", className)}>
+      <Suspense fallback={<UserIcon className="h-5 w-5" />}>
+        <Await
+          resolve={isLoggedIn}
+          errorElement={<UserIcon className="h-5 w-5" />}
+        >
+          {(loggedIn) =>
+            loggedIn ? (
               <UserIcon className="h-5 w-5" />
-            </Link>
-          ) : (
-            <Link to="/account/login" className={className}>
+            ) : (
               <UserIcon className="h-5 w-5" />
-            </Link>
-          )
-        }
-      </Await>
-    </Suspense>
+            )
+          }
+        </Await>
+      </Suspense>
+    </Link>
   );
 }
