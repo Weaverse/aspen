@@ -30,7 +30,7 @@ export function ProductVariants({
               key={name}
             >
               <legend className="leading-tight">
-                <span className="font-normal uppercase">{name}</span>
+                <span className="font-semibold uppercase">{name}</span>
               </legend>
               <ProductOptionValues
                 option={option}

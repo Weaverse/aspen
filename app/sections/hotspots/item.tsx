@@ -146,13 +146,15 @@ const HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>(
             <Dialog.Overlay
               className={clsx(
                 "fixed inset-0 z-10 bg-black/50",
-                showQuickShop ? "animate-fade-in" : "animate-fade-out"
+                showQuickShop ? "animate-fade-in" : "animate-fade-out",
               )}
             />
             <Dialog.Content
               className={clsx(
-                "fixed inset-y-0 right-0 z-10 w-full bg-background py-2.5 md:max-w-[430px] lg:hidden shadow-2xl",
-                showQuickShop ? "animate-slide-in-right" : "animate-slide-out-right"
+                "fixed inset-y-0 right-0 z-10 w-full bg-background py-2.5 shadow-2xl md:max-w-[430px] lg:hidden",
+                showQuickShop
+                  ? "animate-slide-in-right"
+                  : "animate-slide-out-right",
               )}
               aria-describedby={undefined}
             >
@@ -221,7 +223,7 @@ export const loader = async (args: ComponentLoaderArgs<HotspotsItemData>) => {
 
     return { product };
   } catch (error) {
-    console.error('Error loading hotspots product data:', error);
+    console.error("Error loading hotspots product data:", error);
     return null;
   }
 };
