@@ -18,6 +18,7 @@ import { Quantity } from "~/components/product/quantity";
 import { QuickShopVariants } from "~/components/product/quick-shop-variants";
 import { ScrollArea } from "~/components/scroll-area";
 import { Skeleton } from "~/components/skeleton";
+import { SellingPlanSelector } from "~/components/subscriptions/selling-plan-selector";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import type { ProductData } from "~/routes/($locale).api.product";
 import { isDiscounted } from "~/utils/product";
@@ -212,6 +213,9 @@ export function QuickShop({
   });
 
   const [quantity, setQuantity] = useState<number>(1);
+  const [selectedSellingPlanId, setSelectedSellingPlanId] = useState<
+    string | null
+  >(null);
   const {
     enableZoom,
     addToCartText,
@@ -276,7 +280,7 @@ export function QuickShop({
           <div className="space-y-7 divide-y divide-line-subtle [&>*:not(:last-child)]:pb-3">
             {selectedVariant && (
               <div className="flex justify-between">
-                <span className="font-normal uppercase">Price</span>
+                <span className="font-semibold uppercase">Price</span>
                 <div className={"flex gap-2"}>
                   <Money withoutTrailingZeros data={price} />
                   {showCompareAtPrice &&
@@ -294,6 +298,14 @@ export function QuickShop({
               />
             )}
             <Quantity value={quantity} onChange={setQuantity} />
+            {selectedVariant && (
+              <SellingPlanSelector
+                variant={selectedVariant}
+                selectedSellingPlanId={selectedSellingPlanId}
+                onSellingPlanChange={setSelectedSellingPlanId}
+                product={product}
+              />
+            )}
           </div>
           <div className="space-y-3">
             <AddToCartButton
@@ -303,6 +315,9 @@ export function QuickShop({
                   merchandiseId: selectedVariant?.id,
                   quantity,
                   selectedVariant,
+                  ...(selectedSellingPlanId && {
+                    sellingPlanId: selectedSellingPlanId,
+                  }),
                 },
               ]}
               data-test="add-to-cart"
@@ -318,6 +333,9 @@ export function QuickShop({
                   {
                     id: selectedVariant?.id,
                     quantity,
+                    ...(selectedSellingPlanId && {
+                      sellingPlanId: selectedSellingPlanId,
+                    }),
                   },
                 ]}
                 className="h-[54px] w-full"

@@ -54,7 +54,7 @@ export const PRODUCT_VARIANT_FRAGMENT = `#graphql
         }
       }
     }
-  }
+    }
 ` as const;
 
 export const PRODUCT_OPTION_FRAGMENT = `#graphql
