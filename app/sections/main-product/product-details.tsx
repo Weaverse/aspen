@@ -78,7 +78,7 @@ export function ProductDetails({
               "data-[state=open]:[&>.plus]:hidden",
             ])}
           >
-            <span className="font-normal uppercase">{title}</span>
+            <span className="font-semibold uppercase">{title}</span>
             <MinusIcon className="minus hidden h-4 w-4" />
             <PlusIcon className="plus h-4 w-4" />
           </Accordion.Trigger>

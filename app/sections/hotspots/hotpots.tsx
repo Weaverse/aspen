@@ -69,7 +69,7 @@ export let schema = createSchema({
           type: "select",
           name: "aspectRatio",
           label: "Aspect ratio",
-          defaultValue: "adapt",
+          defaultValue: "1/1",
           configs: {
             options: [
               { value: "adapt", label: "Adapt to image" },

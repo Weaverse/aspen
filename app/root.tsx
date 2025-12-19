@@ -163,8 +163,8 @@ export function Layout({ children }: { children?: React.ReactNode }) {
                 <Footer />
               </div>
               {shouldShowNewsletterPopup && <NewsletterPopup />}
+              <CustomAnalytics />
             </TooltipProvider>
-            <CustomAnalytics />
           </Analytics.Provider>
         ) : (
           children
