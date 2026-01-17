@@ -39,8 +39,8 @@ type ArticleData = {
 
 export interface ArticlesProps
   extends HydrogenComponentProps<Awaited<ReturnType<typeof loader>>>,
-    ArticleData,
-    Omit<HeadingProps, "content"> {}
+  ArticleData,
+  Omit<HeadingProps, "content"> { }
 
 let articlesPerRowClasses: { [item: number]: string } = {
   1: "sm:grid-cols-1",
@@ -284,7 +284,7 @@ query BlogSingle(
 export const schema: HydrogenComponentSchema = {
   type: "articles-list",
   title: "Articles",
-  inspector: [
+  settings: [
     {
       group: "Layout",
       inputs: layoutInputs.filter(

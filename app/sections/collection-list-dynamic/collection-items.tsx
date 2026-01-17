@@ -9,7 +9,7 @@ import clsx from "clsx";
 import { forwardRef, useEffect, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
-import type { CollectionsByIdsQuery } from "storefront-api.generated";
+import type { CollectionByIdsQuery } from "storefront-api.generated";
 import { Image } from "~/components/image";
 import Link from "~/components/link";
 import { useAnimation } from "~/hooks/use-animation";
@@ -32,11 +32,11 @@ interface CollectionWithProducts {
       title: string;
       handle: string;
       featuredImage?: {
-        id: string;
-        url: string;
+        id?: string;
+        url?: string;
         altText?: string | null;
-        width: number;
-        height: number;
+        width?: number;
+        height?: number;
       } | null;
     }>;
   };
@@ -50,7 +50,7 @@ interface CollectionItemsData {
 
 interface CollectionItemsProps
   extends HydrogenComponentProps<CollectionItemsLoaderData>,
-    CollectionItemsData {
+  CollectionItemsData {
   collectionNameColor: string;
   collectionBackgroundColor: string;
 }
@@ -349,7 +349,7 @@ export let loader = async ({
     (collection) => `gid://shopify/Collection/${collection.id}`,
   );
   if (ids?.length) {
-    let { nodes } = await weaverse.storefront.query<CollectionsByIdsQuery>(
+    let { nodes } = await weaverse.storefront.query<CollectionByIdsQuery>(
       COLLECTIONS_QUERY,
       {
         variables: {
@@ -367,7 +367,7 @@ export let loader = async ({
 export let schema: HydrogenComponentSchema = {
   type: "collection-list-dynamic-items",
   title: "Collection items",
-  inspector: [
+  settings: [
     {
       group: "Collection List",
       inputs: [

@@ -21,7 +21,7 @@ export let schema: HydrogenComponentSchema = {
   type: "before-and-after",
   title: "Before & after",
   // toolbar: ['general-settings', ['duplicate', 'delete']],
-  inspector: [
+  settings: [
     {
       group: "Layout",
       inputs: layoutInputs.filter(

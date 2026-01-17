@@ -302,7 +302,7 @@ export default Address;
 export let schema: HydrogenComponentSchema = {
   type: "address-item",
   title: "Address",
-  inspector: [
+  settings: [
     {
       group: "Address",
       inputs: [

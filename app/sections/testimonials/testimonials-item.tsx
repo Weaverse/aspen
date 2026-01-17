@@ -1,7 +1,7 @@
 import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
 
-interface TestimonialProps extends HydrogenComponentProps {}
+interface TestimonialProps extends HydrogenComponentProps { }
 
 const TestimonialItem = forwardRef<HTMLDivElement, TestimonialProps>(
   (props, ref) => {
@@ -24,7 +24,7 @@ export default TestimonialItem;
 export const schema = createSchema({
   type: "testimonial--item",
   title: "Testimonial",
-  inspector: [],
+  settings: [],
   childTypes: ["testimonial--content", "testimonial--hotspots-item"],
   presets: {
     children: [

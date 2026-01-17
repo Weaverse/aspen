@@ -30,7 +30,7 @@ let variants = cva("", {
 
 interface ContentInformationProps
   extends VariantProps<typeof variants>,
-    HydrogenComponentProps {}
+  HydrogenComponentProps { }
 
 const ContentInformation = forwardRef<HTMLDivElement, ContentInformationProps>(
   (props, ref) => {
@@ -49,7 +49,7 @@ export default ContentInformation;
 export const schema = createSchema({
   type: "content-information",
   title: "Content Information",
-  inspector: [
+  settings: [
     {
       group: "Content settings",
       inputs: [

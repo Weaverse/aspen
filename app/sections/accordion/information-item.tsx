@@ -22,7 +22,7 @@ export default InformationItem;
 export const schema = createSchema({
   type: "information--item",
   title: "Information Item",
-  inspector: [
+  settings: [
     {
       group: "Content settings",
       inputs: [

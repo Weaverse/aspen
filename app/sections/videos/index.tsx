@@ -24,7 +24,7 @@ let Videos = forwardRef<HTMLElement, VideosProps>((props, ref) => {
 export let schema: HydrogenComponent["schema"] = {
   title: "Videos",
   type: "videos",
-  inspector: sectionSettings,
+  settings: sectionSettings,
   childTypes: ["heading", "video--items"],
   presets: {
     children: [

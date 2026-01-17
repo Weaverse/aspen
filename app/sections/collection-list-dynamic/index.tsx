@@ -3,7 +3,7 @@ import { forwardRef } from "react";
 import type { SectionProps } from "~/components/section";
 import { layoutInputs, Section } from "~/components/section";
 
-interface CollectionListDynamicProps extends SectionProps {}
+interface CollectionListDynamicProps extends SectionProps { }
 
 let CollectionListDynamic = forwardRef<HTMLElement, CollectionListDynamicProps>(
   (props, ref) => {
@@ -25,7 +25,7 @@ export let schema: HydrogenComponentSchema = {
   type: "feature-collection",
   title: "Featured collections",
   childTypes: ["collection-content-dynamic", "collection-list-dynamic-items"],
-  inspector: [
+  settings: [
     {
       group: "Collection List",
       inputs: [

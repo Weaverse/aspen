@@ -178,7 +178,7 @@ const BeforeAndAfter = forwardRef<HTMLDivElement, BeforeAndAfterProps>(
       resizerEle.style.left = `${defaultWidth}%`;
       updateWidth(
         (defaultWidth * containerRef.current.getBoundingClientRect().width) /
-          100,
+        100,
         0,
       );
     }, [afterImage]);
@@ -256,7 +256,7 @@ export let schema: HydrogenComponentSchema = {
   title: "Slider",
   limit: 1,
   // toolbar: ["general-settings", ["duplicate", "delete"]],
-  inspector: [
+  settings: [
     {
       group: "Slider",
       inputs: [

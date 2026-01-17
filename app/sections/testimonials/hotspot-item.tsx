@@ -57,7 +57,7 @@ export let schema: HydrogenComponentSchema = {
   type: "testimonial--hotspots-item",
   title: "Hotspot",
   childTypes: ["testimonial-hot--item"],
-  inspector: [
+  settings: [
     {
       group: "Layout",
       inputs: [

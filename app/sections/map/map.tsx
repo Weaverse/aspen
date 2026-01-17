@@ -44,9 +44,9 @@ export const MapContext = createContext<{
 }>({
   layoutMap: "list",
   activeItem: null,
-  setActiveItem: () => {},
+  setActiveItem: () => { },
   activeAddress: "",
-  setActiveAddress: () => {},
+  setActiveAddress: () => { },
   registerAddress: () => 0,
   activeBackgroundColor: "#f3f4f6",
   addressFontColor: "#524B46",
@@ -215,7 +215,7 @@ export let schema: HydrogenComponentSchema = {
   type: "map",
   title: "Map",
   childTypes: ["address-item"],
-  inspector: [
+  settings: [
     {
       group: "Content",
       inputs: [

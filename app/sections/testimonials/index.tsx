@@ -75,9 +75,8 @@ const TestimonialIndex = forwardRef<HTMLElement, TestimonialProps>(
           modules={[EffectFade]}
           speed={500}
           allowTouchMove={true}
-          className={`testimonial-swiper h-full w-full transition-opacity duration-300 ${
-            isSwiperInitialized ? "opacity-100" : "opacity-0"
-          }`}
+          className={`testimonial-swiper h-full w-full transition-opacity duration-300 ${isSwiperInitialized ? "opacity-100" : "opacity-0"
+            }`}
           onSwiper={(swiperInstance) => {
             window.testimonialSwiper = swiperInstance;
             requestAnimationFrame(() => {
@@ -89,10 +88,10 @@ const TestimonialIndex = forwardRef<HTMLElement, TestimonialProps>(
         >
           {Array.isArray(children)
             ? children?.map((child: any, index: number) => (
-                <SwiperSlide key={index} className="h-full w-full">
-                  {child}
-                </SwiperSlide>
-              ))
+              <SwiperSlide key={index} className="h-full w-full">
+                {child}
+              </SwiperSlide>
+            ))
             : children}
         </Swiper>
       </Section>
@@ -111,7 +110,7 @@ export default TestimonialIndex;
 export const schema = createSchema({
   type: "testimonial",
   title: "Testimonial",
-  inspector: [
+  settings: [
     {
       group: "Layout",
       inputs: layoutInputs.filter(({ name }) => name !== "gap"),

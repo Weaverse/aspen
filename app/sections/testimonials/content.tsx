@@ -11,7 +11,7 @@ import Heading, {
 
 interface TestimonialContentProps
   extends Omit<HeadingProps, "as">,
-    Omit<HydrogenComponentProps, "content"> {
+  Omit<HydrogenComponentProps, "content"> {
   headingTagName?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
   description?: string;
   ratting?: number;
@@ -154,7 +154,7 @@ export let schema: HydrogenComponentSchema = {
   type: "testimonial--content",
   title: "Content",
   limit: 1,
-  inspector: [
+  settings: [
     {
       group: "Content",
       inputs: [

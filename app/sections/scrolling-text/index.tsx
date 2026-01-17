@@ -19,7 +19,7 @@ const MAX_DURATION = 20;
 
 export interface ScrollingProps
   extends VariantProps<typeof variants>,
-    HydrogenComponentProps {
+  HydrogenComponentProps {
   content: string;
   textSize?: string;
   textColor?: string;
@@ -217,7 +217,7 @@ export default ScrollingText;
 export let schema: HydrogenComponentSchema = {
   type: "scrolling-text",
   title: "Scrolling Text",
-  inspector: [
+  settings: [
     {
       group: "Scrolling Text",
       inputs: [
