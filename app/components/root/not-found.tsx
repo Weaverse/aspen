@@ -30,7 +30,7 @@ export function NotFound({ type = "page" }: { type?: string }) {
             </Link>
             <span>Or</span>
             <Link variant="underline" to="/" className="uppercase">
-              Take me to the home page
+              Visit homepage
             </Link>
           </div>
         </div>
