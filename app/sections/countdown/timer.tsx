@@ -90,9 +90,10 @@ const CountdownTimer = forwardRef<
       ? "text-[64px] md:text-[80px]"
       : "text-4xl md:text-5xl";
 
-  // Padding classes: reduced padding on mobile for scenario1 to prevent overlap
-  const numberPaddingClass =
-    parentScenario === "scenario1" ? "px-1 md:px-3" : "px-6";
+  const numberClass = cn(
+    "ff-heading !leading-[0.8] font-medium flex justify-center w-[1.5em] shrink-0",
+    numberFontClass,
+  );
 
   return (
     <div
@@ -108,56 +109,30 @@ const CountdownTimer = forwardRef<
       style={timerStyle}
     >
       <div className={itemClass}>
-        <div
-          className={cn(
-            "ff-heading !leading-[0.8] font-medium",
-            numberFontClass,
-            numberPaddingClass,
-          )}
-        >
-          {remainingTime?.days || 0}
-        </div>
-        <div className="text-sm capitalize leading-none md:text-base">Days</div>
+        <div className={numberClass}>{remainingTime?.days || 0}</div>
+        <div className="text-sm capitalize leading-none">days</div>
       </div>
       <div className={itemClass}>
-        <div
-          className={cn(
-            "ff-heading !leading-[0.8] font-medium",
-            numberFontClass,
-            numberPaddingClass,
-          )}
-        >
+        <div className={numberClass}>
           {formatNumber(remainingTime?.hours || 0)}
         </div>
-        <div className="text-sm capitalize leading-none md:text-base">
+        <div className="text-sm capitalize leading-none">
           hours
         </div>
       </div>
       <div className={itemClass}>
-        <div
-          className={cn(
-            "ff-heading !leading-[0.8] font-medium",
-            numberFontClass,
-            numberPaddingClass,
-          )}
-        >
+        <div className={numberClass}>
           {formatNumber(remainingTime?.minutes || 0)}
         </div>
-        <div className="text-sm capitalize leading-none md:text-base">
+        <div className="text-sm capitalize leading-none">
           minutes
         </div>
       </div>
       <div className={itemClass}>
-        <div
-          className={cn(
-            "ff-heading !leading-[0.8] font-medium",
-            numberFontClass,
-            numberPaddingClass,
-          )}
-        >
+        <div className={numberClass}>
           {formatNumber(remainingTime?.seconds || 0)}
         </div>
-        <div className="text-sm capitalize leading-none md:text-base">
+        <div className="text-sm capitalize leading-none">
           seconds
         </div>
       </div>
