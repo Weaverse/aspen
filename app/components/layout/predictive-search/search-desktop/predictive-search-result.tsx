@@ -92,7 +92,7 @@ function SearchResultItem({
         )}
         <div className="flex flex-col gap-1">
           {styledTitle ? (
-            <RevealUnderline as="div" className="ff-heading w-fit">
+            <RevealUnderline as="div" className="ff-body w-fit">
               <span dangerouslySetInnerHTML={{ __html: styledTitle }} />
             </RevealUnderline>
           ) : (
@@ -103,7 +103,7 @@ function SearchResultItem({
             >
               <RevealUnderline
                 className={clsx(
-                  "ff-heading",
+                  "ff-body",
                   __typename === "Product"
                     ? "line-clamp-1 font-semibold uppercase"
                     : "font-normal",

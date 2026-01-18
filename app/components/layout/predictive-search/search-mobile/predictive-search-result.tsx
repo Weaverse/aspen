@@ -86,11 +86,13 @@ export function PredictiveSearchResult({ items, type }: SearchResultTypeProps) {
             type === "products" && "space-y-4",
           )}
           onMouseDown={handleMouseDown}
-          style={{
-            userSelect: type === "queries" ? "none" : "auto",
-            WebkitUserSelect: type === "queries" ? "none" : "auto",
-            msUserSelect: type === "queries" ? "none" : "auto",
-          }}
+          style={
+            {
+              userSelect: type === "queries" ? "none" : "auto",
+              WebkitUserSelect: type === "queries" ? "none" : "auto",
+              msUserSelect: type === "queries" ? "none" : "auto",
+            } as React.CSSProperties
+          }
         >
           {items.map((item: NormalizedPredictiveSearchResultItem) => (
             <SearchResultItem
@@ -181,7 +183,7 @@ function SearchResultItem({
               <div className="text-body-subtle text-sm">By {vendor}</div>
             )} */}
             {styledTitle ? (
-              <RevealUnderline as="div" className="ff-heading">
+              <RevealUnderline as="div" className="ff-body">
                 <span dangerouslySetInnerHTML={{ __html: styledTitle }} />
               </RevealUnderline>
             ) : (
