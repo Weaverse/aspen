@@ -59,8 +59,8 @@ const Countdown = forwardRef<HTMLElement, CountdownProps>((props, ref) => {
               ? "md:grid-cols-3 md:grid-rows-2 md:gap-x-4"
               : "countdown-wrapper md:grid-cols-2",
             isScenario2
-              ? "[&_.button-countdown]:order-4 [&_.button-countdown]:h-fit md:[&_.button-countdown]:col-start-3 md:[&_.button-countdown]:row-span-2 md:[&_.button-countdown]:row-start-1 md:[&_.button-countdown]:self-center [&_.countdown--timer]:order-3 md:[&_.countdown--timer]:col-start-2 md:[&_.countdown--timer]:row-span-2 md:[&_.countdown--timer]:row-start-1 md:[&_.countdown--timer]:self-center [&_.paragraph]:order-2 md:[&_.paragraph]:col-start-1 md:[&_.paragraph]:row-start-2 [&_.subheading]:order-1 md:[&_.subheading]:col-start-1 md:[&_.subheading]:row-start-1"
-              : "[&_.button-countdown]:order-4 [&_.button-countdown]:h-fit [&_.countdown--timer]:order-2 md:[&_.countdown--timer]:order-3 [&_.paragraph]:order-3 md:[&_.paragraph]:order-2 [&_.subheading]:order-1",
+              ? "[&_.button-countdown]:order-4 [&_.button-countdown]:h-fit md:[&_.button-countdown]:col-start-3 md:[&_.button-countdown]:row-span-2 md:[&_.button-countdown]:row-start-1 md:[&_.button-countdown]:self-center [&_.countdown--timer]:order-3 md:[&_.countdown--timer]:col-start-2 md:[&_.countdown--timer]:row-span-2 md:[&_.countdown--timer]:row-start-1 md:[&_.countdown--timer]:self-center [&_.paragraph]:order-2 md:[&_.paragraph]:col-start-1 md:[&_.paragraph]:row-start-2 [&_.subheading]:order-1 md:[&_.subheading]:col-start-1 md:[&_.subheading]:row-start-1 [&_.subheading]:font-sans"
+              : "[&_.button-countdown]:order-4 [&_.button-countdown]:h-fit [&_.countdown--timer]:order-2 md:[&_.countdown--timer]:order-3 [&_.paragraph]:order-3 md:[&_.paragraph]:order-2 [&_.subheading]:order-1 [&_.subheading]:font-sans",
           )}
         >
           {children}
