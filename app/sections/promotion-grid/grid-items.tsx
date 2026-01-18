@@ -87,6 +87,18 @@ const getContentPositionClasses = (position: string) => {
   return positionMap[position] || "items-start justify-start";
 };
 
+const getHeadingTagFontSize = (tag: string) => {
+  const tagMap: Record<string, string> = {
+    h1: "text-5xl",
+    h2: "text-4xl",
+    h3: "text-3xl",
+    h4: "text-2xl",
+    h5: "text-xl",
+    h6: "text-lg",
+  };
+  return tagMap[tag] || "text-4xl";
+};
+
 const TabsLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
   const { tabsData, activeTab, setActiveTab, tabsHeight = 600, rest } = props;
   const [displayedTab, setDisplayedTab] = useState(activeTab);
@@ -172,13 +184,15 @@ const TabsLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
             <div className="flex flex-col gap-2">
               {displayedTabData.subheadingContent && (
                 <SubheadingTag
-                  className={`text-${displayedTabData.subheadingAlignment || "left"} ${displayedTabData.subheadingSize === "large"
+                  className={cn(
+                    `text-${displayedTabData.subheadingAlignment || "left"}`,
+                    displayedTabData.subheadingSize === "large"
                       ? "text-lg"
-                      : "text-base"
-                    } ${displayedTabData.subheadingWeight === "medium"
+                      : "text-base",
+                    displayedTabData.subheadingWeight === "medium"
                       ? "font-medium"
-                      : "font-normal"
-                    }`}
+                      : "font-normal",
+                  )}
                   style={{ color: displayedTabData.subheadingColor }}
                 >
                   {displayedTabData.subheadingContent}
@@ -223,21 +237,40 @@ const TabsLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
                 type="button"
                 onClick={() => setActiveTab(index)}
                 onMouseEnter={() => setActiveTab(index)}
-                className={`group relative overflow-hidden transition-all duration-500 ease-in-out ${activeTab === index
-                  ? "text-white"
-                  : "text-[#918379] hover:text-white"
-                  }`}
+                className={`group relative overflow-hidden transition-all duration-500 ease-in-out ${
+                  activeTab === index
+                    ? "text-white"
+                    : "text-[#918379] hover:text-white"
+                }`}
               >
                 <div
-                  className={`absolute inset-x-0 h-1 origin-center bg-white transition-all duration-500 ease-in-out ${activeTab === index
-                    ? "sm:-translate-y-1 bottom-0 opacity-100 sm:top-1"
-                    : "sm:group-hover:-translate-y-1 bottom-0 translate-y-1 opacity-0 group-hover:opacity-100 sm:top-1 sm:translate-y-0"
-                    }`}
+                  className={`absolute inset-x-0 h-1 origin-center bg-white transition-all duration-500 ease-in-out ${
+                    activeTab === index
+                      ? "sm:-translate-y-1 bottom-0 opacity-100 sm:top-1"
+                      : "sm:group-hover:-translate-y-1 bottom-0 translate-y-1 opacity-0 group-hover:opacity-100 sm:top-1 sm:translate-y-0"
+                  }`}
                 />
 
                 <span
-                  className={`ff-heading relative block px-4 pt-0 pb-1 font-normal text-[26px] transition-all duration-500 ease-in-out sm:px-6 sm:pt-1 sm:pb-0 sm:text-[44px] ${activeTab === index ? "scale-105" : "group-hover:scale-105"
-                    }`}
+                  className={cn(
+                    "ff-heading relative block px-4 pt-0 pb-1 transition-all duration-500 ease-in-out sm:px-6 sm:pt-1 sm:pb-0",
+                    tab.size === "custom"
+                      ? `text-${tab.mobileSize} md:text-${tab.desktopSize}`
+                      : tab.size === "scale"
+                        ? "text-scale"
+                        : getHeadingTagFontSize(tab.headingTagName),
+                    tab.weight ? `font-${tab.weight}` : "font-normal",
+                    activeTab === index ? "scale-105" : "group-hover:scale-105",
+                  )}
+                  style={
+                    tab.size === "scale"
+                      ? ({
+                          "--min-size-px": `${tab.minSize}px`,
+                          "--min-size": tab.minSize,
+                          "--max-size": tab.maxSize,
+                        } as React.CSSProperties)
+                      : undefined
+                  }
                 >
                   {tab.headingContent}
                 </span>
@@ -281,10 +314,10 @@ let SliderLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
         autoplay={
           autoPlay && totalSlides > slidesToShow
             ? {
-              delay: autoPlayDelay * 1000,
-              disableOnInteraction: false,
-              pauseOnMouseEnter: false,
-            }
+                delay: autoPlayDelay * 1000,
+                disableOnInteraction: false,
+                pauseOnMouseEnter: false,
+              }
             : false
         }
         loop={totalSlides > slidesToShow}
