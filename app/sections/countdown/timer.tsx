@@ -35,13 +35,14 @@ type CountDownTimerData = {
   textColor: string;
   endTime: number;
   layout?: "horizontal" | "vertical";
+  showLabels?: boolean;
 };
 
 const CountdownTimer = forwardRef<
   HTMLDivElement,
   CountDownTimerData & HydrogenComponentProps
 >((props, ref) => {
-  const { textColor, endTime, layout, ...rest } = props;
+  const { textColor, endTime, layout, showLabels, ...rest } = props;
   // Get parent scenario using Weaverse's useParentInstance hook
   const parent = useParentInstance();
   const parentScenario = parent?.data?.scenario as
@@ -110,31 +111,33 @@ const CountdownTimer = forwardRef<
     >
       <div className={itemClass}>
         <div className={numberClass}>{remainingTime?.days || 0}</div>
-        <div className="text-sm capitalize leading-none">days</div>
+        {showLabels && (
+          <div className="text-sm capitalize leading-none">days</div>
+        )}
       </div>
       <div className={itemClass}>
         <div className={numberClass}>
           {formatNumber(remainingTime?.hours || 0)}
         </div>
-        <div className="text-sm capitalize leading-none">
-          hours
-        </div>
+        {showLabels && (
+          <div className="text-sm capitalize leading-none">hours</div>
+        )}
       </div>
       <div className={itemClass}>
         <div className={numberClass}>
           {formatNumber(remainingTime?.minutes || 0)}
         </div>
-        <div className="text-sm capitalize leading-none">
-          minutes
-        </div>
+        {showLabels && (
+          <div className="text-sm capitalize leading-none">minutes</div>
+        )}
       </div>
       <div className={itemClass}>
         <div className={numberClass}>
           {formatNumber(remainingTime?.seconds || 0)}
         </div>
-        <div className="text-sm capitalize leading-none">
-          seconds
-        </div>
+        {showLabels && (
+          <div className="text-sm capitalize leading-none">seconds</div>
+        )}
       </div>
     </div>
   );
@@ -162,6 +165,12 @@ export const schema = createSchema({
           type: "color",
           name: "textColor",
           label: "Text color",
+        },
+        {
+          type: "switch",
+          name: "showLabels",
+          label: "Show labels",
+          defaultValue: true,
         },
       ],
     },
