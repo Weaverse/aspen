@@ -103,7 +103,7 @@ export function CountrySelector({
           </button>
         </Popover.Trigger>
         <Popover.Portal>
-          <Popover.Content className="z-10">
+          <Popover.Content className="z-10 data-[state=open]:animate-slide-up">
             <div className="my-2 max-h-40 w-48 overflow-auto bg-[#3b352c] py-2">
               {countries &&
                 Object.keys(countries).map((countryPath) => {
