@@ -49,7 +49,7 @@ export function Sort() {
         <DropdownMenu.Content
           sideOffset={8}
           align="end"
-          className="flex h-fit w-44 flex-col gap-2 border border-line-subtle bg-background p-5"
+          className="flex h-fit w-44 flex-col gap-2 border border-line-subtle bg-background p-5 data-[state=closed]:animate-scale-out data-[state=open]:animate-scale-in"
         >
           {SORT_LIST.map(({ key, label }) => {
             params.set("sort", key);
