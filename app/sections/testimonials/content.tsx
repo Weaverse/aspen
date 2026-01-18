@@ -1,13 +1,15 @@
-import { ArrowLeft, ArrowRight, Quotes, Star } from "@phosphor-icons/react";
+import { Quotes, Star } from "@phosphor-icons/react";
 import type {
   HydrogenComponentProps,
   HydrogenComponentSchema,
 } from "@weaverse/hydrogen";
-import { forwardRef } from "react";
+import clsx from "clsx";
+import { forwardRef, useMemo } from "react";
 import Heading, {
   type HeadingProps,
   headingInputs,
 } from "~/components/heading";
+import { IconArrowLeft, IconArrowRight } from "~/components/icons";
 
 interface TestimonialContentProps
   extends Omit<HeadingProps, "as">,
@@ -22,6 +24,9 @@ interface TestimonialContentProps
   subHeadingWeight?: "normal" | "medium";
   subHeadingColor?: string;
   subHeadingAlignment?: "left" | "center" | "right";
+  // Arrows props
+  arrowsColor?: "primary" | "secondary";
+  arrowsShape?: "circle" | "square" | "rounded-sm";
 }
 
 let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
@@ -47,6 +52,9 @@ let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
       subHeadingWeight = "normal",
       subHeadingColor = "#4B5563",
       subHeadingAlignment = "left",
+      // Arrows props
+      arrowsColor = "primary",
+      arrowsShape = "circle",
       children,
       ...rest
     } = props;
@@ -72,6 +80,36 @@ let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
         window.testimonialSwiper.slideNext();
       }
     };
+
+    const arrowColorClasses = useMemo(() => {
+      return arrowsColor === "secondary"
+        ? [
+          "text-(--btn-secondary-text)",
+          "bg-(--btn-secondary-bg)",
+          "border-(--btn-secondary-bg)",
+          "hover:text-(--btn-secondary-text)",
+          "hover:bg-(--btn-secondary-bg)",
+          "hover:border-(--btn-secondary-bg)",
+        ]
+        : [
+          "text-(--btn-primary-text)",
+          "bg-(--btn-primary-bg)",
+          "border-(--btn-primary-bg)",
+          "hover:text-(--btn-primary-text)",
+          "hover:bg-(--btn-primary-bg)",
+          "hover:border-(--btn-primary-bg)",
+        ];
+    }, [arrowsColor]);
+
+    const arrowShapeClasses = useMemo(() => {
+      if (arrowsShape === "circle") {
+        return "rounded-full";
+      }
+      if (arrowsShape === "square") {
+        return "";
+      }
+      return "rounded-md";
+    }, [arrowsShape]);
 
     const renderStars = () => {
       const stars = [];
@@ -109,9 +147,8 @@ let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
               <DescriptionTag
                 className={`testimonial-description ${descriptionClasses}`}
                 style={{ color: subHeadingColor }}
-              >
-                {description}
-              </DescriptionTag>
+                dangerouslySetInnerHTML={{ __html: description }}
+              />
             )}
           </div>
           <div className="flex justify-between">
@@ -120,26 +157,28 @@ let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
               <p className="text-base">{author}</p>
             </div>
             <div className="flex gap-2">
-              <span
+              <button
+                type="button"
                 onClick={handlePrevSlide}
-                className="h-fit w-fit cursor-pointer rounded-full bg-[#EDEAE6] p-4"
+                className={clsx(
+                  "h-fit w-fit cursor-pointer border p-4 transition-colors duration-300",
+                  arrowColorClasses,
+                  arrowShapeClasses
+                )}
               >
-                <ArrowLeft
-                  size={16}
-                  weight="thin"
-                  className="transition-opacity hover:opacity-70"
-                />
-              </span>
-              <span
+                <IconArrowLeft className="" />
+              </button>
+              <button
+                type="button"
                 onClick={handleNextSlide}
-                className="h-fit w-fit cursor-pointer rounded-full bg-[#EDEAE6] p-4"
+                className={clsx(
+                  "h-fit w-fit cursor-pointer border p-4 transition-colors duration-300",
+                  arrowColorClasses,
+                  arrowShapeClasses
+                )}
               >
-                <ArrowRight
-                  size={16}
-                  weight="thin"
-                  className="transition-opacity hover:opacity-70"
-                />
-              </span>
+                <IconArrowRight className="" />
+              </button>
             </div>
           </div>
         </div>
@@ -261,6 +300,36 @@ export let schema: HydrogenComponentSchema = {
             ],
           },
           defaultValue: "left",
+        },
+      ],
+    },
+    {
+      group: "Arrows",
+      inputs: [
+        {
+          type: "select",
+          label: "Arrows color",
+          name: "arrowsColor",
+          configs: {
+            options: [
+              { value: "primary", label: "Primary" },
+              { value: "secondary", label: "Secondary" },
+            ],
+          },
+          defaultValue: "primary",
+        },
+        {
+          type: "toggle-group",
+          label: "Arrows shape",
+          name: "arrowsShape",
+          configs: {
+            options: [
+              { value: "rounded-sm", label: "Rounded", icon: "squircle" },
+              { value: "circle", label: "Circle", icon: "circle" },
+              { value: "square", label: "Square", icon: "square" },
+            ],
+          },
+          defaultValue: "circle",
         },
       ],
     },
