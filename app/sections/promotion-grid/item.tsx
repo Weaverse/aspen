@@ -67,9 +67,9 @@ const variants = cva(
 
 interface PromotionItemProps
   extends VariantProps<typeof variants>,
-    HydrogenComponentProps,
-    OverlayProps,
-    Omit<HeadingProps, "content"> {
+  HydrogenComponentProps,
+  OverlayProps,
+  Omit<HeadingProps, "content"> {
   backgroundImage: WeaverseImage | string;
   // Heading props
   headingContent?: string;
@@ -283,12 +283,6 @@ export const schema = createSchema({
     {
       group: "Heading (optional)",
       inputs: [
-        {
-          type: "text",
-          name: "headingContent",
-          label: "Heading content",
-          placeholder: "Enter heading text",
-        },
         ...headingInputs.map((input) => {
           if (input.name === "as") {
             return {
@@ -301,6 +295,8 @@ export const schema = createSchema({
             return {
               ...input,
               name: "headingContent",
+              label: "Heading content",
+              placeholder: "Enter heading text",
             } as any;
           }
           if (input.name === "alignment") {
