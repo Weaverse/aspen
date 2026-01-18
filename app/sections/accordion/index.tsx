@@ -45,7 +45,7 @@ const AccordionSection = forwardRef<HTMLElement, AccordionSectionProps>(
         <AccordionProvider value={contextValue}>
           <div
             className={clsx(
-              "grid h-full w-full items-center gap-8 md:gap-12 lg:gap-16",
+              "grid h-full w-full items-start gap-8 md:gap-12 lg:gap-16",
               accordionLayout === "row"
                 ? "grid-cols-1 justify-start"
                 : "grid-cols-1 md:grid-cols-2",
