@@ -1,4 +1,3 @@
-import { ArrowRight } from "@phosphor-icons/react";
 import {
   type ComponentLoaderArgs,
   type HydrogenComponentProps,
@@ -14,6 +13,7 @@ import Heading, {
   type HeadingProps,
   headingInputs,
 } from "~/components/heading";
+import { IconArrowRight } from "~/components/icons";
 import { Image } from "~/components/image";
 import Link from "~/components/link";
 import { layoutInputs, Section } from "~/components/section";
@@ -149,18 +149,7 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
               className="flex cursor-pointer items-center justify-center gap-2 font-medium text-(--accent-color) text-sm uppercase tracking-wider transition-opacity hover:opacity-80"
             >
               {viewAllText}
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="11"
-                viewBox="0 0 20 11"
-                fill="none"
-              >
-                <path
-                  d="M14.0575 0.376953L13.1737 1.26082L16.9236 5.0107H0.625V6.26074H16.9234L13.1737 10.0105L14.0575 10.8944L19.3163 5.63566L14.0575 0.376953Z"
-                  fill="currentColor"
-                />
-              </svg>
+              <IconArrowRight className="w-5" />
             </Link>
           )}
         </div>

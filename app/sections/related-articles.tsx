@@ -1,15 +1,15 @@
-import { ArrowRight } from "@phosphor-icons/react";
 import { createSchema } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
 import { Link, useLoaderData } from "react-router";
 import type { ArticleFragment } from "storefront-api.generated";
+import { IconArrowRight } from "~/components/icons";
 import { layoutInputs, Section, type SectionProps } from "~/components/section";
 import { getImageLoadingPriority } from "~/utils/image";
 import { ArticleCard, type ArticleCardProps } from "./blogs";
 
 interface RelatedArticlesProps
   extends Omit<ArticleCardProps, "article" | "blogHandle" | "loading">,
-    SectionProps {
+  SectionProps {
   heading: string;
   showViewAll?: boolean;
   viewAllText?: string;
@@ -52,9 +52,7 @@ const RelatedArticles = forwardRef<HTMLElement, RelatedArticlesProps>(
                   <span className="font-open-sans text-sm uppercase leading-[1em] tracking-[0.02em]">
                     {viewAllText}
                   </span>
-                  <ArrowRight
-                    size={20}
-                    weight="regular"
+                  <IconArrowRight
                     className="text-[#29231E]"
                   />
                 </Link>

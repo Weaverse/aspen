@@ -1,11 +1,11 @@
-import { ArrowLeft, ArrowRight } from "@phosphor-icons/react";
 import {
-  type ComponentLoaderArgs,
   createSchema,
+  type ComponentLoaderArgs,
   type HydrogenComponentProps,
   IMAGES_PLACEHOLDERS,
   type WeaverseCollection,
 } from "@weaverse/hydrogen";
+import { IconArrowLeft, IconArrowRight } from "~/components/icons";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import clsx from "clsx";
@@ -89,7 +89,7 @@ const productItemsVariants = cva("", {
 
 interface ProductItemsProps
   extends VariantProps<typeof productItemsVariants>,
-    HydrogenComponentProps<Awaited<ReturnType<typeof loader>>> {
+  HydrogenComponentProps<Awaited<ReturnType<typeof loader>>> {
   collection: WeaverseCollection;
   layout?: "grid" | "carousel";
   slidesPerView?: number;
@@ -154,21 +154,21 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
     const arrowColorClasses = useMemo(() => {
       return arrowsColor === "secondary"
         ? [
-            "text-(--btn-secondary-text)",
-            "bg-(--btn-secondary-bg)",
-            "border-(--btn-secondary-bg)",
-            "hover:text-(--btn-secondary-text)",
-            "hover:bg-(--btn-secondary-bg)",
-            "hover:border-(--btn-secondary-bg)",
-          ]
+          "text-(--btn-secondary-text)",
+          "bg-(--btn-secondary-bg)",
+          "border-(--btn-secondary-bg)",
+          "hover:text-(--btn-secondary-text)",
+          "hover:bg-(--btn-secondary-bg)",
+          "hover:border-(--btn-secondary-bg)",
+        ]
         : [
-            "text-(--btn-primary-text)",
-            "bg-(--btn-primary-bg)",
-            "border-(--btn-primary-bg)",
-            "hover:text-(--btn-primary-text)",
-            "hover:bg-(--btn-primary-bg)",
-            "hover:border-(--btn-primary-bg)",
-          ];
+          "text-(--btn-primary-text)",
+          "bg-(--btn-primary-bg)",
+          "border-(--btn-primary-bg)",
+          "hover:text-(--btn-primary-text)",
+          "hover:bg-(--btn-primary-bg)",
+          "hover:border-(--btn-primary-bg)",
+        ];
     }, [arrowsColor]);
 
     const arrowShapeClasses = useMemo(() => {
@@ -226,7 +226,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
                 )}
                 aria-label="Previous product"
               >
-                <ArrowLeft className="" size={16} />
+                <IconArrowLeft className="" />
               </button>
 
               <button
@@ -238,7 +238,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
                 )}
                 aria-label="Next product"
               >
-                <ArrowRight className="" size={16} />
+                <IconArrowRight className="" />
               </button>
             </div>
           </div>
@@ -334,7 +334,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
             )}
             aria-label="Previous product"
           >
-            <ArrowLeft className="" size={16} />
+            <IconArrowLeft className="" />
           </button>
 
           <button
@@ -348,7 +348,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
             )}
             aria-label="Next product"
           >
-            <ArrowRight className="" size={16} />
+            <IconArrowRight className="" />
           </button>
         </div>
       </div>

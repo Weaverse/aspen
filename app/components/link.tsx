@@ -14,6 +14,7 @@ import {
 } from "react-router";
 import type { RootLoader } from "~/root";
 import { cn } from "~/utils/cn";
+import { IconArrowRight } from "./icons";
 
 export const variants = cva(
   ["button inline-flex leading-none transition-colors"],
@@ -79,16 +80,16 @@ export interface LinkStyles {
 
 export interface LinkData
   extends RemixLinkProps,
-    Partial<LinkStyles>,
-    VariantProps<typeof variants> {
+  Partial<LinkStyles>,
+  VariantProps<typeof variants> {
   text?: string;
   openInNewTab?: boolean;
 }
 
 export interface LinkProps
   extends HTMLAttributes<HTMLAnchorElement>,
-    Partial<Omit<HydrogenComponentProps, "children">>,
-    LinkData {}
+  Partial<Omit<HydrogenComponentProps, "children">>,
+  LinkData { }
 
 export function useHrefWithLocale(href: LinkProps["to"]) {
   const rootData = useRouteLoaderData<RootLoader>("root");
@@ -179,18 +180,7 @@ export const Link = forwardRef(
           <span className="inline-flex items-center gap-2.5">
             {children || text}
             <span className="transform transition-transform duration-300 group-hover:translate-x-1">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 20 20"
-                fill="none"
-              >
-                <path
-                  d="M14.0575 4.74121L13.1737 5.62508L16.9236 9.37496H0.625V10.625H16.9234L13.1737 14.3748L14.0575 15.2586L19.3163 9.99992L14.0575 4.74121Z"
-                  fill="currentColor"
-                />
-              </svg>
+              <IconArrowRight width={20} height={20} />
             </span>
           </span>
         ) : (
