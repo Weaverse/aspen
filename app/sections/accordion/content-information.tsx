@@ -2,7 +2,7 @@ import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
 import { cva, type VariantProps } from "class-variance-authority";
 import { forwardRef } from "react";
 
-let variants = cva("", {
+let variants = cva("[&_.subheading]:!font-sans", {
   variants: {
     gap: {
       0: "",
@@ -30,7 +30,7 @@ let variants = cva("", {
 
 interface ContentInformationProps
   extends VariantProps<typeof variants>,
-  HydrogenComponentProps { }
+    HydrogenComponentProps {}
 
 const ContentInformation = forwardRef<HTMLDivElement, ContentInformationProps>(
   (props, ref) => {
