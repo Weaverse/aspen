@@ -22,6 +22,7 @@ import { SellingPlanSelector } from "~/components/subscriptions/selling-plan-sel
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import type { ProductData } from "~/routes/($locale).api.product";
 import { isDiscounted } from "~/utils/product";
+import { useCartDrawerState } from "../layout/cart-drawer";
 import { CompareAtPrice } from "./variant-prices";
 
 // Helper function from ProductDetails
@@ -191,9 +192,16 @@ export function QuickShop({
   const themeSettings = useThemeSettings();
   const { product, storeDomain } = data || {};
   const [internalShowDescription, setInternalShowDescription] = useState(false);
+  const { isOpen: isCartDrawerOpen } = useCartDrawerState();
 
   const isDescriptionOpen = showDescription ?? internalShowDescription;
   const setDescriptionOpen = setShowDescription ?? setInternalShowDescription;
+
+  useEffect(() => {
+    if (isCartDrawerOpen) {
+      onCloseAll?.();
+    }
+  }, [isCartDrawerOpen, onCloseAll]);
 
   // Internal variant state for QuickShop - not tied to URL
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
@@ -404,6 +412,8 @@ export function QuickShopTrigger({
               : "lg:inset-x-4 lg:h-auto lg:w-auto lg:rounded-none lg:opacity-100",
             "lg:px-6 lg:py-5",
             "lg:border-(--btn-secondary-bg) lg:bg-(--btn-secondary-bg) lg:text-(--btn-secondary-text)",
+            "hover:lg:bg-(--btn-secondary-bg-hover) hover:lg:text-(--btn-secondary-text-hover)",
+            "transition-all duration-300",
             showOnHover
               ? "lg:-translate-y-1.5 lg:-translate-x-2 lg:group-hover:translate-x-0 lg:group-hover:translate-y-2 lg:group-hover:opacity-100"
               : "",
