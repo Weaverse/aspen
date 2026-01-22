@@ -2,14 +2,14 @@ export function IconArrowLeft(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      width="15"
-      height="9"
-      viewBox="0 0 15 9"
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
       fill="none"
       {...props}
     >
       <path
-        d="M4.20709 8.41406L4.91419 7.70697L1.91428 4.70706L14.9531 4.70706V3.70703L1.91438 3.70703L4.91419 0.70722L4.20709 0.000126839L6.29425e-05 4.20709L4.20709 8.41406Z"
+        d="M4.754 3.79297L5.4611 4.50006L2.4612 7.49997H15.5V8.5H2.4613L5.4611 11.4998L4.754 12.2069L0.5469 7.99994L4.754 3.79297Z"
         fill="currentColor"
       />
     </svg>
