@@ -92,7 +92,8 @@ const CountdownTimer = forwardRef<
       : "text-4xl md:text-5xl";
 
   const numberClass = cn(
-    "ff-heading !leading-[0.8] font-medium flex justify-center w-[1.5em] shrink-0",
+    "ff-heading !leading-[0.8] font-medium flex tabular-nums shrink-0",
+    parentScenario === "scenario1" ? "justify-start w-[1.2em]" : "justify-center w-[1.5em]",
     numberFontClass,
   );
 
@@ -104,13 +105,13 @@ const CountdownTimer = forwardRef<
         "countdown--timer inline-grid gap-x-1 py-3 text-(--timer-color) sm:gap-x-2 sm:py-0 md:gap-x-4",
         parentScenario === "scenario2"
           ? "grid-cols-4"
-          : "grid-cols-2 lg:grid-cols-4",
+          : "grid-cols-2 md:grid-cols-4 gap-3 justify-self-start",
       )}
       data-motion="fade-up"
       style={timerStyle}
     >
       <div className={itemClass}>
-        <div className={numberClass}>{remainingTime?.days || 0}</div>
+        <div className={numberClass}>{formatNumber(remainingTime?.days || 0)}</div>
         {showLabels && (
           <div className="text-sm capitalize leading-none">days</div>
         )}

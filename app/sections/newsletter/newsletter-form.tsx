@@ -56,15 +56,16 @@ const NewsLetterForm = forwardRef<HTMLDivElement, NewsLetterInputProps>(
             dangerouslySetInnerHTML={{ __html: helpText }}
           />
         )}
-        <div
-          className={clsx(
-            "mx-auto mt-4 text-center font-medium",
-            state === "idle" && data ? "visible" : "invisible",
-            ok ? "text-green-700" : "text-red-700",
-          )}
-        >
-          {ok ? successText : errorMessage || "Something went wrong"}
-        </div>
+        {data && state === "idle" && (
+          <div
+            className={clsx(
+              "mx-auto mt-4 text-center font-medium",
+              ok ? "text-green-700" : "text-red-700",
+            )}
+          >
+            {ok ? successText : errorMessage || "Something went wrong"}
+          </div>
+        )}
       </div>
     );
   },

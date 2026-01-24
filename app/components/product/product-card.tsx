@@ -124,8 +124,8 @@ export function ProductCard({
                 className={clsx([
                   "absolute inset-0",
                   pcardShowImageOnHover &&
-                    secondImage &&
-                    "transition-opacity duration-300 group-hover:opacity-50",
+                  secondImage &&
+                  "transition-opacity duration-300 group-hover:opacity-50",
                 ])}
                 sizes="(min-width: 64em) 25vw, (min-width: 48em) 30vw, 45vw"
                 data={image}
@@ -165,9 +165,7 @@ export function ProductCard({
             <QuickShopTrigger
               productHandle={product.handle}
               showOnHover={pcardShowQuickShopOnHover}
-              buttonType={pcardQuickShopButtonType}
               buttonText={pcardQuickShopButtonText}
-              panelType={pcardQuickShopPanelType}
             />
           )}
         </div>

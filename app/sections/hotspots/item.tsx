@@ -30,7 +30,7 @@ export interface HotspotsItemData {
 
 interface HotspotsItemProps
   extends HydrogenComponentProps<Awaited<ReturnType<typeof loader>>>,
-    HotspotsItemData {}
+  HotspotsItemData { }
 
 const ICONS = {
   circle: CircleDotIcon,
@@ -73,12 +73,16 @@ const HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>(
       `/api/product?handle=${product?.handle}`,
     );
 
-    // Handle click - open quick shop on mobile and tablet, popup on desktop
-    const handleClick = () => {
+    const displayData = (quickShopData || loaderData) as any;
+
+    // Handle click - open drawer on mobile/tablet only
+    const handleClick = (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      // Only open drawer on mobile/tablet (< 1024px)
       if (window.innerWidth < 1024) {
-        // Mobile and tablet breakpoint
-        // On mobile and tablet, open QuickShop
-        if (!quickShopData && state !== "loading") {
+        if (!quickShopData && state !== "loading" && !loaderData) {
           load(apiPath);
         }
         setShowQuickShop(true);
@@ -125,7 +129,7 @@ const HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>(
               onClick={handleClick}
             >
               <Icon style={{ width: iconSize, height: iconSize }} />
-              {/* Desktop popup - only on actual desktop screens (1024px+) */}
+              {/* Desktop popup - hover preview with direct actions */}
               <div className="hidden lg:block">
                 <ProductPopup
                   product={loaderData?.product}
@@ -140,18 +144,18 @@ const HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>(
           </div>
         </div>
 
-        {/* Mobile Quick Shop */}
+        {/* Quick Shop Drawer for mobile and tablet */}
         <Dialog.Root open={showQuickShop} onOpenChange={setShowQuickShop}>
           <Dialog.Portal>
             <Dialog.Overlay
               className={clsx(
-                "fixed inset-0 z-10 bg-black/50",
+                "fixed inset-0 z-20 bg-black/50",
                 showQuickShop ? "animate-fade-in" : "animate-fade-out",
               )}
             />
             <Dialog.Content
               className={clsx(
-                "fixed inset-y-0 right-0 z-10 w-full bg-background py-2.5 shadow-2xl md:max-w-[430px] lg:hidden",
+                "fixed inset-y-0 right-0 z-20 w-full bg-background py-2.5 shadow-2xl md:max-w-[430px] lg:hidden",
                 showQuickShop
                   ? "animate-slide-in-right"
                   : "animate-slide-out-right",
@@ -176,17 +180,19 @@ const HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>(
                 {/* Content */}
                 <ScrollArea className="flex-1" size="sm">
                   <div className="px-5 py-4">
-                    {quickShopData ? (
+                    {displayData ? (
                       <QuickShop
-                        data={quickShopData as any}
+                        data={displayData}
                         showDescription={false}
-                        setShowDescription={() => {}}
+                        setShowDescription={() => { }}
                         onCloseAll={() => setShowQuickShop(false)}
                       />
                     ) : (
                       <div className="py-8 text-center">
                         <p className="text-body-subtle">
-                          Loading product data...
+                          {state === "loading"
+                            ? "Loading product data..."
+                            : "Select a product to view details"}
                         </p>
                       </div>
                     )}
@@ -212,16 +218,23 @@ export const loader = async (args: ComponentLoaderArgs<HotspotsItemData>) => {
 
   try {
     const productHandle = data.product.handle;
-    const { product } = await storefront.query<ProductQuery>(PRODUCT_QUERY, {
-      variables: {
-        handle: productHandle,
-        selectedOptions: [],
-        language: storefront.i18n.language,
-        country: storefront.i18n.country,
+    const { product, shop } = await storefront.query<ProductQuery>(
+      PRODUCT_QUERY,
+      {
+        variables: {
+          handle: productHandle,
+          selectedOptions: [],
+          language: storefront.i18n.language,
+          country: storefront.i18n.country,
+        },
       },
-    });
+    );
 
-    return { product };
+    return {
+      product,
+      shop,
+      storeDomain: shop.primaryDomain.url,
+    };
   } catch (error) {
     console.error("Error loading hotspots product data:", error);
     return null;

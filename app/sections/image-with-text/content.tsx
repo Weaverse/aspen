@@ -6,7 +6,7 @@ import { cn } from "~/utils/cn";
 import { useImageWithTextContext } from "./context";
 
 const variants = cva(
-  "flex grow flex-col px-4 py-6 md:px-8 md:py-8 [&_.paragraph]:mx-[unset] [&_.paragraph]:w-auto",
+  "flex grow flex-col px-4 py-6 md:px-8 md:py-8 [&_.paragraph]:mx-[unset] [&_.paragraph]:w-full",
   {
     variants: {
       gap: {
@@ -45,7 +45,7 @@ const variants = cva(
 
 interface ImageWithTextContentProps
   extends VariantProps<typeof variants>,
-    HydrogenComponentProps {}
+  HydrogenComponentProps { }
 
 const ImageWithTextContent = forwardRef<
   HTMLDivElement,

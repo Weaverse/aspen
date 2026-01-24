@@ -167,10 +167,10 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
         <div ref={scope} {...rest} className="w-full">
           <Swiper
             spaceBetween={gap}
-            slidesPerView={1.2}
+            slidesPerView={1.4}
             breakpoints={{
               640: {
-                slidesPerView: 2.2,
+                slidesPerView: 2.4,
               },
               1024: {
                 slidesPerView: 3.2,

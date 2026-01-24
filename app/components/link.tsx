@@ -1,4 +1,3 @@
-import { ArrowRight } from "@phosphor-icons/react";
 import {
   createSchema,
   type HydrogenComponentProps,
@@ -17,7 +16,7 @@ import { cn } from "~/utils/cn";
 import { IconArrowRight } from "./icons";
 
 export const variants = cva(
-  ["button inline-flex leading-none transition-colors"],
+  ["button inline-flex leading-none transition-all duration-300"],
   {
     variants: {
       variant: {

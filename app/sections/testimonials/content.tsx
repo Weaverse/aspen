@@ -13,7 +13,7 @@ import { IconArrowLeft, IconArrowRight } from "~/components/icons";
 
 interface TestimonialContentProps
   extends Omit<HeadingProps, "as">,
-  Omit<HydrogenComponentProps, "content"> {
+    Omit<HydrogenComponentProps, "content"> {
   headingTagName?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
   description?: string;
   ratting?: number;
@@ -84,21 +84,21 @@ let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
     const arrowColorClasses = useMemo(() => {
       return arrowsColor === "secondary"
         ? [
-          "text-(--btn-secondary-text)",
-          "bg-(--btn-secondary-bg)",
-          "border-(--btn-secondary-bg)",
-          "hover:text-(--btn-secondary-text)",
-          "hover:bg-(--btn-secondary-bg)",
-          "hover:border-(--btn-secondary-bg)",
-        ]
+            "text-(--btn-secondary-text)",
+            "bg-(--btn-secondary-bg)",
+            "border-(--btn-secondary-bg)",
+            "hover:text-(--btn-secondary-text)",
+            "hover:bg-(--btn-secondary-bg)",
+            "hover:border-(--btn-secondary-bg)",
+          ]
         : [
-          "text-(--btn-primary-text)",
-          "bg-(--btn-primary-bg)",
-          "border-(--btn-primary-bg)",
-          "hover:text-(--btn-primary-text)",
-          "hover:bg-(--btn-primary-bg)",
-          "hover:border-(--btn-primary-bg)",
-        ];
+            "text-(--btn-primary-text)",
+            "bg-(--btn-primary-bg)",
+            "border-(--btn-primary-bg)",
+            "hover:text-(--btn-primary-text)",
+            "hover:bg-(--btn-primary-bg)",
+            "hover:border-(--btn-primary-bg)",
+          ];
     }, [arrowsColor]);
 
     const arrowShapeClasses = useMemo(() => {
@@ -163,7 +163,7 @@ let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
                 className={clsx(
                   "h-fit w-fit cursor-pointer border p-4 transition-colors duration-300",
                   arrowColorClasses,
-                  arrowShapeClasses
+                  arrowShapeClasses,
                 )}
               >
                 <IconArrowLeft className="" />
@@ -174,7 +174,7 @@ let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
                 className={clsx(
                   "h-fit w-fit cursor-pointer border p-4 transition-colors duration-300",
                   arrowColorClasses,
-                  arrowShapeClasses
+                  arrowShapeClasses,
                 )}
               >
                 <IconArrowRight className="" />

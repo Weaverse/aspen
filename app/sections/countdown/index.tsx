@@ -8,17 +8,29 @@ import type { SectionProps } from "~/components/section";
 import { Section } from "~/components/section";
 import { cn } from "~/utils/cn";
 
-const variants = cva("flex items-end justify-center", {
+const variants = cva("flex flex-col", {
   variants: {
     height: {
-      small: "min-h-fit py-12 lg:h-[50vh] lg:py-0",
-      medium: "min-h-fit py-12 lg:h-[60vh] lg:py-0",
-      large: "min-h-fit py-12 lg:h-[80vh] lg:py-0",
+      small: "min-h-[40vh] lg:min-h-[50vh]",
+      medium: "min-h-[50vh] lg:min-h-[60vh]",
+      large: "min-h-[70vh] lg:min-h-[80vh]",
       full: "",
     },
-    defaultVariants: {
-      height: "small",
+    contentPosition: {
+      "top left": "items-start justify-start",
+      "top center": "items-center justify-start",
+      "top right": "items-end justify-start",
+      "center left": "items-start justify-center",
+      "center center": "items-center justify-center",
+      "center right": "items-end justify-center",
+      "bottom left": "items-start justify-end",
+      "bottom center": "items-center justify-end",
+      "bottom right": "items-end justify-end",
     },
+  },
+  defaultVariants: {
+    height: "small",
+    contentPosition: "center center",
   },
 });
 
@@ -30,6 +42,7 @@ const Countdown = forwardRef<HTMLElement, CountdownProps>((props, ref) => {
   const {
     children,
     height,
+    contentPosition,
     scenario = "scenario1",
     verticalPadding,
     ...rest
@@ -44,7 +57,9 @@ const Countdown = forwardRef<HTMLElement, CountdownProps>((props, ref) => {
     >
       <div
         className={cn(
-          isScenario2 ? "flex items-end justify-center" : variants({ height }),
+          isScenario2
+            ? "flex items-end justify-center"
+            : variants({ height, contentPosition }),
         )}
         style={
           isScenario2 && typeof verticalPadding === "number"
@@ -54,13 +69,13 @@ const Countdown = forwardRef<HTMLElement, CountdownProps>((props, ref) => {
       >
         <div
           className={cn(
-            "grid grid-cols-1 gap-x-10 gap-y-4",
+            "grid w-full grid-cols-1 gap-x-12 gap-y-3 md:gap-y-6",
             isScenario2
               ? "md:grid-cols-3 md:grid-rows-2 md:gap-x-4"
-              : "countdown-wrapper md:grid-cols-2",
+              : "countdown-wrapper lg:grid-cols-2",
             isScenario2
               ? "[&_.button-countdown]:order-4 [&_.button-countdown]:h-fit md:[&_.button-countdown]:col-start-3 md:[&_.button-countdown]:row-span-2 md:[&_.button-countdown]:row-start-1 md:[&_.button-countdown]:self-center [&_.countdown--timer]:order-3 md:[&_.countdown--timer]:col-start-2 md:[&_.countdown--timer]:row-span-2 md:[&_.countdown--timer]:row-start-1 md:[&_.countdown--timer]:self-center [&_.paragraph]:order-2 md:[&_.paragraph]:col-start-1 md:[&_.paragraph]:row-start-2 [&_.subheading]:order-1 md:[&_.subheading]:col-start-1 md:[&_.subheading]:row-start-1 [&_.subheading]:font-sans"
-              : "[&_.button-countdown]:order-4 [&_.button-countdown]:h-fit [&_.countdown--timer]:order-2 md:[&_.countdown--timer]:order-3 [&_.paragraph]:order-3 md:[&_.paragraph]:order-2 [&_.subheading]:order-1 [&_.subheading]:font-sans",
+              : "[&_.subheading]:order-1 [&_.countdown--timer]:order-2 lg:[&_.countdown--timer]:order-3 [&_.paragraph]:order-3 lg:[&_.paragraph]:order-2 [&_.button-countdown]:order-4 [&_.button-countdown]:h-fit [&_.subheading]:font-sans",
           )}
         >
           {children}
@@ -148,6 +163,13 @@ export const schema = createSchema({
           condition: "scenario.eq.scenario2",
         },
         {
+          type: "position",
+          name: "contentPosition",
+          label: "Content position",
+          defaultValue: "center center",
+          condition: "scenario.eq.scenario1",
+        },
+        {
           type: "range",
           name: "borderRadius",
           label: "Border radius",
@@ -161,7 +183,10 @@ export const schema = createSchema({
         },
       ],
     },
-    { group: "Background", inputs: backgroundInputs },
+    {
+      group: "Background",
+      inputs: backgroundInputs.filter((inp) => inp.name !== "backgroundPosition"),
+    },
     { group: "Overlay", inputs: overlayInputs },
   ],
   childTypes: [
@@ -172,7 +197,8 @@ export const schema = createSchema({
   ],
   presets: {
     backgroundImage: IMAGES_PLACEHOLDERS.banner_2,
-    width: "stretch",
+    width: "fixed",
+    contentPosition: "center center",
     enableOverlay: true,
     overlayOpacity: 40,
     verticalPadding: "large",
