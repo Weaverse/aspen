@@ -110,8 +110,8 @@ function ProductColorOptions({
                         : "outline-[#DBD7D1] hover:outline-[#A79D95]",
                       // Apply background directly to button when it's a solid color
                       !swatch?.image?.previewImage &&
-                        isLightColor(swatchColor) &&
-                        "border border-gray-300",
+                      isLightColor(swatchColor) &&
+                      "border border-gray-300",
                     )}
                     style={
                       swatch?.image?.previewImage
@@ -183,6 +183,7 @@ export function ProductPopup({
         "group-hover:visible group-hover:opacity-100",
         "group-hover:translate-x-[calc(var(--translate-x-ratio)*var(--spot-size))]",
         "group-hover:translate-y-0",
+        "hover:!visible hover:!opacity-100",
       )}
       style={
         {
@@ -262,12 +263,12 @@ export function ProductPopup({
             lines={
               selectedVariant
                 ? [
-                    {
-                      merchandiseId: selectedVariant.id,
-                      quantity: 1,
-                      selectedVariant,
-                    },
-                  ]
+                  {
+                    merchandiseId: selectedVariant.id,
+                    quantity: 1,
+                    selectedVariant,
+                  },
+                ]
                 : []
             }
             className="!py-4 !px-6 flex h-12 items-center justify-center bg-[#908379] text-white transition-colors hover:bg-[#7a6f66]"
