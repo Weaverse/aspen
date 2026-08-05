@@ -6,15 +6,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Core Development
 - `npm run dev` - Start development server on port 3456 with codegen
-- `npm run dev:ca` - Start dev server with customer account API (unstable)
+- `npm run dev:ca` - Start dev server with a tunnel and push its domain for the Customer Account API OAuth flow
 - `npm run build` - Build for production with codegen
 - `npm run preview` - Preview production build
 - `npm run start` - Start production server
-- `npm run typecheck` - Run TypeScript type checking
+- `npm run typecheck` - Generate React Router types and run TypeScript type checking
+- `npm run routes-check` - Verify all standard Shopify routes are configured
 - `npm run codegen` - Generate GraphQL types and schema
 
 ### Code Quality
-- `npm run biome` - Run linting (error level only)
+- `npm run biome` - Run Biome checks and report errors and warnings
 - `npm run biome:fix` - Auto-fix linting issues
 - `npm run format` - Format code with Biome
 - `npm run format:check` - Check formatting without changes
@@ -31,8 +32,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This is a **Shopify Hydrogen storefront** built with **React Router v7** (not Remix) and integrated with **Weaverse** for visual page building. Key architectural decisions:
 
 ### Framework Stack
-- **Hydrogen 2025.5.0** - Shopify's React framework for commerce
-- **React Router v7** - File-based routing (NOT Remix - see import rules below)
+- **Hydrogen 2026.4** - Shopify's React framework for commerce
+- **React Router 7.16** - Programmatic route configuration (NOT Remix - see import rules below)
 - **Weaverse** - Visual page builder with component system
 - **Vite** - Build tool and dev server
 - **Biome** - Linting and formatting (replaces ESLint/Prettier)
@@ -43,7 +44,7 @@ This is a **Shopify Hydrogen storefront** built with **React Router v7** (not Re
 app/
 ├── components/          # Reusable UI components
 ├── sections/           # Weaverse page-building sections
-├── routes/             # File-based routing (React Router)
+├── routes/             # Route modules referenced by app/routes.ts
 ├── weaverse/           # Weaverse integration and config
 ├── hooks/              # Custom React hooks
 ├── utils/              # Utility functions
@@ -122,11 +123,11 @@ export let schema = createSchema({
 });
 ```
 
-### File-based Routing
-- Routes in `app/routes/` follow React Router v7 conventions
-- Locale-aware routes: `($locale).page-name.tsx`
-- Dynamic routes: `($locale).products.$productHandle.tsx`
-- API routes: `($locale).api.endpoint.ts`
+### Programmatic Routing
+- `app/routes.ts` is the source of truth for the React Router route tree
+- Route modules live in `app/routes/` and must be explicitly referenced by `app/routes.ts`
+- Route filenames keep the established locale-aware naming convention, such as `($locale).products.$productHandle.tsx`
+- Run `npm run routes-check` after changing the route tree
 
 ### Code Quality Standards
 - **TypeScript**: Strict mode disabled, but use types where beneficial
@@ -144,6 +145,7 @@ Required environment variables:
 ### Performance Considerations
 - **Server-side rendering** with hydration
 - **Component lazy loading** via Vite warming
+- **Client-only media** excluded from the Oxygen worker through the SSR stub in `vite.config.ts`
 - **GraphQL caching** using Hydrogen's cache strategies
 - **Image optimization** with Shopify CDN
 - **Asset inlining** disabled for CSP compliance
