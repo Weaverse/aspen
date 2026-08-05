@@ -154,7 +154,7 @@ export let schema: HydrogenComponentSchema = {
   type: "testimonial--content",
   title: "Content",
   limit: 1,
-  inspector: [
+  settings: [
     {
       group: "Content",
       inputs: [

@@ -1,5 +1,5 @@
 import { getProductOptions, Money, ShopPayButton } from "@shopify/hydrogen";
-import type { MoneyV2 } from "@shopify/hydrogen/customer-account-api-types";
+import type { MoneyV2 } from "@shopify/hydrogen/storefront-api-types";
 import {
   type ComponentLoaderArgs,
   createSchema,

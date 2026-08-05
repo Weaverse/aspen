@@ -69,7 +69,7 @@ let VideoItems = forwardRef<HTMLElement, VideoItemsProps>((props, ref) => {
 export let schema: HydrogenComponent["schema"] = {
   type: "video--items",
   title: "Videos",
-  inspector: [
+  settings: [
     {
       group: "Videos",
       inputs: [

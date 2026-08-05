@@ -256,7 +256,7 @@ export let schema: HydrogenComponentSchema = {
   title: "Slider",
   limit: 1,
   // toolbar: ["general-settings", ["duplicate", "delete"]],
-  inspector: [
+  settings: [
     {
       group: "Slider",
       inputs: [

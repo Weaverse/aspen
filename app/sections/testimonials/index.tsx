@@ -111,7 +111,7 @@ export default TestimonialIndex;
 export const schema = createSchema({
   type: "testimonial",
   title: "Testimonial",
-  inspector: [
+  settings: [
     {
       group: "Layout",
       inputs: layoutInputs.filter(({ name }) => name !== "gap"),

@@ -24,7 +24,6 @@ export default TestimonialItem;
 export const schema = createSchema({
   type: "testimonial--item",
   title: "Testimonial",
-  inspector: [],
   childTypes: ["testimonial--content", "testimonial--hotspots-item"],
   presets: {
     children: [

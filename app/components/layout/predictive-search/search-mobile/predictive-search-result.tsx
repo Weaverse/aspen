@@ -89,7 +89,6 @@ export function PredictiveSearchResult({ items, type }: SearchResultTypeProps) {
           style={{
             userSelect: type === "queries" ? "none" : "auto",
             WebkitUserSelect: type === "queries" ? "none" : "auto",
-            msUserSelect: type === "queries" ? "none" : "auto",
           }}
         >
           {items.map((item: NormalizedPredictiveSearchResultItem) => (

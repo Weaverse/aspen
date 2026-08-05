@@ -22,19 +22,6 @@ export default InformationItem;
 export const schema = createSchema({
   type: "information--item",
   title: "Information Item",
-  inspector: [
-    {
-      group: "Content settings",
-      inputs: [
-        // {
-        //   type: "switch",
-        //   name: "allowMultiple",
-        //   label: "Allow multiple open",
-        //   defaultValue: true,
-        // },
-      ],
-    },
-  ],
   childTypes: ["paragraph"],
   presets: {
     children: [

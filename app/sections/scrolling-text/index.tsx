@@ -217,7 +217,7 @@ export default ScrollingText;
 export let schema: HydrogenComponentSchema = {
   type: "scrolling-text",
   title: "Scrolling Text",
-  inspector: [
+  settings: [
     {
       group: "Scrolling Text",
       inputs: [

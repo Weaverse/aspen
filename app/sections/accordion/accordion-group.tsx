@@ -66,7 +66,7 @@ export default AccordionGroup;
 export const schema: HydrogenComponentSchema = {
   type: "accordion-group",
   title: "Accordion Group",
-  inspector: [
+  settings: [
     {
       group: "Accordion settings",
       inputs: [

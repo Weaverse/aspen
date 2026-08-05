@@ -1,4 +1,33 @@
-# @weaverse/pilot
+# @weaverse/aspen
+
+## Unreleased
+
+### Technical baseline refresh
+
+- Aligned Hydrogen, React Router, React, TypeScript, Tailwind CSS, Vite, Shopify
+  CLI/Oxygen tooling, Biome, and Weaverse SDK versions with Pilot's July 2026
+  baseline.
+- Migrated route declarations from `@react-router/fs-routes` to React Router's
+  programmatic route config while preserving existing public URLs.
+- Replaced `@shopify/remix-oxygen` application imports with current
+  `react-router` and `@shopify/hydrogen/oxygen` entry points.
+- Migrated Weaverse component schema keys from deprecated `inspector` to
+  `settings`, removed duplicate component registrations, and updated the
+  Hydrogen router context integration.
+- Node.js 22.12 or newer is now required.
+
+### Follow-up
+
+- The approved React Router 7.16 baseline and an upstream GraphQL Codegen
+  dependency currently retain high-severity npm advisories. Moving React Router
+  to 7.18.2 or newer requires a separately approved baseline update; the Lodash
+  advisory requires an upstream-compatible Codegen release.
+- Hydrogen/Vite currently emit upstream deprecation warnings for `envFile` and
+  `transformWithEsbuild`; neither API is configured directly by Aspen.
+- The homepage dev smoke test still reports legacy missing-schema/unknown DOM
+  property warnings from existing section data and prop forwarding. These do
+  not block rendering (HTTP 200) but should be cleaned up section by section in
+  a separate, behavior-focused change.
 
 ## 5.1.8
 

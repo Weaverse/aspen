@@ -107,7 +107,7 @@ export default AccordionItem;
 export const schema: HydrogenComponentSchema = {
   type: "accordion--item",
   title: "Accordion Item",
-  inspector: [
+  settings: [
     {
       group: "Accordion Item",
       inputs: [

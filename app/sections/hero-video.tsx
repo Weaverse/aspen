@@ -19,6 +19,7 @@ import { useInView } from "react-intersection-observer";
 import type { OverlayProps } from "~/components/overlay";
 import { Overlay, overlayInputs } from "~/components/overlay";
 import { useAnimation } from "~/hooks/use-animation";
+import { loadLazyReactPlayer, useClientReady } from "~/utils/react-player";
 
 const SECTION_HEIGHTS = {
   small: {
@@ -88,7 +89,7 @@ function getPlayerSize(id: string) {
   return { width: "100%", height: "auto" };
 }
 
-const ReactPlayer = lazy(() => import("react-player/lazy"));
+const ReactPlayer = lazy(loadLazyReactPlayer);
 
 const HeroVideo = forwardRef<HTMLElement, HeroVideoProps>((props, ref) => {
   const {
@@ -119,6 +120,7 @@ const HeroVideo = forwardRef<HTMLElement, HeroVideoProps>((props, ref) => {
   const { ref: inViewRef, inView } = useInView({
     triggerOnce: true,
   });
+  const clientReady = useClientReady();
 
   // Use `useCallback` so we don't recreate the function on each render
   // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation> --- IGNORE ---
@@ -163,7 +165,7 @@ const HeroVideo = forwardRef<HTMLElement, HeroVideoProps>((props, ref) => {
           "sm:translate-x-[min(0px,calc((var(--desktop-height)/9*16-100vw)/-2))]",
         )}
       >
-        {inView && (
+        {clientReady && inView && (
           <Suspense fallback={null}>
             <ReactPlayer
               url={videoURL}

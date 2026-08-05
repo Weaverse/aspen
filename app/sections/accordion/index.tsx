@@ -64,7 +64,7 @@ export default AccordionSection;
 export const schema: HydrogenComponentSchema = {
   type: "accordion",
   title: "Accordion",
-  inspector: [
+  settings: [
     {
       group: "Accordion settings",
       inputs: [

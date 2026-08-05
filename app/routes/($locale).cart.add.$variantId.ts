@@ -1,5 +1,5 @@
-import type { LoaderFunctionArgs } from "@shopify/remix-oxygen";
-import { data, redirect } from "@shopify/remix-oxygen";
+import type { LoaderFunctionArgs } from "react-router";
+import { data, redirect } from "react-router";
 
 export async function loader({ params, context }: LoaderFunctionArgs) {
   const { cart, session } = context;

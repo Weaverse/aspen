@@ -130,7 +130,10 @@ async function getSwatchesConfigs(context: AppLoadContext) {
   );
   const colors: Swatch[] = [];
   const images: Swatch[] = [];
-  for (const { id, fields } of metaobjects.nodes) {
+  // Shopify can omit `metaobjects` when the configured definition is missing
+  // or unavailable for the current storefront. Swatches are optional, so keep
+  // rendering the theme with an empty configuration in that case.
+  for (const { id, fields } of metaobjects?.nodes ?? []) {
     const { value: color } = fields.find(({ key }) => key === "color") || {};
     const { reference: imageRef } =
       fields.find(({ key }) => key === "image") || {};

@@ -215,7 +215,7 @@ export let schema: HydrogenComponentSchema = {
   type: "map",
   title: "Map",
   childTypes: ["address-item"],
-  inspector: [
+  settings: [
     {
       group: "Content",
       inputs: [

@@ -20,7 +20,7 @@ _Aspen is a sophisticated Shopify theme crafted specifically for home furniture 
 ![Weaverse + Hydrogen + Shopify](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/weaverse-x-hydrogen-x-shopify.png?v=1755245801)
 
 - React Router v7
-- Hydrogen 2025.5.0
+- Hydrogen 2026.4
 - Oxygen
 - Shopify CLI
 - Biome (ESLint, Prettier alternative)
@@ -42,8 +42,8 @@ _Aspen is a sophisticated Shopify theme crafted specifically for home furniture 
 
 **Requirements:**
 
-- Node.js version 20.0.0 or higher
-- npm or pnpm package manager
+- Node.js version 22.12.0 or higher
+- npm package manager
 
 **Follow these steps to get started with Aspen and begin crafting your furniture store:**
 
@@ -77,11 +77,11 @@ npm run e2e
 
 ### Fetching page data with parallel loading
 
-Pilot uses parallel data loading for optimal performance. Every route loads Weaverse data alongside GraphQL queries using `Promise.all()`:
+Aspen uses parallel data loading for optimal performance. Every route loads Weaverse data alongside GraphQL queries using `Promise.all()`:
 
 ```ts:routes/($locale)._index.tsx
-import { data } from '@shopify/remix-oxygen';
-import { type LoaderFunctionArgs } from '@shopify/remix-oxygen';
+import { data } from 'react-router';
+import { type LoaderFunctionArgs } from 'react-router';
 
 export async function loader({ context }: LoaderFunctionArgs) {
   const { storefront, weaverse } = context;
@@ -99,12 +99,13 @@ export async function loader({ context }: LoaderFunctionArgs) {
 }
 ```
 
-`weaverse` is an `WeaverseClient` instance that has been injected into the app context by Weaverse. It provides a set of methods to interact with the Weaverse API.
+`weaverse` is a `WeaverseClient` instance that has been injected into the app context by Weaverse. It provides a set of methods to interact with the Weaverse API.
 
 ```ts:app/lib/context.ts
 // app/lib/context.ts
 
-const hydrogenContext = createHydrogenContext({
+const hydrogenContext = createHydrogenContext(
+  {
     env,
     request,
     cache,
@@ -114,19 +115,21 @@ const hydrogenContext = createHydrogenContext({
     cart: {
       queryFragment: CART_QUERY_FRAGMENT,
     },
-  });
+  },
+  {},
+);
 
-  return {
-    ...hydrogenContext,
-    // declare additional Remix loader context
-    weaverse: new WeaverseClient({
-      ...hydrogenContext,
-      request,
-      cache,
-      themeSchema,
-      components,
-    }),
-  };
+const weaverse = new WeaverseClient({
+  ...hydrogenContext,
+  request,
+  cache,
+  themeSchema,
+  components,
+});
+
+Object.assign(hydrogenContext, { weaverse });
+
+return hydrogenContext;
 ```
 
 ### Rendering page content

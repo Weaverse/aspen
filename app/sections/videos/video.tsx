@@ -5,8 +5,9 @@ import type {
 } from "@weaverse/hydrogen";
 import { forwardRef, lazy, Suspense } from "react";
 import { Link } from "react-router";
+import { loadReactPlayer, useClientReady } from "~/utils/react-player";
 
-const ReactPlayer = lazy(() => import("react-player"));
+const ReactPlayer = lazy(loadReactPlayer);
 
 const VideoPlaceholder = () => (
   <div className="absolute inset-0 flex h-full w-full items-center justify-center bg-gray-100">
@@ -45,6 +46,7 @@ let VideoItem = forwardRef<HTMLElement, VideoItemProps>((props, ref) => {
 
   const Tag = videoHandle?.handle ? Link : "div";
   const hasVideo = video?.url?.trim();
+  const clientReady = useClientReady();
 
   return (
     <div
@@ -55,52 +57,56 @@ let VideoItem = forwardRef<HTMLElement, VideoItemProps>((props, ref) => {
         <div className="relative h-full w-full overflow-hidden">
           {hasVideo ? (
             <div className="absolute inset-0 h-full w-full">
-              <Suspense fallback={<VideoPlaceholder />}>
-                <ReactPlayer
-                  url={video.url}
-                  loop={true}
-                  width="100%"
-                  height="100%"
-                  controls={false}
-                  style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                  }}
-                  config={{
-                    file: {
-                      attributes: {
-                        style: {
+              {clientReady ? (
+                <Suspense fallback={<VideoPlaceholder />}>
+                  <ReactPlayer
+                    url={video.url}
+                    loop={true}
+                    width="100%"
+                    height="100%"
+                    controls={false}
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                    }}
+                    config={{
+                      file: {
+                        attributes: {
+                          style: {
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                          },
+                          playsInline: true,
+                          autoPlay: true,
+                          muted: true,
+                        },
+                      },
+                      youtube: {
+                        playerVars: {
+                          playsinline: 1,
+                          autoplay: 1,
+                          controls: 0,
+                          mute: 1,
+                          loop: 1,
+                          modestbranding: 1,
+                          rel: 0,
+                        },
+                        embedOptions: {
                           width: "100%",
                           height: "100%",
-                          objectFit: "cover",
                         },
-                        playsInline: true,
-                        autoPlay: true,
-                        muted: true,
                       },
-                    },
-                    youtube: {
-                      playerVars: {
-                        playsinline: 1,
-                        autoplay: 1,
-                        controls: 0,
-                        mute: 1,
-                        loop: 1,
-                        modestbranding: 1,
-                        rel: 0,
-                      },
-                      embedOptions: {
-                        width: "100%",
-                        height: "100%",
-                      },
-                    },
-                  }}
-                />
-              </Suspense>
+                    }}
+                  />
+                </Suspense>
+              ) : (
+                <VideoPlaceholder />
+              )}
             </div>
           ) : (
             <VideoPlaceholder />
@@ -130,7 +136,7 @@ let VideoItem = forwardRef<HTMLElement, VideoItemProps>((props, ref) => {
 export let schema: HydrogenComponent["schema"] = {
   type: "video--item",
   title: "Video",
-  inspector: [
+  settings: [
     {
       group: "Video",
       inputs: [

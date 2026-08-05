@@ -49,7 +49,7 @@ export default ContentInformation;
 export const schema = createSchema({
   type: "content-information",
   title: "Content Information",
-  inspector: [
+  settings: [
     {
       group: "Content settings",
       inputs: [

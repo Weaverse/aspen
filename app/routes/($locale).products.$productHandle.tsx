@@ -4,15 +4,14 @@ import {
   getSeoMeta,
   useOptimisticVariant,
 } from "@shopify/hydrogen";
+import { getSelectedProductOptions } from "@weaverse/hydrogen";
+import { useEffect } from "react";
 import type {
   ActionFunctionArgs,
   LoaderFunctionArgs,
   MetaArgs,
-} from "@shopify/remix-oxygen";
-import { data } from "@shopify/remix-oxygen";
-import { getSelectedProductOptions } from "@weaverse/hydrogen";
-import { useEffect } from "react";
-import { useLoaderData } from "react-router";
+} from "react-router";
+import { data, useLoaderData } from "react-router";
 import type { ProductQuery } from "storefront-api.generated";
 import invariant from "tiny-invariant";
 import { PRODUCT_QUERY } from "~/graphql/queries";

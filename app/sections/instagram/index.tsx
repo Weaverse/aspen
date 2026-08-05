@@ -62,7 +62,7 @@ export let loader = async (args: ComponentLoaderArgs<InstagramData>) => {
 export const schema: HydrogenComponentSchema = {
   type: "instagram",
   title: "Instagram",
-  inspector: [
+  settings: [
     {
       group: "Instagram",
       inputs: [

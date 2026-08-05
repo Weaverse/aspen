@@ -1,13 +1,13 @@
 import * as remixBuild from "virtual:react-router/server-build"; // Virtual entry point for the app
 import type { HydrogenSession } from "@shopify/hydrogen";
 import { createHydrogenContext, storefrontRedirect } from "@shopify/hydrogen";
+import { createRequestHandler } from "@shopify/hydrogen/oxygen";
+import { WeaverseClient } from "@weaverse/hydrogen";
 import {
   createCookieSessionStorage,
-  createRequestHandler,
   type Session,
   type SessionStorage,
-} from "@shopify/remix-oxygen";
-import { WeaverseClient } from "@weaverse/hydrogen";
+} from "react-router";
 import type { I18nLocale } from "~/types/locale";
 import { COUNTRIES } from "~/utils/const";
 import { components } from "~/weaverse/components";
@@ -133,32 +133,36 @@ export async function createAppLoadContext(
     AppSession.init(request, [env.SESSION_SECRET]),
   ]);
 
-  const hydrogenContext = createHydrogenContext({
-    env,
-    request,
-    cache,
-    waitUntil,
-    session,
-    i18n: getLocaleFromRequest(request),
-    cart: { queryFragment: CART_QUERY_FRAGMENT },
-  });
-
-  return {
-    ...hydrogenContext,
-    weaverse: new WeaverseClient({
-      ...hydrogenContext,
+  const hydrogenContext = createHydrogenContext(
+    {
+      env,
       request,
       cache,
-      themeSchema,
-      components,
-    }),
-  };
+      waitUntil,
+      session,
+      i18n: getLocaleFromRequest(request),
+      cart: { queryFragment: CART_QUERY_FRAGMENT },
+    },
+    {},
+  );
+
+  const weaverse = new WeaverseClient({
+    ...hydrogenContext,
+    request,
+    cache,
+    themeSchema,
+    components,
+  });
+
+  Object.assign(hydrogenContext, { weaverse });
+
+  return hydrogenContext;
 }
 
 class AppSession implements HydrogenSession {
   isPending = false;
-  #sessionStorage: SessionStorage;
-  #session: Session;
+  readonly #sessionStorage: SessionStorage;
+  readonly #session: Session;
 
   constructor(sessionStorage: SessionStorage, session: Session) {
     this.#sessionStorage = sessionStorage;

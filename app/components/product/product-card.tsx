@@ -165,9 +165,7 @@ export function ProductCard({
             <QuickShopTrigger
               productHandle={product.handle}
               showOnHover={pcardShowQuickShopOnHover}
-              buttonType={pcardQuickShopButtonType}
               buttonText={pcardQuickShopButtonText}
-              panelType={pcardQuickShopPanelType}
             />
           )}
         </div>

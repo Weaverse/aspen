@@ -1,21 +1,19 @@
-import "@fontsource/tenor-sans";
-import "@fontsource-variable/open-sans";
+import "@fontsource/tenor-sans/index.css";
+import "@fontsource-variable/open-sans/index.css";
 import tenorSansWoff2Url from "@fontsource/tenor-sans/files/tenor-sans-latin-400-normal.woff2?url";
 import openSansVarWoff2Url from "@fontsource-variable/open-sans/files/open-sans-latin-wght-normal.woff2?url";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import type { SeoConfig } from "@shopify/hydrogen";
 import { Analytics, getSeoMeta, useNonce } from "@shopify/hydrogen";
-import type {
-  LinksFunction,
-  LoaderFunctionArgs,
-  MetaArgs,
-} from "@shopify/remix-oxygen";
 import { useThemeSettings, withWeaverse } from "@weaverse/hydrogen";
 import type { CSSProperties } from "react";
 import {
   isRouteErrorResponse,
   Links,
+  type LinksFunction,
+  type LoaderFunctionArgs,
   Meta,
+  type MetaArgs,
   Outlet,
   Scripts,
   ScrollRestoration,

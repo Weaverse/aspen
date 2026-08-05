@@ -25,7 +25,7 @@ export let schema: HydrogenComponentSchema = {
   type: "feature-collection",
   title: "Featured collections",
   childTypes: ["collection-content-dynamic", "collection-list-dynamic-items"],
-  inspector: [
+  settings: [
     {
       group: "Collection List",
       inputs: [

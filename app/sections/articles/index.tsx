@@ -284,7 +284,7 @@ query BlogSingle(
 export const schema: HydrogenComponentSchema = {
   type: "articles-list",
   title: "Articles",
-  inspector: [
+  settings: [
     {
       group: "Layout",
       inputs: layoutInputs.filter(

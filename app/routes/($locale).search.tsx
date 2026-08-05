@@ -7,9 +7,9 @@ import {
   Pagination,
 } from "@shopify/hydrogen";
 import type { ProductFilter } from "@shopify/hydrogen/storefront-api-types";
-import type { LoaderFunctionArgs, MetaArgs } from "@shopify/remix-oxygen";
 import { clsx } from "clsx";
 import React, { useState } from "react";
+import type { LoaderFunctionArgs, MetaArgs } from "react-router";
 import { useLoaderData, useSearchParams } from "react-router";
 import type {
   ProductCardFragment,

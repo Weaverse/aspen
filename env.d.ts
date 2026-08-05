@@ -1,10 +1,15 @@
 /// <reference types="vite/client" />
-/// <reference types="@shopify/remix-oxygen" />
 /// <reference types="@shopify/oxygen-workers-types" />
 
 // Enhance TypeScript's built-in typings.
 import "@total-typescript/ts-reset";
-import type { HydrogenEnv, HydrogenSessionData } from "@shopify/hydrogen";
+import type {
+  HydrogenEnv,
+  HydrogenSessionData,
+  Storefront as StorefrontBase,
+} from "@shopify/hydrogen";
+import type { WeaverseClient } from "@weaverse/hydrogen";
+import type { I18nLocale } from "./app/types/locale";
 import type { createAppLoadContext } from "./server";
 
 declare global {
@@ -25,12 +30,20 @@ declare global {
     PUBLIC_SHOPIFY_INBOX_SHOP_ID: string;
     WEAVERSE_HOST?: string;
   }
+
+  interface HydrogenAdditionalContext {
+    weaverse: WeaverseClient;
+  }
 }
 
 declare module "react-router" {
   interface AppLoadContext
     extends Awaited<ReturnType<typeof createAppLoadContext>> {
     // to change context type, change the return of createAppLoadContext() instead
+    storefront: Omit<StorefrontBase, "i18n"> & {
+      i18n: I18nLocale;
+    };
+    weaverse: WeaverseClient;
   }
 
   // TODO: remove this once we've migrated our loaders to `Route.LoaderArgs`
