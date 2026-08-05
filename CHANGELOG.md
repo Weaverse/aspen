@@ -14,6 +14,8 @@
 - Migrated Weaverse component schema keys from deprecated `inspector` to
   `settings`, removed duplicate component registrations, and updated the
   Hydrogen router context integration.
+- Upgraded React Player to v3 and excluded its browser-only media stack from
+  the Oxygen worker bundle while preserving lazy client-side loading.
 - Node.js 22.12 or newer is now required.
 
 ### Follow-up

@@ -19,7 +19,7 @@ import { useInView } from "react-intersection-observer";
 import type { OverlayProps } from "~/components/overlay";
 import { Overlay, overlayInputs } from "~/components/overlay";
 import { useAnimation } from "~/hooks/use-animation";
-import { loadLazyReactPlayer, useClientReady } from "~/utils/react-player";
+import { useClientReady } from "~/utils/react-player";
 
 const SECTION_HEIGHTS = {
   small: {
@@ -89,7 +89,8 @@ function getPlayerSize(id: string) {
   return { width: "100%", height: "auto" };
 }
 
-const ReactPlayer = lazy(loadLazyReactPlayer);
+// react-player v3 is ESM-only and lazy-loads individual players internally.
+const ReactPlayer = lazy(() => import("react-player"));
 
 const HeroVideo = forwardRef<HTMLElement, HeroVideoProps>((props, ref) => {
   const {
@@ -168,7 +169,7 @@ const HeroVideo = forwardRef<HTMLElement, HeroVideoProps>((props, ref) => {
         {clientReady && inView && (
           <Suspense fallback={null}>
             <ReactPlayer
-              url={videoURL}
+              src={videoURL}
               playing
               muted
               loop={true}

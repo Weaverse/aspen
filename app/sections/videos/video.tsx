@@ -5,9 +5,9 @@ import type {
 } from "@weaverse/hydrogen";
 import { forwardRef, lazy, Suspense } from "react";
 import { Link } from "react-router";
-import { loadReactPlayer, useClientReady } from "~/utils/react-player";
+import { useClientReady } from "~/utils/react-player";
 
-const ReactPlayer = lazy(loadReactPlayer);
+const ReactPlayer = lazy(() => import("react-player"));
 
 const VideoPlaceholder = () => (
   <div className="absolute inset-0 flex h-full w-full items-center justify-center bg-gray-100">
@@ -60,8 +60,12 @@ let VideoItem = forwardRef<HTMLElement, VideoItemProps>((props, ref) => {
               {clientReady ? (
                 <Suspense fallback={<VideoPlaceholder />}>
                   <ReactPlayer
-                    url={video.url}
+                    src={video.url}
+                    playing
+                    autoPlay
+                    muted
                     loop={true}
+                    playsInline
                     width="100%"
                     height="100%"
                     controls={false}
@@ -72,35 +76,6 @@ let VideoItem = forwardRef<HTMLElement, VideoItemProps>((props, ref) => {
                       width: "100%",
                       height: "100%",
                       objectFit: "cover",
-                    }}
-                    config={{
-                      file: {
-                        attributes: {
-                          style: {
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
-                          },
-                          playsInline: true,
-                          autoPlay: true,
-                          muted: true,
-                        },
-                      },
-                      youtube: {
-                        playerVars: {
-                          playsinline: 1,
-                          autoplay: 1,
-                          controls: 0,
-                          mute: 1,
-                          loop: 1,
-                          modestbranding: 1,
-                          rel: 0,
-                        },
-                        embedOptions: {
-                          width: "100%",
-                          height: "100%",
-                        },
-                      },
                     }}
                   />
                 </Suspense>
