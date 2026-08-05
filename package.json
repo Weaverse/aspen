@@ -11,7 +11,7 @@
     "dev:ca": "shopify hydrogen dev --codegen --port 3456 --customer-account-push",
     "preview": "shopify hydrogen preview --build",
     "start": "shopify hydrogen preview",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "react-router typegen && tsc --noEmit",
     "routes-check": "shopify hydrogen check routes",
     "codegen": "shopify hydrogen codegen",
     "hydrogen": "shopify hydrogen",
