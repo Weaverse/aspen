@@ -2,7 +2,6 @@ import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import clsx from "clsx";
-import type React from "react";
 
 let variants = cva(
   [
@@ -11,7 +10,6 @@ let variants = cva(
     "cursor-pointer p-3",
     "border border-transparent",
     "transition-all duration-200",
-    "shadow-lg",
   ],
   {
     variants: {
@@ -34,14 +32,14 @@ let variants = cva(
         ],
         white: [
           "text-gray-800",
-          "bg-white/90",
-          "border-white/90",
+          "bg-white/80",
+          "border-white/80",
           "hover:bg-white",
         ],
       },
       arrowsShape: {
         square: "",
-        rounded: "rounded-md",
+        rounded: "rounded-[12px]",
         circle: "rounded-full",
       },
       disabled: {
@@ -60,7 +58,7 @@ let variants = cva(
       {
         showArrowsOnHover: false,
         side: "left",
-        className: "left-2",
+        className: "-left-11 md:-left-[22px]",
       },
       {
         showArrowsOnHover: true,
@@ -70,7 +68,7 @@ let variants = cva(
       {
         showArrowsOnHover: false,
         side: "right",
-        className: "right-2",
+        className: "-right-11 md:-right-[22px]",
       },
     ],
   },

@@ -1,48 +1,52 @@
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
-import clsx from "clsx";
 import { useEffect, useState } from "react";
 import { useSwiper } from "swiper/react";
-
-export interface SlideshowDotsProps extends VariantProps<typeof variants> {
-  className?: string;
-  slidesCount?: number;
-}
+import { cn } from "~/utils/cn";
 
 const variants = cva(
-  ["slideshow-dots", "absolute z-1 flex w-full items-center justify-center"],
+  [
+    "slideshow-dots pointer-events-none absolute z-2",
+    "flex w-full max-w-(--page-width)",
+  ],
   {
     variants: {
       dotsPosition: {
-        top: "top-10! right-0! bottom-auto! left-0!",
-        bottom: "top-auto! right-0! bottom-10! left-0!",
-        left: "top-0! right-auto! bottom-0! left-5! flex-col",
-        right: "top-0! right-5! bottom-0! left-auto! flex-col",
-      },
-      dotsColor: {
-        light: "",
-        dark: "",
+        top: "inset-x-0 top-11 mx-auto justify-center px-[26px] md:top-[72px] md:justify-start md:px-(--page-padding) 2xl:px-0",
+        bottom:
+          "inset-x-0 bottom-11 mx-auto justify-center px-[26px] md:bottom-[71px] md:justify-start md:px-(--page-padding) 2xl:px-0",
+        left: "inset-y-0 left-[26px] items-center md:left-(--page-padding)",
+        right:
+          "inset-y-0 right-[26px] items-center justify-end md:right-(--page-padding)",
       },
     },
     defaultVariants: {
       dotsPosition: "bottom",
-      dotsColor: "light",
     },
   },
 );
 
+const trackVariants = cva("pointer-events-auto flex", {
+  variants: {
+    dotsPosition: {
+      top: "h-1 w-40",
+      bottom: "h-1 w-40",
+      left: "h-40 w-1 flex-col",
+      right: "h-40 w-1 flex-col",
+    },
+  },
+  defaultVariants: {
+    dotsPosition: "bottom",
+  },
+});
+
 const dotVariants = cva(
-  [
-    "dot cursor-pointer",
-    "h-1 w-12 p-0",
-    "fade-in transition-all duration-300",
-    "border-0 outline-none",
-  ],
+  "dot flex-1 cursor-pointer border-0 p-0 outline-none transition-colors duration-300",
   {
     variants: {
       dotsColor: {
-        light: "bg-black/30 hover:bg-black/50",
-        dark: "bg-[#DBD7D1] hover:bg-[#DBD7D1]/50",
+        light: "bg-white/40 hover:bg-white/70",
+        dark: "bg-white/40 hover:bg-white/70",
       },
       isActive: {
         true: "",
@@ -53,34 +57,43 @@ const dotVariants = cva(
       {
         dotsColor: "light",
         isActive: true,
-        className: "!bg-white",
+        className: "bg-white!",
       },
       {
         dotsColor: "dark",
         isActive: true,
-        className: "!bg-[#A79D95]",
+        className: "bg-white!",
       },
     ],
   },
 );
 
+export interface SlideshowDotsProps extends VariantProps<typeof variants> {
+  className?: string;
+  slidesCount?: number;
+  dotsColor?: "light" | "dark";
+}
+
 export function Dots(props: SlideshowDotsProps) {
-  const { className, dotsPosition, dotsColor, slidesCount = 0 } = props;
+  const {
+    className,
+    dotsPosition = "bottom",
+    dotsColor = "light",
+    slidesCount = 0,
+  } = props;
   const swiper = useSwiper();
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
-    if (!swiper) return;
+    if (!swiper) {
+      return;
+    }
 
     const handleSlideChange = () => {
-      const currentIndex = swiper.realIndex || swiper.activeIndex;
-      setActiveIndex(currentIndex);
+      setActiveIndex(swiper.realIndex || swiper.activeIndex);
     };
 
-    // Listen for slide changes
     swiper.on("slideChange", handleSlideChange);
-
-    // Set initial active index
     handleSlideChange();
 
     return () => {
@@ -89,29 +102,33 @@ export function Dots(props: SlideshowDotsProps) {
   }, [swiper]);
 
   const handleDotClick = (index: number) => {
-    if (swiper) {
-      swiper.slideTo(index);
+    if (swiper.params.loop) {
+      swiper.slideToLoop(index);
+      return;
     }
+    swiper.slideTo(index);
   };
 
-  if (slidesCount === 0) return null;
+  if (slidesCount === 0) {
+    return null;
+  }
 
   return (
-    <div className={clsx(variants({ dotsPosition, dotsColor }), className)}>
-      {Array.from({ length: slidesCount }, (_, index) => (
-        <button
-          key={index}
-          type="button"
-          className={clsx(
-            dotVariants({
+    <div className={cn(variants({ dotsPosition }), className)}>
+      <div className={trackVariants({ dotsPosition })}>
+        {Array.from({ length: slidesCount }, (_, index) => (
+          <button
+            key={index}
+            type="button"
+            className={dotVariants({
               dotsColor,
               isActive: index <= activeIndex,
-            }),
-          )}
-          onClick={() => handleDotClick(index)}
-          aria-label={`Go to slide ${index + 1}`}
-        />
-      ))}
+            })}
+            onClick={() => handleDotClick(index)}
+            aria-label={`Go to slide ${index + 1}`}
+          />
+        ))}
+      </div>
     </div>
   );
 }

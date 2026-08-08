@@ -59,8 +59,13 @@ const Paragraph = forwardRef<
     className,
     ...rest
   } = props;
+  const containsBlockContent = /<(?:p|div|ul|ol|li|blockquote|h[1-6])\b/i.test(
+    content,
+  );
+  const SafeTag = Tag === "p" && containsBlockContent ? "div" : Tag;
+
   return (
-    <Tag
+    <SafeTag
       ref={ref}
       data-motion="fade-up"
       {...rest}

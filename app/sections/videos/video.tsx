@@ -1,10 +1,18 @@
-import type {
-  HydrogenComponent,
-  WeaverseBlog,
-  WeaverseVideo,
+import { EyeIcon } from "@phosphor-icons/react";
+import { Money } from "@shopify/hydrogen";
+import {
+  type ComponentLoaderArgs,
+  createSchema,
+  type HydrogenComponentProps,
+  type WeaverseProduct,
+  type WeaverseVideo,
 } from "@weaverse/hydrogen";
 import { forwardRef, lazy, Suspense } from "react";
-import { Link } from "react-router";
+import type { ProductQuery } from "storefront-api.generated";
+import { Image } from "~/components/image";
+import { Link } from "~/components/link";
+import { AddToCartButton } from "~/components/product/add-to-cart-button";
+import { PRODUCT_QUERY } from "~/graphql/queries";
 import { useClientReady } from "~/utils/react-player";
 
 const ReactPlayer = lazy(() => import("react-player"));
@@ -26,91 +34,177 @@ const VideoPlaceholder = () => (
           strokeWidth="2"
         />
       </svg>
+
       <p className="font-medium text-sm">No Video</p>
     </div>
   </div>
 );
 
-interface VideoItemProps {
+interface VideoItemData {
   video: WeaverseVideo;
-  date: string;
-  author: string;
-  videoTitle: string;
-  videoHandle: WeaverseBlog;
-  contentBackgroundColor?: string;
+  product?: WeaverseProduct;
+  addToCartText?: string;
 }
 
-let VideoItem = forwardRef<HTMLElement, VideoItemProps>((props, ref) => {
-  let { video, date, author, videoTitle, videoHandle, contentBackgroundColor } =
-    props;
+interface VideoItemProps
+  extends HydrogenComponentProps<Awaited<ReturnType<typeof loader>>>,
+  VideoItemData { }
 
-  const Tag = videoHandle?.handle ? Link : "div";
-  const hasVideo = video?.url?.trim();
+let VideoItem = forwardRef<HTMLDivElement, VideoItemProps>((props, ref) => {
+  let {
+    video,
+    product,
+    addToCartText = "Add to Cart",
+    loaderData,
+    ...rest
+  } = props;
+
+  const hasVideo = Boolean(video?.url?.trim());
   const clientReady = useClientReady();
+
+  const productData = loaderData?.product;
+  const selectedVariant = productData?.selectedOrFirstAvailableVariant;
+  const productImage = selectedVariant?.image || productData?.featuredImage;
+  const productUrl = productData?.handle
+    ? `/products/${productData.handle}`
+    : undefined;
 
   return (
     <div
       ref={ref as any}
-      className="flex aspect-(--aspect-ratio) h-full w-full flex-col"
+      {...rest}
+      className="group relative flex aspect-(--aspect-ratio) h-full w-full flex-col overflow-hidden rounded-[12px] bg-[#EDEDED]"
     >
-      <Tag to={`/blogs/${videoHandle?.handle}`} className="flex h-full w-full">
-        <div className="relative h-full w-full overflow-hidden">
-          {hasVideo ? (
-            <div className="absolute inset-0 h-full w-full">
-              {clientReady ? (
-                <Suspense fallback={<VideoPlaceholder />}>
-                  <ReactPlayer
-                    src={video.url}
-                    playing
-                    autoPlay
-                    muted
-                    loop={true}
-                    playsInline
-                    width="100%"
-                    height="100%"
-                    controls={false}
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      left: 0,
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                    }}
-                  />
-                </Suspense>
-              ) : (
-                <VideoPlaceholder />
-              )}
-            </div>
+      {hasVideo ? (
+        <div className="absolute inset-0 h-full w-full">
+          {clientReady ? (
+            <Suspense fallback={<VideoPlaceholder />}>
+              <ReactPlayer
+                src={video.url}
+                playing
+                autoPlay
+                muted
+                loop
+                playsInline
+                width="100%"
+                height="100%"
+                controls={false}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                }}
+              />
+            </Suspense>
           ) : (
             <VideoPlaceholder />
           )}
-          <div
-            className="absolute right-0 bottom-0 left-0 p-3"
-            style={{
-              backgroundColor:
-                contentBackgroundColor || "rgba(211,195,167,0.9)",
-            }}
-          >
-            <div className="flex flex-col gap-1">
-              <p className="font-open-sans font-semibold text-[#29231E] text-sm leading-[1.6] tracking-[0.02em]">
-                {videoTitle}
-              </p>
-              <p className="font-open-sans text-[#29231E] text-sm leading-[1.6] tracking-[0.02em]">
-                {date} — {author}
-              </p>
+        </div>
+      ) : (
+        <VideoPlaceholder />
+      )}
+
+      {productData && selectedVariant && (
+        <div className="pointer-events-none opacity-0 transition-opacity duration-300 [.swiper-slide-active_&]:pointer-events-auto [.swiper-slide-active_&]:opacity-100 lg:[.swiper-slide-active_&]:pointer-events-none lg:[.swiper-slide-active_&]:opacity-0 lg:group-focus-within:pointer-events-auto lg:group-focus-within:opacity-100 lg:group-hover:pointer-events-auto lg:group-hover:opacity-100">
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[124px] bg-gradient-to-t from-[#71685F]/85 to-transparent" />
+
+          <div className="absolute right-3 bottom-3 left-3 flex h-[100px] overflow-hidden rounded-[12px] bg-white text-[#343231]">
+            {productImage && productUrl && (
+              <Link
+                to={productUrl}
+                className="h-[100px] w-[100px] shrink-0 overflow-hidden rounded-[12px] bg-[#F4F4F5]"
+                aria-label={`View ${productData.title}`}
+              >
+                <Image
+                  data={productImage}
+                  width={200}
+                  sizes="100px"
+                  className="h-full w-full"
+                  alt={productImage.altText || productData.title}
+                />
+              </Link>
+            )}
+
+            <div className="flex min-w-0 flex-1 flex-col px-4 py-3">
+              <Link
+                to={productUrl || "#"}
+                className="truncate font-body text-[12px] leading-[14px]"
+              >
+                {productData.title}
+              </Link>
+
+              <Money
+                withoutTrailingZeros
+                data={selectedVariant.price}
+                className="mt-1 font-body text-[12px] leading-[14px]"
+              />
+
+              <div className="mt-auto flex items-center gap-1.5">
+                <AddToCartButton
+                  disabled={!selectedVariant.availableForSale}
+                  lines={[
+                    {
+                      merchandiseId: selectedVariant.id,
+                      quantity: 1,
+                      selectedVariant,
+                    },
+                  ]}
+                  className="!h-7 !rounded-[8px] !px-3 !py-0 !font-body !text-[12px] !leading-none"
+                  width="auto"
+                >
+                  {addToCartText}
+                </AddToCartButton>
+
+                {productUrl && (
+                  <Link
+                    to={productUrl}
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[8px] border border-[#D8D8D8] bg-white"
+                    aria-label={`View ${productData.title}`}
+                  >
+                    <EyeIcon size={15} weight="regular" />
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </Tag>
+      )}
     </div>
   );
 });
 
-export let schema: HydrogenComponent["schema"] = {
+export const loader = async (args: ComponentLoaderArgs<VideoItemData>) => {
+  const { weaverse, data } = args;
+  const { storefront } = weaverse;
+
+  if (!data?.product?.handle) {
+    return null;
+  }
+
+  try {
+    const { product } = await storefront.query<ProductQuery>(PRODUCT_QUERY, {
+      variables: {
+        handle: data.product.handle,
+        selectedOptions: [],
+        language: storefront.i18n.language,
+        country: storefront.i18n.country,
+      },
+    });
+
+    return { product };
+  } catch (error) {
+    console.error("Error loading video product data:", error);
+    return null;
+  }
+};
+
+export let schema = createSchema({
   type: "video--item",
   title: "Video",
+  limit: 4,
   settings: [
     {
       group: "Video",
@@ -121,39 +215,30 @@ export let schema: HydrogenComponent["schema"] = {
           label: "Video",
           helpText: "Support YouTube, Vimeo, MP4, WebM, and HLS streams.",
         },
+      ],
+    },
+    {
+      group: "Shoppable product",
+      inputs: [
         {
-          type: "text",
-          name: "videoTitle",
-          label: "Video title",
-          defaultValue: "Video title",
-        },
-        {
-          type: "blog",
-          name: "videoHandle",
-          label: "Video handle",
-        },
-        {
-          type: "text",
-          name: "date",
-          label: "Date",
-          defaultValue: "August 30, 2023",
+          type: "product",
+          name: "product",
+          label: "Featured product",
+          helpText:
+            "Optional. When selected, a compact product card appears over the bottom of the video.",
         },
         {
           type: "text",
-          name: "author",
-          label: "Author",
-          defaultValue: "Alexia Jacquot",
-        },
-        {
-          type: "color",
-          name: "contentBackgroundColor",
-          label: "Content background color",
-          defaultValue: "rgba(211,195,167,0.9)",
+          name: "addToCartText",
+          label: "Add to cart label",
+          defaultValue: "Add to Cart",
+          condition: "product.not.eq.blank",
         },
       ],
     },
   ],
-};
+});
 
 VideoItem.displayName = "VideoItem";
+
 export default VideoItem;

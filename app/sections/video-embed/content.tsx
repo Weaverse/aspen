@@ -30,7 +30,7 @@ interface VideoEmbedContentProps
   variant?: LinkProps["variant"];
   openInNewTab?: boolean;
   textColor?: string;
-  buttonBackgroundColor?: string;
+  backgroundColor?: string;
   borderColor?: string;
   textColorHover?: string;
   backgroundColorHover?: string;
@@ -102,7 +102,7 @@ let VideoEmbedContent = forwardRef<HTMLDivElement, VideoEmbedContentProps>(
       variant,
       openInNewTab,
       textColor,
-      buttonBackgroundColor,
+      backgroundColor,
       borderColor,
       textColorHover,
       backgroundColorHover,
@@ -139,7 +139,7 @@ let VideoEmbedContent = forwardRef<HTMLDivElement, VideoEmbedContentProps>(
             <Link
               variant={variant}
               textColor={textColor}
-              backgroundColor={buttonBackgroundColor}
+              backgroundColor={backgroundColor}
               borderColor={borderColor}
               textColorHover={textColorHover}
               backgroundColorHover={backgroundColorHover}
@@ -195,7 +195,7 @@ let VideoEmbedContent = forwardRef<HTMLDivElement, VideoEmbedContentProps>(
           <Link
             variant={variant}
             textColor={textColor}
-            backgroundColor={buttonBackgroundColor}
+            backgroundColor={backgroundColor}
             borderColor={borderColor}
             textColorHover={textColorHover}
             backgroundColorHover={backgroundColorHover}

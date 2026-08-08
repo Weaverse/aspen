@@ -23,7 +23,9 @@ const AccordionItem = forwardRef<HTMLDivElement, AccordionItemProps>(
     const { title, content, icon, ...rest } = props;
 
     const renderIcon = () => {
-      if (!icon) return null;
+      if (!icon) {
+        return null;
+      }
 
       if (isSvgString(icon)) {
         return (
@@ -49,7 +51,10 @@ const AccordionItem = forwardRef<HTMLDivElement, AccordionItemProps>(
       <Accordion.Item
         ref={ref}
         value={title}
-        className={cn("w-full", "focus-within:relative focus-within:z-10")}
+        className={cn(
+          "w-full overflow-hidden rounded",
+          "focus-within:relative focus-within:z-10",
+        )}
         {...rest}
       >
         <Accordion.Header>
@@ -60,19 +65,23 @@ const AccordionItem = forwardRef<HTMLDivElement, AccordionItemProps>(
                 color: "var(--accordion-text-color)",
               } as React.CSSProperties
             }
-            className="group mb-1 flex w-full items-center gap-3 p-4 text-left"
+            className="group flex min-h-14 w-full items-center gap-3 px-4 py-3 text-left"
           >
             {renderIcon()}
-            <span className="flex-1 font-medium text-base">{title}</span>
-            <div className="relative ml-auto h-5 w-5 flex-shrink-0">
+            <span className="flex-1 font-normal text-xs leading-snug">
+              {title}
+            </span>
+            <div className="relative ml-auto size-4 flex-shrink-0">
               <PlusCircle
                 className="absolute inset-0 h-full w-full transition-opacity duration-200 group-data-[state=open]:opacity-0"
-                fill="#918379"
+                color="currentColor"
+                weight="regular"
                 aria-hidden
               />
               <MinusCircle
                 className="absolute inset-0 h-full w-full opacity-0 transition-opacity duration-200 group-data-[state=open]:opacity-100"
-                fill="#918379"
+                color="currentColor"
+                weight="regular"
                 aria-hidden
               />
             </div>
@@ -95,7 +104,9 @@ const AccordionItem = forwardRef<HTMLDivElement, AccordionItemProps>(
             "data-[state=open]:animate-expand",
           )}
         >
-          <div className="p-4">{content}</div>
+          <div className="px-4 pt-1 pb-4 text-[11px] leading-relaxed opacity-75">
+            {content}
+          </div>
         </Accordion.Content>
       </Accordion.Item>
     );

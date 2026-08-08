@@ -2000,6 +2000,7 @@ export type BlogSingleQuery = {
           | 'excerptHtml'
           | 'handle'
           | 'id'
+          | 'tags'
           | 'publishedAt'
           | 'title'
         > & {
@@ -3133,7 +3134,7 @@ interface GeneratedQueryTypes {
     return: StoreRobotsQuery;
     variables: StoreRobotsQueryVariables;
   };
-  '#graphql\nquery BlogSingle(\n    $language: LanguageCode\n    $blogHandle: String!\n  ) @inContext(language: $language) {\n    blog(handle: $blogHandle) {\n      articles(first: 10) {\n        nodes {\n          author: authorV2 {\n            name\n          }\n          contentHtml\n          excerpt\n          excerptHtml\n          handle\n          id\n          image {\n            id\n            altText\n            url\n            width\n            height\n          }\n          publishedAt\n          title\n          blog {\n            handle\n          }\n        }\n      }\n    }\n  }\n': {
+  '#graphql\nquery BlogSingle(\n    $language: LanguageCode\n    $blogHandle: String!\n  ) @inContext(language: $language) {\n    blog(handle: $blogHandle) {\n      articles(first: 10) {\n        nodes {\n          author: authorV2 {\n            name\n          }\n          contentHtml\n          excerpt\n          excerptHtml\n          handle\n          id\n          image {\n            id\n            altText\n            url\n            width\n            height\n          }\n          tags\n          publishedAt\n          title\n          blog {\n            handle\n          }\n        }\n      }\n    }\n  }\n': {
     return: BlogSingleQuery;
     variables: BlogSingleQueryVariables;
   };

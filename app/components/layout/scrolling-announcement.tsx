@@ -42,8 +42,6 @@ export function ScrollingAnnouncement() {
   const {
     topbarText,
     topbarHeight,
-    topbarTextColor,
-    topbarBgColor,
     topbarScrollingGap,
     topbarScrollingSpeed,
     socialInstagramAnnouncement,
@@ -114,12 +112,12 @@ export function ScrollingAnnouncement() {
     <div
       id="announcement-bar"
       ref={ref}
-      className="z-10 flex w-full items-center justify-center overflow-visible px-5 md:px-6 lg:px-6"
+      className="z-10 flex w-full items-center justify-center overflow-visible px-(--page-padding)"
       style={
         {
           minHeight: `${topbarHeight}px`,
-          backgroundColor: topbarBgColor,
-          color: topbarTextColor,
+          backgroundColor: "var(--color-topbar-bg)",
+          color: "var(--color-topbar-text)",
           "--marquee-duration": `${MAX_DURATION / topbarScrollingSpeed}s`,
           "--gap": `${topbarScrollingGap}px`,
         } as React.CSSProperties
@@ -171,7 +169,11 @@ export function ScrollingAnnouncement() {
           <button
             type="button"
             className="announcement-prev -translate-y-1/2 absolute top-1/2 left-0 z-10 p-2"
-            style={{ backgroundColor: topbarBgColor } as React.CSSProperties}
+            style={
+              {
+                backgroundColor: "var(--color-topbar-bg)",
+              } as React.CSSProperties
+            }
             aria-label="Previous slide"
           >
             <svg
@@ -192,7 +194,11 @@ export function ScrollingAnnouncement() {
           <button
             type="button"
             className="announcement-next -translate-y-1/2 absolute top-1/2 right-0 z-10 p-2"
-            style={{ backgroundColor: topbarBgColor } as React.CSSProperties}
+            style={
+              {
+                backgroundColor: "var(--color-topbar-bg)",
+              } as React.CSSProperties
+            }
             aria-label="Next slide"
           >
             <svg

@@ -1,7 +1,7 @@
 import "@fontsource/tenor-sans/index.css";
-import "@fontsource-variable/open-sans/index.css";
+import "@fontsource-variable/dm-sans/index.css";
 import tenorSansWoff2Url from "@fontsource/tenor-sans/files/tenor-sans-latin-400-normal.woff2?url";
-import openSansVarWoff2Url from "@fontsource-variable/open-sans/files/open-sans-latin-wght-normal.woff2?url";
+import dmSansVarWoff2Url from "@fontsource-variable/dm-sans/files/dm-sans-latin-wght-normal.woff2?url";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import type { SeoConfig } from "@shopify/hydrogen";
 import { Analytics, getSeoMeta, useNonce } from "@shopify/hydrogen";
@@ -58,7 +58,7 @@ export const links: LinksFunction = () => {
     },
     {
       rel: "preload",
-      href: openSansVarWoff2Url as unknown as string,
+      href: dmSansVarWoff2Url as unknown as string,
       as: "font",
       type: "font/woff2",
       crossOrigin: "anonymous",

@@ -32,7 +32,7 @@ export interface SectionProps<T = any>
   children?: React.ReactNode;
 }
 
-const variants = cva("relative", {
+const variants = cva("relative isolate", {
   variants: {
     width: {
       full: "h-full w-full",
@@ -41,14 +41,14 @@ const variants = cva("relative", {
     },
     padding: {
       full: "",
-      stretch: "px-3 md:px-10 lg:px-16",
-      fixed: "mx-auto px-5 md:px-6 lg:px-8",
+      stretch: "px-(--page-padding)",
+      fixed: "mx-auto px-(--page-padding)",
     },
     verticalPadding: {
       none: "",
-      small: "py-4 md:py-6 lg:py-8",
-      medium: "py-8 md:py-12 lg:py-16",
-      large: "py-12 md:py-24 lg:py-32",
+      small: "py-10 md:py-12 lg:py-16",
+      medium: "py-(--section-padding-y)",
+      large: "py-24 lg:py-32",
     },
     gap: {
       0: "",
@@ -67,6 +67,8 @@ const variants = cva("relative", {
       52: "space-y-6 lg:space-y-[52px]",
       56: "space-y-7 lg:space-y-14",
       60: "space-y-7 lg:space-y-[60px]",
+      64: "space-y-12 md:space-y-16",
+      80: "space-y-16 md:space-y-20",
     },
     overflow: {
       unset: "",
@@ -163,7 +165,7 @@ export const layoutInputs: InspectorGroup["inputs"] = [
     label: "Items spacing",
     configs: {
       min: 0,
-      max: 60,
+      max: 80,
       step: 4,
       unit: "px",
     },

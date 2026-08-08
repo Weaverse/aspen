@@ -1,209 +1,174 @@
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
-import type { HydrogenComponentSchema } from "@weaverse/hydrogen";
-import clsx from "clsx";
-import { createContext, forwardRef, useEffect, useRef, useState } from "react";
+import {
+  type HydrogenComponentSchema,
+  useChildInstances,
+} from "@weaverse/hydrogen";
+import { createContext, forwardRef, useEffect, useMemo, useState } from "react";
 import Heading from "~/components/heading";
 import type { SectionProps } from "~/components/section";
 import { Section, sectionSettings } from "~/components/section";
+import { cn } from "~/utils/cn";
 
 interface MapSectionProps extends SectionProps {
   heading?: string;
   layoutMap?: "accordion" | "list";
   defaultAddress?: string;
   activeBackgroundColor?: string;
+  panelBackgroundColor?: string;
   addressFontColor?: string;
 }
 
-function adjustColor(hex: string, amount: number) {
-  let color = hex.replace("#", "");
-  if (color.length === 3) {
-    color = color
-      .split("")
-      .map((c) => c + c)
-      .join("");
-  }
-
-  const num = Number.parseInt(color, 16);
-  const r = Math.min(255, Math.max(0, ((num >> 16) & 0xff) + amount));
-  const g = Math.min(255, Math.max(0, ((num >> 8) & 0xff) + amount));
-  const b = Math.min(255, Math.max(0, (num & 0xff) + amount));
-
-  return "#" + [r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("");
-}
-
-// Create a context to share the layout mode with child components
-export const MapContext = createContext<{
+interface MapContextValue {
   layoutMap: "accordion" | "list";
-  activeItem: number | null;
-  setActiveItem: (index: number | null) => void;
-  activeAddress: string;
+  activeItem: number;
+  setActiveItem: (index: number) => void;
   setActiveAddress: (address: string) => void;
-  registerAddress: (address: string) => number;
   activeBackgroundColor: string;
   addressFontColor: string;
-}>({
+}
+
+export const MapContext = createContext<MapContextValue>({
   layoutMap: "list",
-  activeItem: null,
-  setActiveItem: () => {},
-  activeAddress: "",
-  setActiveAddress: () => {},
-  registerAddress: () => 0,
-  activeBackgroundColor: "#f3f4f6",
+  activeItem: 0,
+  setActiveItem: () => {
+    // Replaced by the section provider at runtime.
+  },
+  setActiveAddress: () => {
+    // Replaced by the section provider at runtime.
+  },
+  activeBackgroundColor: "#DFDFDF",
   addressFontColor: "#524B46",
 });
 
-let MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
-  let {
+const MapFrame = ({
+  address,
+  className,
+}: {
+  address: string;
+  className?: string;
+}) => (
+  <div
+    className={cn(
+      "relative w-full overflow-hidden bg-(--color-bg-subtle)",
+      "aspect-[375/469.125] lg:aspect-[16/10] lg:rounded-(--radius-md)",
+      className,
+    )}
+  >
+    <iframe
+      key={address}
+      className="absolute inset-0 h-full w-full"
+      title="Google map embedded frame"
+      src={`https://maps.google.com/maps?t=m&q=${encodeURIComponent(address)}&ie=UTF8&&output=embed`}
+      style={{ border: 0 }}
+      loading="lazy"
+      allowFullScreen
+    />
+  </div>
+);
+
+const MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
+  const {
     heading,
     children,
     layoutMap = "list",
-    activeBackgroundColor = "#f3f4f6",
+    defaultAddress,
+    activeBackgroundColor = "#DFDFDF",
+    panelBackgroundColor = "#FFFFFF",
     addressFontColor = "#524B46",
     ...rest
   } = props;
 
-  // Track which item is active in accordion mode and its address for the map
-  const [activeItem, setActiveItem] = useState<number | null>(
-    layoutMap === "list" ? 0 : null,
+  const childInstances = useChildInstances();
+  const firstAddress =
+    (childInstances.find((instance) => instance.data.type === "address-item")
+      ?.data.address as string | undefined) || "";
+
+  const [activeItem, setActiveItem] = useState(0);
+  const [activeAddress, setActiveAddress] = useState(
+    defaultAddress || firstAddress,
   );
-  const [registeredAddresses, setRegisteredAddresses] = useState<string[]>([]);
-  const [activeAddress, setActiveAddress] = useState<string>(
-    props.defaultAddress || "",
-  );
-  const addressCounterRef = useRef(0);
-  const addressIndexMapRef = useRef<Map<string, number>>(new Map());
-
-  let registerAddress = (address: string) => {
-    // If we already have an index for this address, return it
-    if (addressIndexMapRef.current.has(address)) {
-      return addressIndexMapRef.current.get(address)!;
-    }
-
-    // Assign a new index for this address
-    const currentIndex = addressCounterRef.current;
-    addressIndexMapRef.current.set(address, currentIndex);
-    addressCounterRef.current += 1;
-
-    setRegisteredAddresses((prev) => {
-      if (!prev.includes(address)) {
-        return [...prev, address];
-      }
-      return prev;
-    });
-
-    return currentIndex;
-  };
 
   useEffect(() => {
-    if (registeredAddresses.length > 0 && !activeAddress) {
-      const firstAddress = props.defaultAddress || registeredAddresses[0];
+    if (!activeAddress && (defaultAddress || firstAddress)) {
+      setActiveAddress(defaultAddress || firstAddress);
+    }
+  }, [activeAddress, defaultAddress, firstAddress]);
+
+  useEffect(() => {
+    setActiveItem(0);
+    if (firstAddress) {
       setActiveAddress(firstAddress);
+    }
+  }, [firstAddress]);
 
-      // Also set the first item as active if we're in list layout and no active item is set
-      if (layoutMap === "list" && activeItem === null) {
-        setActiveItem(0);
-      }
-    }
-  }, [
-    registeredAddresses,
-    props.defaultAddress,
-    layoutMap,
-    activeItem,
-    activeAddress,
-  ]);
-  const triggerRef = useRef<HTMLDivElement | null>(null);
-  const [highlightBg, setHighlightBg] = useState<string | null>(null);
-  useEffect(() => {
-    const current = triggerRef.current;
-    if (!current) return;
-    const sectionEl = current.closest("section") as HTMLElement | null;
-    if (sectionEl) {
-      const raw = getComputedStyle(sectionEl)
-        .getPropertyValue("--section-bg-color")
-        .trim();
-      if (raw.startsWith("#")) {
-        setHighlightBg(adjustColor(raw, 20));
-      }
-    }
-  }, []);
+  const contextValue = useMemo(
+    () => ({
+      layoutMap,
+      activeItem,
+      setActiveItem,
+      setActiveAddress,
+      activeBackgroundColor,
+      addressFontColor,
+    }),
+    [layoutMap, activeItem, activeBackgroundColor, addressFontColor],
+  );
+
+  const content = (
+    <>
+      {heading && (
+        <Heading
+          content={heading}
+          as="h2"
+          alignment="left"
+          weight="400"
+          letterSpacing="tight"
+          className="text-[28px] leading-[1.15] lg:text-[32px]"
+        />
+      )}
+
+      {layoutMap === "list" ? (
+        <div className="flex flex-col gap-1">{children}</div>
+      ) : (
+        <AccordionPrimitive.Root
+          type="single"
+          defaultValue="item-0"
+          className="w-full overflow-hidden rounded-(--radius-sm)"
+          onValueChange={(value) => {
+            if (value) {
+              setActiveItem(Number.parseInt(value.replace("item-", ""), 10));
+            }
+          }}
+        >
+          {children}
+        </AccordionPrimitive.Root>
+      )}
+    </>
+  );
 
   return (
-    <MapContext.Provider
-      value={{
-        layoutMap,
-        activeItem,
-        setActiveItem,
-        activeAddress,
-        setActiveAddress,
-        registerAddress,
-        activeBackgroundColor,
-        addressFontColor,
-      }}
-    >
-      <Section ref={ref} {...rest}>
-        <div
-          ref={triggerRef}
-          className={clsx(
-            "relative flex flex-col-reverse justify-center gap-10 md:flex-row",
-            layoutMap === "list" ? "" : "items-center",
-          )}
-        >
-          {/* List & Accordion layouts - Left column */}
-          <div
-            className={clsx(
-              layoutMap === "list"
-                ? "flex w-full flex-col gap-10 md:w-1/3 md:gap-16"
-                : "md:-translate-x-1/2 z-1 flex w-full flex-col gap-8 bg-(--form-bg-color) p-10 md:absolute md:w-1/2 md:gap-8",
-            )}
-            style={{ "--form-bg-color": highlightBg } as React.CSSProperties}
-          >
-            {/* Heading */}
-            <div className="w-full md:px-0">
-              {heading && (
-                <Heading content={heading} as="h6" alignment="left" />
+    <MapContext.Provider value={contextValue}>
+      <Section ref={ref} {...rest} width="full" verticalPadding="none">
+        {layoutMap === "list" ? (
+          <div className="mx-auto grid w-full lg:max-w-(--page-width) lg:grid-cols-[280px_minmax(0,1fr)] lg:gap-12 lg:px-(--page-padding) lg:py-(--section-padding-y) xl:gap-16">
+            <div className="order-2 flex flex-col gap-8 px-6 py-12 lg:order-1 lg:gap-10 lg:px-0 lg:py-0">
+              {content}
+            </div>
+            <MapFrame address={activeAddress} className="order-1 lg:order-2" />
+          </div>
+        ) : (
+          <div className="relative mx-auto w-full lg:max-w-(--page-width) lg:px-(--page-padding) lg:py-(--section-padding-y)">
+            <MapFrame address={activeAddress} className="lg:ml-auto lg:w-3/4" />
+            <div
+              className={cn(
+                "relative z-1 flex flex-col gap-8 px-6 py-12",
+                "lg:absolute lg:top-1/2 lg:left-(--page-padding) lg:w-[52%] lg:-translate-y-1/2 lg:gap-10 lg:p-10",
               )}
-            </div>
-
-            {/* Content */}
-            {layoutMap === "list" ? (
-              <div className="relative flex flex-col">{children}</div>
-            ) : (
-              <div className="overflow-hidden rounded-md bg-(--section-bg-color)">
-                <AccordionPrimitive.Root
-                  type="single"
-                  defaultValue="item-0"
-                  className="w-full"
-                  onValueChange={(value) => {
-                    if (value) {
-                      const index = Number.parseInt(value.replace("item-", ""));
-                      setActiveItem(index);
-                    }
-                  }}
-                >
-                  {children}
-                </AccordionPrimitive.Root>
-              </div>
-            )}
-          </div>
-
-          {/* Map container - Right column */}
-          <div className="relative w-full md:ml-auto md:w-3/4">
-            {/* Map that displays the active address */}
-            <div className="aspect-[3/4] w-full overflow-hidden rounded-md bg-gray-100 md:aspect-[16/12]">
-              {/* We use the same iframe for both layouts now */}
-              <iframe
-                key={activeAddress}
-                className="h-full w-full"
-                title="Google map embedded frame"
-                src={`https://maps.google.com/maps?t=m&q=${encodeURIComponent(
-                  activeAddress,
-                )}&ie=UTF8&&output=embed`}
-                style={{ border: 0 }}
-                allowFullScreen
-              />
+              style={{ backgroundColor: panelBackgroundColor }}
+            >
+              {content}
             </div>
           </div>
-        </div>
+        )}
       </Section>
     </MapContext.Provider>
   );
@@ -211,7 +176,7 @@ let MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
 
 export default MapSection;
 
-export let schema: HydrogenComponentSchema = {
+export const schema: HydrogenComponentSchema = {
   type: "map",
   title: "Map",
   childTypes: ["address-item"],
@@ -222,55 +187,84 @@ export let schema: HydrogenComponentSchema = {
         {
           type: "text",
           name: "heading",
-          label: "Heading (optional)",
+          label: "Heading",
           defaultValue: "OUR STORES",
         },
         {
           type: "toggle-group",
           name: "layoutMap",
-          label: "Choose map layout",
+          label: "Layout",
           defaultValue: "list",
           configs: {
             options: [
-              { value: "accordion", label: "Accordion" },
-              { value: "list", label: "List" },
+              { value: "list", label: "Scenario 1 — Store list" },
+              { value: "accordion", label: "Scenario 2 — Accordion" },
             ],
           },
+          helpText:
+            "Scenario 1 places the store list beside the map. Scenario 2 overlays an accordion panel on desktop.",
         },
+      ],
+    },
+    {
+      group: "Colors",
+      inputs: [
         {
           type: "color",
           name: "activeBackgroundColor",
-          label: "Active background color",
-          defaultValue: "#f3f4f6",
-          helpText: "Background color for selected address in list layout",
+          label: "Selected store background",
+          defaultValue: "#DFDFDF",
+        },
+        {
+          type: "color",
+          name: "panelBackgroundColor",
+          label: "Accordion panel background",
+          defaultValue: "#FFFFFF",
+          condition: (data: MapSectionProps) => data.layoutMap === "accordion",
         },
         {
           type: "color",
           name: "addressFontColor",
-          label: "Address font color",
+          label: "Store text",
           defaultValue: "#524B46",
-          helpText: "Font color for address text in list layout",
         },
       ],
     },
     ...sectionSettings,
   ],
   presets: {
+    width: "full",
+    verticalPadding: "none",
+    backgroundColor: "#F6F4F3",
+    heading: "OUR STORES",
+    layoutMap: "list",
+    activeBackgroundColor: "#DFDFDF",
+    panelBackgroundColor: "#FFFFFF",
+    addressFontColor: "#524B46",
     children: [
       {
         type: "address-item",
-        nameStore: "STORE 1",
-        address: "11 P. Hoàng Ngân, Nhân Chính, Thanh Xuân, Hà Nội, Việt Nam",
+        nameStore: "ASPEN SOHO",
+        address: "81 Greene Street, New York, NY 10012",
+        phoneNumber: "+1 212 555 0148",
+        openingHours: "Mon - Fri: 10:00AM - 7:00PM",
+        openingHoursSat: "Sat - Sun: 11:00AM - 6:00PM",
       },
       {
         type: "address-item",
-        nameStore: "STORE 2",
-        address: "M2C3+QX Thành phố New York, Tiểu bang New York, Hoa Kỳ",
+        nameStore: "ASPEN BROOKLYN",
+        address: "55 Water Street, Brooklyn, NY 11201",
+        phoneNumber: "+1 718 555 0196",
+        openingHours: "Mon - Fri: 10:00AM - 7:00PM",
+        openingHoursSat: "Sat - Sun: 11:00AM - 6:00PM",
       },
       {
         type: "address-item",
-        nameStore: "STORE 3",
-        address: "288 Sporer Route, New Uteland, NV 73529-8830",
+        nameStore: "ASPEN LOS ANGELES",
+        address: "8220 Melrose Avenue, Los Angeles, CA 90046",
+        phoneNumber: "+1 323 555 0124",
+        openingHours: "Mon - Fri: 10:00AM - 7:00PM",
+        openingHoursSat: "Sat - Sun: 11:00AM - 6:00PM",
       },
     ],
   },

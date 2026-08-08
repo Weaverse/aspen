@@ -7,9 +7,9 @@ import { cn } from "~/utils/cn";
 
 export const variants = cva(
   [
-    "button relative inline-flex items-center justify-center rounded-none",
+    "button relative inline-flex items-center justify-center rounded-(--radius-sm)",
     "whitespace-nowrap font-normal leading-tight",
-    "focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50!",
+    "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-text) disabled:cursor-not-allowed disabled:opacity-50!",
     "transition-colors",
   ],
   {
@@ -34,7 +34,7 @@ export const variants = cva(
         outline: [
           "border px-6 py-5",
           "text-(--btn-outline-text)",
-          "bg-transparent",
+          "bg-(--btn-outline-background)",
           "border-(--btn-outline-border)",
           "hover:text-(--btn-outline-text-hover)",
           "hover:bg-(--btn-outline-background-hover)",

@@ -4,307 +4,194 @@ import {
   PlusCircleIcon,
 } from "@phosphor-icons/react";
 import * as Accordion from "@radix-ui/react-accordion";
-import type { HydrogenComponentSchema } from "@weaverse/hydrogen";
-import clsx from "clsx";
-import { forwardRef, useContext, useEffect, useRef, useState } from "react";
+import {
+  type HydrogenComponentSchema,
+  useChildInstances,
+  useItemInstance,
+  useParentInstance,
+} from "@weaverse/hydrogen";
+import {
+  type CSSProperties,
+  forwardRef,
+  type HTMLAttributes,
+  useContext,
+  useEffect,
+} from "react";
 import { cn } from "~/utils/cn";
 import { MapContext } from "./map";
 
-interface AddressProps {
+interface AddressProps extends HTMLAttributes<HTMLDivElement> {
   address: string;
   nameStore: string;
   phoneNumber?: string;
   openingHours?: string;
   openingHoursSat?: string;
+  itemIndex?: number;
 }
 
-let Address = forwardRef<HTMLDivElement, AddressProps>((props, _ref) => {
-  let {
+const Address = forwardRef<HTMLDivElement, AddressProps>((props, ref) => {
+  const {
     address,
     nameStore,
     phoneNumber,
     openingHours,
     openingHoursSat,
+    itemIndex = 0,
+    className,
     ...rest
   } = props;
-  const [activeIndex, setActiveIndex] = useState<number>(0);
-  const containerRef = useRef<HTMLDivElement>(null);
-
   const {
     layoutMap,
     activeItem,
     setActiveItem,
     setActiveAddress,
-    registerAddress,
     activeBackgroundColor,
     addressFontColor,
   } = useContext(MapContext);
 
-  const [itemIndex, setItemIndex] = useState<number>(-1);
+  const itemInstance = useItemInstance();
+  const parentInstance = useParentInstance();
+  const siblingInstances = useChildInstances(parentInstance?._id);
+  const instanceIndex = siblingInstances.findIndex(
+    (instance) => instance._id === itemInstance?._id,
+  );
+  const resolvedItemIndex = instanceIndex >= 0 ? instanceIndex : itemIndex;
+  const isActive = activeItem === resolvedItemIndex;
 
   useEffect(() => {
-    const index = registerAddress(address);
-    setItemIndex(index);
-
-    // Only set the address as active if this is the first address (index 0)
-    // and no other address has been set yet
-    if (index === 0) {
+    if (isActive) {
       setActiveAddress(address);
     }
-  }, [address, registerAddress, setActiveAddress]);
+  }, [address, isActive, setActiveAddress]);
 
-  const isAccordionOpen = activeItem === itemIndex;
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
-      ) {
-        setActiveIndex(0); // Reset when clicking outside
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  // Trigger a map update by setting the address
-  useEffect(() => {
-    if (isAccordionOpen) {
-      setActiveAddress(address);
-    }
-  }, [isAccordionOpen, address, setActiveAddress]);
-
-  // Original list layout (restore to the old version):
   if (layoutMap === "list") {
-    const handleClick = () => {
-      // Set this as the active item for map display
-      setActiveItem(itemIndex);
-      // Update the active address
-      setActiveAddress(address);
-      setActiveIndex(1); // For visual feedback
-    };
-
     return (
-      <div ref={containerRef} {...rest}>
-        <div className="md:px-0" onClick={handleClick}>
-          <div
-            className={clsx(
-              "flex cursor-pointer items-center gap-2.5 p-3 transition-colors hover:opacity-80",
-              activeItem === itemIndex ? "" : "",
-            )}
-            style={{
-              color: addressFontColor,
-              opacity: activeItem === itemIndex ? 1 : 0.8,
-              backgroundColor:
-                activeItem === itemIndex ? activeBackgroundColor : undefined,
-            }}
-          >
-            <MapPinLineIcon
-              size={24}
-              weight="light"
-              style={{ color: addressFontColor }}
-            />
-            <div className="flex flex-col">
-              <span className="font-medium text-base">{nameStore}</span>
-              <span className="text-base">{address}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Accordion layout (new):
-  if (layoutMap === "accordion") {
-    return (
-      <Accordion.Item
-        ref={containerRef}
-        value={`item-${itemIndex}`}
-        className="w-full border-[#F3F3F3] border-b"
-        {...rest}
-      >
-        <Accordion.Trigger
-          className={clsx(
-            "group flex w-full items-center justify-between px-4 py-4",
-            "outline-none transition-all duration-200",
-          )}
-          onClick={() => {
-            // Update the active address when clicked
-            setActiveAddress(address);
-          }}
-        >
-          <div className="flex w-full items-center gap-3">
-            <MapPinLineIcon
-              size={18}
-              weight="light"
-              className="flex-shrink-0"
-              style={{ color: addressFontColor }}
-            />
-            <div className="flex flex-col text-left">
-              <span
-                className="font-semibold text-sm uppercase"
-                style={{ color: addressFontColor }}
-              >
-                {nameStore}
-              </span>
-            </div>
-          </div>
-          <div className="relative ml-auto h-5 w-5">
-            <PlusCircleIcon
-              size={20}
-              weight="regular"
-              className="absolute inset-0 h-full w-full transition-opacity duration-200 group-data-[state=open]:opacity-0"
-              style={{ color: addressFontColor }}
-              aria-hidden
-            />
-            <MinusCircleIcon
-              size={20}
-              weight="regular"
-              className="absolute inset-0 h-full w-full opacity-0 transition-opacity duration-200 group-data-[state=open]:opacity-100"
-              style={{ color: addressFontColor }}
-              aria-hidden
-            />
-          </div>
-        </Accordion.Trigger>
-
-        <Accordion.Content
-          style={
-            {
-              "--expand-to": "var(--radix-accordion-content-height)",
-              "--expand-duration": "0.25s",
-              "--collapse-from": "var(--radix-accordion-content-height)",
-              "--collapse-duration": "0.25s",
-            } as React.CSSProperties
-          }
-          className={clsx(
-            "overflow-hidden",
-            "data-[state=closed]:animate-collapse",
-            "data-[state=open]:animate-expand",
-          )}
-        >
-          {/* Additional info shown when accordion is open */}
-          <div
-            className={cn(
-              layoutMap === "accordion"
-                ? "flex gap-4 px-4 pb-4"
-                : "ml-[calc(18px+0.75rem)] px-4 pb-4",
-            )}
-          >
-            {/* Address and Phone Number */}
-            <div
-              className={cn(
-                "flex flex-col",
-                layoutMap === "accordion" ? "mb-0 flex-1" : "mb-3",
-              )}
-            >
-              {layoutMap !== "accordion" && (
-                <span
-                  className="font-semibold text-sm"
-                  style={{ color: addressFontColor }}
-                >
-                  Address:
-                </span>
-              )}
-              <span
-                className="mt-1 text-sm"
-                style={{ color: addressFontColor }}
-              >
-                {address}
-              </span>
-
-              {phoneNumber && (
-                <div className="mt-2">
-                  {layoutMap !== "accordion" && (
-                    <span
-                      className="font-semibold text-sm"
-                      style={{ color: addressFontColor }}
-                    >
-                      Phone:
-                    </span>
-                  )}
-                  <span
-                    className="block text-sm"
-                    style={{ color: addressFontColor }}
-                  >
-                    {phoneNumber}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Opening Hours */}
-            {(openingHours || openingHoursSat) && (
-              <div
-                className={cn(
-                  "text-sm",
-                  layoutMap === "accordion" ? "mb-0 flex-1" : "mb-2",
-                )}
-                style={{ color: addressFontColor }}
-              >
-                <div className="flex flex-col gap-2">
-                  <span className="font-semibold">Opening hours:</span>
-                  {openingHours && <span>{openingHours}</span>}
-                  {openingHoursSat && <span>{openingHoursSat}</span>}
-                </div>
-              </div>
-            )}
-          </div>
-        </Accordion.Content>
-      </Accordion.Item>
-    );
-  }
-
-  // Default to original list layout implementation if not accordion
-  const handleClick = () => {
-    // Set this as the active item for map display
-    setActiveItem(itemIndex);
-    // Update the active address
-    setActiveAddress(address);
-    setActiveIndex(1); // For visual feedback
-  };
-
-  return (
-    <div ref={containerRef} {...rest}>
-      <div className="md:px-0" onClick={handleClick}>
-        <div
-          className={clsx(
-            "flex cursor-pointer items-center gap-2.5 p-3 transition-colors hover:opacity-80",
-            activeItem === itemIndex ? "" : "",
+      <div ref={ref} className={className} {...rest}>
+        <button
+          type="button"
+          className={cn(
+            "flex w-full cursor-pointer items-start gap-2.5 rounded-(--radius-sm) p-3 text-left transition-opacity hover:opacity-80",
+            "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-text)",
           )}
           style={{
             color: addressFontColor,
-            opacity: activeItem === itemIndex ? 1 : 0.8,
-            backgroundColor:
-              activeItem === itemIndex ? activeBackgroundColor : undefined,
+            opacity: isActive ? 1 : 0.8,
+            backgroundColor: isActive ? activeBackgroundColor : undefined,
           }}
+          onClick={() => {
+            setActiveItem(resolvedItemIndex);
+            setActiveAddress(address);
+          }}
+          aria-pressed={isActive}
         >
           <MapPinLineIcon
-            size={24}
+            size={16}
             weight="light"
-            style={{ color: addressFontColor }}
+            className="mt-0.5 shrink-0"
+            aria-hidden
           />
-          <div className="flex flex-col">
-            <span className="font-medium text-base">{nameStore}</span>
-            <span className="text-base">{address}</span>
-          </div>
-        </div>
+          <span className="flex min-w-0 flex-col gap-1">
+            <span className="font-medium text-xs uppercase leading-4 tracking-wide">
+              {nameStore}
+            </span>
+            <span className="text-[11px] leading-[1.45]">{address}</span>
+          </span>
+        </button>
       </div>
-    </div>
+    );
+  }
+
+  return (
+    <Accordion.Item
+      ref={ref}
+      value={`item-${resolvedItemIndex}`}
+      className={cn(
+        "w-full border-(--color-line-subtle) border-b last:border-b-0",
+        className,
+      )}
+      {...rest}
+    >
+      <Accordion.Trigger
+        className={cn(
+          "group flex w-full items-center justify-between gap-4 bg-[#F3F3F3] px-4 py-4 text-left",
+          "outline-none transition-colors hover:bg-[#EDEDED] focus-visible:ring-2 focus-visible:ring-inset",
+        )}
+        onClick={() => setActiveAddress(address)}
+      >
+        <span className="flex min-w-0 items-center gap-3">
+          <MapPinLineIcon
+            size={16}
+            weight="light"
+            className="shrink-0"
+            style={{ color: addressFontColor }}
+            aria-hidden
+          />
+          <span
+            className="truncate font-medium text-xs uppercase leading-4 tracking-wide"
+            style={{ color: addressFontColor }}
+          >
+            {nameStore}
+          </span>
+        </span>
+        <span className="relative h-4 w-4 shrink-0">
+          <PlusCircleIcon
+            size={16}
+            weight="light"
+            className="absolute inset-0 transition-opacity group-data-[state=open]:opacity-0"
+            style={{ color: addressFontColor }}
+            aria-hidden
+          />
+          <MinusCircleIcon
+            size={16}
+            weight="light"
+            className="absolute inset-0 opacity-0 transition-opacity group-data-[state=open]:opacity-100"
+            style={{ color: addressFontColor }}
+            aria-hidden
+          />
+        </span>
+      </Accordion.Trigger>
+
+      <Accordion.Content
+        style={
+          {
+            "--expand-to": "var(--radix-accordion-content-height)",
+            "--expand-duration": "0.25s",
+            "--collapse-from": "var(--radix-accordion-content-height)",
+            "--collapse-duration": "0.25s",
+          } as CSSProperties
+        }
+        className="overflow-hidden data-[state=closed]:animate-collapse data-[state=open]:animate-expand"
+      >
+        <div
+          className="grid grid-cols-2 gap-6 bg-white px-4 py-4 text-[11px] leading-[1.55]"
+          style={{ color: addressFontColor }}
+        >
+          <div className="flex min-w-0 flex-col gap-1">
+            <span>{address}</span>
+            {phoneNumber && <span>{phoneNumber}</span>}
+          </div>
+
+          {(openingHours || openingHoursSat) && (
+            <div className="flex min-w-0 flex-col gap-1">
+              <span className="font-medium">Opening hours:</span>
+              {openingHours && <span>{openingHours}</span>}
+              {openingHoursSat && <span>{openingHoursSat}</span>}
+            </div>
+          )}
+        </div>
+      </Accordion.Content>
+    </Accordion.Item>
   );
 });
 
 export default Address;
 
-export let schema: HydrogenComponentSchema = {
+export const schema: HydrogenComponentSchema = {
   type: "address-item",
-  title: "Address",
+  title: "Store address",
   settings: [
     {
-      group: "Address",
+      group: "Store",
       inputs: [
         {
           type: "text",
@@ -315,26 +202,28 @@ export let schema: HydrogenComponentSchema = {
         {
           type: "text",
           name: "address",
-          label: "Address",
-          defaultValue: "288 Sporer Route, New Uteland, NV 73529-8830",
+          label: "Map address",
+          defaultValue: "81 Greene Street, New York, NY 10012",
+          helpText:
+            "Use a complete street address so the embedded map can locate the store accurately.",
         },
         {
           type: "text",
           name: "phoneNumber",
-          label: "Phone Number",
-          defaultValue: "+12 984 4827 34",
+          label: "Phone number",
+          defaultValue: "+1 212 555 0148",
         },
         {
           type: "text",
           name: "openingHours",
-          label: "Opening Hours Weekdays",
-          defaultValue: "Mon - Fri: 8:00AM -10:00PM",
+          label: "Weekday hours",
+          defaultValue: "Mon - Fri: 10:00AM - 7:00PM",
         },
         {
           type: "text",
           name: "openingHoursSat",
-          label: "Opening Hours Weekend",
-          defaultValue: "Sat - Sun: 8:00AM -11:00PM",
+          label: "Weekend hours",
+          defaultValue: "Sat - Sun: 11:00AM - 6:00PM",
         },
       ],
     },

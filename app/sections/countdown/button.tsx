@@ -1,8 +1,8 @@
-import { ArrowRight } from "@phosphor-icons/react";
 import {
   createSchema,
   type HydrogenComponentProps,
   type InspectorGroup,
+  useParentInstance,
   useThemeSettings,
 } from "@weaverse/hydrogen";
 import { cva, type VariantProps } from "class-variance-authority";
@@ -79,6 +79,7 @@ export interface LinkData
     Partial<LinkStyles>,
     VariantProps<typeof variants> {
   text?: string;
+  style2Text?: string;
   openInNewTab?: boolean;
   alignment?: "left" | "center" | "right";
 }
@@ -124,6 +125,7 @@ export const Link = forwardRef(
     let {
       to,
       text,
+      style2Text,
       variant,
       openInNewTab,
       alignment = "center",
@@ -140,7 +142,10 @@ export const Link = forwardRef(
       ...rest
     } = props;
     const { enableViewTransition } = useThemeSettings();
+    const parent = useParentInstance();
+    const isStyle2 = parent?.data?.scenario === "scenario2";
     const href = useHrefWithLocale(to);
+    const effectiveText = isStyle2 && style2Text ? style2Text : text;
 
     if (variant === "custom") {
       style = {
@@ -160,7 +165,7 @@ export const Link = forwardRef(
       } as React.CSSProperties;
     }
 
-    if (!(text || children)) {
+    if (!(effectiveText || children)) {
       return null;
     }
 
@@ -177,14 +182,29 @@ export const Link = forwardRef(
           ref={ref}
           viewTransition={enableViewTransition}
           to={href}
-          style={style}
+          style={
+            isStyle2
+              ? style
+              : {
+                  ...style,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }
+          }
           target={openInNewTab ? "_blank" : undefined}
-          className={cn(variants({ variant, className }))}
+          className={cn(
+            variants({ variant, className }),
+            "rounded-lg px-5 py-3 text-xs",
+            !isStyle2 &&
+              "h-[54px] w-[159px] min-w-0 items-center justify-center rounded-lg !border-transparent !bg-[#F0EFED] px-0 py-0 text-sm font-medium leading-none !text-[#343231] hover:!bg-[#e4e3e1]",
+            isStyle2 &&
+              "!border-[#514a45] !bg-[#514a45] !text-white hover:!bg-[#403a36]",
+          )}
           {...rest}
         >
           {variant === "decor" ? (
             <span className="inline-flex items-center gap-2.5">
-              {children || text}
+              {children || effectiveText}
               <span className="transform transition-transform duration-300 group-hover:translate-x-1">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -201,7 +221,7 @@ export const Link = forwardRef(
               </span>
             </span>
           ) : (
-            children || text
+            children || effectiveText
           )}
         </RemixLink>
       </div>
@@ -220,6 +240,12 @@ export const linkContentInputs: InspectorGroup["inputs"] = [
     placeholder: "Shop now",
   },
   {
+    type: "text",
+    name: "style2Text",
+    label: "Style 2 text",
+    defaultValue: "Shop Now",
+  },
+  {
     type: "url",
     name: "to",
     label: "Link to",
@@ -231,7 +257,7 @@ export const linkContentInputs: InspectorGroup["inputs"] = [
     name: "openInNewTab",
     label: "Open in new tab",
     defaultValue: false,
-    condition: (data: LinkData) => !!data.to,
+    condition: (data: LinkData) => Boolean(data.to),
   },
   {
     type: "select",

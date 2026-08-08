@@ -14,14 +14,14 @@ import Heading, {
 } from "~/components/heading";
 import Link, { type LinkProps, linkInputs } from "~/components/link";
 import type { OverlayProps } from "~/components/overlay";
-import { Overlay, overlayInputs } from "~/components/overlay";
+import { overlayInputs } from "~/components/overlay";
 import Paragraph, { type ParagraphProps } from "~/components/paragraph";
 
 const variants = cva(
   [
     "promotion-grid-item",
     "group/overlay",
-    "relative flex aspect-square flex-col gap-4 overflow-hidden px-10 py-4",
+    "relative isolate flex aspect-[335/427] flex-col gap-14 overflow-hidden px-8 py-10 md:aspect-[678/462] md:px-12 md:py-10",
     "[&_.paragraph]:mx-[unset]",
   ],
   {
@@ -94,12 +94,20 @@ interface PromotionItemProps
   variant?: LinkProps["variant"];
   openInNewTab?: boolean;
   textColor?: string;
-  buttonBackgroundColor?: string;
+  backgroundColor?: string;
   borderColor?: string;
   textColorHover?: string;
   backgroundColorHover?: string;
   borderColorHover?: string;
   textColorDecor?: string;
+  buttonTextColor?: string;
+  buttonTextSize?: number;
+  // Alternate copy used by the tabs layout.
+  tabLabel?: string;
+  tabParagraphContent?: string;
+  tabButtonContent?: string;
+  tabOverlayColor?: string;
+  tabOverlayOpacity?: number;
 }
 
 const PromotionGridItem = forwardRef<HTMLDivElement, PromotionItemProps>(
@@ -145,12 +153,19 @@ const PromotionGridItem = forwardRef<HTMLDivElement, PromotionItemProps>(
       variant,
       openInNewTab,
       textColor,
-      buttonBackgroundColor,
+      backgroundColor,
       borderColor,
       textColorHover,
       backgroundColorHover,
       borderColorHover,
-      textColorDecor,
+      textColorDecor = "#FEF4EB",
+      buttonTextColor = "#FEF4EB",
+      buttonTextSize = 12,
+      tabLabel: _tabLabel,
+      tabParagraphContent: _tabParagraphContent,
+      tabButtonContent: _tabButtonContent,
+      tabOverlayColor: _tabOverlayColor,
+      tabOverlayOpacity: _tabOverlayOpacity,
       ...rest
     } = props;
 
@@ -163,21 +178,32 @@ const PromotionGridItem = forwardRef<HTMLDivElement, PromotionItemProps>(
 
     // Create the subheading element based on the selected tag
     const SubheadingTag = subheadingTag;
+    const hasTabContent = Boolean(
+      _tabParagraphContent ||
+        _tabButtonContent ||
+        _tabOverlayColor ||
+        _tabOverlayOpacity,
+    );
 
     return (
       <div
         ref={ref}
         {...rest}
+        data-tab-label={_tabLabel}
+        data-has-tab-content={hasTabContent || undefined}
         data-motion="slide-in"
         className={variants({ contentPosition, borderRadius })}
       >
         <BackgroundImage backgroundImage={backgroundImage} />
-        <Overlay
-          enableOverlay={enableOverlay}
-          overlayColor={overlayColor}
-          overlayColorHover={overlayColorHover}
-          overlayOpacity={overlayOpacity}
-        />
+        {enableOverlay && (
+          <div
+            className="pointer-events-none absolute inset-0 z-1"
+            style={{
+              background: `linear-gradient(to bottom, ${overlayColor || "#202020"} 37%, ${overlayColorHover || "#A3A3A3"} 100%)`,
+              opacity: (overlayOpacity ?? 50) / 100,
+            }}
+          />
+        )}
         <div className="flex flex-col gap-2">
           {headingContent && (
             <Heading
@@ -206,6 +232,7 @@ const PromotionGridItem = forwardRef<HTMLDivElement, PromotionItemProps>(
         </div>
         {paragraphContent && (
           <Paragraph
+            className="font-body text-sm leading-[1.55]"
             content={paragraphContent}
             as={paragraphTag}
             color={paragraphColor}
@@ -218,7 +245,7 @@ const PromotionGridItem = forwardRef<HTMLDivElement, PromotionItemProps>(
           <Link
             variant={variant}
             textColor={textColor}
-            backgroundColor={buttonBackgroundColor}
+            backgroundColor={backgroundColor}
             borderColor={borderColor}
             textColorHover={textColorHover}
             backgroundColorHover={backgroundColorHover}
@@ -227,6 +254,10 @@ const PromotionGridItem = forwardRef<HTMLDivElement, PromotionItemProps>(
             openInNewTab={openInNewTab}
             to={to}
             className="w-fit"
+            style={{
+              color: buttonTextColor,
+              fontSize: `${buttonTextSize}px`,
+            }}
           >
             {buttonContent}
           </Link>
@@ -478,6 +509,24 @@ export const schema = createSchema({
           label: "Button text",
           placeholder: "Enter button text",
         },
+        {
+          type: "range",
+          name: "buttonTextSize",
+          label: "Explore now text size",
+          configs: {
+            min: 10,
+            max: 32,
+            step: 1,
+            unit: "px",
+          },
+          defaultValue: 12,
+        },
+        {
+          type: "color",
+          name: "buttonTextColor",
+          label: "Explore now text color",
+          defaultValue: "#FEF4EB",
+        },
         ...(linkInputs
           .map((input) => {
             if (input.name === "text") {
@@ -488,17 +537,79 @@ export const schema = createSchema({
           .filter(Boolean) as any),
       ],
     },
+    {
+      group: "Scenario 2: Tabs content",
+      inputs: [
+        {
+          type: "text",
+          name: "tabLabel",
+          label: "Heading / tab label",
+          defaultValue: "Best Selling",
+          helpText: "Used as the navigation label in the Tabs layout.",
+        },
+        {
+          type: "richtext",
+          name: "tabParagraphContent",
+          label: "Description",
+          defaultValue:
+            "From mid-century modern to contemporary, our design language is intentionally universal; we design so you can settle in, comfortably, for the long haul.",
+        },
+        {
+          type: "text",
+          name: "tabButtonContent",
+          label: "Button text",
+          defaultValue: "EXPLORE NOW",
+        },
+        {
+          type: "color",
+          name: "tabOverlayColor",
+          label: "Tab overlay color",
+          defaultValue: "#1A1A1A",
+        },
+        {
+          type: "range",
+          name: "tabOverlayOpacity",
+          label: "Tab overlay opacity",
+          configs: {
+            min: 0,
+            max: 100,
+            step: 5,
+            unit: "%",
+          },
+          defaultValue: 60,
+        },
+      ],
+    },
   ],
   presets: {
     contentPosition: "center center",
     backgroundImage: IMAGES_PLACEHOLDERS.collection_3,
+    borderRadius: 12,
     enableOverlay: true,
-    overlayColor: "#0c0c0c",
-    overlayOpacity: 20,
-    headingContent: "Announce your promotion",
+    overlayColor: "#202020",
+    overlayColorHover: "#A3A3A3",
+    overlayOpacity: 50,
+    headingContent:
+      "The best of every modern style from minimalist to mid century.",
+    size: "scale",
+    minSize: 28,
+    maxSize: 44,
+    color: "#FEF4EB",
+    alignment: "center",
     paragraphContent:
-      "Include the smaller details of your promotion in text below the title.",
+      "A thoughtfully designed, curated furniture collection—made for real life.",
+    paragraphColor: "#FEF4EB",
+    paragraphAlignment: "center",
     buttonContent: "EXPLORE NOW",
     variant: "decor",
+    textColorDecor: "#FEF4EB",
+    buttonTextColor: "#FEF4EB",
+    buttonTextSize: 12,
+    tabLabel: "Best Selling",
+    tabParagraphContent:
+      "From mid-century modern to contemporary, our design language is intentionally universal; we design so you can settle in, comfortably, for the long haul.",
+    tabButtonContent: "EXPLORE NOW",
+    tabOverlayColor: "#1A1A1A",
+    tabOverlayOpacity: 60,
   },
 });

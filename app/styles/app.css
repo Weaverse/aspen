@@ -3,11 +3,15 @@
 @plugin "@tailwindcss/typography";
 /* Load font-face rules at CSS level to avoid JS-timed injection (reduces FOUT) */
 @import "@fontsource/tenor-sans/400.css" layer(base);
-@import "@fontsource-variable/open-sans/index.css" layer(base);
+@import "@fontsource-variable/dm-sans/index.css" layer(base);
 
 @theme {
-  --font-sans: Tenor Sans, ui-sans-serif, system-ui, sans-serif;
-  --font-serif: Open Sans Variable, sans-serif;
+  --font-sans: "DM Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Tenor Sans", ui-serif, Georgia, serif;
+  --font-body: "DM Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Tenor Sans", ui-serif, Georgia, serif;
+  --font-dm-sans: "DM Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-tenor: "Tenor Sans", ui-serif, Georgia, serif;
 
   --breakpoint-sm: 32em;
   --breakpoint-md: 48em;
@@ -38,20 +42,22 @@
       )
   );
   --text-scale--line-height: 1;
-  --text-xs: calc(var(--body-base-size) * 0.75);
-  --text-xs--line-height: 1;
-  --text-sm: calc(var(--body-base-size) * 0.875);
-  --text-sm--line-height: 1.25;
-  --text-base: calc(var(--body-base-size) * 1.125);
-  --text-lg--line-height: 1.75;
-  --text-xl: calc(var(--body-base-size) * 1.25);
-  --text-xl--line-height: 1.75;
-  --text-2xl: calc(var(--body-base-size) * 1.5);
-  --text-2xl--line-height: 2;
-  --text-3xl: calc(var(--body-base-size) * 1.875);
-  --text-3xl--line-height: 2.25;
+  --text-xs: calc(var(--body-base-size) * 0.857143);
+  --text-xs--line-height: 1.4;
+  --text-sm: var(--body-base-size);
+  --text-sm--line-height: 1.5;
+  --text-base: calc(var(--body-base-size) * 1.142857);
+  --text-base--line-height: 1.6;
+  --text-lg: calc(var(--body-base-size) * 1.285714);
+  --text-lg--line-height: 1.6;
+  --text-xl: calc(var(--body-base-size) * 1.428571);
+  --text-xl--line-height: 1.5;
+  --text-2xl: calc(var(--body-base-size) * 1.714286);
+  --text-2xl--line-height: 1.4;
+  --text-3xl: calc(var(--body-base-size) * 2.142857);
+  --text-3xl--line-height: 1.3;
   --text-4xl: calc(var(--body-base-size) * 2.25);
-  --text-4xl--line-height: 2.5;
+  --text-4xl--line-height: 1.2;
   --text-5xl: calc(var(--body-base-size) * 3);
   --text-5xl--line-height: 1;
   --text-6xl: calc(var(--body-base-size) * 3.75);
@@ -59,7 +65,7 @@
   --text-7xl: calc(var(--body-base-size) * 4.5);
   --text-7xl--line-height: 1;
   --text-8xl: calc(var(--body-base-size) * 6);
-  --text-8xl--line-height: ;
+  --text-8xl--line-height: 1;
   --text-9xl: calc(var(--body-base-size) * 8);
   --text-9xl--line-height: 1;
 
@@ -210,13 +216,13 @@
         format("woff2");
   }
   @font-face {
-    font-family: "Open Sans Variable";
+    font-family: "DM Sans Variable";
     font-style: normal;
     font-weight: 100 900;
     font-display: swap;
-    src: local("Open Sans"),
+    src: local("DM Sans"),
       url(
-          "/node_modules/@fontsource-variable/open-sans/files/open-sans-latin-wght-normal.woff2"
+          "/node_modules/@fontsource-variable/dm-sans/files/dm-sans-latin-wght-normal.woff2"
         )
         format("woff2-variations");
   }
@@ -251,7 +257,7 @@
 }
 
 @utility article {
-  @apply prose mx-auto mb-12 grid justify-center font-serif text-body;
+  @apply prose mx-auto mb-12 grid justify-center font-body text-body;
 
   h2,
   h3,
@@ -404,11 +410,11 @@
   /* Tokens */
   :root {
     --shop-pay-button--width: 100%; /* Sets the width for the shop-pay-button web component */
-    --shop-pay-button-border-radius: 0;
+    --shop-pay-button-border-radius: var(--radius-sm);
     --screen-height: 100vh;
 
     /* Product options */
-    --option-swatch-radius: 0;
+    --option-swatch-radius: var(--radius-xs);
     --option-swatch-size: 2.25rem;
     --option-image-width: 4rem;
 
@@ -425,7 +431,9 @@
   }
 
   html {
-    @apply font-serif;
+    @apply font-body;
+    background-color: var(--color-background);
+    color: var(--color-text);
     scroll-padding-top: 10rem;
   }
 
@@ -435,7 +443,13 @@
   h4,
   h5,
   h6 {
-    @apply font-sans;
+    @apply font-heading;
+    text-wrap: balance;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-text);
   }
 
   model-viewer::part(default-progress-mask) {
@@ -465,6 +479,31 @@
     -webkit-appearance: none;
   }
 
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select,
+  textarea {
+    border-color: var(--color-line-subtle);
+    border-radius: var(--radius-sm);
+    background-color: var(--color-background);
+    color: var(--color-text);
+    transition:
+      border-color 180ms ease,
+      box-shadow 180ms ease;
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    border-color: var(--color-line);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-line) 24%, transparent);
+    outline: none;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--color-text-light);
+  }
+
   a.active {
     @apply border-b;
   }
@@ -484,15 +523,15 @@
 }
 
 .ff-heading {
-  font-family: var(--font-sans);
+  font-family: var(--font-heading);
 }
 .ff-body {
-  font-family: var(--font-serif);
+  font-family: var(--font-body);
 }
 
 /* Countdown specific styles */
 .countdown-wrapper .paragraph {
-  font-family: var(--font-sans) !important;
+  font-family: var(--font-heading) !important;
 }
 
 /* .animated-scope [data-motion] {

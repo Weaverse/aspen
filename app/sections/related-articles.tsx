@@ -39,7 +39,7 @@ const RelatedArticles = forwardRef<HTMLElement, RelatedArticlesProps>(
           {/* Header section with title and view all button */}
           <div className="mb-10 flex w-full items-center justify-between">
             <div className="flex items-center gap-2">
-              <h2 className="font-tenor text-[#29231E] text-[26px] uppercase leading-[1.1] tracking-[0.02em]">
+              <h2 className="font-heading text-[#29231E] text-[26px] uppercase leading-[1.1] tracking-[-0.02em]">
                 {heading}
               </h2>
             </div>
@@ -49,7 +49,7 @@ const RelatedArticles = forwardRef<HTMLElement, RelatedArticlesProps>(
                   to={`/blogs/${blog.handle}`}
                   className="flex items-center gap-2.5 px-1 py-1 text-[#29231E] transition-opacity hover:opacity-70"
                 >
-                  <span className="font-open-sans text-sm uppercase leading-[1em] tracking-[0.02em]">
+                  <span className="font-body text-sm uppercase leading-[1em] tracking-[0.02em]">
                     {viewAllText}
                   </span>
                   <ArrowRight

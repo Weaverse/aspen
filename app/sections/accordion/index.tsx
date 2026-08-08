@@ -32,7 +32,13 @@ interface AccordionSectionProps extends SectionProps {
 
 const AccordionSection = forwardRef<HTMLElement, AccordionSectionProps>(
   (props, ref) => {
-    let { accordionLayout, children, ...rest } = props;
+    let {
+      accordionLayout,
+      children,
+      backgroundColor = "#F7F7F7",
+      backgroundFor = "section",
+      ...rest
+    } = props;
 
     // Memoize context value to prevent unnecessary re-renders
     const contextValue = useMemo(
@@ -41,14 +47,20 @@ const AccordionSection = forwardRef<HTMLElement, AccordionSectionProps>(
     );
 
     return (
-      <Section ref={ref} {...rest}>
+      <Section
+        ref={ref}
+        {...rest}
+        width="full"
+        backgroundColor={backgroundColor}
+        backgroundFor={backgroundFor}
+      >
         <AccordionProvider value={contextValue}>
           <div
             className={clsx(
-              "grid h-full w-full items-center gap-8 md:gap-12 lg:gap-16",
+              "mx-auto grid h-full w-full max-w-[1360px] items-start gap-10 px-5 lg:gap-16 lg:px-0",
               accordionLayout === "row"
-                ? "grid-cols-1 justify-start"
-                : "grid-cols-1 md:grid-cols-2",
+                ? "grid-cols-1 justify-start lg:gap-12"
+                : "grid-cols-1 lg:grid-cols-[minmax(0,1fr)_648px]",
             )}
           >
             {children}
@@ -83,8 +95,8 @@ export const schema: HydrogenComponentSchema = {
           defaultValue: "column",
           configs: {
             options: [
-              { value: "column", label: "Column" },
-              { value: "row", label: "Row" },
+              { value: "column", label: "Contact + FAQ" },
+              { value: "row", label: "Two-column FAQ" },
             ],
           },
         },
@@ -93,6 +105,11 @@ export const schema: HydrogenComponentSchema = {
   ],
   childTypes: ["content-information", "accordion-group"],
   presets: {
+    width: "full",
+    verticalPadding: "medium",
+    backgroundColor: "#F7F7F7",
+    backgroundFor: "section",
+    accordionLayout: "column",
     children: [
       {
         type: "content-information",

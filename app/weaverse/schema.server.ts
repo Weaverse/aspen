@@ -37,6 +37,20 @@ export const themeSchema: HydrogenThemeSchema = {
       group: "Layout",
       inputs: [
         {
+          type: "select",
+          label: "Visual system preset",
+          name: "designSystemPreset",
+          configs: {
+            options: [
+              { value: "aspen-2026", label: "Aspen 2026" },
+              { value: "custom", label: "Custom" },
+            ],
+          },
+          defaultValue: "aspen-2026",
+          helpText:
+            "Aspen 2026 applies the approved Figma tokens. Choose Custom to use the individual layout, color, typography, and radius settings below.",
+        },
+        {
           type: "range",
           label: "Page width",
           name: "pageWidth",
@@ -46,7 +60,7 @@ export const themeSchema: HydrogenThemeSchema = {
             step: 10,
             unit: "px",
           },
-          defaultValue: 1280,
+          defaultValue: 1440,
         },
         {
           type: "range",
@@ -130,7 +144,6 @@ export const themeSchema: HydrogenThemeSchema = {
             step: 1,
             unit: "px",
           },
-          condition: "layoutText.eq.scroll",
           defaultValue: 44,
         },
         {
@@ -143,7 +156,6 @@ export const themeSchema: HydrogenThemeSchema = {
             step: 1,
             unit: "x",
           },
-          condition: "layoutText.eq.scroll",
           defaultValue: 5,
         },
         {
@@ -259,19 +271,23 @@ export const themeSchema: HydrogenThemeSchema = {
       inputs: [
         {
           type: "heading",
+          label: "Custom palette (used with the Custom visual system preset)",
+        },
+        {
+          type: "heading",
           label: "General",
         },
         {
           type: "color",
           label: "Background",
           name: "colorBackground",
-          defaultValue: "#ffffff",
+          defaultValue: "#FFFFFF",
         },
         {
           type: "color",
           label: "Text",
           name: "colorText",
-          defaultValue: "#24211E",
+          defaultValue: "#343231",
         },
         {
           type: "color",
@@ -281,21 +297,39 @@ export const themeSchema: HydrogenThemeSchema = {
         },
         {
           type: "color",
-          label: "Text (basic)",
+          label: "Text (light UI)",
+          name: "colorTextLight",
+          defaultValue: "#979797",
+        },
+        {
+          type: "color",
+          label: "Text (inverse)",
           name: "colorTextInverse",
-          defaultValue: "#fff",
+          defaultValue: "#FEF4EB",
+        },
+        {
+          type: "color",
+          label: "Background (subtle UI)",
+          name: "colorBackgroundSubtle",
+          defaultValue: "#EDEDED",
+        },
+        {
+          type: "color",
+          label: "Background (subtle 2)",
+          name: "colorBackgroundSubtle2",
+          defaultValue: "#DFDFDF",
         },
         {
           type: "color",
           label: "Borders",
           name: "colorLine",
-          defaultValue: "#A79D95",
+          defaultValue: "#9D9D9D",
         },
         {
           type: "color",
           label: "Borders (subtle)",
           name: "colorLineSubtle",
-          defaultValue: "#DBD7D1",
+          defaultValue: "#D8D8D8",
         },
         {
           type: "heading",
@@ -305,13 +339,13 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "Announcement text",
           name: "topbarTextColor",
-          defaultValue: "#524B46",
+          defaultValue: "#EDEDED",
         },
         {
           type: "color",
           label: "Announcement background",
           name: "topbarBgColor",
-          defaultValue: "#F2F0EE",
+          defaultValue: "#565656",
         },
         {
           type: "heading",
@@ -321,25 +355,25 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "Header background",
           name: "headerBgColor",
-          defaultValue: "#ffffff",
+          defaultValue: "#FFFFFF",
         },
         {
           type: "color",
           label: "Header background hover",
           name: "headerBgColorHover",
-          defaultValue: "#EBE8E5",
+          defaultValue: "#EDEDED",
         },
         {
           type: "color",
           label: "Header text",
           name: "headerText",
-          defaultValue: "#24211E",
+          defaultValue: "#343231",
         },
         {
           type: "color",
           label: "Transparent header text",
           name: "transparentHeaderText",
-          defaultValue: "#ffffff",
+          defaultValue: "#FEF4EB",
         },
         {
           type: "heading",
@@ -349,13 +383,13 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "Footer background",
           name: "footerBgColor",
-          defaultValue: "#EBE8E5",
+          defaultValue: "#1B1B19",
         },
         {
           type: "color",
           label: "Footer text",
           name: "footerText",
-          defaultValue: "#24211E",
+          defaultValue: "#EDEDED",
         },
         {
           type: "heading",
@@ -365,7 +399,7 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "Background color",
           name: "buttonPrimaryBg",
-          defaultValue: "#7D6756",
+          defaultValue: "#4D4946",
         },
         {
           type: "color",
@@ -377,7 +411,7 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "Background color (hover)",
           name: "buttonPrimaryBgHover",
-          defaultValue: "#8E8177",
+          defaultValue: "#6D6966",
         },
         {
           type: "color",
@@ -399,7 +433,7 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "Text color",
           name: "buttonSecondaryColor",
-          defaultValue: "#29231E",
+          defaultValue: "#24211E",
         },
         {
           type: "color",
@@ -411,7 +445,7 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "Text color (hover)",
           name: "buttonSecondaryColorHover",
-          defaultValue: "#29231E",
+          defaultValue: "#24211E",
         },
         {
           type: "heading",
@@ -421,37 +455,37 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "Text color",
           name: "buttonOutlineText",
-          defaultValue: "#524B46",
+          defaultValue: "#343231",
         },
         {
           type: "color",
           label: "Background color",
           name: "buttonOutlineBackground",
-          defaultValue: "#NA",
+          defaultValue: "#FFFFFF",
         },
         {
           type: "color",
           label: "Border color",
           name: "buttonOutlineBorder",
-          defaultValue: "#A79D95",
+          defaultValue: "#B1B0AF",
         },
         {
           type: "color",
           label: "Text color (hover)",
-          name: "buttonOutlineText",
+          name: "buttonOutlineTextHover",
           defaultValue: "#524B46",
         },
         {
           type: "color",
           label: "Background color (hover)",
-          name: "buttonOutlineBackground",
+          name: "buttonOutlineBackgroundHover",
           defaultValue: "#E9E7E4",
         },
         {
           type: "color",
           label: "Border color (hover)",
-          name: "buttonOutlineBorder",
-          defaultValue: "#A79D95",
+          name: "buttonOutlineBorderHover",
+          defaultValue: "#B0ACA9",
         },
         {
           type: "heading",
@@ -461,25 +495,31 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "Discounts",
           name: "saleBadgeColor",
-          defaultValue: "#c6512c",
+          defaultValue: "#573B3B",
         },
         {
           type: "color",
           label: "New",
           name: "newBadgeColor",
-          defaultValue: "#67785d",
+          defaultValue: "#EBE8E5",
         },
         {
           type: "color",
           label: "Best seller / Hot",
           name: "bestSellerBadgeColor",
-          defaultValue: "#000000",
+          defaultValue: "#3B3B3B",
         },
         {
           type: "color",
           label: "Sold out / unavailable",
           name: "soldOutBadgeColor",
-          defaultValue: "#d4d4d4",
+          defaultValue: "#DFDFDF",
+        },
+        {
+          type: "color",
+          label: "Bundle",
+          name: "bundleBadgeColor",
+          defaultValue: "#3B3B3B",
         },
         {
           type: "heading",
@@ -489,13 +529,13 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "Compare price text",
           name: "comparePriceTextColor",
-          defaultValue: "#84807B",
+          defaultValue: "#979797",
         },
         {
           type: "color",
           label: "Star rating",
           name: "starRatingColor",
-          defaultValue: "#fde047",
+          defaultValue: "#343231",
         },
       ],
     },
@@ -515,6 +555,7 @@ export const themeSchema: HydrogenThemeSchema = {
               { label: "-75", value: "-0.075em" },
               { label: "-50", value: "-0.05em" },
               { label: "-25", value: "-0.025em" },
+              { label: "-12.5", value: "-0.0125em" },
               { label: "0", value: "0em" },
               { label: "25", value: "0.025em" },
               { label: "50", value: "0.05em" },
@@ -525,7 +566,7 @@ export const themeSchema: HydrogenThemeSchema = {
               { label: "250", value: "0.25em" },
             ],
           },
-          defaultValue: "0.025em",
+          defaultValue: "-0.025em",
         },
         {
           type: "range",
@@ -537,7 +578,7 @@ export const themeSchema: HydrogenThemeSchema = {
             step: 1,
             unit: "px",
           },
-          defaultValue: 60,
+          defaultValue: 64,
         },
         {
           type: "range",
@@ -548,7 +589,7 @@ export const themeSchema: HydrogenThemeSchema = {
             max: 2,
             step: 0.1,
           },
-          defaultValue: 1.2,
+          defaultValue: 1.1,
         },
         {
           type: "heading",
@@ -573,7 +614,7 @@ export const themeSchema: HydrogenThemeSchema = {
               { label: "250", value: "0.25em" },
             ],
           },
-          defaultValue: "0.025em",
+          defaultValue: "-0.0125em",
         },
         {
           type: "range",
@@ -601,6 +642,50 @@ export const themeSchema: HydrogenThemeSchema = {
       ],
     },
     {
+      group: "Radius",
+      inputs: [
+        {
+          type: "range",
+          label: "Extra small",
+          name: "radiusXs",
+          configs: {
+            min: 0,
+            max: 16,
+            step: 1,
+            unit: "px",
+          },
+          defaultValue: 4,
+          helpText: "Dense utility elements such as tags and checkmarks.",
+        },
+        {
+          type: "range",
+          label: "Small",
+          name: "radiusSm",
+          configs: {
+            min: 0,
+            max: 24,
+            step: 1,
+            unit: "px",
+          },
+          defaultValue: 8,
+          helpText: "Product cards, inputs, and buttons.",
+        },
+        {
+          type: "range",
+          label: "Medium",
+          name: "radiusMd",
+          configs: {
+            min: 0,
+            max: 32,
+            step: 1,
+            unit: "px",
+          },
+          defaultValue: 12,
+          helpText: "Content cards, overlays, and drawer containers.",
+        },
+      ],
+    },
+    {
       group: "Product badges",
       inputs: [
         {
@@ -613,7 +698,7 @@ export const themeSchema: HydrogenThemeSchema = {
             step: 2,
             unit: "px",
           },
-          defaultValue: 0,
+          defaultValue: 4,
         },
         {
           type: "select",
@@ -627,7 +712,7 @@ export const themeSchema: HydrogenThemeSchema = {
               { value: "capitalize", label: "Capitalize" },
             ],
           },
-          defaultValue: "Uppercase",
+          defaultValue: "uppercase",
         },
         {
           type: "text",
@@ -664,6 +749,13 @@ export const themeSchema: HydrogenThemeSchema = {
           placeholder: "Sold out",
         },
         {
+          type: "text",
+          label: "Bundle text",
+          name: "bundleBadgeText",
+          defaultValue: "Bundle",
+          placeholder: "Bundle",
+        },
+        {
           type: "textarea",
           label: "Sale badge text",
           name: "saleBadgeText",
@@ -696,7 +788,7 @@ export const themeSchema: HydrogenThemeSchema = {
             step: 2,
             unit: "px",
           },
-          defaultValue: 0,
+          defaultValue: 8,
         },
         {
           type: "heading",

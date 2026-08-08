@@ -27,6 +27,10 @@ type ArticleData = {
   accentColor?: string;
   borderRadius?: number;
   showPublishedDate?: boolean;
+  showCategory?: boolean;
+  showReadMore?: boolean;
+  readMoreText?: string;
+  enableLoadMore?: boolean;
   // Load More props
   initialCount?: number;
   loadMoreCount?: number;
@@ -57,17 +61,21 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
     loaderData,
     children,
     viewAllText = "VIEW ALL",
-    accentColor = "#27272A",
+    accentColor = "#343231",
     borderRadius = 8,
     showPublishedDate = true,
+    showCategory = true,
+    showReadMore = true,
+    readMoreText = "Read More",
+    enableLoadMore = false,
     // Load More props
-    initialCount,
+    initialCount = 3,
     loadMoreCount = 3,
     buttonVariant = "primary",
     buttonText = "Load More",
     // Heading props
     headingContent = "ARTICLES",
-    headingTagName = "h5",
+    headingTagName = "h2",
     color,
     size,
     mobileSize,
@@ -92,19 +100,56 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
     "--border-radius": `${borderRadius}px`,
   } as CSSProperties;
 
-  const defaultArticles = Array.from({ length: 4 }).map((_, i) => ({
-    id: i,
-    title: "Trendy items for this Winter Fall 2025 season",
-    excerpt:
-      "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s.",
-    image: {
-      altText: "Placeholder image",
-      url: IMAGES_PLACEHOLDERS.collection_6,
-      width: 320,
-      height: 116,
+  const defaultArticles = [
+    {
+      id: 1,
+      title: "Summer Florals in the Modern Home",
+      excerpt:
+        "A considered guide to warm materials, balanced proportions, and rooms designed around daily life.",
+      image: {
+        altText: "A calm, naturally styled living room",
+        url: IMAGES_PLACEHOLDERS.collection_6,
+        width: 640,
+        height: 480,
+      },
+      handle: null,
+      tags: ["DESIGN"],
+      publishedAt: "2025-08-12T00:00:00Z",
+      author: { name: "Rylan Holden" },
     },
-    handle: null,
-  }));
+    {
+      id: 2,
+      title: "The Art of Minimalist Layering",
+      excerpt:
+        "Why solid wood, linen, and tactile finishes only grow more beautiful with time.",
+      image: {
+        altText: "Natural furniture materials and textures",
+        url: IMAGES_PLACEHOLDERS.collection_5,
+        width: 640,
+        height: 480,
+      },
+      handle: null,
+      tags: ["INSPIRATION"],
+      publishedAt: "2025-07-28T00:00:00Z",
+      author: { name: "Sarah Jenkins" },
+    },
+    {
+      id: 3,
+      title: "Curating a Calm Morning Routine",
+      excerpt:
+        "Simple ways to make the everyday moments around your home feel more intentional.",
+      image: {
+        altText: "A thoughtfully arranged home interior",
+        url: IMAGES_PLACEHOLDERS.collection_4,
+        width: 640,
+        height: 480,
+      },
+      handle: null,
+      tags: ["INTERIORS"],
+      publishedAt: "2025-06-16T00:00:00Z",
+      author: { name: "Marcus Thorne" },
+    },
+  ];
 
   const res = loaderData?.blog?.articles.nodes ?? defaultArticles;
 
@@ -124,7 +169,7 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
       className="flex h-full w-full justify-center"
       style={sectionStyle}
     >
-      <div className="flex flex-col gap-8">
+      <div className="flex w-full flex-col gap-10 lg:gap-12">
         <div className="flex items-center justify-between">
           {headingContent && (
             <Heading
@@ -140,19 +185,19 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
               minSize={minSize}
               maxSize={maxSize}
               animate={animate}
-              className="uppercase"
+              className="text-[28px] leading-none uppercase lg:text-[36px]"
             />
           )}
           {viewAllText && (
             <Link
               to={blogs?.handle ? `/blogs/${blogs.handle}` : "#"}
-              className="flex cursor-pointer items-center justify-center gap-2 font-medium text-(--accent-color) text-sm uppercase tracking-wider transition-opacity hover:opacity-80"
+              className="flex cursor-pointer items-center justify-center gap-2 font-normal text-(--accent-color) text-[10px] uppercase tracking-[0.08em] transition-opacity hover:opacity-70 lg:text-xs"
             >
               {viewAllText}
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="11"
+                width="16"
+                height="10"
                 viewBox="0 0 20 11"
                 fill="none"
               >
@@ -166,7 +211,7 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
         </div>
         <div
           className={clsx(
-            "grid gap-4",
+            "grid gap-x-5 gap-y-8",
             articlesPerRowClasses[Math.min(articlePerRow, res?.length || 1)],
           )}
         >
@@ -179,40 +224,49 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
                 data-motion="slide-in"
                 className="block h-full cursor-pointer"
               >
-                <div className="flex h-full w-full flex-col gap-4">
+                <div className="flex h-full w-full flex-col gap-3">
                   {idx.image && (
-                    <div className="aspect-square overflow-hidden rounded-(--border-radius)">
+                    <div className="aspect-video overflow-hidden rounded-(--border-radius)">
                       <Image
                         data={idx.image}
-                        sizes="auto"
+                        sizes="(min-width: 1024px) 440px, (min-width: 640px) 50vw, calc(100vw - 40px)"
                         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                     </div>
                   )}
-                  <div className="flex flex-col gap-3">
-                    <h5 className="line-clamp-3 font-normal text-(--accent-color)">
+                  <div className="flex flex-col items-start gap-1.5">
+                    {showCategory && (
+                      <p className="text-(--accent-color) text-[9px] uppercase tracking-[0.08em] opacity-60">
+                        {idx.tags?.[0] ||
+                          ["DESIGN", "INSPIRATION", "INTERIORS"][i % 3]}
+                      </p>
+                    )}
+                    <h3 className="line-clamp-2 font-normal text-(--accent-color) text-lg leading-[1.15] lg:text-xl">
                       {idx.title}
-                    </h5>
+                    </h3>
                     {showSeperator && (
                       <div className="w-full border-(--accent-color) border-b opacity-20" />
                     )}
-                    <p className="line-clamp-2 text-(--accent-color) opacity-80">
-                      {idx.excerpt}
-                    </p>
                     {showPublishedDate && idx.publishedAt && (
-                      <div className="mt-4 flex gap-1 text-(--accent-color) text-sm opacity-80">
-                        <time className="">
-                          {new Date(idx.publishedAt).toLocaleDateString(
-                            "en-US",
-                            {
+                      <div className="flex gap-1 text-(--accent-color) text-[9px] uppercase tracking-[0.03em] opacity-50">
+                        <time>
+                          {new Date(idx.publishedAt)
+                            .toLocaleDateString("en-US", {
                               year: "numeric",
                               month: "long",
                               day: "numeric",
-                            },
-                          )}
+                            })
+                            .toUpperCase()}
                         </time>
-                        —<p>{idx.author?.name}</p>
+                        <span aria-hidden="true">—</span>
+                        <p>{idx.author?.name}</p>
                       </div>
+                    )}
+                    {showReadMore && (
+                      <span className="mt-1 flex items-center gap-1.5 text-[10px] leading-none">
+                        {readMoreText}
+                        <ArrowRight size={11} weight="regular" />
+                      </span>
                     )}
                   </div>
                 </div>
@@ -220,7 +274,7 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
             </article>
           ))}
         </div>
-        {hasMoreArticles && (
+        {enableLoadMore && hasMoreArticles && (
           <div className="mt-8 flex justify-center">
             <Button onClick={handleLoadMore} variant={buttonVariant}>
               {buttonText}
@@ -270,6 +324,7 @@ query BlogSingle(
             width
             height
           }
+          tags
           publishedAt
           title
           blog {
@@ -317,7 +372,7 @@ export const schema: HydrogenComponentSchema = {
           type: "color",
           label: "Accent color",
           name: "accentColor",
-          defaultValue: "#27272A",
+          defaultValue: "#343231",
         },
         {
           type: "text",
@@ -370,7 +425,7 @@ export const schema: HydrogenComponentSchema = {
             step: 1,
             unit: "px",
           },
-          defaultValue: 0,
+          defaultValue: 8,
         },
         {
           type: "switch",
@@ -383,6 +438,31 @@ export const schema: HydrogenComponentSchema = {
           name: "showPublishedDate",
           label: "Show published date",
           defaultValue: true,
+        },
+        {
+          type: "switch",
+          name: "showCategory",
+          label: "Show article category",
+          defaultValue: true,
+        },
+        {
+          type: "switch",
+          name: "showReadMore",
+          label: "Show read more link",
+          defaultValue: true,
+        },
+        {
+          type: "text",
+          name: "readMoreText",
+          label: "Read more text",
+          defaultValue: "Read More",
+          condition: "showReadMore.eq.true",
+        },
+        {
+          type: "switch",
+          name: "enableLoadMore",
+          label: "Enable load more",
+          defaultValue: false,
         },
       ],
     },
@@ -435,4 +515,26 @@ export const schema: HydrogenComponentSchema = {
       ],
     },
   ],
+  presets: {
+    width: "fixed",
+    verticalPadding: "medium",
+    accentColor: "#343231",
+    headingContent: "ARTICLES",
+    headingTagName: "h2",
+    weight: "400",
+    letterSpacing: "tight",
+    articlePerRow: 3,
+    initialCount: 3,
+    loadMoreCount: 3,
+    borderRadius: 8,
+    showSeperator: false,
+    showPublishedDate: true,
+    showCategory: true,
+    showReadMore: true,
+    readMoreText: "Read More",
+    enableLoadMore: false,
+    viewAllText: "VIEW ALL",
+    buttonVariant: "secondary",
+    buttonText: "LOAD MORE",
+  },
 };

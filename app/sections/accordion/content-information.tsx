@@ -1,6 +1,8 @@
 import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
 import { cva, type VariantProps } from "class-variance-authority";
 import { forwardRef } from "react";
+import { cn } from "~/utils/cn";
+import { useAccordionContext } from "./index";
 
 let variants = cva("", {
   variants: {
@@ -35,9 +37,18 @@ interface ContentInformationProps
 const ContentInformation = forwardRef<HTMLDivElement, ContentInformationProps>(
   (props, ref) => {
     let { children, gap, ...rest } = props;
+    const { layout } = useAccordionContext();
 
     return (
-      <div ref={ref} {...rest} className={variants({ gap })}>
+      <div
+        ref={ref}
+        {...rest}
+        className={cn(
+          variants({ gap }),
+          "[&_.heading]:text-[30px] [&_.heading]:leading-[1.05] [&_.paragraph]:text-[11px] [&_.paragraph]:leading-relaxed [&_.subheading]:text-sm lg:[&_.heading]:text-[36px]",
+          layout === "row" && "[&>*:nth-child(n+3)]:hidden",
+        )}
+      >
         {children}
       </div>
     );
@@ -89,13 +100,13 @@ export const schema = createSchema({
       },
       {
         type: "paragraph",
-        content: "<p>Email</p><p>support@archercommerce.com</p>",
+        content: "<p>Hours</p><p>Monday - Friday, 9AM - 5PM ET</p>",
         width: "full",
         alignment: "left",
       },
       {
         type: "paragraph",
-        content: "<p>Email</p><p>support@archercommerce.com</p>",
+        content: "<p>Average response time</p><p>1 Business day</p>",
         width: "full",
         alignment: "left",
       },

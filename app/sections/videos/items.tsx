@@ -20,47 +20,68 @@ interface VideoItemsProps {
 }
 
 let VideoItems = forwardRef<HTMLElement, VideoItemsProps>((props, ref) => {
-  let { gap = 16, videoAspectRatio = "3/4", children } = props;
+  let { gap = 20, videoAspectRatio = "9/16", children } = props;
   const [activeIndex, setActiveIndex] = useState(0);
-  const totalSlides = Children.count(children);
+  const sourceItems = Children.toArray(children).slice(0, 4);
+  // The approved composition is a four-card reel. Older saved projects often
+  // contain only the original three children, so reuse the second reel as the
+  // fourth visual (the Figma scenario intentionally repeats that texture).
+  const items =
+    sourceItems.length === 3 && isValidElement(sourceItems[1])
+      ? [
+          ...sourceItems,
+          cloneElement(sourceItems[1], { key: "video-design-fourth" } as any),
+        ]
+      : sourceItems;
+  const totalSlides = items.length;
   let style = {
     "--aspect-ratio": videoAspectRatio,
+    "--video-items-gap": `${gap}px`,
   } as React.CSSProperties;
 
   return (
     <>
-      {/* Desktop view */}
       <div
         ref={ref as any}
-        className="hidden md:grid md:grid-cols-2 lg:grid-cols-3"
-        style={{ gap, ...style }}
+        className="hidden w-full grid-cols-4 lg:grid"
+        style={{ gap: "var(--video-items-gap)", ...style }}
       >
-        {children}
+        {items}
       </div>
 
-      {/* Mobile view with Swiper */}
-      <div className="relative md:hidden" style={style}>
+      <div className="relative lg:hidden" style={style}>
         <Swiper
           spaceBetween={gap}
-          slidesPerView={1}
+          slidesPerView="auto"
           modules={[Pagination]}
-          onSlideChange={(swiper) => setActiveIndex(swiper.activeIndex)}
+          onSlideChange={(swiper) => setActiveIndex(swiper.realIndex)}
           className="w-full"
         >
-          {Children.map(children, (child, index) => {
+          {Children.map(items, (child, index) => {
             if (isValidElement(child)) {
               return (
-                <SwiperSlide key={index}>
-                  {cloneElement(child, { style } as any)}
+                <SwiperSlide key={index} className="!w-[325px] max-w-full">
+                  {cloneElement(child, {
+                    style,
+                  } as any)}
                 </SwiperSlide>
               );
             }
-            return <SwiperSlide key={index}>{child}</SwiperSlide>;
+            return (
+              <SwiperSlide key={index} className="!w-[325px] max-w-full">
+                {child}
+              </SwiperSlide>
+            );
           })}
         </Swiper>
-        <div className="mt-10 text-center font-open-sans text-[#29231E] text-sm leading-4 tracking-[0.02em]">
-          {activeIndex + 1}/{totalSlides}
-        </div>
+        {totalSlides > 1 && (
+          <div
+            className="mt-10 text-center font-body text-(--color-text) text-xs leading-4"
+            aria-live="polite"
+          >
+            {activeIndex + 1}/{totalSlides}
+          </div>
+        )}
       </div>
     </>
   );
@@ -77,7 +98,7 @@ export let schema: HydrogenComponent["schema"] = {
           type: "select",
           name: "videoAspectRatio",
           label: "Video aspect ratio",
-          defaultValue: "3/4",
+          defaultValue: "9/16",
           configs: {
             options: [
               { value: "1/1", label: "Square (1/1)" },
@@ -92,11 +113,11 @@ export let schema: HydrogenComponent["schema"] = {
           type: "range",
           name: "gap",
           label: "Items gap",
-          defaultValue: 16,
+          defaultValue: 20,
           configs: {
-            min: 16,
+            min: 0,
             max: 40,
-            step: 8,
+            step: 4,
             unit: "px",
           },
         },
@@ -105,7 +126,8 @@ export let schema: HydrogenComponent["schema"] = {
   ],
   childTypes: ["video--item"],
   presets: {
-    aspectRatio: "3/4",
+    videoAspectRatio: "9/16",
+    gap: 20,
     children: [
       {
         type: "video--item",
@@ -114,9 +136,7 @@ export let schema: HydrogenComponent["schema"] = {
           alt: "Video 1",
           mediaContentType: "VIDEO",
         },
-        videoTitle: "Video title",
-        date: "August 30, 2023",
-        author: "Alexia Jacquot",
+        addToCartText: "Add to Cart",
       },
       {
         type: "video--item",
@@ -125,9 +145,7 @@ export let schema: HydrogenComponent["schema"] = {
           alt: "Video 2",
           mediaContentType: "VIDEO",
         },
-        videoTitle: "Video title",
-        date: "August 30, 2023",
-        author: "Alexia Jacquot",
+        addToCartText: "Add to Cart",
       },
       {
         type: "video--item",
@@ -136,9 +154,16 @@ export let schema: HydrogenComponent["schema"] = {
           alt: "Video 3",
           mediaContentType: "VIDEO",
         },
-        videoTitle: "Video title",
-        date: "August 30, 2023",
-        author: "Alexia Jacquot",
+        addToCartText: "Add to Cart",
+      },
+      {
+        type: "video--item",
+        video: {
+          url: "https://cdn.shopify.com/videos/c/o/v/4f8e7bc773bd49138b00903c987d528b.webm",
+          alt: "Video 4",
+          mediaContentType: "VIDEO",
+        },
+        addToCartText: "Add to Cart",
       },
     ],
   },

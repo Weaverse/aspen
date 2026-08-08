@@ -23,8 +23,8 @@ const variants = cva("", {
     },
     padding: {
       full: "",
-      stretch: "px-3 md:px-10 lg:px-16",
-      fixed: "mx-auto px-5 pt-14 md:px-8 md:pt-14 lg:px-10 lg:pt-16",
+      stretch: "px-(--page-padding)",
+      fixed: "mx-auto px-(--page-padding) pt-14 lg:pt-16",
     },
   },
 });
@@ -56,8 +56,8 @@ const PAYMENT_ICON_MAP: Record<string, React.ComponentType<any>> = {
           y2="100%"
           id="linearGradient-1"
         >
-          <stop stop-color="#222357" offset="0%" />
-          <stop stop-color="#254AA5" offset="100%" />
+          <stop stopColor="#222357" offset="0%" />
+          <stop stopColor="#254AA5" offset="100%" />
         </linearGradient>
       </defs>
       <g>
@@ -120,8 +120,8 @@ const PAYMENT_ICON_MAP: Record<string, React.ComponentType<any>> = {
           y2="80.4988417%"
           id="linearGradient-1"
         >
-          <stop stop-color="#F34F26" offset="0%" />
-          <stop stop-color="#F69E35" offset="100%" />
+          <stop stopColor="#F34F26" offset="0%" />
+          <stop stopColor="#F69E35" offset="100%" />
         </linearGradient>
         <path
           d="M270.356257,0.364742204 C246.374007,0.364742204 226.91662,19.0997905 226.91662,42.2224896 C226.91662,66.805636 245.528651,85.1826697 270.356257,85.1826697 C294.56404,85.1826697 313.677606,66.5627539 313.677606,42.7050996 C313.677606,18.9893895 294.69179,0.364742204 270.356257,0.364742204 Z"
@@ -216,10 +216,10 @@ const PAYMENT_ICON_MAP: Record<string, React.ComponentType<any>> = {
           y2="50.1241953%"
           id="linearGradient-1"
         >
-          <stop stop-color="#007940" offset="0%" />
-          <stop stop-color="#00873F" offset="22.85%" />
-          <stop stop-color="#40A737" offset="74.33%" />
-          <stop stop-color="#5CB531" offset="100%" />
+          <stop stopColor="#007940" offset="0%" />
+          <stop stopColor="#00873F" offset="22.85%" />
+          <stop stopColor="#40A737" offset="74.33%" />
+          <stop stopColor="#5CB531" offset="100%" />
         </linearGradient>
         <linearGradient
           x1="0.182516704%"
@@ -228,10 +228,10 @@ const PAYMENT_ICON_MAP: Record<string, React.ComponentType<any>> = {
           y2="49.95997%"
           id="linearGradient-2"
         >
-          <stop stop-color="#007940" offset="0%" />
-          <stop stop-color="#00873F" offset="22.85%" />
-          <stop stop-color="#40A737" offset="74.33%" />
-          <stop stop-color="#5CB531" offset="100%" />
+          <stop stopColor="#007940" offset="0%" />
+          <stop stopColor="#00873F" offset="22.85%" />
+          <stop stopColor="#40A737" offset="74.33%" />
+          <stop stopColor="#5CB531" offset="100%" />
         </linearGradient>
         <linearGradient
           x1="-62.8015845%"
@@ -240,10 +240,10 @@ const PAYMENT_ICON_MAP: Record<string, React.ComponentType<any>> = {
           y2="49.8578253%"
           id="linearGradient-3"
         >
-          <stop stop-color="#007940" offset="0%" />
-          <stop stop-color="#00873F" offset="22.85%" />
-          <stop stop-color="#40A737" offset="74.33%" />
-          <stop stop-color="#5CB531" offset="100%" />
+          <stop stopColor="#007940" offset="0%" />
+          <stop stopColor="#00873F" offset="22.85%" />
+          <stop stopColor="#40A737" offset="74.33%" />
+          <stop stopColor="#5CB531" offset="100%" />
         </linearGradient>
         <linearGradient
           x1="0.175556793%"
@@ -252,10 +252,10 @@ const PAYMENT_ICON_MAP: Record<string, React.ComponentType<any>> = {
           y2="50.0058048%"
           id="linearGradient-4"
         >
-          <stop stop-color="#1F286F" offset="0%" />
-          <stop stop-color="#004E94" offset="47.51%" />
-          <stop stop-color="#0066B1" offset="82.61%" />
-          <stop stop-color="#006FBC" offset="100%" />
+          <stop stopColor="#1F286F" offset="0%" />
+          <stop stopColor="#004E94" offset="47.51%" />
+          <stop stopColor="#0066B1" offset="82.61%" />
+          <stop stopColor="#006FBC" offset="100%" />
         </linearGradient>
         <linearGradient
           x1="-0.575855512%"
@@ -264,11 +264,11 @@ const PAYMENT_ICON_MAP: Record<string, React.ComponentType<any>> = {
           y2="49.9142191%"
           id="linearGradient-5"
         >
-          <stop stop-color="#6C2C2F" offset="0%" />
-          <stop stop-color="#882730" offset="17.35%" />
-          <stop stop-color="#BE1833" offset="57.31%" />
-          <stop stop-color="#DC0436" offset="85.85%" />
-          <stop stop-color="#E60039" offset="100%" />
+          <stop stopColor="#6C2C2F" offset="0%" />
+          <stop stopColor="#882730" offset="17.35%" />
+          <stop stopColor="#BE1833" offset="57.31%" />
+          <stop stopColor="#DC0436" offset="85.85%" />
+          <stop stopColor="#E60039" offset="100%" />
         </linearGradient>
       </defs>
       <g>
@@ -450,8 +450,8 @@ export function Footer() {
           <div className="grid w-full grid-cols-1 gap-0 pb-0 md:gap-8 md:pb-6 lg:grid-cols-2">
             {footerLogoData ? (
               <div
-                className="relative md:order-none lg:order-1"
-                style={{ width: footerLogoWidth }}
+                className="relative max-w-full md:order-none lg:order-1"
+                style={{ width: footerLogoWidth, maxWidth: "100%" }}
               >
                 <Image
                   data={footerLogoData}

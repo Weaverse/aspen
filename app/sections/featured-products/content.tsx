@@ -7,6 +7,7 @@ import Heading, {
 } from "~/components/heading";
 import Link, { type LinkProps, linkInputs } from "~/components/link";
 import Paragraph, { type ParagraphProps } from "~/components/paragraph";
+import { useFeaturedProductsLayout } from ".";
 
 interface FeaturedProductsLoaderData
   extends HydrogenComponentProps,
@@ -17,6 +18,7 @@ interface FeaturedProductsLoaderData
   // Heading props
   headingContent?: string;
   headingTagName?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
+  carouselHeadingContent?: string;
   // Paragraph props
   paragraphContent?: string;
   paragraphTag?: "p" | "div";
@@ -26,11 +28,13 @@ interface FeaturedProductsLoaderData
   paragraphWidth?: ParagraphProps["width"];
   // Button/Link props
   buttonContent?: string;
+  carouselButtonContent?: string;
   to?: LinkProps["to"];
+  carouselTo?: LinkProps["to"];
   variant?: LinkProps["variant"];
   openInNewTab?: boolean;
   textColor?: string;
-  buttonBackgroundColor?: string;
+  backgroundColor?: string;
   borderColor?: string;
   textColorHover?: string;
   backgroundColorHover?: string;
@@ -81,6 +85,7 @@ const FeaturedContentProducts = forwardRef<
     // Heading props
     headingContent,
     headingTagName,
+    carouselHeadingContent = "FEATURED PRODUCTS",
     color,
     size,
     mobileSize,
@@ -100,11 +105,13 @@ const FeaturedContentProducts = forwardRef<
     paragraphWidth,
     // Button/Link props
     buttonContent,
+    carouselButtonContent = "VIEW ALL",
     to,
+    carouselTo = "/products",
     variant,
     openInNewTab,
     textColor,
-    buttonBackgroundColor,
+    backgroundColor,
     borderColor,
     textColorHover,
     backgroundColorHover,
@@ -112,17 +119,32 @@ const FeaturedContentProducts = forwardRef<
     textColorDecor,
     ...rest
   } = props;
+  const { layout, isLegacyLayout } = useFeaturedProductsLayout();
+  const resolvedDisplayMode = isLegacyLayout
+    ? displayMode
+    : layout === "carousel"
+      ? "horizontal"
+      : "vertical";
+  const resolvedHeadingContent =
+    resolvedDisplayMode === "horizontal"
+      ? carouselHeadingContent
+      : headingContent;
+  const resolvedButtonContent =
+    resolvedDisplayMode === "horizontal"
+      ? carouselButtonContent
+      : buttonContent;
+  const resolvedTo = resolvedDisplayMode === "horizontal" ? carouselTo : to;
 
-  if (displayMode === "horizontal") {
+  if (resolvedDisplayMode === "horizontal") {
     return (
       <div
         ref={ref}
         {...rest}
-        className="flex w-full items-center justify-between"
+        className="flex w-full flex-col items-start gap-4 md:flex-row md:items-center md:justify-between"
       >
-        {headingContent && (
+        {resolvedHeadingContent && (
           <Heading
-            content={headingContent}
+            content={resolvedHeadingContent}
             as={headingTagName}
             color={color}
             size={size}
@@ -134,24 +156,24 @@ const FeaturedContentProducts = forwardRef<
             minSize={minSize}
             maxSize={maxSize}
             animate={animate}
-            className="flex-1"
+            className="flex-1 text-left md:text-[44px]"
           />
         )}
-        {buttonContent && (
+        {resolvedButtonContent && (
           <Link
             variant={variant}
             textColor={textColor}
-            backgroundColor={buttonBackgroundColor}
+            backgroundColor={backgroundColor}
             borderColor={borderColor}
             textColorHover={textColorHover}
             backgroundColorHover={backgroundColorHover}
             borderColorHover={borderColorHover}
             textColorDecor={textColorDecor}
             openInNewTab={openInNewTab}
-            to={to}
-            className="mr-1 w-fit flex-shrink-0"
+            to={resolvedTo}
+            className="w-fit flex-shrink-0"
           >
-            {buttonContent}
+            {resolvedButtonContent}
           </Link>
         )}
       </div>
@@ -197,7 +219,7 @@ const FeaturedContentProducts = forwardRef<
         <Link
           variant={variant}
           textColor={textColor}
-          backgroundColor={buttonBackgroundColor}
+          backgroundColor={backgroundColor}
           borderColor={borderColor}
           textColorHover={textColorHover}
           backgroundColorHover={backgroundColorHover}
@@ -218,7 +240,7 @@ export default FeaturedContentProducts;
 
 export const schema = createSchema({
   type: "featured-content-products",
-  title: "Featured content products",
+  title: "Heading and link",
   limit: 1,
   settings: [
     {
@@ -227,12 +249,12 @@ export const schema = createSchema({
         {
           type: "toggle-group",
           name: "displayMode",
-          label: "Display mode",
+          label: "Header layout",
           defaultValue: "vertical",
           configs: {
             options: [
-              { value: "vertical", label: "Vertical" },
-              { value: "horizontal", label: "Horizontal" },
+              { value: "vertical", label: "Centered stack" },
+              { value: "horizontal", label: "Title with side link" },
             ],
           },
         },
@@ -286,6 +308,29 @@ export const schema = createSchema({
           }
           return input;
         }),
+      ],
+    },
+    {
+      group: "Carousel header",
+      inputs: [
+        {
+          type: "text",
+          name: "carouselHeadingContent",
+          label: "Carousel heading",
+          defaultValue: "FEATURED PRODUCTS",
+        },
+        {
+          type: "text",
+          name: "carouselButtonContent",
+          label: "Carousel link text",
+          defaultValue: "VIEW ALL",
+        },
+        {
+          type: "url",
+          name: "carouselTo",
+          label: "Carousel link",
+          defaultValue: "/products",
+        },
       ],
     },
     {
@@ -409,11 +454,22 @@ export const schema = createSchema({
   ],
   presets: {
     displayMode: "vertical",
-    gap: 32,
-    headingContent: "Featured products",
+    contentPosition: "center",
+    gap: 16,
+    headingContent: "EXPLORE QUALITY PRODUCTS",
+    headingTagName: "h2",
+    weight: "400",
+    letterSpacing: "tight",
+    alignment: "center",
     paragraphContent:
-      "Discover nomad, our best-selling and most-awarded modular seating.",
+      "Considered materials, enduring construction, and comfort designed for everyday life.",
+    paragraphAlignment: "center",
+    paragraphWidth: "narrow",
     buttonContent: "EXPLORE NOW",
+    to: "/products",
     variant: "decor",
+    carouselHeadingContent: "FEATURED PRODUCTS",
+    carouselButtonContent: "VIEW ALL",
+    carouselTo: "/products",
   },
 });

@@ -1,37 +1,52 @@
 import {
   createSchema,
   type HydrogenComponentProps,
-  IMAGES_PLACEHOLDERS,
+  type WeaverseImage,
 } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import { forwardRef } from "react";
-import { backgroundInputs } from "~/components/background-image";
+import {
+  BackgroundImage,
+  type BackgroundImageProps,
+  backgroundInputs,
+} from "~/components/background-image";
 import Heading, {
   type HeadingProps,
   headingInputs,
 } from "~/components/heading";
 import Link, { type LinkProps, linkInputs } from "~/components/link";
-import { overlayInputs } from "~/components/overlay";
+import { Overlay, overlayInputs } from "~/components/overlay";
 import type { OverlayAndBackgroundProps } from "~/components/overlay-and-background";
-import { OverlayAndBackground } from "~/components/overlay-and-background";
 import Paragraph, { type ParagraphProps } from "~/components/paragraph";
 import { layoutInputs } from "~/components/section";
 import { useAnimation } from "~/hooks/use-animation";
 import { cn } from "~/utils/cn";
 
-const variants = cva("flex h-full w-full items-end justify-center", {
+const variants = cva("flex h-full w-full items-end", {
   variants: {
     width: {
       full: "",
-      stretch: "px-3 md:px-10 lg:px-16",
-      fixed: "mx-auto max-w-(--page-width) px-3 md:px-10 lg:px-16",
+      stretch: "px-[26px] md:px-(--page-padding)",
+      fixed:
+        "mx-auto max-w-(--page-width) px-[26px] md:px-(--page-padding) 2xl:px-0",
     },
     verticalPadding: {
       none: "",
-      small: "py-4 md:py-6 lg:py-8",
-      medium: "py-16 md:py-16 lg:py-20",
-      large: "py-12 md:py-24 lg:py-32",
+      small: "py-4 md:py-6",
+      medium: "py-5 md:py-10",
+      large: "pt-6 pb-14 md:pt-16 md:pb-[140px]",
+    },
+    contentPosition: {
+      "top left": "items-start justify-start",
+      "top center": "items-start justify-center",
+      "top right": "items-start justify-end",
+      "center left": "items-center justify-start",
+      "center center": "items-center justify-center",
+      "center right": "items-center justify-end",
+      "bottom left": "items-end justify-start",
+      "bottom center": "items-end justify-center",
+      "bottom right": "items-end justify-end",
     },
     gap: {
       0: "",
@@ -61,6 +76,7 @@ export interface SlideProps
     Omit<HeadingProps, "content"> {
   // Heading props
   headingContent?: string;
+  mobileHeadingContent?: string;
   headingTagName?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
   // Subheading props
   subheadingContent?: string;
@@ -71,6 +87,7 @@ export interface SlideProps
   subheadingAlignment?: "left" | "center" | "right";
   // Paragraph props
   paragraphContent?: string;
+  mobileParagraphContent?: string;
   paragraphTag?: "p" | "div";
   paragraphColor?: string;
   paragraphSize?: ParagraphProps["textSize"];
@@ -78,16 +95,20 @@ export interface SlideProps
   paragraphWidth?: ParagraphProps["width"];
   // Button/Link props
   buttonContent?: string;
+  mobileButtonContent?: string;
+  mobileButtonVariant?: LinkProps["variant"];
   to?: LinkProps["to"];
   variant?: LinkProps["variant"];
   openInNewTab?: boolean;
   textColor?: string;
-  buttonBackgroundColor?: string;
+  backgroundColor?: string;
   borderColor?: string;
   textColorHover?: string;
   backgroundColorHover?: string;
   borderColorHover?: string;
   textColorDecor?: string;
+  mobileBackgroundImage?: WeaverseImage | string;
+  mobileBackgroundPosition?: BackgroundImageProps["backgroundPosition"];
 }
 
 const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
@@ -96,6 +117,7 @@ const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
     width,
     gap,
     verticalPadding,
+    contentPosition,
     backgroundImage,
     enableOverlay,
     overlayOpacity,
@@ -103,8 +125,11 @@ const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
     overlayColorHover,
     backgroundFit,
     backgroundPosition,
+    mobileBackgroundImage,
+    mobileBackgroundPosition,
     // Heading props
     headingContent,
+    mobileHeadingContent,
     headingTagName,
     color,
     size,
@@ -125,6 +150,7 @@ const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
     subheadingAlignment,
     // Paragraph props
     paragraphContent,
+    mobileParagraphContent,
     paragraphTag = "p",
     paragraphColor,
     paragraphSize,
@@ -132,17 +158,18 @@ const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
     paragraphWidth,
     // Button/Link props
     buttonContent,
+    mobileButtonContent,
+    mobileButtonVariant,
     to,
     variant,
     openInNewTab,
     textColor,
-    buttonBackgroundColor,
+    backgroundColor,
     borderColor,
     textColorHover,
     backgroundColorHover,
     borderColorHover,
-    textColorDecor,
-    children,
+    textColorDecor = "#FEF4EB",
     ...rest
   } = props;
 
@@ -155,20 +182,53 @@ const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
 
   // Create the subheading element based on the selected tag
   const SubheadingTag = subheadingTag;
+  const mobileHeading = mobileHeadingContent || headingContent;
+  const mobileParagraph = mobileParagraphContent || paragraphContent;
+  const mobileButton = mobileButtonContent || buttonContent;
+  const defaultHeadingClassName =
+    size === "default"
+      ? cn(
+          "text-[36px] leading-[1.05] md:text-[48px]",
+          (!letterSpacing || letterSpacing === "normal") &&
+            "tracking-[0.038em]",
+        )
+      : undefined;
 
   return (
     <div
       ref={scope}
       {...rest}
-      className="h-full w-full"
+      className="relative isolate h-full w-full overflow-hidden"
       style={{ "--gap": `${gap}px` } as React.CSSProperties}
     >
-      <OverlayAndBackground {...props} />
-      <div className={cn(variants({ width, gap, verticalPadding }))}>
-        <div className="flex max-w-full flex-col gap-4 md:flex-row md:gap-6">
-          {/* Left Column */}
-          <div className="flex w-full flex-col gap-(--gap) md:w-1/2">
-            {headingContent && (
+      <div className="absolute inset-0 z-[-2] hidden md:block">
+        <BackgroundImage
+          backgroundImage={backgroundImage}
+          backgroundFit={backgroundFit}
+          backgroundPosition={backgroundPosition}
+        />
+      </div>
+      <div className="absolute inset-0 z-[-2] md:hidden">
+        <BackgroundImage
+          backgroundImage={mobileBackgroundImage || backgroundImage}
+          backgroundFit={backgroundFit}
+          backgroundPosition={mobileBackgroundPosition || backgroundPosition}
+        />
+      </div>
+      <Overlay
+        enableOverlay={enableOverlay}
+        overlayColor={overlayColor}
+        overlayColorHover={overlayColorHover}
+        overlayOpacity={overlayOpacity}
+      />
+      <div
+        className={cn(
+          variants({ width, gap, verticalPadding, contentPosition }),
+        )}
+      >
+        <div className="flex w-full max-w-[720px] flex-col gap-(--gap)">
+          {headingContent && (
+            <div className="hidden md:block">
               <Heading
                 content={headingContent}
                 as={headingTagName}
@@ -182,21 +242,39 @@ const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
                 minSize={minSize}
                 maxSize={maxSize}
                 animate={animate}
+                className={defaultHeadingClassName}
               />
-            )}
-            {subheadingContent && (
-              <SubheadingTag
-                className={subheadingClasses}
-                style={{ color: subheadingColor }}
-              >
-                {subheadingContent}
-              </SubheadingTag>
-            )}
-          </div>
-
-          {/* Right Column */}
-          <div className="flex w-full flex-col gap-(--gap) md:w-1/2 [&_.paragraph]:mx-[unset]">
-            {paragraphContent && (
+            </div>
+          )}
+          {mobileHeading && (
+            <div className="md:hidden">
+              <Heading
+                content={mobileHeading}
+                as={headingTagName}
+                color={color}
+                size={size}
+                mobileSize={mobileSize}
+                desktopSize={desktopSize}
+                weight={weight}
+                letterSpacing={letterSpacing}
+                alignment={alignment}
+                minSize={minSize}
+                maxSize={maxSize}
+                animate={animate}
+                className={defaultHeadingClassName}
+              />
+            </div>
+          )}
+          {subheadingContent && (
+            <SubheadingTag
+              className={subheadingClasses}
+              style={{ color: subheadingColor }}
+            >
+              {subheadingContent}
+            </SubheadingTag>
+          )}
+          {paragraphContent && (
+            <div className="hidden [&_.paragraph]:mx-0 md:block">
               <Paragraph
                 content={paragraphContent}
                 as={paragraphTag}
@@ -204,13 +282,50 @@ const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
                 textSize={paragraphSize}
                 alignment={paragraphAlignment}
                 width={paragraphWidth}
+                className={cn(
+                  (!paragraphSize || paragraphSize === "base") &&
+                    "text-[16px] leading-[1.5] tracking-[0.0085em]",
+                )}
               />
-            )}
-            {buttonContent && (
+            </div>
+          )}
+          {mobileParagraph && (
+            <div className="[&_.paragraph]:mx-0 md:hidden">
+              <Paragraph
+                content={mobileParagraph}
+                as={paragraphTag}
+                color={paragraphColor}
+                textSize={paragraphSize}
+                alignment={paragraphAlignment}
+                width={paragraphWidth}
+              />
+            </div>
+          )}
+          {buttonContent && (
+            <div className="hidden md:block">
               <Link
-                variant={variant}
+                variant="custom"
+                textColor={textColor || "#FEF4EB"}
+                backgroundColor="#00000000"
+                borderColor="#FEF4EB"
+                textColorHover={textColorHover}
+                backgroundColorHover={backgroundColorHover}
+                borderColorHover={borderColorHover}
+                textColorDecor={textColorDecor}
+                openInNewTab={openInNewTab}
+                to={to}
+                className="min-w-[175px] w-fit py-[19px] tracking-[0.033em]"
+              >
+                {buttonContent}
+              </Link>
+            </div>
+          )}
+          {mobileButton && (
+            <div className="md:hidden">
+              <Link
+                variant={mobileButtonVariant || variant}
                 textColor={textColor}
-                backgroundColor={buttonBackgroundColor}
+                backgroundColor={backgroundColor}
                 borderColor={borderColor}
                 textColorHover={textColorHover}
                 backgroundColorHover={backgroundColorHover}
@@ -218,12 +333,12 @@ const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
                 textColorDecor={textColorDecor}
                 openInNewTab={openInNewTab}
                 to={to}
-                className="w-fit"
+                className="w-fit text-sm text-[#FEF4EB]!"
               >
-                {buttonContent}
+                {mobileButton}
               </Link>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -243,6 +358,12 @@ export const schema = createSchema({
         ...layoutInputs.filter(
           (inp) => inp.name !== "divider" && inp.name !== "borderRadius",
         ),
+        {
+          type: "position",
+          name: "contentPosition",
+          label: "Content position",
+          defaultValue: "bottom left",
+        },
       ],
     },
     {
@@ -446,6 +567,59 @@ export const schema = createSchema({
       ],
     },
     {
+      group: "Mobile overrides",
+      inputs: [
+        {
+          type: "image",
+          name: "mobileBackgroundImage",
+          label: "Mobile background image",
+          helpText: "Leave blank to use the desktop background image.",
+        },
+        {
+          type: "position",
+          name: "mobileBackgroundPosition",
+          label: "Mobile image position",
+          defaultValue: "center center",
+          condition: (data: SlideProps) => Boolean(data.mobileBackgroundImage),
+        },
+        {
+          type: "text",
+          name: "mobileHeadingContent",
+          label: "Mobile heading",
+          helpText: "Leave blank to use the desktop heading.",
+        },
+        {
+          type: "richtext",
+          name: "mobileParagraphContent",
+          label: "Mobile paragraph",
+          helpText: "Leave blank to use the desktop paragraph.",
+        },
+        {
+          type: "text",
+          name: "mobileButtonContent",
+          label: "Mobile button text",
+          helpText: "Leave blank to use the desktop button text.",
+        },
+        {
+          type: "select",
+          name: "mobileButtonVariant",
+          label: "Mobile button style",
+          configs: {
+            options: [
+              { label: "Primary", value: "primary" },
+              { label: "Secondary", value: "secondary" },
+              { label: "Outline", value: "outline" },
+              { label: "Decoration", value: "decor" },
+              { label: "Underline", value: "underline" },
+              { label: "Custom styles", value: "custom" },
+            ],
+          },
+          defaultValue: "decor",
+          condition: (data: SlideProps) => Boolean(data.mobileButtonContent),
+        },
+      ],
+    },
+    {
       group: "Background",
       inputs: backgroundInputs.filter((inp) =>
         ["backgroundImage", "backgroundFit", "backgroundPosition"].includes(
@@ -456,22 +630,45 @@ export const schema = createSchema({
     { group: "Overlay", inputs: overlayInputs },
   ],
   presets: {
+    width: "fixed",
     verticalPadding: "large",
-    backgroundImage: IMAGES_PLACEHOLDERS.banner_1,
+    contentPosition: "bottom left",
+    gap: 24,
+    backgroundImage: "/images/slideshow/aspen-crafted-comfort.jpg",
+    mobileBackgroundImage: "/images/slideshow/aspen-tailored-elegance.jpg",
     backgroundFit: "cover",
+    backgroundPosition: "center center",
+    mobileBackgroundPosition: "center center",
     enableOverlay: true,
-    overlayOpacity: 50,
-    headingContent: "Slide with text overlay",
-    color: "#fff",
-    size: "scale",
-    subheadingColor: "#fff",
+    overlayColor: "#1B1B19",
+    overlayOpacity: 30,
+    headingContent: "THE CRAFTED COMFORT",
+    mobileHeadingContent: "THE TAILORED ELEGANCE",
+    headingTagName: "h1",
+    color: "#FEF4EB",
+    size: "default",
+    weight: "400",
+    letterSpacing: "normal",
+    alignment: "left",
     paragraphContent:
+      "Handcrafted pieces designed to bring warmth, character, and lasting quality to every room.",
+    mobileParagraphContent:
       "Wide inventory of furniture with plenty of essentials that no home would be complete without.",
-    paragraphColor: "#fff",
+    paragraphColor: "#FEF4EB",
+    paragraphSize: "base",
+    paragraphAlignment: "left",
     paragraphWidth: "full",
-    buttonContent: "Shop all",
-    to: "/products",
-    variant: "decor",
-    textColorDecor: "#fff",
+    buttonContent: "EXPLORE MORE",
+    mobileButtonContent: "EXPLORE NOW",
+    mobileButtonVariant: "decor",
+    to: "/collections",
+    variant: "custom",
+    textColor: "#FEF4EB",
+    backgroundColor: "#00000000",
+    borderColor: "#FEF4EB",
+    textColorHover: "#29231E",
+    backgroundColorHover: "#FEF4EB",
+    borderColorHover: "#FEF4EB",
+    textColorDecor: "#FEF4EB",
   },
 });

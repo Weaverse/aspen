@@ -56,6 +56,7 @@ export function ProductCard({
     pcardShowOutOfStockBadges,
     pcardShowQuickShopOnHover,
     pcardShowBundleBadge,
+    designSystemPreset,
   } = useThemeSettings();
 
   const [selectedVariant, setSelectedVariant] =
@@ -98,13 +99,16 @@ export function ProductCard({
   return (
     <div
       className={clsx(
-        "group rounded-(--pcard-radius) border border-transparent transition-colors duration-300 hover:border-[#DBD7D1]",
+        "group rounded-(--pcard-radius) border border-transparent transition-colors duration-300 hover:border-line-subtle",
         className,
       )}
       style={
         {
           backgroundColor: pcardBackgroundColor,
-          "--pcard-radius": `${pcardBorderRadius}px`,
+          "--pcard-radius":
+            designSystemPreset === "custom"
+              ? `${pcardBorderRadius}px`
+              : "var(--radius-sm)",
           "--pcard-image-ratio": calculateAspectRatio(image, pcardImageRatio),
         } as React.CSSProperties
       }

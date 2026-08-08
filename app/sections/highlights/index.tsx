@@ -1,4 +1,4 @@
-import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
+import { createSchema } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import { forwardRef } from "react";
@@ -33,17 +33,8 @@ let Highlights = forwardRef<HTMLElement, HighlightsProps & SectionProps>(
         className={variants({ alignment })}
         style={{ backgroundColor }}
       >
-        <div
-          style={{
-            backgroundColor,
-            borderRadius: "0px 40px 40px 40px",
-            paddingTop: "5rem",
-            paddingBottom: "5rem",
-          }}
-        >
-          <div className="mx-auto grid max-w-7xl grid-cols-1 items-center justify-center gap-4 border border-[#A79D95] md:grid-cols-3">
-            {children}
-          </div>
+        <div className="mx-5 grid grid-cols-1 overflow-hidden rounded-lg border border-[#9D9D9D] [&>*]:border-[#DEDEDE] [&>*]:border-b [&>*:last-child]:border-b-0 md:mx-0 md:grid-cols-3 md:[&>*]:border-b-0 md:[&>*+*]:border-l">
+          {children}
         </div>
       </Section>
     );
@@ -76,49 +67,52 @@ export let schema = createSchema({
   ],
   childTypes: ["highlights-badge", "subheading", "paragraph"],
   presets: {
+    width: "fixed",
+    gap: 0,
+    verticalPadding: "medium",
     alignment: "center",
     backgroundColor: "#FFFFFF",
     children: [
       {
         type: "highlights-badge",
         iconType: "circle",
+        showIcon: true,
         badgeTextColor: "#29231E",
-        showBorder: true,
-        children: [
-          {
-            type: "paragraph",
-            content:
-              "The best of every modern style from minimalist to mid century.",
-            color: "#29231E",
-          },
-        ],
+        headingContent:
+          "The best of every modern style from minimalist to mid century.",
+        headingTagName: "h6",
+        color: "#29231E",
+        weight: "400",
+        description: "Curated looks that feel timeless and effortless.",
+        linkText: "Explore More",
+        linkTo: "/collections/all",
       },
       {
         type: "highlights-badge",
         iconType: "square",
+        showIcon: true,
         badgeTextColor: "#29231E",
-        showBorder: true,
-        children: [
-          {
-            type: "paragraph",
-            content:
-              "Quality furniture made to last through moves and milestones.",
-            color: "#29231E",
-          },
-        ],
+        headingContent:
+          "Quality furniture made to last through moves and milestones.",
+        headingTagName: "h6",
+        color: "#29231E",
+        weight: "400",
+        description: "Built with durable materials for years of daily use.",
+        linkText: "Explore More",
+        linkTo: "/collections/all",
       },
       {
         type: "highlights-badge",
         iconType: "triangle",
+        showIcon: true,
         badgeTextColor: "#29231E",
-        showBorder: false,
-        children: [
-          {
-            type: "paragraph",
-            content: "Delivery for free in days - not weeks.",
-            color: "#29231E",
-          },
-        ],
+        headingContent: "Delivery for free in days — not weeks.",
+        headingTagName: "h6",
+        color: "#29231E",
+        weight: "400",
+        description: "Fast, reliable shipping that fits your schedule.",
+        linkText: "Explore More",
+        linkTo: "/collections/all",
       },
     ],
   },

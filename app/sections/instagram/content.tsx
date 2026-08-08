@@ -1,3 +1,4 @@
+import { InstagramLogo } from "@phosphor-icons/react";
 import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
 import Heading, {
@@ -33,7 +34,7 @@ interface InstagramContentProps
   variant?: LinkProps["variant"];
   openInNewTab?: boolean;
   textColor?: string;
-  buttonBackgroundColor?: string;
+  backgroundColor?: string;
   borderColor?: string;
   textColorHover?: string;
   backgroundColorHover?: string;
@@ -77,7 +78,7 @@ let InstagramContent = forwardRef<HTMLDivElement, InstagramContentProps>(
       variant,
       openInNewTab,
       textColor,
-      buttonBackgroundColor,
+      backgroundColor,
       borderColor,
       textColorHover,
       backgroundColorHover,
@@ -86,38 +87,44 @@ let InstagramContent = forwardRef<HTMLDivElement, InstagramContentProps>(
       ...rest
     } = props;
 
-    // Generate dynamic classes for subheading text
     const subheadingClasses = [
-      `text-${subheadingAlignment || "left"}`,
-      subheadingSize === "large" ? "text-lg" : "text-base",
+      subheadingAlignment === "center"
+        ? "text-center"
+        : subheadingAlignment === "right"
+          ? "text-right"
+          : "text-left",
+      subheadingSize === "large" ? "text-sm" : "text-xs",
       subheadingWeight === "medium" ? "font-medium" : "font-normal",
     ].join(" ");
 
-    // Create the subheading element based on the selected tag
     const SubheadingTag = subheadingTag;
 
     return (
       <div
         ref={ref}
         {...rest}
-        className={"flex w-full flex-col gap-6 lg:w-1/4"}
+        className="flex w-full flex-col rounded-lg bg-white p-6 lg:w-[320px] lg:flex-none"
       >
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2.5">
           {headingContent && (
-            <Heading
-              content={headingContent}
-              as={headingTagName}
-              color={color}
-              size={size}
-              mobileSize={mobileSize}
-              desktopSize={desktopSize}
-              weight={weight}
-              letterSpacing={letterSpacing}
-              alignment={alignment}
-              minSize={minSize}
-              maxSize={maxSize}
-              animate={animate}
-            />
+            <div className="flex items-center gap-2">
+              <InstagramLogo size={14} weight="regular" />
+              <Heading
+                content={headingContent}
+                as={headingTagName}
+                color={color}
+                size={size}
+                mobileSize={mobileSize}
+                desktopSize={desktopSize}
+                weight={weight}
+                letterSpacing={letterSpacing}
+                alignment={alignment}
+                minSize={minSize}
+                maxSize={maxSize}
+                animate={animate}
+                className="text-[10px] leading-none tracking-[0.08em]"
+              />
+            </div>
           )}
           {subheadingContent && (
             <SubheadingTag
@@ -128,21 +135,24 @@ let InstagramContent = forwardRef<HTMLDivElement, InstagramContentProps>(
             </SubheadingTag>
           )}
         </div>
-        {paragraphContent && (
-          <Paragraph
-            content={paragraphContent}
-            as={paragraphTag}
-            color={paragraphColor}
-            textSize={paragraphSize}
-            alignment={paragraphAlignment}
-            width={paragraphWidth}
-          />
-        )}
+        <div className="mt-5">
+          {paragraphContent && (
+            <Paragraph
+              content={paragraphContent}
+              as={paragraphTag}
+              color={paragraphColor}
+              textSize={paragraphSize}
+              alignment={paragraphAlignment}
+              width={paragraphWidth}
+              className="text-xs leading-relaxed"
+            />
+          )}
+        </div>
         {buttonContent && (
           <Link
             variant={variant}
             textColor={textColor}
-            backgroundColor={buttonBackgroundColor}
+            backgroundColor={backgroundColor}
             borderColor={borderColor}
             textColorHover={textColorHover}
             backgroundColorHover={backgroundColorHover}
@@ -150,9 +160,12 @@ let InstagramContent = forwardRef<HTMLDivElement, InstagramContentProps>(
             textColorDecor={textColorDecor}
             openInNewTab={openInNewTab}
             to={to}
-            className="w-fit"
+            className="mt-6 w-fit bg-transparent p-0 text-[10px] tracking-[0.04em]"
           >
-            {buttonContent}
+            <span className="inline-flex items-center gap-2">
+              {buttonContent}
+              <span aria-hidden="true">→</span>
+            </span>
           </Link>
         )}
       </div>
@@ -369,17 +382,23 @@ export let schema = createSchema({
     },
   ],
   presets: {
-    headingContent: "Instagram",
+    headingContent: "INSTAGRAM",
     headingTagName: "h2",
     color: "#29231E",
-    size: "scale",
-    subheadingContent: "@instagram",
+    alignment: "left",
+    subheadingContent: "@aspen_life",
     subheadingColor: "#524B46",
+    subheadingSize: "base",
+    subheadingWeight: "normal",
+    subheadingAlignment: "left",
     paragraphContent:
-      "Meet the room edits: real life shots of our furniture in action. (We like to think we style our furniture well, but we can't help but show off how you do it.)",
+      "Meet the room edits: real life shots of our furniture in action.",
     paragraphColor: "#524B46",
-    buttonContent: "Follow us",
-    to: "https://instagram.com",
+    paragraphSize: "xs",
+    paragraphWidth: "full",
+    paragraphAlignment: "left",
+    buttonContent: "EXPLORE NOW",
+    to: "https://www.instagram.com/",
     variant: "decor",
     textColorDecor: "#29231E",
   },

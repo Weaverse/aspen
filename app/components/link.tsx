@@ -16,7 +16,10 @@ import type { RootLoader } from "~/root";
 import { cn } from "~/utils/cn";
 
 export const variants = cva(
-  ["button inline-flex leading-none transition-colors"],
+  [
+    "button inline-flex items-center justify-center rounded-(--radius-sm) leading-none transition-colors",
+    "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-text)",
+  ],
   {
     variants: {
       variant: {
@@ -37,7 +40,7 @@ export const variants = cva(
         outline: [
           "border px-6 py-5",
           "text-(--btn-outline-text)",
-          "bg-transparent",
+          "bg-(--btn-outline-background)",
           "border-(--btn-outline-border)",
           "hover:text-(--btn-outline-text-hover)",
           "hover:bg-(--btn-outline-background-hover)",

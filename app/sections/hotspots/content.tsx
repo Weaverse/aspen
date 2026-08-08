@@ -2,52 +2,63 @@ import type { HydrogenComponentProps } from "@weaverse/hydrogen";
 import { createSchema } from "@weaverse/hydrogen";
 import { cva, type VariantProps } from "class-variance-authority";
 import { forwardRef } from "react";
+import { useHotspotsLayout } from ".";
 
 interface HotspotsProps
   extends HydrogenComponentProps,
     VariantProps<typeof variants> {}
 
-let variants = cva("flex flex-col [&_.paragraph]:mx-[unset]", {
-  variants: {
-    contentPosition: {
-      left: "items-start justify-center [&_.paragraph]:[text-align:left]",
-      center: "items-center justify-center [&_.paragraph]:[text-align:center]",
-      right: "items-end justify-center [&_.paragraph]:[text-align:right]",
+let variants = cva(
+  "flex flex-col [&_.button]:font-bold [&_.paragraph]:mx-[unset]",
+  {
+    variants: {
+      contentPosition: {
+        left: "items-start justify-center [&_.paragraph]:[text-align:left]",
+        center:
+          "items-center justify-center [&_.paragraph]:[text-align:center]",
+        right: "items-end justify-center [&_.paragraph]:[text-align:right]",
+      },
+      gap: {
+        0: "gap-0",
+        4: "gap-1",
+        8: "gap-2",
+        12: "gap-3",
+        16: "gap-4",
+        20: "gap-5",
+        24: "gap-6",
+        28: "gap-7",
+        32: "gap-8",
+        36: "gap-9",
+        40: "gap-10",
+        44: "gap-11",
+        48: "gap-12",
+        52: "gap-[52px]",
+        56: "gap-14",
+        60: "gap-[60px]",
+      },
     },
-    gap: {
-      0: "gap-0",
-      4: "gap-1",
-      8: "gap-2",
-      12: "gap-3",
-      16: "gap-4",
-      20: "gap-5",
-      24: "gap-6",
-      28: "gap-7",
-      32: "gap-8",
-      36: "gap-9",
-      40: "gap-10",
-      44: "gap-11",
-      48: "gap-12",
-      52: "gap-[52px]",
-      56: "gap-14",
-      60: "gap-[60px]",
+    defaultVariants: {
+      contentPosition: "center",
+      gap: 20,
     },
   },
-  defaultVariants: {
-    contentPosition: "center",
-    gap: 32,
-  },
-});
+);
 
 let Hotspots = forwardRef<HTMLDivElement, HotspotsProps>((props, ref) => {
+  const { layout, isLegacyLayout } = useHotspotsLayout();
   let { contentPosition, gap, children, ...rest } = props;
+
+  if (layout === "single") {
+    return null;
+  }
+
   return (
     <div
       ref={ref}
       {...rest}
       className={variants({
         contentPosition,
-        gap,
+        gap: isLegacyLayout ? 20 : gap,
       })}
     >
       {children}
@@ -69,8 +80,8 @@ export const schema = createSchema({
         {
           type: "range",
           name: "gap",
-          label: "Gap",
-          defaultValue: 32,
+          label: "Content gap",
+          defaultValue: 20,
           configs: {
             min: 0,
             max: 60,
@@ -95,21 +106,29 @@ export const schema = createSchema({
     },
   ],
   presets: {
-    gap: 32,
+    gap: 20,
+    contentPosition: "center",
     children: [
       {
         type: "heading",
         content: "SHOP THE LOOK",
+        as: "h2",
+        weight: "400",
+        letterSpacing: "tight",
+        alignment: "center",
       },
       {
         type: "paragraph",
         content:
           "Discover nomad, our best-selling and most-awarded modular seating.",
+        alignment: "center",
+        width: "narrow",
       },
       {
         type: "button",
         text: "EXPLORE NOW",
         variant: "decor",
+        to: "/collections",
       },
     ],
   },
