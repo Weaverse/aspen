@@ -111,6 +111,19 @@ export interface SlideProps
   mobileBackgroundPosition?: BackgroundImageProps["backgroundPosition"];
 }
 
+const LEGACY_SLIDESHOW_IMAGE_PREFIX = "/images/slideshow/";
+
+function resolveSlideImage(image?: WeaverseImage | string) {
+  if (
+    typeof image === "string" &&
+    image.startsWith(LEGACY_SLIDESHOW_IMAGE_PREFIX)
+  ) {
+    return undefined;
+  }
+
+  return image;
+}
+
 const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
   const [scope] = useAnimation(ref);
   const {
@@ -185,6 +198,10 @@ const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
   const mobileHeading = mobileHeadingContent || headingContent;
   const mobileParagraph = mobileParagraphContent || paragraphContent;
   const mobileButton = mobileButtonContent || buttonContent;
+  const desktopImage = resolveSlideImage(backgroundImage);
+  const mobileImage = resolveSlideImage(mobileBackgroundImage);
+  const desktopDisplayImage = desktopImage || mobileImage;
+  const mobileDisplayImage = mobileImage || desktopImage;
   const defaultHeadingClassName =
     size === "default"
       ? cn(
@@ -203,14 +220,14 @@ const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
     >
       <div className="absolute inset-0 z-[-2] hidden md:block">
         <BackgroundImage
-          backgroundImage={backgroundImage}
+          backgroundImage={desktopDisplayImage}
           backgroundFit={backgroundFit}
           backgroundPosition={backgroundPosition}
         />
       </div>
       <div className="absolute inset-0 z-[-2] md:hidden">
         <BackgroundImage
-          backgroundImage={mobileBackgroundImage || backgroundImage}
+          backgroundImage={mobileDisplayImage}
           backgroundFit={backgroundFit}
           backgroundPosition={mobileBackgroundPosition || backgroundPosition}
         />
@@ -567,6 +584,14 @@ export const schema = createSchema({
       ],
     },
     {
+      group: "Background",
+      inputs: backgroundInputs.filter((inp) =>
+        ["backgroundImage", "backgroundFit", "backgroundPosition"].includes(
+          inp.name as string,
+        ),
+      ),
+    },
+    {
       group: "Mobile overrides",
       inputs: [
         {
@@ -619,14 +644,6 @@ export const schema = createSchema({
         },
       ],
     },
-    {
-      group: "Background",
-      inputs: backgroundInputs.filter((inp) =>
-        ["backgroundImage", "backgroundFit", "backgroundPosition"].includes(
-          inp.name as string,
-        ),
-      ),
-    },
     { group: "Overlay", inputs: overlayInputs },
   ],
   presets: {
@@ -634,8 +651,6 @@ export const schema = createSchema({
     verticalPadding: "large",
     contentPosition: "bottom left",
     gap: 24,
-    backgroundImage: "/images/slideshow/aspen-crafted-comfort.jpg",
-    mobileBackgroundImage: "/images/slideshow/aspen-tailored-elegance.jpg",
     backgroundFit: "cover",
     backgroundPosition: "center center",
     mobileBackgroundPosition: "center center",
