@@ -6,9 +6,21 @@ type BeforeAndAfterProps = SectionProps;
 
 const BeforeAndAfter = forwardRef<HTMLElement, BeforeAndAfterProps>(
   (props, ref) => {
-    let { children, ...rest } = props;
+    const {
+      children,
+      width = "full",
+      gap = 0,
+      verticalPadding = "none",
+      ...rest
+    } = props;
     return (
-      <Section ref={ref} {...rest}>
+      <Section
+        ref={ref}
+        width={width}
+        gap={gap}
+        verticalPadding={verticalPadding}
+        {...rest}
+      >
         {children}
       </Section>
     );
@@ -37,13 +49,19 @@ export let schema: HydrogenComponentSchema = {
     "before-after-slider",
   ],
   presets: {
+    width: "full",
+    gap: 0,
+    verticalPadding: "none",
     children: [
       {
-        type: "heading",
-        content: "Before & After",
-      },
-      {
         type: "before-after-slider",
+        heightMode: "aspen",
+        separatorColor: "#FFFFFF",
+        separatorWidth: 8,
+        showList: true,
+        listColor: "#524B46",
+        initialPositionDesktop: 51,
+        initialPositionMobile: 44,
       },
     ],
   },
