@@ -141,7 +141,10 @@ export async function createAppLoadContext(
       waitUntil,
       session,
       i18n: getLocaleFromRequest(request),
-      cart: { queryFragment: CART_QUERY_FRAGMENT },
+      cart: {
+        queryFragment: CART_QUERY_FRAGMENT,
+        mutateFragment: CART_MUTATE_FRAGMENT,
+      },
     },
     {},
   );
@@ -247,6 +250,20 @@ const CART_QUERY_FRAGMENT = `#graphql
       key
       value
     }
+    discountAllocations {
+      discountedAmount {
+        ...Money
+      }
+      ... on CartCodeDiscountAllocation {
+        code
+      }
+      ... on CartAutomaticDiscountAllocation {
+        title
+      }
+      ... on CartCustomDiscountAllocation {
+        title
+      }
+    }
     cost {
       totalAmount {
         ...Money
@@ -309,6 +326,20 @@ const CART_QUERY_FRAGMENT = `#graphql
     attributes {
       key
       value
+    }
+    discountAllocations {
+      discountedAmount {
+        ...Money
+      }
+      ... on CartCodeDiscountAllocation {
+        code
+      }
+      ... on CartAutomaticDiscountAllocation {
+        title
+      }
+      ... on CartCustomDiscountAllocation {
+        title
+      }
     }
     cost {
       totalAmount {
@@ -421,3 +452,8 @@ const CART_QUERY_FRAGMENT = `#graphql
     }
   }
 ` as const;
+
+const CART_MUTATE_FRAGMENT = CART_QUERY_FRAGMENT.replace(
+  "fragment CartApiQuery on Cart",
+  "fragment CartApiMutation on Cart",
+).replace("lines(first: $numCartLines)", "lines(first: 250)");

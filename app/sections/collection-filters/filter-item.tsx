@@ -1,6 +1,7 @@
+import { CheckIcon } from "@phosphor-icons/react";
 import * as Checkbox from "@radix-ui/react-checkbox";
 import type { Filter } from "@shopify/hydrogen/storefront-api-types";
-import { useState } from "react";
+import { useId } from "react";
 import {
   useLocation,
   useNavigate,
@@ -14,31 +15,34 @@ import type { AppliedFilter } from "~/utils/filter";
 import { getAppliedFilterLink, getFilterLink } from "~/utils/filter";
 
 type FilterDisplayAs = "swatch" | "button" | "list-item";
+type FilterContext = "sidebar" | "drawer";
 
 export function FilterItem({
   displayAs,
   option,
   appliedFilters,
   showFiltersCount,
+  context = "sidebar",
 }: {
   displayAs: FilterDisplayAs;
   option: Filter["values"][0];
   appliedFilters: AppliedFilter[];
   showFiltersCount: boolean;
+  context?: FilterContext;
 }) {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const location = useLocation();
   const { swatchesConfigs } = useRouteLoaderData<RootLoader>("root");
+  const checkboxId = useId();
 
   const filter = appliedFilters.find(
     (flt) => JSON.stringify(flt.filter) === option.input,
   );
 
-  const [checked, setChecked] = useState(!!filter);
+  const checked = Boolean(filter);
 
   function handleCheckedChange(newChecked: boolean) {
-    setChecked(newChecked);
     if (newChecked) {
       const link = getFilterLink(option.input as string, params, location);
       navigate(link, { preventScrollReset: true });
@@ -55,11 +59,13 @@ export function FilterItem({
 
     return (
       <Tooltip>
-        <TooltipTrigger>
+        <TooltipTrigger asChild>
           <button
             type="button"
+            aria-pressed={checked}
+            aria-label={option.label}
             className={cn(
-              "h-10 w-10 disabled:cursor-not-allowed",
+              "h-10 w-10 rounded-sm disabled:cursor-not-allowed",
               "border hover:border-body",
               checked ? "border-line p-1" : "border-line-subtle",
               option.count === 0 && "diagonal",
@@ -91,8 +97,10 @@ export function FilterItem({
     return (
       <button
         type="button"
+        aria-pressed={checked}
         className={cn(
-          "border px-3 py-1.5 text-center disabled:cursor-not-allowed",
+          "min-h-10 rounded-lg border px-3 py-2 text-center disabled:cursor-not-allowed",
+          context === "drawer" && "h-10 min-h-10 px-3 text-sm",
           option.count === 0 && "diagonal text-body-subtle",
           checked
             ? "border-line bg-body text-background"
@@ -109,25 +117,36 @@ export function FilterItem({
   return (
     <div
       className={cn(
-        "flex items-center gap-2.5",
+        "flex w-fit items-center gap-4",
+        context === "sidebar" && "gap-2.5",
         option.count === 0 && "text-body-subtle",
       )}
     >
       <Checkbox.Root
+        id={checkboxId}
         checked={checked}
-        onCheckedChange={handleCheckedChange}
+        onCheckedChange={(value) => handleCheckedChange(Boolean(value))}
         disabled={option.count === 0}
         className={cn(
-          "h-5 w-5 shrink-0",
+          "h-5 w-5 shrink-0 rounded-[7px]",
           "border border-line focus-visible:outline-hidden",
           "disabled:cursor-not-allowed disabled:opacity-50",
+          context === "sidebar" && "data-[state=checked]:border-body",
         )}
       >
         <Checkbox.Indicator className="flex items-center justify-center text-current">
-          <span className="inline-block h-3 w-3 bg-body" />
+          <CheckIcon className="h-3.5 w-3.5" weight="bold" />
         </Checkbox.Indicator>
       </Checkbox.Root>
-      <FilterLabel option={option} showFiltersCount={showFiltersCount} />
+      <label
+        htmlFor={checkboxId}
+        className={cn(
+          "cursor-pointer",
+          option.count === 0 && "cursor-not-allowed",
+        )}
+      >
+        <FilterLabel option={option} showFiltersCount={showFiltersCount} />
+      </label>
     </div>
   );
 }

@@ -1,13 +1,15 @@
 import { MinusIcon, PlusIcon } from "@phosphor-icons/react";
 import * as Accordion from "@radix-ui/react-accordion";
 import clsx from "clsx";
-import { Link, useLoaderData } from "react-router";
+import { Link, useRouteLoaderData } from "react-router";
 import type { loader as productLoader } from "~/routes/($locale).products.$productHandle";
 
 interface ProductDetailsProps {
   showShippingPolicy: boolean;
   showRefundPolicy: boolean;
   showShortDescription?: boolean;
+  descriptionTitle?: string;
+  openDescriptionByDefault?: boolean;
   product?: any;
   shop?: any;
 }
@@ -16,31 +18,30 @@ export function ProductDetails({
   showShippingPolicy,
   showRefundPolicy,
   showShortDescription = true,
+  descriptionTitle = "Dimensions",
+  openDescriptionByDefault = true,
   product: propProduct,
   shop: propShop,
 }: ProductDetailsProps) {
-  // Try to get data from props first, fallback to useLoaderData if available
-  let product, shop;
-
-  try {
-    const loaderData = useLoaderData<typeof productLoader>();
-    product = propProduct || loaderData?.product;
-    shop = propShop || loaderData?.shop;
-  } catch {
-    // If useLoaderData fails (not in route context), use props
-    product = propProduct;
-    shop = propShop;
-  }
+  const loaderData = useRouteLoaderData<typeof productLoader>(
+    "routes/($locale).products.$productHandle",
+  );
+  const product = propProduct || loaderData?.product;
+  const shop = propShop || loaderData?.shop;
 
   if (!product) {
     return null;
   }
 
-  const { description, summary } = product || {};
+  const { description, descriptionHtml, summary } = product || {};
   const { shippingPolicy, refundPolicy } = shop || {};
   const details = [
     showShortDescription && summary && { title: "Summary", content: summary },
-    description && { title: "Description", content: description },
+    (descriptionHtml || description) && {
+      title: descriptionTitle,
+      content: descriptionHtml || description,
+      openByDefault: openDescriptionByDefault,
+    },
     showShippingPolicy &&
       shippingPolicy?.body && {
         title: "Shipping",
@@ -60,7 +61,12 @@ export function ProductDetails({
   }
 
   return (
-    <Accordion.Root type="multiple">
+    <Accordion.Root
+      type="multiple"
+      defaultValue={details
+        .filter((detail) => detail.openByDefault)
+        .map((detail) => detail.title)}
+    >
       {details.map(({ title, content, learnMore }, index) => (
         <Accordion.Item
           key={title}
@@ -99,7 +105,7 @@ export function ProductDetails({
           >
             <div
               suppressHydrationWarning
-              className="prose dark:prose-invert !text-body-subtle font-normal"
+              className="prose prose-sm max-w-none font-normal text-body dark:prose-invert"
               dangerouslySetInnerHTML={{ __html: content }}
             />
             {learnMore && (

@@ -5,11 +5,13 @@ import {
 } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
-import { forwardRef } from "react";
+import { Children, forwardRef } from "react";
+import { useRouteLoaderData } from "react-router";
 import { backgroundInputs } from "~/components/background-image";
 import { overlayInputs } from "~/components/overlay";
 import type { SectionProps } from "~/components/section";
 import { layoutInputs, Section } from "~/components/section";
+import type { loader as productRouteLoader } from "~/routes/($locale).products.$productHandle";
 
 export interface HeroImageProps extends VariantProps<typeof variants> {}
 
@@ -59,6 +61,17 @@ const HeroImage = forwardRef<HTMLElement, HeroImageProps & SectionProps>(
   (props, ref) => {
     const { children, height, contentPosition, ...rest } = props;
     const { enableTransparentHeader } = useThemeSettings();
+    const productRouteData = useRouteLoaderData<typeof productRouteLoader>(
+      "routes/($locale).products.$productHandle",
+    );
+
+    // The default product template used an empty hero as a product-detail
+    // image. Main Product now owns the complete responsive story experience,
+    // so suppress only that legacy empty block on product routes.
+    if (productRouteData?.product && Children.count(children) === 0) {
+      return null;
+    }
+
     return (
       <Section
         ref={ref}

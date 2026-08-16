@@ -1,3 +1,4 @@
+import { ArrowRightIcon } from "@phosphor-icons/react";
 import { Content, Item, Root, Trigger } from "@radix-ui/react-dropdown-menu";
 import * as NavigationMenu from "@radix-ui/react-navigation-menu";
 import { useThemeSettings } from "@weaverse/hydrogen";
@@ -20,13 +21,17 @@ export function DesktopMenu() {
     const menuItems = headerMenu.items as unknown as SingleMenuItem[];
 
     return (
-      <div className="hidden h-full grow justify-center lg:flex">
+      <div className="hidden h-full items-center justify-center gap-10 xl:flex">
         {menuItems.map((menuItem) => {
           const { id, items: subItems = [], title, to } = menuItem;
           const level = getMaxDepth(menuItem);
           const hasSubmenu = level > 1;
-          const isDropdown =
-            level === 2 && subItems.every(({ resource }) => !resource?.image);
+          const hasVisualItems =
+            subItems.length > 0 &&
+            subItems.every(
+              (item) => item.resource?.image && !item.items?.length,
+            );
+          const isDropdown = level === 2 && !hasVisualItems;
 
           // Single menu items without submenus
           if (!hasSubmenu) {
@@ -53,17 +58,22 @@ export function DesktopMenu() {
                 >
                   <NavigationMenu.Trigger
                     className={clsx([
-                      "flex h-full cursor-pointer items-center gap-1.5 px-3 py-2",
-                      "uppercase focus:outline-hidden",
+                      "flex h-full cursor-pointer items-center py-2",
+                      "font-normal text-sm uppercase focus:outline-hidden",
                     ])}
                     onMouseEnter={() => {
                       if (openMenuBy === "hover" && value !== id) {
                         setValue(id);
                       }
                     }}
-                    onPointerDown={(e) => {
-                      // Allow navigation on left click while preserving submenu behavior
-                      if (e.button === 0 && !e.ctrlKey && !e.metaKey) {
+                    onPointerDown={(event) => {
+                      if (
+                        openMenuBy === "hover" &&
+                        event.button === 0 &&
+                        !event.ctrlKey &&
+                        !event.metaKey &&
+                        !event.shiftKey
+                      ) {
                         navigate(to);
                       }
                     }}
@@ -71,7 +81,7 @@ export function DesktopMenu() {
                     <NavigationMenu.Link asChild>
                       <span
                         className={cn(
-                          "ff-heading relative cursor-pointer",
+                          "relative cursor-pointer",
                           "after:absolute after:bottom-[-0.5px] after:left-0 after:h-[2px] after:w-full after:bg-[#6A4E4E]",
                           "after:opacity-0 hover:after:opacity-100 group-data-[state=open]:after:opacity-100",
                           "after:transition-opacity after:duration-[360ms] after:ease-[cubic-bezier(0.22,1,0.36,1)]",
@@ -83,9 +93,8 @@ export function DesktopMenu() {
                   </NavigationMenu.Trigger>
                   <NavigationMenu.Content
                     className={cn([
-                      "absolute top-0 left-0 w-screen py-8",
-                      "px-3 md:px-4 lg:px-6",
-                      "border-line-subtle border-t bg-(--color-header-bg-hover)",
+                      "absolute top-0 left-0 w-screen",
+                      "border-line-subtle border-t bg-[#DFDFDF]",
                     ])}
                   >
                     <MegaMenu items={subItems} />
@@ -95,7 +104,7 @@ export function DesktopMenu() {
               <div className="absolute inset-x-0 top-full flex w-full justify-center shadow-header">
                 <NavigationMenu.Viewport
                   className={cn(
-                    "relative origin-[top_center] overflow-hidden bg-(--color-header-bg-hover)",
+                    "relative origin-[top_center] overflow-hidden rounded-b-xl bg-[#DFDFDF]",
                     'data-[state="closed"]:animate-scale-out data-[state="open"]:animate-scale-in',
                     "transition-[width,_height] duration-200",
                     "h-[var(--radix-navigation-menu-viewport-height)] w-full",
@@ -119,13 +128,13 @@ function SingleMenu({ menuItem }: { menuItem: SingleMenuItem }) {
         to={to}
         prefetch="intent"
         className={clsx([
-          "flex h-full cursor-pointer items-center gap-1.5 px-3 py-2",
-          "uppercase transition-none focus:outline-hidden",
+          "flex h-full cursor-pointer items-center py-2",
+          "font-normal text-sm uppercase transition-none focus:outline-hidden",
         ])}
       >
         <span
           className={cn(
-            "ff-heading relative cursor-pointer",
+            "relative cursor-pointer",
             "after:absolute after:bottom-[-0.5px] after:left-0 after:h-[2px] after:w-full after:bg-[#6A4E4E]",
             "after:opacity-0 hover:after:opacity-100",
             "after:transition-opacity after:duration-[360ms] after:ease-[cubic-bezier(0.22,1,0.36,1)]",
@@ -141,24 +150,44 @@ function SingleMenu({ menuItem }: { menuItem: SingleMenuItem }) {
 function DropdownMenu({ menuItem }: { menuItem: SingleMenuItem }) {
   const [open, setOpen] = useState(false);
   const { openMenuBy } = useThemeSettings();
-  const { items: childItems = [], title } = menuItem;
+  const navigate = useNavigate();
+  const { items: childItems = [], title, to } = menuItem;
   return (
     <div className="h-full" onMouseLeave={() => setOpen(false)}>
       <Root open={open} onOpenChange={setOpen} modal={false}>
         <Trigger
           className={clsx([
-            "flex h-full cursor-pointer items-center gap-1.5 px-3 py-2",
-            "uppercase focus:outline-hidden",
+            "flex h-full cursor-pointer items-center py-2",
+            "font-normal text-sm uppercase focus:outline-hidden",
           ])}
           onMouseEnter={() => {
             if (openMenuBy === "hover") {
               setOpen(true);
             }
           }}
+          onPointerDown={(event) => {
+            if (
+              openMenuBy === "hover" &&
+              event.button === 0 &&
+              !event.ctrlKey &&
+              !event.metaKey &&
+              !event.shiftKey
+            ) {
+              setOpen(false);
+              navigate(to);
+            }
+          }}
+          onKeyDown={(event) => {
+            if (openMenuBy === "hover" && event.key === "Enter") {
+              event.preventDefault();
+              setOpen(false);
+              navigate(to);
+            }
+          }}
         >
           <span
             className={cn(
-              "ff-heading relative cursor-pointer",
+              "relative cursor-pointer",
               "after:absolute after:bottom-[-0.5px] after:left-0 after:h-[2px] after:w-full after:bg-[#6A4E4E]",
               "after:opacity-0 hover:after:opacity-100 group-data-[state=open]:after:opacity-100",
               "after:transition-opacity after:duration-[360ms] after:ease-[cubic-bezier(0.22,1,0.36,1)]",
@@ -195,73 +224,248 @@ function DropdownMenu({ menuItem }: { menuItem: SingleMenuItem }) {
 }
 
 function MegaMenu({ items }: { items: SingleMenuItem[] }) {
+  const layout = getMegaMenuLayout(items);
+
+  switch (layout) {
+    case "articles":
+      return <ArticleCardsMenu items={items} />;
+    case "image-tiles":
+      return <ImageTilesMenu items={items} />;
+    case "columns-with-feature":
+      return <ColumnsWithFeatureMenu items={items} />;
+    default:
+      return <ColumnsMenu items={items} />;
+  }
+}
+
+function ColumnsWithFeatureMenu({ items }: { items: SingleMenuItem[] }) {
+  const columns = items.filter((item) => item.items?.length);
+  const feature = items.find(
+    (item) => item.resource?.image && !item.items?.length,
+  );
+
   return (
-    <div className="mx-auto flex max-w-(--page-width) gap-4">
-      {items.map(({ id, title, to, items: children, resource }, idx) =>
-        resource?.image && children.length === 0 ? (
-          <SlideIn
-            key={id}
-            className="group/item overflow-hidden"
-            style={{ "--idx": idx } as React.CSSProperties}
-          >
-            <NavigationMenu.Link asChild>
-              <Link
-                to={to}
-                prefetch="intent"
-                className={clsx([
-                  "text-left",
-                  "font-normal uppercase",
-                  "flex flex-col gap-5",
-                ])}
-              >
-                <div className="relative aspect-square w-72 max-w-72 overflow-hidden">
-                  <Image
-                    sizes="auto"
-                    data={resource.image}
-                    className="h-full w-full object-cover"
-                    width={300}
-                  />
-                  <div className="absolute inset-0 bg-black opacity-0 transition-opacity duration-300 group-hover/item:opacity-20" />
-                </div>
-                <span>{title}</span>
-              </Link>
-            </NavigationMenu.Link>
-          </SlideIn>
-        ) : (
-          <SlideIn
-            key={id}
-            className="max-w-72 grow space-y-4"
-            style={{ "--idx": idx } as React.CSSProperties}
-          >
-            <NavigationMenu.Link asChild>
-              <Link
-                to={to}
-                prefetch="intent"
-                className="uppercase transition-none"
-              >
-                <span>{title}</span>
-              </Link>
-            </NavigationMenu.Link>
-            <div className="flex flex-col gap-1.5">
-              {children.map((cItem) => (
-                <div key={cItem.id}>
-                  <NavigationMenu.Link asChild>
-                    <Link
-                      to={cItem.to}
-                      prefetch="intent"
-                      className="relative inline transition-none"
-                    >
-                      <span>{cItem.title}</span>
-                    </Link>
-                  </NavigationMenu.Link>
-                </div>
-              ))}
-            </div>
-          </SlideIn>
-        ),
-      )}
+    <div className="h-[414px] bg-[#DFDFDF] pt-16 text-[#343231]">
+      <div className="mx-auto grid w-[calc(100%-4rem)] max-w-[1360px] grid-cols-[repeat(4,minmax(0,1fr))_360px]">
+        {columns.slice(0, 4).map((item, index) => (
+          <MenuLinkColumn item={item} index={index} key={item.id} />
+        ))}
+        {feature?.resource?.image && (
+          <EditorialImageCard item={feature} index={columns.length} />
+        )}
+      </div>
     </div>
   );
+}
+
+function ColumnsMenu({ items }: { items: SingleMenuItem[] }) {
+  return (
+    <div className="h-[366px] bg-[#DFDFDF] pt-16 text-[#343231]">
+      <div className="mx-auto grid w-[calc(100%-4rem)] max-w-[1360px] grid-cols-4 gap-7">
+        {items.slice(0, 4).map((item, index) => (
+          <MenuLinkColumn item={item} index={index} key={item.id} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function MenuLinkColumn({
+  item,
+  index,
+}: {
+  item: SingleMenuItem;
+  index: number;
+}) {
+  return (
+    <SlideIn style={{ "--idx": index } as React.CSSProperties}>
+      <NavigationMenu.Link asChild>
+        <Link
+          to={item.to}
+          prefetch="intent"
+          className="inline-block font-semibold text-sm uppercase leading-5 transition-none"
+        >
+          {item.title}
+        </Link>
+      </NavigationMenu.Link>
+      <div className="mt-[14px] flex flex-col gap-[14px]">
+        {item.items?.map((child) => (
+          <NavigationMenu.Link asChild key={child.id}>
+            <Link
+              to={child.to}
+              prefetch="intent"
+              className="w-fit text-sm leading-5 transition-none"
+            >
+              {child.title}
+            </Link>
+          </NavigationMenu.Link>
+        ))}
+      </div>
+    </SlideIn>
+  );
+}
+
+function EditorialImageCard({
+  item,
+  index,
+}: {
+  item: SingleMenuItem;
+  index: number;
+}) {
+  const image = item.resource?.image;
+  if (!image) {
+    return null;
+  }
+
+  return (
+    <SlideIn
+      className="group/editorial"
+      style={{ "--idx": index } as React.CSSProperties}
+    >
+      <NavigationMenu.Link asChild>
+        <Link
+          to={item.to}
+          prefetch="intent"
+          className="relative block h-[270px] overflow-hidden rounded-xl"
+        >
+          <Image
+            data={image}
+            sizes="360px"
+            width={720}
+            className="h-full w-full object-cover transition-transform duration-500 group-hover/editorial:scale-[1.02]"
+          />
+          <span className="absolute inset-0 bg-[#171615]/20" />
+          <span className="absolute inset-0 flex items-center justify-center text-center text-[28px] text-white uppercase leading-[34px]">
+            {item.title}
+          </span>
+        </Link>
+      </NavigationMenu.Link>
+    </SlideIn>
+  );
+}
+
+function ArticleCardsMenu({ items }: { items: SingleMenuItem[] }) {
+  return (
+    <div className="h-[448px] bg-[#DFDFDF] pt-16 text-[#343231]">
+      <div className="mx-auto grid w-[calc(100%-4rem)] max-w-[1360px] grid-cols-4 gap-8">
+        {items.slice(0, 4).map((item, index) => {
+          const image = item.resource?.image;
+          if (!image) {
+            return null;
+          }
+          return (
+            <SlideIn
+              key={item.id}
+              className="group/article min-w-0"
+              style={{ "--idx": index } as React.CSSProperties}
+            >
+              <NavigationMenu.Link asChild>
+                <Link to={item.to} prefetch="intent" className="block">
+                  <div className="h-[177.75px] overflow-hidden rounded-xl">
+                    <Image
+                      data={image}
+                      sizes="316px"
+                      width={632}
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover/article:scale-[1.02]"
+                    />
+                  </div>
+                  <p className="mt-3 text-[#9D9D9D] text-sm uppercase leading-5">
+                    {item.resource?.articleTags?.[0] ||
+                      item.tags?.[0] ||
+                      "Article"}
+                  </p>
+                  <p className="mt-2.5 line-clamp-2 text-[26px] leading-[30px]">
+                    {item.title}
+                  </p>
+                  <span className="mt-3.5 flex items-center gap-2 font-semibold text-sm leading-5">
+                    Read More
+                    <ArrowRightIcon aria-hidden="true" className="size-4" />
+                  </span>
+                </Link>
+              </NavigationMenu.Link>
+            </SlideIn>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function ImageTilesMenu({ items }: { items: SingleMenuItem[] }) {
+  return (
+    <div className="h-[472px] bg-[#DFDFDF] pt-16 text-white">
+      <div className="mx-auto grid w-[calc(100%-4rem)] max-w-[1360px] grid-cols-4 gap-4">
+        {items.slice(0, 4).map((item, index) => {
+          const image = item.resource?.image;
+          if (!image) {
+            return null;
+          }
+          const spansTwoColumns =
+            (items.length === 2 && index < 2) ||
+            (items.length === 3 && index === 2);
+          return (
+            <SlideIn
+              key={item.id}
+              className={cn(
+                "group/tile min-w-0",
+                spansTwoColumns && "col-span-2",
+              )}
+              style={{ "--idx": index } as React.CSSProperties}
+            >
+              <NavigationMenu.Link asChild>
+                <Link
+                  to={item.to}
+                  prefetch="intent"
+                  className="relative block h-[328px] overflow-hidden rounded-xl"
+                >
+                  <Image
+                    data={image}
+                    sizes={spansTwoColumns ? "672px" : "328px"}
+                    width={spansTwoColumns ? 1344 : 656}
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover/tile:scale-[1.02]"
+                  />
+                  <span className="absolute inset-0 bg-[#171615]/20" />
+                  <span className="absolute inset-0 flex items-center justify-center text-center text-[28px] uppercase leading-[34px]">
+                    {item.title}
+                  </span>
+                </Link>
+              </NavigationMenu.Link>
+            </SlideIn>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+type MegaMenuLayout =
+  | "articles"
+  | "image-tiles"
+  | "columns-with-feature"
+  | "columns";
+
+function getMegaMenuLayout(items: SingleMenuItem[]): MegaMenuLayout {
+  const visualItems = items.filter(
+    (item) => item.resource?.image && !item.items?.length,
+  );
+  const columnItems = items.filter((item) => item.items?.length);
+  const allArticles =
+    items.length > 0 &&
+    items.every(
+      (item) =>
+        item.resource?.__typename === "Article" || item.to.includes("/blogs/"),
+    );
+
+  if (allArticles && visualItems.length === items.length) {
+    return "articles";
+  }
+  if (visualItems.length === items.length) {
+    return "image-tiles";
+  }
+  if (columnItems.length > 0 && visualItems.length > 0) {
+    return "columns-with-feature";
+  }
+  return "columns";
 }
 
 function SlideIn(props: {

@@ -1,36 +1,63 @@
-import * as Slider from "@radix-ui/react-slider";
-import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import type { ProductFilter } from "@shopify/hydrogen/storefront-api-types";
-import clsx from "clsx";
-import { useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
 import type { CollectionQuery } from "storefront-api.generated";
+import { cn } from "~/utils/cn";
 import { FILTER_URL_PREFIX, filterInputToParams } from "~/utils/filter";
+
+type PriceRangeFilterProps = {
+  collection: CollectionQuery["collection"];
+  context?: "sidebar" | "drawer";
+};
 
 export function PriceRangeFilter({
   collection,
-}: {
-  collection: CollectionQuery["collection"];
-}) {
+  context = "sidebar",
+}: PriceRangeFilterProps) {
   const [params] = useSearchParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const thumbRef = useRef<"from" | "to" | null>(null);
+  const { minVariantPrice, maxVariantPrice, currencyCode } =
+    getPricesRange(collection);
+  const priceFromUrl = getPricesFromFilter(params);
+  const [minPrice, setMinPrice] = useState(priceFromUrl.min);
+  const [maxPrice, setMaxPrice] = useState(priceFromUrl.max);
+  const currencySymbol = getCurrencySymbol(currencyCode);
 
-  const { minVariantPrice, maxVariantPrice } = getPricesRange(collection);
-  const { min, max } = getPricesFromFilter(params);
+  useEffect(() => {
+    setMinPrice(priceFromUrl.min);
+    setMaxPrice(priceFromUrl.max);
+  }, [priceFromUrl.max, priceFromUrl.min]);
 
-  const [minPrice, setMinPrice] = useState(min);
-  const [maxPrice, setMaxPrice] = useState(max);
+  function handleFilter(
+    nextMin: number | undefined = minPrice,
+    nextMax: number | undefined = maxPrice,
+  ) {
+    const clampedMin = clampPrice(nextMin, minVariantPrice, maxVariantPrice);
+    const clampedMax = clampPrice(nextMax, minVariantPrice, maxVariantPrice);
+    const normalizedMin =
+      clampedMin !== undefined &&
+      clampedMax !== undefined &&
+      clampedMin > clampedMax
+        ? clampedMax
+        : clampedMin;
+    const normalizedMax =
+      clampedMin !== undefined &&
+      clampedMax !== undefined &&
+      clampedMin > clampedMax
+        ? clampedMin
+        : clampedMax;
 
-  function handleFilter() {
+    setMinPrice(normalizedMin);
+    setMaxPrice(normalizedMax);
+
     let paramsClone = new URLSearchParams(params);
-    if (minPrice === undefined && maxPrice === undefined) {
+    if (normalizedMin === undefined && normalizedMax === undefined) {
       paramsClone.delete(`${FILTER_URL_PREFIX}price`);
     } else {
       const price = {
-        ...(minPrice === undefined ? {} : { min: minPrice }),
-        ...(maxPrice === undefined ? {} : { max: maxPrice }),
+        ...(normalizedMin === undefined ? {} : { min: normalizedMin }),
+        ...(normalizedMax === undefined ? {} : { max: normalizedMax }),
       };
       paramsClone = filterInputToParams({ price }, paramsClone);
     }
@@ -42,101 +69,83 @@ export function PriceRangeFilter({
   }
 
   return (
-    <div className="space-y-4">
-      <Slider.Root
-        min={minVariantPrice}
-        max={maxVariantPrice}
-        step={1}
-        minStepsBetweenThumbs={1}
-        value={[minPrice || minVariantPrice, maxPrice || maxVariantPrice]}
-        onValueChange={([newMin, newMax]) => {
-          if (thumbRef.current) {
-            if (thumbRef.current === "from") {
-              if (maxPrice === undefined || newMin < maxPrice) {
-                setMinPrice(newMin);
-              }
-            } else if (minPrice === undefined || newMax > minPrice) {
-              setMaxPrice(newMax);
-            }
-          } else {
-            setMinPrice(newMin);
-            setMaxPrice(newMax);
-          }
-        }}
-        onValueCommit={handleFilter}
-        className="relative flex h-4 w-full items-center"
-      >
-        <Slider.Track className="relative h-1 grow rounded-full bg-gray-200">
-          <Slider.Range className="absolute h-full rounded-full bg-line" />
-        </Slider.Track>
-        {["from", "to"].map((s: "from" | "to") => (
-          <Slider.Thumb
-            key={s}
-            onPointerUp={() => {
-              thumbRef.current = null;
-            }}
-            onPointerDown={() => {
-              thumbRef.current = s;
-            }}
-            className={clsx(
-              "block h-4 w-4 cursor-grab rounded-full bg-line shadow-md",
-              "focus-visible:outline-hidden",
-            )}
-          />
-        ))}
-      </Slider.Root>
-      <div className="flex items-center gap-4">
-        <div className="flex shrink items-center gap-1 border border-line-subtle bg-white px-4">
-          <VisuallyHidden.Root asChild>
-            <label htmlFor="minPrice" aria-label="Min price">
-              Min price
-            </label>
-          </VisuallyHidden.Root>
-          <span>$</span>
-          <input
-            name="minPrice"
-            type="number"
-            value={minPrice ?? ""}
-            min={minVariantPrice}
-            placeholder={minVariantPrice.toString()}
-            onChange={(e) => {
-              const { value } = e.target;
-              const newMinPrice = Number.isNaN(Number.parseFloat(value))
-                ? undefined
-                : Number.parseFloat(value);
-              setMinPrice(newMinPrice);
-            }}
-            onBlur={handleFilter}
-            className="w-full bg-transparent py-3 text-right focus-visible:outline-hidden"
-          />
-        </div>
-        <span>To</span>
-        <div className="flex items-center gap-1 border border-line-subtle bg-white px-4">
-          <VisuallyHidden.Root asChild>
-            <label htmlFor="maxPrice" aria-label="Max price">
-              Max price
-            </label>
-          </VisuallyHidden.Root>
-          <span>$</span>
-          <input
-            name="maxPrice"
-            type="number"
-            value={maxPrice ?? ""}
-            max={maxVariantPrice}
-            placeholder={maxVariantPrice.toString()}
-            onChange={(e) => {
-              const { value } = e.target;
-              const newMaxPrice = Number.isNaN(Number.parseFloat(value))
-                ? undefined
-                : Number.parseFloat(value);
-              setMaxPrice(newMaxPrice);
-            }}
-            onBlur={handleFilter}
-            className="w-full bg-transparent py-3 text-right focus-visible:outline-hidden"
-          />
-        </div>
+    <div className={cn("space-y-5", context === "sidebar" && "space-y-4")}>
+      <p>
+        The highest price is {currencySymbol}
+        {formatPrice(maxVariantPrice)}
+      </p>
+      <div className="grid grid-cols-2 gap-6">
+        <PriceInput
+          ariaLabel="Minimum price"
+          currencySymbol={currencySymbol}
+          min={minVariantPrice}
+          max={maxVariantPrice}
+          placeholder="From"
+          value={minPrice}
+          onChange={setMinPrice}
+          onCommit={() => handleFilter()}
+        />
+        <PriceInput
+          ariaLabel="Maximum price"
+          currencySymbol={currencySymbol}
+          min={minVariantPrice}
+          max={maxVariantPrice}
+          placeholder="To"
+          value={maxPrice}
+          onChange={setMaxPrice}
+          onCommit={() => handleFilter()}
+        />
       </div>
     </div>
+  );
+}
+
+function PriceInput({
+  ariaLabel,
+  currencySymbol,
+  min,
+  max,
+  placeholder,
+  value,
+  onChange,
+  onCommit,
+}: {
+  ariaLabel: string;
+  currencySymbol: string;
+  min: number;
+  max: number;
+  placeholder: string;
+  value?: number;
+  onChange: (value?: number) => void;
+  onCommit: () => void;
+}) {
+  return (
+    <label className="flex min-w-0 items-center gap-[5px]">
+      <span aria-hidden="true" className="text-[#3D490B]">
+        {currencySymbol}
+      </span>
+      <input
+        aria-label={ariaLabel}
+        name={ariaLabel === "Minimum price" ? "minPrice" : "maxPrice"}
+        type="number"
+        inputMode="decimal"
+        value={value ?? ""}
+        min={min}
+        max={max}
+        placeholder={placeholder}
+        onChange={(event) => {
+          const nextValue = Number.parseFloat(event.target.value);
+          onChange(Number.isNaN(nextValue) ? undefined : nextValue);
+        }}
+        onBlur={onCommit}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            event.currentTarget.blur();
+          }
+        }}
+        className="h-[46px] min-w-0 w-full rounded-lg border border-line bg-transparent px-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body"
+      />
+    </label>
   );
 }
 
@@ -149,15 +158,51 @@ function getPricesRange(collection: CollectionQuery["collection"]) {
   return {
     minVariantPrice: Number(minVariantPrice?.amount) || 0,
     maxVariantPrice: Number(maxVariantPrice?.amount) || 1000,
+    currencyCode:
+      maxVariantPrice?.currencyCode || minVariantPrice?.currencyCode || "USD",
   };
 }
 
 function getPricesFromFilter(params: URLSearchParams) {
   const priceFilter = params.get(`${FILTER_URL_PREFIX}price`);
-  const price = priceFilter
-    ? (JSON.parse(priceFilter) as ProductFilter["price"])
-    : undefined;
+  let price: ProductFilter["price"] | undefined;
+  try {
+    price = priceFilter
+      ? (JSON.parse(priceFilter) as ProductFilter["price"])
+      : undefined;
+  } catch {
+    price = undefined;
+  }
   const min = Number.isNaN(Number(price?.min)) ? undefined : Number(price?.min);
   const max = Number.isNaN(Number(price?.max)) ? undefined : Number(price?.max);
   return { min, max };
+}
+
+function clampPrice(value: number | undefined, min: number, max: number) {
+  if (value === undefined || Number.isNaN(value)) {
+    return undefined;
+  }
+  return Math.min(Math.max(value, min), max);
+}
+
+function getCurrencySymbol(currencyCode: string) {
+  try {
+    return (
+      new Intl.NumberFormat(undefined, {
+        style: "currency",
+        currency: currencyCode,
+        currencyDisplay: "narrowSymbol",
+      })
+        .formatToParts(0)
+        .find((part) => part.type === "currency")?.value || currencyCode
+    );
+  } catch {
+    return currencyCode;
+  }
+}
+
+function formatPrice(value: number) {
+  return new Intl.NumberFormat(undefined, {
+    maximumFractionDigits: Number.isInteger(value) ? 0 : 2,
+  }).format(value);
 }

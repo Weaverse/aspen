@@ -7,7 +7,9 @@ import type {
 } from "storefront-api.generated";
 import invariant from "tiny-invariant";
 import type { EnhancedMenu } from "~/types/menu";
+import type { WishlistApiResponse } from "~/types/wishlist";
 import { seoPayload } from "~/utils/seo.server";
+import { readWishlist } from "~/utils/wishlist.server";
 
 /**
  * Load data necessary for rendering content above the fold. This is the critical data
@@ -56,11 +58,36 @@ export async function loadCriticalData({
  */
 export function loadDeferredData({ context }: LoaderFunctionArgs) {
   const { cart, customerAccount } = context;
+  const isLoggedIn = customerAccount.isLoggedIn();
 
   return {
-    isLoggedIn: customerAccount.isLoggedIn(),
+    isLoggedIn,
     cart: cart.get(),
+    wishlist: loadCustomerWishlist(customerAccount, isLoggedIn),
   };
+}
+
+async function loadCustomerWishlist(
+  customerAccount: AppLoadContext["customerAccount"],
+  isLoggedIn: Promise<boolean>,
+): Promise<WishlistApiResponse> {
+  if (!(await isLoggedIn)) {
+    return { authenticated: false, productIds: [] };
+  }
+
+  try {
+    const wishlist = await readWishlist(customerAccount);
+    return { authenticated: true, productIds: wishlist.productIds };
+  } catch (error) {
+    return {
+      authenticated: true,
+      productIds: [],
+      error:
+        error instanceof Error
+          ? error.message
+          : "Wishlist is temporarily unavailable.",
+    };
+  }
 }
 
 async function getLayoutData({ storefront, env }: AppLoadContext) {
@@ -261,6 +288,10 @@ function resolveToFromType(
 
   const pathParts = pathname.split("/");
   const handle = pathParts.pop() || "";
+  if (type === "PAGE" && handle === "contact") {
+    return "/contact";
+  }
+
   const routePrefix: Record<string, string> = {
     ...defaultPrefixes,
     ...customPrefixes,
@@ -276,6 +307,8 @@ function resolveToFromType(
         ? `/${routePrefix.BLOG}/${blogHandle}/${handle}/`
         : `/${blogHandle}/${handle}/`;
     }
+    case type === "BLOG":
+      return `/${routePrefix.BLOG}`;
     case type === "COLLECTIONS":
       return `/${routePrefix.COLLECTIONS}`;
     case type === "SEARCH":
@@ -329,6 +362,17 @@ const LAYOUT_QUERY = `#graphql
     id
     resourceId
     resource {
+      __typename
+      ... on Article {
+        articleTags: tags
+        image {
+          altText
+          height
+          id
+          url
+          width
+        }
+      }
       ... on Collection {
         image {
           altText

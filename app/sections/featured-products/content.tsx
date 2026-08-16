@@ -85,7 +85,7 @@ const FeaturedContentProducts = forwardRef<
     // Heading props
     headingContent,
     headingTagName,
-    carouselHeadingContent = "FEATURED PRODUCTS",
+    carouselHeadingContent,
     color,
     size,
     mobileSize,
@@ -105,9 +105,9 @@ const FeaturedContentProducts = forwardRef<
     paragraphWidth,
     // Button/Link props
     buttonContent,
-    carouselButtonContent = "VIEW ALL",
+    carouselButtonContent,
     to,
-    carouselTo = "/products",
+    carouselTo,
     variant,
     openInNewTab,
     textColor,
@@ -119,7 +119,7 @@ const FeaturedContentProducts = forwardRef<
     textColorDecor,
     ...rest
   } = props;
-  const { layout, isLegacyLayout } = useFeaturedProductsLayout();
+  const { layout, isLegacyLayout, isProductPage } = useFeaturedProductsLayout();
   const resolvedDisplayMode = isLegacyLayout
     ? displayMode
     : layout === "carousel"
@@ -127,13 +127,22 @@ const FeaturedContentProducts = forwardRef<
       : "vertical";
   const resolvedHeadingContent =
     resolvedDisplayMode === "horizontal"
-      ? carouselHeadingContent
+      ? isProductPage
+        ? headingContent || carouselHeadingContent || "YOU MAY ALSO LIKE"
+        : carouselHeadingContent || "FEATURED PRODUCTS"
       : headingContent;
   const resolvedButtonContent =
     resolvedDisplayMode === "horizontal"
-      ? carouselButtonContent
+      ? isProductPage
+        ? buttonContent || carouselButtonContent || "VIEW ALL"
+        : carouselButtonContent || "VIEW ALL"
       : buttonContent;
-  const resolvedTo = resolvedDisplayMode === "horizontal" ? carouselTo : to;
+  const resolvedTo =
+    resolvedDisplayMode === "horizontal"
+      ? isProductPage
+        ? to || carouselTo || "/products"
+        : carouselTo || "/products"
+      : to;
 
   if (resolvedDisplayMode === "horizontal") {
     return (

@@ -26,10 +26,13 @@ function Badge({
       style={{
         backgroundColor,
         color: textColor,
-        borderRadius: "var(--radius-xs)",
+        borderRadius: "var(--badge-radius, var(--radius-xs))",
         textTransform: badgeTextTransform,
       }}
-      className={cn("px-2 py-1 text-sm uppercase", className)}
+      className={cn(
+        "whitespace-nowrap px-2 py-1 text-xs leading-none",
+        className,
+      )}
     >
       {text}
     </span>
@@ -171,11 +174,11 @@ export function ProductBadges({
       {selectedVariant.availableForSale ? (
         <>
           {isBundle && <BundleBadge />}
+          <NewBadge publishedAt={publishedAt} />
           <SaleBadge
             price={selectedVariant.price as MoneyV2}
             compareAtPrice={selectedVariant.compareAtPrice as MoneyV2}
           />
-          <NewBadge publishedAt={publishedAt} />
           {isBestSellerProduct && <BestSellerBadge />}
         </>
       ) : (
@@ -216,8 +219,11 @@ export function ProductCardBadges({
     .filter(Boolean)
     .some(({ key, value }) => key === "best_seller" && value === "true");
 
-  // Check if product is sold out (no available variants)
-  const isSoldOut = !product.selectedOrFirstAvailableVariant?.availableForSale;
+  const isSoldOut = !variant?.availableForSale;
+
+  if (isSoldOut) {
+    return showSoldOut ? <SoldOutBadge className={className} /> : null;
+  }
 
   return (
     <div
@@ -225,7 +231,7 @@ export function ProductCardBadges({
     >
       {showBundle && isBundle && <BundleBadge />}
 
-      {showSale && !isSoldOut && variant && (
+      {showSale && variant && (
         <SaleBadge
           price={variant.price as MoneyV2}
           compareAtPrice={variant.compareAtPrice as MoneyV2}
@@ -235,8 +241,6 @@ export function ProductCardBadges({
       {showNew && <NewBadge publishedAt={publishedAt} />}
 
       {showBestSeller && isBestSellerProduct && <BestSellerBadge />}
-
-      {showSoldOut && isSoldOut && <SoldOutBadge />}
     </div>
   );
 }

@@ -1,207 +1,185 @@
 import { Money } from "@shopify/hydrogen";
 import type { MoneyV2 } from "@shopify/hydrogen/storefront-api-types";
 import clsx from "clsx";
-import { useRef } from "react";
 import { Image } from "~/components/image";
 import { Link } from "~/components/link";
+import { ProductCardRating } from "~/components/product/product-card-rating";
 import { CompareAtPrice } from "~/components/product/variant-prices";
-import { RevealUnderline } from "~/reveal-underline";
 import type {
   NormalizedPredictiveSearchResultItem,
   NormalizedPredictiveSearchResults,
 } from "~/types/predictive-search";
 import { isDiscounted } from "~/utils/product";
 
+type SearchResultType = NormalizedPredictiveSearchResults[number]["type"];
+
 type SearchResultTypeProps = {
   items?: NormalizedPredictiveSearchResultItem[];
-  type: NormalizedPredictiveSearchResults[number]["type"];
+  type: SearchResultType;
 };
 
 export function PredictiveSearchResult({ items, type }: SearchResultTypeProps) {
-  const isSuggestions = type === "queries";
-  const scrollRef = useRef<HTMLUListElement>(null);
-  const isDragging = useRef(false);
+  if (type === "queries") {
+    return <QueryResults items={items} />;
+  }
 
-  // Drag scrolling functionality for queries
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (type !== "queries" || !scrollRef.current) return;
+  if (!items?.length) {
+    return (
+      <p className="pt-5 text-[#524B46] text-sm">
+        No {type === "pages" ? "pages" : type} available.
+      </p>
+    );
+  }
 
-    e.preventDefault();
-    const slider = scrollRef.current;
-    const startX = e.pageX;
-    const scrollLeft = slider.scrollLeft;
-    isDragging.current = false;
+  if (type === "products") {
+    return (
+      <ul className="space-y-2.5">
+        {items.map((item) => (
+          <ProductResultItem item={item} key={item.id} />
+        ))}
+      </ul>
+    );
+  }
 
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!scrollRef.current) return;
-
-      e.preventDefault();
-      isDragging.current = true;
-
-      const x = e.pageX;
-      const walk = (x - startX) * 1.5; // Adjust scroll speed
-      scrollRef.current.scrollLeft = scrollLeft - walk;
-    };
-
-    const handleMouseUp = () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
-      document.removeEventListener("mouseleave", handleMouseUp);
-
-      if (scrollRef.current) {
-        scrollRef.current.style.cursor = "grab";
-      }
-
-      // Reset dragging state after a brief delay
-      setTimeout(() => {
-        isDragging.current = false;
-      }, 100);
-    };
-
-    const handleMouseLeave = () => {
-      handleMouseUp();
-    };
-
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
-    document.addEventListener("mouseleave", handleMouseLeave);
-
-    slider.style.cursor = "grabbing";
-  };
+  if (type === "collections") {
+    return (
+      <ul className="space-y-7">
+        {items.map((item) => (
+          <CollectionResultItem item={item} key={item.id} />
+        ))}
+      </ul>
+    );
+  }
 
   return (
-    <div key={type} className="predictive-search-result flex flex-col gap-4">
-      {isSuggestions && (
-        <span className="border-line-subtle border-b pb-3 font-normal uppercase">
-          {isSuggestions && "Suggestions"}
-        </span>
-      )}
-      {items?.length ? (
-        <ul
-          ref={scrollRef}
-          className={clsx(
-            type === "queries" &&
-              "scrollbar-hide drag-scroll flex cursor-grab select-none gap-3 overflow-x-auto pb-2",
-            type === "articles" && "space-y-3",
-            type === "products" && "space-y-4",
-          )}
-          onMouseDown={handleMouseDown}
-          style={{
-            userSelect: type === "queries" ? "none" : "auto",
-            WebkitUserSelect: type === "queries" ? "none" : "auto",
-          }}
-        >
-          {items.map((item: NormalizedPredictiveSearchResultItem) => (
-            <SearchResultItem
-              item={item}
-              key={item.id}
-              type={type}
-              isDragging={isDragging}
-            />
-          ))}
-        </ul>
-      ) : (
-        <div className="text-body-subtle">
-          No {isSuggestions ? "suggestions" : type} available.
-        </div>
-      )}
-    </div>
+    <ul className="space-y-4">
+      {items.map((item) => (
+        <TextResultItem item={item} key={item.id} />
+      ))}
+    </ul>
   );
 }
 
-type SearchResultItemProps = {
-  item: NormalizedPredictiveSearchResultItem;
-  type: NormalizedPredictiveSearchResults[number]["type"];
-  isDragging?: React.MutableRefObject<boolean>;
-};
-
-function SearchResultItem({
-  item: {
-    id,
-    __typename,
-    image,
-    compareAtPrice,
-    price,
-    title,
-    url,
-    // vendor,
-    styledTitle,
-  },
-  type,
-  isDragging,
-}: SearchResultItemProps) {
-  const isQuery = type === "queries";
-
-  const handleClick = (e: React.MouseEvent) => {
-    if (isQuery && isDragging?.current) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  };
-
+function QueryResults({
+  items,
+}: {
+  items?: NormalizedPredictiveSearchResultItem[];
+}) {
   return (
-    <li key={id} className={clsx(isQuery && "shrink-0")}>
-      <Link
-        className={clsx(
-          isQuery ? "block" : "flex gap-4",
-          isQuery && "whitespace-nowrap",
-        )}
-        to={
-          __typename === "SearchQuerySuggestion" || !url
-            ? `/search?q=${id}`
-            : url
-        }
-        data-type={__typename}
-        onClick={handleClick}
+    <section aria-labelledby="predictive-search-suggestions">
+      <h2
+        id="predictive-search-suggestions"
+        className="border-[#D8D8D8] border-b pb-[11px] font-semibold text-sm uppercase"
       >
-        {!isQuery && __typename === "Product" && (
-          <div className="h-20 w-20 shrink-0">
-            {image?.url && (
-              <Image
-                alt={image.altText ?? ""}
-                src={image.url}
-                width={200}
-                aspectRatio="1/1"
-              />
-            )}
+        Suggestions
+      </h2>
+      <ul className="scrollbar-hide flex gap-5 overflow-x-auto pt-[22px] pb-0.5">
+        {items?.map((item) => (
+          <li key={item.id} className="shrink-0 whitespace-nowrap text-sm">
+            <Link to={item.url || `/search?q=${encodeURIComponent(item.id)}`}>
+              {item.styledTitle ? (
+                <span
+                  className="[&_b]:font-semibold"
+                  // Shopify returns only emphasis markup in styledText. The
+                  // local fallback is escaped before it reaches this field.
+                  dangerouslySetInnerHTML={{ __html: item.styledTitle }}
+                />
+              ) : (
+                item.title
+              )}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function ProductResultItem({
+  item,
+}: {
+  item: NormalizedPredictiveSearchResultItem;
+}) {
+  return (
+    <li>
+      <Link
+        to={item.url}
+        className="grid min-h-[100px] grid-cols-[100px_1fr] gap-4"
+      >
+        <div className="h-[100px] w-[100px] overflow-hidden rounded-xl bg-[#F0EFED]">
+          {item.image?.url && (
+            <Image
+              alt={item.image.altText || item.title}
+              src={item.image.url}
+              width={200}
+              height={200}
+              sizes="100px"
+              className="h-full w-full object-cover"
+            />
+          )}
+        </div>
+        <div className="flex min-w-0 flex-col justify-center gap-1 text-sm">
+          <ProductCardRating
+            ratingValue={item.ratingValue}
+            ratingCountValue={item.ratingCountValue}
+            className="text-[#524B46]"
+          />
+          <p className="line-clamp-2 text-[#343231] uppercase leading-tight">
+            {item.title}
+          </p>
+          {item.price && (
+            <div className="flex gap-2 text-[#343231]">
+              <Money withoutTrailingZeros data={item.price as MoneyV2} />
+              {isDiscounted(
+                item.price as MoneyV2,
+                item.compareAtPrice as MoneyV2,
+              ) && <CompareAtPrice data={item.compareAtPrice as MoneyV2} />}
+            </div>
+          )}
+        </div>
+      </Link>
+    </li>
+  );
+}
+
+function CollectionResultItem({
+  item,
+}: {
+  item: NormalizedPredictiveSearchResultItem;
+}) {
+  return (
+    <li>
+      <Link to={item.url} className="block text-sm uppercase">
+        {item.image?.url && (
+          <div className="mb-4 aspect-[341/194] overflow-hidden rounded-xl bg-[#F0EFED]">
+            <Image
+              alt={item.image.altText || item.title}
+              src={item.image.url}
+              width={682}
+              height={388}
+              sizes="341px"
+              className="h-full w-full object-cover"
+            />
           </div>
         )}
-        {isQuery ? (
-          // Simple title for query suggestions
-          styledTitle ? (
-            <span dangerouslySetInnerHTML={{ __html: styledTitle }} />
-          ) : (
-            <span>{title}</span>
-          )
-        ) : (
-          // Full layout for products and articles
-          <div className="flex flex-col justify-center gap-1">
-            {/* {vendor && (
-              <div className="text-body-subtle text-sm">By {vendor}</div>
-            )} */}
-            {styledTitle ? (
-              <RevealUnderline as="div" className="ff-heading">
-                <span dangerouslySetInnerHTML={{ __html: styledTitle }} />
-              </RevealUnderline>
-            ) : (
-              <div
-                className={clsx(
-                  __typename === "Product" ? "line-clamp-1" : "line-clamp-2",
-                )}
-              >
-                <span className="font-normal">{title}</span>
-              </div>
-            )}
-            {price && (
-              <div className="flex gap-2">
-                <Money withoutTrailingZeros data={price as MoneyV2} />
-                {isDiscounted(price as MoneyV2, compareAtPrice as MoneyV2) && (
-                  <CompareAtPrice data={compareAtPrice as MoneyV2} />
-                )}
-              </div>
-            )}
-          </div>
-        )}
+        <span>{item.title}</span>
+      </Link>
+    </li>
+  );
+}
+
+function TextResultItem({
+  item,
+}: {
+  item: NormalizedPredictiveSearchResultItem;
+}) {
+  return (
+    <li className="text-sm">
+      <Link
+        to={item.url}
+        className={clsx("block", !item.url && "pointer-events-none")}
+      >
+        {item.title}
       </Link>
     </li>
   );

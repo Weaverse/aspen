@@ -7,13 +7,24 @@ import invariant from "tiny-invariant";
 
 import { routeHeaders } from "~/utils/cache";
 import { redirectIfHandleIsLocalized } from "~/utils/redirect";
+import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 import { seoPayload } from "~/utils/seo.server";
 import { WeaverseContent } from "~/weaverse";
 
 export const headers = routeHeaders;
+export const shouldRevalidate = skipPageRevalidationForStorefrontActions;
 
 export async function loader({ request, params, context }: RouteLoaderArgs) {
   invariant(params.pageHandle, "Missing page handle");
+  const requestUrl = new URL(request.url);
+  const contactPagePath = requestUrl.pathname.match(
+    /^\/(?:(?<locale>[^/]+)\/)?pages\/contact\/?$/,
+  );
+
+  if (params.pageHandle === "contact" && contactPagePath) {
+    throw new Response(null, { status: 404 });
+  }
+
   const { storefront } = context.weaverse;
 
   // Load page data and weaverseData in parallel

@@ -1,42 +1,59 @@
-import { SignOutIcon } from "@phosphor-icons/react";
-import {
-  CacheNone,
-  flattenConnection,
-  generateCacheControlHeader,
-} from "@shopify/hydrogen";
+import { CacheNone, generateCacheControlHeader } from "@shopify/hydrogen";
+import type { WeaverseLoaderData } from "@weaverse/hydrogen";
 import type {
   CustomerDetailsFragment,
   CustomerDetailsQuery,
 } from "customer-account-api.generated";
-import { Suspense } from "react";
 import {
-  Await,
   data,
-  Form,
   type LoaderFunctionArgs,
   Outlet,
   useLoaderData,
   useMatches,
   useOutlet,
 } from "react-router";
-import { AccountDetails } from "~/components/customer/account-details";
-import { AccountAddressBook } from "~/components/customer/address-book";
-import { AccountOrderHistory } from "~/components/customer/orders";
 import { OutletModal } from "~/components/customer/outlet-modal";
-import { ProductCard } from "~/components/product/product-card";
-import { Section } from "~/components/section";
-import { Swimlane } from "~/components/swimlane";
-import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
-import { routeHeaders } from "~/utils/cache";
-import { doLogout } from "./($locale).account_.logout";
+import AccountSection from "~/sections/account";
+import AccountAddressBookBlock from "~/sections/account/address-book";
+import AccountDetailsBlock from "~/sections/account/details";
+import AccountOrders from "~/sections/account/orders";
 import {
-  type FeaturedData,
-  getFeaturedData,
-} from "./($locale).api.featured-items";
+  accountPreviewCustomerFromState,
+  isAccountPreviewRequest,
+  readAccountPreviewState,
+} from "~/utils/account-preview.server";
+import { routeHeaders } from "~/utils/cache";
+import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
+import { WeaverseContent } from "~/weaverse";
+import { doLogout } from "./($locale).account_.logout";
 
 export const headers = routeHeaders;
+export const shouldRevalidate = skipPageRevalidationForStorefrontActions;
 
-export async function loader({ context }: LoaderFunctionArgs) {
+export async function loader({ context, request }: LoaderFunctionArgs) {
+  const weaverseData = await context.weaverse.loadPage({
+    type: "CUSTOM",
+    handle: "account",
+  });
+  const isDesignMode = Boolean(
+    weaverseData?.configs?.requestInfo?.queries?.isDesignMode,
+  );
+  const isLocalPreview = isAccountPreviewRequest(request);
+
+  // Shopify Customer Account OAuth cannot run on localhost. Keep the account
+  // page editable in Weaverse Studio and previewable during local development;
+  // tunnel and production requests still use the authenticated customer.
+  if (isDesignMode || isLocalPreview) {
+    const previewState = await readAccountPreviewState(request);
+    return data(
+      {
+        customer: accountPreviewCustomerFromState(previewState),
+        weaverseData,
+      },
+      { headers: { "Cache-Control": generateCacheControlHeader(CacheNone()) } },
+    );
+  }
+
   const { data: d, errors } =
     await context.customerAccount.query<CustomerDetailsQuery>(
       CUSTOMER_DETAILS_QUERY,
@@ -50,11 +67,9 @@ export async function loader({ context }: LoaderFunctionArgs) {
   }
 
   const customer = d?.customer;
-  const heading = customer ? "My Account" : "Account Details";
-  const featuredData = getFeaturedData(context.storefront);
 
   return data(
-    { customer, heading, featuredData },
+    { customer, weaverseData },
     { headers: { "Cache-Control": generateCacheControlHeader(CacheNone()) } },
   );
 }
@@ -91,61 +106,30 @@ export default function Authenticated() {
 
 interface AccountType {
   customer: CustomerDetailsFragment;
-  featuredData: Promise<FeaturedData>;
-  heading: string;
+  weaverseData: WeaverseLoaderData | null;
 }
 
-function Account({ customer, heading, featuredData }: AccountType) {
-  const orders = flattenConnection(customer.orders);
-  const addresses = flattenConnection(customer.addresses);
+function Account({ customer, weaverseData }: AccountType) {
+  const isDesignMode = Boolean(
+    weaverseData?.configs?.requestInfo?.queries?.isDesignMode,
+  );
+  const hasAccountSection = Boolean(
+    weaverseData?.page?.items?.some((item) => item.type === "account"),
+  );
+
+  // Studio must always render the Weaverse tree so merchants can insert the
+  // Account preset. On the storefront, fall back to the built-in preset until
+  // the custom account page actually contains an Account section.
+  if (isDesignMode || hasAccountSection) {
+    return <WeaverseContent />;
+  }
 
   return (
-    <Section
-      width="fixed"
-      verticalPadding="medium"
-      containerClassName="space-y-10"
-    >
-      <div className="space-y-4">
-        <h1 className="h4 font-medium">{heading}</h1>
-        <Form method="post" action={usePrefixPathWithLocale("/account/logout")}>
-          <button
-            type="submit"
-            className="group flex items-center gap-2 text-body-subtle"
-          >
-            <SignOutIcon className="h-4 w-4" />
-            <span className="underline-offset-4 group-hover:underline">
-              Sign out
-            </span>
-          </button>
-        </Form>
-      </div>
-      {orders ? <AccountOrderHistory orders={orders} /> : null}
-      <AccountDetails customer={customer} />
-      <AccountAddressBook addresses={addresses} customer={customer} />
-      {!orders.length && (
-        <Suspense>
-          <Await
-            resolve={featuredData}
-            errorElement="There was a problem loading featured products."
-          >
-            {({ featuredProducts }) => (
-              <div className="space-y-8 pt-20">
-                <h5>Featured products</h5>
-                <Swimlane>
-                  {featuredProducts.nodes.map((product) => (
-                    <ProductCard
-                      key={product.id}
-                      product={product}
-                      className="w-80 snap-start"
-                    />
-                  ))}
-                </Swimlane>
-              </div>
-            )}
-          </Await>
-        </Suspense>
-      )}
-    </Section>
+    <AccountSection customer={customer}>
+      <AccountOrders />
+      <AccountDetailsBlock />
+      <AccountAddressBookBlock />
+    </AccountSection>
   );
 }
 

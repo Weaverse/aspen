@@ -6,51 +6,74 @@ import { useShopMenu } from "~/hooks/use-shop-menu";
 
 export function Logo() {
   const { shopName } = useShopMenu();
-  const { logoData, transparentLogoData, logoWidth } = useThemeSettings();
+  const { designSystemPreset, logoData, transparentLogoData, logoWidth } =
+    useThemeSettings();
+  const useAspenWordmark = designSystemPreset !== "custom";
 
   return (
     <Link
       to="/"
       prefetch="intent"
-      className="z-30 flex h-full w-full items-center justify-center lg:h-fit lg:w-fit"
+      aria-label={shopName || "Aspen home"}
+      className="z-30 inline-flex h-full w-auto items-center justify-center"
     >
-      <div
-        className="relative h-full"
-        style={{ width: logoData ? logoWidth : "auto" }}
-      >
-        {logoData ? (
-          <>
-            <Image
-              data={logoData}
-              sizes="auto"
-              className={clsx(
-                "main-logo",
-                "mx-auto h-full max-w-full object-contain",
-                "transition-opacity duration-300 ease-in group-hover/header:opacity-100",
-              )}
-              width={500}
-              style={{ width: "auto" }}
-            />
-            {transparentLogoData && (
+      {useAspenWordmark ? (
+        <AspenWordmark />
+      ) : (
+        <div
+          className="relative h-full"
+          style={{ width: logoData ? logoWidth : "auto" }}
+        >
+          {logoData ? (
+            <>
               <Image
-                data={transparentLogoData}
+                data={logoData}
                 sizes="auto"
                 className={clsx(
-                  "transparent-logo",
-                  "absolute top-0 left-0 mx-auto h-full max-w-full object-contain",
-                  "transition-opacity duration-300 ease-in group-hover/header:opacity-0",
+                  "main-logo",
+                  "mx-auto h-full max-w-full object-contain",
+                  "transition-opacity duration-300 ease-in group-hover/header:opacity-100",
                 )}
                 width={500}
                 style={{ width: "auto" }}
               />
-            )}
-          </>
-        ) : (
-          <div className="line-clamp-1 font-medium text-lg sm:text-2xl">
-            {shopName}
-          </div>
-        )}
-      </div>
+              {transparentLogoData && (
+                <Image
+                  data={transparentLogoData}
+                  sizes="auto"
+                  className={clsx(
+                    "transparent-logo",
+                    "absolute top-0 left-0 mx-auto h-full max-w-full object-contain",
+                    "transition-opacity duration-300 ease-in group-hover/header:opacity-0",
+                  )}
+                  width={500}
+                  style={{ width: "auto" }}
+                />
+              )}
+            </>
+          ) : (
+            <div className="line-clamp-1 font-medium text-lg sm:text-2xl">
+              {shopName}
+            </div>
+          )}
+        </div>
+      )}
     </Link>
+  );
+}
+
+function AspenWordmark() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-8 w-36"
+      fill="none"
+      viewBox="200 96 144 32"
+    >
+      <path
+        d="M222.396 118.436H207.216L203.344 127.5H201.32L214.344 96.7H216.544L230.888 127.5H226.62L222.396 118.436ZM221.472 116.456L214.564 101.628H214.388L208.052 116.456H221.472ZM232.535 119.712H235.527C235.556 120.211 235.673 120.827 235.879 121.56C236.084 122.264 236.48 122.953 237.067 123.628C237.653 124.303 238.504 124.889 239.619 125.388C240.733 125.857 242.215 126.092 244.063 126.092C246.38 126.092 248.228 125.652 249.607 124.772C251.015 123.892 251.719 122.499 251.719 120.592C251.719 119.067 251.279 117.849 250.399 116.94C249.519 116.031 248.404 115.268 247.055 114.652C245.735 114.007 244.297 113.435 242.743 112.936C241.188 112.437 239.736 111.836 238.387 111.132C237.067 110.428 235.967 109.548 235.087 108.492C234.207 107.436 233.767 106.043 233.767 104.312C233.767 102.992 234.031 101.819 234.559 100.792C235.116 99.7653 235.849 98.9147 236.759 98.24C237.697 97.5653 238.768 97.052 239.971 96.7C241.203 96.348 242.493 96.172 243.843 96.172C245.133 96.172 246.365 96.3333 247.539 96.656C248.741 96.9493 249.812 97.404 250.751 98.02C251.689 98.6067 252.467 99.34 253.083 100.22C253.699 101.071 254.095 102.039 254.271 103.124H251.279C251.044 101.393 250.252 100.132 248.903 99.34C247.583 98.5187 245.969 98.108 244.063 98.108C242.919 98.108 241.907 98.2547 241.027 98.548C240.147 98.812 239.399 99.1787 238.783 99.648C238.196 100.088 237.741 100.616 237.419 101.232C237.125 101.848 236.979 102.508 236.979 103.212C236.979 104.473 237.433 105.485 238.343 106.248C239.252 107.011 240.381 107.685 241.731 108.272C243.109 108.859 244.591 109.416 246.175 109.944C247.788 110.472 249.269 111.132 250.619 111.924C251.997 112.687 253.141 113.655 254.051 114.828C254.96 115.972 255.415 117.453 255.415 119.272C255.415 120.592 255.151 121.795 254.623 122.88C254.095 123.965 253.347 124.889 252.379 125.652C251.411 126.415 250.237 127.001 248.859 127.412C247.509 127.823 245.984 128.028 244.283 128.028C242.611 128.028 241.071 127.837 239.663 127.456C238.255 127.045 237.023 126.488 235.967 125.784C234.94 125.051 234.119 124.171 233.503 123.144C232.916 122.117 232.593 120.973 232.535 119.712ZM266.371 114.652V127.5H262.367V96.7H272.663C274.364 96.7 275.845 96.9493 277.107 97.448C278.368 97.9467 279.409 98.6213 280.231 99.472C281.081 100.293 281.712 101.276 282.123 102.42C282.533 103.535 282.739 104.708 282.739 105.94C282.739 107.231 282.504 108.448 282.035 109.592C281.565 110.707 280.861 111.704 279.923 112.584C279.013 113.435 277.869 114.109 276.491 114.608C275.112 115.107 273.528 115.356 271.739 115.356C270.683 115.356 269.715 115.297 268.835 115.18C267.955 115.033 267.133 114.857 266.371 114.652ZM266.371 98.636V112.848C266.987 113.083 267.676 113.244 268.439 113.332C269.201 113.391 270.037 113.42 270.947 113.42C272.267 113.42 273.396 113.2 274.335 112.76C275.273 112.32 276.051 111.748 276.667 111.044C277.283 110.34 277.723 109.563 277.987 108.712C278.28 107.832 278.427 106.967 278.427 106.116C278.427 105.236 278.265 104.356 277.943 103.476C277.649 102.567 277.195 101.76 276.579 101.056C275.963 100.323 275.185 99.736 274.247 99.296C273.308 98.856 272.223 98.636 270.991 98.636H266.371ZM288.031 96.7H307.919V99.12H292.035V110.164H305.675V112.188H292.035V125.08H307.919V127.5H288.031V96.7ZM337.996 96.7H340.02V128.028H339.8L315.38 103.96H315.204V127.5H313.18V96.172H313.4L337.82 120.24H337.996V96.7Z"
+        fill="currentColor"
+      />
+    </svg>
   );
 }

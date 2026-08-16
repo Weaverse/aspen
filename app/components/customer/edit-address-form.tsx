@@ -174,10 +174,7 @@ export function AccountEditAddressForm() {
         </div>
         <div className="flex items-center justify-end gap-6">
           <Dialog.Close asChild>
-            <Link
-              to="/account/address"
-              className="underline-offset-4 hover:underline"
-            >
+            <Link to="/account" className="underline-offset-4 hover:underline">
               Cancel
             </Link>
           </Dialog.Close>

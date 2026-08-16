@@ -26,10 +26,12 @@ import {
   redirectIfCombinedListing,
   redirectIfHandleIsLocalized,
 } from "~/utils/redirect";
+import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 import { seoPayload } from "~/utils/seo.server";
 import { WeaverseContent } from "~/weaverse";
 
 export const headers = routeHeaders;
+export const shouldRevalidate = skipPageRevalidationForStorefrontActions;
 
 export async function loader({ params, request, context }: LoaderFunctionArgs) {
   const { productHandle: handle } = params;

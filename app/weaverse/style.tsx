@@ -22,7 +22,7 @@ export function GlobalStyle() {
     topbarTextColor = "#EDEDED",
     topbarBgColor = "#565656",
     headerBgColor = "#FFFFFF",
-    headerBgColorHover = "#EDEDED",
+    headerBgColorHover = "#DFDFDF",
     headerText = "#343231",
     transparentHeaderText = "#FEF4EB",
     footerBgColor = "#1B1B19",
@@ -61,6 +61,7 @@ export function GlobalStyle() {
     radiusXs = 4,
     radiusSm = 8,
     radiusMd = 12,
+    badgeBorderRadius = 4,
   } = settings;
 
   if (designSystemPreset !== "custom") {
@@ -77,7 +78,7 @@ export function GlobalStyle() {
     topbarTextColor = "#EDEDED";
     topbarBgColor = "#565656";
     headerBgColor = "#FFFFFF";
-    headerBgColorHover = "#EDEDED";
+    headerBgColorHover = "#DFDFDF";
     headerText = "#343231";
     transparentHeaderText = "#FEF4EB";
     footerBgColor = "#1B1B19";
@@ -102,6 +103,7 @@ export function GlobalStyle() {
     bestSellerBadgeColor = "#3B3B3B";
     bundleBadgeColor = "#3B3B3B";
     soldOutBadgeColor = "#DFDFDF";
+    badgeBorderRadius = 4;
     bodyBaseSize = 14;
     bodyBaseSpacing = "-0.0125em";
     bodyBaseLineHeight = 1.5;
@@ -121,7 +123,7 @@ export function GlobalStyle() {
         __html: `
           :root {
             /* Layout */
-            --height-nav: ${navHeightMobile}rem;
+            --height-nav: ${designSystemPreset === "custom" ? `${navHeightMobile}rem` : "88px"};
             --page-width: ${pageWidth}px;
             --page-padding: 20px;
             --section-padding-y: 64px;
@@ -131,6 +133,7 @@ export function GlobalStyle() {
             --radius-xs: ${radiusXs}px;
             --radius-sm: ${radiusSm}px;
             --radius-md: ${radiusMd}px;
+            --badge-radius: ${badgeBorderRadius}px;
 
             /* Colors (general) */
             --color-background: ${colorBackground};
@@ -201,18 +204,16 @@ export function GlobalStyle() {
             --heading-base-line-height: ${headingBaseLineHeight};
           }
 
+          body {
+            --initial-topbar-height: var(--initial-topbar-height-mobile, 0px);
+          }
+
           @media (min-width: 32em) {
             :root {
-              --height-nav: ${navHeightTablet}rem;
+              --height-nav: ${designSystemPreset === "custom" ? `${navHeightTablet}rem` : "88px"};
               --page-padding: 24px;
               --section-padding-y: 72px;
               --section-heading-gap: 48px;
-            }
-          }
-
-          @media (min-width: 48em) {
-            :root {
-              --height-nav: ${navHeightDesktop}rem;
             }
           }
 
@@ -221,6 +222,16 @@ export function GlobalStyle() {
               --page-padding: 40px;
               --section-padding-y: 80px;
               --section-heading-gap: 64px;
+            }
+          }
+
+          @media (min-width: 80em) {
+            :root {
+              --height-nav: ${designSystemPreset === "custom" ? `${navHeightDesktop}rem` : "81px"};
+            }
+
+            body {
+              --initial-topbar-height: var(--initial-topbar-height-desktop, 0px);
             }
           }
         `,

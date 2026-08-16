@@ -11,6 +11,10 @@ import * as AccordionSection from "~/sections/accordion/index";
 import * as AccordionInformationItem from "~/sections/accordion/information-item";
 // import * as AliReview from "~/sections/ali-reviews";
 // import * as AliReviewList from "~/sections/ali-reviews/review-list";
+import * as Account from "~/sections/account";
+import * as AccountAddressBook from "~/sections/account/address-book";
+import * as AccountDetails from "~/sections/account/details";
+import * as AccountOrders from "~/sections/account/orders";
 import * as AllProducts from "~/sections/all-products";
 import * as Articles from "~/sections/articles";
 import * as BeforeAndAfter from "~/sections/before-and-after";
@@ -52,6 +56,7 @@ import * as ImageWithTextImages from "~/sections/image-with-text/images";
 import * as Instagram from "~/sections/instagram";
 import * as InstagramContent from "~/sections/instagram/content";
 import * as InstagramSlider from "~/sections/instagram/slider";
+import * as Journal from "~/sections/journal";
 import * as JudgemeReview from "~/sections/judgeme-reviews";
 import * as ReviewIndex from "~/sections/judgeme-reviews/review-index";
 import * as ProductInformation from "~/sections/main-product/index";
@@ -59,6 +64,7 @@ import * as Address from "~/sections/map/address";
 import * as MapSection from "~/sections/map/map";
 import * as NewsLetter from "~/sections/newsletter";
 import * as NewsLetterForm from "~/sections/newsletter/newsletter-form";
+import * as OrderDetails from "~/sections/order-details";
 import * as Page from "~/sections/page";
 import * as PromotionGrid from "~/sections/promotion-grid";
 import * as PromotionGridItemContent from "~/sections/promotion-grid/content";
@@ -88,6 +94,10 @@ export const components: HydrogenComponent[] = [
   Heading,
   Paragraph,
   Link,
+  Account,
+  AccountOrders,
+  AccountDetails,
+  AccountAddressBook,
   // AliReview,
   // AliReviewList,
   AllProducts,
@@ -118,6 +128,7 @@ export const components: HydrogenComponent[] = [
   Instagram,
   InstagramContent,
   InstagramSlider,
+  Journal,
   ColumnsWithImages,
   ColumnsWithImagesItems,
   ColumnWithImageItem,
@@ -139,6 +150,7 @@ export const components: HydrogenComponent[] = [
   CountDownTimer,
   NewsLetter,
   NewsLetterForm,
+  OrderDetails,
   FeaturedProducts,
   FeaturedContentProducts,
   FeaturedProductItems,

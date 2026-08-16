@@ -33,6 +33,34 @@ interface TestimonialContentProps
   subHeadingAlignment?: "left" | "center" | "right";
 }
 
+const BLOCK_HTML_PATTERN =
+  /<(?:article|blockquote|div|h[1-6]|li|ol|p|section|table|ul)\b/i;
+
+function getSafeRichTextElement(
+  description: string | undefined,
+  preferredTag: NonNullable<TestimonialContentProps["subHeadingTag"]>,
+) {
+  if (!description) {
+    return { Tag: preferredTag, html: "" };
+  }
+
+  const trimmedDescription = description.trim();
+  const singleParagraphMatch = trimmedDescription.match(
+    /^<p(?:\s[^>]*)?>([\s\S]*)<\/p>$/i,
+  );
+  const hasMultipleParagraphs = /<\/p>\s*<p(?:\s|>)/i.test(trimmedDescription);
+
+  if (singleParagraphMatch && !hasMultipleParagraphs) {
+    return { Tag: preferredTag, html: singleParagraphMatch[1] };
+  }
+
+  if (BLOCK_HTML_PATTERN.test(trimmedDescription)) {
+    return { Tag: "div" as const, html: trimmedDescription };
+  }
+
+  return { Tag: preferredTag, html: trimmedDescription };
+}
+
 let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
   (props, ref) => {
     let {
@@ -70,8 +98,8 @@ let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
       subHeadingWeight === "medium" ? "font-medium" : "font-normal",
     ].join(" ");
 
-    // Create the description element based on the selected tag
-    const DescriptionTag = subHeadingTag;
+    const { Tag: DescriptionTag, html: descriptionHtml } =
+      getSafeRichTextElement(description, subHeadingTag);
 
     const {
       canGoPrevious,
@@ -129,11 +157,11 @@ let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
         <div className="mt-16 flex flex-1 flex-col justify-end lg:mt-0 lg:pb-0">
           <div className="flex max-w-[430px] flex-col gap-4 lg:gap-5">
             <Quotes size={28} className="rotate-180 lg:size-8" />
-            {description && (
+            {descriptionHtml && (
               <DescriptionTag
                 className={`testimonial-description ${descriptionClasses}`}
                 style={{ color: subHeadingColor }}
-                dangerouslySetInnerHTML={{ __html: description }}
+                dangerouslySetInnerHTML={{ __html: descriptionHtml }}
               />
             )}
           </div>

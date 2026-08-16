@@ -5,6 +5,7 @@ import clsx from "clsx";
 import { Suspense, useEffect, useState } from "react";
 import { Await, useRouteLoaderData } from "react-router";
 import { Cart } from "~/components/cart/cart";
+import { useCartState } from "~/components/cart/cart-state-provider";
 import Link from "~/components/link";
 import type { RootLoader } from "~/root";
 import { AnimatedDrawer } from "../animate-drawer";
@@ -43,6 +44,7 @@ export function useCartDrawerState() {
 
 export function CartDrawer() {
   const rootData = useRouteLoaderData<RootLoader>("root");
+  const { cart: latestCart, isResolved } = useCartState();
   const { publish } = useAnalytics();
   const { isOpen, closeCartDrawer } = useCartDrawerState();
 
@@ -51,20 +53,22 @@ export function CartDrawer() {
       fallback={
         <Link
           to="/cart"
-          className="relative flex h-8 w-8 items-center justify-center focus:ring-border"
+          aria-label="Open cart"
+          className="relative flex size-5 items-center justify-center focus:ring-border before:absolute before:-inset-2"
         >
-          <ShoppingBagIcon className="h-5 w-5" />
+          <ShoppingBagIcon className="size-5" />
         </Link>
       }
     >
-      <Await resolve={rootData?.cart}>
+      <Await resolve={isResolved ? latestCart : rootData?.cart}>
         {(cart) => (
           <Dialog.Root open={isOpen} onOpenChange={toggleCartDrawer}>
             <Dialog.Trigger
+              aria-label="Open cart"
               onClick={() => publish("custom_sidecart_viewed", { cart })}
-              className="relative flex h-8 w-8 items-center justify-center focus:ring-border"
+              className="relative flex size-5 items-center justify-center focus:ring-border before:absolute before:-inset-2"
             >
-              <ShoppingBagIcon className="h-5 w-5" />
+              <ShoppingBagIcon className="size-5" />
               {cart?.totalQuantity > 0 && (
                 <div
                   className={clsx(
@@ -79,8 +83,8 @@ export function CartDrawer() {
               )}
             </Dialog.Trigger>
             <AnimatedDrawer open={isOpen}>
-              <div className="flex h-full flex-col space-y-6">
-                <div className="flex items-center justify-between gap-2 px-4">
+              <div className="flex h-full min-h-0 flex-col">
+                <div className="flex items-center justify-between gap-2 px-5 pb-5">
                   <Dialog.Title asChild className="text-base">
                     <span className="font-semibold uppercase">Cart</span>
                   </Dialog.Title>

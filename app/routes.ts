@@ -21,6 +21,7 @@ export default hydrogenRoutes([
       "routes/($locale).sitemap.$type.$page[.xml].tsx",
     ),
     route("pages/:pageHandle", "routes/($locale).pages.$pageHandle.tsx"),
+    route("contact", "routes/($locale).contact.tsx"),
     route("discount/:code", "routes/($locale).discount.$code.tsx"),
     ...prefix("api", [
       route(
@@ -34,12 +35,14 @@ export default hydrogenRoutes([
       route("predictive-search", "routes/($locale).api.predictive-search.ts"),
       route("product", "routes/($locale).api.product.ts"),
       route("products", "routes/($locale).api.products.ts"),
+      route("wishlist", "routes/($locale).api.wishlist.ts"),
       route(
         "review/:productHandle",
         "routes/($locale).api.review.$productHandle.ts",
       ),
     ]),
     ...prefix("blogs", [
+      index("routes/($locale).blogs._index.tsx"),
       route(":blogHandle", "routes/($locale).blogs.$blogHandle._index.tsx"),
       route(
         ":blogHandle/:articleHandle",

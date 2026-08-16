@@ -1,14 +1,17 @@
 import { createSchema } from "@weaverse/hydrogen";
 import type { CSSProperties } from "react";
 import { forwardRef } from "react";
+import { useRouteLoaderData } from "react-router";
 import { backgroundInputs } from "~/components/background-image";
 import type { SectionProps } from "~/components/section";
 import { Section } from "~/components/section";
+import type { loader as productRouteLoader } from "~/routes/($locale).products.$productHandle";
 import { cn } from "~/utils/cn";
 
 interface NewsletterProps extends SectionProps {
   mobileHeight?: number;
   desktopHeight?: number;
+  hideOnProductPage?: boolean;
 }
 
 const Newsletter = forwardRef<HTMLElement, NewsletterProps>((props, ref) => {
@@ -16,12 +19,20 @@ const Newsletter = forwardRef<HTMLElement, NewsletterProps>((props, ref) => {
     children,
     mobileHeight = 326,
     desktopHeight = 291,
+    hideOnProductPage = true,
     width = "full",
     backgroundColor = "#EDEDED",
     containerClassName,
     style,
     ...rest
   } = props;
+  const productRouteData = useRouteLoaderData<typeof productRouteLoader>(
+    "routes/($locale).products.$productHandle",
+  );
+
+  if (hideOnProductPage && productRouteData?.product) {
+    return null;
+  }
 
   return (
     <Section
@@ -62,6 +73,12 @@ export const schema = createSchema({
     {
       group: "Layout",
       inputs: [
+        {
+          type: "switch",
+          name: "hideOnProductPage",
+          label: "Hide on product pages",
+          defaultValue: true,
+        },
         {
           type: "range",
           name: "mobileHeight",
@@ -113,6 +130,7 @@ export const schema = createSchema({
     backgroundColor: "#EDEDED",
     mobileHeight: 326,
     desktopHeight: 291,
+    hideOnProductPage: true,
     children: [
       {
         type: "heading",

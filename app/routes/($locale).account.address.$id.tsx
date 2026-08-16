@@ -8,6 +8,13 @@ import { type ActionFunction, data, redirect } from "react-router";
 import invariant from "tiny-invariant";
 // biome-ignore lint/style/noExportedImports: <explanation> --- IGNORE ---
 import { AccountEditAddressForm } from "~/components/customer/edit-address-form";
+import {
+  type AccountPreviewAddress,
+  accountPath,
+  commitAccountPreviewState,
+  isAccountPreviewRequest,
+  readAccountPreviewState,
+} from "~/utils/account-preview.server";
 import { doLogout } from "./($locale).account_.logout";
 
 export const handle = {
@@ -17,6 +24,10 @@ export const handle = {
 export const action: ActionFunction = async ({ request, context, params }) => {
   const { customerAccount } = context;
   const formData = await request.formData();
+
+  if (isAccountPreviewRequest(request)) {
+    return handlePreviewAddressAction(request, formData, params.locale);
+  }
 
   // Double-check current user is logged in.
   // Will throw a logout redirect if not.
@@ -42,9 +53,12 @@ export const action: ActionFunction = async ({ request, context, params }) => {
         deleteData?.customerAddressDelete?.userErrors?.[0]?.message,
       );
 
-      return redirect(
-        params?.locale ? `${params?.locale}/account` : "/account",
+      invariant(
+        deleteData?.customerAddressDelete?.deletedAddressId,
+        "Expected customer address to be deleted",
       );
+
+      return redirect(accountPath(params.locale));
     } catch (error: any) {
       return data(
         { formError: error.message },
@@ -101,9 +115,7 @@ export const action: ActionFunction = async ({ request, context, params }) => {
         "Expected customer address to be created",
       );
 
-      return redirect(
-        params?.locale ? `${params?.locale}/account` : "/account",
-      );
+      return redirect(accountPath(params.locale));
     } catch (error: any) {
       return data(
         { formError: error.message },
@@ -133,9 +145,7 @@ export const action: ActionFunction = async ({ request, context, params }) => {
         updateData?.customerAddressUpdate?.userErrors?.[0]?.message,
       );
 
-      return redirect(
-        params?.locale ? `${params?.locale}/account` : "/account",
-      );
+      return redirect(accountPath(params.locale));
     } catch (error: any) {
       return data(
         { formError: error.message },
@@ -146,6 +156,105 @@ export const action: ActionFunction = async ({ request, context, params }) => {
     }
   }
 };
+
+async function handlePreviewAddressAction(
+  request: Request,
+  formData: FormData,
+  locale?: string,
+) {
+  const previewState = await readAccountPreviewState(request);
+  const addressId = formData.get("addressId");
+
+  if (typeof addressId !== "string") {
+    return data(
+      { formError: "You must provide an address id." },
+      { status: 400 },
+    );
+  }
+
+  if (request.method === "DELETE") {
+    previewState.addresses = previewState.addresses.filter(
+      (address) => address.id !== addressId,
+    );
+    if (previewState.defaultAddressId === addressId) {
+      previewState.defaultAddressId = previewState.addresses[0]?.id ?? null;
+    }
+  } else if (addressId === "add") {
+    const newAddressId = `preview-address-${previewState.nextAddressId}`;
+    previewState.nextAddressId += 1;
+    previewState.addresses.push(previewAddressFromForm(formData, newAddressId));
+    if (formData.get("defaultAddress") === "on") {
+      previewState.defaultAddressId = newAddressId;
+    }
+  } else {
+    const addressIndex = previewState.addresses.findIndex(
+      (address) => address.id === addressId,
+    );
+    if (addressIndex < 0) {
+      return data({ formError: "Address not found." }, { status: 404 });
+    }
+    previewState.addresses[addressIndex] = previewAddressFromForm(
+      formData,
+      addressId,
+    );
+    if (formData.get("defaultAddress") === "on") {
+      previewState.defaultAddressId = addressId;
+    }
+  }
+
+  return redirect(accountPath(locale), {
+    headers: {
+      "Set-Cookie": await commitAccountPreviewState(previewState),
+    },
+  });
+}
+
+function previewAddressFromForm(
+  formData: FormData,
+  id: string,
+): AccountPreviewAddress {
+  const firstName = formValue(formData, "firstName");
+  const lastName = formValue(formData, "lastName");
+  const company = formValue(formData, "company");
+  const address1 = formValue(formData, "address1");
+  const address2 = formValue(formData, "address2");
+  const city = formValue(formData, "city");
+  const zoneCode = formValue(formData, "zoneCode");
+  const zip = formValue(formData, "zip");
+  const territoryCode = formValue(formData, "territoryCode");
+  const phoneNumber = formValue(formData, "phoneNumber");
+  const fullName = `${firstName} ${lastName}`.trim();
+  const cityLine = [city, zoneCode].filter(Boolean).join(", ");
+  const formatted = [
+    fullName,
+    company,
+    address1 !== company ? address1 : "",
+    address2,
+    cityLine,
+    zip,
+  ].filter(Boolean);
+
+  return {
+    id,
+    formatted,
+    firstName: firstName || null,
+    lastName: lastName || null,
+    company: company || null,
+    address1: address1 || null,
+    address2: address2 || null,
+    territoryCode: (territoryCode ||
+      "US") as AccountPreviewAddress["territoryCode"],
+    zoneCode: zoneCode || null,
+    city: city || null,
+    zip: zip || null,
+    phoneNumber: phoneNumber || null,
+  };
+}
+
+function formValue(formData: FormData, name: string) {
+  const value = formData.get(name);
+  return typeof value === "string" ? value.trim() : "";
+}
 
 export default AccountEditAddressForm;
 

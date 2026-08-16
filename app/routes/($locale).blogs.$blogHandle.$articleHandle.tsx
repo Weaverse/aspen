@@ -6,10 +6,12 @@ import type { ArticleQuery } from "storefront-api.generated";
 import invariant from "tiny-invariant";
 import { routeHeaders } from "~/utils/cache";
 import { redirectIfHandleIsLocalized } from "~/utils/redirect";
+import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 import { seoPayload } from "~/utils/seo.server";
 import { WeaverseContent } from "~/weaverse";
 
 export const headers = routeHeaders;
+export const shouldRevalidate = skipPageRevalidationForStorefrontActions;
 
 export async function loader(args: RouteLoaderArgs) {
   const { request, params, context } = args;

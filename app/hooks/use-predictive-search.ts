@@ -1,9 +1,11 @@
-import { useEffect, useRef, useState } from "react";
-import { useFetchers } from "react-router";
+import { useEffect, useRef } from "react";
+import { useFetcher } from "react-router";
 import type {
   NormalizedPredictiveSearch,
   NormalizedPredictiveSearchResults,
+  PredictiveSearchResponse,
 } from "~/types/predictive-search";
+import { PREDICTIVE_SEARCH_FETCHER_KEY } from "~/types/predictive-search";
 
 export const NO_PREDICTIVE_SEARCH_RESULTS: NormalizedPredictiveSearchResults = [
   { type: "queries", items: [] },
@@ -14,27 +16,40 @@ export const NO_PREDICTIVE_SEARCH_RESULTS: NormalizedPredictiveSearchResults = [
 ];
 
 export function usePredictiveSearch(): NormalizedPredictiveSearch & {
-  searchTerm: React.MutableRefObject<string>;
+  searchTerm: React.RefObject<string>;
+  searchTermValue: string;
+  searchState: "idle" | "loading" | "submitting";
 } {
-  const [results, setResults] = useState<NormalizedPredictiveSearchResults>();
-  const fetchers = useFetchers();
   const searchTerm = useRef<string>("");
-  const searchFetcher = fetchers.find((fetcher) => fetcher.data?.searchResults);
+  const searchFetcher = useFetcher<PredictiveSearchResponse>({
+    key: PREDICTIVE_SEARCH_FETCHER_KEY,
+  });
+  const submittedTerm = searchFetcher?.formData?.get("q");
+  const responseTerm = searchFetcher?.data?.searchTerm;
+  const searchTermValue =
+    typeof submittedTerm === "string"
+      ? submittedTerm
+      : typeof responseTerm === "string"
+        ? responseTerm
+        : searchTerm.current;
 
   useEffect(() => {
-    if (searchFetcher) {
-      setResults(searchFetcher.data?.searchResults);
+    if (typeof submittedTerm === "string") {
+      searchTerm.current = submittedTerm;
+    } else if (typeof responseTerm === "string") {
+      searchTerm.current = responseTerm;
     }
-  }, [searchFetcher]);
+  }, [submittedTerm, responseTerm]);
 
-  if (searchFetcher?.state === "loading") {
-    searchTerm.current = (searchFetcher.formData?.get("q") || "") as string;
-  }
-
-  const search = (results || {
+  const search = (searchFetcher?.data?.searchResults || {
     results: NO_PREDICTIVE_SEARCH_RESULTS,
     totalResults: 0,
   }) as NormalizedPredictiveSearch;
 
-  return { ...search, searchTerm };
+  return {
+    ...search,
+    searchTerm,
+    searchTermValue,
+    searchState: searchFetcher.state,
+  };
 }

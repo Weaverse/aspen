@@ -16,7 +16,7 @@ export const themeSchema: HydrogenThemeSchema = {
     urlStructure: "url-path",
     defaultLocale: {
       pathPrefix: "",
-      label: "United States (USD $)",
+      label: "United States - USD",
       language: "EN",
       country: "US",
       currency: "USD",
@@ -118,49 +118,37 @@ export const themeSchema: HydrogenThemeSchema = {
         },
         {
           type: "range",
-          label: "Height",
+          label: "Desktop height",
           name: "topbarHeight",
           configs: {
-            min: 10,
+            min: 44,
             max: 100,
             step: 1,
             unit: "px",
           },
-          defaultValue: 36,
+          defaultValue: 56,
         },
         {
           type: "richtext",
           name: "topbarText",
           label: "Content",
-          defaultValue: "",
-        },
-        {
-          type: "range",
-          label: "Content gap",
-          name: "topbarScrollingGap",
-          configs: {
-            min: 0,
-            max: 100,
-            step: 1,
-            unit: "px",
-          },
-          defaultValue: 44,
-        },
-        {
-          type: "range",
-          label: "Scrolling speed",
-          name: "topbarScrollingSpeed",
-          configs: {
-            min: 1,
-            max: 20,
-            step: 1,
-            unit: "x",
-          },
-          defaultValue: 5,
+          defaultValue: "<p>FREE SHIPPING FOR ORDERS OVER $200USD</p>",
         },
         {
           type: "heading",
           label: "Social links",
+        },
+        {
+          type: "text",
+          name: "socialFacebookAnnouncement",
+          label: "Facebook",
+          defaultValue: "https://www.facebook.com/",
+        },
+        {
+          type: "text",
+          name: "socialXAnnouncement",
+          label: "X (formerly Twitter)",
+          defaultValue: "https://x.com/",
         },
         {
           type: "text",
@@ -170,21 +158,9 @@ export const themeSchema: HydrogenThemeSchema = {
         },
         {
           type: "text",
-          name: "socialXAnnouncement",
-          label: "X (formerly Twitter)",
-          defaultValue: "https://x.com/i/communities/1636383560197373952",
-        },
-        {
-          type: "text",
-          name: "socialLinkedInAnnouncement",
-          label: "LinkedIn",
-          defaultValue: "https://www.linkedin.com/company/weaverseio",
-        },
-        {
-          type: "text",
-          name: "socialFacebookAnnouncement",
-          label: "Facebook",
-          defaultValue: "https://www.facebook.com/weaverse",
+          name: "socialYoutubeAnnouncement",
+          label: "YouTube",
+          defaultValue: "https://www.youtube.com/",
         },
       ],
     },
@@ -205,10 +181,22 @@ export const themeSchema: HydrogenThemeSchema = {
           defaultValue: "fixed",
         },
         {
+          type: "select",
+          name: "headerLayout",
+          label: "Desktop layout",
+          configs: {
+            options: [
+              { value: "inline", label: "Inline menu" },
+              { value: "compact", label: "Compact menu" },
+            ],
+          },
+          defaultValue: "inline",
+        },
+        {
           type: "switch",
           label: "Enable transparent header",
           name: "enableTransparentHeader",
-          defaultValue: true,
+          defaultValue: false,
           helpText: "Header is transparent in home page only.",
         },
         {
@@ -361,7 +349,7 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "Header background hover",
           name: "headerBgColorHover",
-          defaultValue: "#EDEDED",
+          defaultValue: "#DFDFDF",
         },
         {
           type: "color",
@@ -725,8 +713,8 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "text",
           label: "New text",
           name: "newBadgeText",
-          defaultValue: "New",
-          placeholder: "New",
+          defaultValue: "New Arrival",
+          placeholder: "New Arrival",
         },
         {
           type: "range",
@@ -759,12 +747,12 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "textarea",
           label: "Sale badge text",
           name: "saleBadgeText",
-          defaultValue: "-[percentage]% Off",
-          placeholder: "-[percentage]% Off, Saved [amount], or Sale",
+          defaultValue: "[percentage]% Off",
+          placeholder: "[percentage]% Off, Saved [amount], or Sale",
           helpText: [
             "<p class='mb-1'>- Use <strong>[percentage]</strong> to display the discount percentage.</p>",
             "<p class='mb-1'>- Use <strong>[amount]</strong> to display the discount amount.</p>",
-            "<p>E.g. <strong>-[percentage]% Off</strong>, <strong>Saved [amount]</strong>, or <strong>Sale</strong>.</p>",
+            "<p>E.g. <strong>[percentage]% Off</strong>, <strong>Saved [amount]</strong>, or <strong>Sale</strong>.</p>",
           ].join(""),
         },
       ],
@@ -777,6 +765,12 @@ export const themeSchema: HydrogenThemeSchema = {
           name: "pcardBackgroundColor",
           label: "Background color",
           defaultValue: "",
+        },
+        {
+          type: "color",
+          name: "pcardHoverBackgroundColor",
+          label: "Hover background color",
+          defaultValue: "#F1F1F1",
         },
         {
           type: "range",
@@ -804,7 +798,7 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "select",
           name: "pcardImageRatio",
           label: "Image aspect ratio",
-          defaultValue: "adapt",
+          defaultValue: "1/1",
           configs: {
             options: [
               { value: "adapt", label: "Adapt to image" },
@@ -831,7 +825,7 @@ export const themeSchema: HydrogenThemeSchema = {
               { value: "vertical", label: "Vertical" },
             ],
           },
-          defaultValue: "horizontal",
+          defaultValue: "vertical",
         },
         {
           type: "toggle-group",
@@ -848,14 +842,14 @@ export const themeSchema: HydrogenThemeSchema = {
               { value: "right", label: "Right", icon: "align-end-vertical" },
             ],
           },
-          defaultValue: "center",
+          defaultValue: "left",
           condition: (data) => data.pcardTitlePricesAlignment === "vertical",
         },
         {
           type: "switch",
           label: "Show vendor",
           name: "pcardShowVendor",
-          defaultValue: true,
+          defaultValue: false,
         },
         {
           type: "switch",
@@ -869,6 +863,12 @@ export const themeSchema: HydrogenThemeSchema = {
           name: "pcardShowSalePrice",
           defaultValue: true,
           condition: (data) => data.pcardShowLowestPrice !== true,
+        },
+        {
+          type: "switch",
+          label: "Show product rating",
+          name: "pcardShowRating",
+          defaultValue: true,
         },
         {
           type: "switch",
@@ -905,53 +905,19 @@ export const themeSchema: HydrogenThemeSchema = {
           name: "pcardEnableQuickShop",
           defaultValue: true,
         },
-        // {
-        //   type: "select",
-        //   label: "Quick shop button type",
-        //   name: "pcardQuickShopButtonType",
-        //   configs: {
-        //     options: [
-        //       { value: "icon", label: "Icon button" },
-        //       { value: "text", label: "Text button" },
-        //     ],
-        //   },
-        //   defaultValue: "icon",
-        //   condition: (data) => data.pcardEnableQuickShop === true,
-        // },
-        // {
-        //   type: "text",
-        //   label: "Quick shop button text",
-        //   name: "pcardQuickShopButtonText",
-        //   defaultValue: "Quick shop",
-        //   placeholder: "Quick shop",
-        //   condition: (data) => data.pcardQuickShopButtonType === "text",
-        // },
-        // {
-        //   type: "select",
-        //   label: "Quick shop action",
-        //   name: "pcardQuickShopAction",
-        //   configs: {
-        //     options: [
-        //       { value: "go-to-page", label: "Go to product page" },
-        //       { value: "open-quick-shop", label: "Open quick shop panel" },
-        //     ],
-        //   },
-        //   defaultValue: "open-quick-shop",
-        //   condition: (data) => data.pcardEnableQuickShop === true,
-        // },
-        // {
-        //   type: "select",
-        //   label: "Quick shop panel type",
-        //   name: "pcardQuickShopPanelType",
-        //   configs: {
-        //     options: [
-        //       { value: "modal", label: "Modal" },
-        //       { value: "drawer", label: "Drawer" },
-        //     ],
-        //   },
-        //   defaultValue: "modal",
-        //   condition: (data) => data.pcardQuickShopAction === "open-quick-shop",
-        // },
+        {
+          type: "switch",
+          label: "Enable customer wishlist",
+          name: "pcardEnableWishlist",
+          defaultValue: true,
+        },
+        {
+          type: "switch",
+          label: "Show quick shop on hover",
+          name: "pcardShowQuickShopOnHover",
+          defaultValue: true,
+          condition: (data) => data.pcardEnableQuickShop === true,
+        },
         {
           type: "heading",
           label: "Badges",
@@ -967,7 +933,7 @@ export const themeSchema: HydrogenThemeSchema = {
               { value: "top-right", label: "Top right" },
             ],
           },
-          defaultValue: "top-right",
+          defaultValue: "top-left",
         },
         {
           type: "switch",
@@ -991,6 +957,18 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "switch",
           label: "Show Out of stock badges",
           name: "pcardShowOutOfStockBadges",
+          defaultValue: true,
+        },
+        {
+          type: "switch",
+          label: "Show Bundle badges",
+          name: "pcardShowBundleBadge",
+          defaultValue: true,
+        },
+        {
+          type: "switch",
+          label: "Show badges on mobile",
+          name: "pcardShowBadgesOnMobile",
           defaultValue: false,
         },
       ],
@@ -1114,7 +1092,7 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "text",
           label: "Quick shop button text",
           name: "quickShopButtonTextOpen",
-          defaultValue: "Quick shop",
+          defaultValue: "Select options",
         },
         {
           type: "text",
@@ -1255,6 +1233,36 @@ export const themeSchema: HydrogenThemeSchema = {
       ],
     },
     {
+      group: "Search",
+      inputs: [
+        {
+          type: "image",
+          name: "searchEditorialImage",
+          label: "Editorial image",
+          helpText:
+            "Displayed below search results. Leave empty to hide the editorial banner.",
+        },
+        {
+          type: "text",
+          name: "searchEditorialHeading",
+          label: "Editorial heading",
+          defaultValue: "Decorate for holidays and beyond",
+        },
+        {
+          type: "text",
+          name: "searchEditorialLinkText",
+          label: "Editorial link text",
+          defaultValue: "Explore now",
+        },
+        {
+          type: "url",
+          name: "searchEditorialLink",
+          label: "Editorial link",
+          defaultValue: "/collections",
+        },
+      ],
+    },
+    {
       group: "Footer",
       inputs: [
         {
@@ -1268,7 +1276,7 @@ export const themeSchema: HydrogenThemeSchema = {
               { value: "fixed", label: "Fixed" },
             ],
           },
-          defaultValue: "fixed",
+          defaultValue: "full",
         },
         {
           type: "image",
@@ -1286,14 +1294,36 @@ export const themeSchema: HydrogenThemeSchema = {
             step: 1,
             unit: "px",
           },
-          defaultValue: 400,
+          defaultValue: 300,
         },
         {
           type: "richtext",
           name: "bio",
           label: "Store bio",
           defaultValue:
-            "<p>We are a team of designers, developers, and creatives who are passionate about creating beautiful and functional products.</p>",
+            "<p>Modern furniture designed for living. Built for longevity, crafted with care.</p>",
+        },
+        {
+          type: "heading",
+          label: "Business hours",
+        },
+        {
+          type: "text",
+          name: "businessHoursTitle",
+          label: "Title",
+          defaultValue: "BUSINESS HOURS",
+        },
+        {
+          type: "text",
+          name: "businessHoursWeekdays",
+          label: "Weekday hours",
+          defaultValue: "Monday to Friday, 9:00 AM – 6:00 PM",
+        },
+        {
+          type: "text",
+          name: "businessHoursWeekend",
+          label: "Weekend hours",
+          defaultValue: "Saturday to Sunday, 10:00 AM – 2:00 PM",
         },
         {
           type: "heading",
@@ -1331,22 +1361,31 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "text",
           name: "addressTitle",
           label: "Title",
-          defaultValue: "OUR SHOP",
-          placeholder: "Our shop",
+          defaultValue: "CONTACT",
+          placeholder: "Contact",
         },
         {
-          type: "text",
+          type: "textarea",
           name: "storeAddress",
           label: "Address",
-          defaultValue: "301 Front St W, Toronto, ON M5V 2T6, Canada",
-          placeholder: "301 Front St W, Toronto, ON M5V 2T6, Canada",
+          defaultValue:
+            "123 Main Street, Suite 200\nLos Angeles, CA, USA, 90015",
+          placeholder:
+            "123 Main Street, Suite 200\nLos Angeles, CA, USA, 90015",
         },
         {
           type: "text",
           name: "storeEmail",
           label: "Email",
-          defaultValue: "contact@my-store.com",
-          placeholder: "contact@my-store.com",
+          defaultValue: "hello@aspen.com",
+          placeholder: "hello@aspen.com",
+        },
+        {
+          type: "text",
+          name: "storePhone",
+          label: "Phone",
+          defaultValue: "+1 (555) 123-4567",
+          placeholder: "+1 (555) 123-4567",
         },
         {
           type: "heading",
@@ -1369,21 +1408,22 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "text",
           name: "newsletterPlaceholder",
           label: "Input placeholder",
-          defaultValue: "Please enter your email",
-          placeholder: "Please enter your email",
+          defaultValue: "Enter your email",
+          placeholder: "Enter your email",
         },
         {
           type: "text",
           name: "newsletterButtonText",
           label: "Button text",
-          defaultValue: "Send",
-          placeholder: "Send",
+          defaultValue: "SEND",
+          placeholder: "SEND",
         },
         {
           type: "richtext",
           name: "copyright",
           label: "Copyright text",
-          defaultValue: "© 2024 Weaverse. All rights reserved.",
+          defaultValue:
+            '<p>© 2025 Aspen Theme. <a href="https://www.shopify.com/?utm_campaign=poweredby&utm_medium=shopify&utm_source=onlinestore">Powered by Shopify</a></p>',
         },
         {
           type: "heading",
@@ -1411,6 +1451,12 @@ export const themeSchema: HydrogenThemeSchema = {
         },
         {
           type: "switch",
+          name: "showPaypalIcon",
+          label: "Show PayPal",
+          defaultValue: true,
+        },
+        {
+          type: "switch",
           name: "showDiscoverIcon",
           label: "Show Discover",
           defaultValue: false,
@@ -1419,7 +1465,7 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "switch",
           name: "showDinersIcon",
           label: "Show Diners Club",
-          defaultValue: false,
+          defaultValue: true,
         },
         {
           type: "switch",
@@ -1437,13 +1483,13 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "switch",
           name: "showApplePayIcon",
           label: "Show Apple Pay",
-          defaultValue: true,
+          defaultValue: false,
         },
         {
           type: "switch",
           name: "showGooglePayIcon",
           label: "Show Google Pay",
-          defaultValue: true,
+          defaultValue: false,
         },
       ],
     },

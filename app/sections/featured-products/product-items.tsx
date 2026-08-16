@@ -123,11 +123,16 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
       ...rest
     } = props;
     const [isSwiperInitialized, setIsSwiperInitialized] = useState(false);
-    const { layout: sectionLayout, isLegacyLayout } =
-      useFeaturedProductsLayout();
+    const {
+      layout: sectionLayout,
+      isLegacyLayout,
+      isProductPage,
+    } = useFeaturedProductsLayout();
     const activeLayout = isLegacyLayout ? layout : sectionLayout;
     const designGap = isLegacyLayout ? gap : 16;
+    const resolvedSlidesPerView = isProductPage ? 3 : slidesPerView;
 
+    // biome-ignore lint/correctness/useExhaustiveDependencies: Swiper must reset whenever its responsive layout inputs change.
     useEffect(() => {
       setIsSwiperInitialized(false);
     }, [activeLayout, gap, slidesPerView, itemsPerRow]);
@@ -338,8 +343,8 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
 
         <div className="hidden md:block">
           <Swiper
-            key={`swiper-carousel-desktop-${slidesPerView}-${designGap}`}
-            slidesPerView={slidesPerView || 3}
+            key={`swiper-carousel-desktop-${resolvedSlidesPerView}-${designGap}`}
+            slidesPerView={resolvedSlidesPerView || 3}
             spaceBetween={designGap}
             navigation={{
               nextEl: ".featured-products-carousel-desktop-next",

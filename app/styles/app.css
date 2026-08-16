@@ -204,6 +204,15 @@
   }
 }
 
+/* Error frames have an explicit content height in the approved layouts. */
+#mainContent:has(.storefront-error-state) {
+  flex-grow: 0;
+}
+
+#mainContent:has(.storefront-error-state) + footer {
+  flex-grow: 1;
+}
+
 @layer base {
   /* Ensure fonts render immediately with fallback, then swap to custom */
   @font-face {

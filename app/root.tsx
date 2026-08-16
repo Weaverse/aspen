@@ -20,6 +20,7 @@ import {
   useRouteError,
   useRouteLoaderData,
 } from "react-router";
+import { CartStateProvider } from "./components/cart/cart-state-provider";
 import { Footer } from "./components/layout/footer";
 import { Header } from "./components/layout/header";
 import { ScrollingAnnouncement } from "./components/layout/scrolling-announcement";
@@ -31,12 +32,16 @@ import { CustomAnalytics } from "./components/root/custom-analytics";
 import { GenericError } from "./components/root/generic-error";
 import { GlobalLoading } from "./components/root/global-loading";
 import { NotFound } from "./components/root/not-found";
+import { WishlistProvider } from "./components/wishlist/wishlist-provider";
 import styles from "./styles/app.css?url";
 import { DEFAULT_LOCALE } from "./utils/const";
+import { skipRootRevalidationForStorefrontActions } from "./utils/revalidation";
 import { loadCriticalData, loadDeferredData } from "./utils/root.server";
 import { GlobalStyle } from "./weaverse/style";
 
 export type RootLoader = typeof loader;
+
+export const shouldRevalidate = skipRootRevalidationForStorefrontActions;
 
 export const links: LinksFunction = () => {
   return [
@@ -88,7 +93,7 @@ function App() {
   return <Outlet />;
 }
 
-export function ErrorBoundary({ error }: { error: Error }) {
+export function ErrorBoundary() {
   const routeError: { status?: number; data?: any } = useRouteError();
   const isRouteError = isRouteErrorResponse(routeError);
 
@@ -103,11 +108,14 @@ export function ErrorBoundary({ error }: { error: Error }) {
       <NotFound type={pageType} />
     ) : (
       <GenericError
+        statusCode={routeError.status || 500}
         error={{ message: `${routeError.status} ${routeError.data}` }}
       />
     )
   ) : (
-    <GenericError error={error instanceof Error ? error : undefined} />
+    <GenericError
+      error={routeError instanceof Error ? routeError : undefined}
+    />
   );
 }
 
@@ -115,7 +123,9 @@ export function Layout({ children }: { children?: React.ReactNode }) {
   const nonce = useNonce();
   const data = useRouteLoaderData<RootLoader>("root");
   const locale = data?.selectedLocale ?? DEFAULT_LOCALE;
-  const { topbarHeight, topbarText } = useThemeSettings();
+  const { designSystemPreset, topbarHeight, topbarText } = useThemeSettings();
+  const initialDesktopTopbarHeight =
+    designSystemPreset === "custom" ? (topbarHeight ?? 56) : 56;
   const shouldShowNewsletterPopup = useShouldRenderNewsletterPopup();
 
   return (
@@ -132,7 +142,10 @@ export function Layout({ children }: { children?: React.ReactNode }) {
         style={
           {
             opacity: 0,
-            "--initial-topbar-height": `${topbarText ? topbarHeight : 0}px`,
+            "--initial-topbar-height-mobile": topbarText ? "44px" : "0px",
+            "--initial-topbar-height-desktop": `${
+              topbarText ? initialDesktopTopbarHeight : 0
+            }px`,
           } as CSSProperties
         }
         className="bg-background text-body antialiased opacity-100! transition-opacity duration-300"
@@ -143,26 +156,30 @@ export function Layout({ children }: { children?: React.ReactNode }) {
             shop={data.shop}
             consent={data.consent}
           >
-            <TooltipProvider disableHoverableContent>
-              <div
-                className="flex min-h-screen flex-col"
-                key={`${locale.language}-${locale.country}`}
-              >
-                <div className="">
-                  <a href="#mainContent" className="sr-only">
-                    Skip to content
-                  </a>
-                </div>
-                <ScrollingAnnouncement />
-                <Header />
-                <main id="mainContent" className="grow">
-                  {children}
-                </main>
-                <Footer />
-              </div>
-              {shouldShowNewsletterPopup && <NewsletterPopup />}
-              <CustomAnalytics />
-            </TooltipProvider>
+            <CartStateProvider initialCart={data.cart}>
+              <WishlistProvider initialWishlist={data.wishlist}>
+                <TooltipProvider disableHoverableContent>
+                  <div
+                    className="flex min-h-screen flex-col"
+                    key={`${locale.language}-${locale.country}`}
+                  >
+                    <div className="">
+                      <a href="#mainContent" className="sr-only">
+                        Skip to content
+                      </a>
+                    </div>
+                    <ScrollingAnnouncement />
+                    <Header />
+                    <main id="mainContent" className="grow">
+                      {children}
+                    </main>
+                    <Footer />
+                  </div>
+                  {shouldShowNewsletterPopup && <NewsletterPopup />}
+                  <CustomAnalytics />
+                </TooltipProvider>
+              </WishlistProvider>
+            </CartStateProvider>
           </Analytics.Provider>
         ) : (
           children

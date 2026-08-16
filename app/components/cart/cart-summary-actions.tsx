@@ -2,13 +2,28 @@ import { XIcon } from "@phosphor-icons/react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { CartForm } from "@shopify/hydrogen";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useFetcher } from "react-router";
 import type { CartApiQueryFragment } from "storefront-api.generated";
 import { Button } from "~/components/button";
+import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import { AnimatedBottomSheet } from "./animate-bottom-sheet";
 
 type DialogLayout = "page" | "drawer";
+
+type CartMutationResponse = {
+  cart?: CartApiQueryFragment | null;
+  errors?: Array<{ message?: string }>;
+  userErrors?: Array<{ message?: string }>;
+};
+
+function getCartMutationError(data?: CartMutationResponse): string | null {
+  return (
+    data?.userErrors?.find((error) => error.message)?.message ||
+    data?.errors?.find((error) => error.message)?.message ||
+    null
+  );
+}
 
 function CenteredModal({
   open,
@@ -33,7 +48,7 @@ function CenteredModal({
             <Dialog.Content
               forceMount
               onCloseAutoFocus={(e) => e.preventDefault()}
-              className="-translate-x-1/2 -translate-y-1/2 fixed top-1/2 left-1/2 z-50 w-full max-w-md"
+              className="-translate-x-1/2 -translate-y-1/2 fixed top-1/2 left-1/2 z-50 w-[calc(100%-40px)] max-w-md"
               aria-describedby={undefined}
             >
               <motion.div
@@ -66,30 +81,30 @@ export function NoteDialog({
 }) {
   const [note, setNote] = useState(currentNote);
   const [submitted, setSubmitted] = useState(false);
-  const fetcher = useFetcher();
+  const fetcher = useFetcher<CartMutationResponse>();
+  const cartRoute = usePrefixPathWithLocale("/cart");
+  const mutationError = getCartMutationError(fetcher.data);
 
   useEffect(() => {
-    if (fetcher.state === "idle" && fetcher.data) {
+    if (fetcher.state === "idle" && fetcher.data && !mutationError) {
       setSubmitted(true);
     }
-  }, [fetcher]);
+  }, [fetcher.data, fetcher.state, mutationError]);
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     const formCartNote = formData.get("cartNote") as string;
-    if (formCartNote) {
-      fetcher.submit(
-        {
-          [CartForm.INPUT_NAME]: JSON.stringify({
-            action: CartForm.ACTIONS.NoteUpdate,
-            inputs: { cartNote: formCartNote },
-          }),
-        },
-        { method: "POST", action: "/cart" },
-      );
-      setNote(formCartNote);
-    }
+    fetcher.submit(
+      {
+        [CartForm.INPUT_NAME]: JSON.stringify({
+          action: CartForm.ACTIONS.NoteUpdate,
+          inputs: { note: formCartNote },
+        }),
+      },
+      { method: "POST", action: cartRoute },
+    );
+    setNote(formCartNote);
   }
 
   const content = (
@@ -103,10 +118,16 @@ export function NoteDialog({
         <XIcon size={16} />
       </button>
 
-      <h2 className="mb-6 font-semibold text-xl">Add a note</h2>
+      <Dialog.Title asChild>
+        <h2 className="mb-6 font-semibold text-xl">Add a note</h2>
+      </Dialog.Title>
 
       <form className="space-y-1" onSubmit={handleSubmit}>
+        <label htmlFor="cart-note" className="sr-only">
+          Order note
+        </label>
         <textarea
+          id="cart-note"
           className="min-h-32 w-full resize-none border border-line p-3 text-[#918379] focus:border-gray-500 focus:outline-none"
           placeholder="Add any special instructions or notes for your order..."
           rows={4}
@@ -118,8 +139,13 @@ export function NoteDialog({
           }}
         />
         {submitted && (
-          <p className="bg-green-50 p-3 text-green-700">
+          <p className="bg-green-50 p-3 text-green-700" aria-live="polite">
             Cart note saved successfully 🎉
+          </p>
+        )}
+        {mutationError && (
+          <p className="bg-red-50 p-3 text-red-700" role="alert">
+            {mutationError}
           </p>
         )}
         <Button
@@ -153,11 +179,21 @@ export function DiscountDialog({
   layout?: DialogLayout;
 }) {
   const [code, setCode] = useState("");
-  const fetcher = useFetcher();
-  const submitted = Boolean(code && fetcher.state === "idle" && fetcher.data);
-  const success = Boolean(
-    submitted && discountCodes?.find((d) => d.code === code && d.applicable),
+  const [submittedCode, setSubmittedCode] = useState("");
+  const fetcher = useFetcher<CartMutationResponse>();
+  const cartRoute = usePrefixPathWithLocale("/cart");
+  const submitted = Boolean(
+    submittedCode && fetcher.state === "idle" && fetcher.data,
   );
+  const success = Boolean(
+    submitted &&
+      fetcher.data?.cart?.discountCodes?.find(
+        (discount) =>
+          discount.code.toLowerCase() === submittedCode.toLowerCase() &&
+          discount.applicable,
+      ),
+  );
+  const mutationError = getCartMutationError(fetcher.data);
   const error = submitted && !success;
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -165,6 +201,7 @@ export function DiscountDialog({
     const formData = new FormData(event.currentTarget);
     const discountCode = formData.get("discountCode") as string;
     if (discountCode) {
+      setSubmittedCode(discountCode.trim());
       fetcher.submit(
         {
           [CartForm.INPUT_NAME]: JSON.stringify({
@@ -175,7 +212,7 @@ export function DiscountDialog({
             },
           }),
         },
-        { method: "POST", action: "/cart" },
+        { method: "POST", action: cartRoute },
       );
     }
   }
@@ -191,15 +228,18 @@ export function DiscountDialog({
         <XIcon size={16} />
       </button>
 
-      <h2 className="mb-6 font-semibold text-xl">Apply a discount code</h2>
+      <Dialog.Title asChild>
+        <h2 className="mb-6 font-semibold text-xl">Apply a discount code</h2>
+      </Dialog.Title>
 
       <form onSubmit={handleSubmit} className="space-y-2">
+        <label htmlFor="cart-discount-code" className="sr-only">
+          Discount code
+        </label>
         <input
+          id="cart-discount-code"
           value={code}
-          onChange={(e) => {
-            setCode(e.target.value);
-            fetcher.data = null;
-          }}
+          onChange={(e) => setCode(e.target.value)}
           className="w-full border border-line p-3 text-[#918379] focus:border-gray-500 focus:outline-none"
           type="text"
           name="discountCode"
@@ -212,7 +252,9 @@ export function DiscountDialog({
           </p>
         )}
         {error && (
-          <p className="bg-red-50 p-3 text-red-700">Invalid discount code.</p>
+          <p className="bg-red-50 p-3 text-red-700" role="alert">
+            {mutationError || "Invalid discount code."}
+          </p>
         )}
         <Button
           type="submit"
@@ -234,53 +276,50 @@ export function DiscountDialog({
 }
 
 export function GiftCardDialog({
-  appliedGiftCards = [],
   open,
   onClose,
   layout = "drawer",
 }: {
-  appliedGiftCards: CartApiQueryFragment["appliedGiftCards"];
   open: boolean;
   onClose: () => void;
   layout?: DialogLayout;
 }) {
-  const appliedGiftCardCodes = useRef<string[]>([]);
   const [code, setCode] = useState("");
-  const fetcher = useFetcher();
-  const submitted = Boolean(code && fetcher.state === "idle" && fetcher.data);
+  const [submittedCode, setSubmittedCode] = useState("");
+  const fetcher = useFetcher<CartMutationResponse>();
+  const cartRoute = usePrefixPathWithLocale("/cart");
+  const submitted = Boolean(
+    submittedCode && fetcher.state === "idle" && fetcher.data,
+  );
   const success = Boolean(
     submitted &&
-      appliedGiftCards?.find((gc) =>
-        code.toLowerCase().endsWith(gc.lastCharacters),
+      fetcher.data?.cart?.appliedGiftCards?.find((giftCard) =>
+        submittedCode
+          .toLowerCase()
+          .endsWith(giftCard.lastCharacters.toLowerCase()),
       ),
   );
+  const mutationError = getCartMutationError(fetcher.data);
   const error = submitted && !success;
-
-  function saveAppliedCode(gcCode: string) {
-    const formattedCode = gcCode.replace(/\s/g, ""); // Remove spaces
-    if (!appliedGiftCardCodes.current.includes(formattedCode)) {
-      appliedGiftCardCodes.current.push(formattedCode);
-    }
-  }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     const giftCardCode = formData.get("giftCardCode") as string;
     if (giftCardCode) {
+      const formattedCode = giftCardCode.replace(/\s/g, "");
+      setSubmittedCode(formattedCode);
       fetcher.submit(
         {
           [CartForm.INPUT_NAME]: JSON.stringify({
-            action: CartForm.ACTIONS.GiftCardCodesUpdate,
+            action: CartForm.ACTIONS.GiftCardCodesAdd,
             inputs: {
-              giftCardCode,
-              giftCardCodes: appliedGiftCardCodes.current,
+              giftCardCodes: [formattedCode],
             },
           }),
         },
-        { method: "POST", action: "/cart" },
+        { method: "POST", action: cartRoute },
       );
-      saveAppliedCode(giftCardCode);
     }
   }
 
@@ -295,19 +334,22 @@ export function GiftCardDialog({
         <XIcon size={16} />
       </button>
 
-      <h2 className="mb-6 font-semibold text-xl">Redeem a gift card</h2>
+      <Dialog.Title asChild>
+        <h2 className="mb-6 font-semibold text-xl">Redeem a gift card</h2>
+      </Dialog.Title>
 
       <form onSubmit={handleSubmit} className="space-y-2">
+        <label htmlFor="cart-gift-card-code" className="sr-only">
+          Gift card code
+        </label>
         <input
+          id="cart-gift-card-code"
           className="w-full border border-line p-3 text-[#918379] focus:border-gray-500 focus:outline-none"
           type="text"
           name="giftCardCode"
           placeholder="Gift card code"
           value={code}
-          onChange={(e) => {
-            setCode(e.target.value);
-            fetcher.data = null;
-          }}
+          onChange={(e) => setCode(e.target.value)}
           required
         />
         {success && (
@@ -316,7 +358,9 @@ export function GiftCardDialog({
           </p>
         )}
         {error && (
-          <p className="bg-red-50 p-3 text-red-700">Invalid gift card code.</p>
+          <p className="bg-red-50 p-3 text-red-700" role="alert">
+            {mutationError || "Invalid gift card code."}
+          </p>
         )}
         <Button
           type="submit"

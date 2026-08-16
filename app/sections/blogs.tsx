@@ -1,7 +1,10 @@
 import { createSchema } from "@weaverse/hydrogen";
 import { type CSSProperties, forwardRef, useState } from "react";
 import { useLoaderData } from "react-router";
-import type { ArticleFragment, BlogQuery } from "storefront-api.generated";
+import type {
+  ArticleFragment,
+  BlogsIndexQuery,
+} from "storefront-api.generated";
 import { Button } from "~/components/button";
 import Heading, {
   type HeadingProps,
@@ -62,9 +65,10 @@ const Blogs = forwardRef<HTMLElement, BlogsProps>((props, ref) => {
     alignment,
     ...rest
   } = props;
-  const { blog, articles } = useLoaderData<
-    BlogQuery & { articles: ArticleFragment[] }
-  >();
+  const { blog, articles } = useLoaderData<{
+    blog: BlogsIndexQuery["blogs"]["nodes"][number];
+    articles: ArticleFragment[];
+  }>();
 
   // State to manage visible articles count
   const [visibleCount, setVisibleCount] = useState(initialCount);

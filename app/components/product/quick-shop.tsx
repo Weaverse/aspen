@@ -4,6 +4,7 @@ import {
   getAdjacentAndFirstAvailableVariants,
   getProductOptions,
   Money,
+  mapSelectedProductOptionToObject,
   ShopPayButton,
 } from "@shopify/hydrogen";
 import type { MoneyV2 } from "@shopify/hydrogen/storefront-api-types";
@@ -12,6 +13,7 @@ import clsx from "clsx";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Link, useFetcher } from "react-router";
+import type { ProductVariantFragment } from "storefront-api.generated";
 import { AddToCartButton } from "~/components/product/add-to-cart-button";
 import { ProductMedia } from "~/components/product/product-media";
 import { Quantity } from "~/components/product/quantity";
@@ -310,6 +312,7 @@ export function QuickShop({
           <div className="space-y-3">
             <AddToCartButton
               disabled={!selectedVariant?.availableForSale}
+              onAdded={onCloseAll}
               lines={[
                 {
                   merchandiseId: selectedVariant?.id,
@@ -361,19 +364,24 @@ export function QuickShop({
 
 export function QuickShopTrigger({
   productHandle,
+  selectedOptions = [],
   showOnHover = true,
-  buttonText,
 }: {
   productHandle: string;
+  selectedOptions?: ProductVariantFragment["selectedOptions"];
   showOnHover?: boolean;
-  buttonText?: string;
 }) {
   const { quickShopButtonTextOpen } = useThemeSettings();
   const [open, setOpen] = useState(false);
   const [showDescription, setShowDescription] = useState(false);
+  const [loadedPath, setLoadedPath] = useState<string | null>(null);
   const { load, data, state } = useFetcher<ProductData>();
+  const optionParams = new URLSearchParams(
+    mapSelectedProductOptionToObject(selectedOptions),
+  );
+  optionParams.set("handle", productHandle);
   const apiPath = usePrefixPathWithLocale(
-    `/api/product?handle=${productHandle}`,
+    `/api/product?${optionParams.toString()}`,
   );
 
   const closeAllDrawers = () => {
@@ -381,38 +389,39 @@ export function QuickShopTrigger({
     setOpen(false);
   };
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: open and state are intentionally excluded
   useEffect(() => {
-    if (open && !data && state !== "loading") {
-      load(apiPath);
+    if (!open || state === "loading" || loadedPath === apiPath) {
+      return;
     }
-  }, [open, apiPath]);
+
+    setLoadedPath(apiPath);
+    load(apiPath);
+  }, [apiPath, load, loadedPath, open, state]);
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger asChild>
         <button
           type="button"
+          aria-label={quickShopButtonTextOpen || "Select options"}
           className={clsx(
-            // Mobile/Tablet: Always visible circular button at bottom right
-            "absolute right-4 bottom-4 md:opacity-100",
-            "rounded-full bg-white",
-            "flex items-center justify-center p-0",
-            // Desktop: Hide initially, show on hover with text
+            "absolute right-3 bottom-3 z-10 flex size-11 items-center justify-center rounded-(--radius-sm) bg-white p-0 shadow-xs",
+            "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body",
             showOnHover
-              ? "p-4 lg:inset-x-4 lg:h-auto lg:w-auto lg:rounded-none lg:opacity-0"
-              : "lg:inset-x-4 lg:h-auto lg:w-auto lg:rounded-none lg:opacity-100",
-            "lg:px-6 lg:py-5",
-            "lg:border-(--btn-secondary-bg) lg:bg-(--btn-secondary-bg) lg:text-(--btn-secondary-text)",
+              ? "lg:inset-x-4 lg:bottom-4 lg:h-11 lg:w-auto lg:translate-y-2 lg:opacity-0"
+              : "lg:inset-x-4 lg:bottom-4 lg:h-11 lg:w-auto lg:opacity-100",
+            "lg:rounded-(--radius-xs) lg:px-6 lg:py-3",
+            "lg:border-(--btn-primary-bg) lg:bg-(--btn-primary-bg) lg:text-(--btn-primary-text)",
             showOnHover
-              ? "lg:-translate-y-1.5 lg:-translate-x-2 lg:group-hover:translate-x-0 lg:group-hover:translate-y-2 lg:group-hover:opacity-100"
+              ? "lg:group-hover:translate-y-0 lg:group-hover:opacity-100 lg:focus-visible:translate-y-0 lg:focus-visible:opacity-100"
               : "",
-            "lg:whitespace-nowrap lg:font-normal lg:leading-3.5",
+            "transition-[opacity,transform,background-color] duration-300 lg:whitespace-nowrap lg:font-normal lg:leading-none",
           )}
         >
           {/* Shopping bag icon for mobile/tablet */}
           <svg
             className="h-5 w-5 text-[#29231E] lg:hidden"
+            aria-hidden="true"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -426,7 +435,7 @@ export function QuickShopTrigger({
           </svg>
           {/* Text for desktop */}
           <span className="hidden uppercase lg:inline">
-            {buttonText || quickShopButtonTextOpen}
+            {quickShopButtonTextOpen || "Select options"}
           </span>
         </button>
       </Dialog.Trigger>
@@ -470,6 +479,7 @@ export function QuickShopTrigger({
                       <button
                         type="button"
                         onClick={closeAllDrawers}
+                        aria-label="Close quick shop"
                         className="rounded p-1 transition-colors hover:bg-gray-100"
                       >
                         <XIcon className="h-5 w-5" />
@@ -522,10 +532,17 @@ export function QuickShopTrigger({
                             onCloseAll={closeAllDrawers}
                           />
                         ) : (
-                          <div className="py-8 text-center">
+                          <div className="space-y-4 py-8 text-center">
                             <p className="text-body-subtle">
                               Failed to load product data
                             </p>
+                            <button
+                              type="button"
+                              className="underline underline-offset-4"
+                              onClick={() => load(apiPath)}
+                            >
+                              Try again
+                            </button>
                           </div>
                         )}
                       </div>

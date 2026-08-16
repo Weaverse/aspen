@@ -66,13 +66,16 @@ export async function getJudgeMeProductReviews({
             product_id: product?.id,
           }),
         );
-        const reviewNumber = reviews.length || 1;
-        const rating = reviews.reduce((a, c) => a + c.rating, 0) / reviewNumber;
+        const reviewNumber = reviews.length;
+        const rating =
+          reviewNumber > 0
+            ? reviews.reduce((total, review) => total + review.rating, 0) /
+              reviewNumber
+            : 0;
         return { rating, reviewNumber, reviews };
       }
     }
   } catch (error) {
-    // biome-ignore lint/suspicious/noConsole: <explanation> --- IGNORE ---
     console.log("Error fetching Judgeme product reviews", error.message);
   }
   return { rating: 0, reviewNumber: 0, reviews: [] };
