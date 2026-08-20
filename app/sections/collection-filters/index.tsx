@@ -1,4 +1,4 @@
-import { createSchema } from "@weaverse/hydrogen";
+import { createSchema, useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { forwardRef, useEffect, useState } from "react";
 import { useLoaderData } from "react-router";
@@ -36,6 +36,7 @@ interface CollectionFiltersProps extends SectionProps, CollectionFiltersData {}
 
 const CollectionFilters = forwardRef<HTMLElement, CollectionFiltersProps>(
   (props, ref) => {
+    const { t } = useTranslation();
     const {
       showBreadcrumb,
       showDescription,
@@ -130,7 +131,9 @@ const CollectionFilters = forwardRef<HTMLElement, CollectionFiltersProps>(
             {enableFilter && filtersPosition === "sidebar" && (
               <div className="hidden w-72 shrink-0 lg:block">
                 <div className="sticky top-[calc(var(--height-nav)+40px)] space-y-4">
-                  <div className="font-bold uppercase">Filters</div>
+                  <div className="font-bold uppercase">
+                    {t("collection.filters")}
+                  </div>
                   <Filters />
                 </div>
               </div>

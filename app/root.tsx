@@ -5,7 +5,11 @@ import dmSansVarWoff2Url from "@fontsource-variable/dm-sans/files/dm-sans-latin-
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import type { SeoConfig } from "@shopify/hydrogen";
 import { Analytics, getSeoMeta, useNonce } from "@shopify/hydrogen";
-import { useThemeSettings, withWeaverse } from "@weaverse/hydrogen";
+import {
+  useThemeSettings,
+  useTranslation,
+  withWeaverse,
+} from "@weaverse/hydrogen";
 import type { CSSProperties } from "react";
 import {
   isRouteErrorResponse,
@@ -119,8 +123,9 @@ export function ErrorBoundary() {
   );
 }
 
-export function Layout({ children }: { children?: React.ReactNode }) {
+function RootLayout({ children }: { children?: React.ReactNode }) {
   const nonce = useNonce();
+  const { t } = useTranslation();
   const data = useRouteLoaderData<RootLoader>("root");
   const locale = data?.selectedLocale ?? DEFAULT_LOCALE;
   const { designSystemPreset, topbarHeight, topbarText } = useThemeSettings();
@@ -129,7 +134,9 @@ export function Layout({ children }: { children?: React.ReactNode }) {
   const shouldShowNewsletterPopup = useShouldRenderNewsletterPopup();
 
   return (
-    <html lang={locale.language}>
+    <html
+      lang={`${locale.language.toLowerCase()}-${locale.country.toUpperCase()}`}
+    >
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -165,7 +172,7 @@ export function Layout({ children }: { children?: React.ReactNode }) {
                   >
                     <div className="">
                       <a href="#mainContent" className="sr-only">
-                        Skip to content
+                        {t("accessibility.skipToContent")}
                       </a>
                     </div>
                     <ScrollingAnnouncement />
@@ -192,4 +199,5 @@ export function Layout({ children }: { children?: React.ReactNode }) {
   );
 }
 
-export default withWeaverse(App);
+export const Layout = withWeaverse(RootLayout);
+export default App;

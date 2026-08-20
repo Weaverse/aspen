@@ -8,6 +8,7 @@ import type {
   CartLineInput,
   CartLineUpdateInput,
 } from "@shopify/hydrogen/storefront-api-types";
+import { useTranslation } from "@weaverse/hydrogen";
 import {
   type ActionFunctionArgs,
   type AppLoadContext,
@@ -25,6 +26,7 @@ import { CartBestSellers } from "~/components/cart/cart-best-sellers";
 import { useCartState } from "~/components/cart/cart-state-provider";
 import { Section } from "~/components/section";
 import type { RootLoader } from "~/root";
+import { CART_ERROR_KEYS } from "~/utils/cart-error";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 
 export const shouldRevalidate = skipPageRevalidationForStorefrontActions;
@@ -89,8 +91,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
             cart: undefined,
             userErrors: [
               {
-                message:
-                  "Please select an available product option before adding it to your bag.",
+                message: CART_ERROR_KEYS.selectAvailableOption,
               },
             ],
             errors: undefined,
@@ -119,7 +120,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         return data(
           {
             cart: currentCart,
-            userErrors: [{ message: "No cart line was selected for removal." }],
+            userErrors: [{ message: CART_ERROR_KEYS.noLineSelected }],
             errors: undefined,
             cartCodeApplied: undefined,
           },
@@ -232,6 +233,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
 }
 
 export default function CartRoute() {
+  const { t } = useTranslation();
   const rootData = useRouteLoaderData<RootLoader>("root");
   const { cart: latestCart, isResolved } = useCartState();
   if (!rootData) {
@@ -246,7 +248,7 @@ export default function CartRoute() {
         className="bg-[#EDEDED] pt-10 pb-20"
         containerClassName="!max-w-[1360px]"
       >
-        <h4 className="text-left font-normal uppercase">Cart</h4>
+        <h4 className="text-left font-normal uppercase">{t("cart.title")}</h4>
         <Await resolve={isResolved ? latestCart : rootData?.cart}>
           {(cart) => <Cart layout="page" cart={cart as CartApiQueryFragment} />}
         </Await>
@@ -258,7 +260,7 @@ export default function CartRoute() {
       >
         <CartBestSellers
           count={6}
-          heading="You May Also Like"
+          heading={t("cart.recommendations")}
           layout="page"
           sortKey="BEST_SELLING"
         />

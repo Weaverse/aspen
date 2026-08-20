@@ -15,6 +15,7 @@ import { Logo } from "~/components/logo";
 import type { RootLoader } from "~/root";
 import { cn } from "~/utils/cn";
 import { DEFAULT_LOCALE } from "~/utils/const";
+import { stripLocalePrefix } from "~/utils/locale";
 import { CartDrawer } from "./cart-drawer";
 import { DesktopMenu } from "./desktop-menu";
 import { MobileMenu } from "./mobile-menu";
@@ -40,7 +41,7 @@ function useIsHomeCheck() {
   const { pathname } = useLocation();
   const rootData = useRouteLoaderData<RootLoader>("root");
   const selectedLocale = rootData?.selectedLocale ?? DEFAULT_LOCALE;
-  return pathname.replace(selectedLocale.pathPrefix, "") === "/";
+  return stripLocalePrefix(pathname) === "/";
 }
 
 export function Header() {

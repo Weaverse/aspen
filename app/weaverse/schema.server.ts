@@ -1,5 +1,7 @@
 import type { HydrogenThemeSchema } from "@weaverse/hydrogen";
-import { COUNTRIES } from "~/utils/const";
+import enUS from "~/locales/en-us.json";
+import type { StoreLocalization } from "~/types/locale";
+import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from "~/utils/const";
 import pkg from "../../package.json";
 
 export const themeSchema: HydrogenThemeSchema = {
@@ -14,23 +16,10 @@ export const themeSchema: HydrogenThemeSchema = {
   },
   i18n: {
     urlStructure: "url-path",
-    defaultLocale: {
-      pathPrefix: "",
-      label: "United States - USD",
-      language: "EN",
-      country: "US",
-      currency: "USD",
-    },
-    shopLocales: Object.entries(COUNTRIES).map(
-      ([pathPrefix, { label, language, country }]) => {
-        return {
-          pathPrefix: pathPrefix === "default" ? "" : pathPrefix,
-          label,
-          language,
-          country,
-        };
-      },
-    ),
+    defaultLocale: DEFAULT_LOCALE,
+    shopLocales: [...SUPPORTED_LOCALES],
+    staticContent: enUS,
+    translation: true,
   },
   settings: [
     {
@@ -1064,6 +1053,46 @@ export const themeSchema: HydrogenThemeSchema = {
       ],
     },
     {
+      group: "Loyalty",
+      inputs: [
+        {
+          type: "switch",
+          label: "Show loyalty points hint",
+          name: "enableLoyaltyHint",
+          defaultValue: false,
+          helpText:
+            "Shows an estimated points earn message on product and cart. Also appears automatically when LoyaltyLion is configured. See docs/integrations.md.",
+        },
+        {
+          type: "range",
+          label: "Points per currency unit",
+          name: "loyaltyPointsPerCurrency",
+          defaultValue: 1,
+          configs: {
+            min: 1,
+            max: 20,
+            step: 1,
+          },
+          helpText:
+            "Example: 1 = 1 point per $1 of product price or cart subtotal.",
+          condition: (theme) => theme.enableLoyaltyHint === true,
+        },
+        {
+          type: "text",
+          label: "Program name",
+          name: "loyaltyProgramName",
+          defaultValue: "Rewards",
+          condition: (theme) => theme.enableLoyaltyHint === true,
+        },
+        {
+          type: "url",
+          label: "Learn more URL",
+          name: "loyaltyLearnMoreUrl",
+          condition: (theme) => theme.enableLoyaltyHint === true,
+        },
+      ],
+    },
+    {
       group: "Quick shop",
       inputs: [
         {
@@ -1107,6 +1136,14 @@ export const themeSchema: HydrogenThemeSchema = {
           name: "soldOutText",
           defaultValue: "Sold out",
           placeholder: "Sold out",
+        },
+        {
+          type: "switch",
+          label: "Show back-in-stock form",
+          name: "enableQuickShopBackInStock",
+          defaultValue: true,
+          helpText:
+            "Appears in quick shop when the selected variant is sold out and Klaviyo is configured.",
         },
         {
           type: "switch",
@@ -1495,3 +1532,21 @@ export const themeSchema: HydrogenThemeSchema = {
     },
   ],
 };
+
+export function getThemeSchema({
+  availableLocales,
+  defaultLocale,
+}: StoreLocalization): HydrogenThemeSchema {
+  return {
+    ...themeSchema,
+    i18n: {
+      ...(themeSchema.i18n ?? {
+        urlStructure: "url-path" as const,
+        defaultLocale,
+        shopLocales: availableLocales,
+      }),
+      defaultLocale,
+      shopLocales: availableLocales,
+    },
+  };
+}

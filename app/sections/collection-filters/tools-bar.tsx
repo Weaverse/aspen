@@ -1,5 +1,6 @@
 import { SlidersIcon, XIcon } from "@phosphor-icons/react";
 import * as Dialog from "@radix-ui/react-dialog";
+import { useTranslation } from "@weaverse/hydrogen";
 import { useState } from "react";
 import { useLoaderData } from "react-router";
 import type { CollectionQuery } from "storefront-api.generated";
@@ -30,6 +31,7 @@ export function ToolsBar({
   gridSizeMobile,
   onGridSizeChange,
 }: ToolsBarProps) {
+  const { t } = useTranslation();
   const { collection, appliedFilters = [] } = useLoaderData<
     CollectionQuery & { appliedFilters: AppliedFilter[] }
   >();
@@ -42,7 +44,7 @@ export function ToolsBar({
           <h4 className="uppercase tracking-tighter">{collection.title}</h4>
           {showProductsCount && (
             <span className="py-2 uppercase">
-              Products ({collection.products.nodes.length})
+              {t("collection.products")} ({collection.products.nodes.length})
             </span>
           )}
         </div>
@@ -83,6 +85,7 @@ function FiltersDrawer({
   filtersPosition: ToolsBarProps["filtersPosition"];
   appliedFiltersCount: number;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   return (
@@ -97,13 +100,16 @@ function FiltersDrawer({
           animate={false}
           aria-label={
             appliedFiltersCount
-              ? `Filter products, ${appliedFiltersCount} active`
-              : "Filter products"
+              ? t("collection.filterProductsActive", {
+                  count: appliedFiltersCount,
+                })
+              : t("collection.filterProducts")
           }
         >
           <SlidersIcon aria-hidden="true" size={18} />
           <span className="uppercase">
-            Filter{appliedFiltersCount ? ` (${appliedFiltersCount})` : ""}
+            {t("collection.filter")}
+            {appliedFiltersCount ? ` (${appliedFiltersCount})` : ""}
           </span>
         </Button>
       </Dialog.Trigger>
@@ -111,13 +117,13 @@ function FiltersDrawer({
         <div className="flex h-full flex-col">
           <div className="flex min-h-10 shrink-0 items-center justify-between pr-2 pl-[52px]">
             <Dialog.Title className="-translate-y-0.5 text-sm font-semibold uppercase">
-              Filter
+              {t("collection.filter")}
             </Dialog.Title>
             <Dialog.Close asChild>
               <button
                 type="button"
                 className="flex h-10 w-10 items-center justify-center outline-none"
-                aria-label="Close filter drawer"
+                aria-label={t("collection.closeFilters")}
               >
                 <XIcon
                   aria-hidden="true"

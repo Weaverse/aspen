@@ -8,10 +8,13 @@ import {
   type Session,
   type SessionStorage,
 } from "react-router";
-import type { I18nLocale } from "~/types/locale";
-import { COUNTRIES } from "~/utils/const";
+import { getCanonicalLocaleRedirect } from "~/utils/locale";
+import {
+  getRequestI18n,
+  loadStoreLocalization,
+} from "~/utils/localization.server";
 import { components } from "~/weaverse/components";
-import { themeSchema } from "~/weaverse/schema.server";
+import { getThemeSchema } from "~/weaverse/schema.server";
 
 // React Router v7 Headers polyfill for getSetCookie compatibility
 if (typeof Headers !== "undefined" && !Headers.prototype.getSetCookie) {
@@ -73,6 +76,13 @@ export default {
         env,
         executionContext,
       );
+      const localeRedirect = getCanonicalLocaleRedirect(
+        request,
+        appLoadContext.localization,
+      );
+      if (localeRedirect) {
+        return Response.redirect(new URL(localeRedirect, request.url), 302);
+      }
 
       /**
        * Create a Remix request handler and pass
@@ -140,7 +150,7 @@ export async function createAppLoadContext(
       cache,
       waitUntil,
       session,
-      i18n: getLocaleFromRequest(request),
+      i18n: getRequestI18n(request),
       cart: {
         queryFragment: CART_QUERY_FRAGMENT,
         mutateFragment: CART_MUTATE_FRAGMENT,
@@ -149,17 +159,22 @@ export async function createAppLoadContext(
     {},
   );
 
+  const localization = await loadStoreLocalization(
+    hydrogenContext.storefront,
+    request,
+  );
+
   const weaverse = new WeaverseClient({
     ...hydrogenContext,
     request,
     cache,
-    themeSchema,
+    themeSchema: getThemeSchema(localization),
     components,
   });
 
-  Object.assign(hydrogenContext, { weaverse });
-
-  return hydrogenContext;
+  // `createHydrogenContext` returns React Router's context provider. Keep that
+  // instance intact: spreading it creates a plain object that middleware rejects.
+  return Object.assign(hydrogenContext, { weaverse, localization });
 }
 
 class AppSession implements HydrogenSession {
@@ -220,22 +235,6 @@ class AppSession implements HydrogenSession {
     this.isPending = false;
     return this.#sessionStorage.commitSession(this.#session);
   }
-}
-
-function getLocaleFromRequest(request: Request): I18nLocale {
-  const url = new URL(request.url);
-  let firstPathPart = `/${url.pathname.substring(1).split("/")[0].toLowerCase()}`;
-  firstPathPart = firstPathPart.replace(".data", "");
-
-  return COUNTRIES[firstPathPart]
-    ? {
-        ...COUNTRIES[firstPathPart],
-        pathPrefix: firstPathPart,
-      }
-    : {
-        ...COUNTRIES.default,
-        pathPrefix: "",
-      };
 }
 
 const CART_QUERY_FRAGMENT = `#graphql

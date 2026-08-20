@@ -8,6 +8,7 @@ import {
 import * as Dialog from "@radix-ui/react-dialog";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { parseGid } from "@shopify/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { useEffect, useRef, useState } from "react";
 import type {
@@ -38,6 +39,7 @@ export function ZoomModal({
   arrowsColor?: "primary" | "secondary" | "outline";
   arrowsShape?: "rounded-sm" | "circle" | "square";
 }) {
+  const { t } = useTranslation();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [isImageLoading, setIsImageLoading] = useState(false);
   const [previousMediaId, setPreviousMediaId] = useState(zoomMediaId);
@@ -126,7 +128,7 @@ export function ZoomModal({
         >
           <div className="relative flex h-full w-full items-center justify-center bg-(--color-background)">
             <VisuallyHidden.Root asChild>
-              <Dialog.Title>Product media zoom</Dialog.Title>
+              <Dialog.Title>{t("product.mediaZoom")}</Dialog.Title>
             </VisuallyHidden.Root>
             <div className="absolute top-10 left-8 hidden lg:block">
               <ScrollArea
@@ -151,7 +153,7 @@ export function ZoomModal({
                         <Image
                           data={{
                             ...previewImage,
-                            altText: alt || "Product image zoom",
+                            altText: alt || t("product.imageZoom"),
                           }}
                           loading="lazy"
                           width={200}
@@ -176,7 +178,10 @@ export function ZoomModal({
                 onImageLoad={() => setIsImageLoading(false)}
               />
             </div>
-            <Dialog.Close className="absolute top-4 right-4 z-1">
+            <Dialog.Close
+              className="absolute top-4 right-4 z-1"
+              aria-label={t("product.closeMediaZoom")}
+            >
               <XIcon className="h-6 w-6" />
             </Dialog.Close>
             <div className="absolute right-10 bottom-10 left-10 flex items-center justify-center gap-2 md:left-auto">
@@ -220,7 +225,7 @@ export function ZoomModal({
                   setZoomMediaId(prevMedia.id);
                   scrollToMedia(prevMedia.id);
                 }}
-                aria-label="Previous media"
+                aria-label={t("product.previousMedia")}
               >
                 <ArrowLeftIcon className="h-4.5 w-4.5" />
               </button>
@@ -264,7 +269,7 @@ export function ZoomModal({
                   setZoomMediaId(nextMedia.id);
                   scrollToMedia(nextMedia.id);
                 }}
-                aria-label="Next media"
+                aria-label={t("product.nextMedia")}
               >
                 <ArrowRightIcon className="h-4.5 w-4.5" />
               </button>
@@ -283,6 +288,7 @@ function ZoomMedia({
   media: MediaFragment | undefined;
   onImageLoad?: () => void;
 }) {
+  const { t } = useTranslation();
   if (!media) {
     return null;
   }
@@ -290,7 +296,7 @@ function ZoomMedia({
     const { image, alt } = media as Media_MediaImage_Fragment;
     return (
       <Image
-        data={{ ...image, altText: alt || "Product image zoom" }}
+        data={{ ...image, altText: alt || t("product.imageZoom") }}
         loading="lazy"
         className="h-auto w-auto object-cover md:h-full lg:max-w-[calc(100vw-16rem)] [&>img]:max-h-screen"
         width={4096}
@@ -327,6 +333,7 @@ export interface ZoomButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {}
 
 export function ZoomButton({ className, ...props }: ZoomButtonProps) {
+  const { t } = useTranslation();
   return (
     <button
       type="button"
@@ -336,7 +343,7 @@ export function ZoomButton({ className, ...props }: ZoomButtonProps) {
         "bg-white text-gray-900 hover:bg-gray-800 hover:text-white",
         className,
       )}
-      aria-label="Zoom product media"
+      aria-label={t("product.zoomMedia")}
       {...props}
     >
       <MagnifyingGlassPlusIcon className="h-5 w-5" />

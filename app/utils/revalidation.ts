@@ -1,6 +1,7 @@
 import type { ShouldRevalidateFunctionArgs } from "react-router";
 
-const PAGE_INDEPENDENT_ACTION_PATH = /(?:^|\/)(?:cart|api\/wishlist)$/;
+const PAGE_INDEPENDENT_ACTION_PATH =
+  /(?:^|\/)(?:cart|api\/wishlist|api\/back-in-stock)$/;
 
 /**
  * Cart mutations do not change CMS or catalog page data. Revalidating those
@@ -13,10 +14,15 @@ const PAGE_INDEPENDENT_ACTION_PATH = /(?:^|\/)(?:cart|api\/wishlist)$/;
  */
 export function skipPageRevalidationForStorefrontActions({
   currentUrl,
+  nextUrl,
   defaultShouldRevalidate,
   formAction,
   formMethod,
 }: ShouldRevalidateFunctionArgs) {
+  if (hasLocalePathChange(currentUrl, nextUrl)) {
+    return true;
+  }
+
   if (formAction && formMethod && formMethod.toUpperCase() !== "GET") {
     const actionUrl = new URL(formAction, currentUrl);
     const actionPath = actionUrl.pathname.replace(/\.data$/, "");
@@ -35,10 +41,15 @@ export function skipPageRevalidationForStorefrontActions({
  */
 export function skipRootRevalidationForStorefrontActions({
   currentUrl,
+  nextUrl,
   defaultShouldRevalidate,
   formAction,
   formMethod,
 }: ShouldRevalidateFunctionArgs) {
+  if (hasLocalePathChange(currentUrl, nextUrl)) {
+    return true;
+  }
+
   if (formAction && formMethod && formMethod.toUpperCase() !== "GET") {
     const actionUrl = new URL(formAction, currentUrl);
     const actionPath = actionUrl.pathname.replace(/\.data$/, "");
@@ -49,4 +60,15 @@ export function skipRootRevalidationForStorefrontActions({
   }
 
   return defaultShouldRevalidate;
+}
+
+function hasLocalePathChange(currentUrl: URL, nextUrl: URL) {
+  return getLocalePathSegment(currentUrl) !== getLocalePathSegment(nextUrl);
+}
+
+function getLocalePathSegment(url: URL) {
+  const firstSegment = url.pathname.split("/").filter(Boolean)[0] ?? "";
+  return /^[a-z]{2}-[a-z]{2}$/i.test(firstSegment)
+    ? firstSegment.toLowerCase()
+    : null;
 }

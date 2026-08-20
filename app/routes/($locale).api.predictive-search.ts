@@ -319,7 +319,7 @@ function normalizePredictiveSearchResults(
             id: article.id,
             image: article.image,
             title: article.title,
-            url: `${localePrefix}/blogs/${article.blog.handle}/${article.handle}${createSearchParams(article)}`,
+            url: `${localePrefix}/blogs/${article.handle}${createSearchParams(article)}`,
           };
         },
       ),

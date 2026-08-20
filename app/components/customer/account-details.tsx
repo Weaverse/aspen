@@ -1,3 +1,4 @@
+import { useTranslation } from "@weaverse/hydrogen";
 import type { CustomerDetailsFragment } from "customer-account-api.generated";
 import type { HTMLAttributes } from "react";
 import { Link } from "~/components/link";
@@ -14,6 +15,7 @@ export function AccountDetails({
   heading?: string;
   editText?: string;
 } & HTMLAttributes<HTMLDivElement>) {
+  const { t } = useTranslation();
   const { firstName, lastName, emailAddress } = customer;
   return (
     <div {...rest} className={cn(className)}>
@@ -23,17 +25,21 @@ export function AccountDetails({
       <div className="mt-[13px] flex min-h-[227px] flex-col bg-white p-5 font-body text-[#343231] text-sm leading-5">
         <div className="space-y-4">
           <div>
-            <div>First Name</div>
-            <div className="font-semibold">{firstName || "N/A"}</div>
+            <div>{t("account.firstName")}</div>
+            <div className="font-semibold">
+              {firstName || t("account.notAvailable")}
+            </div>
           </div>
           <div>
-            <div>Last Name</div>
-            <div className="font-semibold">{lastName || "N/A"}</div>
+            <div>{t("account.lastName")}</div>
+            <div className="font-semibold">
+              {lastName || t("account.notAvailable")}
+            </div>
           </div>
           <div>
-            <div>Email</div>
+            <div>{t("account.email")}</div>
             <div className="break-all font-semibold">
-              {emailAddress?.emailAddress ?? "N/A"}
+              {emailAddress?.emailAddress ?? t("account.notAvailable")}
             </div>
           </div>
         </div>

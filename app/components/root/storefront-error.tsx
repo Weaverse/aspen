@@ -1,3 +1,4 @@
+import { useTranslation } from "@weaverse/hydrogen";
 import Link from "~/components/link";
 import { cn } from "~/utils/cn";
 
@@ -18,13 +19,16 @@ type StorefrontErrorProps = {
  * visually consistent without duplicating route-specific markup.
  */
 export function StorefrontError({
-  actionLabel = "Homepage",
+  actionLabel,
   actionTo = "/",
   className,
   statusCode = 500,
-  title = "Something went wrong",
+  title,
 }: StorefrontErrorProps) {
+  const { t } = useTranslation();
   const titleId = `storefront-error-${statusCode}`;
+  const resolvedActionLabel = actionLabel ?? t("navigation.home");
+  const resolvedTitle = title ?? t("system.somethingWentWrong");
 
   return (
     <section
@@ -45,7 +49,7 @@ export function StorefrontError({
           id={titleId}
           className="mt-3 font-body text-[28px] font-normal leading-tight tracking-[-0.02em]"
         >
-          {title}
+          {resolvedTitle}
         </h1>
         <Link
           to={actionTo}
@@ -58,7 +62,7 @@ export function StorefrontError({
           borderColorHover="transparent"
           className="mt-10 h-[54px] min-h-0 min-w-32 rounded-lg border-0 px-6 py-0 font-semibold uppercase"
         >
-          {actionLabel}
+          {resolvedActionLabel}
         </Link>
       </div>
     </section>

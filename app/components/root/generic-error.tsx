@@ -7,7 +7,5 @@ export function GenericError({
   error?: unknown;
   statusCode?: number;
 }) {
-  return (
-    <StorefrontError statusCode={statusCode} title="Something went wrong" />
-  );
+  return <StorefrontError statusCode={statusCode} />;
 }

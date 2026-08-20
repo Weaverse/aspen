@@ -1,12 +1,14 @@
 import { CircleNotchIcon, MagnifyingGlassIcon } from "@phosphor-icons/react";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
+import { useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 import Link from "~/components/link";
 import { usePredictiveSearch } from "~/hooks/use-predictive-search";
+import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import type { NormalizedPredictiveSearchResultItem } from "~/types/predictive-search";
 import { PopularSearch } from "../PopularSearch";
 import { PredictiveSearchForm } from "../search-form";
@@ -15,6 +17,8 @@ import { PredictiveSearchResult } from "./predictive-search-result";
 type ResourceType = "products" | "collections" | "pages";
 
 export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
+  const { t } = useTranslation();
+  const searchRoute = usePrefixPathWithLocale("/search");
   const [open, setOpen] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
@@ -54,7 +58,7 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
       return;
     }
     rememberSearch(query);
-    navigate(`/search?q=${encodeURIComponent(query)}`);
+    navigate(`${searchRoute}?q=${encodeURIComponent(query)}`);
   }
 
   return (
@@ -72,7 +76,7 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
         asChild
         className="relative hidden size-5 items-center justify-center focus-visible:outline-hidden before:absolute before:-inset-2 xl:flex"
       >
-        <button type="button" aria-label="Open search">
+        <button type="button" aria-label={t("accessibility.openSearch")}>
           <MagnifyingGlassIcon aria-hidden="true" className="size-5" />
         </button>
       </Dialog.Trigger>
@@ -102,7 +106,7 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
                   className="max-h-[calc(100vh-var(--height-nav)-var(--topbar-height))] w-full overflow-y-auto border-line-subtle border-t bg-(--color-header-bg)"
                 >
                   <VisuallyHidden.Root asChild>
-                    <Dialog.Title>Predictive search</Dialog.Title>
+                    <Dialog.Title>{t("search.predictiveTitle")}</Dialog.Title>
                   </VisuallyHidden.Root>
                   <PredictiveSearchForm
                     key={open ? "open" : "closed"}
@@ -113,7 +117,7 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
                         <button
                           type="button"
                           className="flex size-5 shrink-0 items-center justify-start focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body"
-                          aria-label="Search"
+                          aria-label={t("search.title")}
                           onClick={() => {
                             const value = inputRef.current?.value.trim() || "";
                             if (value) {
@@ -165,7 +169,7 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
                               goToSearch(inputRef.current?.value || "");
                             }
                           }}
-                          placeholder="Enter a keyword"
+                          placeholder={t("search.placeholder")}
                           ref={inputRef}
                           autoComplete="off"
                           className="h-full min-w-0 flex-1 !rounded-none !border-0 !bg-transparent px-0 text-[#343231] text-sm shadow-none outline-none focus-visible:!border-0 focus-visible:!shadow-none"
@@ -203,7 +207,7 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
                             aria-hidden="true"
                             className="size-5 animate-spin"
                           />
-                          <span>Searching…</span>
+                          <span>{t("search.searching")}</span>
                         </motion.div>
                       )}
                       {hasSearched && !loading && (
@@ -229,6 +233,7 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
 }
 
 function PredictiveSearchResults() {
+  const { t } = useTranslation();
   const [activeType, setActiveType] = useState<ResourceType>("products");
   const { results, searchTerm, searchTermValue } = usePredictiveSearch();
   const queries = results?.find(({ type }) => type === "queries");
@@ -298,7 +303,7 @@ function PredictiveSearchResults() {
               to={`/search?q=${encodeURIComponent(searchTerm.current)}`}
               className="flex h-[54px] items-center rounded-lg bg-[#F0EFED] px-6 font-semibold text-sm uppercase"
             >
-              View all products
+              {t("search.viewAllProducts")}
             </Link>
           </div>
         )}
@@ -314,13 +319,14 @@ function SuggestionsPanel({
   items?: NormalizedPredictiveSearchResultItem[];
   fallbackTerm: string;
 }) {
+  const { t } = useTranslation();
   return (
     <aside aria-labelledby="desktop-search-suggestions">
       <h2
         id="desktop-search-suggestions"
         className="flex h-7 items-start border-[#D8D8D8] border-b font-semibold text-[#524B46] text-sm uppercase leading-5"
       >
-        Suggestions
+        {t("search.suggestions")}
       </h2>
       <div className="pt-[22px]">
         {items?.length ? (
@@ -347,6 +353,7 @@ function ResourceTabs({
   counts: Record<ResourceType, number>;
   onChange: (type: ResourceType) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="flex h-7 gap-10 border-[#D8D8D8] border-b">
       {(["products", "collections", "pages"] as const).map((type) => (
@@ -361,7 +368,8 @@ function ResourceTabs({
           )}
           onClick={() => onChange(type)}
         >
-          {type === "pages" ? "Page" : type} ({counts[type]})
+          {t(type === "pages" ? "search.page" : `search.${type}`)} (
+          {counts[type]})
         </button>
       ))}
     </div>
@@ -375,6 +383,7 @@ function NoResults({
   queries?: NormalizedPredictiveSearchResultItem[];
   searchTerm: string;
 }) {
+  const { t } = useTranslation();
   if (!searchTerm) {
     return null;
   }
@@ -390,11 +399,11 @@ function NoResults({
       <div>
         <div className="flex h-7 border-[#D8D8D8] border-b">
           <p className="relative h-7 pb-3 font-semibold text-[#524B46] uppercase leading-5 after:absolute after:right-0 after:-bottom-px after:left-0 after:h-px after:bg-[#9D9D9D]">
-            Products
+            {t("search.products")}
           </p>
         </div>
         <p className="pt-[27px] text-[#524B46]">
-          No results for “{searchTerm}”
+          {t("search.noResults", { term: searchTerm })}
         </p>
       </div>
     </div>

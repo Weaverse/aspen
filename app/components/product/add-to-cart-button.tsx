@@ -9,6 +9,7 @@ import {
   getClientBrowserParameters,
   sendShopifyAnalytics,
 } from "@shopify/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FetcherWithComponents } from "react-router";
 import { useMatches } from "react-router";
@@ -16,6 +17,7 @@ import { Button } from "~/components/button";
 import { syncCartState } from "~/components/cart/cart-state-provider";
 import { toggleCartDrawer } from "~/components/layout/cart-drawer";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
+import { getCartMutationError } from "~/utils/cart-error";
 import { cn } from "~/utils/cn";
 import { DEFAULT_LOCALE } from "~/utils/const";
 
@@ -40,6 +42,7 @@ export function AddToCartButton({
   onAdded?: () => void;
   [key: string]: any;
 }) {
+  const { t } = useTranslation();
   const cartRoute = usePrefixPathWithLocale("/cart");
   const [isHydrated, setIsHydrated] = useState(false);
   const hasValidLines =
@@ -67,9 +70,7 @@ export function AddToCartButton({
       >
         {(fetcher: FetcherWithComponents<any>) => {
           const isAdding = fetcher.state !== "idle";
-          const errorMessage =
-            fetcher.data?.userErrors?.[0]?.message ||
-            fetcher.data?.errors?.[0]?.message;
+          const errorMessage = getCartMutationError(fetcher.data, t);
           return (
             <AddToCartAnalytics fetcher={fetcher} onAdded={onAdded}>
               <input
@@ -110,7 +111,7 @@ export function AddToCartButton({
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                         />
                       </svg>
-                      Adding...
+                      {t("cart.adding")}
                     </span>
                   ) : (
                     children

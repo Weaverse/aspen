@@ -104,38 +104,43 @@ let InstagramSlider = forwardRef<HTMLDivElement, InstagramSliderProps>(
     const renderImage = (
       item: (typeof displayedImages)[number],
       index: number,
-    ) => (
-      <div className="group relative aspect-square cursor-pointer overflow-hidden rounded-lg">
-        {item.media_url ? (
-          <Image
-            src={item.media_url}
-            alt={`Instagram post ${index + 1}`}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-            sizes="(min-width: 1024px) 260px, calc(100vw - 40px)"
-          />
-        ) : (
-          imageItemBlank()
-        )}
-        {item.username && (
-          <>
-            <div className="absolute inset-0 z-10 hidden items-center justify-center group-hover:flex">
-              <a
-                href={`https://www.instagram.com/${item.username}/`}
-                target="_blank"
-                className="flex items-center justify-center gap-2"
-                rel="noreferrer"
-              >
-                <InstagramLogo className="h-7 w-7 text-white" />
-                <span className="ff-heading font-medium text-white text-xl">
-                  {item.username}
-                </span>
-              </a>
-            </div>
-            <div className="absolute inset-0 opacity-0 transition-colors duration-500 group-hover:bg-[#554612] group-hover:opacity-50" />
-          </>
-        )}
-      </div>
-    );
+    ) => {
+      const tile = (
+        <>
+          {item.media_url ? (
+            <Image
+              src={item.media_url}
+              alt={`Instagram post ${index + 1}`}
+              className="h-full w-full object-cover"
+              sizes="(min-width: 1024px) 260px, calc(100vw - 40px)"
+            />
+          ) : (
+            imageItemBlank()
+          )}
+          <div className="absolute inset-0 bg-black/30 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100" />
+          <InstagramLogo className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 size-8 text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100" />
+        </>
+      );
+
+      const tileClassName =
+        "group relative block aspect-square cursor-pointer overflow-hidden rounded-(--radius-md)";
+
+      if (item.username) {
+        return (
+          <a
+            href={`https://www.instagram.com/${item.username}/`}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={`Instagram post ${index + 1} by ${item.username}`}
+            className={tileClassName}
+          >
+            {tile}
+          </a>
+        );
+      }
+
+      return <div className={tileClassName}>{tile}</div>;
+    };
 
     return (
       <div

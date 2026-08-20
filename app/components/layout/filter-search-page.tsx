@@ -7,6 +7,7 @@ import type {
   Filter,
   ProductFilter,
 } from "@shopify/hydrogen/storefront-api-types";
+import { useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { useRef, useState } from "react";
 import {
@@ -271,6 +272,7 @@ export function PriceRangeFilter({
 }: {
   collection: CollectionQuery["collection"];
 }) {
+  const { t } = useTranslation();
   const [params] = useSearchParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -347,8 +349,8 @@ export function PriceRangeFilter({
       <div className="flex items-center gap-4">
         <div className="flex shrink items-center gap-1 border border-line-subtle bg-white px-4">
           <VisuallyHidden.Root asChild>
-            <label htmlFor="minPrice" aria-label="Min price">
-              Min price
+            <label htmlFor="minPrice" aria-label={t("collection.minimumPrice")}>
+              {t("collection.minimumPrice")}
             </label>
           </VisuallyHidden.Root>
           <span>$</span>
@@ -369,11 +371,11 @@ export function PriceRangeFilter({
             className="w-full bg-transparent py-3 text-right focus-visible:outline-hidden"
           />
         </div>
-        <span>To</span>
+        <span>{t("collection.to")}</span>
         <div className="flex items-center gap-1 border border-line-subtle bg-white px-4">
           <VisuallyHidden.Root asChild>
-            <label htmlFor="maxPrice" aria-label="Max price">
-              Max price
+            <label htmlFor="maxPrice" aria-label={t("collection.maximumPrice")}>
+              {t("collection.maximumPrice")}
             </label>
           </VisuallyHidden.Root>
           <span>$</span>

@@ -26,6 +26,7 @@ const VideoPlaceholder = () => (
         viewBox="0 0 24 24"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
       >
         <path d="M10 8L16 12L10 16V8Z" fill="currentColor" />
         <path
@@ -86,9 +87,16 @@ let VideoItem = forwardRef<HTMLDivElement, VideoItemProps>((props, ref) => {
                 muted
                 loop
                 playsInline
+                controls={false}
                 width="100%"
                 height="100%"
-                controls={false}
+                config={{
+                  youtube: {
+                    rel: 0,
+                    fs: 0,
+                    iv_load_policy: 3,
+                  },
+                }}
                 style={{
                   position: "absolute",
                   top: 0,

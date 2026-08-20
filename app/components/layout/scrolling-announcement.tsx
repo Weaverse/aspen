@@ -4,7 +4,7 @@ import {
   TwitterLogo,
   YoutubeLogo,
 } from "@phosphor-icons/react";
-import { useThemeSettings } from "@weaverse/hydrogen";
+import { useThemeSettings, useTranslation } from "@weaverse/hydrogen";
 import { cva } from "class-variance-authority";
 import { type CSSProperties, useEffect, useRef } from "react";
 import type { Swiper as SwiperClass } from "swiper";
@@ -49,6 +49,7 @@ function AnnouncementArrow({ direction }: { direction: "left" | "right" }) {
 }
 
 export function ScrollingAnnouncement() {
+  const { t } = useTranslation();
   const themeSettings = useThemeSettings();
   const {
     announcementWidth,
@@ -170,7 +171,7 @@ export function ScrollingAnnouncement() {
             type="button"
             className="absolute top-1/2 left-5 z-10 -translate-y-1/2 opacity-80 transition-opacity hover:opacity-100 md:left-8 xl:left-0"
             onClick={() => swiperRef.current?.slidePrev()}
-            aria-label="Previous announcement"
+            aria-label={t("announcement.previous")}
           >
             <AnnouncementArrow direction="left" />
           </button>
@@ -179,7 +180,7 @@ export function ScrollingAnnouncement() {
             type="button"
             className="absolute top-1/2 right-5 z-10 -translate-y-1/2 opacity-80 transition-opacity hover:opacity-100 md:right-8 xl:right-0"
             onClick={() => swiperRef.current?.slideNext()}
-            aria-label="Next announcement"
+            aria-label={t("announcement.next")}
           >
             <AnnouncementArrow direction="right" />
           </button>

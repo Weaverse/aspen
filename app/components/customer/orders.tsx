@@ -1,19 +1,38 @@
 import { flattenConnection } from "@shopify/hydrogen";
-import type { FulfillmentStatus } from "@shopify/hydrogen/customer-account-api-types";
+import { type TranslateFunction, useTranslation } from "@weaverse/hydrogen";
 import type { OrderCardFragment } from "customer-account-api.generated";
 import type { HTMLAttributes } from "react";
 import { Image } from "~/components/image";
 import Link from "~/components/link";
+import { useLocale } from "~/hooks/use-locale";
 import { cn } from "~/utils/cn";
+import { formatDate } from "~/utils/locale";
 
-export const ORDER_STATUS: Record<FulfillmentStatus, string> = {
-  SUCCESS: "Success",
-  PENDING: "Pending",
-  OPEN: "Open",
-  FAILURE: "Failure",
-  ERROR: "Error",
-  CANCELLED: "Cancelled",
-};
+export function getOrderStatusLabel(
+  status: string | undefined,
+  t: TranslateFunction,
+  unfulfilledLabel?: string,
+) {
+  switch (status) {
+    case "SUCCESS":
+      return t("orders.status.success");
+    case "PENDING":
+      return t("orders.status.pending");
+    case "OPEN":
+      return t("orders.status.open");
+    case "FAILURE":
+      return t("orders.status.failure");
+    case "ERROR":
+      return t("orders.status.error");
+    case "CANCELLED":
+      return t("orders.status.cancelled");
+    case "UNFULFILLED":
+    case undefined:
+      return unfulfilledLabel ?? t("orders.unfulfilled");
+    default:
+      return status;
+  }
+}
 
 type OrderCardsProps = {
   orders: OrderCardFragment[];
@@ -22,14 +41,15 @@ type OrderCardsProps = {
 
 export function AccountOrderHistory({
   orders,
-  heading = "ORDERS",
+  heading,
   className,
   ...rest
 }: OrderCardsProps & HTMLAttributes<HTMLDivElement>) {
+  const { t } = useTranslation();
   return (
     <div {...rest} className={cn(className)}>
       <h2 className="font-body font-normal text-[#343231] text-sm uppercase leading-5">
-        {heading}
+        {heading ?? t("orders.title")}
       </h2>
       {orders?.length ? <Orders orders={orders} /> : <EmptyOrders />}
     </div>
@@ -37,9 +57,10 @@ export function AccountOrderHistory({
 }
 
 function EmptyOrders() {
+  const { t } = useTranslation();
   return (
     <div className="mt-[11px] bg-white p-5 font-body text-[#343231] text-sm">
-      You haven&apos;t placed any orders yet.
+      {t("account.noOrders")}
     </div>
   );
 }
@@ -55,6 +76,8 @@ function Orders({ orders }: OrderCardsProps) {
 }
 
 function OrderCard({ order }: { order: OrderCardFragment }) {
+  const { t } = useTranslation();
+  const locale = useLocale();
   if (!order?.id) {
     return null;
   }
@@ -69,9 +92,7 @@ function OrderCard({ order }: { order: OrderCardFragment }) {
   const orderLink = key
     ? `/account/orders/${legacyOrderId}?${key}`
     : `/account/orders/${legacyOrderId}`;
-  const statusLabel = fulfillmentStatus
-    ? ORDER_STATUS[fulfillmentStatus] || fulfillmentStatus
-    : "Unfulfilled";
+  const statusLabel = getOrderStatusLabel(fulfillmentStatus, t);
 
   return (
     <li className="flex h-[180px] min-w-0 bg-white font-body text-[#343231]">
@@ -80,7 +101,7 @@ function OrderCard({ order }: { order: OrderCardFragment }) {
           className="block h-[180px] w-[180px] shrink-0"
           to={orderLink}
           prefetch="intent"
-          aria-label={`View order ${order.number}`}
+          aria-label={t("orders.viewOrder", { number: order.number })}
         >
           <Image
             width={360}
@@ -98,15 +119,17 @@ function OrderCard({ order }: { order: OrderCardFragment }) {
           className="line-clamp-1 font-semibold text-sm uppercase leading-5"
         >
           {lineItems.length > 1
-            ? `${firstLineItem.title} ... +${lineItems.length - 1} more`
+            ? `${firstLineItem.title} ... +${t("orders.moreItems", {
+                count: lineItems.length - 1,
+              })}`
             : firstLineItem.title}
         </Link>
         <dl className="mt-2 flex flex-col text-sm leading-[22px]">
-          <dt className="sr-only">Order ID</dt>
-          <dd>Order no. #{order.number}</dd>
-          <dt className="sr-only">Order Date</dt>
-          <dd>{new Date(order.processedAt).toDateString()}</dd>
-          <dt className="sr-only">Fulfillment Status</dt>
+          <dt className="sr-only">{t("orders.orderId")}</dt>
+          <dd>{t("account.orderNumber", { number: `#${order.number}` })}</dd>
+          <dt className="sr-only">{t("orders.orderDate")}</dt>
+          <dd>{formatDate(order.processedAt, locale)}</dd>
+          <dt className="sr-only">{t("orders.fulfillmentStatus")}</dt>
           <dd className="mt-10">
             <span className="inline-flex h-[27px] min-w-[97px] items-center justify-center bg-[#4D4946] px-2.5 font-normal text-[#343231] text-xs uppercase leading-none">
               {statusLabel}

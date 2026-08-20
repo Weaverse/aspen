@@ -1,17 +1,21 @@
 import { CircleNotchIcon, MagnifyingGlass, X } from "@phosphor-icons/react";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
+import { useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 import Link from "~/components/link";
 import { usePredictiveSearch } from "~/hooks/use-predictive-search";
+import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import { PopularSearch } from "../PopularSearch";
 import { PredictiveSearchForm } from "../search-form";
 import { PredictiveSearchResult } from "./predictive-search-result";
 
 export function PredictiveSearchButtonMobile({ setIsSearchOpen }) {
+  const { t } = useTranslation();
+  const searchRoute = usePrefixPathWithLocale("/search");
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [hasSearched, setHasSearched] = useState(false);
@@ -42,7 +46,7 @@ export function PredictiveSearchButtonMobile({ setIsSearchOpen }) {
       return;
     }
     rememberSearch(query);
-    navigate(`/search?q=${encodeURIComponent(query)}`);
+    navigate(`${searchRoute}?q=${encodeURIComponent(query)}`);
   }
 
   return (
@@ -60,7 +64,7 @@ export function PredictiveSearchButtonMobile({ setIsSearchOpen }) {
         asChild
         className="relative flex size-5 items-center justify-center focus-visible:outline-none before:absolute before:-inset-2 xl:hidden"
       >
-        <button type="button" aria-label="Open search">
+        <button type="button" aria-label={t("accessibility.openSearch")}>
           <MagnifyingGlass aria-hidden="true" className="size-5" />
         </button>
       </Dialog.Trigger>
@@ -90,17 +94,17 @@ export function PredictiveSearchButtonMobile({ setIsSearchOpen }) {
                   className="flex h-full w-screen max-w-[381px] flex-col overflow-hidden rounded-r-2xl bg-(--color-header-bg)"
                 >
                   <VisuallyHidden.Root asChild>
-                    <Dialog.Title>Predictive search</Dialog.Title>
+                    <Dialog.Title>{t("search.predictiveTitle")}</Dialog.Title>
                   </VisuallyHidden.Root>
                   <div className="flex h-[54px] shrink-0 items-center justify-between px-5">
                     <span className="font-semibold text-sm uppercase">
-                      Search
+                      {t("search.title")}
                     </span>
                     <Dialog.Close asChild>
                       <button
                         type="button"
                         className="-mr-2 flex h-10 w-10 items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body"
-                        aria-label="Close search drawer"
+                        aria-label={t("accessibility.closeSearch")}
                       >
                         <X aria-hidden="true" className="h-5 w-5" />
                       </button>
@@ -116,7 +120,7 @@ export function PredictiveSearchButtonMobile({ setIsSearchOpen }) {
                             <button
                               type="button"
                               className="flex h-12 w-7 shrink-0 items-center justify-start"
-                              aria-label="View all search results"
+                              aria-label={t("accessibility.viewSearchResults")}
                               onClick={() => goToSearch(searchQuery)}
                             >
                               <MagnifyingGlass
@@ -157,7 +161,7 @@ export function PredictiveSearchButtonMobile({ setIsSearchOpen }) {
                                   goToSearch(searchQuery);
                                 }
                               }}
-                              placeholder="Enter a keyword"
+                              placeholder={t("search.placeholder")}
                               ref={inputRef}
                               autoComplete="off"
                               className="h-12 min-w-0 flex-1 !rounded-none !border-0 !bg-transparent px-0 text-sm shadow-none outline-none focus-visible:!border-0 focus-visible:!shadow-none"
@@ -166,7 +170,7 @@ export function PredictiveSearchButtonMobile({ setIsSearchOpen }) {
                               <button
                                 type="button"
                                 className="flex h-12 w-8 shrink-0 items-center justify-end text-body-subtle"
-                                aria-label="Clear search"
+                                aria-label={t("accessibility.clearSearch")}
                                 onClick={() => {
                                   if (debounceRef.current) {
                                     clearTimeout(debounceRef.current);
@@ -194,7 +198,7 @@ export function PredictiveSearchButtonMobile({ setIsSearchOpen }) {
                                   aria-hidden="true"
                                   className="h-5 w-5 animate-spin"
                                 />
-                                <span>Searching…</span>
+                                <span>{t("search.searching")}</span>
                               </div>
                             ) : (
                               <PredictiveSearchResults />
@@ -215,6 +219,7 @@ export function PredictiveSearchButtonMobile({ setIsSearchOpen }) {
 }
 
 function PredictiveSearchResults() {
+  const { t } = useTranslation();
   const [activeType, setActiveType] = useState<
     "products" | "collections" | "pages"
   >("products");
@@ -237,7 +242,9 @@ function PredictiveSearchResults() {
       <div className="mt-4">
         <div className="relative grid grid-cols-[116px_139px_1fr] border-[#D8D8D8] border-b">
           {(["products", "collections", "pages"] as const).map((type) => {
-            const label = type === "pages" ? "Page" : type;
+            const label = t(
+              type === "pages" ? "search.page" : `search.${type}`,
+            );
             return (
               <button
                 key={type}
@@ -283,7 +290,7 @@ function PredictiveSearchResults() {
               to={`/search?q=${encodeURIComponent(searchTerm.current)}`}
               className="flex h-[54px] w-fit items-center rounded-md bg-[#F0EFED] px-6 font-semibold text-sm uppercase"
             >
-              View all products
+              {t("search.viewAllProducts")}
             </Link>
           </div>
         )}
@@ -293,6 +300,7 @@ function PredictiveSearchResults() {
 }
 
 function NoResults({ searchTerm }: { searchTerm: string }) {
+  const { t } = useTranslation();
   if (!searchTerm) {
     return null;
   }
@@ -305,15 +313,15 @@ function NoResults({ searchTerm }: { searchTerm: string }) {
       aria-atomic="true"
     >
       <p className="border-[#D8D8D8] border-b pb-[11px] font-semibold uppercase">
-        Suggestions
+        {t("search.suggestions")}
       </p>
       <p className="py-[22px] font-semibold">{searchTerm}</p>
       <div className="border-[#D8D8D8] border-b">
         <p className="w-[76px] border-[#9D9D9D] border-b pb-[11px] font-semibold uppercase">
-          Products
+          {t("search.products")}
         </p>
       </div>
-      <p className="pt-5">No results for “{searchTerm}”</p>
+      <p className="pt-5">{t("search.noResults", { term: searchTerm })}</p>
     </div>
   );
 }

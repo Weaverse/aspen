@@ -10,13 +10,21 @@ maps onto the Weaverse JSON generator. Companion to this skill's `SKILL.md`.
 | `get_metadata` | node/frame tree of the file or a frame | section boundaries; one top-level frame ≈ one section block |
 | `get_variable_defs` | design variables (color, type, spacing, radius) | theme token mapping (see below) |
 | `get_design_context` | layout, auto-layout, text content, component usage of a frame | composition + content per section |
+| `get_context_for_code_connect` | one component's properties, **exhaustive variant options**, descendant tree | hover/active/disabled states; section prop boundaries |
+| `list_file_components_for_code_connect` | flat whole-file component graph (published components only) | planning reuse before decomposing |
+| `get_motion_context` | animated-node inventory, keyframe tracks + easing, **pre-computed CSS `@keyframes` / motion.dev snippets** | real animation values; `recursive: true` for a subtree |
 | `download_assets` | exported image/icon files + URLs | content manifest asset columns |
 | `get_screenshot` | rendered image of a frame/node | approval checkpoint + preview verification |
 | `search_design_system` / `get_libraries` | library components in use | understanding reusable component intent |
 
 Read order for a page: `get_metadata` (structure) → `get_variable_defs` (tokens)
-→ `get_design_context` per frame (content/layout) → `download_assets` (assets)
-→ `get_screenshot` (visual check).
+→ `get_design_context` per frame (content/layout) → `get_context_for_code_connect`
+on interactive components (states) → `get_motion_context` where motion is suspected
+→ `download_assets` (assets) → `get_screenshot` (visual check).
+
+Screenshots are a verification aid, never the extraction method. Reading layout off
+a rendered image throws away every structured signal in the table above and is what
+produces flat, static-looking output.
 
 ## Token mapping → `project.config.theme`
 
@@ -51,18 +59,64 @@ Figma auto-layout encodes composition directly — read it instead of guessing:
   links between frames → `card-slider` (confirm from the prototype, not from
   the static frame alone)
 
-## Interaction — infer, don't invent
+## Interaction — query first, infer last
 
-A static frame has no runtime behavior. Determine interaction from:
+A static *frame* has no runtime behavior, but the *file* usually does. Work down
+this ladder and only fall through to guessing at the last rung.
 
-- **Prototype links** between frames (arrow/auto-advance hints a carousel)
-- **Frame/layer names** (`Slider`, `Marquee`, `Carousel`, `Hover`)
-- **Designer notes / FigJam** alongside the design
+### 1. States are component variants
 
-If none of these signal motion, classify the block as `static`. Do not map a
-multi-card frame to a Swiper-based section just because several cards are shown —
-that mismatch is the Figma equivalent of the website skill's "basically a grid"
-mistake.
+Designers rarely draw a hover effect — they add a variant property such as
+`State = Default | Hover | Pressed | Disabled`. The state already exists as a real
+node; it just isn't on the frame you're looking at.
+
+Call `get_context_for_code_connect` on every interactive component (buttons, cards,
+nav items, inputs) to get its exhaustive variant options. Map them onto the section's
+CSS states, and let the variant set — not the screenshot — decide which states exist.
+A component with no `Hover` variant means the designer didn't specify one; use the
+brand guideline's default hover treatment rather than inventing a bespoke one.
+
+### 2. Animation is real data
+
+Where motion exists, `get_motion_context` is the source of truth for timing, easing,
+and keyframe values. Use `recursive: true` to cover a subtree in one call.
+
+- Join motion to structure by node id: `get_motion_context` says *which* nodes animate
+  and with what values; `get_design_context` says what they look like. Match on
+  `data-node-id`.
+- **Use the returned `codeSnippets` verbatim** — don't regenerate timing from raw
+  tracks, that loses custom bezier and spring fidelity.
+- Recursive responses include `timelineCohorts` (`rootNodeId`, `durationMs`,
+  `loopMode`, `memberNodeIds`). Drive a cohort from one shared lifecycle instead of
+  inferring order from sibling position.
+- On any conflict with design context, motion context wins.
+
+### 3. Known gap — variant transitions
+
+Transitions between variants (`On click → Change to variant B` with Smart Animate)
+travel a **separate data path that `get_motion_context` does not yet return**. You
+get the start and end variants but not the curve between them.
+
+Fallback: implement the variant as a CSS state class or conditional render, plus a
+short `transition:` on the changing properties. For storefront hover states this is
+indistinguishable from Smart Animate in practice — don't escalate it as a blocker.
+
+### 4. Escape hatch — prototype reactions via Plugin API
+
+When the trigger itself matters (hover vs click vs drag, auto-advance delay), read
+the node's `reactions` array through `use_figma`, which executes JavaScript against
+the Figma Plugin API. Load the `figma-use` skill first. Treat this as a targeted
+probe for a specific question, not a bulk extraction step.
+
+### 5. Only now, infer
+
+If the ladder above yields nothing, fall back to weak signals — prototype links
+between frames, frame/layer names (`Slider`, `Marquee`, `Carousel`), designer notes
+or FigJam alongside the design — and otherwise classify the block as `static`.
+
+Do not map a multi-card frame to a Swiper-based section just because several cards
+are shown — that mismatch is the Figma equivalent of the website skill's "basically
+a grid" mistake.
 
 ## Assets
 

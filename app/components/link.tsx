@@ -14,6 +14,7 @@ import {
 } from "react-router";
 import type { RootLoader } from "~/root";
 import { cn } from "~/utils/cn";
+import { prefixPathWithLocale } from "~/utils/locale";
 
 export const variants = cva(
   [
@@ -97,16 +98,9 @@ export function useHrefWithLocale(href: LinkProps["to"]) {
   const rootData = useRouteLoaderData<RootLoader>("root");
   const selectedLocale = rootData?.selectedLocale;
 
-  let toWithLocale = href;
-  if (
-    typeof toWithLocale === "string" &&
-    selectedLocale?.pathPrefix &&
-    !toWithLocale.toLowerCase().startsWith(selectedLocale.pathPrefix)
-  ) {
-    toWithLocale = `${selectedLocale.pathPrefix}${href}`;
-  }
-
-  return toWithLocale;
+  return typeof href === "string" && selectedLocale
+    ? prefixPathWithLocale(href, selectedLocale)
+    : href;
 }
 
 /**

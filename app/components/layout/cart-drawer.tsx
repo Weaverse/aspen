@@ -1,6 +1,7 @@
 import { ShoppingBagIcon, XIcon } from "@phosphor-icons/react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { type CartReturn, useAnalytics } from "@shopify/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { Suspense, useEffect, useState } from "react";
 import { Await, useRouteLoaderData } from "react-router";
@@ -43,6 +44,7 @@ export function useCartDrawerState() {
 }
 
 export function CartDrawer() {
+  const { t } = useTranslation();
   const rootData = useRouteLoaderData<RootLoader>("root");
   const { cart: latestCart, isResolved } = useCartState();
   const { publish } = useAnalytics();
@@ -53,7 +55,7 @@ export function CartDrawer() {
       fallback={
         <Link
           to="/cart"
-          aria-label="Open cart"
+          aria-label={t("accessibility.openCart")}
           className="relative flex size-5 items-center justify-center focus:ring-border before:absolute before:-inset-2"
         >
           <ShoppingBagIcon className="size-5" />
@@ -64,7 +66,7 @@ export function CartDrawer() {
         {(cart) => (
           <Dialog.Root open={isOpen} onOpenChange={toggleCartDrawer}>
             <Dialog.Trigger
-              aria-label="Open cart"
+              aria-label={t("accessibility.openCart")}
               onClick={() => publish("custom_sidecart_viewed", { cart })}
               className="relative flex size-5 items-center justify-center focus:ring-border before:absolute before:-inset-2"
             >
@@ -86,13 +88,15 @@ export function CartDrawer() {
               <div className="flex h-full min-h-0 flex-col">
                 <div className="flex items-center justify-between gap-2 px-5 pb-5">
                   <Dialog.Title asChild className="text-base">
-                    <span className="font-semibold uppercase">Cart</span>
+                    <span className="font-semibold uppercase">
+                      {t("cart.title")}
+                    </span>
                   </Dialog.Title>
                   <Dialog.Close asChild>
                     <button
                       type="button"
                       className="translate-x-2 p-2"
-                      aria-label="Close cart drawer"
+                      aria-label={t("accessibility.closeCart")}
                     >
                       <XIcon className="h-4 w-4" />
                     </button>

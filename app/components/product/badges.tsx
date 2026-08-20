@@ -30,7 +30,7 @@ function Badge({
         textTransform: badgeTextTransform,
       }}
       className={cn(
-        "whitespace-nowrap px-2 py-1 text-xs leading-none",
+        "whitespace-nowrap px-2 py-1 font-bold text-xs leading-none",
         className,
       )}
     >

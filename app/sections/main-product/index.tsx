@@ -9,13 +9,20 @@ import type {
   MoneyV2,
   ProductVariantComponent,
 } from "@shopify/hydrogen/storefront-api-types";
-import { createSchema, type WeaverseImage } from "@weaverse/hydrogen";
+import {
+  createSchema,
+  useTranslation,
+  type WeaverseImage,
+} from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { forwardRef, useEffect, useState } from "react";
 import { useLoaderData } from "react-router";
+import { LoyaltyPointsHint } from "~/components/loyalty/loyalty-points-hint";
 import { AddToCartButton } from "~/components/product/add-to-cart-button";
+import { BackInStockForm } from "~/components/product/back-in-stock-form";
 import { ProductBadges } from "~/components/product/badges";
 import { BundledVariants } from "~/components/product/bundled-variants";
+import { ProductRating } from "~/components/product/judgeme-review";
 import {
   ProductMedia,
   type ProductMediaProps,
@@ -27,6 +34,7 @@ import {
 } from "~/components/product/variant-prices";
 import { layoutInputs, Section, type SectionProps } from "~/components/section";
 import { SellingPlanSelector } from "~/components/subscriptions/selling-plan-selector";
+import { ProductWishlistButton } from "~/components/wishlist/product-wishlist-button";
 import type { loader as productRouteLoader } from "~/routes/($locale).products.$productHandle";
 import ReviewIndex from "~/sections/judgeme-reviews/review-index";
 import { isCombinedListing } from "~/utils/combined-listings";
@@ -46,6 +54,8 @@ interface ProductInformationData
   showShippingPolicy: boolean;
   showRefundPolicy: boolean;
   showInventoryStatus: boolean;
+  showWishlist: boolean;
+  showBackInStockForm: boolean;
   lowInventoryThreshold: number;
   lowInventoryText: string;
   descriptionTitle: string;
@@ -57,6 +67,7 @@ interface ProductInformationData
   storyFirstHeading: string;
   storySecondImage?: WeaverseImage | string;
   storySecondHeading: string;
+  showProductRating: boolean;
   showProductReviews: boolean;
   reviewsTitle: string;
   reviewsDescription: string;
@@ -69,6 +80,7 @@ const ProductInformation = forwardRef<
   HTMLDivElement,
   ProductInformationData & SectionProps
 >((props, ref) => {
+  const { t } = useTranslation();
   const { product, storeDomain } = useLoaderData<typeof productRouteLoader>();
 
   // Optimistically selects a variant with given available variant information
@@ -93,6 +105,8 @@ const ProductInformation = forwardRef<
     showShippingPolicy,
     showRefundPolicy,
     showInventoryStatus = true,
+    showWishlist = true,
+    showBackInStockForm = true,
     lowInventoryThreshold = 10,
     lowInventoryText = "Hurry up! Only [quantity] items in stock.",
     descriptionTitle = "Dimensions",
@@ -104,6 +118,7 @@ const ProductInformation = forwardRef<
     storyFirstHeading = "WHETHER A LAVISH VELVET SOFA, A BOLD-HUED BROCADE CHAISE.",
     storySecondImage,
     storySecondHeading = "TACTILE FABRIC TRENDS HAVE ALSO EXPANDED TO A BROADER UNIVERSE.",
+    showProductRating = true,
     showProductReviews = true,
     reviewsTitle = "Customer Reviews",
     reviewsDescription = "Read what our customers are saying about this product.",
@@ -111,7 +126,9 @@ const ProductInformation = forwardRef<
     gridSize,
     imageAspectRatio,
     showThumbnails,
-    children,
+    // The star rating used to be a `judgeme` child; it is a section element now,
+    // so any child saved on existing pages is intentionally dropped.
+    children: _children,
     enableZoom,
     showDots,
     navigationStyle,
@@ -313,11 +330,11 @@ const ProductInformation = forwardRef<
               )}
 
               <div className="space-y-7">
-                {children}
+                {showProductRating && <ProductRating linkToReviews />}
 
                 {isBundle && (
                   <div className="space-y-3">
-                    <h4 className="text-2xl">Bundled Products</h4>
+                    <h4 className="text-2xl">{t("product.bundledProducts")}</h4>
                     <BundledVariants
                       variants={bundledVariants as ProductVariantComponent[]}
                     />
@@ -395,6 +412,12 @@ const ProductInformation = forwardRef<
                     >
                       {atcButtonText}
                     </AddToCartButton>
+                    {showWishlist && (
+                      <ProductWishlistButton
+                        productId={product.id}
+                        productTitle={title}
+                      />
+                    )}
                   </div>
                   {selectedVariant?.availableForSale && (
                     <ShopPayButton
@@ -408,6 +431,20 @@ const ProductInformation = forwardRef<
                       storeDomain={storeDomain}
                     />
                   )}
+                  {selectedVariant?.availableForSale && (
+                    <LoyaltyPointsHint
+                      amount={
+                        Number.parseFloat(
+                          selectedVariant.price?.amount || "0",
+                        ) * quantity
+                      }
+                    />
+                  )}
+                  <BackInStockForm
+                    variantId={selectedVariant?.id}
+                    availableForSale={selectedVariant?.availableForSale}
+                    enabled={showBackInStockForm}
+                  />
                 </div>
               )}
 
@@ -458,7 +495,6 @@ export default ProductInformation;
 export const schema = createSchema({
   type: "main-product",
   title: "Main product",
-  childTypes: ["judgeme"],
   limit: 1,
   enabledOn: {
     pages: ["PRODUCT"],
@@ -701,6 +737,20 @@ export const schema = createSchema({
         },
         {
           type: "switch",
+          label: "Show customer wishlist",
+          name: "showWishlist",
+          defaultValue: true,
+        },
+        {
+          type: "switch",
+          label: "Show back-in-stock form",
+          name: "showBackInStockForm",
+          defaultValue: true,
+          helpText:
+            "Appears when the selected variant is sold out and Klaviyo is configured. See docs/integrations.md.",
+        },
+        {
+          type: "switch",
           label: "Show low inventory status",
           name: "showInventoryStatus",
           defaultValue: true,
@@ -825,6 +875,14 @@ export const schema = createSchema({
       inputs: [
         {
           type: "switch",
+          label: "Show star rating",
+          name: "showProductRating",
+          defaultValue: true,
+          helpText:
+            "Shows the Judge.me star rating under the price. Clicking it scrolls to the reviews.",
+        },
+        {
+          type: "switch",
           label: "Show product reviews",
           name: "showProductReviews",
           defaultValue: true,
@@ -858,7 +916,9 @@ export const schema = createSchema({
     navigationStyle: "sides",
     arrowsShape: "rounded-sm",
     addToCartText: "Add to bag",
+    showWishlist: true,
     showProductStory: true,
+    showProductRating: true,
     showProductReviews: true,
   },
 });

@@ -17,7 +17,7 @@ import type { ImageAspectRatio } from "~/types/image";
 import { calculateAspectRatio, getImageLoadingPriority } from "~/utils/image";
 
 interface BlogsProps
-  extends Omit<ArticleCardProps, "article" | "blogHandle" | "loading">,
+  extends Omit<ArticleCardProps, "article" | "loading">,
     Omit<HeadingProps, "as" | "content">,
     SectionProps {
   layout: "blog" | "default";
@@ -66,7 +66,7 @@ const Blogs = forwardRef<HTMLElement, BlogsProps>((props, ref) => {
     ...rest
   } = props;
   const { blog, articles } = useLoaderData<{
-    blog: BlogsIndexQuery["blogs"]["nodes"][number];
+    blog: NonNullable<BlogsIndexQuery["blog"]>;
     articles: ArticleFragment[];
   }>();
 
@@ -109,7 +109,6 @@ const Blogs = forwardRef<HTMLElement, BlogsProps>((props, ref) => {
           {visibleArticles.map((article, i) => (
             <ArticleCard
               key={article.id}
-              blogHandle={blog.handle}
               article={article}
               loading={getImageLoadingPriority(i, 2)}
               showAuthor={showAuthor}
@@ -137,7 +136,6 @@ const Blogs = forwardRef<HTMLElement, BlogsProps>((props, ref) => {
 
 export interface ArticleCardProps {
   article: ArticleFragment;
-  blogHandle: string;
   loading?: HTMLImageElement["loading"];
   showDate: boolean;
   showExcerpt: boolean;
@@ -150,7 +148,6 @@ export interface ArticleCardProps {
 }
 
 export function ArticleCard({
-  blogHandle,
   article,
   loading,
   showExcerpt,
@@ -165,7 +162,7 @@ export function ArticleCard({
   return (
     <article className={`group ${className || ""}`}>
       <Link
-        to={`/blogs/${blogHandle}/${article.handle}`}
+        to={`/blogs/${article.handle}`}
         className="block h-full cursor-pointer"
       >
         <div className="flex h-full w-full flex-col gap-4">

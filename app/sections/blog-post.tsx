@@ -24,7 +24,7 @@ interface BlogPostProps extends SectionProps {
 const BlogPost = forwardRef<HTMLElement, BlogPostProps>((props, ref) => {
   const { showTags, showShareButtons, ...rest } = props;
   const { layout } = useRouteLoaderData<RootLoader>("root");
-  const { article, blog, formattedDate } = useLoaderData<{
+  const { article, formattedDate } = useLoaderData<{
     article: ArticleQuery["blog"]["articleByHandle"];
     blog: ArticleQuery["blog"];
     formattedDate: string;
@@ -38,8 +38,7 @@ const BlogPost = forwardRef<HTMLElement, BlogPostProps>((props, ref) => {
         domain = origin;
       }
     }
-    const { handle: blogHandle } = blog;
-    const articleUrl = `${domain}/blogs/${blogHandle}/${handle}`;
+    const articleUrl = `${domain}/blogs/${handle}`;
     return (
       <Section ref={ref} {...rest}>
         {image && (

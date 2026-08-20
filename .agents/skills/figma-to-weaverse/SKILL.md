@@ -39,16 +39,18 @@ Same three deliverables as the website cloning skill:
 
 ## Extraction with Figma MCP (MCP-first)
 
-Use the Figma MCP tools. They return **structured** design data — more precise than scraped HTML for tokens and layout, but weaker on real interaction (a static design has no runtime behavior).
+Use the Figma MCP tools. They return **structured** design data — more precise than scraped HTML for tokens and layout, and richer on interaction than a rendered frame suggests: states live in component variants and animation values come back as real keyframe data. Never extract by reading a screenshot; that discards every signal below.
 
 > Before any `use_figma` write call, load the `figma-use` skill. For reads below, no write is needed.
 
 1. **Map the structure** — `get_metadata` on the file/frame to get the node tree. Top-level frames/sections become your section-splitting boundaries (the Figma equivalent of HTML section markers).
 2. **Extract design tokens** — `get_variable_defs` for colors, typography, spacing, radius. These map directly into `project.config.theme` in the JSON generator (colors → `colorPrimary`/`colorText`/…, type scale → `bodyBaseSize`/`h1BaseSize`/…). This is the biggest advantage over web scraping — tokens are explicit, not inferred.
 3. **Read layout + content per frame** — `get_design_context` on each section frame for layout structure, auto-layout direction, text content, and component usage. Auto-layout (horizontal/vertical, wrap, spacing) tells you composition (side-by-side vs stacked vs grid).
-4. **Export assets** — `download_assets` (or `get_screenshot` of leaf image nodes) to get real image/icon URLs. These populate the content manifest's image columns. There is no "video src" to extract like in HTML — flag motion/video intent from frame names or prototype notes instead.
-5. **Visual reference** — `get_screenshot` of each frame for the approval checkpoint and for verifying the clone preview matches.
-6. **Design system reuse** — `search_design_system` / `get_libraries` when the file uses a component library, to understand reusable component intent.
+4. **Resolve interactive states** — `get_context_for_code_connect` on each interactive component (buttons, cards, nav items, inputs) for its exhaustive variant options. Hover/pressed/disabled are normally variant properties (`State = Default | Hover | …`), not effects — they exist in the file even though they aren't on the frame you rendered. Let the variant set decide which states the section implements.
+5. **Pull motion where it exists** — `get_motion_context` (with `recursive: true` for a subtree) on frames that animate. It returns keyframe tracks, easing, and ready-made CSS/motion.dev snippets; use those values verbatim and match them to structure by `data-node-id`. See the extraction reference for the variant-transition gap and its fallback.
+6. **Export assets** — `download_assets` (or `get_screenshot` of leaf image nodes) to get real image/icon URLs. These populate the content manifest's image columns. There is no "video src" to extract like in HTML — flag motion/video intent from frame names or prototype notes instead.
+7. **Visual reference** — `get_screenshot` of each frame for the approval checkpoint and for verifying the clone preview matches.
+8. **Design system reuse** — `search_design_system` / `get_libraries` when the file uses a component library, to understand reusable component intent.
 
 ### Plugin fallback
 
@@ -58,7 +60,7 @@ If the MCP can't reach the file or can't export a specific asset (e.g. a flatten
 
 1. Read `.guides/brand-guideline.md` first. Brand guideline beats the design on visual conflicts.
 2. Ensure `sections.md` exists and is current before section matching.
-3. **Extract** the design with Figma MCP (steps 1–6 above). Save raw context/exports under `.figma/<file>-<frame>.json` (mirrors the cloning skill's `.firecrawl/`).
+3. **Extract** the design with Figma MCP (steps 1–8 above). Save raw context/exports under `.figma/<file>-<frame>.json` (mirrors the cloning skill's `.firecrawl/`).
 4. **Map tokens** — turn `get_variable_defs` output into a theme token table for `project.config.theme`.
 5. **Build the content manifest** — required deliverable, same columns and rules as the cloning skill. Asset URLs come from `download_assets`, not from guessing.
 6. **Generate the clone preview route** at `app/routes/clone-preview.$page.tsx` — React + Tailwind, real assets, brand-adjusted tokens, `{/* === BLOCK NAME === */}` markers per frame.
@@ -76,13 +78,17 @@ If the MCP can't reach the file or can't export a specific asset (e.g. a flatten
 | Section boundaries | HTML section markers, slider/grid classes | top-level frames / auto-layout containers from `get_metadata` |
 | Composition | read from HTML positioning | read from **auto-layout** direction/wrap/spacing |
 | Assets | image/video URLs in HTML | `download_assets` exports; no real video `src` |
-| Interaction | real runtime behavior in HTML | **none at runtime** — infer from frame names, prototype links, designer notes; do not invent interactions the design doesn't imply |
+| Interaction states | real `:hover` / `:active` CSS | **component variants** — query `get_context_for_code_connect`, don't read off the frame |
+| Animation | real runtime behavior in HTML | **keyframe data** via `get_motion_context` (snippets + easing); variant transitions are the one gap — approximate with a CSS `transition:` |
 | Responsive variants | `<picture>` / breakpoint classes | separate desktop/mobile **frames** if the designer made them; otherwise one frame |
 
 ## Red Flags
 
 - **Skipping the approval checkpoint** — same rule as website cloning: the user must approve the clone preview before section decomposition.
-- **Inventing interactions** — a static Figma frame has no carousel autoplay or scroll behavior unless the prototype or notes say so. Don't classify a frame as a slider just because it shows multiple cards. Confirm from prototype links or frame naming.
+- **Inventing interactions** — don't classify a frame as a slider just because it shows multiple cards. Confirm from motion context, prototype links, or frame naming.
+- **Extracting from screenshots** — reading layout, spacing, or states off a rendered image is what produces flat, static-looking sections. Screenshots are for the approval checkpoint and preview verification only; every layout decision comes from structured tool output.
+- **Assuming states don't exist because the frame doesn't show them** — check `get_context_for_code_connect` for variant properties before falling back to a default hover treatment.
+- **Rewriting motion values by hand** — `get_motion_context` returns ready CSS/motion.dev snippets; regenerating timing from scratch loses custom bezier and spring fidelity.
 - **Ignoring Figma variables** — `get_variable_defs` is the cleanest token source you'll ever get. Hardcoding colors/sizes when variables exist throws away the main Figma advantage.
 - **Guessing asset URLs** — export real assets with `download_assets`; mark `MISSING — [describe]` in the manifest when an export fails, don't substitute a placeholder.
 - **One giant bespoke section per frame** — decompose into reusable sections; reuse the registry first.
@@ -95,4 +101,5 @@ If the MCP can't reach the file or can't export a specific asset (e.g. a flatten
 - `cloning-websites-to-weaverse` — the website input adapter; owns the shared section-matching, manifest, and preview rules this skill reuses.
 - `generating-weaverse-project-json` — downstream; turns this skill's spec + manifest + token table into import-ready JSON.
 - `weaverse-content-api` — push or update content into the live project after import.
-- `figma-use` / `figma-generate-design` — Figma MCP plugin skills; load `figma-use` before any `use_figma` write call.
+- `figma-use` / `figma-generate-design` — Figma MCP plugin skills; load `figma-use` before any `use_figma` write call, including the prototype-`reactions` probe.
+- `figma-implement-motion` — load when a section carries real animation; owns the `get_motion_context` merge workflow, easing gotchas, and `prefers-reduced-motion` handling.

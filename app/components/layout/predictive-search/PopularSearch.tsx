@@ -1,5 +1,6 @@
+import { useTranslation } from "@weaverse/hydrogen";
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router";
+import Link from "~/components/link";
 import { cn } from "~/utils/cn";
 
 const DEFAULT_POPULAR_SEARCHES = [
@@ -21,6 +22,7 @@ export function PopularSearch({
   itemClassName,
   useSearchHistory = false,
 }: PopularSearchProps) {
+  const { t } = useTranslation();
   const [topSearches, setTopSearches] = useState<string[]>([]);
 
   useEffect(() => {
@@ -65,7 +67,7 @@ export function PopularSearch({
         className,
       )}
     >
-      <span className="font-normal uppercase">Popular Searches</span>
+      <span className="font-normal uppercase">{t("search.popular")}</span>
       <ul className="flex flex-col gap-2">
         {displaySearches.map((search) => (
           <li key={search}>

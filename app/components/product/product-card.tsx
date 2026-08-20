@@ -1,5 +1,5 @@
 import { Money, mapSelectedProductOptionToObject } from "@shopify/hydrogen";
-import { useThemeSettings } from "@weaverse/hydrogen";
+import { useThemeSettings, useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { useState } from "react";
 import type {
@@ -56,6 +56,7 @@ function getCardImages(
 }
 
 export function ProductCard({ product, className }: ProductCardProps) {
+  const { t } = useTranslation();
   const {
     pcardBorderRadius,
     pcardBackgroundColor,
@@ -252,7 +253,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
             </div>
             {pcardShowLowestPrice || isCombinedListing(product) ? (
               <div className="flex flex-wrap items-center gap-x-1 text-sm">
-                <span>From</span>
+                <span>{t("product.from")}</span>
                 <Money withoutTrailingZeros data={minVariantPrice} />
                 {isCombinedListing(product) && (
                   <>
@@ -292,7 +293,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
               </NavLink>
               {pcardShowLowestPrice || isCombinedListing(product) ? (
                 <div className="flex flex-wrap items-center gap-x-1 text-sm">
-                  <span>From</span>
+                  <span>{t("product.from")}</span>
                   <Money withoutTrailingZeros data={minVariantPrice} />
                   {isCombinedListing(product) && (
                     <>

@@ -727,6 +727,18 @@ export type CustomerDetailsFragment = Pick<
   };
 };
 
+export type LoyaltyCustomerQueryVariables = CustomerAccountAPI.Exact<{
+  [key: string]: never;
+}>;
+
+export type LoyaltyCustomerQuery = {
+  customer: Pick<CustomerAccountAPI.Customer, 'id'> & {
+    emailAddress?: CustomerAccountAPI.Maybe<
+      Pick<CustomerAccountAPI.CustomerEmailAddress, 'emailAddress'>
+    >;
+  };
+};
+
 export type WishlistCustomerQueryVariables = CustomerAccountAPI.Exact<{
   [key: string]: never;
 }>;
@@ -776,6 +788,10 @@ interface GeneratedQueryTypes {
   '#graphql\n  query CustomerDetails {\n    customer {\n      ...CustomerDetails\n    }\n  }\n  fragment OrderCard on Order {\n    id\n    number\n    processedAt\n    financialStatus\n    fulfillments(first: 1) {\n      nodes {\n        status\n      }\n    }\n    totalPrice {\n      amount\n      currencyCode\n    }\n    lineItems(first: 2) {\n      edges {\n        node {\n          title\n          image {\n            altText\n            height\n            url\n            width\n          }\n        }\n      }\n    }\n  }\n\n  fragment AddressPartial on CustomerAddress {\n    id\n    formatted\n    firstName\n    lastName\n    company\n    address1\n    address2\n    territoryCode\n    zoneCode\n    city\n    zip\n    phoneNumber\n  }\n\n  fragment CustomerDetails on Customer {\n    firstName\n    lastName\n    phoneNumber {\n      phoneNumber\n    }\n    emailAddress {\n      emailAddress\n    }\n    defaultAddress {\n      ...AddressPartial\n    }\n    addresses(first: 6) {\n      edges {\n        node {\n          ...AddressPartial\n        }\n      }\n    }\n    orders(first: 250, sortKey: PROCESSED_AT, reverse: true) {\n      edges {\n        node {\n          ...OrderCard\n        }\n      }\n    }\n  }\n': {
     return: CustomerDetailsQuery;
     variables: CustomerDetailsQueryVariables;
+  };
+  '#graphql\n  query LoyaltyCustomer {\n    customer {\n      id\n      emailAddress {\n        emailAddress\n      }\n    }\n  }\n': {
+    return: LoyaltyCustomerQuery;
+    variables: LoyaltyCustomerQueryVariables;
   };
   '#graphql\n  query WishlistCustomer {\n    customer {\n      id\n      wishlist: metafield(\n        namespace: "custom"\n        key: "aspen_wishlist"\n      ) {\n        value\n        compareDigest\n      }\n    }\n  }\n': {
     return: WishlistCustomerQuery;

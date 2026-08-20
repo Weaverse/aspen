@@ -8,7 +8,7 @@ import {
   useOptimisticCart,
   useOptimisticData,
 } from "@shopify/hydrogen";
-import { useThemeSettings } from "@weaverse/hydrogen";
+import { useThemeSettings, useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import {
   createContext,
@@ -27,8 +27,10 @@ import { CART_CODE_APPLY_ACTION } from "~/components/cart/cart-actions";
 import { syncCartState } from "~/components/cart/cart-state-provider";
 import { Image } from "~/components/image";
 import { Link } from "~/components/link";
+import { LoyaltyPointsHint } from "~/components/loyalty/loyalty-points-hint";
 import { SubscriptionLineItem } from "~/components/subscriptions/subscription-line-item";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
+import { getCartMutationError } from "~/utils/cart-error";
 import { calculateAspectRatio } from "~/utils/image";
 import { toggleCartDrawer } from "../layout/cart-drawer";
 import { CartBestSellers } from "./cart-best-sellers";
@@ -83,6 +85,7 @@ export function Cart({
   onClose?: () => void;
   cart: CartApiQueryFragment;
 }) {
+  const { t } = useTranslation();
   const cartRoute = usePrefixPathWithLocale("/cart");
   const mutationFetcher = useFetcher<CartMutationResponse>({
     key: `cart-${layout}-line-mutation`,
@@ -95,10 +98,7 @@ export function Cart({
   const cart = useOptimisticCart<CartApiQueryFragment>(originalCart);
   const linesCount = Boolean(cart?.lines?.nodes?.length || 0);
   const cartHasItems = Boolean(cart) && cart.totalQuantity > 0;
-  const errorMessage =
-    mutationFetcher.data?.userErrors?.find((error) => error.message)?.message ||
-    mutationFetcher.data?.errors?.find((error) => error.message)?.message ||
-    null;
+  const errorMessage = getCartMutationError(mutationFetcher.data, t);
 
   useEffect(() => {
     const response = mutationFetcher.data;
@@ -274,6 +274,7 @@ function CartDetails({
   layout: Layouts;
   cart: OptimisticCart<CartApiQueryFragment>;
 }) {
+  const { t } = useTranslation();
   let {
     enableFreeShipping,
     enableCartNote,
@@ -340,7 +341,7 @@ function CartDetails({
               layout={layout}
             />
             <div className="flex items-center justify-between font-medium">
-              <span>Subtotal</span>
+              <span>{t("cart.subtotal")}</span>
               <span>
                 {isOptimistic ? (
                   <PriceLoadingSpinner />
@@ -352,8 +353,9 @@ function CartDetails({
               </span>
             </div>
             <p className="text-[#918379] text-sm">
-              Shipping and taxes will be calculated at checkout
+              {t("cart.shippingTaxesCheckout")}
             </p>
+            <LoyaltyPointsHint amount={cart.cost?.subtotalAmount?.amount} />
             {summaryActions}
             <CartCheckoutActions
               checkoutUrl={cart.checkoutUrl}
@@ -456,6 +458,7 @@ function CartDiscounts({
 }
 
 function CartCodeForm({ discountCodes }: { discountCodes: string[] }) {
+  const { t } = useTranslation();
   const cartRoute = usePrefixPathWithLocale("/cart");
   const fetcher = useFetcher<{
     cartCodeApplied?: boolean;
@@ -463,11 +466,8 @@ function CartCodeForm({ discountCodes }: { discountCodes: string[] }) {
     userErrors?: Array<{ message?: string }>;
   }>({ key: "cart-code-apply" });
   const errorMessage =
-    fetcher.data?.userErrors?.find((error) => error.message)?.message ||
-    fetcher.data?.errors?.find((error) => error.message)?.message ||
-    (fetcher.data?.cartCodeApplied === false
-      ? "Invalid gift card or discount code."
-      : null);
+    getCartMutationError(fetcher.data, t) ||
+    (fetcher.data?.cartCodeApplied === false ? t("cart.invalidCode") : null);
 
   return (
     <fetcher.Form method="post" action={cartRoute}>
@@ -481,14 +481,14 @@ function CartCodeForm({ discountCodes }: { discountCodes: string[] }) {
       />
       <div className="flex items-stretch gap-3">
         <label htmlFor="cart-page-discount" className="sr-only">
-          Gift card or discount code
+          {t("cart.code")}
         </label>
         <input
           id="cart-page-discount"
           className="h-[54px] min-w-0 grow border border-line bg-white px-4 leading-tight! outline-none focus:border-gray-700"
           type="text"
           name="discountCode"
-          placeholder="Gift card or discount code"
+          placeholder={t("cart.code")}
           required
         />
         <Button
@@ -498,7 +498,7 @@ function CartCodeForm({ discountCodes }: { discountCodes: string[] }) {
           disabled={fetcher.state !== "idle"}
           className="!px-6 !py-0 h-[54px] shrink-0 leading-tight!"
         >
-          Apply
+          {t("cart.apply")}
         </Button>
       </div>
       {errorMessage && (
@@ -540,6 +540,7 @@ function AppliedCartCodes({
   appliedGiftCards: CartApiQueryFragment["appliedGiftCards"];
   layout: Layouts;
 }) {
+  const { t } = useTranslation();
   const cartRoute = usePrefixPathWithLocale("/cart");
   const applicableDiscountCodes = discountCodes.filter(
     (discount) => discount.applicable,
@@ -555,7 +556,7 @@ function AppliedCartCodes({
         "flex flex-wrap gap-2",
         layout === "drawer" ? "justify-end" : "justify-start",
       )}
-      aria-label="Applied codes"
+      aria-label={t("cart.appliedCodes")}
     >
       {applicableDiscountCodes.map((discount) => (
         <li key={discount.code}>
@@ -633,6 +634,7 @@ function CartPageTotals({
   cart: OptimisticCart<CartApiQueryFragment>;
   isOptimistic: boolean;
 }) {
+  const { t } = useTranslation();
   const discountTotal = getCartDiscountTotal(cart.lines.nodes);
   const currencyCode = cart.cost.subtotalAmount.currencyCode;
   const subtotalAfterDiscounts = Number.parseFloat(
@@ -644,7 +646,7 @@ function CartPageTotals({
     <>
       <div className="flex flex-col gap-5 border-line-subtle border-y py-6">
         <div className="flex items-center justify-between">
-          <span>Subtotal</span>
+          <span>{t("cart.subtotal")}</span>
           <span>
             {isOptimistic ? (
               <PriceLoadingSpinner />
@@ -660,7 +662,7 @@ function CartPageTotals({
         </div>
         {discountTotal > 0 && (
           <div className="flex items-center justify-between">
-            <span>Discount</span>
+            <span>{t("cart.discount")}</span>
             <span>
               -
               <Money
@@ -670,11 +672,11 @@ function CartPageTotals({
           </div>
         )}
         <span className="text-[#918379]">
-          Shipping &amp; taxes calculated at checkout
+          {t("cart.shippingTaxesCalculated")}
         </span>
       </div>
       <div className="flex items-center justify-between font-semibold">
-        <span>Total</span>
+        <span>{t("cart.total")}</span>
         <span>
           {isOptimistic ? (
             <PriceLoadingSpinner />
@@ -685,6 +687,7 @@ function CartPageTotals({
           )}
         </span>
       </div>
+      <LoyaltyPointsHint amount={cart.cost.subtotalAmount?.amount} />
     </>
   );
 }
@@ -737,6 +740,7 @@ function CartCheckoutActions({
   checkoutUrl: string;
   layout: Layouts;
 }) {
+  const { t } = useTranslation();
   const cartRoute = usePrefixPathWithLocale("/cart");
   if (!checkoutUrl) {
     return null;
@@ -752,11 +756,13 @@ function CartCheckoutActions({
           onClick={() => toggleCartDrawer(false)}
           className="flex h-[54px] w-full items-center justify-center"
         >
-          VIEW CART
+          {t("cart.viewCart")}
         </Link>
       )}
       <a href={checkoutUrl} target="_self">
-        <Button className="!px-6 !py-5 h-[54px] w-full">CHECKOUT</Button>
+        <Button className="!px-6 !py-5 h-[54px] w-full">
+          {t("cart.checkout")}
+        </Button>
       </a>
     </div>
   );
@@ -769,6 +775,7 @@ function CartSummary({
   children?: React.ReactNode;
   layout: Layouts;
 }) {
+  const { t } = useTranslation();
   return (
     <div
       className={clsx(
@@ -780,7 +787,7 @@ function CartSummary({
     >
       {layout === "page" && (
         <span className="border-line-subtle border-b pb-6 font-semibold uppercase">
-          Order summary
+          {t("cart.orderSummary")}
         </span>
       )}
       {children}
@@ -797,6 +804,7 @@ function CartLineItem({
   layout: Layouts;
   discountCodes: CartApiQueryFragment["discountCodes"];
 }) {
+  const { t } = useTranslation();
   const optimisticData = useOptimisticData<OptimisticData>(line?.id);
   const { pendingIdentifier } = useCartMutation();
 
@@ -841,7 +849,7 @@ function CartLineItem({
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/80 backdrop-blur-[2px]">
           <div className="flex flex-col items-center gap-2">
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-300 border-t-gray-900" />
-            <span className="text-gray-600 text-sm">Removing...</span>
+            <span className="text-gray-600 text-sm">{t("cart.removing")}</span>
           </div>
         </div>
       )}
@@ -1062,6 +1070,7 @@ function ItemRemoveButton({
   className?: string;
   layout: Layouts;
 }) {
+  const { t } = useTranslation();
   const { isPending, submitMutation } = useCartMutation();
 
   return (
@@ -1069,7 +1078,7 @@ function ItemRemoveButton({
       className={clsx("flex items-center justify-center", className)}
       type="button"
       disabled={isPending}
-      aria-label={`Remove ${productTitle} from cart`}
+      aria-label={t("cart.removeItem", { product: productTitle })}
       onClick={() =>
         submitMutation(
           CartForm.ACTIONS.LinesRemove,
@@ -1080,7 +1089,7 @@ function ItemRemoveButton({
     >
       {layout === "page" && <X className="h-4 w-4" />}
       {layout === "drawer" && (
-        <span className="uppercase underline">Remove</span>
+        <span className="uppercase underline">{t("cart.remove")}</span>
       )}
     </button>
   );
@@ -1093,6 +1102,7 @@ function CartLineQuantityAdjust({
   line: CartLine;
   layout: Layouts;
 }) {
+  const { t } = useTranslation();
   let optimisticData = useOptimisticData<OptimisticData>(line?.id);
   const { isPending, submitMutation } = useCartMutation();
   const { id: lineId, isOptimistic } = line || {};
@@ -1152,12 +1162,12 @@ function CartLineQuantityAdjust({
               "inline-flex min-w-[80px] items-center justify-between gap-2 bg-white outline-hidden",
               layout === "page" ? "" : "",
             )}
-            aria-label="Select quantity"
+            aria-label={t("product.selectQuantity")}
           >
             <span
               className={clsx(layout === "page" ? "font-medium text-sm" : "")}
             >
-              QTY
+              {t("product.quantityShort")}
             </span>
             <span
               className={clsx(
@@ -1193,6 +1203,7 @@ function CartLineQuantityAdjust({
 }
 
 function PriceLoadingSpinner({ className = "" }: { className?: string }) {
+  const { t } = useTranslation();
   return (
     <div className={`inline-flex items-center gap-2 ${className}`}>
       <svg
@@ -1215,7 +1226,7 @@ function PriceLoadingSpinner({ className = "" }: { className?: string }) {
           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
         />
       </svg>
-      <span className="text-gray-400 text-sm">Loading...</span>
+      <span className="text-gray-400 text-sm">{t("cart.loading")}</span>
     </div>
   );
 }

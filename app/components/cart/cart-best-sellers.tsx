@@ -3,6 +3,7 @@ import type {
   Product,
   ProductSortKeys,
 } from "@shopify/hydrogen/storefront-api-types";
+import { useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { useEffect, useId, useMemo, useRef } from "react";
 import { useFetcher } from "react-router";
@@ -39,6 +40,7 @@ export function CartBestSellers({
   reverse,
   sortKey = "BEST_SELLING",
 }: CartBestSellersProps) {
+  const { t } = useTranslation();
   const { load, data } = useFetcher<{ products: Product[] }>();
   const queryString = useMemo(
     () =>
@@ -76,7 +78,7 @@ export function CartBestSellers({
             to={productsPath}
             className="flex shrink-0 items-center gap-2 text-sm uppercase"
           >
-            View all <ArrowRight size={18} aria-hidden="true" />
+            {t("product.viewAll")} <ArrowRight size={18} aria-hidden="true" />
           </Link>
         </div>
         <div
@@ -94,7 +96,7 @@ export function CartBestSellers({
             type="button"
             onClick={() => scrollRail(-1)}
             className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#F0EFED]"
-            aria-label="Previous recommendations"
+            aria-label={t("product.previousRecommendations")}
           >
             <ArrowLeft size={22} aria-hidden="true" />
           </button>
@@ -102,7 +104,7 @@ export function CartBestSellers({
             type="button"
             onClick={() => scrollRail(1)}
             className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#F0EFED]"
-            aria-label="Next recommendations"
+            aria-label={t("product.nextRecommendations")}
           >
             <ArrowRight size={22} aria-hidden="true" />
           </button>
@@ -142,6 +144,7 @@ function CartBestSellersContent({
   products: Product[] | undefined;
   layout?: CartBestSellersProps["layout"];
 }) {
+  const { t } = useTranslation();
   const id = useId();
 
   if (!products) {
@@ -165,7 +168,7 @@ function CartBestSellersContent({
   }
 
   if (products?.length === 0) {
-    return <div>No products found.</div>;
+    return <div>{t("product.noProducts")}</div>;
   }
 
   return products

@@ -1,13 +1,20 @@
 import { TagIcon } from "@phosphor-icons/react";
 import { Money } from "@shopify/hydrogen";
-import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
+import {
+  createSchema,
+  type HydrogenComponentProps,
+  useTranslation,
+} from "@weaverse/hydrogen";
 import type { OrderFragment } from "customer-account-api.generated";
 import type { CSSProperties, ReactNode, Ref } from "react";
 import { useLoaderData } from "react-router";
-import { ORDER_STATUS } from "~/components/customer/orders";
+import { getOrderStatusLabel } from "~/components/customer/orders";
 import { Image } from "~/components/image";
 import Link from "~/components/link";
+import { useLocale } from "~/hooks/use-locale";
+import type { I18nLocale } from "~/types/locale";
 import { cn } from "~/utils/cn";
+import { formatDate, formatNumber } from "~/utils/locale";
 
 type OrderLineItem = OrderFragment["lineItems"]["nodes"][number];
 type DiscountApplication =
@@ -84,6 +91,8 @@ function OrderDetailsSection({
   style,
   ...rest
 }: OrderDetailsSectionProps) {
+  const { t } = useTranslation();
+  const locale = useLocale();
   const routeData = useLoaderData() as OrderDetailsRouteData;
   const order = routeData?.order;
   const lineItems = routeData?.lineItems ?? [];
@@ -100,8 +109,9 @@ function OrderDetailsSection({
     amount: totalDiscount.toFixed(2),
     currencyCode: order.totalPrice.currencyCode,
   };
-  const statusLabel = getStatusLabel(
+  const statusLabel = getOrderStatusLabel(
     routeData.fulfillmentStatus,
+    t,
     unfulfilledLabel,
   );
   const sectionStyle = {
@@ -144,7 +154,7 @@ function OrderDetailsSection({
             {orderNumberLabel} {order.name}
           </p>
           <p>
-            {placedOnLabel} {formatOrderDate(order.processedAt)}
+            {placedOnLabel} {formatOrderDate(order.processedAt, locale)}
           </p>
         </div>
 
@@ -175,7 +185,7 @@ function OrderDetailsSection({
                 </address>
               ) : (
                 <p className="mt-6 text-sm leading-[22px]">
-                  No shipping address defined
+                  {t("account.noShippingAddress")}
                 </p>
               )}
             </article>
@@ -360,11 +370,12 @@ function DiscountBadge({
   amount?: OrderFragment["totalPrice"];
   fallbackLabel: string;
 }) {
+  const locale = useLocale();
   const value = application.value;
   const discountValue = amount
-    ? formatMoneyForBadge(amount)
+    ? formatMoneyForBadge(amount, locale)
     : value.__typename === "MoneyV2"
-      ? formatMoneyForBadge(value)
+      ? formatMoneyForBadge(value, locale)
       : `${value.percentage}%`;
 
   return (
@@ -423,32 +434,23 @@ function formatVariantLines(
   });
 }
 
-function formatOrderDate(processedAt: string) {
-  return new Intl.DateTimeFormat("en-US", {
+function formatOrderDate(processedAt: string, locale: I18nLocale) {
+  return formatDate(processedAt, locale, {
     day: "2-digit",
     month: "short",
     timeZone: "UTC",
     year: "numeric",
-  })
-    .format(new Date(processedAt))
-    .toUpperCase();
+  }).toLocaleUpperCase(`${locale.language}-${locale.country}`);
 }
 
-function formatMoneyForBadge({
-  amount,
-  currencyCode,
-}: OrderFragment["totalPrice"]) {
-  return new Intl.NumberFormat("en-US", {
+function formatMoneyForBadge(
+  { amount, currencyCode }: OrderFragment["totalPrice"],
+  locale: I18nLocale,
+) {
+  return formatNumber(Number.parseFloat(amount), locale, {
     currency: currencyCode,
     style: "currency",
-  }).format(Number.parseFloat(amount));
-}
-
-function getStatusLabel(status: string | undefined, unfulfilledLabel: string) {
-  if (!status || status === "UNFULFILLED") {
-    return unfulfilledLabel;
-  }
-  return ORDER_STATUS[status as keyof typeof ORDER_STATUS] ?? status;
+  });
 }
 
 export const schema = createSchema({

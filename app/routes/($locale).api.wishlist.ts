@@ -11,12 +11,24 @@ import {
   WISHLIST_PRODUCT_ID_PATTERN,
   writeWishlist,
 } from "~/utils/wishlist.server";
+import {
+  commitPreviewWishlist,
+  isWishlistPreviewRequest,
+  readPreviewWishlist,
+} from "~/utils/wishlist-preview.server";
 
 const NO_STORE_HEADERS = {
   "Cache-Control": "private, no-store, max-age=0",
 };
 
-export async function loader({ context }: LoaderFunctionArgs) {
+export async function loader({ request, context }: LoaderFunctionArgs) {
+  if (isWishlistPreviewRequest(request)) {
+    return wishlistResponse({
+      authenticated: true,
+      productIds: await readPreviewWishlist(request),
+    });
+  }
+
   const { customerAccount } = context;
 
   if (!(await customerAccount.isLoggedIn())) {
@@ -42,21 +54,15 @@ export async function loader({ context }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
-  const { customerAccount } = context;
-
   if (request.method !== "POST") {
     return wishlistResponse(
       {
-        authenticated: await customerAccount.isLoggedIn(),
+        authenticated: await isWishlistAuthenticated(request, context),
         productIds: [],
         error: "Method not allowed.",
       },
       405,
     );
-  }
-
-  if (!(await customerAccount.isLoggedIn())) {
-    return wishlistResponse({ authenticated: false, productIds: [] }, 401);
   }
 
   const formData = await request.formData();
@@ -69,12 +75,38 @@ export async function action({ request, context }: ActionFunctionArgs) {
   ) {
     return wishlistResponse(
       {
-        authenticated: true,
+        authenticated: await isWishlistAuthenticated(request, context),
         productIds: [],
         error: "Invalid wishlist request.",
       },
       400,
     );
+  }
+
+  if (isWishlistPreviewRequest(request)) {
+    const productIds = await readPreviewWishlist(request);
+    const nextIds = updateWishlistProductIds(productIds, productId, intent);
+
+    if (nextIds.length > MAX_WISHLIST_SIZE) {
+      return wishlistResponse(
+        {
+          authenticated: true,
+          productIds,
+          error: `Wishlist supports up to ${MAX_WISHLIST_SIZE} products.`,
+        },
+        400,
+      );
+    }
+
+    return wishlistResponse({ authenticated: true, productIds: nextIds }, 200, {
+      "Set-Cookie": await commitPreviewWishlist(nextIds),
+    });
+  }
+
+  const { customerAccount } = context;
+
+  if (!(await customerAccount.isLoggedIn())) {
+    return wishlistResponse({ authenticated: false, productIds: [] }, 401);
   }
 
   try {
@@ -140,8 +172,27 @@ export async function action({ request, context }: ActionFunctionArgs) {
   );
 }
 
-function wishlistResponse(body: WishlistApiResponse, status = 200) {
-  return data(body, { status, headers: NO_STORE_HEADERS });
+async function isWishlistAuthenticated(
+  request: Request,
+  context: ActionFunctionArgs["context"],
+) {
+  return (
+    isWishlistPreviewRequest(request) ||
+    (await context.customerAccount.isLoggedIn())
+  );
+}
+
+function wishlistResponse(
+  body: WishlistApiResponse,
+  status = 200,
+  extraHeaders?: HeadersInit,
+) {
+  return data(body, {
+    status,
+    headers: extraHeaders
+      ? { ...NO_STORE_HEADERS, ...extraHeaders }
+      : NO_STORE_HEADERS,
+  });
 }
 
 function getErrorMessage(error: unknown) {

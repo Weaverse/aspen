@@ -6,6 +6,7 @@ import {
 } from "@phosphor-icons/react";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import * as Dialog from "@radix-ui/react-dialog";
+import { useTranslation } from "@weaverse/hydrogen";
 import { AnimatePresence, motion } from "framer-motion";
 import { type Ref, useState } from "react";
 import { Image } from "~/components/image";
@@ -19,6 +20,7 @@ export function MobileMenu({
 }: {
   showOnDesktop?: boolean;
 }) {
+  const { t } = useTranslation();
   const { headerMenu } = useShopMenu();
   const [activeSubMenu, setActiveSubMenu] = useState<SingleMenuItem | null>(
     null,
@@ -33,7 +35,7 @@ export function MobileMenu({
   if (!headerMenu) {
     return (
       <MenuTrigger
-        aria-label="Open menu"
+        aria-label={t("accessibility.openMenu")}
         className={triggerClassName}
         disabled
       />
@@ -58,7 +60,7 @@ export function MobileMenu({
       }}
     >
       <Dialog.Trigger asChild className={triggerClassName}>
-        <MenuTrigger aria-label="Open menu" />
+        <MenuTrigger aria-label={t("accessibility.openMenu")} />
       </Dialog.Trigger>
       <Dialog.Portal forceMount>
         <AnimatePresence>
@@ -148,6 +150,7 @@ function MenuHeader({
   activeSubMenu: SingleMenuItem | null;
   onBack: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <header className="relative flex h-[74px] shrink-0 items-center px-5">
       {activeSubMenu && (
@@ -155,7 +158,7 @@ function MenuHeader({
           type="button"
           onClick={onBack}
           className="relative mr-[11px] flex size-3.5 shrink-0 items-center justify-center before:absolute before:-inset-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#343231]"
-          aria-label="Back to main menu"
+          aria-label={t("accessibility.backToMainMenu")}
         >
           <CaretLeftIcon aria-hidden="true" className="size-3.5" />
         </button>
@@ -166,13 +169,13 @@ function MenuHeader({
           activeSubMenu ? "font-normal" : "font-semibold",
         )}
       >
-        {activeSubMenu?.title || "Menu"}
+        {activeSubMenu?.title || t("navigation.menu")}
       </Dialog.Title>
       <Dialog.Close asChild>
         <button
           type="button"
           className="absolute top-[29px] right-[18px] flex size-5 items-center justify-center before:absolute before:-inset-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#343231]"
-          aria-label="Close menu"
+          aria-label={t("accessibility.closeMenu")}
         >
           <XIcon aria-hidden="true" className="size-5" />
         </button>
@@ -190,6 +193,7 @@ function TopLevelMenuItem({
   onOpenSubMenu: (item: SingleMenuItem) => void;
   onNavigate: () => void;
 }) {
+  const { t } = useTranslation();
   if (!item.items?.length) {
     return (
       <Link
@@ -207,7 +211,7 @@ function TopLevelMenuItem({
     <button
       type="button"
       className="flex h-[54px] w-full items-center justify-between text-left text-sm uppercase leading-5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#343231]"
-      aria-label={`Open ${item.title} submenu`}
+      aria-label={t("accessibility.openSubmenu", { item: item.title })}
       onClick={() => onOpenSubMenu(item)}
     >
       <span>{item.title}</span>

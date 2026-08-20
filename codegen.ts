@@ -14,6 +14,7 @@ export default {
         "!./app/routes/*.account*.{ts,tsx,js,jsx}",
         "!./app/routes/*.api.wishlist.{ts,tsx,js,jsx}",
         "!./app/utils/wishlist.server.{ts,tsx,js,jsx}",
+        "!./app/utils/loyalty.server.{ts,tsx,js,jsx}",
       ],
     },
     "customer-account-api.generated.d.ts": {
@@ -23,6 +24,7 @@ export default {
         "./app/routes/*.account*.{ts,tsx,js,jsx}",
         "./app/routes/*.api.wishlist.{ts,tsx,js,jsx}",
         "./app/utils/wishlist.server.{ts,tsx,js,jsx}",
+        "./app/utils/loyalty.server.{ts,tsx,js,jsx}",
       ],
     },
   },

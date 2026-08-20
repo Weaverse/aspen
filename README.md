@@ -33,6 +33,13 @@ _Aspen is a sophisticated Shopify theme crafted specifically for home furniture 
 - Furniture-specific sections and layouts
 - Fully customizable inside [Weaverse Studio](https://weaverse.io)
 
+## Integrations
+
+Setup notes for Klaviyo (newsletter + back in stock), LoyaltyLion, Judge.me,
+and wishlist live in [`docs/integrations.md`](docs/integrations.md).
+Private tokens such as `KLAVIYO_PRIVATE_API_TOKEN` and
+`JUDGEME_PRIVATE_API_TOKEN` must stay in server env — never `PUBLIC_*`.
+
 ## Deployment
 
 - [Deploy to Shopify Oxygen](https://weaverse.io/docs/deployment/oxygen)

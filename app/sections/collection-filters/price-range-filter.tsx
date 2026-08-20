@@ -1,9 +1,12 @@
 import type { ProductFilter } from "@shopify/hydrogen/storefront-api-types";
+import { useTranslation } from "@weaverse/hydrogen";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
 import type { CollectionQuery } from "storefront-api.generated";
+import { useLocale } from "~/hooks/use-locale";
 import { cn } from "~/utils/cn";
 import { FILTER_URL_PREFIX, filterInputToParams } from "~/utils/filter";
+import { formatNumber, intlLocale } from "~/utils/locale";
 
 type PriceRangeFilterProps = {
   collection: CollectionQuery["collection"];
@@ -14,6 +17,8 @@ export function PriceRangeFilter({
   collection,
   context = "sidebar",
 }: PriceRangeFilterProps) {
+  const { t } = useTranslation();
+  const locale = useLocale();
   const [params] = useSearchParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -22,7 +27,7 @@ export function PriceRangeFilter({
   const priceFromUrl = getPricesFromFilter(params);
   const [minPrice, setMinPrice] = useState(priceFromUrl.min);
   const [maxPrice, setMaxPrice] = useState(priceFromUrl.max);
-  const currencySymbol = getCurrencySymbol(currencyCode);
+  const currencySymbol = getCurrencySymbol(currencyCode, intlLocale(locale));
 
   useEffect(() => {
     setMinPrice(priceFromUrl.min);
@@ -71,26 +76,29 @@ export function PriceRangeFilter({
   return (
     <div className={cn("space-y-5", context === "sidebar" && "space-y-4")}>
       <p>
-        The highest price is {currencySymbol}
-        {formatPrice(maxVariantPrice)}
+        {t("collection.highestPrice", {
+          price: `${currencySymbol}${formatNumber(maxVariantPrice, locale, {
+            maximumFractionDigits: Number.isInteger(maxVariantPrice) ? 0 : 2,
+          })}`,
+        })}
       </p>
       <div className="grid grid-cols-2 gap-6">
         <PriceInput
-          ariaLabel="Minimum price"
+          ariaLabel={t("collection.minimumPrice")}
           currencySymbol={currencySymbol}
           min={minVariantPrice}
           max={maxVariantPrice}
-          placeholder="From"
+          placeholder={t("collection.from")}
           value={minPrice}
           onChange={setMinPrice}
           onCommit={() => handleFilter()}
         />
         <PriceInput
-          ariaLabel="Maximum price"
+          ariaLabel={t("collection.maximumPrice")}
           currencySymbol={currencySymbol}
           min={minVariantPrice}
           max={maxVariantPrice}
-          placeholder="To"
+          placeholder={t("collection.to")}
           value={maxPrice}
           onChange={setMaxPrice}
           onCommit={() => handleFilter()}
@@ -185,10 +193,10 @@ function clampPrice(value: number | undefined, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
 
-function getCurrencySymbol(currencyCode: string) {
+function getCurrencySymbol(currencyCode: string, locale: string) {
   try {
     return (
-      new Intl.NumberFormat(undefined, {
+      new Intl.NumberFormat(locale, {
         style: "currency",
         currency: currencyCode,
         currencyDisplay: "narrowSymbol",
@@ -199,10 +207,4 @@ function getCurrencySymbol(currencyCode: string) {
   } catch {
     return currencyCode;
   }
-}
-
-function formatPrice(value: number) {
-  return new Intl.NumberFormat(undefined, {
-    maximumFractionDigits: Number.isInteger(value) ? 0 : 2,
-  }).format(value);
 }

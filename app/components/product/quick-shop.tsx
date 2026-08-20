@@ -8,13 +8,16 @@ import {
   ShopPayButton,
 } from "@shopify/hydrogen";
 import type { MoneyV2 } from "@shopify/hydrogen/storefront-api-types";
-import { useThemeSettings } from "@weaverse/hydrogen";
+import { useThemeSettings, useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { Link, useFetcher } from "react-router";
+import { useFetcher } from "react-router";
 import type { ProductVariantFragment } from "storefront-api.generated";
+import Link from "~/components/link";
+import { LoyaltyPointsHint } from "~/components/loyalty/loyalty-points-hint";
 import { AddToCartButton } from "~/components/product/add-to-cart-button";
+import { BackInStockForm } from "~/components/product/back-in-stock-form";
 import { ProductMedia } from "~/components/product/product-media";
 import { Quantity } from "~/components/product/quantity";
 import { QuickShopVariants } from "~/components/product/quick-shop-variants";
@@ -43,23 +46,24 @@ function ProductDetailsContent({
   showShippingPolicy?: boolean;
   showRefundPolicy?: boolean;
 }) {
+  const { t } = useTranslation();
   const { shop, product } = data;
 
   const { description, summary } = product;
   const { shippingPolicy, refundPolicy } = shop || {};
 
   const details = [
-    summary && { title: "SUMMARY", content: summary },
-    description && { title: "DESCRIPTION", content: description },
+    summary && { title: t("product.summary"), content: summary },
+    description && { title: t("product.description"), content: description },
     showShippingPolicy &&
       shippingPolicy?.body && {
-        title: "SHIPPING",
+        title: t("product.shipping"),
         content: getExcerpt(shippingPolicy.body),
         learnMore: `/policies/${shippingPolicy.handle}`,
       },
     showRefundPolicy &&
       refundPolicy?.body && {
-        title: "RETURNS",
+        title: t("product.returns"),
         content: getExcerpt(refundPolicy.body),
         learnMore: `/policies/${refundPolicy.handle}`,
       },
@@ -80,7 +84,7 @@ function ProductDetailsContent({
               className="w-full border-line-subtle border-b pb-px text-body-subtle text-sm"
               to={learnMore}
             >
-              Learn more
+              {t("product.learnMore")}
             </Link>
           )}
         </div>
@@ -101,6 +105,7 @@ function ProductDescriptionDrawer({
   onOpenChange: (open: boolean) => void;
   onCloseAll?: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal forceMount>
@@ -145,7 +150,7 @@ function ProductDescriptionDrawer({
                         </button>
                         <Dialog.Title asChild>
                           <span className="font-semibold uppercase">
-                            DESCRIPTION
+                            {t("product.description")}
                           </span>
                         </Dialog.Title>
                       </div>
@@ -190,6 +195,7 @@ export function QuickShop({
   setShowDescription?: (show: boolean) => void;
   onCloseAll?: () => void;
 }) {
+  const { t } = useTranslation();
   const themeSettings = useThemeSettings();
   const { product, storeDomain } = data || {};
   const [internalShowDescription, setInternalShowDescription] = useState(false);
@@ -225,6 +231,7 @@ export function QuickShop({
     unavailableText,
     showCompareAtPrice,
     hideUnavailableOptions,
+    enableQuickShopBackInStock = true,
     quickShopNavigationStyle,
     quickShopArrowsColor,
     quickShopArrowsShape,
@@ -277,12 +284,14 @@ export function QuickShop({
             className="cursor-pointer underline"
             onClick={() => setDescriptionOpen(true)}
           >
-            <span>View Description</span>
+            <span>{t("product.viewDescription")}</span>
           </button>
           <div className="space-y-7 divide-y divide-line-subtle [&>*:not(:last-child)]:pb-3">
             {selectedVariant && (
               <div className="flex justify-between">
-                <span className="font-semibold uppercase">Price</span>
+                <span className="font-semibold uppercase">
+                  {t("product.price")}
+                </span>
                 <div className={"flex gap-2"}>
                   <Money withoutTrailingZeros data={price} />
                   {showCompareAtPrice &&
@@ -345,6 +354,19 @@ export function QuickShop({
                 storeDomain={storeDomain}
               />
             )}
+            {selectedVariant?.availableForSale && (
+              <LoyaltyPointsHint
+                amount={
+                  Number.parseFloat(selectedVariant.price?.amount || "0") *
+                  quantity
+                }
+              />
+            )}
+            <BackInStockForm
+              variantId={selectedVariant?.id}
+              availableForSale={selectedVariant?.availableForSale}
+              enabled={enableQuickShopBackInStock}
+            />
           </div>
         </div>
       </div>
@@ -371,7 +393,9 @@ export function QuickShopTrigger({
   selectedOptions?: ProductVariantFragment["selectedOptions"];
   showOnHover?: boolean;
 }) {
+  const { t } = useTranslation();
   const { quickShopButtonTextOpen } = useThemeSettings();
+  const triggerLabel = quickShopButtonTextOpen || t("product.selectOptions");
   const [open, setOpen] = useState(false);
   const [showDescription, setShowDescription] = useState(false);
   const [loadedPath, setLoadedPath] = useState<string | null>(null);
@@ -403,7 +427,7 @@ export function QuickShopTrigger({
       <Dialog.Trigger asChild>
         <button
           type="button"
-          aria-label={quickShopButtonTextOpen || "Select options"}
+          aria-label={triggerLabel}
           className={clsx(
             "absolute right-3 bottom-3 z-10 flex size-11 items-center justify-center rounded-(--radius-sm) bg-white p-0 shadow-xs",
             "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body",
@@ -434,9 +458,7 @@ export function QuickShopTrigger({
             />
           </svg>
           {/* Text for desktop */}
-          <span className="hidden uppercase lg:inline">
-            {quickShopButtonTextOpen || "Select options"}
-          </span>
+          <span className="hidden uppercase lg:inline">{triggerLabel}</span>
         </button>
       </Dialog.Trigger>
       <Dialog.Portal forceMount>
@@ -473,13 +495,13 @@ export function QuickShopTrigger({
                     <div className="flex flex-shrink-0 items-center justify-between px-5 py-3">
                       <Dialog.Title asChild>
                         <span className="font-semibold uppercase">
-                          Quick Shop
+                          {t("product.quickShop")}
                         </span>
                       </Dialog.Title>
                       <button
                         type="button"
                         onClick={closeAllDrawers}
-                        aria-label="Close quick shop"
+                        aria-label={t("product.closeQuickShop")}
                         className="rounded p-1 transition-colors hover:bg-gray-100"
                       >
                         <XIcon className="h-5 w-5" />

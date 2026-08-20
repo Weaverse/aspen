@@ -32,6 +32,7 @@ export default hydrogenRoutes([
       route("customer", "routes/($locale).api.customer.ts"),
       route("featured-items", "routes/($locale).api.featured-items.ts"),
       route("klaviyo", "routes/($locale).api.klaviyo.ts"),
+      route("back-in-stock", "routes/($locale).api.back-in-stock.ts"),
       route("predictive-search", "routes/($locale).api.predictive-search.ts"),
       route("product", "routes/($locale).api.product.ts"),
       route("products", "routes/($locale).api.products.ts"),
@@ -43,7 +44,7 @@ export default hydrogenRoutes([
     ]),
     ...prefix("blogs", [
       index("routes/($locale).blogs._index.tsx"),
-      route(":blogHandle", "routes/($locale).blogs.$blogHandle._index.tsx"),
+      route(":articleHandle", "routes/($locale).blogs.$articleHandle.tsx"),
       route(
         ":blogHandle/:articleHandle",
         "routes/($locale).blogs.$blogHandle.$articleHandle.tsx",

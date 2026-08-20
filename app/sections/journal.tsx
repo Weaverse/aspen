@@ -56,8 +56,8 @@ const Journal = forwardRef<HTMLElement, JournalProps>((props, ref) => {
     children: _children,
     ...rest
   } = props;
-  const { blog, articles = [] } = useLoaderData<{
-    blog: BlogsIndexQuery["blogs"]["nodes"][number];
+  const { articles = [] } = useLoaderData<{
+    blog: NonNullable<BlogsIndexQuery["blog"]>;
     articles: JournalArticle[];
   }>();
   const [visibleCount, setVisibleCount] = useState(initialCount);
@@ -107,10 +107,9 @@ const Journal = forwardRef<HTMLElement, JournalProps>((props, ref) => {
           )}
         </header>
 
-        {featuredArticle && blog?.handle ? (
+        {featuredArticle ? (
           <FeaturedArticle
             article={featuredArticle}
-            blogHandle={blog.handle}
             loading={getImageLoadingPriority(0, 1)}
             readMoreText={readMoreText}
             showAuthor={showAuthor}
@@ -121,13 +120,12 @@ const Journal = forwardRef<HTMLElement, JournalProps>((props, ref) => {
           />
         ) : null}
 
-        {gridArticles.length > 0 && blog?.handle ? (
+        {gridArticles.length > 0 ? (
           <div className="mt-16 grid grid-cols-1 gap-y-10 md:mt-10 md:grid-cols-3 md:gap-x-8 lg:mt-16 lg:gap-x-5">
             {gridArticles.map((article, index) => (
               <JournalCard
                 key={article.id}
                 article={article}
-                blogHandle={blog.handle}
                 loading={getImageLoadingPriority(index + 1, 2)}
                 readMoreText={readMoreText}
                 showAuthor={showAuthor}
@@ -159,7 +157,6 @@ Journal.displayName = "Journal";
 
 interface JournalArticleProps {
   article: JournalArticle;
-  blogHandle: string;
   loading?: HTMLImageElement["loading"];
   readMoreText: string;
   showAuthor: boolean;
@@ -174,7 +171,6 @@ interface FeaturedArticleProps extends JournalArticleProps {
 
 function FeaturedArticle({
   article,
-  blogHandle,
   loading,
   readMoreText,
   showAuthor,
@@ -185,17 +181,12 @@ function FeaturedArticle({
 }: FeaturedArticleProps) {
   return (
     <article className="group grid grid-cols-1 md:grid-cols-2 md:gap-12 xl:grid-cols-[720px_minmax(0,1fr)] xl:gap-[30px]">
-      <ArticleImage
-        article={article}
-        blogHandle={blogHandle}
-        loading={loading}
-        featured
-      />
+      <ArticleImage article={article} loading={loading} featured />
       <div className="flex flex-col items-start pt-5 md:justify-start md:pt-0 xl:justify-center">
         <ArticleCategory article={article} visible={showCategory} />
         <h2 className="mt-2 font-heading font-normal text-[26px] text-(--journal-accent) leading-[1.08] tracking-[-0.025em] md:mt-3 md:text-[34px] xl:text-[52px] xl:leading-[1.08]">
           <Link
-            to={`/blogs/${blogHandle}/${article.handle}`}
+            to={`/blogs/${article.handle}`}
             className="line-clamp-3 transition-opacity hover:opacity-70"
           >
             {article.title}
@@ -214,7 +205,6 @@ function FeaturedArticle({
         ) : null}
         <ReadMoreLink
           article={article}
-          blogHandle={blogHandle}
           text={readMoreText}
           visible={showReadMore}
           className="mt-5 md:mt-6 xl:mt-6"
@@ -226,7 +216,6 @@ function FeaturedArticle({
 
 function JournalCard({
   article,
-  blogHandle,
   loading,
   readMoreText,
   showAuthor,
@@ -236,16 +225,12 @@ function JournalCard({
 }: JournalArticleProps) {
   return (
     <article className="group flex min-w-0 flex-col">
-      <ArticleImage
-        article={article}
-        blogHandle={blogHandle}
-        loading={loading}
-      />
+      <ArticleImage article={article} loading={loading} />
       <div className="flex flex-col items-start pt-4">
         <ArticleCategory article={article} visible={showCategory} />
         <h3 className="mt-2 font-heading font-normal text-[24px] text-(--journal-accent) leading-[1.12] tracking-[-0.025em] md:text-[27px]">
           <Link
-            to={`/blogs/${blogHandle}/${article.handle}`}
+            to={`/blogs/${article.handle}`}
             className="line-clamp-2 transition-opacity hover:opacity-70 md:line-clamp-3 lg:line-clamp-2"
           >
             {article.title}
@@ -258,7 +243,6 @@ function JournalCard({
         />
         <ReadMoreLink
           article={article}
-          blogHandle={blogHandle}
           text={readMoreText}
           visible={showReadMore}
           className="mt-3"
@@ -270,20 +254,18 @@ function JournalCard({
 
 interface ArticleImageProps {
   article: JournalArticle;
-  blogHandle: string;
   loading?: HTMLImageElement["loading"];
   featured?: boolean;
 }
 
 function ArticleImage({
   article,
-  blogHandle,
   loading,
   featured = false,
 }: ArticleImageProps) {
   return (
     <Link
-      to={`/blogs/${blogHandle}/${article.handle}`}
+      to={`/blogs/${article.handle}`}
       className="block aspect-video w-full overflow-hidden rounded-(--journal-radius) bg-(--color-background-subtle)"
       data-motion="slide-in"
     >
@@ -354,13 +336,11 @@ function ArticleMeta({
 
 function ReadMoreLink({
   article,
-  blogHandle,
   text,
   visible,
   className,
 }: {
   article: JournalArticle;
-  blogHandle: string;
   text: string;
   visible: boolean;
   className?: string;
@@ -370,7 +350,7 @@ function ReadMoreLink({
   }
   return (
     <Link
-      to={`/blogs/${blogHandle}/${article.handle}`}
+      to={`/blogs/${article.handle}`}
       className={`inline-flex items-center gap-2 font-body font-semibold text-(--journal-link) text-sm leading-none transition-opacity hover:opacity-70 ${className || ""}`}
     >
       {text}

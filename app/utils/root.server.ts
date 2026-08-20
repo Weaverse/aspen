@@ -8,8 +8,15 @@ import type {
 import invariant from "tiny-invariant";
 import type { EnhancedMenu } from "~/types/menu";
 import type { WishlistApiResponse } from "~/types/wishlist";
+import { getLocaleSegment, localeCode } from "~/utils/locale";
+import { loadLoyaltyBalance } from "~/utils/loyalty.server";
+import { isLoyaltyLionConfigured } from "~/utils/loyaltylion.server";
 import { seoPayload } from "~/utils/seo.server";
 import { readWishlist } from "~/utils/wishlist.server";
+import {
+  isWishlistPreviewRequest,
+  readPreviewWishlist,
+} from "~/utils/wishlist-preview.server";
 
 /**
  * Load data necessary for rendering content above the fold. This is the critical data
@@ -19,6 +26,17 @@ export async function loadCriticalData({
   request,
   context,
 }: LoaderFunctionArgs) {
+  const requestedLocale = getLocaleSegment(new URL(request.url).pathname);
+  if (
+    requestedLocale &&
+    !context.localization.availableLocales.some(
+      (locale) => localeCode(locale) === requestedLocale,
+    ) &&
+    localeCode(context.localization.selectedLocale) !== requestedLocale
+  ) {
+    throw new Response("Unsupported locale", { status: 404 });
+  }
+
   const [layout, swatchesConfigs, weaverseTheme] = await Promise.all([
     getLayoutData(context),
     getSwatchesConfigs(context),
@@ -28,7 +46,7 @@ export async function loadCriticalData({
 
   const seo = seoPayload.root({ shop: layout.shop, url: request.url });
 
-  const { storefront, env } = context;
+  const { storefront, env, localization } = context;
   return {
     layout,
     seo,
@@ -44,10 +62,16 @@ export async function loadCriticalData({
       country: storefront.i18n.country,
       language: storefront.i18n.language,
     },
-    selectedLocale: storefront.i18n,
+    selectedLocale: localization.selectedLocale,
+    availableLocales: localization.availableLocales,
+    defaultLocale: localization.defaultLocale,
     weaverseTheme,
     googleGtmID: env.PUBLIC_GOOGLE_GTM_ID,
     swatchesConfigs,
+    integrations: {
+      klaviyo: Boolean(env.KLAVIYO_PRIVATE_API_TOKEN),
+      loyaltyLion: isLoyaltyLionConfigured(env),
+    },
   };
 }
 
@@ -56,21 +80,30 @@ export async function loadCriticalData({
  * fetched after the initial page load. If it's unavailable, the page should still 200.
  * Make sure to not throw any errors here, as it will cause the page to 500.
  */
-export function loadDeferredData({ context }: LoaderFunctionArgs) {
-  const { cart, customerAccount } = context;
+export function loadDeferredData({ context, request }: LoaderFunctionArgs) {
+  const { cart, customerAccount, env } = context;
   const isLoggedIn = customerAccount.isLoggedIn();
 
   return {
     isLoggedIn,
     cart: cart.get(),
-    wishlist: loadCustomerWishlist(customerAccount, isLoggedIn),
+    wishlist: loadCustomerWishlist(request, customerAccount, isLoggedIn),
+    loyalty: loadLoyaltyBalance({ env, customerAccount, isLoggedIn }),
   };
 }
 
 async function loadCustomerWishlist(
+  request: Request,
   customerAccount: AppLoadContext["customerAccount"],
   isLoggedIn: Promise<boolean>,
 ): Promise<WishlistApiResponse> {
+  if (isWishlistPreviewRequest(request)) {
+    return {
+      authenticated: true,
+      productIds: await readPreviewWishlist(request),
+    };
+  }
+
   if (!(await isLoggedIn)) {
     return { authenticated: false, productIds: [] };
   }
@@ -302,10 +335,9 @@ function resolveToFromType(
     case type === "FRONTPAGE":
       return "/";
     case type === "ARTICLE": {
-      const blogHandle = pathParts.pop();
       return routePrefix.BLOG
-        ? `/${routePrefix.BLOG}/${blogHandle}/${handle}/`
-        : `/${blogHandle}/${handle}/`;
+        ? `/${routePrefix.BLOG}/${handle}/`
+        : `/${handle}/`;
     }
     case type === "BLOG":
       return `/${routePrefix.BLOG}`;

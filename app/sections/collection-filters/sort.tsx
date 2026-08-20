@@ -1,6 +1,7 @@
 import { CaretDownIcon, CheckIcon, XIcon } from "@phosphor-icons/react";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import { useTranslation } from "@weaverse/hydrogen";
 import { useState } from "react";
 import { useLocation, useSearchParams } from "react-router";
 import { AnimatedDrawer } from "~/components/animate-drawer";
@@ -8,13 +9,13 @@ import Link from "~/components/link";
 import { cn } from "~/utils/cn";
 import type { SortParam } from "~/utils/filter";
 
-const SORT_LIST: { label: string; key: SortParam }[] = [
-  { label: "Featured", key: "featured" },
-  { label: "Relevance", key: "relevance" },
-  { label: "Price, low to high", key: "price-low-high" },
-  { label: "Price, high to low", key: "price-high-low" },
-  { label: "Best selling", key: "best-selling" },
-  { label: "Newest", key: "newest" },
+const SORT_LIST: { labelKey: string; key: SortParam }[] = [
+  { labelKey: "collection.featured", key: "featured" },
+  { labelKey: "collection.relevance", key: "relevance" },
+  { labelKey: "collection.priceLowHigh", key: "price-low-high" },
+  { labelKey: "collection.priceHighLow", key: "price-high-low" },
+  { labelKey: "collection.bestSelling", key: "best-selling" },
+  { labelKey: "collection.newest", key: "newest" },
 ];
 
 export function Sort({
@@ -26,6 +27,7 @@ export function Sort({
   defaultSort?: SortParam;
   options?: SortParam[];
 }) {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const sortList = options?.length
@@ -51,7 +53,8 @@ export function Sort({
     <DropdownMenu.Root>
       <DropdownMenu.Trigger className="flex h-12 w-fit items-center justify-end gap-1.5 py-2.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body">
         <span className="inline uppercase">
-          Sort by: <span className="font-semibold">{currentSort.label}</span>
+          {t("collection.sortBy")}:{" "}
+          <span className="font-semibold">{t(currentSort.labelKey)}</span>
         </span>
         <CaretDownIcon aria-hidden="true" />
       </DropdownMenu.Trigger>
@@ -61,7 +64,7 @@ export function Sort({
           align="end"
           className="z-20 flex h-fit w-52 flex-col border border-line-subtle bg-background p-2 shadow-lg"
         >
-          {sortList.map(({ key, label }) => (
+          {sortList.map(({ key, labelKey }) => (
             <DropdownMenu.Item key={key} asChild>
               <Link
                 to={getSortUrl(location.pathname, searchParams, key)}
@@ -71,7 +74,7 @@ export function Sort({
                 )}
                 preventScrollReset
               >
-                <span>{label}</span>
+                <span>{t(labelKey)}</span>
                 {currentSort.key === key && (
                   <CheckIcon aria-hidden="true" className="h-4 w-4" />
                 )}
@@ -95,6 +98,7 @@ function SortDrawer({
   searchParams: URLSearchParams;
   sortList: typeof SORT_LIST;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   return (
@@ -104,7 +108,7 @@ function SortDrawer({
           type="button"
           className="flex h-11 items-center justify-center gap-1.5 rounded-sm border border-line px-4 uppercase focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body"
         >
-          <span>Sort</span>
+          <span>{t("collection.sort")}</span>
           <CaretDownIcon aria-hidden="true" className="h-4 w-4" />
         </button>
       </Dialog.Trigger>
@@ -112,20 +116,20 @@ function SortDrawer({
         <div className="flex h-full flex-col">
           <div className="flex min-h-10 shrink-0 items-center justify-between px-[52px]">
             <Dialog.Title className="text-sm font-semibold uppercase">
-              Sort by
+              {t("collection.sortBy")}
             </Dialog.Title>
             <Dialog.Close asChild>
               <button
                 type="button"
                 className="-mr-2 flex h-10 w-10 items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body"
-                aria-label="Close sort drawer"
+                aria-label={t("collection.closeSort")}
               >
                 <XIcon aria-hidden="true" className="h-5 w-5" />
               </button>
             </Dialog.Close>
           </div>
           <div className="divide-y divide-line-subtle border-line-subtle border-b px-[52px]">
-            {sortList.map(({ key, label }) => (
+            {sortList.map(({ key, labelKey }) => (
               <Dialog.Close key={key} asChild>
                 <Link
                   to={getSortUrl(pathname, searchParams, key)}
@@ -136,7 +140,7 @@ function SortDrawer({
                     currentSort.key === key && "font-semibold",
                   )}
                 >
-                  <span>{label}</span>
+                  <span>{t(labelKey)}</span>
                   {currentSort.key === key && (
                     <CheckIcon aria-hidden="true" className="h-4 w-4" />
                   )}

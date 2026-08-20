@@ -8,7 +8,7 @@ import { getImageLoadingPriority } from "~/utils/image";
 import { ArticleCard, type ArticleCardProps } from "./blogs";
 
 interface RelatedArticlesProps
-  extends Omit<ArticleCardProps, "article" | "blogHandle" | "loading">,
+  extends Omit<ArticleCardProps, "article" | "loading">,
     SectionProps {
   heading: string;
   showViewAll?: boolean;
@@ -17,7 +17,7 @@ interface RelatedArticlesProps
 
 const RelatedArticles = forwardRef<HTMLElement, RelatedArticlesProps>(
   (props, ref) => {
-    const { blog, relatedArticles } = useLoaderData<{
+    const { relatedArticles } = useLoaderData<{
       relatedArticles: ArticleFragment[];
       blog: { handle: string };
     }>();
@@ -46,7 +46,7 @@ const RelatedArticles = forwardRef<HTMLElement, RelatedArticlesProps>(
             {showViewAll && (
               <div className="flex items-center gap-2">
                 <Link
-                  to={`/blogs/${blog.handle}`}
+                  to="/blogs"
                   className="flex items-center gap-2.5 px-1 py-1 text-[#29231E] transition-opacity hover:opacity-70"
                 >
                   <span className="font-body text-sm uppercase leading-[1em] tracking-[0.02em]">
@@ -67,7 +67,6 @@ const RelatedArticles = forwardRef<HTMLElement, RelatedArticlesProps>(
             {relatedArticles.slice(0, 3).map((article, i) => (
               <div key={article.id} className="flex flex-col gap-4">
                 <ArticleCard
-                  blogHandle={blog.handle}
                   article={article}
                   loading={getImageLoadingPriority(i, 2)}
                   showAuthor={showAuthor}

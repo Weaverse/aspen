@@ -1,7 +1,7 @@
 import { Minus, Plus } from "@phosphor-icons/react";
 import * as Accordion from "@radix-ui/react-accordion";
 import { Image } from "@shopify/hydrogen";
-import { useThemeSettings } from "@weaverse/hydrogen";
+import { useThemeSettings, useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import type React from "react";
 import { useEffect, useState } from "react";
@@ -18,6 +18,7 @@ type NewsletterResponse = { ok: boolean; error: string };
 type FooterLogoData = React.ComponentProps<typeof Image>["data"];
 
 export function Footer() {
+  const { t } = useTranslation();
   const { shopName, footerMenu, paymentSettings } = useShopMenu();
   const {
     footerWidth = "full",
@@ -57,12 +58,12 @@ export function Footer() {
     }
     if (fetcher.data.ok) {
       setError("");
-      setMessage("Thank you for signing up! 🎉");
+      setMessage(t("footer.newsletterSuccess"));
       return;
     }
     setMessage("");
-    setError(fetcher.data.error || "An error occurred while signing up.");
-  }, [fetcher.data]);
+    setError(fetcher.data.error || t("footer.newsletterError"));
+  }, [fetcher.data, t]);
 
   const apiPaymentMethods = [
     ...(paymentSettings?.acceptedCardBrands || []),
@@ -292,6 +293,7 @@ function CompactBrand({
   businessHoursWeekdays: string;
   address: string;
 }) {
+  const { t } = useTranslation();
   return (
     <div>
       <BrandMark
@@ -301,8 +303,12 @@ function CompactBrand({
       />
       <div className="mt-7 max-w-[350px]">
         <p className="font-semibold uppercase">{shopName}</p>
-        <p>Business Hours: {businessHoursWeekdays}</p>
-        <p className="whitespace-pre-line">Address: {address}</p>
+        <p>
+          {t("footer.businessHours")}: {businessHoursWeekdays}
+        </p>
+        <p className="whitespace-pre-line">
+          {t("footer.address")}: {address}
+        </p>
       </div>
     </div>
   );
@@ -319,13 +325,18 @@ function ContactBlock({
   email: string;
   phone: string;
 }) {
+  const { t } = useTranslation();
   return (
     <div>
       <p className="font-semibold uppercase">{title}</p>
       <p className="mt-3 whitespace-pre-line">{address}</p>
       <div className="mt-4">
-        <p>Email: {email}</p>
-        <p>Phone: {phone}</p>
+        <p>
+          {t("footer.email")}: {email}
+        </p>
+        <p>
+          {t("footer.phone")}: {phone}
+        </p>
       </div>
     </div>
   );
@@ -393,7 +404,8 @@ function NewsletterSignup({
           type="submit"
           disabled={fetcher.state === "submitting"}
           className={clsx(
-            "w-[86px] shrink-0 rounded-md font-semibold uppercase disabled:cursor-wait disabled:opacity-60 md:w-[98px]",
+            "w-[86px] shrink-0 rounded-md font-semibold uppercase transition-colors disabled:cursor-wait disabled:opacity-60 md:w-[98px]",
+            "hover:bg-white hover:text-black",
             desktop ? "bg-[#EDEDED] text-[#343231]" : "bg-[#524B46] text-white",
           )}
         >
@@ -435,16 +447,20 @@ function PaymentMethods({
   methods: string[];
   remainingCount: number;
 }) {
+  const { t } = useTranslation();
   if (!methods.length) {
     return (
       <p className="text-(--color-footer-text) text-xs opacity-70">
-        Payment methods available at checkout
+        {t("footer.paymentMethodsAtCheckout")}
       </p>
     );
   }
 
   return (
-    <ul className="flex items-center gap-4" aria-label="Accepted payments">
+    <ul
+      className="flex items-center gap-4"
+      aria-label={t("footer.acceptedPayments")}
+    >
       {methods.map((method) => {
         const Icon = PAYMENT_ICON_MAP[method];
         return Icon ? (
@@ -460,7 +476,7 @@ function PaymentMethods({
       {remainingCount > 0 ? (
         <li
           className="text-xs"
-          title={`${remainingCount} more payment methods`}
+          title={t("footer.morePaymentMethods", { count: remainingCount })}
         >
           +{remainingCount}
         </li>
@@ -485,11 +501,15 @@ function FooterMenu({
   items: SingleMenuItem[];
   desktopOnly?: boolean;
 }) {
+  const { t } = useTranslation();
   const [openItems, setOpenItems] = useState<string[]>([]);
 
   if (desktopOnly) {
     return (
-      <nav aria-label="Footer" className="grid w-full grid-cols-4 gap-8 pt-1">
+      <nav
+        aria-label={t("footer.navigation")}
+        className="grid w-full grid-cols-4 gap-8 pt-1"
+      >
         {items.slice(0, 4).map(({ id, to, title, items: subItems }) => (
           <div key={id}>
             <div className="font-semibold uppercase">

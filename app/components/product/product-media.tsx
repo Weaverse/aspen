@@ -1,7 +1,10 @@
 import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
   MagnifyingGlassPlusIcon,
   VideoCameraIcon,
 } from "@phosphor-icons/react";
+import { useTranslation } from "@weaverse/hydrogen";
 import { cva, type VariantProps } from "class-variance-authority";
 import clsx from "clsx";
 import { useEffect, useState } from "react";
@@ -58,6 +61,7 @@ export interface ProductMediaProps extends VariantProps<typeof variants> {
 }
 
 export function ProductMedia(props: ProductMediaProps) {
+  const { t } = useTranslation();
   const {
     mediaLayout,
     gridSize,
@@ -109,7 +113,7 @@ export function ProductMedia(props: ProductMediaProps) {
   };
 
   const baseButtonClasses =
-    "p-2 text-center border transition-all duration-200 pointer-events-auto";
+    "inline-flex items-center justify-center p-2 text-center border transition-all duration-200 pointer-events-auto";
 
   const [swiper, setSwiper] = useState<SwiperClass | null>(null);
   const [thumbsSwiper, setThumbsSwiper] = useState<SwiperClass | null>(null);
@@ -156,7 +160,7 @@ export function ProductMedia(props: ProductMediaProps) {
   if (media.length === 0) {
     return (
       <div className="relative flex aspect-square w-full items-center justify-center bg-[#f7f7f7] text-body-subtle">
-        <span>Image unavailable</span>
+        <span>{t("product.imageUnavailable")}</span>
         {showBadges && badges && (
           <div className="absolute top-5 left-5 z-[1] flex items-center gap-2">
             {badges}
@@ -349,7 +353,7 @@ export function ProductMedia(props: ProductMediaProps) {
                       colorClasses(zoomColor),
                       shapeClass(zoomShape),
                     )}
-                    aria-label="Zoom product image"
+                    aria-label={t("product.zoomImage")}
                     onClick={() => {
                       setZoomMediaId(item.id);
                       setZoomModalOpen(true);
@@ -383,18 +387,9 @@ export function ProductMedia(props: ProductMediaProps) {
                     "lg:ml-8",
                   ],
                 )}
-                aria-label="Previous product media"
+                aria-label={t("product.previousMedia")}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  className="translate-x-0.5 translate-y-0.5"
-                >
-                  <path d="M4.75397 12.207L5.46106 11.4999L2.46116 8.50003L15.5 8.50003V7.5L2.46125 7.5L5.46106 4.50019L4.75397 3.7931L0.546938 8.00006L4.75397 12.207Z" />
-                </svg>
+                <ArrowLeftIcon aria-hidden="true" className="size-5 shrink-0" />
               </button>
               <button
                 type="button"
@@ -408,18 +403,12 @@ export function ProductMedia(props: ProductMediaProps) {
                     "lg:mr-8",
                   ],
                 )}
-                aria-label="Next product media"
+                aria-label={t("product.nextMedia")}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  className="translate-x-0.5 translate-y-0.5"
-                >
-                  <path d="M11.246 3.79297L10.5389 4.50006L13.5388 7.49997H0.5V8.5H13.5387L10.5389 11.4998L11.246 12.2069L15.4531 7.99994L11.246 3.79297Z" />
-                </svg>
+                <ArrowRightIcon
+                  aria-hidden="true"
+                  className="size-5 shrink-0"
+                />
               </button>
             </div>
           )}

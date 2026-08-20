@@ -12,7 +12,7 @@ import {
   Pagination,
 } from "@shopify/hydrogen";
 import type { ProductFilter } from "@shopify/hydrogen/storefront-api-types";
-import { useThemeSettings } from "@weaverse/hydrogen";
+import { useThemeSettings, useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { useState } from "react";
 import type { LoaderFunctionArgs, MetaArgs } from "react-router";
@@ -164,6 +164,7 @@ export const meta = ({ matches }: MetaArgs<typeof loader>) => {
 };
 
 export default function Search() {
+  const { t } = useTranslation();
   const { searchTerm, products, appliedFilters, searchError } =
     useLoaderData<typeof loader>();
   const [gridSizeDesktop, setGridSizeDesktop] = useState(2);
@@ -176,7 +177,7 @@ export default function Search() {
   if (searchError) {
     return (
       <>
-        <StorefrontError statusCode={500} title="Search unavailable" />
+        <StorefrontError statusCode={500} title={t("search.unavailable")} />
         <Analytics.SearchView data={{ searchTerm, searchResults: products }} />
       </>
     );
@@ -190,7 +191,9 @@ export default function Search() {
             <div className="hidden flex-col gap-4 md:flex">
               <SearchHeading searchTerm={searchTerm} />
               {searchTerm && (
-                <span className="py-2 uppercase">Products ({resultCount})</span>
+                <span className="py-2 uppercase">
+                  {t("search.products")} ({resultCount})
+                </span>
               )}
             </div>
             <div className="flex w-full flex-col gap-4 md:w-fit md:items-end">
@@ -260,9 +263,12 @@ export default function Search() {
 }
 
 function SearchHeading({ searchTerm }: { searchTerm: string }) {
+  const { t } = useTranslation();
   return (
     <h1 className="font-heading font-normal text-xl uppercase leading-tight tracking-[-0.03em] md:text-2xl">
-      {searchTerm ? `Results for “${searchTerm}”` : "Search"}
+      {searchTerm
+        ? t("search.resultsFor", { term: searchTerm })
+        : t("search.title")}
     </h1>
   );
 }
@@ -276,6 +282,7 @@ function SearchProducts({
   gridSizeDesktop: number;
   gridSizeMobile: number;
 }) {
+  const { t } = useTranslation();
   return (
     <Pagination connection={products}>
       {({
@@ -299,7 +306,7 @@ function SearchProducts({
             <PreviousLink
               className={cn("mx-auto", variants({ variant: "outline" }))}
             >
-              {isLoading ? "Loading…" : "Load previous products"}
+              {isLoading ? t("system.loading") : t("search.loadPrevious")}
             </PreviousLink>
           )}
           <div
@@ -326,7 +333,7 @@ function SearchProducts({
                 variants({ variant: "outline" }),
               )}
             >
-              {isLoading ? "Loading…" : "Load more"}
+              {isLoading ? t("system.loading") : t("search.loadMore")}
             </NextLink>
           )}
         </div>
@@ -336,6 +343,7 @@ function SearchProducts({
 }
 
 function AppliedFilters({ filters }: { filters: AppliedFilter[] }) {
+  const { t } = useTranslation();
   const [params] = useSearchParams();
   const location = useLocation();
 
@@ -369,7 +377,7 @@ function AppliedFilters({ filters }: { filters: AppliedFilter[] }) {
         variant="underline"
         preventScrollReset
       >
-        Clear all filters
+        {t("collection.clearAllFilters")}
       </Link>
     </div>
   );
@@ -382,6 +390,7 @@ function SearchEmptyState({
   searchTerm: string;
   hasAppliedFilters: boolean;
 }) {
+  const { t } = useTranslation();
   const [params] = useSearchParams();
   const location = useLocation();
   const clearFilterParams = new URLSearchParams(params);
@@ -397,17 +406,17 @@ function SearchEmptyState({
       <div className="space-y-2">
         <h2 className="font-heading text-xl uppercase tracking-[-0.02em]">
           {hasAppliedFilters
-            ? "No products match your filters"
+            ? t("search.noFilterMatches")
             : searchTerm
-              ? `No results for “${searchTerm}”`
-              : "What are you looking for?"}
+              ? t("search.noResults", { term: searchTerm })
+              : t("search.emptyTitle")}
         </h2>
         <p className="text-body-subtle">
           {hasAppliedFilters
-            ? "Try removing a filter to see more products."
+            ? t("search.removeFilterHint")
             : searchTerm
-              ? "Check the spelling or try a broader search term."
-              : "Search by product name, material, room, or collection."}
+              ? t("search.spellingHint")
+              : t("search.emptyHint")}
         </p>
       </div>
       {hasAppliedFilters ? (
@@ -416,7 +425,7 @@ function SearchEmptyState({
           className={variants({ variant: "outline" })}
           preventScrollReset
         >
-          Clear filters
+          {t("search.clearFilters")}
         </Link>
       ) : (
         <SearchPageForm defaultValue={searchTerm} />
@@ -426,22 +435,23 @@ function SearchEmptyState({
 }
 
 function SearchPageForm({ defaultValue = "" }: { defaultValue?: string }) {
+  const { t } = useTranslation();
   return (
     <Form method="get" className="flex w-full max-w-md border-b border-line">
       <label htmlFor="search-page-query" className="sr-only">
-        Search products
+        {t("search.searchProducts")}
       </label>
       <input
         id="search-page-query"
         name="q"
         type="search"
         defaultValue={defaultValue}
-        placeholder="Search products"
+        placeholder={t("search.searchProducts")}
         className="h-12 min-w-0 flex-1 bg-transparent px-1 outline-none"
       />
       <button
         type="submit"
-        aria-label="Submit search"
+        aria-label={t("search.submit")}
         className="flex h-12 w-12 items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body"
       >
         <MagnifyingGlassIcon aria-hidden="true" className="h-5 w-5" />
@@ -457,6 +467,7 @@ function FiltersDrawer({
   appliedFiltersCount: number;
   disabled: boolean;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   return (
@@ -469,13 +480,16 @@ function FiltersDrawer({
           disabled={disabled}
           aria-label={
             appliedFiltersCount
-              ? `Filter products, ${appliedFiltersCount} active`
-              : "Filter products"
+              ? t("collection.filterProductsActive", {
+                  count: appliedFiltersCount,
+                })
+              : t("collection.filterProducts")
           }
         >
           <SlidersIcon aria-hidden="true" size={18} />
           <span className="uppercase">
-            Filter{appliedFiltersCount ? ` (${appliedFiltersCount})` : ""}
+            {t("collection.filter")}
+            {appliedFiltersCount ? ` (${appliedFiltersCount})` : ""}
           </span>
         </Button>
       </Dialog.Trigger>
@@ -483,13 +497,13 @@ function FiltersDrawer({
         <div className="flex h-full flex-col">
           <div className="flex min-h-10 shrink-0 items-center justify-between px-[52px]">
             <Dialog.Title className="text-sm font-semibold uppercase">
-              Filter
+              {t("collection.filter")}
             </Dialog.Title>
             <Dialog.Close asChild>
               <button
                 type="button"
                 className="-mr-2 flex h-10 w-10 items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body"
-                aria-label="Close filter drawer"
+                aria-label={t("collection.closeFilters")}
               >
                 <XIcon aria-hidden="true" className="h-5 w-5" />
               </button>

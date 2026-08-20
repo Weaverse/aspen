@@ -4,7 +4,7 @@ import type { MetaFunction } from "react-router";
 import { data, type LoaderFunctionArgs } from "react-router";
 import type { BlogsIndexQuery } from "storefront-api.generated";
 import { routeHeaders } from "~/utils/cache";
-import { PAGINATION_SIZE } from "~/utils/const";
+import { DEFAULT_BLOG_HANDLE, PAGINATION_SIZE } from "~/utils/const";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 import { seoPayload } from "~/utils/seo.server";
 import { WeaverseContent } from "~/weaverse";
@@ -15,15 +15,15 @@ export const shouldRevalidate = skipPageRevalidationForStorefrontActions;
 export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   const storefront = context.storefront;
   const { language, country } = storefront.i18n;
-  const { blogs } = await storefront.query<BlogsIndexQuery>(BLOGS_INDEX_QUERY, {
+  const { blog } = await storefront.query<BlogsIndexQuery>(BLOGS_INDEX_QUERY, {
     variables: {
+      blogHandle: DEFAULT_BLOG_HANDLE,
       pageBy: PAGINATION_SIZE,
       language,
     },
   });
-  const blog = blogs.nodes[0];
 
-  if (!blog?.articles) {
+  if (!blog) {
     throw new Response("Not found", { status: 404 });
   }
 
@@ -59,22 +59,21 @@ export default function BlogsIndex() {
 const BLOGS_INDEX_QUERY = `#graphql
   query blogsIndex(
     $language: LanguageCode
+    $blogHandle: String!
     $pageBy: Int!
     $cursor: String
   ) @inContext(language: $language) {
-    blogs(first: 1) {
-      nodes {
+    blog(handle: $blogHandle) {
+      title
+      handle
+      seo {
         title
-        handle
-        seo {
-          title
-          description
-        }
-        articles(first: $pageBy, after: $cursor) {
-          edges {
-            node {
-              ...BlogArticle
-            }
+        description
+      }
+      articles(first: $pageBy, after: $cursor) {
+        edges {
+          node {
+            ...BlogArticle
           }
         }
       }

@@ -102,7 +102,7 @@ export function updateWishlistProductIds(
   return Array.from(nextIds);
 }
 
-function parseWishlist(value?: string | null) {
+export function parseWishlist(value?: string | null) {
   if (!value) {
     return [];
   }
