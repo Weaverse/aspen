@@ -1,8 +1,9 @@
 import { ArrowRight } from "@phosphor-icons/react";
 import { createSchema } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
-import { Link, useLoaderData } from "react-router";
+import { useLoaderData } from "react-router";
 import type { ArticleFragment } from "storefront-api.generated";
+import { Link } from "~/components/link";
 import { layoutInputs, Section, type SectionProps } from "~/components/section";
 import { getImageLoadingPriority } from "~/utils/image";
 import { ArticleCard, type ArticleCardProps } from "./blogs";

@@ -48,4 +48,3 @@ Date: 2026-08-12
 - Reviews appear before recommendations from 768 px upward and after
   recommendations on mobile, matching the two supplied compositions.
 - The desktop promo is hidden on mobile.
-

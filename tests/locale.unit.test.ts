@@ -16,8 +16,17 @@ import {
 
 const enUS = { language: "EN", country: "US" } as const;
 const frFR = { language: "FR", country: "FR" } as const;
+const esES = {
+  label: "España · Español · EUR",
+  language: "ES",
+  country: "ES",
+  currency: "EUR",
+  pathPrefix: "/es-es",
+  countryName: "España",
+  languageName: "Español",
+} as const;
 
-test("supports only en-us, fr-fr, and es-es locale combinations", () => {
+test("advertises only locales with complete translation catalogs", () => {
   assert.deepEqual(
     SUPPORTED_LOCALES.map(({ language, country, currency, pathPrefix }) => ({
       language,
@@ -25,25 +34,11 @@ test("supports only en-us, fr-fr, and es-es locale combinations", () => {
       currency,
       pathPrefix,
     })),
-    [
-      { language: "EN", country: "US", currency: "USD", pathPrefix: "" },
-      {
-        language: "FR",
-        country: "FR",
-        currency: "EUR",
-        pathPrefix: "/fr-fr",
-      },
-      {
-        language: "ES",
-        country: "ES",
-        currency: "EUR",
-        pathPrefix: "/es-es",
-      },
-    ],
+    [{ language: "EN", country: "US", currency: "USD", pathPrefix: "" }],
   );
 });
 
-test("filters cross-country languages while retaining live currency metadata", () => {
+test("filters live Shopify locales that have no complete UI catalog", () => {
   const liveLocales = [
     ...SUPPORTED_LOCALES,
     {
@@ -51,11 +46,7 @@ test("filters cross-country languages while retaining live currency metadata", (
       country: "FR" as const,
       pathPrefix: "/en-fr",
     },
-    {
-      ...SUPPORTED_LOCALES[2],
-      country: "FR" as const,
-      pathPrefix: "/es-fr",
-    },
+    esES,
   ];
 
   assert.deepEqual(
@@ -67,27 +58,11 @@ test("filters cross-country languages while retaining live currency metadata", (
         pathPrefix,
       }),
     ),
-    [
-      { language: "EN", country: "US", currency: "USD", pathPrefix: "" },
-      {
-        language: "FR",
-        country: "FR",
-        currency: "EUR",
-        pathPrefix: "/fr-fr",
-      },
-      {
-        language: "ES",
-        country: "ES",
-        currency: "EUR",
-        pathPrefix: "/es-es",
-      },
-    ],
+    [{ language: "EN", country: "US", currency: "USD", pathPrefix: "" }],
   );
 });
 
 test("keeps en-us selectable when Shopify omits the default country", () => {
-  const [, , esES] = SUPPORTED_LOCALES;
-
   assert.deepEqual(
     includeDefaultLocale([esES], SUPPORTED_LOCALES[0]).map(
       ({ language, country, pathPrefix }) => ({
@@ -116,6 +91,18 @@ test("keeps the default locale unprefixed and prefixes other locales once", () =
     prefixPathWithLocale("/fr-fr/products/chair", frFR),
     "/fr-fr/products/chair",
   );
+});
+
+test("locale-aware account and blog links preserve a non-default locale", () => {
+  assert.equal(
+    prefixPathWithLocale("/collections", frFR),
+    "/fr-fr/collections",
+  );
+  assert.equal(
+    prefixPathWithLocale("/account/orders/order-token", frFR),
+    "/fr-fr/account/orders/order-token",
+  );
+  assert.equal(prefixPathWithLocale("/blogs", frFR), "/fr-fr/blogs");
 });
 
 test("does not prefix external, hash, or query-only destinations", () => {

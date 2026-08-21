@@ -1,7 +1,8 @@
 import { MinusIcon, PlusIcon } from "@phosphor-icons/react";
 import * as Accordion from "@radix-ui/react-accordion";
 import clsx from "clsx";
-import { Link, useRouteLoaderData } from "react-router";
+import { useRouteLoaderData } from "react-router";
+import { Link } from "~/components/link";
 import type { loader as productLoader } from "~/routes/($locale).products.$productHandle";
 
 interface ProductDetailsProps {

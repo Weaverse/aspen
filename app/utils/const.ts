@@ -15,29 +15,11 @@ export const DEFAULT_LOCALE: I18nLocale = Object.freeze({
 });
 
 /**
- * The only locale combinations supported by this storefront. In production,
- * Shopify Markets must also publish a locale before it appears in the
- * storefront selector. Weaverse Studio receives the complete matrix so
- * merchants can prepare translations before publishing a market.
+ * Only publish locales with a complete storefront translation catalog.
+ * Shopify Markets must also publish a configured locale before it appears in
+ * the production selector. Add another locale here only after its UI catalog
+ * and locale navigation tests are complete.
  */
 export const SUPPORTED_LOCALES: readonly I18nLocale[] = Object.freeze([
   DEFAULT_LOCALE,
-  {
-    label: "France · Français · EUR",
-    language: "FR",
-    country: "FR",
-    currency: "EUR",
-    pathPrefix: "/fr-fr",
-    countryName: "France",
-    languageName: "Français",
-  },
-  {
-    label: "España · Español · EUR",
-    language: "ES",
-    country: "ES",
-    currency: "EUR",
-    pathPrefix: "/es-es",
-    countryName: "España",
-    languageName: "Español",
-  },
 ]);

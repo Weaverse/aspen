@@ -10,8 +10,9 @@ import type {
   OrderItemFragment,
 } from "customer-account-api.generated";
 import type * as React from "react";
-import type { LoaderFunctionArgs } from "react-router";
-import { Link, type MetaFunction, useLoaderData } from "react-router";
+import type { LoaderFunctionArgs, MetaFunction } from "react-router";
+import { useLoaderData } from "react-router";
+import { Link } from "~/components/link";
 import { useLocale } from "~/hooks/use-locale";
 import { formatDate } from "~/utils/locale";
 

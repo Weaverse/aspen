@@ -257,7 +257,7 @@ const HeroVideo = forwardRef<HTMLElement, HeroVideoProps>((props, ref) => {
               playing
               muted
               loop
-              playsinline
+              playsInline
               width="100%"
               height="100%"
               controls={false}

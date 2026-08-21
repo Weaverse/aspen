@@ -1,8 +1,9 @@
 import { ArrowRightIcon } from "@phosphor-icons/react";
 import { createSchema, type WeaverseImage } from "@weaverse/hydrogen";
 import { createContext, forwardRef, useContext } from "react";
-import { Link, useRouteLoaderData } from "react-router";
+import { useRouteLoaderData } from "react-router";
 import { Image } from "~/components/image";
+import { Link } from "~/components/link";
 import type { SectionProps } from "~/components/section";
 import { Section } from "~/components/section";
 import type { loader as productRouteLoader } from "~/routes/($locale).products.$productHandle";

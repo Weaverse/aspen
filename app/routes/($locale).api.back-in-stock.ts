@@ -10,12 +10,46 @@ import {
   KLAVIYO_INVALID_EMAIL_ERROR,
   readKlaviyoErrorPayload,
 } from "~/utils/klaviyo.server";
+import {
+  createFixedWindowRateLimiter,
+  getRequestClientAddress,
+  isSameOriginPost,
+} from "~/utils/request-security.server";
 import { shopifyNumericId } from "~/utils/shopify-id";
+
+const backInStockRateLimiter = createFixedWindowRateLimiter({
+  limit: 5,
+  windowMs: 60_000,
+});
 
 export const action: ActionFunction = async ({
   request,
   context,
 }: ActionFunctionArgs) => {
+  if (request.method.toUpperCase() !== "POST") {
+    return data(
+      { ok: false, error: KLAVIYO_GENERIC_ERROR },
+      { status: 405, headers: { Allow: "POST" } },
+    );
+  }
+
+  if (!isSameOriginPost(request)) {
+    return data({ ok: false, error: KLAVIYO_GENERIC_ERROR }, 403);
+  }
+
+  const rateLimit = backInStockRateLimiter.consume(
+    getRequestClientAddress(request),
+  );
+  if (!rateLimit.allowed) {
+    return data(
+      { ok: false, error: "Too many requests. Please try again shortly." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(rateLimit.retryAfter) },
+      },
+    );
+  }
+
   const apiToken = context.env.KLAVIYO_PRIVATE_API_TOKEN;
   if (!apiToken) {
     console.error(
@@ -25,11 +59,15 @@ export const action: ActionFunction = async ({
   }
 
   const formData = await request.formData();
-  const email = formData.get("email");
+  const submittedEmail = formData.get("email");
   const variantId = formData.get("variantId");
+  const email =
+    typeof submittedEmail === "string"
+      ? submittedEmail.trim().toLowerCase()
+      : "";
 
-  if (typeof email !== "string" || !email) {
-    return data({ ok: false, error: "Email is required" }, 400);
+  if (!isValidEmail(email)) {
+    return data({ ok: false, error: KLAVIYO_INVALID_EMAIL_ERROR }, 400);
   }
 
   const numericVariantId =
@@ -84,3 +122,7 @@ export const action: ActionFunction = async ({
     return data({ ok: false, error: KLAVIYO_GENERIC_ERROR }, 500);
   }
 };
+
+function isValidEmail(email: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}

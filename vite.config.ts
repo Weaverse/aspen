@@ -54,9 +54,6 @@ export default defineConfig(({ isSsrBuild }) => ({
     }),
   },
   server: {
-    fs: {
-      allow: [".", "/Users/brucechau/.codex/attachments"],
-    },
     warmup: {
       clientFiles: [
         "./app/routes/**/*",
@@ -64,7 +61,6 @@ export default defineConfig(({ isSsrBuild }) => ({
         "./app/components/**/*",
       ],
     },
-    allowedHosts: true,
   },
   ssr: {
     optimizeDeps: {
