@@ -19,7 +19,9 @@ export function QuickShopOptionValues({
 }) {
   const { name: optionName, optionValues } = option || {};
 
-  if (!optionName) return null;
+  if (!optionName) {
+    return null;
+  }
 
   const selectedValue = optionValues.find((v) => v.selected)?.name;
   const selectedOption = optionValues.find((v) => v.selected);
@@ -78,7 +80,7 @@ export function QuickShopOptionValues({
         value={selectedValue}
         onValueChange={(v) => {
           const found = optionValues.find(({ name: value }) => value === v);
-          if (found && found.firstSelectableVariant?.id) {
+          if (found?.firstSelectableVariant?.id) {
             onVariantChange(found.firstSelectableVariant.id);
           }
         }}

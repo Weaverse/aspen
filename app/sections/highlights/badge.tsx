@@ -50,7 +50,7 @@ let HighlightsBadge = forwardRef<HTMLDivElement, HighlightsBadgeProps>(
     const [imageError, setImageError] = useState(false);
     useEffect(() => {
       setImageError(false);
-    }, [customIcon]);
+    }, []);
     const isInlineSVG = (content: string) => {
       return content.trim().startsWith("<svg");
     };
@@ -110,6 +110,7 @@ let HighlightsBadge = forwardRef<HTMLDivElement, HighlightsBadgeProps>(
           }
           return (
             <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center">
+              {/* biome-ignore lint/performance/noImgElement: Custom icons can be arbitrary external URLs or data URIs rather than Shopify image data. */}
               <img
                 src={customIcon}
                 alt="Custom Icon"

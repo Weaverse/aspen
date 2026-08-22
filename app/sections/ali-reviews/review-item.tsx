@@ -115,6 +115,8 @@ export function ReviewItem(props: ReviewItemProps) {
                 className="h-full w-full object-cover object-center"
                 src={media.url}
                 alt="Review media"
+                width={80}
+                height={80}
               />
             </div>
           ))}
@@ -142,6 +144,8 @@ function ReviewMediaPreview(props: {
             className="max-h-full max-w-full object-cover"
             src={media.url}
             alt="Review media preview"
+            width={384}
+            height={384}
           />
         </div>
         <XIcon

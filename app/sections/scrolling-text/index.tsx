@@ -140,9 +140,12 @@ const ScrollingText = forwardRef<HTMLElement, ScrollingProps>((props, ref) => {
                 className="inline-flex h-full w-full items-center justify-center"
               />
             ) : (
+              // biome-ignore lint/performance/noImgElement: The section accepts arbitrary icon URLs, not Shopify image objects.
               <img
                 src={icons[0].content}
                 alt="icon"
+                width={iconSize}
+                height={iconSize}
                 className="h-full w-full object-contain"
               />
             )}
@@ -191,9 +194,12 @@ const ScrollingText = forwardRef<HTMLElement, ScrollingProps>((props, ref) => {
                           className="inline-flex h-full w-full items-center justify-center"
                         />
                       ) : (
+                        // biome-ignore lint/performance/noImgElement: The section accepts arbitrary icon URLs, not Shopify image objects.
                         <img
                           src={currentIcon.content}
                           alt="icon"
+                          width={iconSize}
+                          height={iconSize}
                           className="h-full w-full object-contain"
                         />
                       )}

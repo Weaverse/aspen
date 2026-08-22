@@ -5,8 +5,7 @@
 export function safeReturnTo(request: Request, fallback = "/") {
   const returnTo = new URL(request.url).searchParams.get("return_to");
   if (
-    !returnTo ||
-    !returnTo.startsWith("/") ||
+    !returnTo?.startsWith("/") ||
     returnTo.startsWith("//") ||
     returnTo.includes("\\")
   ) {

@@ -4,8 +4,10 @@ import type { CSSProperties } from "react";
 import { forwardRef } from "react";
 import { useFetcher } from "react-router";
 import { Button } from "~/components/button";
-import type { CustomerApiPlayLoad } from "~/routes/($locale).api.customer";
 import { cn } from "~/utils/cn";
+
+// Newsletter signups go to Klaviyo; see docs/integrations.md.
+type KlaviyoApiPayload = { ok: boolean; error?: string };
 
 interface NewsletterFormProps extends HydrogenComponentProps {
   style?: CSSProperties;
@@ -50,8 +52,8 @@ const NewsletterForm = forwardRef<HTMLDivElement, NewsletterFormProps>(
     } = props;
     const fetcher = useFetcher();
     const { state, Form } = fetcher;
-    const data = fetcher.data as CustomerApiPlayLoad | undefined;
-    const { ok, errorMessage } = data || {};
+    const data = fetcher.data as KlaviyoApiPayload | undefined;
+    const { ok, error } = data || {};
 
     return (
       <div
@@ -68,7 +70,7 @@ const NewsletterForm = forwardRef<HTMLDivElement, NewsletterFormProps>(
       >
         <Form
           method="POST"
-          action="/api/customer"
+          action="/api/klaviyo"
           className="flex w-full items-stretch gap-2"
           data-motion="fade-up"
         >
@@ -119,7 +121,7 @@ const NewsletterForm = forwardRef<HTMLDivElement, NewsletterFormProps>(
               ok ? "text-green-700" : "text-red-700",
             )}
           >
-            {ok ? successText : errorMessage || "Something went wrong"}
+            {ok ? successText : error || "Something went wrong"}
           </div>
         )}
       </div>

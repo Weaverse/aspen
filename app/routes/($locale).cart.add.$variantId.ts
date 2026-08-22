@@ -1,5 +1,5 @@
 import type { LoaderFunctionArgs } from "react-router";
-import { data, redirect } from "react-router";
+import { data } from "react-router";
 
 export async function loader({ params, context }: LoaderFunctionArgs) {
   const { cart, session } = context;
@@ -36,7 +36,6 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
       { status: 303, headers },
     );
   } catch (e) {
-    // biome-ignore lint/suspicious/noConsole: <explanation> --- IGNORE ---
     console.error(e);
     return data({ error: e });
   }

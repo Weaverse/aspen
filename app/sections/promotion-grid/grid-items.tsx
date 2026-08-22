@@ -432,7 +432,7 @@ let PromotionSlider = forwardRef<HTMLDivElement, GridItemProps>(
       setSwiperKey((prev) => {
         return prev + 1;
       });
-    }, [slidesToShow, showDots, showArrows, autoPlay, autoPlayDelay]);
+    }, []);
 
     useEffect(() => {
       setActiveTab((current) =>

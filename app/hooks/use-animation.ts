@@ -26,19 +26,22 @@ export function useAnimation(ref?: ForwardedRef<any>) {
       return;
     }
 
-    if (scope.current) {
+    const currentScope = scope.current;
+    if (currentScope) {
       // Thêm lớp phủ opacity-0 cho tất cả elements có data-motion
-      const elems = scope.current.querySelectorAll("[data-motion]");
+      const elems = currentScope.querySelectorAll(
+        "[data-motion]",
+      ) as NodeListOf<HTMLElement>;
 
       // Ẩn tất cả elements ban đầu
-      elems.forEach((elem: HTMLElement) => {
+      for (const elem of elems) {
         elem.style.opacity = "0";
-      });
+      }
 
       // Thêm class để track trạng thái
-      scope.current.classList.add("animated-scope");
+      currentScope.classList.add("animated-scope");
 
-      elems.forEach((elem: HTMLElement, idx: number) => {
+      for (const [idx, elem] of Array.from(elems).entries()) {
         inView(
           elem,
           (element: Element) => {
@@ -67,9 +70,9 @@ export function useAnimation(ref?: ForwardedRef<any>) {
             amount: 0.3,
           },
         );
-      });
+      }
     }
-  }, [revealElementsOnScroll]);
+  }, [revealElementsOnScroll, scope]);
 
   return [scope] as const;
 }

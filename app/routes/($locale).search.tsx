@@ -79,10 +79,10 @@ export async function loader({
       endCursor: null,
     },
   } as unknown as SearchQuery["products"];
-  let highestPriceProduct: { nodes: Array<Record<string, unknown>> } = {
+  let highestPriceProduct: { nodes: Record<string, unknown>[] } = {
     nodes: [],
   };
-  let lowestPriceProduct: { nodes: Array<Record<string, unknown>> } = {
+  let lowestPriceProduct: { nodes: Record<string, unknown>[] } = {
     nodes: [],
   };
   let searchError: string | null = null;

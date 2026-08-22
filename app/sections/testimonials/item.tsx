@@ -165,7 +165,9 @@ let TestimonialHotspotsItem = forwardRef<
                     <QuickShop
                       data={quickShopData as any}
                       showDescription={false}
-                      setShowDescription={() => {}}
+                      setShowDescription={() => {
+                        // Description is intentionally disabled in this compact view.
+                      }}
                       onCloseAll={() => setShowQuickShop(false)}
                     />
                   ) : (

@@ -167,7 +167,7 @@ function FilterItem({
     (flt) => JSON.stringify(flt.filter) === option.input,
   );
 
-  const [checked, setChecked] = useState(!!filter);
+  const [checked, setChecked] = useState(Boolean(filter));
 
   function handleCheckedChange(newChecked: boolean) {
     setChecked(newChecked);
@@ -237,8 +237,9 @@ function FilterItem({
   }
 
   return (
-    <label className="flex w-full cursor-pointer items-center gap-2">
+    <div className="flex w-full cursor-pointer items-center gap-2">
       <Checkbox.Root
+        aria-label={option.label}
         checked={checked}
         onCheckedChange={(value) => handleCheckedChange(Boolean(value))}
         className="grid h-6 w-6 place-items-center border border-line-subtle"
@@ -246,7 +247,7 @@ function FilterItem({
         <Checkbox.Indicator className="h-4 w-4 bg-gray-800" />
       </Checkbox.Root>
       <Label option={option} showFiltersCount={showFiltersCount} />
-    </label>
+    </div>
   );
 }
 

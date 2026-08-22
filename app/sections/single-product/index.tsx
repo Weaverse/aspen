@@ -9,10 +9,7 @@ import {
 } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { forwardRef, useState } from "react";
-import type {
-  ProductQuery,
-  ProductVariantFragment,
-} from "storefront-api.generated";
+import type { ProductQuery } from "storefront-api.generated";
 import { Button } from "~/components/button";
 import { Image } from "~/components/image";
 import Link from "~/components/link";

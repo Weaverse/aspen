@@ -19,7 +19,7 @@ import { getThemeSchema } from "~/weaverse/schema.server";
 // React Router v7 Headers polyfill for getSetCookie compatibility
 if (typeof Headers !== "undefined" && !Headers.prototype.getSetCookie) {
   Headers.prototype.getSetCookie = function () {
-    const setCookieValues = [];
+    const setCookieValues: string[] = [];
     for (const [key, value] of this.entries()) {
       if (key.toLowerCase() === "set-cookie") {
         setCookieValues.push(value);
@@ -38,7 +38,9 @@ if (typeof Headers !== "undefined") {
   Headers.prototype.set = function (name, value) {
     if (name.toLowerCase() === "set-cookie") {
       // Store set-cookie values for later retrieval
-      if (!this._setCookies) this._setCookies = [];
+      if (!this._setCookies) {
+        this._setCookies = [];
+      }
       this._setCookies = [value];
     }
     return originalSet.call(this, name, value);
@@ -47,7 +49,9 @@ if (typeof Headers !== "undefined") {
   Headers.prototype.append = function (name, value) {
     if (name.toLowerCase() === "set-cookie") {
       // Store set-cookie values for later retrieval
-      if (!this._setCookies) this._setCookies = [];
+      if (!this._setCookies) {
+        this._setCookies = [];
+      }
       this._setCookies.push(value);
     }
     return originalAppend.call(this, name, value);
@@ -118,7 +122,6 @@ export default {
 
       return response;
     } catch (error) {
-      // biome-ignore lint/suspicious/noConsole: <explanation> --- IGNORE ---
       console.error(error);
       return new Response("An unexpected error occurred", { status: 500 });
     }

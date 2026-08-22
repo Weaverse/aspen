@@ -19,7 +19,9 @@ export function SubscriptionLineItem({
   const { sellingPlan } = sellingPlanAllocation;
 
   const formatDeliveryFrequency = () => {
-    if (!sellingPlan) return "";
+    if (!sellingPlan) {
+      return "";
+    }
 
     // Try to extract frequency from selling plan options
     const deliveryOption = sellingPlan.options?.find(

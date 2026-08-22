@@ -10,17 +10,8 @@ import {
   KLAVIYO_INVALID_EMAIL_ERROR,
   readKlaviyoErrorPayload,
 } from "~/utils/klaviyo.server";
-import {
-  createFixedWindowRateLimiter,
-  getRequestClientAddress,
-  isSameOriginPost,
-} from "~/utils/request-security.server";
+import { isSameOriginPost } from "~/utils/request-security.server";
 import { shopifyNumericId } from "~/utils/shopify-id";
-
-const backInStockRateLimiter = createFixedWindowRateLimiter({
-  limit: 5,
-  windowMs: 60_000,
-});
 
 export const action: ActionFunction = async ({
   request,
@@ -35,19 +26,6 @@ export const action: ActionFunction = async ({
 
   if (!isSameOriginPost(request)) {
     return data({ ok: false, error: KLAVIYO_GENERIC_ERROR }, 403);
-  }
-
-  const rateLimit = backInStockRateLimiter.consume(
-    getRequestClientAddress(request),
-  );
-  if (!rateLimit.allowed) {
-    return data(
-      { ok: false, error: "Too many requests. Please try again shortly." },
-      {
-        status: 429,
-        headers: { "Retry-After": String(rateLimit.retryAfter) },
-      },
-    );
   }
 
   const apiToken = context.env.KLAVIYO_PRIVATE_API_TOKEN;

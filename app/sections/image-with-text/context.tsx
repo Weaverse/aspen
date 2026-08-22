@@ -14,9 +14,13 @@ interface ImageWithTextContextType {
 
 export const ImageWithTextContext = createContext<ImageWithTextContextType>({
   imageCount: 0,
-  setImageCount: () => {},
+  setImageCount: () => {
+    // Default context setter is intentionally a no-op outside its provider.
+  },
   imageAspectRatio: "1/1",
-  setImageAspectRatio: () => {},
+  setImageAspectRatio: () => {
+    // Default context setter is intentionally a no-op outside its provider.
+  },
   layout: "split",
   isLegacyLayout: false,
 });

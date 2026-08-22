@@ -31,7 +31,8 @@
         "noConsole": "off",
         "noAlert": "off",
         "noArrayIndexKey": "off",
-        "noUnnecessaryConditions": "off"
+        "noUnnecessaryConditions": "off",
+        "noReactForwardRef": "off"
       },
       "correctness": {
         "noUnusedVariables": "off",

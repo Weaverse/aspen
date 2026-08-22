@@ -1,4 +1,3 @@
-import { ArrowRight } from "@phosphor-icons/react";
 import {
   createSchema,
   type HydrogenComponentProps,
@@ -220,7 +219,7 @@ export const linkContentInputs: InspectorGroup["inputs"] = [
     name: "openInNewTab",
     label: "Open in new tab",
     defaultValue: false,
-    condition: (data: LinkData) => !!data.to,
+    condition: (data: LinkData) => Boolean(data.to),
   },
   {
     type: "select",
