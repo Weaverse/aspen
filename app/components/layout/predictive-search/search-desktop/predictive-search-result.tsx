@@ -1,5 +1,6 @@
 import { Money } from "@shopify/hydrogen";
 import type { MoneyV2 } from "@shopify/hydrogen/storefront-api-types";
+import { useTranslation } from "@weaverse/hydrogen";
 import { Image } from "~/components/image";
 import { Link } from "~/components/link";
 import { ProductCardRating } from "~/components/product/product-card-rating";
@@ -21,14 +22,23 @@ export function PredictiveSearchResult({
   items?: NormalizedPredictiveSearchResultItem[];
   type: SearchResultType;
 }) {
+  const { t } = useTranslation();
+
   if (type === "queries") {
     return <QueryResults items={items} />;
   }
 
   if (!items?.length) {
+    const emptyKey = {
+      articles: "search.noArticlesAvailable",
+      collections: "search.noCollectionsAvailable",
+      pages: "search.noPagesAvailable",
+      products: "search.noProductsAvailable",
+    }[type];
+
     return (
       <p className="text-[#524B46] text-sm">
-        No {type === "pages" ? "pages" : type} available.
+        {t(emptyKey || "search.noResults")}
       </p>
     );
   }
@@ -105,6 +115,8 @@ function ProductResultItem({
 }: {
   item: NormalizedPredictiveSearchResultItem;
 }) {
+  const { t } = useTranslation();
+
   return (
     <li className="min-w-0">
       <Link to={item.url} className="block">
@@ -123,7 +135,7 @@ function ProductResultItem({
         {Boolean(item.swatches?.length) && (
           <ul
             className="mt-5 flex items-center gap-1.5"
-            aria-label={`Available colors for ${item.title}`}
+            aria-label={t("product.availableColors", { product: item.title })}
           >
             {item.swatches.slice(0, 4).map((swatch) => (
               <Swatch key={swatch.name} swatch={swatch} />

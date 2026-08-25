@@ -4,6 +4,7 @@ import {
   type ComponentLoaderArgs,
   createSchema,
   type HydrogenComponentProps,
+  useTranslation,
   type WeaverseProduct,
   type WeaverseVideo,
 } from "@weaverse/hydrogen";
@@ -17,29 +18,33 @@ import { useClientReady } from "~/utils/react-player";
 
 const ReactPlayer = lazy(() => import("react-player"));
 
-const VideoPlaceholder = () => (
-  <div className="absolute inset-0 flex h-full w-full items-center justify-center bg-gray-100">
-    <div className="flex flex-col items-center gap-4 text-gray-400">
-      <svg
-        width="48"
-        height="48"
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        aria-hidden="true"
-      >
-        <path d="M10 8L16 12L10 16V8Z" fill="currentColor" />
-        <path
-          d="M2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12Z"
-          stroke="currentColor"
-          strokeWidth="2"
-        />
-      </svg>
+const VideoPlaceholder = () => {
+  const { t } = useTranslation();
 
-      <p className="font-medium text-sm">No Video</p>
+  return (
+    <div className="absolute inset-0 flex h-full w-full items-center justify-center bg-gray-100">
+      <div className="flex flex-col items-center gap-4 text-gray-400">
+        <svg
+          width="48"
+          height="48"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <path d="M10 8L16 12L10 16V8Z" fill="currentColor" />
+          <path
+            d="M2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12Z"
+            stroke="currentColor"
+            strokeWidth="2"
+          />
+        </svg>
+
+        <p className="font-medium text-sm">{t("video.none")}</p>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 interface VideoItemData {
   video: WeaverseVideo;
@@ -52,6 +57,7 @@ interface VideoItemProps
     VideoItemData {}
 
 let VideoItem = forwardRef<HTMLDivElement, VideoItemProps>((props, ref) => {
+  const { t } = useTranslation();
   let {
     video,
     product,
@@ -124,7 +130,9 @@ let VideoItem = forwardRef<HTMLDivElement, VideoItemProps>((props, ref) => {
               <Link
                 to={productUrl}
                 className="h-[100px] w-[100px] shrink-0 overflow-hidden rounded-[12px] bg-[#F4F4F5]"
-                aria-label={`View ${productData.title}`}
+                aria-label={t("product.viewProduct", {
+                  product: productData.title,
+                })}
               >
                 <Image
                   data={productImage}
@@ -139,7 +147,7 @@ let VideoItem = forwardRef<HTMLDivElement, VideoItemProps>((props, ref) => {
             <div className="flex min-w-0 flex-1 flex-col px-4 py-3">
               <Link
                 to={productUrl || "#"}
-                className="truncate font-body text-[12px] leading-[14px]"
+                className="justify-start! truncate font-body text-[12px] leading-[14px]"
               >
                 {productData.title}
               </Link>
@@ -160,7 +168,8 @@ let VideoItem = forwardRef<HTMLDivElement, VideoItemProps>((props, ref) => {
                       selectedVariant,
                     },
                   ]}
-                  className="!h-7 !rounded-[8px] !px-3 !py-0 !font-body !text-[12px] !leading-none"
+                  containerClassName="min-w-0 flex-1"
+                  className="h-7! w-full! min-w-0! truncate! rounded-[8px]! px-3! py-0! font-body! text-[12px]! leading-none!"
                   width="auto"
                 >
                   {addToCartText}
@@ -170,7 +179,9 @@ let VideoItem = forwardRef<HTMLDivElement, VideoItemProps>((props, ref) => {
                   <Link
                     to={productUrl}
                     className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[8px] border border-[#D8D8D8] bg-white"
-                    aria-label={`View ${productData.title}`}
+                    aria-label={t("product.viewProduct", {
+                      product: productData.title,
+                    })}
                   >
                     <EyeIcon size={15} weight="regular" />
                   </Link>

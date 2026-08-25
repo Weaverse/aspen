@@ -189,7 +189,7 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
                         >
                           <PopularSearch
                             className="pb-6"
-                            itemClassName="text-sm"
+                            itemClassName="text-sm tracking-[0.01em]"
                             useSearchHistory
                           />
                         </motion.div>
@@ -300,7 +300,7 @@ function PredictiveSearchResults() {
         {activeType === "products" && products?.items.length > 0 && (
           <div className="mt-10 flex justify-center">
             <Link
-              to={`/search?q=${encodeURIComponent(searchTerm.current)}`}
+              to={`/search?q=${encodeURIComponent(searchTermValue)}`}
               className="flex h-[54px] items-center rounded-lg bg-[#F0EFED] px-6 font-semibold text-sm uppercase"
             >
               {t("search.viewAllProducts")}

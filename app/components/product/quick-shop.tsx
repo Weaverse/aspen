@@ -123,7 +123,7 @@ function ProductDescriptionDrawer({
               <Dialog.Content
                 forceMount
                 onCloseAutoFocus={(e) => e.preventDefault()}
-                className="fixed inset-y-0 right-0 z-20"
+                className="fixed inset-y-3 right-5 z-20 max-h-[calc(100vh-36px)]"
                 aria-describedby={undefined}
               >
                 <motion.div
@@ -135,7 +135,7 @@ function ProductDescriptionDrawer({
                     damping: 25,
                     stiffness: 150,
                   }}
-                  className="h-full w-screen max-w-[430px] bg-background py-2.5"
+                  className="h-full w-screen max-w-[400px] overflow-hidden rounded-(--radius-md) bg-background py-2.5"
                 >
                   <div className="flex h-full flex-col">
                     {/* Header */}
@@ -149,7 +149,7 @@ function ProductDescriptionDrawer({
                           <CaretLeftIcon className="h-4 w-4 text-[#29231E]" />
                         </button>
                         <Dialog.Title asChild>
-                          <span className="font-semibold uppercase">
+                          <span className="font-semibold uppercase tracking-[0.02em]">
                             {t("product.description")}
                           </span>
                         </Dialog.Title>
@@ -289,7 +289,7 @@ export function QuickShop({
           <div className="space-y-7 divide-y divide-line-subtle [&>*:not(:last-child)]:pb-3">
             {selectedVariant && (
               <div className="flex justify-between">
-                <span className="font-semibold uppercase">
+                <span className="font-semibold uppercase tracking-[0.02em]">
                   {t("product.price")}
                 </span>
                 <div className={"flex gap-2"}>
@@ -476,7 +476,7 @@ export function QuickShopTrigger({
               <Dialog.Content
                 forceMount
                 onCloseAutoFocus={(e) => e.preventDefault()}
-                className="fixed inset-y-0 right-0 z-10"
+                className="fixed inset-y-3 right-5 z-10 max-h-[calc(100vh-36px)]"
                 aria-describedby={undefined}
               >
                 <motion.div
@@ -488,13 +488,13 @@ export function QuickShopTrigger({
                     damping: 25,
                     stiffness: 150,
                   }}
-                  className="h-full w-screen max-w-[430px] bg-background py-2.5"
+                  className="h-full w-screen max-w-[400px] overflow-hidden rounded-(--radius-md) bg-background py-2.5"
                 >
                   <div className="flex h-full flex-col">
                     {/* Header */}
                     <div className="flex flex-shrink-0 items-center justify-between px-5 py-3">
                       <Dialog.Title asChild>
-                        <span className="font-semibold uppercase">
+                        <span className="font-semibold uppercase tracking-[0.02em]">
                           {t("product.quickShop")}
                         </span>
                       </Dialog.Title>
@@ -556,14 +556,14 @@ export function QuickShopTrigger({
                         ) : (
                           <div className="space-y-4 py-8 text-center">
                             <p className="text-body-subtle">
-                              Failed to load product data
+                              {t("product.loadError")}
                             </p>
                             <button
                               type="button"
                               className="underline underline-offset-4"
                               onClick={() => load(apiPath)}
                             >
-                              Try again
+                              {t("system.tryAgain")}
                             </button>
                           </div>
                         )}

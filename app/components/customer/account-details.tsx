@@ -19,7 +19,7 @@ export function AccountDetails({
   const { firstName, lastName, emailAddress } = customer;
   return (
     <div {...rest} className={cn(className)}>
-      <h2 className="font-body font-normal text-[#343231] text-sm uppercase leading-5">
+      <h2 className="font-body font-normal text-[#343231] text-sm uppercase leading-5 tracking-[0.02em]">
         {heading}
       </h2>
       <div className="mt-[13px] flex min-h-[227px] flex-col bg-white p-5 font-body text-[#343231] text-sm leading-5">

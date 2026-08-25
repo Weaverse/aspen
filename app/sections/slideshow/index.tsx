@@ -18,7 +18,7 @@ const variants = cva("group [&_.swiper]:h-full", {
     height: {
       small: "h-[440px] lg:h-[540px]",
       medium: "h-[560px] lg:h-[660px]",
-      large: "h-[667px] lg:h-[840px]",
+      large: "h-[840px] md:h-[469px] lg:h-[840px]",
       full: "",
     },
     enableTransparentHeader: {
@@ -211,7 +211,7 @@ export const schema = createSchema({
             max: 40,
             step: 2,
           },
-          defaultValue: 20,
+          defaultValue: 24,
           condition: (data: SlideshowData) => data.showArrows,
         },
         {

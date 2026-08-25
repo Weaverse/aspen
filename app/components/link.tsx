@@ -49,6 +49,7 @@ export const variants = cva(
         decor: [
           "border-none bg-transparent p-0",
           "group inline-flex items-center gap-1 text-(--btn-text-decor)",
+          "font-semibold tracking-[0.02em]",
         ],
         custom: [
           "border px-6 py-5",

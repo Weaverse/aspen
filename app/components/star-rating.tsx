@@ -1,4 +1,5 @@
 import { StarHalfIcon, StarIcon } from "@phosphor-icons/react";
+import { useTranslation } from "@weaverse/hydrogen";
 import { cn } from "~/utils/cn";
 
 export function StarRating({
@@ -12,11 +13,15 @@ export function StarRating({
   className?: string;
   starClassName?: string;
 }) {
+  const { t } = useTranslation();
+
   return (
     <div
       className={cn("inline-flex gap-0.5", className)}
       role="img"
-      aria-label={label || `${rating.toFixed(1)} out of 5`}
+      aria-label={
+        label || t("reviews.ratingOutOfFive", { rating: rating.toFixed(1) })
+      }
     >
       {Array.from({ length: 5 }).map((_, i) => {
         if (rating >= i + 1) {

@@ -1,4 +1,5 @@
 import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
+import { useTranslation } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import type React from "react";
@@ -20,8 +21,8 @@ const buttonVariants = cva(
           "hover:text-(--btn-primary-text-hover)",
         ],
         secondary: [
-          "border-transparent bg-white/80 text-[#343231]",
-          "hover:bg-white hover:text-[#343231]",
+          "border-transparent bg-white text-[#343231]",
+          "hover:bg-white/80 hover:text-[#343231]",
         ],
       },
       arrowsShape: {
@@ -41,6 +42,7 @@ export interface SlideshowArrowsProps
 }
 
 export function Arrows(props: SlideshowArrowsProps) {
+  const { t } = useTranslation();
   const { arrowsIcon, iconSize, arrowsColor, showArrowsOnHover, arrowsShape } =
     props;
   const swiper = useSwiper();
@@ -85,17 +87,17 @@ export function Arrows(props: SlideshowArrowsProps) {
   return (
     <div
       className={cn(
-        "pointer-events-none absolute inset-x-0 bottom-[51px] z-2 hidden md:block",
+        "pointer-events-none absolute inset-x-0 bottom-[53px] z-2 md:bottom-[51px]",
         "transition-opacity duration-200",
         showArrowsOnHover && "opacity-0 group-hover:opacity-100",
       )}
     >
-      <div className="pointer-events-auto mx-auto flex w-full max-w-(--page-width) justify-end gap-4 px-(--page-padding) 2xl:translate-x-1 2xl:px-0">
+      <div className="pointer-events-auto mx-auto flex w-full max-w-(--page-width) justify-end gap-4 px-8 md:px-(--page-padding) 2xl:translate-x-1 2xl:px-0">
         <button
           type="button"
           className={cn(buttonVariants({ arrowsColor, arrowsShape }))}
           onClick={handlePrevClick}
-          aria-label="Previous slide"
+          aria-label={t("carousel.previousSlide")}
         >
           {renderArrow("left")}
         </button>
@@ -103,7 +105,7 @@ export function Arrows(props: SlideshowArrowsProps) {
           type="button"
           className={cn(buttonVariants({ arrowsColor, arrowsShape }))}
           onClick={handleNextClick}
-          aria-label="Next slide"
+          aria-label={t("carousel.nextSlide")}
         >
           {renderArrow("right")}
         </button>

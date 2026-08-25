@@ -1,4 +1,5 @@
 import type { CustomerAddress } from "@shopify/hydrogen/customer-account-api-types";
+import { useTranslation } from "@weaverse/hydrogen";
 import type { CustomerDetailsFragment } from "customer-account-api.generated";
 import type { HTMLAttributes } from "react";
 import { Form } from "react-router";
@@ -24,15 +25,16 @@ export function AccountAddressBook({
   editText?: string;
   removeText?: string;
 } & HTMLAttributes<HTMLDivElement>) {
+  const { t } = useTranslation();
   return (
     <div {...rest} className={cn(className)}>
-      <h2 className="font-body font-normal text-[#343231] text-sm uppercase leading-5">
+      <h2 className="font-body font-normal text-[#343231] text-sm uppercase leading-5 tracking-[0.02em]">
         {heading}
       </h2>
       <div className="mt-[13px]">
         {!addresses?.length && (
           <div className="mb-5 bg-white p-5 font-body text-[#343231] text-sm">
-            You haven&apos;t saved any addresses yet.
+            {t("account.noAddresses")}
           </div>
         )}
         <div>

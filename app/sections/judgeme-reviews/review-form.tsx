@@ -1,4 +1,5 @@
 import { StarIcon } from "@phosphor-icons/react";
+import { useTranslation } from "@weaverse/hydrogen";
 import { useEffect, useId, useRef, useState } from "react";
 import { useFetcher, useLoaderData } from "react-router";
 import { Button } from "~/components/button";
@@ -8,6 +9,7 @@ import { cn } from "~/utils/cn";
 import type { JudgemeReviewsData } from "~/utils/judgeme";
 
 function RatingBreakdown({ reviews }: { reviews: JudgemeReviewsData }) {
+  const { t } = useTranslation();
   const total = reviews.reviews.length;
 
   return (
@@ -37,7 +39,9 @@ function RatingBreakdown({ reviews }: { reviews: JudgemeReviewsData }) {
               />
             </div>
             <span className="text-body-subtle">
-              {count} review{count === 1 ? "" : "s"}
+              {t(count === 1 ? "reviews.count" : "reviews.count_other", {
+                count,
+              })}
             </span>
           </div>
         );
@@ -47,6 +51,7 @@ function RatingBreakdown({ reviews }: { reviews: JudgemeReviewsData }) {
 }
 
 export function ReviewForm({ reviews }: { reviews: JudgemeReviewsData }) {
+  const { t } = useTranslation();
   const { product } = useLoaderData<typeof productRouteLoader>();
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
@@ -87,11 +92,17 @@ export function ReviewForm({ reviews }: { reviews: JudgemeReviewsData }) {
         <div className="flex flex-col items-center gap-2 md:items-start">
           <StarRating rating={displayRating} starClassName="size-7 md:size-6" />
           <p className="font-heading text-3xl">
-            {displayRating.toFixed(1)} out of 5
+            {t("reviews.ratingOutOfFive", {
+              rating: displayRating.toFixed(1),
+            })}
           </p>
           <p className="text-body-subtle text-sm">
-            Based on {reviews.reviewNumber} review
-            {reviews.reviewNumber === 1 ? "" : "s"}
+            {t(
+              reviews.reviewNumber === 1
+                ? "reviews.basedOn"
+                : "reviews.basedOn_other",
+              { count: reviews.reviewNumber },
+            )}
           </p>
         </div>
 
@@ -107,7 +118,7 @@ export function ReviewForm({ reviews }: { reviews: JudgemeReviewsData }) {
           aria-expanded={isFormVisible}
           aria-controls={formId}
         >
-          Write a Review
+          {t("reviews.writeReview")}
         </Button>
       </div>
 
@@ -123,7 +134,7 @@ export function ReviewForm({ reviews }: { reviews: JudgemeReviewsData }) {
           <input type="hidden" name="id" value={internalId} />
 
           <div>
-            <p className="mb-3 font-semibold">Rating</p>
+            <p className="mb-3 font-semibold">{t("reviews.rating")}</p>
             <div className="flex gap-1">
               {[1, 2, 3, 4, 5].map((ratingValue) => (
                 <button
@@ -132,7 +143,12 @@ export function ReviewForm({ reviews }: { reviews: JudgemeReviewsData }) {
                   onClick={() => setRating(ratingValue)}
                   onMouseEnter={() => setHover(ratingValue)}
                   onMouseLeave={() => setHover(0)}
-                  aria-label={`${ratingValue} star${ratingValue === 1 ? "" : "s"}`}
+                  aria-label={t(
+                    ratingValue === 1
+                      ? "reviews.starCount"
+                      : "reviews.starCount_other",
+                    { count: ratingValue },
+                  )}
                   aria-pressed={rating === ratingValue}
                   className="p-1"
                 >
@@ -149,7 +165,7 @@ export function ReviewForm({ reviews }: { reviews: JudgemeReviewsData }) {
 
           <div className="grid gap-4 md:grid-cols-2">
             <label className="space-y-2 font-semibold text-sm">
-              <span>Your name</span>
+              <span>{t("reviews.yourName")}</span>
               <input
                 required
                 type="text"
@@ -158,7 +174,7 @@ export function ReviewForm({ reviews }: { reviews: JudgemeReviewsData }) {
               />
             </label>
             <label className="space-y-2 font-semibold text-sm">
-              <span>Your email</span>
+              <span>{t("reviews.yourEmail")}</span>
               <input
                 required
                 type="email"
@@ -169,7 +185,7 @@ export function ReviewForm({ reviews }: { reviews: JudgemeReviewsData }) {
           </div>
 
           <label className="block space-y-2 font-semibold text-sm">
-            <span>Review title</span>
+            <span>{t("reviews.reviewTitle")}</span>
             <input
               required
               type="text"
@@ -179,7 +195,7 @@ export function ReviewForm({ reviews }: { reviews: JudgemeReviewsData }) {
           </label>
 
           <label className="block space-y-2 font-semibold text-sm">
-            <span>Your review</span>
+            <span>{t("reviews.yourReview")}</span>
             <textarea
               required
               name="body"
@@ -196,14 +212,14 @@ export function ReviewForm({ reviews }: { reviews: JudgemeReviewsData }) {
 
           <div className="flex justify-end gap-3">
             <Button variant="outline" onClick={() => setIsFormVisible(false)}>
-              Cancel
+              {t("actions.cancel")}
             </Button>
             <Button
               type="submit"
               loading={fetcher.state === "submitting"}
               disabled={rating === 0 || fetcher.state !== "idle"}
             >
-              Submit review
+              {t("reviews.submitReview")}
             </Button>
           </div>
         </fetcher.Form>
@@ -217,13 +233,13 @@ export function ReviewForm({ reviews }: { reviews: JudgemeReviewsData }) {
             "border border-line-subtle px-5 py-4",
           )}
         >
-          <p>Thanks for leaving your review.</p>
+          <p>{t("reviews.thankYou")}</p>
           <button
             type="button"
             className="underline underline-offset-4"
             onClick={() => setIsSuccessVisible(false)}
           >
-            Close
+            {t("accessibility.close")}
           </button>
         </div>
       )}

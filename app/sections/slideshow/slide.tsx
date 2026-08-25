@@ -27,15 +27,15 @@ const variants = cva("flex h-full w-full items-end", {
   variants: {
     width: {
       full: "",
-      stretch: "px-[26px] md:px-(--page-padding)",
+      stretch: "px-8 md:px-(--page-padding)",
       fixed:
-        "mx-auto max-w-(--page-width) px-[26px] md:px-(--page-padding) 2xl:px-0",
+        "mx-auto max-w-(--page-width) px-8 md:px-(--page-padding) 2xl:px-0",
     },
     verticalPadding: {
       none: "",
       small: "py-4 md:py-6",
       medium: "py-5 md:py-10",
-      large: "pt-6 pb-14 md:pt-16 md:pb-[140px]",
+      large: "pt-6 pb-[140px] md:pt-16",
     },
     contentPosition: {
       "top left": "items-start justify-start",
@@ -205,9 +205,9 @@ const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
   const defaultHeadingClassName =
     size === "default"
       ? cn(
-          "text-[36px] leading-[1.05] md:text-[48px]",
+          "text-[53px] leading-[1.1]",
           (!letterSpacing || letterSpacing === "normal") &&
-            "tracking-[0.038em]",
+            "tracking-[-0.03em]",
         )
       : undefined;
 
@@ -243,7 +243,7 @@ const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
           variants({ width, gap, verticalPadding, contentPosition }),
         )}
       >
-        <div className="flex w-full max-w-[720px] flex-col gap-(--gap)">
+        <div className="flex w-full max-w-[688px] flex-col gap-(--gap)">
           {headingContent && (
             <div className="hidden md:block">
               <Heading
@@ -301,7 +301,7 @@ const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
                 width={paragraphWidth}
                 className={cn(
                   (!paragraphSize || paragraphSize === "base") &&
-                    "text-[16px] leading-[1.5] tracking-[0.0085em]",
+                    "text-[16px] leading-[1.6] tracking-[0.01em]",
                 )}
               />
             </div>
@@ -315,6 +315,10 @@ const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
                 textSize={paragraphSize}
                 alignment={paragraphAlignment}
                 width={paragraphWidth}
+                className={cn(
+                  (!paragraphSize || paragraphSize === "base") &&
+                    "text-[16px] leading-[1.6] tracking-[0.01em]",
+                )}
               />
             </div>
           )}
@@ -340,17 +344,26 @@ const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
           {mobileButton && (
             <div className="md:hidden">
               <Link
-                variant={mobileButtonVariant || variant}
-                textColor={textColor}
-                backgroundColor={backgroundColor}
-                borderColor={borderColor}
+                variant={mobileButtonVariant || "custom"}
+                textColor={
+                  mobileButtonVariant ? textColor : textColor || "#FEF4EB"
+                }
+                backgroundColor={
+                  mobileButtonVariant ? backgroundColor : "#00000000"
+                }
+                borderColor={mobileButtonVariant ? borderColor : "#FEF4EB"}
                 textColorHover={textColorHover}
                 backgroundColorHover={backgroundColorHover}
                 borderColorHover={borderColorHover}
                 textColorDecor={textColorDecor}
                 openInNewTab={openInNewTab}
                 to={to}
-                className="w-fit text-sm text-[#FEF4EB]!"
+                className={cn(
+                  "w-fit",
+                  mobileButtonVariant
+                    ? "text-sm text-[#FEF4EB]!"
+                    : "min-w-[175px] py-[19px] tracking-[0.033em]",
+                )}
               >
                 {mobileButton}
               </Link>

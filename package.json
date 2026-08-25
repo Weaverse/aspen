@@ -22,7 +22,8 @@
     "biome:fix": "biome check --write",
     "format": "biome format --write",
     "format:check": "biome format",
-    "i18n:check": "node scripts/check-translations.mjs",
+    "i18n:scan": "node scripts/check-hardcoded-translations.mjs",
+    "i18n:check": "node scripts/check-translations.mjs && node scripts/check-hardcoded-translations.mjs",
     "locale:check": "node --test tests/locale.unit.test.ts"
   },
   "dependencies": {

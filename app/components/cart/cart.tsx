@@ -392,6 +392,7 @@ function CartDetails({
 }
 
 function CartProgression({ cost }: { cost: CartApiQueryFragment["cost"] }) {
+  const { t } = useTranslation();
   let { freeShippingThreshold } = useThemeSettings();
 
   let subtotal = Number.parseFloat(cost?.subtotalAmount?.amount || "0");
@@ -402,6 +403,11 @@ function CartProgression({ cost }: { cost: CartApiQueryFragment["cost"] }) {
       : 100;
   let progress = Math.min((subtotal / threshold) * 100, 100);
   let amountRemaining = Math.max(threshold - subtotal, 0);
+  const amountToken = "__CART_AMOUNT__";
+  const [freeShippingPrefix, freeShippingSuffix] = t(
+    "cart.freeShippingRemaining",
+    { amount: amountToken },
+  ).split(amountToken);
   return (
     <div className="flex w-full flex-col gap-2 px-5 pb-2">
       <div className="relative h-1 w-full overflow-hidden rounded-full bg-[#F2F0EE]">
@@ -413,7 +419,7 @@ function CartProgression({ cost }: { cost: CartApiQueryFragment["cost"] }) {
       <p className="text-sm">
         {amountRemaining > 0 ? (
           <>
-            You’re{" "}
+            {freeShippingPrefix}
             <b>
               <Money
                 withoutTrailingZeros
@@ -422,11 +428,11 @@ function CartProgression({ cost }: { cost: CartApiQueryFragment["cost"] }) {
                   currencyCode: cost.subtotalAmount.currencyCode,
                 }}
               />
-            </b>{" "}
-            away from free shipping!
+            </b>
+            {freeShippingSuffix}
           </>
         ) : (
-          "You’ve unlocked free shipping!"
+          t("cart.freeShippingUnlocked")
         )}
       </p>
     </div>
@@ -575,7 +581,9 @@ function AppliedCartCodes({
               <button
                 type="submit"
                 className="flex h-4 w-4 items-center justify-center"
-                aria-label={`Remove discount code ${discount.code}`}
+                aria-label={t("cart.removeDiscountCode", {
+                  code: discount.code,
+                })}
               >
                 <X size={12} aria-hidden="true" />
               </button>
@@ -600,7 +608,9 @@ function AppliedCartCodes({
               <button
                 type="submit"
                 className="flex h-4 w-4 items-center justify-center"
-                aria-label={`Remove gift card ending in ${giftCard.lastCharacters}`}
+                aria-label={t("cart.removeGiftCard", {
+                  digits: giftCard.lastCharacters,
+                })}
               >
                 <X size={12} aria-hidden="true" />
               </button>
@@ -782,7 +792,7 @@ function CartSummary({
         layout === "drawer" &&
           "grid gap-3 border-line-subtle border-t bg-white py-4",
         layout === "page" &&
-          "flex w-full flex-col gap-6 px-5 pb-6 md:mx-auto md:w-1/2 md:px-0 lg:mx-0 lg:w-full lg:px-6",
+          "flex w-full flex-col gap-6 px-5 pb-6 md:w-[432px] md:px-0 lg:w-full lg:px-6",
       )}
     >
       {layout === "page" && (
@@ -930,7 +940,7 @@ function CartLineItem({
               {/* Quantity and Pricing */}
               <div className="grid grid-cols-[1fr_auto_1fr] items-center">
                 <div>
-                  Item price:{" "}
+                  {t("product.itemPrice")}:{" "}
                   <CartLinePrice
                     line={line}
                     amountType="unit"
@@ -1132,7 +1142,7 @@ function CartLineQuantityAdjust({
   return (
     <>
       <label htmlFor={quantityId} className="sr-only">
-        Quantity, {optimisticQuantity}
+        {t("product.quantityValue", { quantity: optimisticQuantity })}
       </label>
       <div className="quantity-selector relative">
         <Select.Root

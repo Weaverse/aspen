@@ -82,7 +82,7 @@ let variants = cva("flex flex-col [&_.paragraph]:mx-[unset]", {
   },
   defaultVariants: {
     contentPosition: "center",
-    gap: 28,
+    gap: 24,
   },
 });
 
@@ -173,7 +173,11 @@ let CollectionContentDynamic = forwardRef<
   const effectiveTo = isSliderLayout ? (sliderTo ?? to) : to;
   const designHeadingClassName =
     !size || size === "default"
-      ? "text-[36px] leading-[1.1] md:text-[44px]"
+      ? clsx(
+          "text-[37px] leading-[1.1] md:text-[44px]",
+          (!letterSpacing || letterSpacing === "normal") &&
+            "tracking-[-0.02em] md:tracking-[-0.03em]",
+        )
       : undefined;
 
   if (effectiveDisplayMode === "horizontal") {
@@ -306,7 +310,7 @@ export const schema = createSchema({
           type: "range",
           name: "gap",
           label: "Content gap (Grid / Editorial)",
-          defaultValue: 28,
+          defaultValue: 24,
           configs: {
             min: 0,
             max: 60,
@@ -474,11 +478,11 @@ export const schema = createSchema({
   presets: {
     displayMode: "vertical",
     contentPosition: "center",
-    gap: 28,
+    gap: 24,
     headingContent: "EXPLORE COLLECTIONS",
     headingTagName: "h2",
     weight: "400",
-    letterSpacing: "tight",
+    letterSpacing: "normal",
     alignment: "center",
     paragraphContent:
       "If you're looking for products that bring ease through form and function, we offer no-fuss furniture built to last.",

@@ -1,24 +1,30 @@
 import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
+import { useTranslation } from "@weaverse/hydrogen";
 import { Fragment, useMemo, useState } from "react";
 import { StarRating } from "~/components/star-rating";
+import { useLocale } from "~/hooks/use-locale";
 import { cn } from "~/utils/cn";
 import type { JudgemeReviewsData } from "~/utils/judgeme";
+import { formatDate } from "~/utils/locale";
 
 const REVIEWS_PER_PAGE = 4;
 
-function formatDate(dateString: string) {
+function formatReviewDate(
+  dateString: string,
+  locale: ReturnType<typeof useLocale>,
+) {
   const date = new Date(dateString);
   if (Number.isNaN(date.getTime())) {
     return dateString;
   }
 
-  return new Intl.DateTimeFormat("en-US", {
+  return formatDate(date, locale, {
     month: "short",
     day: "numeric",
     year: "numeric",
     hour: "numeric",
     minute: "2-digit",
-  }).format(date);
+  });
 }
 
 function getVisiblePages(currentPage: number, pageCount: number) {
@@ -41,6 +47,8 @@ export function ReviewList({
 }: {
   reviews: JudgemeReviewsData;
 }) {
+  const { t } = useTranslation();
+  const locale = useLocale();
   const [page, setPage] = useState(0);
   const pageCount = Math.ceil(reviewsData.reviews.length / REVIEWS_PER_PAGE);
   const reviews = reviewsData.reviews.slice(
@@ -55,7 +63,7 @@ export function ReviewList({
   if (reviewsData.reviews.length === 0) {
     return (
       <div className="border-line-subtle border-t py-12 text-center text-body-subtle">
-        No reviews yet. Be the first to share your experience.
+        {t("reviews.noneYet")}
       </div>
     );
   }
@@ -77,7 +85,7 @@ export function ReviewList({
                 {title && <p className="font-semibold">{title}</p>}
                 <p className="leading-7">{body}</p>
                 <time className="block text-body-subtle text-sm">
-                  {formatDate(created_at)}
+                  {formatReviewDate(created_at, locale)}
                 </time>
               </div>
             </article>
@@ -88,13 +96,13 @@ export function ReviewList({
       {pageCount > 1 && (
         <nav
           className="flex items-center justify-center gap-2 pt-8"
-          aria-label="Review pages"
+          aria-label={t("reviews.pages")}
         >
           <button
             type="button"
             onClick={() => setPage((current) => Math.max(0, current - 1))}
             disabled={page === 0}
-            aria-label="Previous review page"
+            aria-label={t("reviews.previousPage")}
             className="flex size-11 items-center justify-center rounded-lg border border-line-subtle disabled:opacity-40"
           >
             <CaretLeftIcon aria-hidden="true" />
@@ -132,7 +140,7 @@ export function ReviewList({
               setPage((current) => Math.min(pageCount - 1, current + 1))
             }
             disabled={page === pageCount - 1}
-            aria-label="Next review page"
+            aria-label={t("reviews.nextPage")}
             className="flex size-11 items-center justify-center rounded-lg border border-line-subtle disabled:opacity-40"
           >
             <CaretRightIcon aria-hidden="true" />

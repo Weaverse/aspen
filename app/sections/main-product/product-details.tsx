@@ -1,5 +1,6 @@
 import { MinusIcon, PlusIcon } from "@phosphor-icons/react";
 import * as Accordion from "@radix-ui/react-accordion";
+import { useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { useRouteLoaderData } from "react-router";
 import { Link } from "~/components/link";
@@ -24,6 +25,7 @@ export function ProductDetails({
   product: propProduct,
   shop: propShop,
 }: ProductDetailsProps) {
+  const { t } = useTranslation();
   const loaderData = useRouteLoaderData<typeof productLoader>(
     "routes/($locale).products.$productHandle",
   );
@@ -37,7 +39,11 @@ export function ProductDetails({
   const { description, descriptionHtml, summary } = product || {};
   const { shippingPolicy, refundPolicy } = shop || {};
   const details = [
-    showShortDescription && summary && { title: "Summary", content: summary },
+    showShortDescription &&
+      summary && {
+        title: t("product.summary"),
+        content: summary,
+      },
     (descriptionHtml || description) && {
       title: descriptionTitle,
       content: descriptionHtml || description,
@@ -45,13 +51,13 @@ export function ProductDetails({
     },
     showShippingPolicy &&
       shippingPolicy?.body && {
-        title: "Shipping",
+        title: t("product.shipping"),
         content: getExcerpt(shippingPolicy.body),
         learnMore: `/policies/${shippingPolicy.handle}`,
       },
     showRefundPolicy &&
       refundPolicy?.body && {
-        title: "Returns",
+        title: t("product.returns"),
         content: getExcerpt(refundPolicy.body),
         learnMore: `/policies/${refundPolicy.handle}`,
       },
@@ -114,7 +120,7 @@ export function ProductDetails({
                 className="border-line-subtle border-b pb-px text-body-subtle"
                 to={learnMore}
               >
-                Learn more
+                {t("product.learnMore")}
               </Link>
             )}
           </Accordion.Content>

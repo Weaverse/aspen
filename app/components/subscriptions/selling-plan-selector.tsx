@@ -1,5 +1,6 @@
 import { CaretDownIcon } from "@phosphor-icons/react";
 import * as Select from "@radix-ui/react-select";
+import { useTranslation } from "@weaverse/hydrogen";
 import { useEffect, useId, useState } from "react";
 import { useRouteLoaderData } from "react-router";
 import type { loader as productRouteLoader } from "~/routes/($locale).products.$productHandle";
@@ -20,6 +21,7 @@ export function SellingPlanSelector({
   className,
   product: productProp,
 }: SellingPlanSelectorProps) {
+  const { t } = useTranslation();
   const loaderData = useRouteLoaderData<typeof productRouteLoader>(
     "routes/($locale).products.$productHandle",
   );
@@ -163,7 +165,9 @@ export function SellingPlanSelector({
       return (
         <>
           <span style={{ color: "#29231E" }}>{planData.frequency} - </span>
-          <span style={{ color: "#918379" }}>Save {planData.savings}</span>
+          <span style={{ color: "#918379" }}>
+            {t("subscription.save", { amount: planData.savings })}
+          </span>
         </>
       );
     }
@@ -171,7 +175,11 @@ export function SellingPlanSelector({
       return <span style={{ color: "#29231E" }}>{planData.frequency}</span>;
     }
     if (planData.savings) {
-      return <span style={{ color: "#918379" }}>Save {planData.savings}</span>;
+      return (
+        <span style={{ color: "#918379" }}>
+          {t("subscription.save", { amount: planData.savings })}
+        </span>
+      );
     }
 
     return <span style={{ color: "#29231E" }}>{planData.fallback}</span>;
@@ -206,7 +214,7 @@ export function SellingPlanSelector({
           htmlFor={oneTimeId}
           className="cursor-pointer text-body leading-[1.6] tracking-[0.02em]"
         >
-          One time purchase
+          {t("subscription.oneTimePurchase")}
         </label>
       </div>
 
@@ -237,7 +245,7 @@ export function SellingPlanSelector({
               htmlFor={subscriptionId}
               className="cursor-pointer text-body leading-[1.6] tracking-[0.02em]"
             >
-              Deliver every
+              {t("subscription.deliverEvery")}
             </label>
             <Select.Root
               value={dropdownValue || undefined}
@@ -256,15 +264,15 @@ export function SellingPlanSelector({
                     ? "cursor-pointer"
                     : "cursor-not-allowed opacity-50",
                 )}
-                aria-label="Select delivery frequency"
+                aria-label={t("subscription.selectDeliveryFrequency")}
               >
                 <Select.Value
-                  placeholder="Select plan"
+                  placeholder={t("subscription.selectPlan")}
                   className="text-sm leading-[1.6] tracking-[0.02em]"
                 >
                   {displaySellingPlan
                     ? renderPlanText(displaySellingPlan)
-                    : "Select plan"}
+                    : t("subscription.selectPlan")}
                 </Select.Value>
                 <Select.Icon className="shrink-0">
                   <CaretDownIcon size={12} className="text-body" />

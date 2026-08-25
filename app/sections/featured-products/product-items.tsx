@@ -9,6 +9,7 @@ import {
   createSchema,
   type HydrogenComponentProps,
   IMAGES_PLACEHOLDERS,
+  useTranslation,
   type WeaverseCollection,
 } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
@@ -109,6 +110,7 @@ interface ProductItemsProps
 
 const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
   (props, ref) => {
+    const { t } = useTranslation();
     const {
       loaderData,
       collection,
@@ -207,7 +209,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
             arrowColorClasses,
             arrowShapeClasses,
           )}
-          aria-label="Previous product"
+          aria-label={t("product.previousProduct")}
         >
           {arrowsIcon === "caret" ? (
             <CaretLeft size={16} />
@@ -223,7 +225,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
             arrowColorClasses,
             arrowShapeClasses,
           )}
-          aria-label="Next product"
+          aria-label={t("product.nextProduct")}
         >
           {arrowsIcon === "caret" ? (
             <CaretRight size={16} />
@@ -298,7 +300,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
             {hasMoreProducts && (
               <div className="mt-16 flex justify-center">
                 <Link to="/products" variant="outline" className="uppercase">
-                  See More Products
+                  {t("product.seeMoreProducts")}
                 </Link>
               </div>
             )}

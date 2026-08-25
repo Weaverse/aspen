@@ -41,13 +41,13 @@ export function StorefrontError({
       <div className="flex -translate-y-1 flex-col items-center text-center md:-translate-y-2">
         <p
           aria-hidden="true"
-          className="font-heading text-[56px] font-normal leading-none tracking-[-0.035em]"
+          className="font-heading text-[53px] font-normal leading-[1.1] tracking-[-0.03em]"
         >
           {statusCode}
         </p>
         <h1
           id={titleId}
-          className="mt-3 font-body text-[28px] font-normal leading-tight tracking-[-0.02em]"
+          className="mt-2 font-heading text-[26px] font-normal leading-[1.1] tracking-[-0.02em]"
         >
           {resolvedTitle}
         </h1>

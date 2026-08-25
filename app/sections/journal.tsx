@@ -1,5 +1,5 @@
 import { ArrowRight } from "@phosphor-icons/react";
-import { createSchema } from "@weaverse/hydrogen";
+import { createSchema, useTranslation } from "@weaverse/hydrogen";
 import { type CSSProperties, forwardRef, useEffect, useState } from "react";
 import { useLoaderData } from "react-router";
 import type {
@@ -9,7 +9,9 @@ import type {
 import { Image } from "~/components/image";
 import Link from "~/components/link";
 import { Section, type SectionProps } from "~/components/section";
+import { useLocale } from "~/hooks/use-locale";
 import { getImageLoadingPriority } from "~/utils/image";
+import { formatDate } from "~/utils/locale";
 
 type JournalArticle = BlogArticleFragment & {
   publishedAtRaw?: string;
@@ -92,16 +94,17 @@ const Journal = forwardRef<HTMLElement, JournalProps>((props, ref) => {
       overflow="unset"
       style={sectionStyle}
       verticalPadding="none"
+      width="fixed"
     >
-      <div className="px-0 pt-20 pb-[120px] md:px-2 md:pt-10 md:pb-24 lg:px-0 lg:pt-20 lg:pb-[120px]">
+      <div className="pt-20 pb-[120px] md:pt-10 md:pb-24 lg:pt-20 lg:pb-[120px]">
         <header className="mb-16 md:mb-10 lg:mb-16">
           {heading && (
-            <h1 className="font-heading font-normal text-[44px] text-(--journal-accent) uppercase leading-[1.1] tracking-[-0.025em]">
+            <h1 className="font-heading font-normal text-[44px] text-(--journal-accent) uppercase leading-[1.1] tracking-[-0.03em]">
               {heading}
             </h1>
           )}
           {description && (
-            <p className="mt-3 max-w-[390px] font-body text-sm text-(--journal-muted) leading-[1.45] md:max-w-none">
+            <p className="mt-3 max-w-[390px] font-body text-sm text-(--journal-muted) leading-[1.6] md:max-w-none">
               {description}
             </p>
           )}
@@ -142,7 +145,7 @@ const Journal = forwardRef<HTMLElement, JournalProps>((props, ref) => {
             <button
               type="button"
               onClick={handleLoadMore}
-              className="flex min-h-[54px] min-w-[130px] items-center justify-center rounded-lg border border-(--journal-button-border) bg-transparent px-6 font-body font-medium text-(--journal-accent) text-sm uppercase leading-none transition-colors hover:bg-(--color-background-subtle) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--journal-accent)"
+              className="flex min-h-[54px] min-w-[130px] items-center justify-center rounded-lg border border-(--journal-button-border) bg-transparent px-6 font-body font-semibold text-(--journal-accent) text-sm uppercase leading-none tracking-[0.02em] transition-colors hover:bg-(--color-background-subtle) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--journal-accent)"
             >
               {loadMoreText}
             </button>
@@ -180,11 +183,11 @@ function FeaturedArticle({
   showReadMore,
 }: FeaturedArticleProps) {
   return (
-    <article className="group grid grid-cols-1 md:grid-cols-2 md:gap-12 xl:grid-cols-[720px_minmax(0,1fr)] xl:gap-[30px]">
+    <article className="group grid grid-cols-1 md:grid-cols-2 md:gap-12 xl:grid-cols-[720px_minmax(0,1fr)] xl:gap-12">
       <ArticleImage article={article} loading={loading} featured />
       <div className="flex flex-col items-start pt-5 md:justify-start md:pt-0 xl:justify-center">
         <ArticleCategory article={article} visible={showCategory} />
-        <h2 className="mt-2 font-heading font-normal text-[26px] text-(--journal-accent) leading-[1.08] tracking-[-0.025em] md:mt-3 md:text-[34px] xl:text-[52px] xl:leading-[1.08]">
+        <h2 className="mt-2 font-heading font-normal text-[26px] text-(--journal-accent) leading-[1.1] tracking-[-0.03em] md:mt-3 md:text-[34px] xl:text-[53px] xl:leading-[1.1]">
           <Link
             to={`/blogs/${article.handle}`}
             className="line-clamp-3 transition-opacity hover:opacity-70"
@@ -199,7 +202,7 @@ function FeaturedArticle({
           featured
         />
         {showExcerpt && article.excerpt ? (
-          <p className="mt-6 hidden max-w-[580px] font-body text-(--journal-link) text-sm leading-[1.45] xl:line-clamp-2">
+          <p className="mt-6 hidden max-w-[580px] font-body text-(--journal-link) text-sm leading-[1.6] xl:line-clamp-2">
             {article.excerpt}
           </p>
         ) : null}
@@ -228,7 +231,7 @@ function JournalCard({
       <ArticleImage article={article} loading={loading} />
       <div className="flex flex-col items-start pt-4">
         <ArticleCategory article={article} visible={showCategory} />
-        <h3 className="mt-2 font-heading font-normal text-[24px] text-(--journal-accent) leading-[1.12] tracking-[-0.025em] md:text-[27px]">
+        <h3 className="mt-2 font-heading font-normal text-[24px] text-(--journal-accent) leading-[1.1] tracking-[-0.02em] md:text-[26px]">
           <Link
             to={`/blogs/${article.handle}`}
             className="line-clamp-2 transition-opacity hover:opacity-70 md:line-clamp-3 lg:line-clamp-2"
@@ -293,12 +296,13 @@ function ArticleCategory({
   article: JournalArticle;
   visible: boolean;
 }) {
+  const { t } = useTranslation();
   if (!visible) {
     return null;
   }
   return (
-    <p className="font-body text-[10px] text-(--journal-muted) uppercase leading-[1.2] tracking-[-0.01em]">
-      {article.tags?.[0] || "JOURNAL"}
+    <p className="font-body text-(--journal-muted) text-xs uppercase leading-none tracking-[0.02em]">
+      {article.tags?.[0] || t("blog.journal")}
     </p>
   );
 }
@@ -314,14 +318,16 @@ function ArticleMeta({
   showDate: boolean;
   featured?: boolean;
 }) {
+  const { t } = useTranslation();
+  const locale = useLocale();
   if (!(showAuthor || showDate)) {
     return null;
   }
-  const date = formatArticleDate(article);
+  const date = formatArticleDate(article, locale);
   const author = article.author?.name;
 
   return (
-    <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 font-body text-[10px] text-(--journal-muted) leading-[1.3] md:text-[11px]">
+    <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 font-body text-(--journal-muted) text-xs leading-none tracking-[0.02em]">
       {showDate && date ? <time>{date}</time> : null}
       {showDate && showAuthor && date && author && featured ? (
         <span
@@ -329,7 +335,9 @@ function ArticleMeta({
           aria-hidden="true"
         />
       ) : null}
-      {showAuthor && author ? <span>By {author}</span> : null}
+      {showAuthor && author ? (
+        <span>{t("blog.byAuthor", { author })}</span>
+      ) : null}
     </div>
   );
 }
@@ -351,7 +359,7 @@ function ReadMoreLink({
   return (
     <Link
       to={`/blogs/${article.handle}`}
-      className={`inline-flex items-center gap-2 font-body font-semibold text-(--journal-link) text-sm leading-none transition-opacity hover:opacity-70 ${className || ""}`}
+      className={`inline-flex items-center gap-2 font-body font-semibold text-(--journal-link) text-sm leading-none tracking-[0.02em] transition-opacity hover:opacity-70 ${className || ""}`}
     >
       {text}
       <ArrowRight size={16} weight="regular" aria-hidden="true" />
@@ -359,19 +367,20 @@ function ReadMoreLink({
   );
 }
 
-function formatArticleDate(article: JournalArticle) {
+function formatArticleDate(
+  article: JournalArticle,
+  locale: ReturnType<typeof useLocale>,
+) {
   const value = article.publishedAtRaw || article.publishedAt;
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
     return article.publishedAt?.toUpperCase() || "";
   }
-  return new Intl.DateTimeFormat("en-US", {
+  return formatDate(date, locale, {
     month: "short",
     day: "2-digit",
     year: "numeric",
-  })
-    .format(date)
-    .toUpperCase();
+  }).toUpperCase();
 }
 
 export default Journal;

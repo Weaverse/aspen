@@ -1,6 +1,7 @@
 import { CaretDownIcon, CaretUpIcon, CheckIcon } from "@phosphor-icons/react";
 import * as Select from "@radix-ui/react-select";
 import { Image, type MappedProductOptions } from "@shopify/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen";
 import { useNavigate } from "react-router";
 import type { ProductVariantFragment } from "storefront-api.generated";
 import { cn } from "~/utils/cn";
@@ -24,6 +25,7 @@ export function ProductOptionValues({
   onVariantChange?: (variant: ProductVariantFragment) => void;
   combinedListing?: boolean;
 }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { name: optionName, optionValues } = option || {};
 
@@ -110,7 +112,9 @@ export function ProductOptionValues({
           className="inline-flex flex-1 items-center justify-between gap-2 rounded bg-white outline-hidden"
           aria-label={optionName}
         >
-          <Select.Value placeholder={`Select ${optionName}`} />
+          <Select.Value
+            placeholder={t("locale.selectOption", { option: optionName })}
+          />
           <Select.Icon className="shrink-0">
             <CaretDownIcon size={16} />
           </Select.Icon>

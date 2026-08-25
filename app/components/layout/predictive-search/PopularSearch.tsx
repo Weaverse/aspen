@@ -67,7 +67,9 @@ export function PopularSearch({
         className,
       )}
     >
-      <span className="font-normal uppercase">{t("search.popular")}</span>
+      <span className="font-semibold text-xs uppercase tracking-[0.02em]">
+        {t("search.popular")}
+      </span>
       <ul className="flex flex-col gap-2">
         {displaySearches.map((search) => (
           <li key={search}>

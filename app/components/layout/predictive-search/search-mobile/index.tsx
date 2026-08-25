@@ -91,13 +91,13 @@ export function PredictiveSearchButtonMobile({ setIsSearchOpen }) {
                   animate={{ x: 0 }}
                   exit={{ x: "-100%" }}
                   transition={{ type: "spring", damping: 25, stiffness: 150 }}
-                  className="flex h-full w-screen max-w-[381px] flex-col overflow-hidden rounded-r-2xl bg-(--color-header-bg)"
+                  className="flex h-full w-screen max-w-[381px] flex-col overflow-hidden rounded-r-(--radius-md) bg-(--color-header-bg)"
                 >
                   <VisuallyHidden.Root asChild>
                     <Dialog.Title>{t("search.predictiveTitle")}</Dialog.Title>
                   </VisuallyHidden.Root>
                   <div className="flex h-[54px] shrink-0 items-center justify-between px-5">
-                    <span className="font-semibold text-sm uppercase">
+                    <span className="font-semibold text-sm uppercase tracking-[0.02em]">
                       {t("search.title")}
                     </span>
                     <Dialog.Close asChild>
@@ -106,7 +106,7 @@ export function PredictiveSearchButtonMobile({ setIsSearchOpen }) {
                         className="-mr-2 flex h-10 w-10 items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body"
                         aria-label={t("accessibility.closeSearch")}
                       >
-                        <X aria-hidden="true" className="h-5 w-5" />
+                        <X aria-hidden="true" className="h-4 w-4" />
                       </button>
                     </Dialog.Close>
                   </div>
@@ -182,7 +182,7 @@ export function PredictiveSearchButtonMobile({ setIsSearchOpen }) {
                                   inputRef.current?.focus();
                                 }}
                               >
-                                <X aria-hidden="true" className="h-5 w-5" />
+                                <X aria-hidden="true" className="h-4 w-4" />
                               </button>
                             )}
                           </div>
@@ -287,7 +287,7 @@ function PredictiveSearchResults() {
         {activeType === "products" && products?.items.length > 0 && (
           <div className="mt-9">
             <Link
-              to={`/search?q=${encodeURIComponent(searchTerm.current)}`}
+              to={`/search?q=${encodeURIComponent(searchTermValue)}`}
               className="flex h-[54px] w-fit items-center rounded-md bg-[#F0EFED] px-6 font-semibold text-sm uppercase"
             >
               {t("search.viewAllProducts")}

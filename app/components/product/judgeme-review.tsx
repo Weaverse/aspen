@@ -2,6 +2,7 @@ import {
   createSchema,
   type HydrogenComponentProps,
   useParentInstance,
+  useTranslation,
 } from "@weaverse/hydrogen";
 import { type ComponentProps, forwardRef, useEffect } from "react";
 import { useFetcher, useLoaderData } from "react-router";
@@ -56,6 +57,7 @@ export function ProductRating({
   className,
   ...rest
 }: ProductRatingProps) {
+  const { t } = useTranslation();
   const data = useProductReviews();
 
   if (!data) {
@@ -84,7 +86,7 @@ export function ProductRating({
       <button
         type="button"
         onClick={scrollToReviews}
-        aria-label={`Read ${reviewNumber} customer reviews`}
+        aria-label={t("reviews.readCustomerReviews", { count: reviewNumber })}
         className={cn(
           "space-x-2 transition-opacity hover:opacity-70",
           "focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-(--color-text)",

@@ -1,4 +1,4 @@
-import { createSchema } from "@weaverse/hydrogen";
+import { createSchema, useTranslation } from "@weaverse/hydrogen";
 import { cva, type VariantProps } from "class-variance-authority";
 import clsx from "clsx";
 import { forwardRef } from "react";
@@ -43,6 +43,7 @@ interface MapSectionProps
 }
 
 const MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
+  const { t } = useTranslation();
   const {
     height,
     alignment,
@@ -74,7 +75,7 @@ const MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
     >
       <iframe
         className="absolute inset-0 z-[-1] h-full w-full object-cover"
-        title="Google map embedded frame"
+        title={t("map.embeddedFrame")}
         src={`https://maps.google.com/maps?t=m&q=${address}&ie=UTF8&&output=embed`}
       />
       <div

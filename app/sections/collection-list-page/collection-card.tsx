@@ -1,5 +1,6 @@
 import { ArrowRight } from "@phosphor-icons/react";
 import type { Collection } from "@shopify/hydrogen/storefront-api-types";
+import { useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { Image } from "~/components/image";
 import { Link } from "~/components/link";
@@ -19,6 +20,7 @@ export function CollectionCard({
   className,
   loading,
 }: CollectionCardProps) {
+  const { t } = useTranslation();
   let collectionImage = collection.image;
   if (!collectionImage) {
     const collectionProducts = collection.products.nodes;
@@ -58,8 +60,10 @@ export function CollectionCard({
               className="size-4 shrink-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 md:size-5"
             />
           </h3>
-          <p className="font-body text-[10px] leading-4 opacity-75 md:text-xs md:leading-[18px]">
-            {collection.products.nodes.length} Products
+          <p className="font-body text-[#D9CFC8] text-sm leading-[1.6] tracking-[0.01em]">
+            {t("collection.productCount", {
+              count: collection.products.nodes.length,
+            })}
           </p>
         </div>
       </Link>
@@ -85,7 +89,7 @@ export function CollectionCard({
           />
         ) : null}
         <div className="absolute inset-0 bg-black/0 transition-colors duration-500 group-hover:bg-black/20" />
-        <h3 className="absolute inset-x-0 bottom-0 flex items-center gap-2 bg-[#CABDB7E5] px-4 py-2.5 text-left font-heading font-normal text-sm text-white uppercase leading-5 md:bg-[#6B6B6BE5] md:px-5 md:py-3 md:text-[32px] md:leading-10">
+        <h3 className="absolute inset-x-0 bottom-0 flex items-center gap-2 bg-[#CABDB7E5] px-4 py-2.5 text-left font-body font-semibold text-[#FEF4EB] text-sm uppercase leading-[1.6] tracking-[0.02em] md:bg-[#6B6B6BE5] md:px-4 md:py-3 md:font-heading md:font-normal md:text-[32px] md:leading-10 md:tracking-[-0.02em]">
           <span className="line-clamp-1">{collection.title}</span>
           <ArrowRight
             weight="thin"
@@ -114,7 +118,7 @@ export function CollectionCard({
         />
       ) : null}
       <div className="absolute inset-0 bg-black/10 transition-colors duration-500 group-hover:bg-black/30" />
-      <h3 className="absolute inset-0 flex items-center justify-center gap-2 overflow-hidden px-3 text-center font-heading font-normal text-base text-(--collection-name-color) uppercase leading-5 tracking-[-0.025em] md:px-5 md:text-[26px] md:leading-8">
+      <h3 className="absolute inset-0 flex items-center justify-center gap-2 overflow-hidden px-3 text-center font-heading font-normal text-[26px] text-(--collection-name-color) uppercase leading-[1.1] tracking-[-0.02em] md:px-5">
         {/* Left padding mirrors the arrow's width so the title stays centered in both states */}
         <span className="line-clamp-1 whitespace-nowrap pl-7 md:pl-8">
           {collection.title}

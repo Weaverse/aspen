@@ -93,7 +93,9 @@ let InstagramContent = forwardRef<HTMLDivElement, InstagramContentProps>(
         : subheadingAlignment === "right"
           ? "text-right"
           : "text-left",
-      subheadingSize === "large" ? "text-sm" : "text-xs",
+      subheadingSize === "large"
+        ? "text-lg leading-[1.4]"
+        : "text-base leading-[1.4]",
       subheadingWeight === "medium" ? "font-medium" : "font-normal",
     ].join(" ");
 
@@ -122,7 +124,7 @@ let InstagramContent = forwardRef<HTMLDivElement, InstagramContentProps>(
                 minSize={minSize}
                 maxSize={maxSize}
                 animate={animate}
-                className="text-[10px] leading-none tracking-[0.08em]"
+                className="text-xs leading-none tracking-[0.1em]"
               />
             </div>
           )}
@@ -144,7 +146,7 @@ let InstagramContent = forwardRef<HTMLDivElement, InstagramContentProps>(
               textSize={paragraphSize}
               alignment={paragraphAlignment}
               width={paragraphWidth}
-              className="text-xs leading-relaxed"
+              className="text-sm leading-[1.6]"
             />
           )}
         </div>
@@ -160,7 +162,7 @@ let InstagramContent = forwardRef<HTMLDivElement, InstagramContentProps>(
             textColorDecor={textColorDecor}
             openInNewTab={openInNewTab}
             to={to}
-            className="mt-6 w-fit bg-transparent p-0 text-[10px] tracking-[0.04em]"
+            className="mt-6 w-fit bg-transparent p-0 font-semibold text-sm tracking-[0.02em]"
           >
             <span className="inline-flex items-center gap-2">
               {buttonContent}

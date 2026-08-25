@@ -1,7 +1,7 @@
 import { ArrowRightIcon } from "@phosphor-icons/react";
 import { Content, Item, Root, Trigger } from "@radix-ui/react-dropdown-menu";
 import * as NavigationMenu from "@radix-ui/react-navigation-menu";
-import { useThemeSettings } from "@weaverse/hydrogen";
+import { useThemeSettings, useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { useState } from "react";
 import { useNavigate } from "react-router";
@@ -21,7 +21,7 @@ export function DesktopMenu() {
     const menuItems = headerMenu.items as unknown as SingleMenuItem[];
 
     return (
-      <div className="hidden h-full items-center justify-center gap-10 xl:flex">
+      <div className="hidden h-full items-center justify-center gap-8 pt-1 xl:flex">
         {menuItems.map((menuItem) => {
           const { id, items: subItems = [], title, to } = menuItem;
           const level = getMaxDepth(menuItem);
@@ -59,7 +59,7 @@ export function DesktopMenu() {
                   <NavigationMenu.Trigger
                     className={clsx([
                       "flex h-full cursor-pointer items-center py-2",
-                      "font-normal text-sm uppercase focus:outline-hidden",
+                      "font-heading font-normal text-sm uppercase tracking-[-0.01em] focus:outline-hidden",
                     ])}
                     onMouseEnter={() => {
                       if (openMenuBy === "hover" && value !== id) {
@@ -129,7 +129,7 @@ function SingleMenu({ menuItem }: { menuItem: SingleMenuItem }) {
         prefetch="intent"
         className={clsx([
           "flex h-full cursor-pointer items-center py-2",
-          "font-normal text-sm uppercase transition-none focus:outline-hidden",
+          "font-heading font-normal text-sm uppercase tracking-[-0.01em] transition-none focus:outline-hidden",
         ])}
       >
         <span
@@ -158,7 +158,7 @@ function DropdownMenu({ menuItem }: { menuItem: SingleMenuItem }) {
         <Trigger
           className={clsx([
             "flex h-full cursor-pointer items-center py-2",
-            "font-normal text-sm uppercase focus:outline-hidden",
+            "font-heading font-normal text-sm uppercase tracking-[-0.01em] focus:outline-hidden",
           ])}
           onMouseEnter={() => {
             if (openMenuBy === "hover") {
@@ -246,7 +246,7 @@ function ColumnsWithFeatureMenu({ items }: { items: SingleMenuItem[] }) {
 
   return (
     <div className="h-[414px] bg-[#DFDFDF] pt-16 text-[#343231]">
-      <div className="mx-auto grid w-[calc(100%-4rem)] max-w-[1360px] grid-cols-[repeat(4,minmax(0,1fr))_360px]">
+      <div className="mx-auto grid w-[calc(100%-4rem)] max-w-[1360px] grid-cols-[200px_200px_200px_200px_1fr] gap-x-10">
         {columns.slice(0, 4).map((item, index) => (
           <MenuLinkColumn item={item} index={index} key={item.id} />
         ))}
@@ -261,7 +261,7 @@ function ColumnsWithFeatureMenu({ items }: { items: SingleMenuItem[] }) {
 function ColumnsMenu({ items }: { items: SingleMenuItem[] }) {
   return (
     <div className="h-[366px] bg-[#DFDFDF] pt-16 text-[#343231]">
-      <div className="mx-auto grid w-[calc(100%-4rem)] max-w-[1360px] grid-cols-4 gap-7">
+      <div className="mx-auto grid w-[calc(100%-4rem)] max-w-[1360px] grid-cols-[repeat(4,200px)] gap-x-10">
         {items.slice(0, 4).map((item, index) => (
           <MenuLinkColumn item={item} index={index} key={item.id} />
         ))}
@@ -283,18 +283,18 @@ function MenuLinkColumn({
         <Link
           to={item.to}
           prefetch="intent"
-          className="inline-block font-semibold text-sm uppercase leading-5 transition-none"
+          className="inline-block font-semibold text-sm uppercase leading-none tracking-[0.02em] transition-none"
         >
           {item.title}
         </Link>
       </NavigationMenu.Link>
-      <div className="mt-[14px] flex flex-col gap-[14px]">
+      <div className="mt-6 flex flex-col gap-5">
         {item.items?.map((child) => (
           <NavigationMenu.Link asChild key={child.id}>
             <Link
               to={child.to}
               prefetch="intent"
-              className="w-fit text-sm leading-5 transition-none"
+              className="w-fit text-sm leading-none tracking-[0.02em] transition-none"
             >
               {child.title}
             </Link>
@@ -319,7 +319,7 @@ function EditorialImageCard({
 
   return (
     <SlideIn
-      className="group/editorial"
+      className="group/editorial w-[360px] justify-self-end"
       style={{ "--idx": index } as React.CSSProperties}
     >
       <NavigationMenu.Link asChild>
@@ -335,7 +335,7 @@ function EditorialImageCard({
             className="h-full w-full object-cover transition-transform duration-500 group-hover/editorial:scale-[1.02]"
           />
           <span className="absolute inset-0 bg-[#171615]/20" />
-          <span className="absolute inset-0 flex items-center justify-center text-center text-[28px] text-white uppercase leading-[34px]">
+          <span className="absolute inset-0 flex items-center justify-center text-center font-heading text-[26px] text-white uppercase leading-[1.1] tracking-[-0.02em]">
             {item.title}
           </span>
         </Link>
@@ -345,6 +345,7 @@ function EditorialImageCard({
 }
 
 function ArticleCardsMenu({ items }: { items: SingleMenuItem[] }) {
+  const { t } = useTranslation();
   return (
     <div className="h-[448px] bg-[#DFDFDF] pt-16 text-[#343231]">
       <div className="mx-auto grid w-[calc(100%-4rem)] max-w-[1360px] grid-cols-4 gap-8">
@@ -369,16 +370,16 @@ function ArticleCardsMenu({ items }: { items: SingleMenuItem[] }) {
                       className="h-full w-full object-cover transition-transform duration-500 group-hover/article:scale-[1.02]"
                     />
                   </div>
-                  <p className="mt-3 text-[#9D9D9D] text-sm uppercase leading-5">
+                  <p className="mt-3 text-[#9D9D9D] text-xs uppercase leading-none tracking-[0.02em]">
                     {item.resource?.articleTags?.[0] ||
                       item.tags?.[0] ||
-                      "Article"}
+                      t("navigation.article")}
                   </p>
-                  <p className="mt-2.5 line-clamp-2 text-[26px] leading-[30px]">
+                  <p className="mt-2.5 line-clamp-2 font-heading text-[26px] leading-[1.1] tracking-[-0.02em]">
                     {item.title}
                   </p>
-                  <span className="mt-3.5 flex items-center gap-2 font-semibold text-sm leading-5">
-                    Read More
+                  <span className="mt-3.5 flex items-center gap-2 font-semibold text-sm leading-none tracking-[0.02em]">
+                    {t("navigation.readMore")}
                     <ArrowRightIcon aria-hidden="true" className="size-4" />
                   </span>
                 </Link>
@@ -425,7 +426,7 @@ function ImageTilesMenu({ items }: { items: SingleMenuItem[] }) {
                     className="h-full w-full object-cover transition-transform duration-500 group-hover/tile:scale-[1.02]"
                   />
                   <span className="absolute inset-0 bg-[#171615]/20" />
-                  <span className="absolute inset-0 flex items-center justify-center text-center text-[28px] uppercase leading-[34px]">
+                  <span className="absolute inset-0 flex items-center justify-center text-center font-heading text-[26px] uppercase leading-[1.1] tracking-[-0.02em]">
                     {item.title}
                   </span>
                 </Link>

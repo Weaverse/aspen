@@ -74,9 +74,9 @@ function AccountSection({
         style={style}
         className={cn("bg-(--account-background)", className)}
       >
-        <div className="mx-auto max-w-[1440px] px-4 pt-6 pb-10 md:px-8 md:pt-10 md:pb-16 lg:px-10 lg:pt-16 lg:pb-20">
+        <div className="mx-auto w-full max-w-[974px] px-4 pt-6 pb-10 md:px-8 md:pt-10 md:pb-16 lg:px-8 lg:pt-10 lg:pb-20">
           {heading ? (
-            <h1 className="font-heading font-normal text-[36px] text-[#343231] uppercase leading-10 tracking-[-0.025em] md:text-[44px] md:leading-[1.1]">
+            <h1 className="font-heading font-normal text-[37px] text-[#343231] uppercase leading-[1.1] tracking-[-0.03em] md:text-[44px]">
               {heading}
             </h1>
           ) : null}

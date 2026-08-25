@@ -2,6 +2,7 @@ import * as AccordionPrimitive from "@radix-ui/react-accordion";
 import {
   type HydrogenComponentSchema,
   useChildInstances,
+  useTranslation,
 } from "@weaverse/hydrogen";
 import { createContext, forwardRef, useEffect, useMemo, useState } from "react";
 import Heading from "~/components/heading";
@@ -46,25 +47,29 @@ const MapFrame = ({
 }: {
   address: string;
   className?: string;
-}) => (
-  <div
-    className={cn(
-      "relative w-full overflow-hidden bg-(--color-bg-subtle)",
-      "aspect-[375/469.125] lg:aspect-[16/10] lg:rounded-(--radius-md)",
-      className,
-    )}
-  >
-    <iframe
-      key={address}
-      className="absolute inset-0 h-full w-full"
-      title="Google map embedded frame"
-      src={`https://maps.google.com/maps?t=m&q=${encodeURIComponent(address)}&ie=UTF8&&output=embed`}
-      style={{ border: 0 }}
-      loading="lazy"
-      allowFullScreen
-    />
-  </div>
-);
+}) => {
+  const { t } = useTranslation();
+
+  return (
+    <div
+      className={cn(
+        "relative w-full overflow-hidden bg-(--color-bg-subtle)",
+        "aspect-[375/469.125] lg:aspect-[16/10] lg:rounded-(--radius-md)",
+        className,
+      )}
+    >
+      <iframe
+        key={address}
+        className="absolute inset-0 h-full w-full"
+        title={t("map.embeddedFrame")}
+        src={`https://maps.google.com/maps?t=m&q=${encodeURIComponent(address)}&ie=UTF8&&output=embed`}
+        style={{ border: 0 }}
+        loading="lazy"
+        allowFullScreen
+      />
+    </div>
+  );
+};
 
 const MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
   const {
@@ -122,7 +127,7 @@ const MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
           alignment="left"
           weight="400"
           letterSpacing="tight"
-          className="text-[28px] leading-[1.15] lg:text-[32px]"
+          className="text-[28px] leading-[1.1] tracking-[-0.03em] lg:text-[44px]"
         />
       )}
 

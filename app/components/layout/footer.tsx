@@ -114,7 +114,7 @@ export function Footer() {
     <footer className="w-full bg-(--color-footer-bg) text-(--color-footer-text) text-sm leading-[1.55]">
       <div className={cn("w-full", contentWidthClass)}>
         <div className="hidden lg:block">
-          <div className="grid min-h-[338px] grid-cols-[400px_1fr] gap-20 border-[#3E3E3E] border-b px-10 pt-16 pb-12">
+          <div className="grid min-h-[338px] grid-cols-[463px_1fr] gap-20 border-[#3E3E3E] border-b px-10 pt-16 pb-12">
             <DesktopBrand
               shopName={shopName}
               logoData={footerLogoData}
@@ -509,7 +509,7 @@ function FooterMenu({
     return (
       <nav
         aria-label={t("footer.navigation")}
-        className="grid w-full grid-cols-4 gap-8 pt-1"
+        className="grid w-full grid-cols-[234px_234px_234px_1fr] gap-3 pt-1"
       >
         {items.slice(0, 4).map(({ id, to, title, items: subItems }) => (
           <div key={id}>

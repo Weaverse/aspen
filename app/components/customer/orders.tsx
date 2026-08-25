@@ -48,7 +48,7 @@ export function AccountOrderHistory({
   const { t } = useTranslation();
   return (
     <div {...rest} className={cn(className)}>
-      <h2 className="font-body font-normal text-[#343231] text-sm uppercase leading-5">
+      <h2 className="font-body font-normal text-[#343231] text-sm uppercase leading-5 tracking-[0.02em]">
         {heading ?? t("orders.title")}
       </h2>
       {orders?.length ? <Orders orders={orders} /> : <EmptyOrders />}
@@ -116,7 +116,7 @@ function OrderCard({ order }: { order: OrderCardFragment }) {
         <Link
           to={orderLink}
           prefetch="intent"
-          className="line-clamp-1 font-semibold text-sm uppercase leading-5"
+          className="line-clamp-1 font-semibold text-sm uppercase leading-5 tracking-[0.02em]"
         >
           {lineItems.length > 1
             ? `${firstLineItem.title} ... +${t("orders.moreItems", {

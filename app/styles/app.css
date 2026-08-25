@@ -43,9 +43,9 @@
   );
   --text-scale--line-height: 1;
   --text-xs: calc(var(--body-base-size) * 0.857143);
-  --text-xs--line-height: 1.4;
+  --text-xs--line-height: 1.6;
   --text-sm: var(--body-base-size);
-  --text-sm--line-height: 1.5;
+  --text-sm--line-height: 1.6;
   --text-base: calc(var(--body-base-size) * 1.142857);
   --text-base--line-height: 1.6;
   --text-lg: calc(var(--body-base-size) * 1.285714);
@@ -360,6 +360,16 @@
   h6 {
     letter-spacing: var(--heading-base-spacing);
     line-height: var(--heading-base-line-height);
+  }
+
+  /* Figma text styles: H1-H3 track -3%, H4-H6 track -2% */
+  h4,
+  h5,
+  h6,
+  .h4,
+  .h5,
+  .h6 {
+    letter-spacing: -0.02em;
   }
 
   /* Mobile sizes */

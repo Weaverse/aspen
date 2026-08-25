@@ -68,7 +68,7 @@ const AccordionItem = forwardRef<HTMLDivElement, AccordionItemProps>(
             className="group flex min-h-14 w-full items-center gap-3 px-4 py-3 text-left"
           >
             {renderIcon()}
-            <span className="flex-1 font-normal text-xs leading-snug">
+            <span className="flex-1 font-body font-normal text-base leading-[1.4] tracking-[0.02em]">
               {title}
             </span>
             <div className="relative ml-auto size-4 flex-shrink-0">
@@ -104,7 +104,7 @@ const AccordionItem = forwardRef<HTMLDivElement, AccordionItemProps>(
             "data-[state=open]:animate-expand",
           )}
         >
-          <div className="px-4 pt-1 pb-4 text-[11px] leading-relaxed opacity-75">
+          <div className="px-4 pt-1 pb-4 text-sm leading-[1.6] opacity-75">
             {content}
           </div>
         </Accordion.Content>

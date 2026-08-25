@@ -1,4 +1,5 @@
 import type { IconProps } from "@phosphor-icons/react";
+import { useTranslation } from "@weaverse/hydrogen";
 import { cn } from "~/utils/cn";
 
 const LAYOUT_ICONS = {
@@ -19,6 +20,7 @@ export function LayoutSwitcher({
   onGridSizeChange,
   className,
 }: LayoutSwitcherProps & { className?: string }) {
+  const { t } = useTranslation();
   return (
     <div
       className={cn(
@@ -37,7 +39,7 @@ export function LayoutSwitcher({
             key={col}
             type="button"
             data-active={gridSizeMobile === col}
-            aria-label={`Show ${col} product${col === 1 ? "" : "s"} per row`}
+            aria-label={t("collection.productsPerRow", { count: col })}
             aria-pressed={gridSizeMobile === col}
             onClick={() => onGridSizeChange(col, "mobile")}
             className="flex h-12 w-12 items-center justify-center border md:hidden"
@@ -55,7 +57,7 @@ export function LayoutSwitcher({
             key={`desktop-${col}`}
             type="button"
             data-active={gridSizeDesktop === col}
-            aria-label={`Show ${col} products per row`}
+            aria-label={t("collection.productsPerRow", { count: col })}
             aria-pressed={gridSizeDesktop === col}
             onClick={() => onGridSizeChange(col, "desktop")}
             className="hidden h-12 w-12 items-center justify-center border md:flex"

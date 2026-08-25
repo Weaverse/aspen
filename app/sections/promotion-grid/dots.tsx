@@ -1,3 +1,4 @@
+import { useTranslation } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import clsx from "clsx";
@@ -59,6 +60,7 @@ let dotVariants = cva(
 );
 
 export function Dots(props: PromotionDotsProps) {
+  const { t } = useTranslation();
   let { className, dotsColor, slidesCount = 0 } = props;
   let swiper = useSwiper();
   let [activeIndex, setActiveIndex] = useState(0);
@@ -107,7 +109,7 @@ export function Dots(props: PromotionDotsProps) {
             onClick={() => {
               return handleDotClick(index);
             }}
-            aria-label={`Go to slide ${index + 1}`}
+            aria-label={t("carousel.goToSlide", { index: index + 1 })}
           />
         );
       })}

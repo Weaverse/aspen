@@ -159,7 +159,7 @@ function ProductsLoadedOnScroll(props: ProductsLoadedOnScrollProps) {
   return (
     <div
       className={clsx([
-        "w-full gap-x-4 gap-y-6 lg:gap-y-10",
+        "w-full gap-x-5 gap-y-8",
         "grid grid-cols-(--cols-mobile) md:grid-cols-(--cols-desktop)",
       ])}
     >

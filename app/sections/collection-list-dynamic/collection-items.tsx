@@ -4,6 +4,7 @@ import {
   type HydrogenComponentProps,
   type HydrogenComponentSchema,
   IMAGES_PLACEHOLDERS,
+  useTranslation,
   type WeaverseCollection,
 } from "@weaverse/hydrogen";
 import clsx from "clsx";
@@ -59,6 +60,7 @@ interface CollectionItemsProps
 
 let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
   (props, ref) => {
+    const { t } = useTranslation();
     const [scope] = useAnimation(ref);
     let {
       collectionNameColor,
@@ -138,7 +140,7 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
           />
         )}
         <div className="absolute inset-0 bg-black/10 transition-colors duration-500 group-hover:bg-black/30" />
-        <h3 className="absolute inset-0 flex items-center justify-center gap-2 overflow-hidden px-3 text-center font-heading font-normal text-base text-(--collection-name-color) uppercase leading-5 tracking-[-0.025em] md:px-5 md:text-[26px] md:leading-8">
+        <h3 className="absolute inset-0 flex items-center justify-center gap-2 overflow-hidden px-3 text-center font-heading font-normal text-[26px] text-(--collection-name-color) uppercase leading-[1.1] tracking-[-0.02em] md:px-5">
           {/* Left padding mirrors the arrow's width so the title stays centered in both states */}
           <span className="line-clamp-1 whitespace-nowrap pl-7 md:pl-8">
             {collection.title}
@@ -171,15 +173,17 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
           <div className="absolute inset-0 bg-black/0 transition-colors duration-500 group-hover:bg-black/20" />
         </div>
         <div className="flex w-full flex-col pt-5 text-(--collection-name-color)">
-          <h3 className="flex items-center gap-2 font-body font-normal text-base leading-6 md:text-xl md:leading-7">
+          <h3 className="flex items-center gap-2 font-heading font-normal text-[26px] leading-[1.1] tracking-[-0.02em]">
             <span className="line-clamp-1">{collection.title}</span>
             <ArrowRight
               weight="thin"
               className="size-4 shrink-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 md:size-5"
             />
           </h3>
-          <p className="font-body text-[10px] leading-4 opacity-75 md:text-xs md:leading-[18px]">
-            {collection.products?.nodes?.length || 0} Products
+          <p className="font-body text-sm text-[#D9CFC8] leading-[1.6] tracking-[0.01em]">
+            {t("collection.productCount", {
+              count: collection.products?.nodes?.length || 0,
+            })}
           </p>
         </div>
       </Link>
@@ -207,7 +211,7 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
           />
         )}
         <div className="absolute inset-0 bg-black/0 transition-colors duration-500 group-hover:bg-black/20" />
-        <h3 className="absolute inset-x-0 bottom-0 flex items-center gap-2 bg-[#CABDB7E5] px-4 py-2.5 text-left font-heading font-normal text-sm text-white uppercase leading-5 md:bg-[#6B6B6BE5] md:px-5 md:py-3 md:text-[32px] md:leading-10">
+        <h3 className="absolute inset-x-0 bottom-0 flex items-center gap-2 bg-[#CABDB7E5] px-4 py-2.5 text-left font-body font-semibold text-[#FEF4EB] text-sm uppercase leading-[1.6] tracking-[0.02em] md:bg-[#6B6B6BE5] md:px-4 md:py-3 md:font-heading md:font-normal md:text-[32px] md:leading-10 md:tracking-[-0.02em]">
           <span className="line-clamp-1">{collection.title}</span>
           <ArrowRight
             weight="thin"
@@ -222,7 +226,7 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
         <div ref={scope} {...rest} style={sliderStyle}>
           <Swiper
             spaceBetween={gap}
-            slidesPerView={1.104}
+            slidesPerView={1.27}
             breakpoints={{
               768: {
                 slidesPerView: 2.2,

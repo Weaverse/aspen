@@ -1,6 +1,7 @@
 import { MinusIcon, PlusIcon } from "@phosphor-icons/react";
 import * as Accordion from "@radix-ui/react-accordion";
 import type { Filter } from "@shopify/hydrogen/storefront-api-types";
+import { useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { useRef, useState } from "react";
 import { useLoaderData } from "react-router";
@@ -22,6 +23,7 @@ type FiltersProps = {
 type FilterDisplayAs = "swatch" | "button" | "list-item";
 
 export function Filters({ className, context = "sidebar" }: FiltersProps) {
+  const { t } = useTranslation();
   const ref = useRef<HTMLDivElement>(null);
   const parentInstance = useClosestWeaverseItem(ref);
   const parentData = (parentInstance?.data ||
@@ -120,7 +122,13 @@ export function Filters({ className, context = "sidebar" }: FiltersProps) {
                 context === "drawer" && "min-h-[69px] pt-[5px] text-sm",
               )}
             >
-              <span>{getFilterDisplayLabel(filter.label, context)}</span>
+              <span>
+                {getFilterDisplayLabel(
+                  filter.label,
+                  context,
+                  t("collection.stock"),
+                )}
+              </span>
               <span
                 aria-hidden="true"
                 className="relative block h-[18px] w-[18px] shrink-0"
@@ -182,7 +190,7 @@ export function Filters({ className, context = "sidebar" }: FiltersProps) {
     </Accordion.Root>
   ) : (
     <p className={cn("py-8 text-body-subtle", className)}>
-      No filters available.
+      {t("collection.noFiltersAvailable")}
     </p>
   );
 
@@ -199,9 +207,13 @@ export function Filters({ className, context = "sidebar" }: FiltersProps) {
   );
 }
 
-function getFilterDisplayLabel(label: string, context: "sidebar" | "drawer") {
+function getFilterDisplayLabel(
+  label: string,
+  context: "sidebar" | "drawer",
+  stockLabel: string,
+) {
   if (context === "drawer" && label.trim().toLowerCase() === "availability") {
-    return "Stock";
+    return stockLabel;
   }
   return label;
 }
@@ -219,6 +231,7 @@ function FilterValues({
   showFiltersCount: boolean;
   context: "sidebar" | "drawer";
 }) {
+  const { t } = useTranslation();
   const visibleLimit =
     context === "drawer" && displayAs === "list-item" ? 5 : 8;
   const hasSelectedHiddenValue = filter.values
@@ -254,7 +267,9 @@ function FilterValues({
           aria-expanded={showAll}
           onClick={() => setShowAll((value) => !value)}
         >
-          {showAll ? "Show less" : `Show more (${hiddenCount})`}
+          {showAll
+            ? t("collection.showLess")
+            : t("collection.showMore", { count: hiddenCount })}
         </button>
       )}
     </>

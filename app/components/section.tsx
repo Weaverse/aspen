@@ -37,7 +37,8 @@ const variants = cva("relative isolate", {
     width: {
       full: "h-full w-full",
       stretch: "h-full w-full",
-      fixed: "mx-auto h-full w-full max-w-(--page-width)",
+      fixed:
+        "mx-auto h-full w-full max-w-[calc(var(--page-width)-2*var(--page-padding))]",
     },
     padding: {
       full: "",

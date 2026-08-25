@@ -1,6 +1,7 @@
 import { CaretDownIcon, CaretUpIcon, CheckIcon } from "@phosphor-icons/react";
 import * as Select from "@radix-ui/react-select";
 import { Image, type MappedProductOptions } from "@shopify/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { isLightColor, isValidColor } from "~/utils/misc";
 
@@ -17,6 +18,7 @@ export function QuickShopOptionValues({
   option: MappedProductOptions;
   onVariantChange: (variantId: string) => void;
 }) {
+  const { t } = useTranslation();
   const { name: optionName, optionValues } = option || {};
 
   if (!optionName) {
@@ -89,7 +91,9 @@ export function QuickShopOptionValues({
           className="inline-flex flex-1 items-center justify-between gap-2 rounded bg-white outline-hidden"
           aria-label={optionName}
         >
-          <Select.Value placeholder={`Select ${optionName}`} />
+          <Select.Value
+            placeholder={t("locale.selectOption", { option: optionName })}
+          />
           <Select.Icon className="shrink-0">
             <CaretDownIcon size={16} />
           </Select.Icon>

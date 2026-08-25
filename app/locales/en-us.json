@@ -10,7 +10,13 @@
     "openSearch": "Open search",
     "closeSearch": "Close search drawer",
     "clearSearch": "Clear search",
-    "viewSearchResults": "View all search results"
+    "viewSearchResults": "View all search results",
+    "close": "Close",
+    "beforeAfterComparison": "Before and after image comparison",
+    "customIcon": "Custom icon"
+  },
+  "actions": {
+    "cancel": "Cancel"
   },
   "locale": {
     "selectCountry": "Select country",
@@ -19,7 +25,10 @@
   },
   "navigation": {
     "menu": "Menu",
-    "home": "Homepage"
+    "home": "Homepage",
+    "shopHome": "{{shop}} home",
+    "article": "Article",
+    "readMore": "Read more"
   },
   "search": {
     "title": "Search",
@@ -45,7 +54,12 @@
     "emptyHint": "Search by product name, material, room, or collection.",
     "clearFilters": "Clear filters",
     "searchProducts": "Search products",
-    "submit": "Submit search"
+    "submit": "Submit search",
+    "articles": "Articles",
+    "noProductsAvailable": "No products available.",
+    "noCollectionsAvailable": "No collections available.",
+    "noPagesAvailable": "No pages available.",
+    "noArticlesAvailable": "No articles available."
   },
   "cart": {
     "title": "Cart",
@@ -83,6 +97,10 @@
     "code": "Gift card or discount code",
     "invalidCode": "Invalid gift card or discount code.",
     "appliedCodes": "Applied codes",
+    "freeShippingRemaining": "You’re {{amount}} away from free shipping!",
+    "freeShippingUnlocked": "You’ve unlocked free shipping!",
+    "removeDiscountCode": "Remove discount code {{code}}",
+    "removeGiftCard": "Remove gift card ending in {{digits}}",
     "errors": {
       "selectAvailableOption": "Please select an available product option before adding it to your bag.",
       "noLineSelected": "No cart line was selected for removal."
@@ -108,6 +126,8 @@
     "returns": "Returns",
     "learnMore": "Learn more",
     "imageUnavailable": "Image unavailable",
+    "imageAlt": "Product image",
+    "detailImage": "Product detail",
     "noProducts": "No products found.",
     "viewAll": "View all",
     "previousRecommendations": "Previous recommendations",
@@ -128,7 +148,27 @@
     "backInStockEmail": "Email address",
     "backInStockNotify": "Notify me",
     "backInStockSuccess": "We'll email you when this is back in stock.",
-    "backInStockError": "Unable to save your request. Please try again."
+    "backInStockError": "Unable to save your request. Please try again.",
+    "itemPrice": "Item price",
+    "quantityValue": "Quantity, {{quantity}}",
+    "availableColors": "Available colors for {{product}}",
+    "bundledQuantity": "Qty: {{quantity}}",
+    "optionsFor": "{{option}} options for {{product}}",
+    "selectOptionValue": "Select {{option}} {{value}}",
+    "viewAllOptions": "View all {{option}} options for {{product}}",
+    "viewProduct": "View {{product}}",
+    "imageUnavailableFor": "Image unavailable for {{product}}",
+    "video": "Product video",
+    "loadError": "Failed to load product data",
+    "loadingData": "Loading product data…",
+    "noData": "No product data…",
+    "viewFullDetails": "View full details",
+    "exampleTitle": "Example product title",
+    "exampleDescription": "This is an example product description shown while no product is selected.",
+    "previousProduct": "Previous product",
+    "nextProduct": "Next product",
+    "seeMoreProducts": "See more products",
+    "pictureOf": "Picture of {{product}}"
   },
   "loyalty": {
     "earnHint": "You'll earn {{points}} {{program}} points with this purchase.",
@@ -157,13 +197,22 @@
     "maximumPrice": "Maximum price",
     "from": "From",
     "to": "To",
-    "filters": "Filters"
+    "filters": "Filters",
+    "stock": "Stock",
+    "noFiltersAvailable": "No filters available.",
+    "showLess": "Show less",
+    "showMore": "Show more ({{count}})",
+    "productsPerRow": "Show {{count}} product per row",
+    "productsPerRow_other": "Show {{count}} products per row",
+    "productCount": "{{count}} product",
+    "productCount_other": "{{count}} products"
   },
   "account": {
     "orderDetail": "Order detail",
     "returnToAccount": "Return to my account",
     "product": "Product",
     "quantity": "Quantity",
+    "quantityMultiplier": "×{{quantity}}",
     "discount": "Discount",
     "currentPrice": "Current price",
     "subtotal": "Subtotal",
@@ -248,6 +297,84 @@
     "previous": "Previous announcement",
     "next": "Next announcement"
   },
+  "newsletter": {
+    "title": "Newsletter signup",
+    "emailPlaceholder": "Enter your email",
+    "dismiss": "Don't show this again"
+  },
+  "reviews": {
+    "readCustomerReviews": "Read {{count}} customer reviews",
+    "ratingOutOfFive": "{{rating}} out of 5",
+    "count": "{{count}} review",
+    "count_other": "{{count}} reviews",
+    "noneAvailable": "No reviews available",
+    "basedOn": "Based on {{count}} review",
+    "basedOn_other": "Based on {{count}} reviews",
+    "writeReview": "Write a review",
+    "rating": "Rating",
+    "starCount": "{{count}} star",
+    "starCount_other": "{{count}} stars",
+    "yourName": "Your name",
+    "yourEmail": "Your email",
+    "reviewTitle": "Review title",
+    "yourReview": "Your review",
+    "submitReview": "Submit review",
+    "thankYou": "Thanks for leaving your review.",
+    "noneYet": "No reviews yet. Be the first to share your experience.",
+    "pages": "Review pages",
+    "previousPage": "Previous review page",
+    "nextPage": "Next review page",
+    "media": "Review media",
+    "mediaPreview": "Review media preview"
+  },
+  "blog": {
+    "copyLink": "Copy link",
+    "linkCopied": "Link copied",
+    "readMinutes": "{{count}} min read",
+    "share": "Share",
+    "tags": "Tags",
+    "journal": "Journal",
+    "byAuthor": "By {{author}}"
+  },
+  "countdown": {
+    "days": "Days",
+    "hours": "Hours",
+    "minutes": "Minutes",
+    "seconds": "Seconds"
+  },
+  "subscription": {
+    "save": "Save {{amount}}",
+    "oneTimePurchase": "One time purchase",
+    "deliverEvery": "Deliver every",
+    "selectDeliveryFrequency": "Select delivery frequency",
+    "selectPlan": "Select plan"
+  },
+  "wishlist": {
+    "add": "Add {{product}} to wishlist",
+    "remove": "Remove {{product}} from wishlist",
+    "setupRequired": "Wishlist needs to be enabled in Shopify customer metafields."
+  },
+  "carousel": {
+    "goToSlide": "Go to slide {{index}}",
+    "previousSlide": "Previous slide",
+    "nextSlide": "Next slide"
+  },
+  "social": {
+    "instagramPost": "Instagram post {{index}}",
+    "instagramPostBy": "Instagram post {{index}} by {{username}}"
+  },
+  "testimonial": {
+    "previous": "Previous testimonial",
+    "next": "Next testimonial"
+  },
+  "map": {
+    "embeddedFrame": "Google map embedded frame",
+    "openingHours": "Opening hours"
+  },
+  "video": {
+    "youtubePlayer": "YouTube video player",
+    "none": "No video"
+  },
   "system": {
     "somethingWentWrong": "Something went wrong",
     "pageNotFound": "Page not found",
@@ -255,6 +382,8 @@
     "tryAgain": "Try again",
     "policies": "Policies",
     "backToPolicies": "Back to policies",
-    "orderRedirectError": "Error redirecting to the order status URL"
+    "orderRedirectError": "Error redirecting to the order status URL",
+    "noIcon": "No icon",
+    "error": "Error"
   }
 }

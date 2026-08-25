@@ -30,6 +30,7 @@ import * as CollectionList from "~/sections/collection-list-page/collections-ite
 import * as ColumnsWithImages from "~/sections/columns-with-images";
 import * as ColumnWithImageItem from "~/sections/columns-with-images/column";
 import * as ColumnsWithImagesItems from "~/sections/columns-with-images/items";
+import * as ContactFormSection from "~/sections/contact-form";
 import * as Countdown from "~/sections/countdown";
 import * as ButtonCountDown from "~/sections/countdown/button";
 import * as CountdownSubHeading from "~/sections/countdown/subheading";
@@ -144,6 +145,7 @@ export const components: HydrogenComponent[] = [
   HotspotsItem,
   HotspotsContainer,
   HotspotsImage,
+  ContactFormSection,
   Countdown,
   CountdownSubHeading,
   ButtonCountDown,

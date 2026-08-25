@@ -185,7 +185,7 @@ export function ProductMedia(props: ProductMediaProps) {
           {media.map((med, idx) => {
             const image = {
               ...med.previewImage,
-              altText: med.alt || "Product image",
+              altText: med.alt || t("product.imageAlt"),
             };
             return (
               <Image
@@ -250,7 +250,7 @@ export function ProductMedia(props: ProductMediaProps) {
                     <Image
                       data={{
                         ...previewImage,
-                        altText: alt || "Product image",
+                        altText: alt || t("product.imageAlt"),
                       }}
                       loading="lazy"
                       width={200}
@@ -454,11 +454,13 @@ function Media({
   imageAspectRatio: ImageAspectRatio;
   index: number;
 }) {
+  const { t } = useTranslation();
+
   if (media.mediaContentType === "IMAGE") {
     const { image, alt } = media as Media_MediaImage_Fragment;
     return (
       <Image
-        data={{ ...image, altText: alt || "Product image" }}
+        data={{ ...image, altText: alt || t("product.imageAlt") }}
         loading={index === 0 ? "eager" : "lazy"}
         className="aspect-square h-full w-full object-contain lg:aspect-auto lg:h-auto lg:object-cover"
         width={2048}
@@ -472,7 +474,7 @@ function Media({
     return (
       <video
         controls
-        aria-label={mediaVideo.alt || "Product video"}
+        aria-label={mediaVideo.alt || t("product.video")}
         className="aspect-square h-full w-full object-contain lg:aspect-auto lg:h-auto lg:object-cover"
         style={{ aspectRatio: imageAspectRatio }}
         onError={console.error}
@@ -531,6 +533,8 @@ function ProductMediaDots({
   activeIndex,
   onDotClick,
 }: ProductMediaDotsProps) {
+  const { t } = useTranslation();
+
   if (slidesCount === 0) {
     return null;
   }
@@ -572,7 +576,7 @@ function ProductMediaDots({
             minWidth: dotWidth,
           }}
           onClick={() => onDotClick(index)}
-          aria-label={`Go to slide ${index + 1}`}
+          aria-label={t("carousel.goToSlide", { index: index + 1 })}
         />
       ))}
     </div>

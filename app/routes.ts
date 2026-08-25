@@ -28,6 +28,7 @@ export default hydrogenRoutes([
         ":version/graphql.json",
         "routes/($locale).api.$version.[graphql.json].tsx",
       ),
+      route("contact", "routes/($locale).api.contact.ts"),
       route("countries", "routes/($locale).api.countries.ts"),
       route("featured-items", "routes/($locale).api.featured-items.ts"),
       route("klaviyo", "routes/($locale).api.klaviyo.ts"),

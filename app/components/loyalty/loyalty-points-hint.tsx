@@ -82,7 +82,11 @@ function LoyaltyHintBody({
     return null;
   }
 
-  const earnPoints = estimateLoyaltyPoints(amount, loyaltyPointsPerCurrency);
+  // Earning rules live in the vendor admin, so a theme-configured rate would
+  // contradict them. Only estimate when no loyalty vendor is connected.
+  const earnPoints = vendorConfigured
+    ? 0
+    : estimateLoyaltyPoints(amount, loyaltyPointsPerCurrency);
   const balance =
     loyalty.vendor === "loyaltylion" && typeof loyalty.points === "number"
       ? loyalty.points

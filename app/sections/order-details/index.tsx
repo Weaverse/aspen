@@ -138,12 +138,12 @@ function OrderDetailsSection({
     >
       <div className="mx-auto max-w-[974px] px-4 pt-6 pb-10 md:px-8 md:pt-12 md:pb-20">
         <header>
-          <h1 className="font-heading font-normal text-[36px] uppercase leading-10 tracking-[-0.025em] md:text-[44px] md:leading-[1.1]">
+          <h1 className="font-heading font-normal text-[37px] uppercase leading-[1.1] tracking-[-0.03em] md:text-[44px]">
             {heading}
           </h1>
           <Link
             to="/account"
-            className="mt-1 inline-flex font-normal text-(--order-muted) text-xs uppercase leading-4"
+            className="mt-1 inline-flex font-normal text-(--order-muted) text-xs uppercase leading-4 tracking-[0.02em]"
           >
             {backLabel}
           </Link>
@@ -162,12 +162,15 @@ function OrderDetailsSection({
           className="mt-9 md:mt-10"
           aria-labelledby="order-status-heading"
         >
-          <h2 id="order-status-heading" className="text-sm uppercase leading-5">
+          <h2
+            id="order-status-heading"
+            className="font-body text-sm uppercase leading-5 tracking-[0.02em]"
+          >
             {statusHeading}
           </h2>
           <div className="mt-[11px] grid grid-cols-1 gap-4 md:mt-4 md:grid-cols-2">
             <article className="min-h-[208px] bg-(--order-card) p-6 md:h-[186px] md:min-h-0">
-              <h3 className="font-semibold text-xs uppercase leading-4">
+              <h3 className="font-semibold text-xs uppercase leading-4 tracking-[0.02em]">
                 {shippingAddressHeading}
               </h3>
               {order.shippingAddress ? (
@@ -190,7 +193,7 @@ function OrderDetailsSection({
               )}
             </article>
             <article className="min-h-[208px] bg-(--order-card) p-6 md:h-[186px] md:min-h-0">
-              <h3 className="font-semibold text-xs uppercase leading-4">
+              <h3 className="font-semibold text-xs uppercase leading-4 tracking-[0.02em]">
                 {statusCardHeading}
               </h3>
               <p className="mt-6">
@@ -208,7 +211,7 @@ function OrderDetailsSection({
         >
           <h2
             id="order-details-heading"
-            className="text-sm uppercase leading-5"
+            className="font-body text-sm uppercase leading-5 tracking-[0.02em]"
           >
             {detailsHeading}
           </h2>
@@ -233,7 +236,7 @@ function OrderDetailsSection({
         >
           <h2
             id="order-summary-heading"
-            className="font-semibold text-xs uppercase leading-4"
+            className="font-semibold text-xs uppercase leading-4 tracking-[0.02em]"
           >
             {summaryHeading}
           </h2>
@@ -317,7 +320,7 @@ function OrderLineItemCard({
         )}
       >
         <div>
-          <h3 className="font-semibold text-xs uppercase leading-4">
+          <h3 className="font-semibold text-xs uppercase leading-4 tracking-[0.02em]">
             {lineItem.title}
           </h3>
           {variantLines.length ? (

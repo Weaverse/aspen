@@ -1,4 +1,5 @@
 import { Image, type MappedProductOptions } from "@shopify/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen";
 import { useNavigate } from "react-router";
 import type { ProductVariantFragment } from "storefront-api.generated";
 import { cn } from "~/utils/cn";
@@ -16,6 +17,7 @@ export function ProductVariants({
   selectedVariant: ProductVariantFragment;
   combinedListing?: boolean;
 }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   if (hasOnlyDefaultVariant(productOptions)) {
@@ -77,7 +79,10 @@ export function ProductVariants({
                         )}
                         onClick={() => selectOption(value)}
                         disabled={!isAvailable}
-                        aria-label={`Select ${name} ${value.name}`}
+                        aria-label={t("product.selectOptionValue", {
+                          option: name,
+                          value: value.name,
+                        })}
                         aria-pressed={isSelected}
                       >
                         {swatchImage ? (

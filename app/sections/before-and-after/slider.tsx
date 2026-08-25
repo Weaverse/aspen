@@ -3,6 +3,7 @@ import {
   type HydrogenComponentProps,
   type HydrogenComponentSchema,
   IMAGES_PLACEHOLDERS,
+  useTranslation,
   type WeaverseImage,
 } from "@weaverse/hydrogen";
 import clsx from "clsx";
@@ -40,6 +41,7 @@ function getImageData(
 
 const BeforeAndAfter = forwardRef<HTMLDivElement, BeforeAndAfterProps>(
   (props, ref) => {
+    const { t } = useTranslation();
     const {
       beforeImage1,
       afterImage2,
@@ -204,7 +206,7 @@ const BeforeAndAfter = forwardRef<HTMLDivElement, BeforeAndAfterProps>(
         <div
           role="slider"
           tabIndex={0}
-          aria-label="Before and after image comparison"
+          aria-label={t("accessibility.beforeAfterComparison")}
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={Math.round(position ?? initialPositionMobile)}

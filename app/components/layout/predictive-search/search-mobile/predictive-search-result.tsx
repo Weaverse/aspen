@@ -1,5 +1,6 @@
 import { Money } from "@shopify/hydrogen";
 import type { MoneyV2 } from "@shopify/hydrogen/storefront-api-types";
+import { useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { Image } from "~/components/image";
 import { Link } from "~/components/link";
@@ -19,14 +20,23 @@ type SearchResultTypeProps = {
 };
 
 export function PredictiveSearchResult({ items, type }: SearchResultTypeProps) {
+  const { t } = useTranslation();
+
   if (type === "queries") {
     return <QueryResults items={items} />;
   }
 
   if (!items?.length) {
+    const emptyKey = {
+      articles: "search.noArticlesAvailable",
+      collections: "search.noCollectionsAvailable",
+      pages: "search.noPagesAvailable",
+      products: "search.noProductsAvailable",
+    }[type];
+
     return (
       <p className="pt-5 text-[#524B46] text-sm">
-        No {type === "pages" ? "pages" : type} available.
+        {t(emptyKey || "search.noResults")}
       </p>
     );
   }
@@ -65,13 +75,15 @@ function QueryResults({
 }: {
   items?: NormalizedPredictiveSearchResultItem[];
 }) {
+  const { t } = useTranslation();
+
   return (
     <section aria-labelledby="predictive-search-suggestions">
       <h2
         id="predictive-search-suggestions"
         className="border-[#D8D8D8] border-b pb-[11px] font-semibold text-sm uppercase"
       >
-        Suggestions
+        {t("search.suggestions")}
       </h2>
       <ul className="scrollbar-hide flex gap-5 overflow-x-auto pt-[22px] pb-0.5">
         {items?.map((item) => (

@@ -1,4 +1,8 @@
-import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
+import {
+  createSchema,
+  type HydrogenComponentProps,
+  useTranslation,
+} from "@weaverse/hydrogen";
 import { forwardRef, useEffect, useState } from "react";
 import Heading, {
   type HeadingProps,
@@ -23,6 +27,7 @@ export interface HighlightsBadgeProps
 
 let HighlightsBadge = forwardRef<HTMLDivElement, HighlightsBadgeProps>(
   (props, ref) => {
+    const { t } = useTranslation();
     let {
       children,
       iconType = "circle",
@@ -84,14 +89,14 @@ let HighlightsBadge = forwardRef<HTMLDivElement, HighlightsBadgeProps>(
           if (!customIcon) {
             return (
               <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center border-2 border-gray-300 border-dashed text-gray-400 text-xs">
-                No Icon
+                {t("system.noIcon")}
               </div>
             );
           }
           if (imageError && !isInlineSVG(customIcon)) {
             return (
               <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center border-2 border-red-300 border-dashed text-red-400 text-xs">
-                Error
+                {t("system.error")}
               </div>
             );
           }
@@ -113,7 +118,7 @@ let HighlightsBadge = forwardRef<HTMLDivElement, HighlightsBadgeProps>(
               {/* biome-ignore lint/performance/noImgElement: Custom icons can be arbitrary external URLs or data URIs rather than Shopify image data. */}
               <img
                 src={customIcon}
-                alt="Custom Icon"
+                alt={t("accessibility.customIcon")}
                 width={48}
                 height={48}
                 className="max-h-full max-w-full object-contain"
@@ -158,7 +163,7 @@ let HighlightsBadge = forwardRef<HTMLDivElement, HighlightsBadgeProps>(
               minSize={minSize}
               maxSize={maxSize}
               animate={animate}
-              className="max-w-[300px] text-xl leading-[1.08] md:text-[22px]"
+              className="max-w-[300px] text-xl leading-[1.1] tracking-[-0.02em] md:text-[26px]"
             />
           ) : (
             children

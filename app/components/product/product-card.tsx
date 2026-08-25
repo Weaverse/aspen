@@ -117,7 +117,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
           "--pcard-radius":
             designSystemPreset === "custom"
               ? `${pcardBorderRadius}px`
-              : "var(--radius-sm)",
+              : "var(--radius-md)",
           "--pcard-image-ratio": calculateAspectRatio(
             primaryImage,
             pcardImageRatio,
@@ -129,7 +129,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
         <Link
           to={productPath}
           prefetch="intent"
-          aria-label={`View ${product.title}`}
+          aria-label={t("product.viewProduct", { product: product.title })}
           className="group relative block aspect-(--pcard-image-ratio) overflow-hidden rounded-(--pcard-radius) bg-gray-100"
         >
           {primaryImage ? (
@@ -144,7 +144,10 @@ export function ProductCard({ product, className }: ProductCardProps) {
                 sizes="(min-width: 64em) 25vw, (min-width: 48em) 30vw, 45vw"
                 data={primaryImage}
                 width={700}
-                alt={primaryImage.altText || `Picture of ${product.title}`}
+                alt={
+                  primaryImage.altText ||
+                  t("product.pictureOf", { product: product.title })
+                }
                 loading="lazy"
               />
               {pcardShowImageOnHover && secondaryImage && (
@@ -162,10 +165,12 @@ export function ProductCard({ product, className }: ProductCardProps) {
           ) : (
             <span
               role="img"
-              aria-label={`Image unavailable for ${product.title}`}
+              aria-label={t("product.imageUnavailableFor", {
+                product: product.title,
+              })}
               className="absolute inset-0 flex items-center justify-center px-4 text-body-subtle text-sm"
             >
-              Image unavailable
+              {t("product.imageUnavailable")}
             </span>
           )}
         </Link>

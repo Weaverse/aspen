@@ -1,5 +1,9 @@
 import { Image } from "@shopify/hydrogen";
-import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
+import {
+  createSchema,
+  type HydrogenComponentProps,
+  useTranslation,
+} from "@weaverse/hydrogen";
 import { forwardRef, useRef } from "react";
 import { Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -58,6 +62,7 @@ interface InstagramSliderProps extends HydrogenComponentProps {
 
 let InstagramSlider = forwardRef<HTMLDivElement, InstagramSliderProps>(
   (props, ref) => {
+    const { t } = useTranslation();
     let {
       slidesPerView,
       spaceBetween,
@@ -110,7 +115,7 @@ let InstagramSlider = forwardRef<HTMLDivElement, InstagramSliderProps>(
           {item.media_url ? (
             <Image
               src={item.media_url}
-              alt={`Instagram post ${index + 1}`}
+              alt={t("social.instagramPost", { index: index + 1 })}
               className="h-full w-full object-cover"
               sizes="(min-width: 1024px) 260px, calc(100vw - 40px)"
             />
@@ -131,7 +136,10 @@ let InstagramSlider = forwardRef<HTMLDivElement, InstagramSliderProps>(
             href={`https://www.instagram.com/${item.username}/`}
             target="_blank"
             rel="noreferrer"
-            aria-label={`Instagram post ${index + 1} by ${item.username}`}
+            aria-label={t("social.instagramPostBy", {
+              index: index + 1,
+              username: item.username,
+            })}
             className={tileClassName}
           >
             {tile}
@@ -180,7 +188,7 @@ let InstagramSlider = forwardRef<HTMLDivElement, InstagramSliderProps>(
                 type="button"
                 onClick={() => swiperRef.current?.slidePrev()}
                 className={cn(arrowVariants({ arrowsColor, arrowsShape }))}
-                aria-label="Previous slide"
+                aria-label={t("carousel.previousSlide")}
               >
                 {arrowsIcon === "caret" ? (
                   <CaretLeft size={16} />
@@ -200,7 +208,7 @@ let InstagramSlider = forwardRef<HTMLDivElement, InstagramSliderProps>(
                 type="button"
                 onClick={() => swiperRef.current?.slideNext()}
                 className={cn(arrowVariants({ arrowsColor, arrowsShape }))}
-                aria-label="Next slide"
+                aria-label={t("carousel.nextSlide")}
               >
                 {arrowsIcon === "caret" ? (
                   <CaretRight size={16} />

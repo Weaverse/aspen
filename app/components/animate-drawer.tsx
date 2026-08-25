@@ -18,7 +18,7 @@ export function AnimatedDrawer({ open, children }) {
             <Dialog.Content
               forceMount
               onCloseAutoFocus={(e) => e.preventDefault()}
-              className="fixed inset-y-0 right-0 z-10"
+              className="fixed inset-y-3 right-5 z-10 max-h-[calc(100vh-36px)]"
               aria-describedby={undefined}
             >
               <motion.div
@@ -30,7 +30,7 @@ export function AnimatedDrawer({ open, children }) {
                   damping: 25,
                   stiffness: 150,
                 }}
-                className="h-full w-screen max-w-[430px] bg-background py-4"
+                className="h-full w-screen max-w-[430px] overflow-hidden rounded-(--radius-md) bg-background pt-3 pb-6"
               >
                 {children}
               </motion.div>

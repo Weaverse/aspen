@@ -1,6 +1,6 @@
 import { Pagination } from "@shopify/hydrogen";
 import type { Collection } from "@shopify/hydrogen/storefront-api-types";
-import { createSchema } from "@weaverse/hydrogen";
+import { createSchema, useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { forwardRef, useEffect, useState } from "react";
 import { useLoaderData } from "react-router";
@@ -30,6 +30,7 @@ interface CollectionsItemsProps {
 
 const CollectionsItems = forwardRef<HTMLDivElement, CollectionsItemsProps>(
   (props, ref) => {
+    const { t } = useTranslation();
     const [scope] = useAnimation(ref);
     const { collections } = useLoaderData<CollectionsQuery>();
     const {
@@ -92,7 +93,7 @@ const CollectionsItems = forwardRef<HTMLDivElement, CollectionsItemsProps>(
                 <PreviousLink
                   className={cn("mx-auto", variants({ variant: "outline" }))}
                 >
-                  {isLoading ? "Loading..." : prevButtonText}
+                  {isLoading ? t("system.loading") : prevButtonText}
                 </PreviousLink>
               )}
               {activeLayout === "slider" ? (
@@ -184,7 +185,7 @@ const CollectionsItems = forwardRef<HTMLDivElement, CollectionsItemsProps>(
                 <NextLink
                   className={cn("mx-auto", variants({ variant: "outline" }))}
                 >
-                  {isLoading ? "Loading..." : nextButtonText}
+                  {isLoading ? t("system.loading") : nextButtonText}
                 </NextLink>
               )}
             </div>

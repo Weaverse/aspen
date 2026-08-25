@@ -6,9 +6,10 @@ import {
   Quotes,
   Star,
 } from "@phosphor-icons/react";
-import type {
-  HydrogenComponentProps,
-  HydrogenComponentSchema,
+import {
+  type HydrogenComponentProps,
+  type HydrogenComponentSchema,
+  useTranslation,
 } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
 import Heading, {
@@ -63,6 +64,7 @@ function getSafeRichTextElement(
 
 let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
   (props, ref) => {
+    const { t } = useTranslation();
     let {
       alignment,
       headingTagName,
@@ -94,7 +96,9 @@ let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
         : subHeadingAlignment === "right"
           ? "text-right"
           : "text-left",
-      subHeadingSize === "large" ? "text-lg lg:text-xl" : "text-base",
+      subHeadingSize === "large"
+        ? "font-heading text-2xl leading-[1.1] tracking-[-0.02em] lg:text-[37px]"
+        : "text-base",
       subHeadingWeight === "medium" ? "font-medium" : "font-normal",
     ].join(" ");
 
@@ -151,7 +155,7 @@ let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
             weight={weight}
             letterSpacing={letterSpacing}
             alignment={alignment}
-            className="text-[28px] leading-none lg:text-[36px]"
+            className="text-[37px] leading-[1.1] tracking-[-0.03em] lg:text-[53px]"
           />
         )}
         <div className="mt-16 flex flex-1 flex-col justify-end lg:mt-0 lg:pb-0">
@@ -168,12 +172,14 @@ let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
           <div className="mt-7 flex items-end justify-between lg:mt-8">
             <div className="flex flex-col gap-2">
               <span className="flex gap-0.5">{renderStars()}</span>
-              <p className="text-[11px] leading-none">{author}</p>
+              <p className="font-semibold text-sm leading-none tracking-[0.02em]">
+                {author}
+              </p>
             </div>
             <div className="flex gap-2">
               <button
                 type="button"
-                aria-label="Previous testimonial"
+                aria-label={t("testimonial.previous")}
                 onClick={goToPrevious}
                 disabled={!canGoPrevious}
                 className={cn(
@@ -199,7 +205,7 @@ let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
               </button>
               <button
                 type="button"
-                aria-label="Next testimonial"
+                aria-label={t("testimonial.next")}
                 onClick={goToNext}
                 disabled={!canGoNext}
                 className={cn(

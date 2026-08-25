@@ -189,8 +189,8 @@ const ProductInformation = forwardRef<
       >
         <div
           className={clsx(
-            "space-y-0 lg:grid lg:gap-[clamp(30px,5%,60px)] lg:space-y-0",
-            "lg:grid-cols-[minmax(0,1fr)_clamp(360px,32vw,480px)]",
+            "space-y-0 lg:grid lg:gap-10 lg:space-y-0",
+            "lg:grid-cols-[minmax(0,1fr)_clamp(360px,40vw,543px)]",
           )}
         >
           <div
@@ -256,7 +256,7 @@ const ProductInformation = forwardRef<
                 {showVendor && vendor && (
                   <span className="text-body-subtle">{vendor}</span>
                 )}
-                <h1 className="font-heading font-normal text-[clamp(2rem,5vw,3rem)] uppercase leading-[1.08] tracking-[-0.035em] lg:text-4xl">
+                <h1 className="font-heading font-normal text-[clamp(2rem,5vw,3rem)] uppercase leading-[1.1] tracking-[-0.03em] lg:text-[44px]">
                   {title}
                 </h1>
               </div>
@@ -264,7 +264,7 @@ const ProductInformation = forwardRef<
               {combinedListing ? (
                 <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-2xl/none">
                   <span className="flex gap-1">
-                    From
+                    {t("collection.from")}
                     <VariantPrices
                       variant={{ price: product.priceRange.minVariantPrice }}
                       showCompareAtPrice={false}
@@ -272,7 +272,7 @@ const ProductInformation = forwardRef<
                     />
                   </span>
                   <span className="flex gap-1">
-                    To
+                    {t("collection.to")}
                     <VariantPrices
                       variant={{ price: product.priceRange.maxVariantPrice }}
                       showCompareAtPrice={false}
@@ -485,7 +485,7 @@ const ProductInformation = forwardRef<
   }
   return (
     <div ref={ref} {...rest}>
-      No product data...
+      {t("product.noData")}
     </div>
   );
 });

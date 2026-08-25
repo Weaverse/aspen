@@ -78,7 +78,9 @@ export function OrderDetails() {
                       </dd>
                       <dt className="sr-only">{t("account.quantity")}</dt>
                       <dd className="mt-1 grow truncate">
-                        x{lineItem.quantity}
+                        {t("account.quantityMultiplier", {
+                          quantity: lineItem.quantity,
+                        })}
                       </dd>
                       <dt className="sr-only">{t("account.discount")}</dt>
                       <dd className="flex flex-wrap gap-2 truncate">

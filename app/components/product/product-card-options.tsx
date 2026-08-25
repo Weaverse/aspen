@@ -1,5 +1,5 @@
 import { Image } from "@shopify/hydrogen";
-import { useThemeSettings } from "@weaverse/hydrogen";
+import { useThemeSettings, useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import type {
   ProductCardFragment,
@@ -26,6 +26,7 @@ export function ProductCardOptions({
 }) {
   const { pcardShowOptionValues, pcardOptionToShow, pcardMaxOptionValues } =
     useThemeSettings();
+  const { t } = useTranslation();
   const { handle, options } = product;
   const option = options.find(
     ({ name }) =>
@@ -54,7 +55,10 @@ export function ProductCardOptions({
   return (
     <fieldset className={cn("flex flex-wrap items-center gap-1.5", className)}>
       <legend className="sr-only">
-        {option.name} options for {product.title}
+        {t("product.optionsFor", {
+          option: option.name,
+          product: product.title,
+        })}
       </legend>
       {optionValues
         .slice(0, maxOptionValues)
@@ -76,7 +80,10 @@ export function ProductCardOptions({
                         : "border-line-subtle hover:border-line",
                       unavailable && "diagonal opacity-60",
                     )}
-                    aria-label={`Select ${option.name} ${name}`}
+                    aria-label={t("product.selectOptionValue", {
+                      option: option.name,
+                      value: name,
+                    })}
                     aria-pressed={selected}
                     disabled={!firstSelectableVariant}
                     onClick={() => {
@@ -146,7 +153,10 @@ export function ProductCardOptions({
         <Link
           to={`/products/${handle}`}
           className="pl-0.5 text-sm"
-          aria-label={`View all ${option.name} options for ${product.title}`}
+          aria-label={t("product.viewAllOptions", {
+            option: option.name,
+            product: product.title,
+          })}
         >
           <RevealUnderline className="ff-heading">+{restCount}</RevealUnderline>
         </Link>

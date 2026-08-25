@@ -194,9 +194,9 @@ export const Link = forwardRef(
           target={openInNewTab ? "_blank" : undefined}
           className={cn(
             variants({ variant, className }),
-            "rounded-lg px-5 py-3 text-xs",
+            "rounded-(--radius-sm) px-5 py-3 text-xs",
             !isStyle2 &&
-              "h-[54px] w-[159px] min-w-0 items-center justify-center rounded-lg !border-transparent !bg-[#F0EFED] px-0 py-0 text-sm font-medium leading-none !text-[#343231] hover:!bg-[#e4e3e1]",
+              "min-h-[54px] w-fit min-w-[159px] items-center justify-center whitespace-nowrap rounded-(--radius-sm) !border-transparent !bg-[#F0EFED] px-6 py-4 text-sm font-medium leading-none !text-[#343231] hover:!bg-[#e4e3e1]",
             isStyle2 &&
               "!border-[#514a45] !bg-[#514a45] !text-white hover:!bg-[#403a36]",
           )}

@@ -130,7 +130,7 @@ export function ScrollingAnnouncement() {
       }
     >
       <div className={announcementWidthVariants({ width: announcementWidth })}>
-        <div className="absolute inset-y-0 left-0 hidden items-center gap-3.5 xl:flex">
+        <div className="absolute inset-y-0 left-0 hidden items-center gap-3 xl:flex">
           {socialItems.map(({ name, to, Icon }) =>
             to ? (
               <a
@@ -141,7 +141,7 @@ export function ScrollingAnnouncement() {
                 aria-label={name}
                 className="transition-opacity hover:opacity-70"
               >
-                <Icon aria-hidden="true" className="size-4" />
+                <Icon aria-hidden="true" className="size-[18px]" />
               </a>
             ) : null,
           )}
@@ -189,14 +189,14 @@ export function ScrollingAnnouncement() {
         <div className="absolute inset-y-0 right-0 hidden items-center gap-1.5 text-sm xl:flex">
           <CountrySelector
             enableFlag={false}
-            inputClassName="h-8 rounded-lg border-[#9D9D9D] px-4"
+            inputClassName="h-8 rounded-lg border-[#9D9D9D] px-4 tracking-[0.02em]"
             wrapperClassName="w-[191px]"
           />
           <CountrySelector
             enableFlag={false}
-            inputClassName="h-8 rounded-lg border-[#9D9D9D] px-4"
+            inputClassName="h-8 whitespace-nowrap rounded-lg border-[#9D9D9D] px-4 tracking-[0.02em]"
             mode="language"
-            wrapperClassName="w-[104px]"
+            wrapperClassName="w-[140px]"
           />
         </div>
       </div>

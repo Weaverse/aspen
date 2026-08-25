@@ -2,6 +2,7 @@ import {
   createSchema,
   type HydrogenComponentProps,
   useParentInstance,
+  useTranslation,
 } from "@weaverse/hydrogen";
 import type { CSSProperties } from "react";
 import { forwardRef, useEffect, useState } from "react";
@@ -48,6 +49,7 @@ const CountdownTimer = forwardRef<
   HTMLDivElement,
   CountDownTimerData & HydrogenComponentProps
 >((props, ref) => {
+  const { t } = useTranslation();
   const {
     textColor,
     endTime,
@@ -148,25 +150,25 @@ const CountdownTimer = forwardRef<
         <div className={numberClass}>
           {formatNumber(remainingTime?.days || 0)}
         </div>
-        <div className={labelClass}>Days</div>
+        <div className={labelClass}>{t("countdown.days")}</div>
       </div>
       <div className={itemClass}>
         <div className={numberClass}>
           {formatNumber(remainingTime?.hours || 0)}
         </div>
-        <div className={labelClass}>hours</div>
+        <div className={labelClass}>{t("countdown.hours")}</div>
       </div>
       <div className={itemClass}>
         <div className={numberClass}>
           {formatNumber(remainingTime?.minutes || 0)}
         </div>
-        <div className={labelClass}>minutes</div>
+        <div className={labelClass}>{t("countdown.minutes")}</div>
       </div>
       <div className={itemClass}>
         <div className={numberClass}>
           {formatNumber(remainingTime?.seconds || 0)}
         </div>
-        <div className={labelClass}>seconds</div>
+        <div className={labelClass}>{t("countdown.seconds")}</div>
       </div>
     </div>
   );

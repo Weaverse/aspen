@@ -1,6 +1,7 @@
 import {
   createSchema,
   type HydrogenComponentProps,
+  useTranslation,
   type WeaverseVideo,
 } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
@@ -53,6 +54,7 @@ interface VideoItemProps
 
 const VideoEmbedItem = forwardRef<HTMLIFrameElement, VideoItemProps>(
   (props, ref) => {
+    const { t } = useTranslation();
     const { video, videoUrl, size, borderRadius, ...rest } = props;
     return (
       <iframe
@@ -61,7 +63,7 @@ const VideoEmbedItem = forwardRef<HTMLIFrameElement, VideoItemProps>(
         className={variants({ size, borderRadius })}
         src={video?.url || videoUrl}
         allowFullScreen
-        title="YouTube video player"
+        title={t("video.youtubePlayer")}
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         sandbox="allow-presentation allow-same-origin allow-scripts"
       />

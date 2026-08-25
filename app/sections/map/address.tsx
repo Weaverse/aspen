@@ -9,6 +9,7 @@ import {
   useChildInstances,
   useItemInstance,
   useParentInstance,
+  useTranslation,
 } from "@weaverse/hydrogen";
 import {
   type CSSProperties,
@@ -30,6 +31,7 @@ interface AddressProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const Address = forwardRef<HTMLDivElement, AddressProps>((props, ref) => {
+  const { t } = useTranslation();
   const {
     address,
     nameStore,
@@ -173,7 +175,7 @@ const Address = forwardRef<HTMLDivElement, AddressProps>((props, ref) => {
 
           {(openingHours || openingHoursSat) && (
             <div className="flex min-w-0 flex-col gap-1">
-              <span className="font-medium">Opening hours:</span>
+              <span className="font-medium">{t("map.openingHours")}:</span>
               {openingHours && <span>{openingHours}</span>}
               {openingHoursSat && <span>{openingHoursSat}</span>}
             </div>

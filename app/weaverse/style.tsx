@@ -49,10 +49,10 @@ export function GlobalStyle() {
     soldOutBadgeColor = "#DFDFDF",
     starRatingColor = "#343231",
     bodyBaseSize = 14,
-    bodyBaseSpacing = "-0.0125em",
-    bodyBaseLineHeight = 1.5,
+    bodyBaseSpacing = "0.01em",
+    bodyBaseLineHeight = 1.6,
     h1BaseSize = 64,
-    headingBaseSpacing = "-0.025em",
+    headingBaseSpacing = "-0.03em",
     headingBaseLineHeight = 1.1,
     navHeightMobile = 3,
     navHeightTablet = 4,
@@ -61,7 +61,7 @@ export function GlobalStyle() {
     radiusXs = 4,
     radiusSm = 8,
     radiusMd = 12,
-    badgeBorderRadius = 4,
+    badgeBorderRadius = 8,
   } = settings;
 
   if (designSystemPreset !== "custom") {
@@ -103,12 +103,12 @@ export function GlobalStyle() {
     bestSellerBadgeColor = "#3B3B3B";
     bundleBadgeColor = "#3B3B3B";
     soldOutBadgeColor = "#DFDFDF";
-    badgeBorderRadius = 4;
+    badgeBorderRadius = 8;
     bodyBaseSize = 14;
-    bodyBaseSpacing = "-0.0125em";
-    bodyBaseLineHeight = 1.5;
+    bodyBaseSpacing = "0.01em";
+    bodyBaseLineHeight = 1.6;
     h1BaseSize = 64;
-    headingBaseSpacing = "-0.025em";
+    headingBaseSpacing = "-0.03em";
     headingBaseLineHeight = 1.1;
     radiusXs = 4;
     radiusSm = 8;
@@ -126,8 +126,8 @@ export function GlobalStyle() {
             --height-nav: ${designSystemPreset === "custom" ? `${navHeightMobile}rem` : "88px"};
             --page-width: ${pageWidth}px;
             --page-padding: 20px;
-            --section-padding-y: 64px;
-            --section-heading-gap: 32px;
+            --section-padding-y: 80px;
+            --section-heading-gap: 48px;
 
             /* Radius */
             --radius-xs: ${radiusXs}px;
@@ -211,17 +211,15 @@ export function GlobalStyle() {
           @media (min-width: 32em) {
             :root {
               --height-nav: ${designSystemPreset === "custom" ? `${navHeightTablet}rem` : "88px"};
-              --page-padding: 24px;
-              --section-padding-y: 72px;
-              --section-heading-gap: 48px;
+              --page-padding: 32px;
+              --section-padding-y: 80px;
+              --section-heading-gap: 64px;
             }
           }
 
           @media (min-width: 64em) {
             :root {
               --page-padding: 40px;
-              --section-padding-y: 80px;
-              --section-heading-gap: 64px;
             }
           }
 

@@ -1,4 +1,8 @@
-import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
+import {
+  createSchema,
+  type HydrogenComponentProps,
+  useTranslation,
+} from "@weaverse/hydrogen";
 import clsx from "clsx";
 import type { CSSProperties } from "react";
 import { forwardRef } from "react";
@@ -30,6 +34,7 @@ interface NewsletterFormProps extends HydrogenComponentProps {
 
 const NewsletterForm = forwardRef<HTMLDivElement, NewsletterFormProps>(
   (props, ref) => {
+    const { t } = useTranslation();
     const {
       width = 372,
       placeholder = "Please enter your email",
@@ -121,7 +126,7 @@ const NewsletterForm = forwardRef<HTMLDivElement, NewsletterFormProps>(
               ok ? "text-green-700" : "text-red-700",
             )}
           >
-            {ok ? successText : error || "Something went wrong"}
+            {ok ? successText : error || t("system.somethingWentWrong")}
           </div>
         )}
       </div>

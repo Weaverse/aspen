@@ -1,4 +1,4 @@
-import { createSchema } from "@weaverse/hydrogen";
+import { createSchema, useTranslation } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
 import { useLoaderData } from "react-router";
 import type { PageDetailsQuery } from "storefront-api.generated";
@@ -8,6 +8,7 @@ import { layoutInputs, Section, type SectionProps } from "~/components/section";
 interface PageProps extends SectionProps {}
 
 const Page = forwardRef<HTMLElement, PageProps>((props, ref) => {
+  const { t } = useTranslation();
   const { page } = useLoaderData<PageDetailsQuery>();
 
   if (page) {
@@ -15,10 +16,10 @@ const Page = forwardRef<HTMLElement, PageProps>((props, ref) => {
       <Section ref={ref} {...props}>
         <div className="mb-4 flex items-center justify-center gap-2 text-body-subtle">
           <Link to="/" className="underline-offset-4 hover:underline">
-            Home
+            {t("navigation.home")}
           </Link>
           <span>/</span>
-          <span>pages</span>
+          <span>{t("search.pages")}</span>
           <span>/</span>
           <span>{page.title}</span>
         </div>

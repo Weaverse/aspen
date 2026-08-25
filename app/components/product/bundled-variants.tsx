@@ -2,6 +2,7 @@ import type {
   ProductVariantComponent,
   Image as ShopifyImage,
 } from "@shopify/hydrogen/storefront-api-types";
+import { useTranslation } from "@weaverse/hydrogen";
 import { Image } from "~/components/image";
 import Link from "~/components/link";
 
@@ -10,6 +11,8 @@ export function BundledVariants({
 }: {
   variants: ProductVariantComponent[];
 }) {
+  const { t } = useTranslation();
+
   return (
     <div className="flex flex-col gap-4">
       {variants
@@ -33,7 +36,9 @@ export function BundledVariants({
                     ? `- ${bundledVariant.title}`
                     : null}
                 </span>
-                <span className="text-sm">Qty: {quantity}</span>
+                <span className="text-sm">
+                  {t("product.bundledQuantity", { quantity })}
+                </span>
               </div>
             </Link>
           );

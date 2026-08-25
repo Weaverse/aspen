@@ -34,7 +34,21 @@ test("advertises only locales with complete translation catalogs", () => {
       currency,
       pathPrefix,
     })),
-    [{ language: "EN", country: "US", currency: "USD", pathPrefix: "" }],
+    [
+      { language: "EN", country: "US", currency: "USD", pathPrefix: "" },
+      {
+        language: "FR",
+        country: "FR",
+        currency: "EUR",
+        pathPrefix: "/fr-fr",
+      },
+      {
+        language: "ES",
+        country: "ES",
+        currency: "EUR",
+        pathPrefix: "/es-es",
+      },
+    ],
   );
 });
 
@@ -58,7 +72,21 @@ test("filters live Shopify locales that have no complete UI catalog", () => {
         pathPrefix,
       }),
     ),
-    [{ language: "EN", country: "US", currency: "USD", pathPrefix: "" }],
+    [
+      { language: "EN", country: "US", currency: "USD", pathPrefix: "" },
+      {
+        language: "FR",
+        country: "FR",
+        currency: "EUR",
+        pathPrefix: "/fr-fr",
+      },
+      {
+        language: "ES",
+        country: "ES",
+        currency: "EUR",
+        pathPrefix: "/es-es",
+      },
+    ],
   );
 });
 

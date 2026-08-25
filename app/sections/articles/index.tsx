@@ -185,7 +185,7 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
               minSize={minSize}
               maxSize={maxSize}
               animate={animate}
-              className="text-[28px] leading-none uppercase lg:text-[36px]"
+              className="text-[37px] leading-[1.1] tracking-[-0.03em] uppercase lg:text-[44px]"
             />
           )}
           {viewAllText && (
@@ -239,7 +239,7 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
                           ["DESIGN", "INSPIRATION", "INTERIORS"][i % 3]}
                       </p>
                     )}
-                    <h3 className="line-clamp-2 font-normal text-(--accent-color) text-lg leading-[1.15] lg:text-xl">
+                    <h3 className="line-clamp-2 font-normal text-(--accent-color) text-xl leading-[1.1] tracking-normal lg:text-[24px]">
                       {idx.title}
                     </h3>
                     {showSeperator && (
@@ -261,7 +261,7 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
                       </div>
                     )}
                     {showReadMore && (
-                      <span className="mt-1 flex items-center gap-1.5 text-[10px] leading-none">
+                      <span className="mt-1 flex items-center gap-1.5 text-xs leading-none tracking-[0.02em]">
                         {readMoreText}
                         <ArrowRight size={11} weight="regular" />
                       </span>

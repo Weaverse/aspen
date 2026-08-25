@@ -165,7 +165,7 @@ function MenuHeader({
       )}
       <Dialog.Title
         className={cn(
-          "text-sm uppercase leading-5",
+          "text-sm uppercase leading-5 tracking-[0.02em]",
           activeSubMenu ? "font-normal" : "font-semibold",
         )}
       >
@@ -174,10 +174,10 @@ function MenuHeader({
       <Dialog.Close asChild>
         <button
           type="button"
-          className="absolute top-[29px] right-[18px] flex size-5 items-center justify-center before:absolute before:-inset-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#343231]"
+          className="absolute top-[31px] right-5 flex size-4 items-center justify-center before:absolute before:-inset-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#343231]"
           aria-label={t("accessibility.closeMenu")}
         >
-          <XIcon aria-hidden="true" className="size-5" />
+          <XIcon aria-hidden="true" className="size-4" />
         </button>
       </Dialog.Close>
     </header>
@@ -215,7 +215,7 @@ function TopLevelMenuItem({
       onClick={() => onOpenSubMenu(item)}
     >
       <span>{item.title}</span>
-      <CaretRightIcon aria-hidden="true" className="size-4" />
+      <CaretRightIcon aria-hidden="true" className="size-3.5" />
     </button>
   );
 }

@@ -1,4 +1,4 @@
-import { createSchema } from "@weaverse/hydrogen";
+import { createSchema, useTranslation } from "@weaverse/hydrogen";
 import { type CSSProperties, forwardRef, useState } from "react";
 import { useLoaderData } from "react-router";
 import type {
@@ -13,8 +13,10 @@ import Heading, {
 import { Image } from "~/components/image";
 import { Link } from "~/components/link";
 import { layoutInputs, Section, type SectionProps } from "~/components/section";
+import { useLocale } from "~/hooks/use-locale";
 import type { ImageAspectRatio } from "~/types/image";
 import { calculateAspectRatio, getImageLoadingPriority } from "~/utils/image";
+import { formatDate } from "~/utils/locale";
 
 interface BlogsProps
   extends Omit<ArticleCardProps, "article" | "loading">,
@@ -159,6 +161,9 @@ export function ArticleCard({
   imageBorderRadius,
   className,
 }: ArticleCardProps) {
+  const { t } = useTranslation();
+  const locale = useLocale();
+
   return (
     <article className={`group ${className || ""}`}>
       <Link
@@ -200,7 +205,7 @@ export function ArticleCard({
               <div className="mt-4 flex gap-1 text-(--accent-color) opacity-80">
                 {showDate && (
                   <time>
-                    {new Date(article.publishedAt).toLocaleDateString("en-US", {
+                    {formatDate(article.publishedAt, locale, {
                       year: "numeric",
                       month: "long",
                       day: "numeric",
@@ -214,7 +219,7 @@ export function ArticleCard({
             {showReadmore && (
               <div className="mt-2">
                 <span className="text-(--accent-color) uppercase underline opacity-80 transition-opacity hover:opacity-100">
-                  Read more →
+                  {t("navigation.readMore")} →
                 </span>
               </div>
             )}

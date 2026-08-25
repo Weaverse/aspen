@@ -531,9 +531,11 @@ export const themeSchema: HydrogenThemeSchema = {
             options: [
               { label: "-75", value: "-0.075em" },
               { label: "-50", value: "-0.05em" },
+              { label: "-30", value: "-0.03em" },
               { label: "-25", value: "-0.025em" },
               { label: "-12.5", value: "-0.0125em" },
               { label: "0", value: "0em" },
+              { label: "10", value: "0.01em" },
               { label: "25", value: "0.025em" },
               { label: "50", value: "0.05em" },
               { label: "75", value: "0.075em" },
@@ -543,7 +545,7 @@ export const themeSchema: HydrogenThemeSchema = {
               { label: "250", value: "0.25em" },
             ],
           },
-          defaultValue: "-0.025em",
+          defaultValue: "-0.03em",
         },
         {
           type: "range",
@@ -591,7 +593,7 @@ export const themeSchema: HydrogenThemeSchema = {
               { label: "250", value: "0.25em" },
             ],
           },
-          defaultValue: "-0.0125em",
+          defaultValue: "0.01em",
         },
         {
           type: "range",
@@ -614,7 +616,7 @@ export const themeSchema: HydrogenThemeSchema = {
             max: 2,
             step: 0.1,
           },
-          defaultValue: 1.5,
+          defaultValue: 1.6,
         },
       ],
     },
@@ -675,7 +677,7 @@ export const themeSchema: HydrogenThemeSchema = {
             step: 2,
             unit: "px",
           },
-          defaultValue: 4,
+          defaultValue: 8,
         },
         {
           type: "select",
@@ -1061,7 +1063,7 @@ export const themeSchema: HydrogenThemeSchema = {
           name: "enableLoyaltyHint",
           defaultValue: false,
           helpText:
-            "Shows an estimated points earn message on product and cart. Also appears automatically when LoyaltyLion is configured. See docs/integrations.md.",
+            "Shows an estimated points earn message on product and cart. The hint also appears automatically when LoyaltyLion is configured, and then shows the live balance instead of an estimate. See docs/integrations.md.",
         },
         {
           type: "range",
@@ -1074,21 +1076,18 @@ export const themeSchema: HydrogenThemeSchema = {
             step: 1,
           },
           helpText:
-            "Example: 1 = 1 point per $1 of product price or cart subtotal.",
-          condition: (theme) => theme.enableLoyaltyHint === true,
+            "Example: 1 = 1 point per $1 of product price or cart subtotal. Ignored when LoyaltyLion is connected, because earning rules come from the LoyaltyLion admin.",
         },
         {
           type: "text",
           label: "Program name",
           name: "loyaltyProgramName",
           defaultValue: "Rewards",
-          condition: (theme) => theme.enableLoyaltyHint === true,
         },
         {
           type: "url",
           label: "Learn more URL",
           name: "loyaltyLearnMoreUrl",
-          condition: (theme) => theme.enableLoyaltyHint === true,
         },
       ],
     },

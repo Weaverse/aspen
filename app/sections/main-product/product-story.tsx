@@ -1,4 +1,4 @@
-import type { WeaverseImage } from "@weaverse/hydrogen";
+import { useTranslation, type WeaverseImage } from "@weaverse/hydrogen";
 import { Image } from "~/components/image";
 import { cn } from "~/utils/cn";
 
@@ -25,9 +25,10 @@ interface ProductStoryProps {
 function resolveImage(
   image: StoryImage,
   fallback?: NonNullable<ProductStoryProps["media"]>[number],
+  fallbackAlt = "",
 ) {
   if (typeof image === "string") {
-    return { url: image, altText: "Product detail" };
+    return { url: image, altText: fallbackAlt };
   }
 
   if (image?.url) {
@@ -37,8 +38,7 @@ function resolveImage(
   if (fallback?.previewImage?.url) {
     return {
       ...fallback.previewImage,
-      altText:
-        fallback.previewImage.altText || fallback.alt || "Product detail",
+      altText: fallback.previewImage.altText || fallback.alt || fallbackAlt,
     };
   }
 
@@ -54,6 +54,7 @@ function StoryMedia({
   className?: string;
   sizes: string;
 }) {
+  const { t } = useTranslation();
   if (!image) {
     return (
       <div
@@ -62,7 +63,7 @@ function StoryMedia({
           className,
         )}
       >
-        Product image unavailable
+        {t("product.imageUnavailable")}
       </div>
     );
   }
@@ -86,19 +87,28 @@ export function ProductStory({
   secondHeading = "TACTILE FABRIC TRENDS HAVE ALSO EXPANDED TO A BROADER UNIVERSE.",
   media = [],
 }: ProductStoryProps) {
+  const { t } = useTranslation();
+  const fallbackAlt = t("product.detailImage");
   const imageMedia = media.filter((item) => item.previewImage?.url);
-  const resolvedHero = resolveImage(heroImage, imageMedia[1] || imageMedia[0]);
+  const resolvedHero = resolveImage(
+    heroImage,
+    imageMedia[1] || imageMedia[0],
+    fallbackAlt,
+  );
   const resolvedMobileHero = resolveImage(
     heroImageMobile,
     imageMedia[1] || imageMedia[0],
+    fallbackAlt,
   );
   const resolvedFirst = resolveImage(
     firstImage,
     imageMedia[2] || imageMedia[0],
+    fallbackAlt,
   );
   const resolvedSecond = resolveImage(
     secondImage,
     imageMedia[0] || imageMedia[2],
+    fallbackAlt,
   );
 
   if (!(resolvedHero || resolvedFirst || resolvedSecond)) {

@@ -14,6 +14,26 @@ export const DEFAULT_LOCALE: I18nLocale = Object.freeze({
   languageName: "English",
 });
 
+export const FRANCE_LOCALE: I18nLocale = Object.freeze({
+  label: "France · Français · EUR",
+  language: "FR",
+  country: "FR",
+  currency: "EUR",
+  pathPrefix: "/fr-fr",
+  countryName: "France",
+  languageName: "Français",
+});
+
+export const SPAIN_LOCALE: I18nLocale = Object.freeze({
+  label: "España · Español · EUR",
+  language: "ES",
+  country: "ES",
+  currency: "EUR",
+  pathPrefix: "/es-es",
+  countryName: "España",
+  languageName: "Español",
+});
+
 /**
  * Only publish locales with a complete storefront translation catalog.
  * Shopify Markets must also publish a configured locale before it appears in
@@ -22,4 +42,6 @@ export const DEFAULT_LOCALE: I18nLocale = Object.freeze({
  */
 export const SUPPORTED_LOCALES: readonly I18nLocale[] = Object.freeze([
   DEFAULT_LOCALE,
+  FRANCE_LOCALE,
+  SPAIN_LOCALE,
 ]);

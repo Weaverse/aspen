@@ -4,6 +4,7 @@ import {
   type ComponentLoaderArgs,
   createSchema,
   type HydrogenComponentProps,
+  useTranslation,
   type WeaverseProduct,
 } from "@weaverse/hydrogen";
 import clsx from "clsx";
@@ -53,6 +54,7 @@ function CircleDotIcon(props: any) {
 
 const HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>(
   (props, ref) => {
+    const { t } = useTranslation();
     const {
       icon,
       iconSize,
@@ -157,7 +159,9 @@ const HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>(
                 {/* Header */}
                 <div className="flex flex-shrink-0 items-center justify-between px-5 py-3">
                   <Dialog.Title asChild>
-                    <span className="font-semibold uppercase">Quick Shop</span>
+                    <span className="font-semibold uppercase">
+                      {t("product.quickShop")}
+                    </span>
                   </Dialog.Title>
                   <button
                     type="button"
@@ -183,7 +187,7 @@ const HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>(
                     ) : (
                       <div className="py-8 text-center">
                         <p className="text-body-subtle">
-                          Loading product data...
+                          {t("product.loadingData")}
                         </p>
                       </div>
                     )}

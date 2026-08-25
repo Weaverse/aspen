@@ -116,7 +116,7 @@ function FiltersDrawer({
       <AnimatedDrawer open={open}>
         <div className="flex h-full flex-col">
           <div className="flex min-h-10 shrink-0 items-center justify-between pr-2 pl-[52px]">
-            <Dialog.Title className="-translate-y-0.5 text-sm font-semibold uppercase">
+            <Dialog.Title className="-translate-y-0.5 text-sm font-semibold uppercase tracking-[0.02em]">
               {t("collection.filter")}
             </Dialog.Title>
             <Dialog.Close asChild>

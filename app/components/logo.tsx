@@ -1,10 +1,11 @@
 import { Image } from "@shopify/hydrogen";
-import { useThemeSettings } from "@weaverse/hydrogen";
+import { useThemeSettings, useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { Link } from "~/components/link";
 import { useShopMenu } from "~/hooks/use-shop-menu";
 
 export function Logo() {
+  const { t } = useTranslation();
   const { shopName } = useShopMenu();
   const { designSystemPreset, logoData, transparentLogoData, logoWidth } =
     useThemeSettings();
@@ -14,7 +15,11 @@ export function Logo() {
     <Link
       to="/"
       prefetch="intent"
-      aria-label={shopName || "Aspen home"}
+      aria-label={
+        shopName
+          ? t("navigation.shopHome", { shop: shopName })
+          : t("navigation.home")
+      }
       className="z-30 inline-flex h-full w-auto items-center justify-center"
     >
       {useAspenWordmark ? (

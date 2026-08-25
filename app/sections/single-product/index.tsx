@@ -5,6 +5,7 @@ import {
   createSchema,
   type HydrogenComponentProps,
   IMAGES_PLACEHOLDERS,
+  useTranslation,
   type WeaverseProduct,
 } from "@weaverse/hydrogen";
 import clsx from "clsx";
@@ -60,6 +61,7 @@ type SingleProductProps = HydrogenComponentProps<
 
 const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
   (props, ref) => {
+    const { t } = useTranslation();
     const {
       loaderData,
       children,
@@ -116,7 +118,7 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
               <div className="flex flex-col items-start justify-start gap-4">
                 <SoldOutBadge />
                 <h3 data-motion="fade-up" className="tracking-tight">
-                  EXAMPLE PRODUCT TITLE
+                  {t("product.exampleTitle")}
                 </h3>
                 <Money
                   withoutTrailingZeros
@@ -125,17 +127,14 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
                   className="text-lg"
                 />
                 <p className="text-body-subtle">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
-                  do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                  Ut enim ad minim veniam, quis nostrud exercitation ullamco
-                  laboris nisi ut aliquip ex ea commodo consequat.
+                  {t("product.exampleDescription")}
                 </p>
                 <Button
                   type="button"
                   className="w-full cursor-not-allowed"
                   disabled
                 >
-                  SOLD OUT
+                  {t("product.soldOut")}
                 </Button>
                 <Link
                   to="#"
@@ -144,7 +143,7 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
                   className="w-fit cursor-not-allowed"
                   onClick={(e) => e.preventDefault()}
                 >
-                  View full details →
+                  {t("product.viewFullDetails")} →
                 </Link>
               </div>
             </div>
@@ -171,10 +170,10 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
     }
 
     const atcText = currentVariant?.availableForSale
-      ? addToCartText || "Add to Cart"
+      ? addToCartText || t("product.addToCart")
       : currentVariant?.quantityAvailable === -1
-        ? "Unavailable"
-        : soldOutText || "Sold Out";
+        ? t("product.unavailable")
+        : soldOutText || t("product.soldOut");
 
     return (
       <Section ref={ref} {...rest} overflow="unset">
@@ -182,8 +181,8 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
           <div
             className={clsx([
               "space-y-5 lg:grid lg:space-y-0",
-              "lg:gap-[clamp(30px,5%,60px)]",
-              "lg:grid-cols-[1fr_clamp(360px,25%,480px)]",
+              "lg:gap-10",
+              "lg:grid-cols-[minmax(0,1fr)_clamp(360px,40vw,543px)]",
             ])}
           >
             <ProductMedia
@@ -230,7 +229,9 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
                 <div className="space-y-5 divide-y divide-line-subtle [&>*:not(:last-child)]:pb-3">
                   {currentVariant ? (
                     <div className="flex justify-between">
-                      <span className="font-normal uppercase">Price</span>
+                      <span className="font-normal uppercase">
+                        {t("product.price")}
+                      </span>
                       <div className="flex items-center gap-2">
                         <Money
                           withoutTrailingZeros
@@ -252,7 +253,9 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
                     </div>
                   ) : (
                     <div className="flex justify-between">
-                      <span className="font-normal uppercase">Price</span>
+                      <span className="font-normal uppercase">
+                        {t("product.price")}
+                      </span>
                       {priceRange && (
                         <Money
                           withoutTrailingZeros
@@ -325,7 +328,7 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
                   variant="underline"
                   className="w-fit"
                 >
-                  View full details →
+                  {t("product.viewFullDetails")} →
                 </Link>
               </div>
             </div>
