@@ -156,6 +156,10 @@ const ProductInformation = forwardRef<
     setQuantity((current) => Math.min(current, quantityLimit));
   }, [quantityLimit]);
 
+  if (!product || !selectedVariant) {
+    return null;
+  }
+
   const isBundle = Boolean(product?.isBundle?.requiresComponents);
   const bundledVariants = isBundle ? product?.isBundle?.components.nodes : null;
   const combinedListing = isCombinedListing(product);

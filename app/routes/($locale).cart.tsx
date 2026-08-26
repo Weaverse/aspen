@@ -45,8 +45,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
   switch (cartFormAction) {
     case CART_CODE_APPLY_ACTION: {
       const code = String(inputs.discountCode ?? "").trim();
-      const currentDiscountCodes = (inputs.discountCodes as string[]) || [];
       invariant(code, "No cart code provided");
+
+      const currentCart = await cart.get();
+      const currentDiscountCodes =
+        currentCart?.discountCodes?.map(
+          ({ code: discountCode }) => discountCode,
+        ) ?? [];
+      const currentGiftCardIds = new Set(
+        currentCart?.appliedGiftCards?.map((giftCard) => giftCard.id) ?? [],
+      );
 
       const discountResult = await cart.updateDiscountCodes([
         ...currentDiscountCodes,
@@ -66,8 +74,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
         result = await cart.addGiftCardCodes([code]);
         const normalizedCode = code.replace(/\s/g, "").toLowerCase();
         cartCodeApplied = Boolean(
-          result.cart?.appliedGiftCards?.some((giftCard) =>
-            normalizedCode.endsWith(giftCard.lastCharacters.toLowerCase()),
+          result.cart?.appliedGiftCards?.some(
+            (giftCard) =>
+              !currentGiftCardIds.has(giftCard.id) &&
+              normalizedCode.endsWith(giftCard.lastCharacters.toLowerCase()),
           ),
         );
       }

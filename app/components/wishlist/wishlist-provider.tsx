@@ -86,7 +86,9 @@ export function WishlistProvider({
 
     const attemptedToggle = pendingProductId.current;
     setAuthenticated(fetcher.data.authenticated);
-    setProductIds(new Set(fetcher.data.productIds));
+    if (!fetcher.data.error) {
+      setProductIds(new Set(fetcher.data.productIds));
+    }
     setError(fetcher.data.error);
     setSetupRequired(Boolean(fetcher.data.setupRequired));
     setHasLoaded(true);

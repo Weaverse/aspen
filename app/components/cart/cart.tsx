@@ -446,14 +446,9 @@ function CartDiscounts({
   discountCodes: CartApiQueryFragment["discountCodes"];
   appliedGiftCards: CartApiQueryFragment["appliedGiftCards"];
 }) {
-  const codes: string[] =
-    discountCodes
-      ?.filter((discount) => discount.applicable)
-      ?.map(({ code }) => code) || [];
-
   return (
     <div className="space-y-3">
-      <CartCodeForm discountCodes={codes} />
+      <CartCodeForm />
       <AppliedCartCodes
         appliedGiftCards={appliedGiftCards}
         discountCodes={discountCodes}
@@ -463,7 +458,7 @@ function CartDiscounts({
   );
 }
 
-function CartCodeForm({ discountCodes }: { discountCodes: string[] }) {
+function CartCodeForm() {
   const { t } = useTranslation();
   const cartRoute = usePrefixPathWithLocale("/cart");
   const fetcher = useFetcher<{
@@ -482,7 +477,7 @@ function CartCodeForm({ discountCodes }: { discountCodes: string[] }) {
         name={CartForm.INPUT_NAME}
         value={JSON.stringify({
           action: CART_CODE_APPLY_ACTION,
-          inputs: { discountCodes },
+          inputs: {},
         })}
       />
       <div className="flex items-stretch gap-3">
