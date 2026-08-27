@@ -4,18 +4,24 @@ import * as NavigationMenu from "@radix-ui/react-navigation-menu";
 import { useThemeSettings, useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useRouteLoaderData } from "react-router";
 import { Image } from "~/components/image";
 import Link from "~/components/link";
 import { useShopMenu } from "~/hooks/use-shop-menu";
+import type { RootLoader } from "~/root";
 import type { SingleMenuItem } from "~/types/menu";
 import { cn } from "~/utils/cn";
+import { prefixPathWithLocale } from "~/utils/locale";
 
 export function DesktopMenu() {
   const { headerMenu } = useShopMenu();
   const { openMenuBy } = useThemeSettings();
   const [value, setValue] = useState<string>("");
   const navigate = useNavigate();
+  const selectedLocale = useRouteLoaderData<RootLoader>("root")?.selectedLocale;
+  const navigateWithLocale = (to: string) => {
+    navigate(selectedLocale ? prefixPathWithLocale(to, selectedLocale) : to);
+  };
 
   if (headerMenu?.items?.length) {
     const menuItems = headerMenu.items as unknown as SingleMenuItem[];
@@ -40,7 +46,13 @@ export function DesktopMenu() {
 
           // Dropdown menus
           if (isDropdown) {
-            return <DropdownMenu key={id} menuItem={menuItem} />;
+            return (
+              <DropdownMenu
+                key={id}
+                menuItem={menuItem}
+                onNavigate={navigateWithLocale}
+              />
+            );
           }
 
           // Mega menu items - each wrapped in its own NavigationMenu
@@ -74,7 +86,7 @@ export function DesktopMenu() {
                         !event.metaKey &&
                         !event.shiftKey
                       ) {
-                        navigate(to);
+                        navigateWithLocale(to);
                       }
                     }}
                   >
@@ -147,25 +159,66 @@ function SingleMenu({ menuItem }: { menuItem: SingleMenuItem }) {
   );
 }
 
-function DropdownMenu({ menuItem }: { menuItem: SingleMenuItem }) {
+function DropdownMenu({
+  menuItem,
+  onNavigate,
+}: {
+  menuItem: SingleMenuItem;
+  onNavigate: (to: string) => void;
+}) {
   const [open, setOpen] = useState(false);
   const { openMenuBy } = useThemeSettings();
-  const navigate = useNavigate();
-  const { items: childItems = [], title, to } = menuItem;
+  const { isExternal, items: childItems = [], title, to, type, url } = menuItem;
+  const isExternalMenuGroup =
+    type === "HTTP" ||
+    isExternal ||
+    url?.startsWith("http://") ||
+    url?.startsWith("https://") ||
+    to.startsWith("http://") ||
+    to.startsWith("https://");
+  const triggerClassName = clsx([
+    "flex h-full cursor-pointer items-center py-2",
+    "font-heading font-normal text-sm uppercase tracking-[-0.01em] focus:outline-hidden",
+  ]);
+  const triggerLabel = (
+    <span
+      className={cn(
+        "relative cursor-pointer",
+        "after:absolute after:bottom-[-0.5px] after:left-0 after:h-[2px] after:w-full after:bg-[#6A4E4E]",
+        "after:opacity-0 hover:after:opacity-100 group-data-[state=open]:after:opacity-100",
+        "after:transition-opacity after:duration-[360ms] after:ease-[cubic-bezier(0.22,1,0.36,1)]",
+      )}
+    >
+      {title}
+    </span>
+  );
   return (
     <div className="h-full" onMouseLeave={() => setOpen(false)}>
       <Root open={open} onOpenChange={setOpen} modal={false}>
         <Trigger
-          className={clsx([
-            "flex h-full cursor-pointer items-center py-2",
-            "font-heading font-normal text-sm uppercase tracking-[-0.01em] focus:outline-hidden",
-          ])}
+          className={triggerClassName}
           onMouseEnter={() => {
+            if (isExternalMenuGroup) {
+              setOpen(true);
+              return;
+            }
             if (openMenuBy === "hover") {
               setOpen(true);
             }
           }}
           onPointerDown={(event) => {
+            if (isExternalMenuGroup) {
+              if (
+                event.button === 0 &&
+                !event.ctrlKey &&
+                !event.metaKey &&
+                !event.shiftKey
+              ) {
+                event.preventDefault();
+                setOpen(true);
+              }
+              return;
+            }
             if (
               openMenuBy === "hover" &&
               event.button === 0 &&
@@ -174,27 +227,25 @@ function DropdownMenu({ menuItem }: { menuItem: SingleMenuItem }) {
               !event.shiftKey
             ) {
               setOpen(false);
-              navigate(to);
+              onNavigate(to);
             }
           }}
           onKeyDown={(event) => {
+            if (isExternalMenuGroup) {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                setOpen(true);
+              }
+              return;
+            }
             if (openMenuBy === "hover" && event.key === "Enter") {
               event.preventDefault();
               setOpen(false);
-              navigate(to);
+              onNavigate(to);
             }
           }}
         >
-          <span
-            className={cn(
-              "relative cursor-pointer",
-              "after:absolute after:bottom-[-0.5px] after:left-0 after:h-[2px] after:w-full after:bg-[#6A4E4E]",
-              "after:opacity-0 hover:after:opacity-100 group-data-[state=open]:after:opacity-100",
-              "after:transition-opacity after:duration-[360ms] after:ease-[cubic-bezier(0.22,1,0.36,1)]",
-            )}
-          >
-            {title}
-          </span>
+          {triggerLabel}
         </Trigger>
         <Content
           align="start"
