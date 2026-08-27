@@ -14,7 +14,58 @@ adjust theme settings in Weaverse Studio.
 - Tailwind CSS 4, Biome, TypeScript, and Playwright
 - Shopify Oxygen for the recommended production runtime
 
-## Quick start
+_Aspen is a sophisticated Shopify theme crafted specifically for home furniture and interior design stores. Powered by Hydrogen, React Router, and Weaverse, this theme delivers lightning-fast storefronts with exceptional performance and elegant design aesthetics perfect for showcasing furniture collections, home decor, and interior design services._
+
+## Demo
+
+- Live store: https://weaverse-aspen-furniture.fly.dev/
+- Customizing Aspen on Weaverse Studio: https://studio.weaverse.io/demo?theme=aspen
+  
+![aspen.weaverse.dev](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/aspen-preview-desktop.png?v=1755162368)
+
+## What's included
+
+![Weaverse + Hydrogen + Shopify](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/weaverse-x-hydrogen-x-shopify.png?v=1755245801)
+
+- React Router v7
+- Hydrogen 2026.4
+- Oxygen
+- Shopify CLI
+- Biome (ESLint, Prettier alternative)
+- GraphQL generator
+- TypeScript and JavaScript flavors
+- Tailwind CSS v4 (via Vite)
+- Radix UI components
+- New Shopify customer account API
+- Full-featured setup of components and routes
+- Furniture-specific sections and layouts
+- Fully customizable inside [Weaverse Studio](https://weaverse.io)
+
+## Deployment
+
+- [Deploy to Shopify Oxygen](https://weaverse.io/docs/deployment/oxygen)
+- [Deploy to Vercel](https://wvse.cc/deploy-pilot-to-vercel)
+
+## Getting started
+
+For complete local setup, Shopify and Weaverse connection, environment
+variables, theme customization, Oxygen deployment, and troubleshooting, see
+the [Aspen setup and usage guide](docs/setup.md).
+
+**Requirements:**
+
+- Node.js version 22.12.0 or higher
+- npm package manager
+
+**Follow these steps to get started with Aspen and begin crafting your furniture store:**
+
+1. Install [Weaverse Hydrogen Customizer](https://apps.shopify.com/weaverse) from Shopify App Store.
+2. Create new Hydrogen storefront inside Weaverse and select the Aspen theme.
+3. Initialize the project and start a local dev server with `@weaverse/cli` tool as instructed in the Weaverse Studio.
+   ![Create new Weaverse Shopify Hydrogen project](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/new_hydrogen_project.png?v=1735008500)
+4. Open **Weaverse Studio** to start customizing your furniture store with specialized sections for product showcases, room inspirations, and interior design content.
+
+## Quick Start Commands
 
 ```bash
 git clone <repository-url> aspen

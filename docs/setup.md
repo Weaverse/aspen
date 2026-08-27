@@ -132,8 +132,8 @@ additional variables from the table below.
 | `METAOBJECT_COLORS_TYPE` | Configuration | `<shopify-metaobject-type>` | Shopify metaobject type used for color/image swatches. |
 | `CUSTOM_COLLECTION_BANNER_METAFIELD` | Configuration | `<namespace.key>` | Collection metafield used for custom banner media/content. |
 
-For provider-specific scopes and behavior, see
-[Third-party integrations](./integrations.md).
+Keep provider-specific scopes and behavior in the project's integration
+documentation rather than adding private credentials to this setup guide.
 
 ## 5. Connect Aspen to Shopify
 
@@ -237,8 +237,8 @@ workflows and must remain server-side.
   `app/weaverse/components.ts`.
 - A component that is not registered cannot be added in Studio.
 
-See [Section usage](./sections.md) for section purposes, content guidance,
-responsive behavior, and recommended page compositions.
+Keep section purposes, content guidance, responsive behavior, and recommended
+page compositions in the project's section usage documentation.
 
 ## 7. Customize Aspen
 
@@ -277,7 +277,7 @@ When adding a Weaverse section:
 3. Add clear groups, labels, defaults, presets, and mobile behavior.
 4. Register the namespace export in `app/weaverse/components.ts`.
 5. Verify insertion and editing in Studio, not only direct rendering.
-6. Update [docs/sections.md](./sections.md).
+6. Update the project section usage documentation.
 
 ## 8. Validate changes
 
@@ -438,4 +438,3 @@ secret manager—never from Git history.
 Environment-variable changes do not mutate existing Oxygen deployments.
 Trigger a new deployment by pushing a commit or running
 `npx shopify hydrogen deploy` after saving the variables.
-
