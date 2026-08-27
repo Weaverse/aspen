@@ -20,6 +20,7 @@ import {
 const NO_STORE_HEADERS = {
   "Cache-Control": "private, no-store, max-age=0",
 };
+const WISHLIST_WRITE_ATTEMPTS = 2;
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   if (isWishlistPreviewRequest(request)) {
@@ -110,7 +111,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   try {
-    for (let attempt = 0; attempt < 2; attempt += 1) {
+    let conflictProductIds: string[] = [];
+    let conflictMessage = "Wishlist could not be updated. Please try again.";
+
+    for (let attempt = 0; attempt < WISHLIST_WRITE_ATTEMPTS; attempt += 1) {
       const wishlist = await readWishlist(customerAccount);
       const nextIds = updateWishlistProductIds(
         wishlist.productIds,
@@ -137,7 +141,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
         });
       }
 
-      if (result.conflict && attempt === 0) {
+      if (result.conflict) {
+        conflictProductIds = wishlist.productIds;
+        conflictMessage = result.message;
         continue;
       }
 
@@ -148,9 +154,18 @@ export async function action({ request, context }: ActionFunctionArgs) {
           error: result.message,
           setupRequired: result.setupRequired,
         },
-        result.conflict ? 409 : 400,
+        400,
       );
     }
+
+    return wishlistResponse(
+      {
+        authenticated: true,
+        productIds: conflictProductIds,
+        error: conflictMessage,
+      },
+      409,
+    );
   } catch (error) {
     return wishlistResponse(
       {
@@ -161,15 +176,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
       500,
     );
   }
-
-  return wishlistResponse(
-    {
-      authenticated: true,
-      productIds: [],
-      error: "Wishlist could not be updated. Please try again.",
-    },
-    409,
-  );
 }
 
 async function isWishlistAuthenticated(
