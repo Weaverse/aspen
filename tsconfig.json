@@ -35,6 +35,7 @@
     },
     "noEmit": true,
     "allowSyntheticDefaultImports": true,
+    "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true
   }
 }

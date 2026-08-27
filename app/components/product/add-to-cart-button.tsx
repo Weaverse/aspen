@@ -9,11 +9,15 @@ import {
   getClientBrowserParameters,
   sendShopifyAnalytics,
 } from "@shopify/hydrogen";
-import { useEffect, useMemo } from "react";
+import { useTranslation } from "@weaverse/hydrogen";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { FetcherWithComponents } from "react-router";
 import { useMatches } from "react-router";
 import { Button } from "~/components/button";
+import { syncCartState } from "~/components/cart/cart-state-provider";
 import { toggleCartDrawer } from "~/components/layout/cart-drawer";
+import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
+import { getCartMutationError } from "~/utils/cart-error";
 import { cn } from "~/utils/cn";
 import { DEFAULT_LOCALE } from "~/utils/const";
 
@@ -21,73 +25,109 @@ export function AddToCartButton({
   children,
   lines,
   className = "",
+  containerClassName,
   width = "full",
   disabled,
   analytics,
+  onAdded,
   ...props
 }: {
   children: React.ReactNode;
   lines: OptimisticCartLineInput[];
   className?: string;
+  containerClassName?: string;
   width?: "auto" | "full";
   disabled?: boolean;
   analytics?: unknown;
+  onAdded?: () => void;
   [key: string]: any;
 }) {
+  const { t } = useTranslation();
+  const cartRoute = usePrefixPathWithLocale("/cart");
+  const [isHydrated, setIsHydrated] = useState(false);
+  const hasValidLines =
+    lines.length > 0 &&
+    lines.every(
+      (line) =>
+        typeof line.merchandiseId === "string" &&
+        line.merchandiseId.length > 0 &&
+        Number.isInteger(line.quantity) &&
+        Number(line.quantity) > 0,
+    );
+
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
   return (
-    <CartForm
-      route="/cart"
-      inputs={{ lines }}
-      action={CartForm.ACTIONS.LinesAdd}
+    <div
+      className={cn(width === "full" ? "w-full" : "w-auto", containerClassName)}
     >
-      {(fetcher: FetcherWithComponents<any>) => {
-        const isAdding = fetcher.state !== "idle";
-        return (
-          <AddToCartAnalytics fetcher={fetcher}>
-            <input
-              type="hidden"
-              name="analytics"
-              value={JSON.stringify(analytics)}
-            />
-            <Button
-              type="submit"
-              variant="primary"
-              className={cn(className, "!border-none px-6 py-5")}
-              disabled={disabled ?? isAdding}
-              {...props}
-            >
-              {isAdding ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg
-                    className="h-5 w-5 animate-spin"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    />
-                  </svg>
-                  Adding...
-                </span>
-              ) : (
-                children
-              )}
-            </Button>
-          </AddToCartAnalytics>
-        );
-      }}
-    </CartForm>
+      <CartForm
+        route={cartRoute}
+        inputs={{ lines }}
+        action={CartForm.ACTIONS.LinesAdd}
+      >
+        {(fetcher: FetcherWithComponents<any>) => {
+          const isAdding = fetcher.state !== "idle";
+          const errorMessage = getCartMutationError(fetcher.data, t);
+          return (
+            <AddToCartAnalytics fetcher={fetcher} onAdded={onAdded}>
+              <input
+                type="hidden"
+                name="analytics"
+                value={JSON.stringify(analytics)}
+              />
+              <div className="space-y-2">
+                <Button
+                  type="submit"
+                  variant="primary"
+                  className={cn(className, "!border-none px-6 py-5")}
+                  disabled={Boolean(
+                    disabled || isAdding || !hasValidLines || !isHydrated,
+                  )}
+                  {...props}
+                >
+                  {isAdding ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <svg
+                        aria-hidden="true"
+                        className="h-5 w-5 animate-spin"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        />
+                      </svg>
+                      {t("cart.adding")}
+                    </span>
+                  ) : (
+                    children
+                  )}
+                </Button>
+                {errorMessage && (
+                  <p role="alert" className="text-red-700 text-sm">
+                    {errorMessage}
+                  </p>
+                )}
+              </div>
+            </AddToCartAnalytics>
+          );
+        }}
+      </CartForm>
+    </div>
   );
 }
 
@@ -99,7 +139,9 @@ function usePageAnalytics({ hasUserConsent }: { hasUserConsent: boolean }) {
     for (const match of matches) {
       const eventData = match?.data as Record<string, unknown>;
       if (eventData) {
-        eventData.analytics && Object.assign(data, eventData.analytics);
+        if (eventData.analytics) {
+          Object.assign(data, eventData.analytics);
+        }
         const selectedLocale =
           (eventData.selectedLocale as typeof DEFAULT_LOCALE) || DEFAULT_LOCALE;
         Object.assign(data, {
@@ -119,33 +161,47 @@ function usePageAnalytics({ hasUserConsent }: { hasUserConsent: boolean }) {
 function AddToCartAnalytics({
   fetcher,
   children,
+  onAdded,
 }: {
   fetcher: FetcherWithComponents<any>;
   children: React.ReactNode;
+  onAdded?: () => void;
 }) {
   const fetcherData = fetcher.data;
   const formData = fetcher.formData;
   const pageAnalytics = usePageAnalytics({ hasUserConsent: true });
+  const handledData = useRef<unknown>(null);
 
   useEffect(() => {
-    if (formData && fetcherData) {
+    if (fetcherData && handledData.current !== fetcherData) {
+      handledData.current = fetcherData;
       const cartData: Record<string, unknown> = {};
-      const cartInputs = CartForm.getFormInput(formData);
 
-      try {
-        if (cartInputs.inputs.analytics) {
-          const dataInForm: unknown = JSON.parse(
-            String(cartInputs.inputs.analytics),
-          );
-          Object.assign(cartData, dataInForm);
+      if (formData) {
+        const cartInputs = CartForm.getFormInput(formData);
+        try {
+          if (cartInputs.inputs.analytics) {
+            const dataInForm: unknown = JSON.parse(
+              String(cartInputs.inputs.analytics),
+            );
+            Object.assign(cartData, dataInForm);
+          }
+        } catch {
+          // Analytics must never block the cart success state.
         }
-      } catch {
-        // do nothing
       }
 
       // Open cart drawer after successful add to cart (regardless of analytics)
-      if (fetcherData.cart && !fetcherData.userErrors?.length) {
-        toggleCartDrawer(true);
+      if (
+        fetcherData.cart &&
+        !fetcherData.userErrors?.length &&
+        !fetcherData.errors?.length
+      ) {
+        window.setTimeout(() => {
+          syncCartState(fetcherData.cart);
+          onAdded?.();
+          toggleCartDrawer(true);
+        }, 0);
       }
 
       // Send analytics if we have cart data
@@ -163,7 +219,7 @@ function AddToCartAnalytics({
         });
       }
     }
-  }, [fetcherData, formData, pageAnalytics]);
+  }, [fetcherData, formData, onAdded, pageAnalytics]);
 
   return <>{children}</>;
 }

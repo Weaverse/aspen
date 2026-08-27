@@ -1,8 +1,11 @@
 import { SealCheckIcon, XIcon } from "@phosphor-icons/react";
+import { useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { useState } from "react";
 import ReactCountryFlag from "react-country-flag";
 import { StarRating } from "~/components/star-rating";
+import { useLocale } from "~/hooks/use-locale";
+import { formatDate as formatLocaleDate } from "~/utils/locale";
 
 export type AliReview = {
   id: number;
@@ -45,6 +48,8 @@ type ReviewItemProps = ReviewItemData & {
 };
 
 export function ReviewItem(props: ReviewItemProps) {
+  const { t } = useTranslation();
+  const locale = useLocale();
   const {
     review,
     showCountry,
@@ -72,7 +77,7 @@ export function ReviewItem(props: ReviewItemProps) {
           </div>
           {showDate && (
             <p className="font-normal text-gray-500 text-sm">
-              {formatDate(review.created_at)}
+              {formatReviewDate(review.created_at, locale)}
             </p>
           )}
         </div>
@@ -114,7 +119,9 @@ export function ReviewItem(props: ReviewItemProps) {
               <img
                 className="h-full w-full object-cover object-center"
                 src={media.url}
-                alt="Review media"
+                alt={t("reviews.media")}
+                width={80}
+                height={80}
               />
             </div>
           ))}
@@ -132,6 +139,7 @@ function ReviewMediaPreview(props: {
   media: ReviewMedia | null;
   closePreview: () => void;
 }) {
+  const { t } = useTranslation();
   const { media, closePreview } = props;
   if (media) {
     return (
@@ -141,7 +149,9 @@ function ReviewMediaPreview(props: {
           <img
             className="max-h-full max-w-full object-cover"
             src={media.url}
-            alt="Review media preview"
+            alt={t("reviews.mediaPreview")}
+            width={384}
+            height={384}
           />
         </div>
         <XIcon
@@ -154,16 +164,13 @@ function ReviewMediaPreview(props: {
   return null;
 }
 
-function formatDate(date: string) {
+function formatReviewDate(date: string, locale: ReturnType<typeof useLocale>) {
   const dateObj = new Date(date);
-  const dateStr = dateObj.toLocaleDateString("en-US", {
+  return formatLocaleDate(dateObj, locale, {
     year: "numeric",
     month: "long",
     day: "numeric",
-  });
-  const timeStr = dateObj.toLocaleTimeString("en-US", {
     hour: "numeric",
     minute: "numeric",
   });
-  return `${dateStr} at ${timeStr}`;
 }

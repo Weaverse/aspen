@@ -11,7 +11,7 @@ const TestimonialItem = forwardRef<HTMLDivElement, TestimonialProps>(
       <div
         ref={ref}
         {...rest}
-        className="flex h-full flex-col gap-10 md:flex-row"
+        className="mx-auto grid h-full w-full max-w-[1360px] grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,52.94%)] lg:gap-16 lg:py-20"
       >
         {children}
       </div>

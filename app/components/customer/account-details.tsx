@@ -1,40 +1,55 @@
+import { useTranslation } from "@weaverse/hydrogen";
 import type { CustomerDetailsFragment } from "customer-account-api.generated";
+import type { HTMLAttributes } from "react";
 import { Link } from "~/components/link";
+import { cn } from "~/utils/cn";
 
 export function AccountDetails({
   customer,
+  heading = "ACCOUNT",
+  editText = "EDIT",
+  className,
+  ...rest
 }: {
   customer: CustomerDetailsFragment;
-}) {
-  const { firstName, lastName, emailAddress, phoneNumber } = customer;
-  const fullName = `${firstName || ""} ${lastName || ""}`.trim();
+  heading?: string;
+  editText?: string;
+} & HTMLAttributes<HTMLDivElement>) {
+  const { t } = useTranslation();
+  const { firstName, lastName, emailAddress } = customer;
   return (
-    <div className="space-y-4">
-      <div className="font-bold">Account</div>
-      <div className="space-y-4 border border-line-subtle p-5">
-        <div className="space-y-1">
-          <div className="text-body-subtle">Name</div>
-          <div>{fullName || "N/A"}</div>
+    <div {...rest} className={cn(className)}>
+      <h2 className="font-body font-normal text-[#343231] text-sm uppercase leading-5 tracking-[0.02em]">
+        {heading}
+      </h2>
+      <div className="mt-[13px] flex min-h-[227px] flex-col bg-white p-5 font-body text-[#343231] text-sm leading-5">
+        <div className="space-y-4">
+          <div>
+            <div>{t("account.firstName")}</div>
+            <div className="font-semibold">
+              {firstName || t("account.notAvailable")}
+            </div>
+          </div>
+          <div>
+            <div>{t("account.lastName")}</div>
+            <div className="font-semibold">
+              {lastName || t("account.notAvailable")}
+            </div>
+          </div>
+          <div>
+            <div>{t("account.email")}</div>
+            <div className="break-all font-semibold">
+              {emailAddress?.emailAddress ?? t("account.notAvailable")}
+            </div>
+          </div>
         </div>
-
-        <div className="space-y-1">
-          <div className="text-body-subtle">Phone number</div>
-          <div>{phoneNumber?.phoneNumber ?? "N/A"}</div>
-        </div>
-
-        <div className="space-y-1">
-          <div className="text-body-subtle">Email address</div>
-          <div>{emailAddress?.emailAddress ?? "N/A"}</div>
-        </div>
-
-        <div>
+        <div className="mt-3">
           <Link
             prefetch="intent"
-            variant="underline"
-            className="text-body-subtle after:bg-body-subtle"
+            className="text-[#979797] text-xs uppercase leading-5 transition-opacity hover:opacity-70"
             to="/account/edit"
           >
-            Edit account details
+            {editText}
           </Link>
         </div>
       </div>

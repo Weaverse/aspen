@@ -13,6 +13,9 @@ import type {
   NormalizedPredictiveSearch,
   NormalizedPredictiveSearchResults,
 } from "~/types/predictive-search";
+import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
+
+export const shouldRevalidate = skipPageRevalidationForStorefrontActions;
 
 type PredictiveSearchResultItem =
   | PredictiveArticleFragment
@@ -20,12 +23,29 @@ type PredictiveSearchResultItem =
   | PredictivePageFragment
   | PredictiveProductFragment;
 
-type PredictiveSearchTypes = "ARTICLE" | "PAGE" | "PRODUCT" | "QUERY";
+type PredictiveProductWithOptions = PredictiveProductFragment & {
+  options?: Array<{
+    name: string;
+    optionValues: Array<{
+      name: string;
+      swatch?: {
+        color?: string | null;
+        image?: {
+          previewImage?: {
+            url: string;
+            altText?: string | null;
+          } | null;
+        } | null;
+      } | null;
+    }>;
+  }>;
+};
+
+type PredictiveSearchTypes = "COLLECTION" | "PAGE" | "PRODUCT" | "QUERY";
 
 const DEFAULT_SEARCH_TYPES: PredictiveSearchTypes[] = [
-  "ARTICLE",
-  // 'COLLECTION',
-  // 'PAGE',
+  "COLLECTION",
+  "PAGE",
   "PRODUCT",
   "QUERY",
 ];
@@ -36,16 +56,39 @@ const DEFAULT_SEARCH_TYPES: PredictiveSearchTypes[] = [
  */
 export async function action({ request, params, context }: LoaderFunctionArgs) {
   if (request.method !== "POST") {
-    throw new Error("Invalid request method");
+    return data(
+      {
+        searchResults: {
+          results: NO_PREDICTIVE_SEARCH_RESULTS,
+          totalResults: 0,
+        },
+        error: "Method not allowed",
+      },
+      { status: 405 },
+    );
   }
 
-  const search = await fetchPredictiveSearchResults({
-    params,
-    request,
-    context,
-  });
+  try {
+    const search = await fetchPredictiveSearchResults({
+      params,
+      request,
+      context,
+    });
 
-  return data(search);
+    return data(search);
+  } catch (error) {
+    console.error("Predictive search request failed", error);
+    return data(
+      {
+        searchResults: {
+          results: NO_PREDICTIVE_SEARCH_RESULTS,
+          totalResults: 0,
+        },
+        error: "Search is temporarily unavailable",
+      },
+      { status: 503 },
+    );
+  }
 }
 
 async function fetchPredictiveSearchResults({
@@ -99,6 +142,7 @@ async function fetchPredictiveSearchResults({
   const searchResults = normalizePredictiveSearchResults(
     searchData.predictiveSearch,
     params.locale,
+    searchTerm,
   );
 
   return { searchResults, searchTerm, searchTypes };
@@ -110,6 +154,7 @@ async function fetchPredictiveSearchResults({
 function normalizePredictiveSearchResults(
   predictiveSearch: PredictiveSearchQuery["predictiveSearch"],
   locale: LoaderFunctionArgs["params"]["locale"],
+  searchTerm: string,
 ): NormalizedPredictiveSearch {
   let totalResults = 0;
   if (!predictiveSearch) {
@@ -119,32 +164,42 @@ function normalizePredictiveSearchResults(
     };
   }
 
-  function applyTrackingParams(
+  function createSearchParams(
     resource: PredictiveSearchResultItem | PredictiveQueryFragment,
-    params?: string,
+    params?: URLSearchParams,
   ) {
-    if (params) {
-      return resource.trackingParameters
-        ? `?${params}&${resource.trackingParameters}`
-        : `?${params}`;
+    const searchParams = new URLSearchParams(params);
+    if (resource.trackingParameters) {
+      const trackingParams = new URLSearchParams(resource.trackingParameters);
+      for (const [key, value] of trackingParams) {
+        searchParams.append(key, value);
+      }
     }
-    return resource.trackingParameters ? `?${resource.trackingParameters}` : "";
+    const query = searchParams.toString();
+    return query ? `?${query}` : "";
   }
 
   const localePrefix = locale ? `/${locale}` : "";
   const results: NormalizedPredictiveSearchResults = [];
 
-  if (predictiveSearch.queries.length) {
+  const matchingQueries = predictiveSearch.queries.filter((query) =>
+    queryMatchesSearchTerm(query.text, searchTerm),
+  );
+  const queries = matchingQueries.length
+    ? matchingQueries
+    : [
+        {
+          __typename: "SearchQuerySuggestion" as const,
+          text: searchTerm,
+          styledText: `<b>${escapeHtml(searchTerm)}</b>`,
+        },
+      ];
+
+  if (queries.length) {
     results.push({
       type: "queries",
-      // @ts-expect-error
-      items: predictiveSearch.queries.map((query: PredictiveQueryFragment) => {
-        // let trackingParams = applyTrackingParams(
-        //   query,
-        //   `q=${encodeURIComponent(query.text)}`,
-        // );
-
-        totalResults++;
+      items: queries.map((query) => {
+        totalResults += 1;
         return {
           __typename: query.__typename,
           handle: "",
@@ -152,7 +207,10 @@ function normalizePredictiveSearchResults(
           image: undefined,
           title: query.text,
           styledTitle: query.styledText,
-          // url: `${localePrefix}/search${trackingParams}`,
+          url: `${localePrefix}/search${createSearchParams(
+            query,
+            new URLSearchParams({ q: query.text }),
+          )}`,
         };
       }),
     });
@@ -167,10 +225,17 @@ function normalizePredictiveSearchResults(
           const optionsObject = mapSelectedProductOptionToObject(
             selectedVariant?.selectedOptions || [],
           );
-          const firstVariantParams = new URLSearchParams(optionsObject);
+          const productParams = new URLSearchParams(optionsObject);
+          const productWithOptions = product as PredictiveProductWithOptions;
+          const colorOption = productWithOptions.options?.find((option) =>
+            ["color", "colour"].includes(option.name.toLocaleLowerCase()),
+          );
+          const selectedColor = selectedVariant?.selectedOptions.find(
+            (option) =>
+              ["color", "colour"].includes(option.name.toLocaleLowerCase()),
+          )?.value;
 
-          totalResults++;
-          const trackingParams = applyTrackingParams(product);
+          totalResults += 1;
           return {
             __typename: product.__typename,
             handle: product.handle,
@@ -178,9 +243,28 @@ function normalizePredictiveSearchResults(
             image: product.featuredImage,
             title: product.title,
             vendor: product.vendor,
-            url: `${localePrefix}/products/${product.handle}${trackingParams}&${firstVariantParams.toString()}`,
+            url: `${localePrefix}/products/${product.handle}${createSearchParams(
+              product,
+              productParams,
+            )}`,
             price: selectedVariant?.price,
             compareAtPrice: selectedVariant?.compareAtPrice,
+            ratingValue: (
+              product as PredictiveProductFragment & {
+                reviewRating?: { value?: string } | null;
+              }
+            ).reviewRating?.value,
+            ratingCountValue: (
+              product as PredictiveProductFragment & {
+                reviewRatingCount?: { value?: string } | null;
+              }
+            ).reviewRatingCount?.value,
+            swatches: colorOption?.optionValues.map((optionValue) => ({
+              name: optionValue.name,
+              color: optionValue.swatch?.color,
+              image: optionValue.swatch?.image?.previewImage,
+              selected: optionValue.name === selectedColor,
+            })),
           };
         },
       ),
@@ -190,18 +274,16 @@ function normalizePredictiveSearchResults(
   if (predictiveSearch.collections.length) {
     results.push({
       type: "collections",
-      // @ts-expect-error
       items: predictiveSearch.collections.map(
         (collection: PredictiveCollectionFragment) => {
-          totalResults++;
-          const trackingParams = applyTrackingParams(collection);
+          totalResults += 1;
           return {
             __typename: collection.__typename,
             handle: collection.handle,
             id: collection.id,
             image: collection.image,
             title: collection.title,
-            url: `${localePrefix}/collections/${collection.handle}${trackingParams}`,
+            url: `${localePrefix}/collections/${collection.handle}${createSearchParams(collection)}`,
           };
         },
       ),
@@ -211,17 +293,15 @@ function normalizePredictiveSearchResults(
   if (predictiveSearch.pages.length) {
     results.push({
       type: "pages",
-      // @ts-expect-error
       items: predictiveSearch.pages.map((page: PredictivePageFragment) => {
-        totalResults++;
-        const trackingParams = applyTrackingParams(page);
+        totalResults += 1;
         return {
           __typename: page.__typename,
           handle: page.handle,
           id: page.id,
           image: undefined,
           title: page.title,
-          url: `${localePrefix}/pages/${page.handle}${trackingParams}`,
+          url: `${localePrefix}/pages/${page.handle}${createSearchParams(page)}`,
         };
       }),
     });
@@ -230,18 +310,16 @@ function normalizePredictiveSearchResults(
   if (predictiveSearch.articles.length) {
     results.push({
       type: "articles",
-      // @ts-expect-error
       items: predictiveSearch.articles.map(
         (article: PredictiveArticleFragment) => {
-          totalResults++;
-          const trackingParams = applyTrackingParams(article);
+          totalResults += 1;
           return {
             __typename: article.__typename,
             handle: article.handle,
             id: article.id,
             image: article.image,
             title: article.title,
-            url: `${localePrefix}/blogs/${article.blog.handle}/${article.handle}${trackingParams}`,
+            url: `${localePrefix}/blogs/${article.handle}${createSearchParams(article)}`,
           };
         },
       ),
@@ -249,6 +327,30 @@ function normalizePredictiveSearchResults(
   }
 
   return { results, totalResults };
+}
+
+function queryMatchesSearchTerm(query: string, searchTerm: string) {
+  const normalizedQuery = query.toLocaleLowerCase();
+  return searchTerm
+    .trim()
+    .toLocaleLowerCase()
+    .split(/\s+/)
+    .filter(Boolean)
+    .every((term) => normalizedQuery.includes(term));
+}
+
+function escapeHtml(value: string) {
+  return value.replace(
+    /[&<>"']/g,
+    (character) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;",
+      })[character] || character,
+  );
 }
 
 const PREDICTIVE_SEARCH_QUERY = `#graphql
@@ -295,11 +397,32 @@ const PREDICTIVE_SEARCH_QUERY = `#graphql
     handle
     trackingParameters
     vendor
+    reviewRating: metafield(namespace: "reviews", key: "rating") {
+      value
+    }
+    reviewRatingCount: metafield(namespace: "reviews", key: "rating_count") {
+      value
+    }
     featuredImage {
       url
       altText
       width
       height
+    }
+    options {
+      name
+      optionValues {
+        name
+        swatch {
+          color
+          image {
+            previewImage {
+              url
+              altText
+            }
+          }
+        }
+      }
     }
     selectedOrFirstAvailableVariant(
       selectedOptions: []

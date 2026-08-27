@@ -22,10 +22,11 @@ export const schema = createSchema({
   type: "promotion-grid",
   title: "Promotion grid",
   settings: [{ group: "Layout", inputs: layoutInputs }],
-  childTypes: ["grid-items", "promotion-grid-content"],
+  childTypes: ["grid-items"],
   presets: {
+    width: "full",
+    verticalPadding: "none",
     children: [
-      { type: "promotion-grid-content" },
       {
         type: "grid-items",
       },

@@ -1,14 +1,15 @@
 import { ArrowRight } from "@phosphor-icons/react";
 import { createSchema } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
-import { Link, useLoaderData } from "react-router";
+import { useLoaderData } from "react-router";
 import type { ArticleFragment } from "storefront-api.generated";
+import { Link } from "~/components/link";
 import { layoutInputs, Section, type SectionProps } from "~/components/section";
 import { getImageLoadingPriority } from "~/utils/image";
 import { ArticleCard, type ArticleCardProps } from "./blogs";
 
 interface RelatedArticlesProps
-  extends Omit<ArticleCardProps, "article" | "blogHandle" | "loading">,
+  extends Omit<ArticleCardProps, "article" | "loading">,
     SectionProps {
   heading: string;
   showViewAll?: boolean;
@@ -17,7 +18,7 @@ interface RelatedArticlesProps
 
 const RelatedArticles = forwardRef<HTMLElement, RelatedArticlesProps>(
   (props, ref) => {
-    const { blog, relatedArticles } = useLoaderData<{
+    const { relatedArticles } = useLoaderData<{
       relatedArticles: ArticleFragment[];
       blog: { handle: string };
     }>();
@@ -39,17 +40,17 @@ const RelatedArticles = forwardRef<HTMLElement, RelatedArticlesProps>(
           {/* Header section with title and view all button */}
           <div className="mb-10 flex w-full items-center justify-between">
             <div className="flex items-center gap-2">
-              <h2 className="font-tenor text-[#29231E] text-[26px] uppercase leading-[1.1] tracking-[0.02em]">
+              <h2 className="font-heading text-[#29231E] text-[26px] uppercase leading-[1.1] tracking-[-0.02em]">
                 {heading}
               </h2>
             </div>
             {showViewAll && (
               <div className="flex items-center gap-2">
                 <Link
-                  to={`/blogs/${blog.handle}`}
+                  to="/blogs"
                   className="flex items-center gap-2.5 px-1 py-1 text-[#29231E] transition-opacity hover:opacity-70"
                 >
-                  <span className="font-open-sans text-sm uppercase leading-[1em] tracking-[0.02em]">
+                  <span className="font-body text-sm uppercase leading-[1em] tracking-[0.02em]">
                     {viewAllText}
                   </span>
                   <ArrowRight
@@ -67,7 +68,6 @@ const RelatedArticles = forwardRef<HTMLElement, RelatedArticlesProps>(
             {relatedArticles.slice(0, 3).map((article, i) => (
               <div key={article.id} className="flex flex-col gap-4">
                 <ArticleCard
-                  blogHandle={blog.handle}
                   article={article}
                   loading={getImageLoadingPriority(i, 2)}
                   showAuthor={showAuthor}

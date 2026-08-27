@@ -61,7 +61,6 @@ export default defineConfig(({ isSsrBuild }) => ({
         "./app/components/**/*",
       ],
     },
-    allowedHosts: true,
   },
   ssr: {
     optimizeDeps: {

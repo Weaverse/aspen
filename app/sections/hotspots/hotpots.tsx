@@ -3,40 +3,61 @@ import { createSchema } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { Children, createContext, forwardRef, useContext } from "react";
 import type { ImageAspectRatio } from "~/types/image";
+import { type HotspotsLayout, useHotspotsLayout } from ".";
+
+type HotspotsAspectRatio = ImageAspectRatio | "design";
 
 interface HotspotsProps extends HydrogenComponentProps {
   gap?: number;
-  aspectRatio?: ImageAspectRatio;
+  desktopGap?: number;
+  aspectRatio?: HotspotsAspectRatio;
 }
 
 export const HotspotsContext = createContext<{
-  aspectRatio?: ImageAspectRatio;
-}>({});
+  aspectRatio?: HotspotsAspectRatio;
+  layout: HotspotsLayout;
+}>({ layout: "split" });
 
 export const useHotspotsContext = () => useContext(HotspotsContext);
 
 let Hotspots = forwardRef<HTMLDivElement, HotspotsProps>((props, ref) => {
-  let { children, gap = 20, aspectRatio = "adapt", ...rest } = props;
-
-  const childrenCount = Children.count(children);
+  let {
+    children,
+    gap = 16,
+    desktopGap = 20,
+    aspectRatio = "design",
+    ...rest
+  } = props;
+  const { layout, isLegacyLayout } = useHotspotsLayout();
+  const resolvedMobileGap = isLegacyLayout ? 16 : gap;
+  const resolvedDesktopGap = isLegacyLayout ? 20 : desktopGap;
+  const resolvedAspectRatio = isLegacyLayout ? "design" : aspectRatio;
+  const images = Children.toArray(children).slice(
+    0,
+    layout === "single" ? 1 : 2,
+  );
 
   const containerStyle = {
-    display: "grid" as const,
-    gap: `${gap}px`,
-  };
+    "--hotspots-mobile-gap": `${resolvedMobileGap}px`,
+    "--hotspots-desktop-gap": `${resolvedDesktopGap}px`,
+  } as React.CSSProperties;
 
   return (
-    <HotspotsContext.Provider value={{ aspectRatio }}>
+    <HotspotsContext.Provider
+      value={{ aspectRatio: resolvedAspectRatio, layout }}
+    >
       <div
         ref={ref}
         {...rest}
         className={clsx(
-          "w-full",
-          childrenCount === 1 ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2",
+          "grid w-full",
+          layout === "single"
+            ? "grid-cols-1"
+            : "grid-cols-1 gap-[var(--hotspots-mobile-gap)] md:grid-cols-2 md:gap-[var(--hotspots-desktop-gap)]",
         )}
         style={containerStyle}
       >
-        {children}
+        {images}
       </div>
     </HotspotsContext.Provider>
   );
@@ -56,7 +77,19 @@ export let schema = createSchema({
         {
           type: "range",
           name: "gap",
-          label: "Items spacing",
+          label: "Mobile spacing",
+          configs: {
+            min: 0,
+            max: 60,
+            step: 4,
+            unit: "px",
+          },
+          defaultValue: 16,
+        },
+        {
+          type: "range",
+          name: "desktopGap",
+          label: "Desktop spacing",
           configs: {
             min: 0,
             max: 60,
@@ -69,9 +102,13 @@ export let schema = createSchema({
           type: "select",
           name: "aspectRatio",
           label: "Aspect ratio",
-          defaultValue: "1/1",
+          defaultValue: "design",
           configs: {
             options: [
+              {
+                value: "design",
+                label: "Responsive design (recommended)",
+              },
               { value: "adapt", label: "Adapt to image" },
               { value: "1/1", label: "Square (1/1)" },
               { value: "3/4", label: "Portrait (3/4)" },
@@ -86,6 +123,9 @@ export let schema = createSchema({
     },
   ],
   presets: {
+    gap: 16,
+    desktopGap: 20,
+    aspectRatio: "design",
     children: [
       {
         type: "hotspots-image",

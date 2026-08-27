@@ -1,7 +1,8 @@
 import { CaretDownIcon } from "@phosphor-icons/react";
 import * as Select from "@radix-ui/react-select";
-import { useEffect, useState } from "react";
-import { useLoaderData } from "react-router";
+import { useTranslation } from "@weaverse/hydrogen";
+import { useEffect, useId, useState } from "react";
+import { useRouteLoaderData } from "react-router";
 import type { loader as productRouteLoader } from "~/routes/($locale).products.$productHandle";
 import { cn } from "~/utils/cn";
 
@@ -20,18 +21,15 @@ export function SellingPlanSelector({
   className,
   product: productProp,
 }: SellingPlanSelectorProps) {
-  // Use product prop if provided, otherwise get from loader
-  let product = productProp;
-
-  if (!product) {
-    try {
-      const loaderData = useLoaderData<typeof productRouteLoader>();
-      product = loaderData?.product;
-    } catch {
-      // If useLoaderData fails (not in route context), use prop or null
-      product = productProp || null;
-    }
-  }
+  const { t } = useTranslation();
+  const loaderData = useRouteLoaderData<typeof productRouteLoader>(
+    "routes/($locale).products.$productHandle",
+  );
+  const product = productProp || loaderData?.product;
+  const selectorId = useId();
+  const radioName = `selling-plan-${selectorId}`;
+  const oneTimeId = `${selectorId}-one-time`;
+  const subscriptionId = `${selectorId}-subscription`;
 
   const sellingPlanGroups = product?.sellingPlanGroups?.edges || [];
   const sellingPlans = sellingPlanGroups.flatMap((group) =>
@@ -50,7 +48,7 @@ export function SellingPlanSelector({
     } else if (!dropdownValue && defaultPlanId) {
       setDropdownValue(defaultPlanId);
     }
-  }, [selectedSellingPlanId]);
+  }, [defaultPlanId, dropdownValue, selectedSellingPlanId]);
 
   if (sellingPlans.length === 0) {
     return null;
@@ -167,7 +165,9 @@ export function SellingPlanSelector({
       return (
         <>
           <span style={{ color: "#29231E" }}>{planData.frequency} - </span>
-          <span style={{ color: "#918379" }}>Save {planData.savings}</span>
+          <span style={{ color: "#918379" }}>
+            {t("subscription.save", { amount: planData.savings })}
+          </span>
         </>
       );
     }
@@ -175,7 +175,11 @@ export function SellingPlanSelector({
       return <span style={{ color: "#29231E" }}>{planData.frequency}</span>;
     }
     if (planData.savings) {
-      return <span style={{ color: "#918379" }}>Save {planData.savings}</span>;
+      return (
+        <span style={{ color: "#918379" }}>
+          {t("subscription.save", { amount: planData.savings })}
+        </span>
+      );
     }
 
     return <span style={{ color: "#29231E" }}>{planData.fallback}</span>;
@@ -194,23 +198,23 @@ export function SellingPlanSelector({
       <div className="flex items-center gap-2">
         <input
           type="radio"
-          id="one-time"
-          name="selling-plan"
+          id={oneTimeId}
+          name={radioName}
           value="one-time"
           checked={!isSubscriptionSelected}
           onChange={() => {
             onSellingPlanChange(null);
           }}
-          className="h-5 w-5 border-[#A79D95] text-[#29231E] focus:ring-0"
+          className="h-5 w-5 border-line text-body focus:ring-0"
           style={{
-            accentColor: "#29231E",
+            accentColor: "var(--color-body)",
           }}
         />
         <label
-          htmlFor="one-time"
-          className="cursor-pointer text-[#29231E] leading-[1.6] tracking-[0.02em]"
+          htmlFor={oneTimeId}
+          className="cursor-pointer text-body leading-[1.6] tracking-[0.02em]"
         >
-          One time purchase
+          {t("subscription.oneTimePurchase")}
         </label>
       </div>
 
@@ -218,8 +222,8 @@ export function SellingPlanSelector({
         <div className="flex items-center gap-2">
           <input
             type="radio"
-            id="subscription"
-            name="selling-plan"
+            id={subscriptionId}
+            name={radioName}
             value="subscription"
             checked={isSubscriptionSelected}
             onChange={() => {
@@ -231,15 +235,18 @@ export function SellingPlanSelector({
                 setDropdownValue(planToSelect);
               }
             }}
-            className="h-5 w-5 border-[#A79D95] text-[#29231E] focus:ring-0"
+            className="h-5 w-5 border-line text-body focus:ring-0"
             style={{
-              accentColor: "#29231E",
+              accentColor: "var(--color-body)",
             }}
           />
           <div className="flex items-center gap-2 pt-0.5">
-            <span className="text-[#29231E] leading-[1.6] tracking-[0.02em]">
-              Deliver every
-            </span>
+            <label
+              htmlFor={subscriptionId}
+              className="cursor-pointer text-body leading-[1.6] tracking-[0.02em]"
+            >
+              {t("subscription.deliverEvery")}
+            </label>
             <Select.Root
               value={dropdownValue || undefined}
               onValueChange={(value) => {
@@ -252,23 +259,23 @@ export function SellingPlanSelector({
             >
               <Select.Trigger
                 className={cn(
-                  "inline-flex items-center gap-2.5 border-[#A79D95] border-b bg-white pb-0 font-semibold outline-hidden",
+                  "inline-flex items-center gap-2.5 border-line border-b bg-white pb-0 font-semibold outline-hidden",
                   isSubscriptionSelected
                     ? "cursor-pointer"
                     : "cursor-not-allowed opacity-50",
                 )}
-                aria-label="Select delivery frequency"
+                aria-label={t("subscription.selectDeliveryFrequency")}
               >
                 <Select.Value
-                  placeholder="Select plan"
+                  placeholder={t("subscription.selectPlan")}
                   className="text-sm leading-[1.6] tracking-[0.02em]"
                 >
                   {displaySellingPlan
                     ? renderPlanText(displaySellingPlan)
-                    : "Select plan"}
+                    : t("subscription.selectPlan")}
                 </Select.Value>
                 <Select.Icon className="shrink-0">
-                  <CaretDownIcon size={12} className="text-[#29231E]" />
+                  <CaretDownIcon size={12} className="text-body" />
                 </Select.Icon>
               </Select.Trigger>
               <Select.Portal>

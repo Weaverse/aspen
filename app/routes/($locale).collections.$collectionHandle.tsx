@@ -22,10 +22,12 @@ import { routeHeaders } from "~/utils/cache";
 import { PAGINATION_SIZE } from "~/utils/const";
 import { FILTER_URL_PREFIX, type SortParam } from "~/utils/filter";
 import { redirectIfHandleIsLocalized } from "~/utils/redirect";
+import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 import { seoPayload } from "~/utils/seo.server";
 import { WeaverseContent } from "~/weaverse";
 
 export const headers = routeHeaders;
+export const shouldRevalidate = skipPageRevalidationForStorefrontActions;
 
 export async function loader({ params, request, context }: LoaderFunctionArgs) {
   const paginationVariables = getPaginationVariables(request, {
@@ -44,9 +46,12 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
   const filters = [...searchParams.entries()].reduce((flt, [key, value]) => {
     if (key.startsWith(FILTER_URL_PREFIX)) {
       const filterKey = key.substring(FILTER_URL_PREFIX.length);
-      flt.push({
-        [filterKey]: JSON.parse(value),
-      });
+      const parsedValue = parseFilterParam(value);
+      if (parsedValue !== undefined) {
+        flt.push({
+          [filterKey]: parsedValue,
+        } as ProductFilter);
+      }
     }
     return flt;
   }, [] as ProductFilter[]);
@@ -57,24 +62,20 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
 
   // Load collection data and weaverseData in parallel
   const [{ collection, collections }, weaverseData] = await Promise.all([
-    storefront
-      .query<CollectionQuery>(COLLECTION_QUERY, {
-        variables: {
-          ...paginationVariables,
-          handle: collectionHandle,
-          filters,
-          sortKey,
-          reverse,
-          country: storefront.i18n.country,
-          language: storefront.i18n.language,
-          // Query custom banner stored in Shopify's collection metafields
-          customBannerNamespace: bannerNamespace,
-          customBannerKey: bannerKey,
-        },
-      })
-      .catch((_e) => {
-        return { collection: null, collections: [] };
-      }),
+    storefront.query<CollectionQuery>(COLLECTION_QUERY, {
+      variables: {
+        ...paginationVariables,
+        handle: collectionHandle,
+        filters,
+        sortKey,
+        reverse,
+        country: storefront.i18n.country,
+        language: storefront.i18n.language,
+        // Query custom banner stored in Shopify's collection metafields
+        customBannerNamespace: bannerNamespace,
+        customBannerKey: bannerKey,
+      },
+    }),
     context.weaverse.loadPage({
       type: "COLLECTION",
       handle: collectionHandle,
@@ -97,7 +98,20 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     data: collection,
   });
 
-  const seo = seoPayload.collection({ collection, url: request.url });
+  const seo = seoPayload.collection({
+    collection: {
+      id: collection.id,
+      title: collection.title,
+      handle: collection.handle,
+      description: collection.description,
+      seo: collection.seo,
+      image: collection.image,
+      products: {
+        nodes: collection.products.nodes.map(({ handle }) => ({ handle })),
+      },
+    },
+    url: request.url,
+  });
 
   const allFilterValues = collection.products.filters.flatMap(
     (filter) => filter.values,
@@ -120,8 +134,6 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
         );
       });
       if (!foundValue) {
-        // biome-ignore lint/suspicious/noConsole: <explanation> --- IGNORE ---
-        console.error("Could not find filter value for filter", filter);
         return null;
       }
 
@@ -149,7 +161,6 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
   return {
     collection,
     appliedFilters,
-    // @ts-expect-error
     collections: flattenConnection(collections),
     seo,
     weaverseData,
@@ -204,16 +215,24 @@ function getSortValuesFromParam(sortParam: SortParam | null): {
         sortKey: "CREATED",
         reverse: true,
       };
-    case "featured":
-      return {
-        sortKey: "MANUAL",
-        reverse: false,
-      };
-    default:
+    case "relevance":
       return {
         sortKey: "RELEVANCE",
         reverse: false,
       };
+    default:
+      return {
+        sortKey: "MANUAL",
+        reverse: false,
+      };
+  }
+}
+
+function parseFilterParam(value: string) {
+  try {
+    return JSON.parse(value) as unknown;
+  } catch {
+    return undefined;
   }
 }
 

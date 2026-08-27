@@ -19,7 +19,9 @@ export function SubscriptionLineItem({
   const { sellingPlan } = sellingPlanAllocation;
 
   const formatDeliveryFrequency = () => {
-    if (!sellingPlan) return "";
+    if (!sellingPlan) {
+      return "";
+    }
 
     // Try to extract frequency from selling plan options
     const deliveryOption = sellingPlan.options?.find(
@@ -117,7 +119,7 @@ export function SubscriptionLineItem({
       <span
         className="text-[#918379] leading-none"
         style={{
-          fontFamily: "Open Sans, sans-serif",
+          fontFamily: '"DM Sans Variable", sans-serif',
           fontWeight: 400,
           fontSize: "12px",
           lineHeight: "1em",

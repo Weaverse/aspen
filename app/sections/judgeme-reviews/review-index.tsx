@@ -1,31 +1,49 @@
 import { createSchema } from "@weaverse/hydrogen";
-import { forwardRef } from "react";
+import { forwardRef, type HTMLAttributes } from "react";
 import { useLoaderData } from "react-router";
+import { PRODUCT_REVIEWS_ATTRIBUTE } from "~/components/product/judgeme-review";
 import type { loader as productRouteLoader } from "~/routes/($locale).products.$productHandle";
 import ReviewForm from "./review-form";
 import { ReviewList } from "./review-list";
 
-const ReviewIndex = forwardRef<HTMLDivElement>((props, ref) => {
-  const { productReviews } = useLoaderData<typeof productRouteLoader>();
+interface ReviewIndexProps extends HTMLAttributes<HTMLDivElement> {
+  title?: string;
+  description?: string;
+}
 
-  // Check if productReviews exists before using
-  if (!productReviews) {
-    return null;
-  }
+const ReviewIndex = forwardRef<HTMLDivElement, ReviewIndexProps>(
+  (props, ref) => {
+    const {
+      title = "Customer Reviews",
+      description = "Read what our customers are saying about this product.",
+      ...rest
+    } = props;
+    const { productReviews } = useLoaderData<typeof productRouteLoader>();
 
-  return (
-    <div
-      ref={ref}
-      {...props}
-      className="flex flex-col gap-5 md:flex-row md:gap-10"
-    >
-      <ReviewForm reviews={productReviews} />
-      {productReviews.reviews.length > 0 ? (
+    // Check if productReviews exists before using
+    if (!productReviews) {
+      return null;
+    }
+
+    return (
+      <div
+        ref={ref}
+        {...rest}
+        {...{ [PRODUCT_REVIEWS_ATTRIBUTE]: "" }}
+        className="scroll-mt-[calc(var(--height-nav)+24px)] space-y-8 md:space-y-10"
+      >
+        <header className="space-y-3 text-center md:text-left">
+          <h2 className="font-heading text-[clamp(2.25rem,5vw,3.2rem)] leading-tight tracking-[-0.035em]">
+            {title}
+          </h2>
+          <p className="text-body-subtle">{description}</p>
+        </header>
+        <ReviewForm reviews={productReviews} />
         <ReviewList reviews={productReviews} />
-      ) : null}
-    </div>
-  );
-});
+      </div>
+    );
+  },
+);
 
 export default ReviewIndex;
 

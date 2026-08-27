@@ -1,5 +1,5 @@
 import { createSchema } from "@weaverse/hydrogen";
-import { forwardRef, useEffect, useState } from "react";
+import { Children, forwardRef, useEffect, useRef, useState } from "react";
 import type { Swiper as SwiperType } from "swiper";
 import { EffectFade } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -8,17 +8,41 @@ import type { SectionProps } from "~/components/section";
 import { layoutInputs, Section } from "~/components/section";
 import "swiper/css";
 import "swiper/css/effect-fade";
+import {
+  type TestimonialArrowIcon,
+  type TestimonialArrowShape,
+  TestimonialNavigationContext,
+} from "./context";
 
-type TestimonialProps = SectionProps;
+interface TestimonialProps extends SectionProps {
+  loopNavigation?: boolean;
+  navigationButtonColor?: string;
+  navigationButtonHoverColor?: string;
+  navigationIconColor?: string;
+  navigationIcon?: TestimonialArrowIcon;
+  navigationShape?: TestimonialArrowShape;
+}
 
 const TestimonialIndex = forwardRef<HTMLElement, TestimonialProps>(
   (props, ref) => {
-    const { children, ...rest } = props;
+    const {
+      children,
+      loopNavigation = true,
+      navigationButtonColor = "#EDEAE6",
+      navigationButtonHoverColor = "#E4DFDA",
+      navigationIconColor = "#343231",
+      navigationIcon = "caret",
+      navigationShape = "rounded",
+      ...rest
+    } = props;
     const [isSwiperInitialized, setIsSwiperInitialized] = useState(false);
-
-    useEffect(() => {
-      setIsSwiperInitialized(false);
-    }, [children]);
+    const [activeIndex, setActiveIndex] = useState(0);
+    const swiperRef = useRef<SwiperType | null>(null);
+    const slides = Children.toArray(children);
+    const canNavigate = slides.length > 1;
+    const canGoPrevious = canNavigate && (loopNavigation || activeIndex > 0);
+    const canGoNext =
+      canNavigate && (loopNavigation || activeIndex < slides.length - 1);
 
     useEffect(() => {
       if (!isSwiperInitialized) {
@@ -29,82 +53,71 @@ const TestimonialIndex = forwardRef<HTMLElement, TestimonialProps>(
       }
     }, [isSwiperInitialized]);
 
-    useEffect(() => {
-      // Event handler functions
-      const handlePrevSlide = (event: Event) => {
-        let swiperInstance = (event as CustomEvent).detail?.swiper;
-        if (!swiperInstance && window.testimonialSwiper) {
-          swiperInstance = window.testimonialSwiper;
-        }
-        if (swiperInstance) {
-          swiperInstance.slidePrev();
-        }
-      };
-
-      const handleNextSlide = (event: Event) => {
-        let swiperInstance = (event as CustomEvent).detail?.swiper;
-        if (!swiperInstance && window.testimonialSwiper) {
-          swiperInstance = window.testimonialSwiper;
-        }
-        if (swiperInstance) {
-          swiperInstance.slideNext();
-        }
-      };
-
-      // Add event listeners
-      document.addEventListener("testimonial-prev-slide", handlePrevSlide);
-      document.addEventListener("testimonial-next-slide", handleNextSlide);
-
-      // Clean up
-      return () => {
-        document.removeEventListener("testimonial-prev-slide", handlePrevSlide);
-        document.removeEventListener("testimonial-next-slide", handleNextSlide);
-      };
-    }, []);
-
     return (
-      <Section ref={ref} {...rest} containerClassName="overflow-hidden">
-        <Swiper
-          loop={true}
-          slidesPerView={1}
-          spaceBetween={0}
-          effect="fade"
-          fadeEffect={{
-            crossFade: true,
-          }}
-          modules={[EffectFade]}
-          speed={500}
-          allowTouchMove={true}
-          className={`testimonial-swiper h-full w-full transition-opacity duration-300 ${
-            isSwiperInitialized ? "opacity-100" : "opacity-0"
-          }`}
-          onSwiper={(swiperInstance) => {
-            window.testimonialSwiper = swiperInstance;
-            requestAnimationFrame(() => {
-              requestAnimationFrame(() => {
-                setIsSwiperInitialized(true);
-              });
-            });
+      <Section
+        ref={ref}
+        {...rest}
+        width="full"
+        verticalPadding="none"
+        className="bg-[#F6F4F3]"
+        containerClassName="overflow-hidden"
+      >
+        <TestimonialNavigationContext.Provider
+          value={{
+            canNavigate,
+            canGoPrevious,
+            canGoNext,
+            goToPrevious: () => {
+              if (canGoPrevious) {
+                swiperRef.current?.slidePrev();
+              }
+            },
+            goToNext: () => {
+              if (canGoNext) {
+                swiperRef.current?.slideNext();
+              }
+            },
+            navigationButtonColor,
+            navigationButtonHoverColor,
+            navigationIconColor,
+            navigationIcon,
+            navigationShape,
           }}
         >
-          {Array.isArray(children)
-            ? children?.map((child: any, index: number) => (
-                <SwiperSlide key={index} className="h-full w-full">
-                  {child}
-                </SwiperSlide>
-              ))
-            : children}
-        </Swiper>
+          <Swiper
+            key={`${slides.length}-${loopNavigation}`}
+            loop={false}
+            rewind={canNavigate && loopNavigation}
+            slidesPerView={1}
+            spaceBetween={0}
+            effect="fade"
+            fadeEffect={{ crossFade: true }}
+            modules={[EffectFade]}
+            speed={500}
+            allowTouchMove={canNavigate}
+            className={`testimonial-swiper h-full w-full transition-opacity duration-300 ${
+              isSwiperInitialized ? "opacity-100" : "opacity-0"
+            }`}
+            onSwiper={(swiperInstance) => {
+              swiperRef.current = swiperInstance;
+              setActiveIndex(swiperInstance.activeIndex);
+              requestAnimationFrame(() => setIsSwiperInitialized(true));
+            }}
+            onActiveIndexChange={(swiperInstance) => {
+              setActiveIndex(swiperInstance.activeIndex);
+            }}
+          >
+            {slides.map((child, index) => (
+              <SwiperSlide key={index} className="h-full w-full">
+                {child}
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        </TestimonialNavigationContext.Provider>
       </Section>
     );
   },
 );
-
-declare global {
-  interface Window {
-    testimonialSwiper?: SwiperType;
-  }
-}
 
 export default TestimonialIndex;
 
@@ -117,9 +130,75 @@ export const schema = createSchema({
       inputs: layoutInputs.filter(({ name }) => name !== "gap"),
     },
     { group: "Background", inputs: backgroundInputs },
+    {
+      group: "Navigation buttons",
+      inputs: [
+        {
+          type: "switch",
+          name: "loopNavigation",
+          label: "Loop navigation",
+          defaultValue: true,
+          helpText:
+            "Next wraps to the first testimonial and Previous wraps to the last.",
+        },
+        {
+          type: "color",
+          name: "navigationButtonColor",
+          label: "Button color",
+          defaultValue: "#EDEAE6",
+        },
+        {
+          type: "color",
+          name: "navigationButtonHoverColor",
+          label: "Button hover color",
+          defaultValue: "#E4DFDA",
+        },
+        {
+          type: "color",
+          name: "navigationIconColor",
+          label: "Icon color",
+          defaultValue: "#343231",
+        },
+        {
+          type: "select",
+          name: "navigationIcon",
+          label: "Arrow icon",
+          configs: {
+            options: [
+              { value: "caret", label: "Caret" },
+              { value: "arrow", label: "Arrow" },
+            ],
+          },
+          defaultValue: "caret",
+        },
+        {
+          type: "toggle-group",
+          name: "navigationShape",
+          label: "Button shape",
+          configs: {
+            options: [
+              { value: "rounded", label: "Rounded", icon: "squircle" },
+              { value: "circle", label: "Circle", icon: "circle" },
+              { value: "square", label: "Square", icon: "square" },
+            ],
+          },
+          defaultValue: "rounded",
+        },
+      ],
+    },
   ],
   childTypes: ["testimonial--item"],
   presets: {
+    width: "full",
+    verticalPadding: "none",
+    backgroundColor: "#F6F4F3",
+    backgroundFor: "section",
+    navigationButtonColor: "#EDEAE6",
+    navigationButtonHoverColor: "#E4DFDA",
+    navigationIconColor: "#343231",
+    navigationIcon: "caret",
+    navigationShape: "rounded",
+    loopNavigation: true,
     children: [{ type: "testimonial--item" }, { type: "testimonial--item" }],
   },
 });

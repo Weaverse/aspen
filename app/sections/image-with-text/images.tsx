@@ -11,8 +11,19 @@ interface ImageWithTextImageProps extends HydrogenComponentProps {
 let ImageWithTextImages = forwardRef<HTMLDivElement, ImageWithTextImageProps>(
   (props, ref) => {
     let { imageAspectRatio, children, ...rest } = props;
-    const { setImageCount, setImageAspectRatio } = useImageWithTextContext();
-    const imageCount = Children.count(children);
+    const { setImageCount, setImageAspectRatio, layout, isLegacyLayout } =
+      useImageWithTextContext();
+    const childCount = Children.count(children);
+    const resolvedLayout = isLegacyLayout
+      ? childCount > 1
+        ? "overlay"
+        : "split"
+      : layout;
+    const images = Children.toArray(children).slice(
+      0,
+      resolvedLayout === "overlay" ? 2 : 1,
+    );
+    const imageCount = images.length;
 
     useEffect(() => {
       setImageCount(imageCount);
@@ -25,10 +36,12 @@ let ImageWithTextImages = forwardRef<HTMLDivElement, ImageWithTextImageProps>(
         {...rest}
         className={cn(
           "flex h-full w-full",
-          imageCount <= 1 ? "aspect-square w-full md:w-1/2" : "",
+          resolvedLayout === "overlay"
+            ? "flex-row [&>*]:min-w-0 [&>*]:flex-1"
+            : "h-[430px] shrink-0 items-center md:h-full md:w-1/2 md:py-10",
         )}
       >
-        {children}
+        {images}
       </div>
     );
   },
@@ -38,7 +51,7 @@ export default ImageWithTextImages;
 
 export let schema = createSchema({
   type: "image-with-text--images",
-  title: "Image",
+  title: "Images",
   limit: 1,
   childTypes: ["image-with-text--image"],
   settings: [
@@ -67,6 +80,9 @@ export let schema = createSchema({
   ],
   presets: {
     imageAspectRatio: "1/1",
-    children: [{ type: "image-with-text--image", aspectRatio: "1/1" }],
+    children: [
+      { type: "image-with-text--image", aspectRatio: "1/1" },
+      { type: "image-with-text--image", aspectRatio: "1/1" },
+    ],
   },
 });

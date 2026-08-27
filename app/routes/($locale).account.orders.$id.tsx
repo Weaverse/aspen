@@ -1,10 +1,23 @@
-import { flattenConnection } from "@shopify/hydrogen";
-import type { FulfillmentStatus } from "@shopify/hydrogen/customer-account-api-types";
+import {
+  CacheNone,
+  flattenConnection,
+  generateCacheControlHeader,
+} from "@shopify/hydrogen";
 import type { OrderFragment, OrderQuery } from "customer-account-api.generated";
-import type { MetaFunction } from "react-router";
-import { type LoaderFunctionArgs, redirect } from "react-router";
-// biome-ignore lint/style/noExportedImports: <explanation> --- IGNORE ---
-import { OrderDetails } from "~/components/customer/order-details";
+import {
+  type LoaderFunctionArgs,
+  type MetaFunction,
+  redirect,
+  data as routeData,
+  useLoaderData,
+} from "react-router";
+import OrderDetailsSection from "~/sections/order-details";
+import {
+  accountPath,
+  accountPreviewOrderDetails,
+  isAccountPreviewRequest,
+} from "~/utils/account-preview.server";
+import { WeaverseContent } from "~/weaverse";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [{ title: `Order ${data?.order?.name}` }];
@@ -12,7 +25,26 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
   if (!params.id) {
-    return redirect(params?.locale ? `${params.locale}/account` : "/account");
+    return redirect(accountPath(params.locale));
+  }
+
+  const weaverseData = await context.weaverse.loadPage({
+    type: "CUSTOM",
+    handle: "order",
+  });
+  const isDesignMode = Boolean(
+    weaverseData?.configs?.requestInfo?.queries?.isDesignMode,
+  );
+
+  if (isDesignMode || isAccountPreviewRequest(request)) {
+    const order = accountPreviewOrderDetails();
+    return routeData(
+      {
+        ...getOrderDetailsData(order),
+        weaverseData,
+      },
+      { headers: { "Cache-Control": generateCacheControlHeader(CacheNone()) } },
+    );
   }
 
   const queryParams = new URL(request.url).searchParams;
@@ -23,37 +55,23 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
       ? `gid://shopify/Order/${params.id}?key=${orderToken}`
       : `gid://shopify/Order/${params.id}`;
 
-    const { data, errors } = await context.customerAccount.query<OrderQuery>(
-      CUSTOMER_ORDER_QUERY,
-      { variables: { orderId } },
-    );
+    const { data: customerData, errors } =
+      await context.customerAccount.query<OrderQuery>(CUSTOMER_ORDER_QUERY, {
+        variables: { orderId },
+      });
 
-    if (errors?.length || !data?.order?.lineItems) {
+    if (errors?.length || !customerData?.order?.lineItems) {
       throw new Error("Order not found");
     }
 
-    const order: OrderFragment = data.order;
-    const lineItems = flattenConnection(order.lineItems);
-    const discountApplications = flattenConnection(order.discountApplications);
-    const firstDiscount = discountApplications[0]?.value;
-    const discountValue =
-      firstDiscount?.__typename === "MoneyV2" && firstDiscount;
-    const discountPercentage =
-      firstDiscount?.__typename === "PricingPercentageValue" &&
-      firstDiscount?.percentage;
-    const fulfillments = flattenConnection(order.fulfillments);
-    const fulfillmentStatus =
-      fulfillments.length > 0
-        ? fulfillments[0].status
-        : ("OPEN" as FulfillmentStatus);
-
-    return {
-      order,
-      lineItems,
-      discountValue,
-      discountPercentage,
-      fulfillmentStatus,
-    };
+    const order: OrderFragment = customerData.order;
+    return routeData(
+      {
+        ...getOrderDetailsData(order),
+        weaverseData,
+      },
+      { headers: { "Cache-Control": generateCacheControlHeader(CacheNone()) } },
+    );
   } catch (error) {
     throw new Response(error instanceof Error ? error.message : undefined, {
       status: 404,
@@ -61,7 +79,29 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   }
 }
 
-export default OrderDetails;
+export default function OrderDetailsRoute() {
+  const { weaverseData } = useLoaderData<typeof loader>();
+  const isDesignMode = Boolean(
+    weaverseData?.configs?.requestInfo?.queries?.isDesignMode,
+  );
+  const hasOrderDetailsSection = Boolean(
+    weaverseData?.page?.items?.some((item) => item.type === "order-details"),
+  );
+
+  if (isDesignMode || hasOrderDetailsSection) {
+    return <WeaverseContent />;
+  }
+
+  return <OrderDetailsSection />;
+}
+
+function getOrderDetailsData(order: OrderFragment) {
+  const lineItems = flattenConnection(order.lineItems);
+  const fulfillments = flattenConnection(order.fulfillments);
+  const fulfillmentStatus = fulfillments[0]?.status ?? "UNFULFILLED";
+
+  return { order, lineItems, fulfillmentStatus };
+}
 
 // NOTE: https://shopify.dev/docs/api/customer/latest/queries/order
 const CUSTOMER_ORDER_QUERY = `#graphql
@@ -143,7 +183,7 @@ const CUSTOMER_ORDER_QUERY = `#graphql
     }
     shippingAddress {
       name
-      formatted(withName: true)
+      formatted(withName: false)
       formattedArea
     }
     discountApplications(first: 100) {

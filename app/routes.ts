@@ -21,26 +21,30 @@ export default hydrogenRoutes([
       "routes/($locale).sitemap.$type.$page[.xml].tsx",
     ),
     route("pages/:pageHandle", "routes/($locale).pages.$pageHandle.tsx"),
+    route("contact", "routes/($locale).contact.tsx"),
     route("discount/:code", "routes/($locale).discount.$code.tsx"),
     ...prefix("api", [
       route(
         ":version/graphql.json",
         "routes/($locale).api.$version.[graphql.json].tsx",
       ),
+      route("contact", "routes/($locale).api.contact.ts"),
       route("countries", "routes/($locale).api.countries.ts"),
-      route("customer", "routes/($locale).api.customer.ts"),
       route("featured-items", "routes/($locale).api.featured-items.ts"),
       route("klaviyo", "routes/($locale).api.klaviyo.ts"),
+      route("back-in-stock", "routes/($locale).api.back-in-stock.ts"),
       route("predictive-search", "routes/($locale).api.predictive-search.ts"),
       route("product", "routes/($locale).api.product.ts"),
       route("products", "routes/($locale).api.products.ts"),
+      route("wishlist", "routes/($locale).api.wishlist.ts"),
       route(
         "review/:productHandle",
         "routes/($locale).api.review.$productHandle.ts",
       ),
     ]),
     ...prefix("blogs", [
-      route(":blogHandle", "routes/($locale).blogs.$blogHandle._index.tsx"),
+      index("routes/($locale).blogs._index.tsx"),
+      route(":articleHandle", "routes/($locale).blogs.$articleHandle.tsx"),
       route(
         ":blogHandle/:articleHandle",
         "routes/($locale).blogs.$blogHandle.$articleHandle.tsx",

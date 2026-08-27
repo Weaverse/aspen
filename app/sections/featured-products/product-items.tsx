@@ -1,9 +1,15 @@
-import { ArrowLeft, ArrowRight } from "@phosphor-icons/react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CaretLeft,
+  CaretRight,
+} from "@phosphor-icons/react";
 import {
   type ComponentLoaderArgs,
   createSchema,
   type HydrogenComponentProps,
   IMAGES_PLACEHOLDERS,
+  useTranslation,
   type WeaverseCollection,
 } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
@@ -17,6 +23,7 @@ import "swiper/css";
 import "swiper/css/navigation";
 import Link from "~/components/link";
 import { PRODUCT_CARD_FRAGMENT } from "~/graphql/fragments";
+import { useFeaturedProductsLayout } from ".";
 
 type ItemsPerRowType = "2" | "3" | "4" | "5";
 type GapType = 8 | 12 | 16 | 20 | 24 | 28 | 32;
@@ -81,8 +88,8 @@ const productItemsVariants = cva("", {
     },
   ],
   defaultVariants: {
-    layout: "carousel",
-    itemsPerRow: "4",
+    layout: "grid",
+    itemsPerRow: "2",
     gap: 16,
   },
 });
@@ -98,30 +105,39 @@ interface ProductItemsProps
   productsToShow?: number;
   arrowsColor?: "primary" | "secondary";
   arrowsShape?: "rounded-sm" | "circle" | "square";
+  arrowsIcon?: "caret" | "arrow";
 }
 
 const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
   (props, ref) => {
+    const { t } = useTranslation();
     const {
       loaderData,
       collection,
       gap = 16,
-      layout = "carousel",
+      layout = "grid",
       slidesPerView = 4,
-      itemsPerRow = "4" as ItemsPerRowType,
+      itemsPerRow = "2" as ItemsPerRowType,
       productsToShow = 4,
       arrowsColor = "primary",
       arrowsShape = "rounded-sm",
+      arrowsIcon = "arrow",
       ...rest
     } = props;
-    const [activeSlide, setActiveSlide] = useState(0);
-    const [isBeginning, setIsBeginning] = useState(true);
-    const [isEnd, setIsEnd] = useState(false);
     const [isSwiperInitialized, setIsSwiperInitialized] = useState(false);
+    const {
+      layout: sectionLayout,
+      isLegacyLayout,
+      isProductPage,
+    } = useFeaturedProductsLayout();
+    const activeLayout = isLegacyLayout ? layout : sectionLayout;
+    const designGap = isLegacyLayout ? gap : 16;
+    const resolvedSlidesPerView = isProductPage ? 3 : slidesPerView;
 
+    // biome-ignore lint/correctness/useExhaustiveDependencies: Swiper must reset whenever its responsive layout inputs change.
     useEffect(() => {
       setIsSwiperInitialized(false);
-    }, [layout, gap, slidesPerView, itemsPerRow]);
+    }, [activeLayout, gap, slidesPerView, itemsPerRow]);
 
     useEffect(() => {
       if (!isSwiperInitialized) {
@@ -137,7 +153,9 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
     // Show placeholders if no products available
     if (!productsConnection.length) {
       const placeholderCount =
-        layout === "grid" ? Number(itemsPerRow) : slidesPerView;
+        activeLayout === "grid"
+          ? Math.max(Number(itemsPerRow), productsToShow)
+          : slidesPerView;
       productsConnection = new Array(placeholderCount)
         .fill(null)
         .map((_, index) => ({
@@ -157,17 +175,17 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
             "text-(--btn-secondary-text)",
             "bg-(--btn-secondary-bg)",
             "border-(--btn-secondary-bg)",
-            "hover:text-(--btn-secondary-text)",
-            "hover:bg-(--btn-secondary-bg)",
-            "hover:border-(--btn-secondary-bg)",
+            "hover:text-(--btn-secondary-text-hover)",
+            "hover:bg-(--btn-secondary-bg-hover)",
+            "hover:border-(--btn-secondary-bg-hover)",
           ]
         : [
             "text-(--btn-primary-text)",
             "bg-(--btn-primary-bg)",
             "border-(--btn-primary-bg)",
-            "hover:text-(--btn-primary-text)",
-            "hover:bg-(--btn-primary-bg)",
-            "hover:border-(--btn-primary-bg)",
+            "hover:text-(--btn-primary-text-hover)",
+            "hover:bg-(--btn-primary-bg-hover)",
+            "hover:border-(--btn-primary-bg-hover)",
           ];
     }, [arrowsColor]);
 
@@ -178,20 +196,56 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
       if (arrowsShape === "square") {
         return "";
       }
-      return "rounded-md";
+      return "rounded-(--radius-sm)";
     }, [arrowsShape]);
 
-    if (layout === "grid") {
+    const renderArrowControls = (classPrefix: string) => (
+      <div className="flex justify-center gap-2">
+        <button
+          type="button"
+          className={clsx(
+            `${classPrefix}-prev`,
+            "border p-4",
+            arrowColorClasses,
+            arrowShapeClasses,
+          )}
+          aria-label={t("product.previousProduct")}
+        >
+          {arrowsIcon === "caret" ? (
+            <CaretLeft size={16} />
+          ) : (
+            <ArrowLeft size={16} />
+          )}
+        </button>
+        <button
+          type="button"
+          className={clsx(
+            `${classPrefix}-next`,
+            "border p-4",
+            arrowColorClasses,
+            arrowShapeClasses,
+          )}
+          aria-label={t("product.nextProduct")}
+        >
+          {arrowsIcon === "caret" ? (
+            <CaretRight size={16} />
+          ) : (
+            <ArrowRight size={16} />
+          )}
+        </button>
+      </div>
+    );
+
+    if (activeLayout === "grid") {
       return (
         <div ref={ref} {...rest} className="relative">
-          <div className="md:hidden">
+          <div className="relative left-1/2 w-screen -translate-x-1/2 md:hidden">
             <Swiper
-              key={`swiper-grid-mobile-${gap}`}
-              slidesPerView={1.2}
-              centeredSlides={true}
-              spaceBetween={gap}
-              loop={true}
-              onSlideChange={(swiper) => setActiveSlide(swiper.activeIndex)}
+              key={`swiper-grid-mobile-${designGap}`}
+              slidesPerView="auto"
+              centeredSlides
+              spaceBetween={designGap}
+              loop={displayedProducts.length > 1}
               onSwiper={() => {
                 requestAnimationFrame(() => {
                   setIsSwiperInitialized(true);
@@ -208,7 +262,10 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
               )}
             >
               {displayedProducts.map((product) => (
-                <SwiperSlide key={product.id}>
+                <SwiperSlide
+                  key={product.id}
+                  style={{ width: "min(335px, calc(100vw - 40px))" }}
+                >
                   <div className="relative h-full">
                     <ProductCard product={product} className="h-full w-full" />
                   </div>
@@ -216,38 +273,19 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
               ))}
             </Swiper>
 
-            <div className="flex justify-center gap-2 md:hidden">
-              <button
-                type="button"
-                className={clsx(
-                  "featured-products-prev border p-4",
-                  arrowColorClasses,
-                  arrowShapeClasses,
-                )}
-                aria-label="Previous product"
-              >
-                <ArrowLeft className="" size={16} />
-              </button>
-
-              <button
-                type="button"
-                className={clsx(
-                  "featured-products-next border p-4",
-                  arrowColorClasses,
-                  arrowShapeClasses,
-                )}
-                aria-label="Next product"
-              >
-                <ArrowRight className="" size={16} />
-              </button>
-            </div>
+            {renderArrowControls("featured-products")}
           </div>
 
           <div className="hidden md:block">
             <div
               className={clsx(
                 "grid",
-                productItemsVariants({ layout, itemsPerRow, gap }),
+                productItemsVariants({
+                  layout: activeLayout,
+                  itemsPerRow,
+                  gap: designGap,
+                }),
+                "gap-y-[86px]",
               )}
             >
               {displayedProducts.map((product) => (
@@ -260,9 +298,9 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
             </div>
 
             {hasMoreProducts && (
-              <div className="mt-8 flex justify-center">
+              <div className="mt-16 flex justify-center">
                 <Link to="/products" variant="outline" className="uppercase">
-                  See More Products
+                  {t("product.seeMoreProducts")}
                 </Link>
               </div>
             )}
@@ -273,83 +311,63 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
 
     return (
       <div ref={ref} {...rest} className="relative">
-        <Swiper
-          key={`swiper-carousel-${slidesPerView}-${gap}`}
-          slidesPerView={1}
-          spaceBetween={gap * 2}
-          onSlideChange={(swiper) => {
-            setActiveSlide(swiper.activeIndex);
-            setIsBeginning(swiper.isBeginning);
-            setIsEnd(swiper.isEnd);
-          }}
-          onSwiper={(swiper) => {
-            setIsBeginning(swiper.isBeginning);
-            setIsEnd(swiper.isEnd);
-            requestAnimationFrame(() => {
-              setIsSwiperInitialized(true);
-            });
-          }}
-          breakpoints={{
-            640: {
-              slidesPerView: Math.min(2, slidesPerView || 4),
-              spaceBetween: gap * 2,
-            },
-            768: {
-              slidesPerView: Math.min(3, slidesPerView || 4),
-              spaceBetween: gap * 2.5,
-            },
-            1024: {
-              slidesPerView: slidesPerView || 4,
-              spaceBetween: gap * 3,
-            },
-          }}
-          navigation={{
-            nextEl: ".featured-products-next",
-            prevEl: ".featured-products-prev",
-          }}
-          modules={[Navigation]}
-          className={clsx(
-            "mb-6 w-full py-4 transition-opacity duration-300",
-            isSwiperInitialized ? "opacity-100" : "opacity-0",
-          )}
-        >
-          {displayedProducts.map((product, index) => (
-            <SwiperSlide key={index}>
-              <div className="relative h-full">
-                <ProductCard product={product} className="h-full" />
-              </div>
-            </SwiperSlide>
-          ))}
-        </Swiper>
-
-        <div className="flex justify-center gap-2">
-          <button
-            type="button"
-            disabled={isBeginning}
+        <div className="relative left-1/2 w-screen -translate-x-1/2 md:hidden">
+          <Swiper
+            key={`swiper-carousel-mobile-${designGap}`}
+            slidesPerView="auto"
+            spaceBetween={designGap}
+            slidesOffsetBefore={8}
+            slidesOffsetAfter={8}
+            navigation={{
+              nextEl: ".featured-products-carousel-mobile-next",
+              prevEl: ".featured-products-carousel-mobile-prev",
+            }}
+            modules={[Navigation]}
             className={clsx(
-              "featured-products-prev border p-4",
-              arrowColorClasses,
-              arrowShapeClasses,
-              isBeginning ? "cursor-not-allowed opacity-50" : "opacity-100",
+              "mb-6 w-full py-4 transition-opacity duration-300",
+              isSwiperInitialized ? "opacity-100" : "opacity-0",
             )}
-            aria-label="Previous product"
+            onSwiper={() => {
+              requestAnimationFrame(() => setIsSwiperInitialized(true));
+            }}
           >
-            <ArrowLeft className="" size={16} />
-          </button>
+            {displayedProducts.map((product) => (
+              <SwiperSlide
+                key={product.id}
+                style={{ width: "min(335px, calc(100vw - 40px))" }}
+              >
+                <ProductCard product={product} className="h-full w-full" />
+              </SwiperSlide>
+            ))}
+          </Swiper>
+          {renderArrowControls("featured-products-carousel-mobile")}
+        </div>
 
-          <button
-            type="button"
-            disabled={isEnd}
+        <div className="hidden md:block">
+          <Swiper
+            key={`swiper-carousel-desktop-${resolvedSlidesPerView}-${designGap}`}
+            slidesPerView={resolvedSlidesPerView || 3}
+            spaceBetween={designGap}
+            navigation={{
+              nextEl: ".featured-products-carousel-desktop-next",
+              prevEl: ".featured-products-carousel-desktop-prev",
+            }}
+            modules={[Navigation]}
             className={clsx(
-              "featured-products-next border p-4",
-              arrowColorClasses,
-              arrowShapeClasses,
-              isEnd ? "cursor-not-allowed opacity-50" : "opacity-100",
+              "mb-6 w-full py-4 transition-opacity duration-300",
+              isSwiperInitialized ? "opacity-100" : "opacity-0",
             )}
-            aria-label="Next product"
+            onSwiper={() => {
+              requestAnimationFrame(() => setIsSwiperInitialized(true));
+            }}
           >
-            <ArrowRight className="" size={16} />
-          </button>
+            {displayedProducts.map((product) => (
+              <SwiperSlide key={product.id}>
+                <ProductCard product={product} className="h-full w-full" />
+              </SwiperSlide>
+            ))}
+          </Swiper>
+          {renderArrowControls("featured-products-carousel-desktop")}
         </div>
       </div>
     );
@@ -474,7 +492,7 @@ export const loader = async ({ weaverse, data }: ComponentLoaderArgs) => {
 
 export const schema = createSchema({
   type: "featured-products-items",
-  title: "Product items",
+  title: "Products",
   settings: [
     {
       group: "Layout",
@@ -485,33 +503,20 @@ export const schema = createSchema({
           label: "Collection",
         },
         {
-          type: "select",
-          name: "layout",
-          label: "Display mode",
-          configs: {
-            options: [
-              { value: "carousel", label: "Carousel" },
-              { value: "grid", label: "Grid" },
-            ],
-          },
-          defaultValue: "carousel",
-        },
-        {
           type: "range",
           name: "slidesPerView",
-          label: "Products per view (Desktop)",
+          label: "Scenario 1: products per view (desktop)",
           configs: {
             min: 1,
             max: 6,
             step: 1,
           },
-          defaultValue: 4,
-          condition: (data) => data.layout === "carousel",
+          defaultValue: 3,
         },
         {
           type: "select",
           name: "itemsPerRow",
-          label: "Products per row (Desktop)",
+          label: "Scenario 2: products per row (desktop)",
           configs: {
             options: [
               { value: "2", label: "2" },
@@ -520,8 +525,7 @@ export const schema = createSchema({
               { value: "5", label: "5" },
             ],
           },
-          defaultValue: "4",
-          condition: (data) => data.layout === "grid",
+          defaultValue: "2",
         },
         {
           type: "range",
@@ -543,7 +547,7 @@ export const schema = createSchema({
             max: 12,
             step: 1,
           },
-          defaultValue: 8,
+          defaultValue: 4,
           helpText:
             "Maximum number of products to display. If more products are available, a 'See More Products' button will appear.",
         },
@@ -552,6 +556,18 @@ export const schema = createSchema({
     {
       group: "Arrows",
       inputs: [
+        {
+          type: "select",
+          label: "Arrow icon",
+          name: "arrowsIcon",
+          configs: {
+            options: [
+              { value: "caret", label: "Caret" },
+              { value: "arrow", label: "Arrow" },
+            ],
+          },
+          defaultValue: "arrow",
+        },
         {
           type: "select",
           label: "Arrows color",
@@ -563,7 +579,6 @@ export const schema = createSchema({
             ],
           },
           defaultValue: "primary",
-          condition: (data: ProductItemsProps) => data.layout === "carousel",
         },
         {
           type: "toggle-group",
@@ -577,9 +592,18 @@ export const schema = createSchema({
             ],
           },
           defaultValue: "rounded-sm",
-          condition: (data: ProductItemsProps) => data.layout === "carousel",
         },
       ],
     },
   ],
+  presets: {
+    layout: "grid",
+    slidesPerView: 3,
+    itemsPerRow: "2",
+    gap: 16,
+    productsToShow: 4,
+    arrowsColor: "secondary",
+    arrowsShape: "rounded-sm",
+    arrowsIcon: "arrow",
+  },
 });

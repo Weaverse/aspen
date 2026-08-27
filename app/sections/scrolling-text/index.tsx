@@ -140,9 +140,12 @@ const ScrollingText = forwardRef<HTMLElement, ScrollingProps>((props, ref) => {
                 className="inline-flex h-full w-full items-center justify-center"
               />
             ) : (
+              // biome-ignore lint/performance/noImgElement: The section accepts arbitrary icon URLs, not Shopify image objects.
               <img
                 src={icons[0].content}
-                alt="icon"
+                alt=""
+                width={iconSize}
+                height={iconSize}
                 className="h-full w-full object-contain"
               />
             )}
@@ -169,7 +172,7 @@ const ScrollingText = forwardRef<HTMLElement, ScrollingProps>((props, ref) => {
               return (
                 <li
                   key={`${startKey}-${i}`}
-                  className="ff-heading animate-marquee whitespace-nowrap pr-[var(--gap)] font-medium text-[var(--text-color)]"
+                  className="ff-heading animate-marquee whitespace-nowrap pr-[var(--gap)] font-normal tracking-[-0.02em] text-[var(--text-color)]"
                   style={{
                     fontSize: `${textSize}px`,
                   }}
@@ -191,9 +194,12 @@ const ScrollingText = forwardRef<HTMLElement, ScrollingProps>((props, ref) => {
                           className="inline-flex h-full w-full items-center justify-center"
                         />
                       ) : (
+                        // biome-ignore lint/performance/noImgElement: The section accepts arbitrary icon URLs, not Shopify image objects.
                         <img
                           src={currentIcon.content}
-                          alt="icon"
+                          alt=""
+                          width={iconSize}
+                          height={iconSize}
                           className="h-full w-full object-contain"
                         />
                       )}
@@ -272,9 +278,10 @@ export let schema: HydrogenComponentSchema = {
               { label: "S", value: "16" },
               { label: "M", value: "18" },
               { label: "L", value: "20" },
+              { label: "XL", value: "32" },
             ],
           },
-          defaultValue: "16",
+          defaultValue: "32",
         },
         {
           type: "color",
@@ -309,7 +316,7 @@ export let schema: HydrogenComponentSchema = {
           type: "range",
           name: "verticalPadding",
           label: "Vertical padding",
-          defaultValue: 10,
+          defaultValue: 24,
           configs: {
             min: 0,
             max: 30,

@@ -1,4 +1,3 @@
-import { ArrowRight } from "@phosphor-icons/react";
 import {
   createSchema,
   type HydrogenComponentProps,
@@ -14,9 +13,13 @@ import {
 } from "react-router";
 import type { RootLoader } from "~/root";
 import { cn } from "~/utils/cn";
+import { prefixPathWithLocale } from "~/utils/locale";
 
 export const variants = cva(
-  ["button inline-flex leading-none transition-colors"],
+  [
+    "button inline-flex items-center justify-center rounded-(--radius-sm) leading-none transition-colors",
+    "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-text)",
+  ],
   {
     variants: {
       variant: {
@@ -37,7 +40,7 @@ export const variants = cva(
         outline: [
           "border px-6 py-5",
           "text-(--btn-outline-text)",
-          "bg-transparent",
+          "bg-(--btn-outline-background)",
           "border-(--btn-outline-border)",
           "hover:text-(--btn-outline-text-hover)",
           "hover:bg-(--btn-outline-background-hover)",
@@ -46,6 +49,7 @@ export const variants = cva(
         decor: [
           "border-none bg-transparent p-0",
           "group inline-flex items-center gap-1 text-(--btn-text-decor)",
+          "font-semibold tracking-[0.02em]",
         ],
         custom: [
           "border px-6 py-5",
@@ -94,16 +98,9 @@ export function useHrefWithLocale(href: LinkProps["to"]) {
   const rootData = useRouteLoaderData<RootLoader>("root");
   const selectedLocale = rootData?.selectedLocale;
 
-  let toWithLocale = href;
-  if (
-    typeof toWithLocale === "string" &&
-    selectedLocale?.pathPrefix &&
-    !toWithLocale.toLowerCase().startsWith(selectedLocale.pathPrefix)
-  ) {
-    toWithLocale = `${selectedLocale.pathPrefix}${href}`;
-  }
-
-  return toWithLocale;
+  return typeof href === "string" && selectedLocale
+    ? prefixPathWithLocale(href, selectedLocale)
+    : href;
 }
 
 /**
@@ -223,7 +220,7 @@ export const linkContentInputs: InspectorGroup["inputs"] = [
     name: "openInNewTab",
     label: "Open in new tab",
     defaultValue: false,
-    condition: (data: LinkData) => !!data.to,
+    condition: (data: LinkData) => Boolean(data.to),
   },
   {
     type: "select",

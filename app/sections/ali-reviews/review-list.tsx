@@ -2,6 +2,7 @@ import {
   createSchema,
   type HydrogenComponentProps,
   useParentInstance,
+  useTranslation,
 } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
 import { StarRating } from "~/components/star-rating";
@@ -22,6 +23,7 @@ const ReviewList = forwardRef<
   HTMLDivElement,
   AliReviewsData & HydrogenComponentProps
 >((props, ref) => {
+  const { t } = useTranslation();
   const {
     children,
     showAvgRating,
@@ -64,7 +66,7 @@ const ReviewList = forwardRef<
               <StarRating rating={avgRating} />
               {showReviewsCount && (
                 <div className="font-medium text-gray-500 text-sm leading-none">
-                  {totalReviews} reviews
+                  {t("reviews.count", { count: totalReviews })}
                 </div>
               )}
             </div>
@@ -104,7 +106,7 @@ const ReviewList = forwardRef<
   }
   return (
     <div ref={ref} {...rest}>
-      <div className="p-8 text-center">No reviews available</div>
+      <div className="p-8 text-center">{t("reviews.noneAvailable")}</div>
     </div>
   );
 });

@@ -1,173 +1,115 @@
 import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
+import { useTranslation } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
-import clsx from "clsx";
 import type React from "react";
 import { useSwiper } from "swiper/react";
+import { cn } from "~/utils/cn";
 
-const variants = cva(
+const buttonVariants = cva(
   [
-    "hidden md:block",
-    "-translate-y-1/2 absolute bottom-0 z-1",
-    "cursor-pointer p-4 text-center",
-    "border border-transparent",
-    "transition-all duration-200",
+    "flex size-12 cursor-pointer items-center justify-center border",
+    "transition-colors duration-200",
   ],
   {
     variants: {
       arrowsColor: {
         primary: [
+          "border-(--btn-primary-bg) bg-(--btn-primary-bg)",
           "text-(--btn-primary-text)",
-          "bg-(--btn-primary-bg)",
-          "border-(--btn-primary-bg)",
-          "hover:text-(--btn-primary-text)",
-          "hover:bg-(--btn-primary-bg)",
-          "hover:border-(--btn-primary-bg)",
+          "hover:bg-(--btn-primary-bg-hover)",
+          "hover:text-(--btn-primary-text-hover)",
         ],
         secondary: [
-          "text-(--btn-secondary-text)",
-          "bg-(--btn-secondary-bg)",
-          "border-(--btn-secondary-bg)",
-          "hover:text-(--btn-secondary-text)",
-          "hover:bg-(--btn-secondary-bg)",
-          "hover:border-(--btn-secondary-bg)",
+          "border-transparent bg-white text-[#343231]",
+          "hover:bg-white/80 hover:text-[#343231]",
         ],
       },
       arrowsShape: {
         square: "",
-        rounded: "rounded-md",
+        "rounded-sm": "rounded-(--radius-md)",
         circle: "rounded-full",
       },
-      disabled: {
-        true: "cursor-not-allowed opacity-75",
-        false: "",
-      },
-      showArrowsOnHover: { true: "", false: "" },
-      side: { left: "", right: "" },
     },
-    compoundVariants: [
-      {
-        showArrowsOnHover: true,
-        side: "left",
-        className: "-left-12 group-hover:left-6",
-      },
-      {
-        showArrowsOnHover: false,
-        side: "left",
-        className: "left-6",
-      },
-      {
-        showArrowsOnHover: true,
-        side: "right",
-        className: "-right-12 group-hover:right-6",
-      },
-      {
-        showArrowsOnHover: false,
-        side: "right",
-        className: "right-6",
-      },
-    ],
   },
 );
 
-export interface SlideshowArrowsProps extends VariantProps<typeof variants> {
+export interface SlideshowArrowsProps
+  extends VariantProps<typeof buttonVariants> {
   arrowsIcon: "caret" | "arrow";
   iconSize: number;
   showArrowsOnHover: boolean;
 }
 
 export function Arrows(props: SlideshowArrowsProps) {
+  const { t } = useTranslation();
   const { arrowsIcon, iconSize, arrowsColor, showArrowsOnHover, arrowsShape } =
     props;
   const swiper = useSwiper();
 
-  const handlePrevClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const currentIndex = swiper.activeIndex;
-    const totalSlides = swiper.slides.length;
-    if (currentIndex > 0) {
-      swiper.slideTo(currentIndex - 1);
-    } else {
-      // Loop to last slide
-      swiper.slideTo(totalSlides - 1);
-    }
+  const handlePrevClick = (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    swiper.slidePrev();
   };
 
-  const handleNextClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const currentIndex = swiper.activeIndex;
-    const totalSlides = swiper.slides.length;
-    if (currentIndex < totalSlides - 1) {
-      swiper.slideTo(currentIndex + 1);
-    } else {
-      // Loop to first slide
-      swiper.slideTo(0);
+  const handleNextClick = (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    swiper.slideNext();
+  };
+
+  const renderArrow = (direction: "left" | "right") => {
+    if (arrowsIcon === "caret") {
+      const Icon = direction === "left" ? CaretLeftIcon : CaretRightIcon;
+      return <Icon style={{ width: iconSize, height: iconSize }} />;
     }
+
+    return (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 16 16"
+        width={iconSize}
+        height={iconSize}
+        fill="currentColor"
+        aria-hidden="true"
+      >
+        <path
+          d="M4.75397 12.207L5.46106 11.4999L2.46116 8.50003L15.5 8.50003V7.5L2.46125 7.5L5.46106 4.50019L4.75397 3.7931L0.546938 8.00006L4.75397 12.207Z"
+          transform={
+            direction === "right" ? "translate(16,0) scale(-1,1)" : undefined
+          }
+        />
+      </svg>
+    );
   };
 
   return (
-    <>
-      <button
-        type="button"
-        className={clsx(
-          "slideshow-arrow-prev-custom",
-          variants({
-            arrowsColor,
-            arrowsShape,
-            showArrowsOnHover,
-            disabled: false,
-            side: "left",
-          }),
-        )}
-        onClick={handlePrevClick}
-      >
-        {arrowsIcon === "caret" ? (
-          <CaretLeftIcon style={{ width: iconSize, height: iconSize }} />
-        ) : (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 16 16"
-            width={iconSize}
-            height={iconSize}
-            fill="currentColor"
-          >
-            <path d="M4.75397 12.207L5.46106 11.4999L2.46116 8.50003L15.5 8.50003V7.5L2.46125 7.5L5.46106 4.50019L4.75397 3.7931L0.546938 8.00006L4.75397 12.207Z" />
-          </svg>
-        )}
-      </button>
-      <button
-        type="button"
-        className={clsx(
-          "slideshow-arrow-next-custom",
-          variants({
-            arrowsColor,
-            arrowsShape,
-            showArrowsOnHover,
-            disabled: false,
-            side: "right",
-          }),
-        )}
-        onClick={handleNextClick}
-      >
-        {arrowsIcon === "caret" ? (
-          <CaretRightIcon style={{ width: iconSize, height: iconSize }} />
-        ) : (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 16 16"
-            width={iconSize}
-            height={iconSize}
-            fill="currentColor"
-          >
-            <path
-              d="M4.75397 12.207L5.46106 11.4999L2.46116 8.50003L15.5 8.50003V7.5L2.46125 7.5L5.46106 4.50019L4.75397 3.7931L0.546938 8.00006L4.75397 12.207Z"
-              transform="translate(16,0) scale(-1,1)"
-            />
-          </svg>
-        )}
-      </button>
-    </>
+    <div
+      className={cn(
+        "pointer-events-none absolute inset-x-0 bottom-[53px] z-2 md:bottom-[51px]",
+        "transition-opacity duration-200",
+        showArrowsOnHover && "opacity-0 group-hover:opacity-100",
+      )}
+    >
+      <div className="pointer-events-auto mx-auto flex w-full max-w-(--page-width) justify-end gap-4 px-8 md:px-(--page-padding) 2xl:translate-x-1 2xl:px-0">
+        <button
+          type="button"
+          className={cn(buttonVariants({ arrowsColor, arrowsShape }))}
+          onClick={handlePrevClick}
+          aria-label={t("carousel.previousSlide")}
+        >
+          {renderArrow("left")}
+        </button>
+        <button
+          type="button"
+          className={cn(buttonVariants({ arrowsColor, arrowsShape }))}
+          onClick={handleNextClick}
+          aria-label={t("carousel.nextSlide")}
+        >
+          {renderArrow("right")}
+        </button>
+      </div>
+    </div>
   );
 }

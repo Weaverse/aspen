@@ -1,24 +1,36 @@
-import { CaretDown, TrashIcon, X } from "@phosphor-icons/react";
+import { CaretDown, Tag, X } from "@phosphor-icons/react";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as Select from "@radix-ui/react-select";
 import {
   CartForm,
   Money,
   type OptimisticCart,
-  OptimisticInput,
   useOptimisticCart,
   useOptimisticData,
 } from "@shopify/hydrogen";
-import type { Cart as CartType } from "@shopify/hydrogen/storefront-api-types";
-import { useThemeSettings } from "@weaverse/hydrogen";
+import { useThemeSettings, useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
-import { useEffect, useRef, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from "react";
+import { Form, useFetcher } from "react-router";
 import useScroll from "react-use/esm/useScroll";
 import type { CartApiQueryFragment } from "storefront-api.generated";
 import { Button } from "~/components/button";
+import { CART_CODE_APPLY_ACTION } from "~/components/cart/cart-actions";
+import { syncCartState } from "~/components/cart/cart-state-provider";
 import { Image } from "~/components/image";
 import { Link } from "~/components/link";
+import { LoyaltyPointsHint } from "~/components/loyalty/loyalty-points-hint";
 import { SubscriptionLineItem } from "~/components/subscriptions/subscription-line-item";
+import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
+import { getCartMutationError } from "~/utils/cart-error";
 import { calculateAspectRatio } from "~/utils/image";
 import { toggleCartDrawer } from "../layout/cart-drawer";
 import { CartBestSellers } from "./cart-best-sellers";
@@ -30,6 +42,39 @@ import {
 
 type CartLine = OptimisticCart<CartApiQueryFragment>["lines"]["nodes"][0];
 type Layouts = "page" | "drawer";
+type OptimisticData = {
+  action?: string;
+  quantity?: number;
+};
+
+type CartMutationResponse = {
+  cart?: CartApiQueryFragment | null;
+  errors?: Array<{ message?: string }>;
+  userErrors?: Array<{ message?: string }>;
+};
+
+type CartMutationContextValue = {
+  errorMessage: string | null;
+  isPending: boolean;
+  pendingIdentifier: string | null;
+  submitMutation: (
+    action: string,
+    inputs: Record<string, unknown>,
+    optimistic?: { id: string; data: OptimisticData },
+  ) => void;
+};
+
+const CartMutationContext = createContext<CartMutationContextValue | null>(
+  null,
+);
+
+function useCartMutation() {
+  const context = useContext(CartMutationContext);
+  if (!context) {
+    throw new Error("useCartMutation must be used within Cart");
+  }
+  return context;
+}
 
 export function Cart({
   layout,
@@ -40,14 +85,86 @@ export function Cart({
   onClose?: () => void;
   cart: CartApiQueryFragment;
 }) {
+  const { t } = useTranslation();
+  const cartRoute = usePrefixPathWithLocale("/cart");
+  const mutationFetcher = useFetcher<CartMutationResponse>({
+    key: `cart-${layout}-line-mutation`,
+  });
+  const handledMutationResponse = useRef<unknown>(null);
+  const mutationInFlight = useRef(false);
+  const [pendingIdentifier, setPendingIdentifier] = useState<string | null>(
+    null,
+  );
   const cart = useOptimisticCart<CartApiQueryFragment>(originalCart);
   const linesCount = Boolean(cart?.lines?.nodes?.length || 0);
-  const cartHasItems = !!cart && cart.totalQuantity > 0;
+  const cartHasItems = Boolean(cart) && cart.totalQuantity > 0;
+  const errorMessage = getCartMutationError(mutationFetcher.data, t);
 
-  if (cartHasItems) {
-    return <CartDetails cart={cart} layout={layout} />;
-  }
-  return <CartEmpty hidden={linesCount} onClose={onClose} layout={layout} />;
+  useEffect(() => {
+    const response = mutationFetcher.data;
+    if (mutationFetcher.state !== "idle") {
+      return;
+    }
+
+    mutationInFlight.current = false;
+    setPendingIdentifier(null);
+    if (!response || handledMutationResponse.current === response) {
+      return;
+    }
+
+    handledMutationResponse.current = response;
+    if (
+      response.cart &&
+      !response.userErrors?.length &&
+      !response.errors?.length
+    ) {
+      syncCartState(response.cart);
+    }
+  }, [mutationFetcher.data, mutationFetcher.state]);
+
+  const submitMutation = useCallback(
+    (
+      action: string,
+      inputs: Record<string, unknown>,
+      optimistic?: { id: string; data: OptimisticData },
+    ) => {
+      if (mutationInFlight.current) {
+        return;
+      }
+
+      mutationInFlight.current = true;
+      const formData = new FormData();
+      formData.set(CartForm.INPUT_NAME, JSON.stringify({ action, inputs }));
+      if (optimistic) {
+        formData.set("optimistic-identifier", optimistic.id);
+        formData.set("optimistic-data", JSON.stringify(optimistic.data));
+      }
+
+      setPendingIdentifier(optimistic?.id ?? null);
+      mutationFetcher.submit(formData, {
+        action: cartRoute,
+        method: "post",
+      });
+    },
+    [cartRoute, mutationFetcher],
+  );
+
+  const mutationContext: CartMutationContextValue = {
+    errorMessage,
+    isPending: mutationFetcher.state !== "idle" || pendingIdentifier !== null,
+    pendingIdentifier,
+    submitMutation,
+  };
+
+  return (
+    <CartMutationContext.Provider value={mutationContext}>
+      {cartHasItems ? (
+        <CartDetails cart={cart} layout={layout} />
+      ) : (
+        <CartEmpty hidden={linesCount} onClose={onClose} layout={layout} />
+      )}
+    </CartMutationContext.Provider>
+  );
 }
 
 // Dialog wrapper components with state management
@@ -69,7 +186,7 @@ function CartNoteDialogWrapper({
           type="button"
           className={clsx(
             layout === "page" ? "bg-white" : "bg-[#F0EFED]",
-            "px-3 py-2",
+            "rounded-md px-3 py-2 text-sm",
           )}
         >
           {cartNoteButtonText}
@@ -103,7 +220,7 @@ function DiscountCodeDialogWrapper({
           type="button"
           className={clsx(
             layout === "page" ? "bg-white" : "bg-[#F0EFED]",
-            "px-3 py-2",
+            "rounded-md px-3 py-2 text-sm",
           )}
         >
           {discountCodeButtonText}
@@ -120,11 +237,9 @@ function DiscountCodeDialogWrapper({
 }
 
 function GiftCardDialogWrapper({
-  appliedGiftCards,
   giftCardButtonText,
   layout,
 }: {
-  appliedGiftCards: CartApiQueryFragment["appliedGiftCards"];
   giftCardButtonText: string;
   layout: Layouts;
 }) {
@@ -137,14 +252,13 @@ function GiftCardDialogWrapper({
           type="button"
           className={clsx(
             layout === "page" ? "bg-white" : "bg-[#F0EFED]",
-            "px-3 py-2",
+            "rounded-md px-3 py-2 text-sm",
           )}
         >
           {giftCardButtonText}
         </button>
       </Dialog.Trigger>
       <GiftCardDialog
-        appliedGiftCards={appliedGiftCards}
         open={open}
         onClose={() => setOpen(false)}
         layout={layout}
@@ -160,6 +274,7 @@ function CartDetails({
   layout: Layouts;
   cart: OptimisticCart<CartApiQueryFragment>;
 }) {
+  const { t } = useTranslation();
   let {
     enableFreeShipping,
     enableCartNote,
@@ -171,191 +286,228 @@ function CartDetails({
   } = useThemeSettings();
 
   const { note, discountCodes, appliedGiftCards, isOptimistic } = cart;
+  const { errorMessage } = useCartMutation();
 
-  // const isCartUpdating =
-  //   isOptimistic ||
-  //   dcRemoveFetcher.state !== "idle" ||
-  //   gcRemoveFetcher.state !== "idle";
+  const mutationError = errorMessage ? (
+    <p className="bg-red-50 p-3 text-red-700 text-sm" role="alert">
+      {errorMessage}
+    </p>
+  ) : null;
+
+  const summaryActions = (enableCartNote ||
+    enableDiscountCode ||
+    enableGiftCard) && (
+    <div className="flex flex-wrap items-center gap-2">
+      {enableCartNote && (
+        <CartNoteDialogWrapper
+          cartNote={note}
+          layout={layout}
+          cartNoteButtonText={cartNoteButtonText || "Add a note"}
+        />
+      )}
+      {enableDiscountCode && (
+        <DiscountCodeDialogWrapper
+          discountCodes={discountCodes}
+          layout={layout}
+          discountCodeButtonText={discountCodeButtonText || "Discount code"}
+        />
+      )}
+      {enableGiftCard && (
+        <GiftCardDialogWrapper
+          layout={layout}
+          giftCardButtonText={giftCardButtonText || "Giftcard"}
+        />
+      )}
+    </div>
+  );
+
+  if (layout === "drawer") {
+    return (
+      <div className="flex min-h-0 flex-1 flex-col">
+        {enableFreeShipping && <CartProgression cost={cart.cost} />}
+        <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_auto] px-5">
+          <div className="overflow-y-auto pr-2 pb-5">
+            {mutationError}
+            <CartLines
+              discountCodes={discountCodes}
+              lines={cart.lines.nodes}
+              layout={layout}
+            />
+          </div>
+          <CartSummary layout={layout}>
+            <AppliedCartCodes
+              appliedGiftCards={appliedGiftCards}
+              discountCodes={discountCodes}
+              layout={layout}
+            />
+            <div className="flex items-center justify-between font-medium">
+              <span>{t("cart.subtotal")}</span>
+              <span>
+                {isOptimistic ? (
+                  <PriceLoadingSpinner />
+                ) : cart.cost?.subtotalAmount?.amount ? (
+                  <Money data={cart.cost.subtotalAmount} />
+                ) : (
+                  "-"
+                )}
+              </span>
+            </div>
+            <p className="text-[#918379] text-sm">
+              {t("cart.shippingTaxesCheckout")}
+            </p>
+            <LoyaltyPointsHint amount={cart.cost?.subtotalAmount?.amount} />
+            {summaryActions}
+            <CartCheckoutActions
+              checkoutUrl={cart.checkoutUrl}
+              layout={layout}
+            />
+          </CartSummary>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <>
-      {layout === "drawer" && enableFreeShipping && (
-        <CartProgression cost={cart.cost} />
-      )}
-      <div
-        className={clsx(
-          layout === "drawer" && [
-            "grid grid-cols-1 grid-rows-[1fr_auto] px-4",
-            enableFreeShipping ? "h-[calc(100vh-100px)]" : "h-[100vh]",
-          ],
-          layout === "page" && ["flex flex-col gap-10 lg:flex-row lg:gap-5"],
-        )}
-      >
-        <div
-          className={clsx(
-            layout === "drawer"
-              ? `max-h-full overflow-y-auto pr-3 ${
-                  enableFreeShipping ? "pb-5" : "pb-16"
-                }`
-              : "w-full lg:w-2/3",
-          )}
-        >
-          <CartLines lines={cart?.lines?.nodes} layout={layout} />
+    <div className="space-y-4">
+      {mutationError}
+      <div className="grid gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)] lg:items-start lg:gap-5 min-[1440px]:grid-cols-[900px_440px]">
+        <div className="w-full">
+          <CartLines
+            discountCodes={discountCodes}
+            lines={cart.lines.nodes}
+            layout={layout}
+          />
         </div>
-        <CartSummary
-          cost={cart.cost}
-          layout={layout}
-          isOptimistic={isOptimistic}
-        >
-          {(enableCartNote || enableDiscountCode || enableGiftCard) && (
-            <div className="mb-4 flex items-center justify-end gap-2">
-              {enableCartNote && (
-                <CartNoteDialogWrapper
-                  cartNote={note}
-                  layout={layout}
-                  cartNoteButtonText={cartNoteButtonText || "Add a note"}
-                />
-              )}
-              {enableDiscountCode && (
-                <DiscountCodeDialogWrapper
-                  discountCodes={discountCodes}
-                  layout={layout}
-                  discountCodeButtonText={
-                    discountCodeButtonText || "Discount code"
-                  }
-                />
-              )}
-              {enableGiftCard && (
-                <GiftCardDialogWrapper
-                  layout={layout}
-                  appliedGiftCards={appliedGiftCards}
-                  giftCardButtonText={giftCardButtonText || "Giftcard"}
-                />
-              )}
-            </div>
-          )}
-          {/* <CartDiscounts discountCodes={cart.discountCodes} /> */}
-          {layout === "page" && (
-            <>
-              <div className="flex flex-col gap-6 border-line-subtle border-y py-6">
-                <div className="flex items-center justify-between font-medium">
-                  <span className="font-normal">Subtotal</span>
-                  <span className="font-normal">
-                    {isOptimistic ? (
-                      <PriceLoadingSpinner />
-                    ) : cart?.cost?.subtotalAmount?.amount ? (
-                      <Money data={cart?.cost?.subtotalAmount} />
-                    ) : (
-                      "-"
-                    )}
-                  </span>
-                </div>
-                <span className="font-normal text-[#918379]">
-                  Shipping & taxes calculated at checkout
-                </span>
-              </div>
-              <div className="flex items-center justify-between font-medium">
-                <span className="font-semibold">Total</span>
-                <span className="font-semibold">
-                  {isOptimistic ? (
-                    <PriceLoadingSpinner />
-                  ) : cart?.cost?.totalAmount?.amount ? (
-                    <Money data={cart?.cost?.totalAmount} />
-                  ) : (
-                    "-"
-                  )}
-                </span>
-              </div>
-            </>
-          )}
+        <CartSummary layout={layout}>
+          <CartDiscounts
+            appliedGiftCards={appliedGiftCards}
+            discountCodes={discountCodes}
+          />
+          <CartPageTotals cart={cart} isOptimistic={isOptimistic} />
           <CartCheckoutActions checkoutUrl={cart.checkoutUrl} layout={layout} />
         </CartSummary>
       </div>
-    </>
+    </div>
   );
 }
 
 function CartProgression({ cost }: { cost: CartApiQueryFragment["cost"] }) {
+  const { t } = useTranslation();
   let { freeShippingThreshold } = useThemeSettings();
 
   let subtotal = Number.parseFloat(cost?.subtotalAmount?.amount || "0");
-  let threshold = Number.parseFloat(freeShippingThreshold || "100");
+  const configuredThreshold = Number.parseFloat(freeShippingThreshold || "100");
+  let threshold =
+    Number.isFinite(configuredThreshold) && configuredThreshold > 0
+      ? configuredThreshold
+      : 100;
   let progress = Math.min((subtotal / threshold) * 100, 100);
   let amountRemaining = Math.max(threshold - subtotal, 0);
+  const amountToken = "__CART_AMOUNT__";
+  const [freeShippingPrefix, freeShippingSuffix] = t(
+    "cart.freeShippingRemaining",
+    { amount: amountToken },
+  ).split(amountToken);
   return (
-    <div className="flex w-full flex-col gap-2 rounded-lg px-6">
+    <div className="flex w-full flex-col gap-2 px-5 pb-2">
       <div className="relative h-1 w-full overflow-hidden rounded-full bg-[#F2F0EE]">
         <div
           className="h-full bg-[#A79D95] transition-all duration-300"
           style={{ width: `${progress}%` }}
         />
       </div>
-      <p className="mb-2 text-gray-700 text-sm">
+      <p className="text-sm">
         {amountRemaining > 0 ? (
           <>
-            You're <b>${amountRemaining.toFixed(2)}</b> away from free shipping!
+            {freeShippingPrefix}
+            <b>
+              <Money
+                withoutTrailingZeros
+                data={{
+                  amount: amountRemaining.toString(),
+                  currencyCode: cost.subtotalAmount.currencyCode,
+                }}
+              />
+            </b>
+            {freeShippingSuffix}
           </>
         ) : (
-          "🎉 Congrats! You have free shipping!"
+          t("cart.freeShippingUnlocked")
         )}
       </p>
     </div>
   );
 }
 
-/**
- * Temporary discount UI
- * @param discountCodes the current discount codes applied to the cart
- * @todo rework when a design is ready
- */
 function CartDiscounts({
   discountCodes,
+  appliedGiftCards,
 }: {
-  discountCodes: CartType["discountCodes"];
+  discountCodes: CartApiQueryFragment["discountCodes"];
+  appliedGiftCards: CartApiQueryFragment["appliedGiftCards"];
 }) {
-  const codes: string[] =
-    discountCodes
-      ?.filter((discount) => discount.applicable)
-      ?.map(({ code }) => code) || [];
+  return (
+    <div className="space-y-3">
+      <CartCodeForm />
+      <AppliedCartCodes
+        appliedGiftCards={appliedGiftCards}
+        discountCodes={discountCodes}
+        layout="page"
+      />
+    </div>
+  );
+}
+
+function CartCodeForm() {
+  const { t } = useTranslation();
+  const cartRoute = usePrefixPathWithLocale("/cart");
+  const fetcher = useFetcher<{
+    cartCodeApplied?: boolean;
+    errors?: Array<{ message?: string }>;
+    userErrors?: Array<{ message?: string }>;
+  }>({ key: "cart-code-apply" });
+  const errorMessage =
+    getCartMutationError(fetcher.data, t) ||
+    (fetcher.data?.cartCodeApplied === false ? t("cart.invalidCode") : null);
 
   return (
-    <>
-      {/* Have existing discount, display it with a remove option */}
-      <dl className={codes && codes.length !== 0 ? "grid" : "hidden"}>
-        <div className="flex items-center justify-between font-medium">
-          <dt>Discount(s)</dt>
-          <div className="flex items-center justify-between">
-            <UpdateDiscountForm>
-              <button type="button">
-                <TrashIcon
-                  aria-hidden="true"
-                  className="mr-1 h-[18px] w-[18px]"
-                />
-              </button>
-            </UpdateDiscountForm>
-            <dd>{codes?.join(", ")}</dd>
-          </div>
-        </div>
-      </dl>
-
-      {/* Show an input to apply a discount */}
-      <UpdateDiscountForm discountCodes={codes}>
-        <div className="flex items-center gap-3">
-          <input
-            className="h-[54px] grow rounded-none border border-line bg-white px-4 py-5 leading-tight!"
-            type="text"
-            name="discountCode"
-            placeholder="Discount code"
-          />
-          <Button
-            variant="outline"
-            className="!px-6 !py-5 h-[54px] uppercase leading-tight!"
-          >
-            Apply
-          </Button>
-        </div>
-      </UpdateDiscountForm>
-    </>
+    <fetcher.Form method="post" action={cartRoute}>
+      <input
+        type="hidden"
+        name={CartForm.INPUT_NAME}
+        value={JSON.stringify({
+          action: CART_CODE_APPLY_ACTION,
+          inputs: {},
+        })}
+      />
+      <div className="flex items-stretch gap-3">
+        <label htmlFor="cart-page-discount" className="sr-only">
+          {t("cart.code")}
+        </label>
+        <input
+          id="cart-page-discount"
+          className="h-[54px] min-w-0 grow border border-line bg-white px-4 leading-tight! outline-none focus:border-gray-700"
+          type="text"
+          name="discountCode"
+          placeholder={t("cart.code")}
+          required
+        />
+        <Button
+          variant="outline"
+          type="submit"
+          loading={fetcher.state !== "idle"}
+          disabled={fetcher.state !== "idle"}
+          className="!px-6 !py-0 h-[54px] shrink-0 leading-tight!"
+        >
+          {t("cart.apply")}
+        </Button>
+      </div>
+      {errorMessage && (
+        <p className="mt-2 bg-red-50 p-3 text-red-700 text-sm" role="alert">
+          {errorMessage}
+        </p>
+      )}
+    </fetcher.Form>
   );
 }
 
@@ -366,9 +518,10 @@ function UpdateDiscountForm({
   discountCodes?: string[];
   children: React.ReactNode;
 }) {
+  const cartRoute = usePrefixPathWithLocale("/cart");
   return (
     <CartForm
-      route="/cart"
+      route={cartRoute}
       action={CartForm.ACTIONS.DiscountCodesUpdate}
       inputs={{
         discountCodes: discountCodes || [],
@@ -379,12 +532,179 @@ function UpdateDiscountForm({
   );
 }
 
+function AppliedCartCodes({
+  discountCodes,
+  appliedGiftCards,
+  layout,
+}: {
+  discountCodes: CartApiQueryFragment["discountCodes"];
+  appliedGiftCards: CartApiQueryFragment["appliedGiftCards"];
+  layout: Layouts;
+}) {
+  const { t } = useTranslation();
+  const cartRoute = usePrefixPathWithLocale("/cart");
+  const applicableDiscountCodes = discountCodes.filter(
+    (discount) => discount.applicable,
+  );
+
+  if (!(applicableDiscountCodes.length || appliedGiftCards.length)) {
+    return null;
+  }
+
+  return (
+    <ul
+      className={clsx(
+        "flex flex-wrap gap-2",
+        layout === "drawer" ? "justify-end" : "justify-start",
+      )}
+      aria-label={t("cart.appliedCodes")}
+    >
+      {applicableDiscountCodes.map((discount) => (
+        <li key={discount.code}>
+          <CartForm
+            route={cartRoute}
+            action={CartForm.ACTIONS.DiscountCodesUpdate}
+            inputs={{
+              discountCodes: applicableDiscountCodes
+                .filter((item) => item.code !== discount.code)
+                .map((item) => item.code),
+            }}
+          >
+            <div className="inline-flex items-center gap-1.5 rounded-sm bg-[#EBE8E5] px-2 py-1 text-[#574F49] text-xs">
+              <Tag size={13} aria-hidden="true" />
+              <span>{discount.code}</span>
+              <button
+                type="submit"
+                className="flex h-4 w-4 items-center justify-center"
+                aria-label={t("cart.removeDiscountCode", {
+                  code: discount.code,
+                })}
+              >
+                <X size={12} aria-hidden="true" />
+              </button>
+            </div>
+          </CartForm>
+        </li>
+      ))}
+      {appliedGiftCards.map((giftCard) => (
+        <li key={giftCard.id}>
+          <Form action={cartRoute} method="post">
+            <input
+              type="hidden"
+              name={CartForm.INPUT_NAME}
+              value={JSON.stringify({
+                action: CartForm.ACTIONS.GiftCardCodesRemove,
+                inputs: { appliedGiftCardIds: [giftCard.id] },
+              })}
+            />
+            <div className="inline-flex items-center gap-1.5 rounded-sm bg-[#EBE8E5] px-2 py-1 text-[#574F49] text-xs">
+              <Tag size={13} aria-hidden="true" />
+              <span>•••• {giftCard.lastCharacters}</span>
+              <button
+                type="submit"
+                className="flex h-4 w-4 items-center justify-center"
+                aria-label={t("cart.removeGiftCard", {
+                  digits: giftCard.lastCharacters,
+                })}
+              >
+                <X size={12} aria-hidden="true" />
+              </button>
+            </div>
+          </Form>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function getCartDiscountTotal(
+  lines: OptimisticCart<CartApiQueryFragment>["lines"]["nodes"],
+) {
+  return lines.reduce(
+    (cartTotal, line) =>
+      cartTotal +
+      (line.discountAllocations ?? []).reduce(
+        (lineTotal, allocation) =>
+          lineTotal + Number.parseFloat(allocation.discountedAmount.amount),
+        0,
+      ),
+    0,
+  );
+}
+
+function CartPageTotals({
+  cart,
+  isOptimistic,
+}: {
+  cart: OptimisticCart<CartApiQueryFragment>;
+  isOptimistic: boolean;
+}) {
+  const { t } = useTranslation();
+  const discountTotal = getCartDiscountTotal(cart.lines.nodes);
+  const currencyCode = cart.cost.subtotalAmount.currencyCode;
+  const subtotalAfterDiscounts = Number.parseFloat(
+    cart.cost.subtotalAmount.amount,
+  );
+  const subtotalBeforeDiscounts = subtotalAfterDiscounts + discountTotal;
+
+  return (
+    <>
+      <div className="flex flex-col gap-5 border-line-subtle border-y py-6">
+        <div className="flex items-center justify-between">
+          <span>{t("cart.subtotal")}</span>
+          <span>
+            {isOptimistic ? (
+              <PriceLoadingSpinner />
+            ) : (
+              <Money
+                data={{
+                  amount: subtotalBeforeDiscounts.toString(),
+                  currencyCode,
+                }}
+              />
+            )}
+          </span>
+        </div>
+        {discountTotal > 0 && (
+          <div className="flex items-center justify-between">
+            <span>{t("cart.discount")}</span>
+            <span>
+              -
+              <Money
+                data={{ amount: discountTotal.toString(), currencyCode }}
+              />
+            </span>
+          </div>
+        )}
+        <span className="text-[#918379]">
+          {t("cart.shippingTaxesCalculated")}
+        </span>
+      </div>
+      <div className="flex items-center justify-between font-semibold">
+        <span>{t("cart.total")}</span>
+        <span>
+          {isOptimistic ? (
+            <PriceLoadingSpinner />
+          ) : cart.cost.totalAmount?.amount ? (
+            <Money data={cart.cost.totalAmount} />
+          ) : (
+            "-"
+          )}
+        </span>
+      </div>
+      <LoyaltyPointsHint amount={cart.cost.subtotalAmount?.amount} />
+    </>
+  );
+}
+
 function CartLines({
   layout = "drawer",
   lines: cartLines,
+  discountCodes,
 }: {
   layout: Layouts;
   lines: CartLine[];
+  discountCodes: CartApiQueryFragment["discountCodes"];
 }) {
   const currentLines = cartLines;
   const scrollRef = useRef(null);
@@ -405,12 +725,12 @@ function CartLines({
           layout === "drawer" && "grid gap-5",
         )}
       >
-        {currentLines.map((line, index) => (
+        {currentLines.map((line) => (
           <CartLineItem
             key={line.id}
             line={line}
             layout={layout}
-            isLastItem={index === currentLines.length - 1}
+            discountCodes={discountCodes}
           />
         ))}
       </ul>
@@ -425,7 +745,11 @@ function CartCheckoutActions({
   checkoutUrl: string;
   layout: Layouts;
 }) {
-  if (!checkoutUrl) return null;
+  const { t } = useTranslation();
+  const cartRoute = usePrefixPathWithLocale("/cart");
+  if (!checkoutUrl) {
+    return null;
+  }
 
   return (
     <div className="flex flex-col gap-3">
@@ -433,84 +757,68 @@ function CartCheckoutActions({
       {layout === "drawer" && (
         <Link
           variant="outline"
-          to="/cart"
-          className="flex h-[54px] w-full items-center justify-center uppercase"
+          to={cartRoute}
+          onClick={() => toggleCartDrawer(false)}
+          className="flex h-[54px] w-full items-center justify-center"
         >
-          View cart
+          {t("cart.viewCart")}
         </Link>
       )}
       <a href={checkoutUrl} target="_self">
-        <Button className="!px-6 !py-5 h-[54px] w-full">CHECKOUT</Button>
+        <Button className="!px-6 !py-5 h-[54px] w-full">
+          {t("cart.checkout")}
+        </Button>
       </a>
     </div>
   );
 }
 
 function CartSummary({
-  cost,
   layout,
-  isOptimistic = false,
   children = null,
 }: {
   children?: React.ReactNode;
-  cost: CartApiQueryFragment["cost"];
   layout: Layouts;
-  isOptimistic?: boolean;
 }) {
+  const { t } = useTranslation();
   return (
     <div
       className={clsx(
         layout === "drawer" &&
-          "sticky bottom-0 grid gap-4 border-line-subtle border-t bg-white",
+          "grid gap-3 border-line-subtle border-t bg-white py-4",
         layout === "page" &&
-          "flex w-full flex-col gap-6 px-6 pb-6 md:mx-auto md:w-1/2 lg:mx-0 lg:w-1/3",
+          "flex w-full flex-col gap-6 px-5 pb-6 md:w-[432px] md:px-0 lg:w-full lg:px-6",
       )}
     >
       {layout === "page" && (
         <span className="border-line-subtle border-b pb-6 font-semibold uppercase">
-          Order summary
+          {t("cart.orderSummary")}
         </span>
-      )}
-      {layout === "drawer" && (
-        <dl className="grid">
-          <div className="mt-5 flex items-center justify-between font-medium">
-            <dt>Subtotal</dt>
-            <dd>
-              {isOptimistic ? (
-                <PriceLoadingSpinner />
-              ) : cost?.subtotalAmount?.amount ? (
-                <Money data={cost?.subtotalAmount} />
-              ) : (
-                "-"
-              )}
-            </dd>
-          </div>
-        </dl>
       )}
       {children}
     </div>
   );
 }
 
-type OptimisticData = {
-  action?: string;
-  quantity?: number;
-};
-
 function CartLineItem({
   line,
   layout,
-  isLastItem,
+  discountCodes,
 }: {
   line: CartLine;
   layout: Layouts;
-  isLastItem: boolean;
+  discountCodes: CartApiQueryFragment["discountCodes"];
 }) {
+  const { t } = useTranslation();
   const optimisticData = useOptimisticData<OptimisticData>(line?.id);
+  const { pendingIdentifier } = useCartMutation();
 
-  if (!line?.id) return null;
+  if (!line?.id) {
+    return null;
+  }
 
   const { id, quantity, merchandise, isOptimistic } = line;
+  const isLinePending = pendingIdentifier === id;
 
   if (typeof quantity === "undefined" || !merchandise?.product) {
     return null;
@@ -533,8 +841,10 @@ function CartLineItem({
         layout === "drawer"
           ? "flex gap-4"
           : "flex h-full flex-col items-center bg-white md:flex-row",
-        isOptimistic && optimisticData?.action !== "remove" && "opacity-70",
-        isOptimistic && "pointer-events-none",
+        (isOptimistic || isLinePending) &&
+          optimisticData?.action !== "remove" &&
+          "opacity-70",
+        (isOptimistic || isLinePending) && "pointer-events-none",
         optimisticData?.action === "remove" &&
           "h-0 scale-95 overflow-hidden opacity-0",
       )}
@@ -544,7 +854,7 @@ function CartLineItem({
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/80 backdrop-blur-[2px]">
           <div className="flex flex-col items-center gap-2">
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-300 border-t-gray-900" />
-            <span className="text-gray-600 text-sm">Removing...</span>
+            <span className="text-gray-600 text-sm">{t("cart.removing")}</span>
           </div>
         </div>
       )}
@@ -554,7 +864,7 @@ function CartLineItem({
         className={clsx(
           layout === "drawer"
             ? "shrink-0"
-            : "aspect-square w-full md:h-[360px] md:w-fit",
+            : "aspect-square w-full md:h-[360px] md:w-[360px] md:shrink-0",
         )}
       >
         {image && (
@@ -604,37 +914,44 @@ function CartLineItem({
                 </div>
                 <ItemRemoveButton
                   lineId={id}
+                  productTitle={product?.title || title}
                   className="h-4 w-4"
                   layout={layout}
                 />
               </div>
 
               {/* Variant Information */}
-              <div className="flex flex-col font-normal">
-                {title.split(" / ").map((option, index) => (
-                  <span key={index} className="">
-                    {option.trim()}
-                  </span>
-                ))}
-              </div>
-
-              {/* Subscription Information */}
-              <SubscriptionLineItem line={line as any} />
+              <CartLineOptions selectedOptions={selectedOptions} />
             </div>
 
-            {/* Quantity and Pricing */}
-            <div className="flex items-center justify-between">
-              <div className="">
-                Item price:{" "}
-                <CartLinePrice line={line} as="span" isLoading={isOptimistic} />
-              </div>
-              <CartLineQuantityAdjust
+            <div className="space-y-3">
+              {/* Subscription and discount information sit directly above pricing. */}
+              <SubscriptionLineItem line={line as any} />
+              <CartLineDiscountBadges
+                discountCodes={discountCodes}
                 line={line}
-                isLastItem={isLastItem}
-                layout={layout}
               />
-              <div className="font-medium">
-                <CartLinePrice line={line} as="span" isLoading={isOptimistic} />
+
+              {/* Quantity and Pricing */}
+              <div className="grid grid-cols-[1fr_auto_1fr] items-center">
+                <div>
+                  {t("product.itemPrice")}:{" "}
+                  <CartLinePrice
+                    line={line}
+                    amountType="unit"
+                    as="span"
+                    isLoading={isOptimistic || isLinePending}
+                  />
+                </div>
+                <CartLineQuantityAdjust line={line} layout={layout} />
+                <div className="justify-self-end font-medium">
+                  <CartLinePrice
+                    line={line}
+                    amountType="total"
+                    as="span"
+                    isLoading={isOptimistic || isLinePending}
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -654,20 +971,26 @@ function CartLineItem({
                     <p>{product?.title || ""}</p>
                   )}
                 </div>
-                <div className="space-y-0.5 font-normal">{title}</div>
+                <CartLineOptions selectedOptions={selectedOptions} />
                 {/* Subscription Information */}
-                <SubscriptionLineItem line={line as any} />
+                <SubscriptionLineItem line={line as any} className="mt-2" />
               </div>
             </div>
             <div className="flex items-center justify-between gap-2">
-              <CartLineQuantityAdjust
+              <CartLineQuantityAdjust line={line} layout={layout} />
+              <CartLinePrice
                 line={line}
-                isLastItem={isLastItem}
-                layout={layout}
+                amountType="total"
+                as="span"
+                isLoading={isOptimistic || isLinePending}
               />
-              <CartLinePrice line={line} as="span" isLoading={isOptimistic} />
             </div>
-            <ItemRemoveButton lineId={id} className="" layout={layout} />
+            <ItemRemoveButton
+              lineId={id}
+              productTitle={product?.title || title}
+              className=""
+              layout={layout}
+            />
           </>
         )}
       </div>
@@ -675,71 +998,130 @@ function CartLineItem({
   );
 }
 
+function CartLineOptions({
+  selectedOptions,
+}: {
+  selectedOptions: CartLine["merchandise"]["selectedOptions"];
+}) {
+  const visibleOptions = selectedOptions.filter(
+    (option) =>
+      option.name.toLowerCase() !== "title" &&
+      option.value.toLowerCase() !== "default title",
+  );
+
+  if (!visibleOptions.length) {
+    return null;
+  }
+
+  return (
+    <div className="flex flex-col font-normal">
+      {visibleOptions.map((option) => (
+        <span key={`${option.name}-${option.value}`}>
+          {option.name} {option.value}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function CartLineDiscountBadges({
+  line,
+  discountCodes,
+}: {
+  line: CartLine;
+  discountCodes: CartApiQueryFragment["discountCodes"];
+}) {
+  const allocations = line.discountAllocations ?? [];
+  const applicableCodes = discountCodes.filter(
+    (discount) => discount.applicable,
+  );
+
+  if (!allocations.length) {
+    return null;
+  }
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      {allocations.map((allocation, index) => {
+        const label =
+          ("code" in allocation && allocation.code) ||
+          ("title" in allocation && allocation.title) ||
+          applicableCodes[index]?.code ||
+          "Discount";
+
+        return (
+          <span
+            key={`${label}-${allocation.discountedAmount.amount}-${index}`}
+            className="inline-flex items-center gap-1.5 rounded-sm bg-[#EBE8E5] px-2 py-1 text-[#574F49] text-xs"
+          >
+            <Tag size={13} aria-hidden="true" />
+            {label} (-
+            <Money data={allocation.discountedAmount} />)
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
 function ItemRemoveButton({
   lineId,
+  productTitle,
   className,
   layout,
 }: {
   lineId: CartLine["id"];
+  productTitle: string;
   className?: string;
   layout: Layouts;
 }) {
+  const { t } = useTranslation();
+  const { isPending, submitMutation } = useCartMutation();
+
   return (
-    <CartForm
-      route="/cart"
-      action={CartForm.ACTIONS.LinesRemove}
-      inputs={{ lineIds: [lineId] }}
+    <button
+      className={clsx("flex items-center justify-center", className)}
+      type="button"
+      disabled={isPending}
+      aria-label={t("cart.removeItem", { product: productTitle })}
+      onClick={() =>
+        submitMutation(
+          CartForm.ACTIONS.LinesRemove,
+          { lineIds: [lineId] },
+          { id: lineId, data: { action: "remove" } },
+        )
+      }
     >
-      <button
-        className={clsx("flex items-center justify-center", className)}
-        type="submit"
-      >
-        {layout === "page" && <X className="h-4 w-4" />}
-        {layout === "drawer" && (
-          <span className="uppercase underline">Remove</span>
-        )}
-      </button>
-      <OptimisticInput id={lineId} data={{ action: "remove" }} />
-    </CartForm>
+      {layout === "page" && <X className="h-4 w-4" />}
+      {layout === "drawer" && (
+        <span className="uppercase underline">{t("cart.remove")}</span>
+      )}
+    </button>
   );
 }
 
 function CartLineQuantityAdjust({
   line,
-  isLastItem,
   layout,
 }: {
   line: CartLine;
-  isLastItem: boolean;
   layout: Layouts;
 }) {
+  const { t } = useTranslation();
   let optimisticData = useOptimisticData<OptimisticData>(line?.id);
+  const { isPending, submitMutation } = useCartMutation();
   const { id: lineId, isOptimistic } = line || {};
+  const quantityId = useId();
 
-  // Always call hooks at the top level
-  const quantities = [1, 2, 3, 4, 5];
-  const optimisticQuantity = optimisticData?.quantity || line?.quantity || 1;
+  const optimisticQuantity = optimisticData?.quantity ?? line?.quantity ?? 1;
+  const quantities = Array.from(
+    { length: Math.max(10, optimisticQuantity) },
+    (_, index) => index + 1,
+  );
   const [selectedQty, setSelectedQty] = useState<number>(optimisticQuantity);
-  const submitBtnRef = useRef<HTMLButtonElement>(null);
-  const prevOptimisticQtyRef = useRef<number>(optimisticQuantity);
 
-  // Submit form when user intentionally changes quantity
   useEffect(() => {
-    // Only submit if the change came from user action, not from syncing with optimistic updates
-    if (
-      selectedQty !== prevOptimisticQtyRef.current &&
-      selectedQty !== optimisticQuantity
-    ) {
-      submitBtnRef.current?.click();
-    }
-  }, [selectedQty, optimisticQuantity]);
-
-  // Keep local selected quantity in sync when optimistic quantity changes from server
-  useEffect(() => {
-    if (prevOptimisticQtyRef.current !== optimisticQuantity) {
-      prevOptimisticQtyRef.current = optimisticQuantity;
-      setSelectedQty(optimisticQuantity);
-    }
+    setSelectedQty(optimisticQuantity);
   }, [optimisticQuantity]);
 
   // Early return after hooks
@@ -754,26 +1136,43 @@ function CartLineQuantityAdjust({
 
   return (
     <>
-      <label htmlFor={`quantity-${lineId}`} className="sr-only">
-        Quantity, {optimisticQuantity}
+      <label htmlFor={quantityId} className="sr-only">
+        {t("product.quantityValue", { quantity: optimisticQuantity })}
       </label>
       <div className="quantity-selector relative">
         <Select.Root
           value={String(selectedQty)}
-          onValueChange={(v) => setSelectedQty(Number(v))}
-          disabled={isOptimistic}
+          onValueChange={(value) => {
+            const nextQuantity = Number(value);
+            if (
+              !Number.isInteger(nextQuantity) ||
+              nextQuantity < 1 ||
+              nextQuantity === optimisticQuantity
+            ) {
+              return;
+            }
+
+            setSelectedQty(nextQuantity);
+            submitMutation(
+              CartForm.ACTIONS.LinesUpdate,
+              { lines: [{ id: lineId, quantity: nextQuantity }] },
+              { id: lineId, data: { quantity: nextQuantity } },
+            );
+          }}
+          disabled={isOptimistic || isPending}
         >
           <Select.Trigger
+            id={quantityId}
             className={clsx(
               "inline-flex min-w-[80px] items-center justify-between gap-2 bg-white outline-hidden",
               layout === "page" ? "" : "",
             )}
-            aria-label="Select quantity"
+            aria-label={t("product.selectQuantity")}
           >
             <span
               className={clsx(layout === "page" ? "font-medium text-sm" : "")}
             >
-              QTY
+              {t("product.quantityShort")}
             </span>
             <span
               className={clsx(
@@ -803,23 +1202,13 @@ function CartLineQuantityAdjust({
             </Select.Content>
           </Select.Portal>
         </Select.Root>
-
-        <CartForm
-          route="/cart"
-          action={CartForm.ACTIONS.LinesUpdate}
-          inputs={{
-            lines: [{ id: lineId, quantity: selectedQty }],
-          }}
-        >
-          <button ref={submitBtnRef} type="submit" className="hidden" />
-          <OptimisticInput id={lineId} data={{ quantity: selectedQty }} />
-        </CartForm>
       </div>
     </>
   );
 }
 
 function PriceLoadingSpinner({ className = "" }: { className?: string }) {
+  const { t } = useTranslation();
   return (
     <div className={`inline-flex items-center gap-2 ${className}`}>
       <svg
@@ -842,28 +1231,32 @@ function PriceLoadingSpinner({ className = "" }: { className?: string }) {
           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
         />
       </svg>
-      <span className="text-gray-400 text-sm">Loading...</span>
+      <span className="text-gray-400 text-sm">{t("cart.loading")}</span>
     </div>
   );
 }
 
 function CartLinePrice({
   line,
-  priceType = "regular",
+  amountType = "total",
   isLoading = false,
   ...passthroughProps
 }: {
   line: CartLine;
-  priceType?: "regular" | "compareAt";
+  amountType?: "unit" | "total" | "compareAt";
   isLoading?: boolean;
   [key: string]: any;
 }) {
-  if (!(line?.cost?.amountPerQuantity && line?.cost?.totalAmount)) return null;
+  if (!(line?.cost?.amountPerQuantity && line?.cost?.totalAmount)) {
+    return null;
+  }
 
   const moneyV2 =
-    priceType === "regular"
-      ? line.cost.totalAmount
-      : line.cost.compareAtAmountPerQuantity;
+    amountType === "unit"
+      ? line.cost.amountPerQuantity
+      : amountType === "compareAt"
+        ? line.cost.compareAtAmountPerQuantity
+        : line.cost.totalAmount;
 
   if (moneyV2 == null) {
     return null;
@@ -901,7 +1294,7 @@ function CartEmpty({
       ref={scrollRef}
       className={clsx(
         layout === "drawer" && [
-          "h-screen-dynamic w-[400px] content-start space-y-12 overflow-y-scroll px-5 pb-5 transition",
+          "h-full min-h-0 w-full content-start space-y-12 overflow-y-auto px-5 pb-5 transition",
           y > 0 ? "border-t" : "",
         ],
         layout === "page" && [
@@ -923,7 +1316,7 @@ function CartEmpty({
           </Link>
         )}
       </div>
-      {enableCartBestSellers && (
+      {enableCartBestSellers && layout === "drawer" && (
         <div className="grid gap-4">
           <CartBestSellers
             count={4}

@@ -2,150 +2,169 @@ import { CaretDownIcon, CheckCircleIcon } from "@phosphor-icons/react";
 import * as Popover from "@radix-ui/react-popover";
 import { CartForm } from "@shopify/hydrogen";
 import type { CartBuyerIdentityInput } from "@shopify/hydrogen/storefront-api-types";
-import { useEffect, useRef } from "react";
+import { useTranslation } from "@weaverse/hydrogen";
 import ReactCountryFlag from "react-country-flag";
-import { useInView } from "react-intersection-observer";
-import {
-  useFetcher,
-  useLocation,
-  useRouteLoaderData,
-  useSubmit,
-} from "react-router";
+import { useLocation, useRouteLoaderData, useSubmit } from "react-router";
+import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import type { RootLoader } from "~/root";
-import type { I18nLocale, Localizations } from "~/types/locale";
+import type { I18nLocale } from "~/types/locale";
 import { cn } from "~/utils/cn";
 import { DEFAULT_LOCALE } from "~/utils/const";
+import { switchLocalePath } from "~/utils/locale";
 
 export function CountrySelector({
   inputClassName,
   wrapperClassName,
   enableFlag = true,
+  mode = "country",
 }: {
   inputClassName?: string;
   wrapperClassName?: string;
   enableFlag?: boolean;
+  mode?: "country" | "language";
 }) {
-  const fetcher = useFetcher();
+  const { t } = useTranslation();
   const submit = useSubmit();
   const rootData = useRouteLoaderData<RootLoader>("root");
   const selectedLocale = rootData?.selectedLocale ?? DEFAULT_LOCALE;
-  const { pathname, search } = useLocation();
-  const pathWithoutLocale = `${pathname.replace(
-    selectedLocale.pathPrefix,
-    "",
-  )}${search}`;
+  const availableLocales = rootData?.availableLocales ?? [DEFAULT_LOCALE];
+  const { pathname, search, hash } = useLocation();
+  const cartAction = usePrefixPathWithLocale("/cart");
+  const localeOptions =
+    mode === "language"
+      ? Array.from(
+          new Set(availableLocales.map((locale) => locale.language)),
+        ).flatMap((language) => {
+          const matchingLocale =
+            availableLocales.find(
+              (candidate) =>
+                candidate.language === language &&
+                candidate.country === selectedLocale.country,
+            ) ??
+            availableLocales.find(
+              (candidate) => candidate.language === language,
+            );
+          return matchingLocale ? [matchingLocale] : [];
+        })
+      : Array.from(
+          new Set(availableLocales.map((locale) => locale.country)),
+        ).flatMap((country) => {
+          const matchingLocale =
+            availableLocales.find(
+              (candidate) =>
+                candidate.country === country &&
+                candidate.language === selectedLocale.language,
+            ) ??
+            availableLocales.find((candidate) => candidate.country === country);
+          return matchingLocale ? [matchingLocale] : [];
+        });
+  const selectedLabel =
+    mode === "language"
+      ? selectedLocale.languageName || selectedLocale.language
+      : getCountryLabel(selectedLocale);
 
-  const countries = (fetcher.data ?? {}) as Localizations;
-  const defaultLocale = countries?.default;
-  const defaultLocalePrefix = defaultLocale
-    ? `${defaultLocale?.language}-${defaultLocale?.country}`
-    : "";
-
-  const { ref, inView } = useInView({
-    threshold: 0,
-    triggerOnce: true,
-  });
-
-  const observerRef = useRef(null);
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation> --- IGNORE ---
-  useEffect(() => {
-    ref(observerRef.current);
-  }, [ref, observerRef]);
-
-  // Get available countries list when in view
-  useEffect(() => {
-    if (!inView || fetcher.data || fetcher.state === "loading") return;
-    fetcher.load("/api/countries");
-  }, [inView, fetcher]);
-
-  let handleLocaleChange = ({
+  const handleLocaleChange = ({
     redirectTo,
     buyerIdentity,
   }: {
     redirectTo: string;
     buyerIdentity: CartBuyerIdentityInput;
   }) => {
-    let cartFormInput = {
+    const cartFormInput = {
       action: CartForm.ACTIONS.BuyerIdentityUpdate,
       inputs: { buyerIdentity },
     };
-    let formData = {
+    const formData = {
       redirectTo,
       cartFormInput: JSON.stringify(cartFormInput),
     };
     submit(formData, {
       method: "POST",
-      action: "/cart",
+      action: cartAction,
     });
   };
 
   return (
-    <div ref={observerRef} className={cn("grid w-48 gap-4", wrapperClassName)}>
+    <div className={cn("grid min-w-0 w-48 gap-4", wrapperClassName)}>
       <Popover.Root>
         <Popover.Trigger asChild>
           <button
             type="button"
             className={cn(
-              "flex w-full cursor-pointer items-center gap-2 overflow-clip border border-[#A79D95] text-left outline-hidden",
+              "flex min-w-0 w-full cursor-pointer items-center gap-2 overflow-hidden border border-[#A79D95] text-left outline-hidden",
               inputClassName,
             )}
-            aria-label="Select country"
+            aria-label={
+              mode === "language"
+                ? t("locale.selectLanguage")
+                : t("locale.selectCountry")
+            }
           >
-            {enableFlag && (
+            {enableFlag && mode === "country" && (
               <ReactCountryFlag
                 svg
                 countryCode={selectedLocale.country}
+                className="shrink-0"
                 style={{ width: "24px", height: "14px" }}
               />
             )}
-            <span>{selectedLocale.label}</span>
-            <CaretDownIcon className="ml-auto h-4 w-4" />
+            <span className="min-w-0 flex-1 truncate">{selectedLabel}</span>
+            <CaretDownIcon className="ml-auto h-4 w-4 shrink-0" />
           </button>
         </Popover.Trigger>
         <Popover.Portal>
           <Popover.Content className="z-10">
             <div className="my-2 max-h-40 w-48 overflow-auto bg-[#3b352c] py-2">
-              {countries &&
-                Object.keys(countries).map((countryPath) => {
-                  const countryLocale = countries[countryPath];
-                  const isSelected =
-                    countryLocale.language === selectedLocale.language &&
-                    countryLocale.country === selectedLocale.country;
-                  return (
-                    <Popover.Close
-                      aria-label={`Select ${countryLocale.label} country`}
-                      key={countryPath}
-                      type="button"
-                      onClick={() =>
-                        handleLocaleChange({
-                          redirectTo: getCountryUrlPath({
-                            countryLocale,
-                            defaultLocalePrefix,
-                            pathWithoutLocale,
-                          }),
-                          buyerIdentity: {
-                            countryCode: countryLocale.country,
-                          },
-                        })
-                      }
-                      className="flex w-full cursor-pointer items-center gap-2 bg-[#3b352c] p-2 px-4 py-2 text-left text-sm text-white transition hover:bg-[#4a423a]"
-                    >
-                      {enableFlag && (
-                        <ReactCountryFlag
-                          svg
-                          countryCode={countryLocale.country}
-                          style={{ width: "24px", height: "14px" }}
-                        />
-                      )}
-                      <span>{countryLocale.label}</span>
-                      {isSelected ? (
-                        <span className="ml-auto">
-                          <CheckCircleIcon className="h-5 w-5" />
-                        </span>
-                      ) : null}
-                    </Popover.Close>
-                  );
-                })}
+              {localeOptions.map((optionLocale) => {
+                const countryLocale = optionLocale;
+                const isSelected =
+                  mode === "language"
+                    ? countryLocale.language === selectedLocale.language
+                    : countryLocale.language === selectedLocale.language &&
+                      countryLocale.country === selectedLocale.country;
+                const optionLabel =
+                  mode === "language"
+                    ? countryLocale.languageName || countryLocale.language
+                    : getCountryLabel(countryLocale);
+                return (
+                  <Popover.Close
+                    aria-label={t("locale.selectOption", {
+                      option: optionLabel,
+                    })}
+                    key={`${countryLocale.language}-${countryLocale.country}`}
+                    type="button"
+                    onClick={() =>
+                      handleLocaleChange({
+                        redirectTo: getCountryUrlPath({
+                          countryLocale,
+                          pathname,
+                          search,
+                          hash,
+                        }),
+                        buyerIdentity: {
+                          countryCode: countryLocale.country,
+                        },
+                      })
+                    }
+                    className="flex w-full cursor-pointer items-center gap-2 bg-[#3b352c] p-2 px-4 py-2 text-left text-sm text-white transition hover:bg-[#4a423a]"
+                  >
+                    {enableFlag && mode === "country" && (
+                      <ReactCountryFlag
+                        svg
+                        countryCode={countryLocale.country}
+                        className="shrink-0"
+                        style={{ width: "24px", height: "14px" }}
+                      />
+                    )}
+                    <span>{optionLabel}</span>
+                    {isSelected ? (
+                      <span className="ml-auto">
+                        <CheckCircleIcon className="h-5 w-5" />
+                      </span>
+                    ) : null}
+                  </Popover.Close>
+                );
+              })}
             </div>
           </Popover.Content>
         </Popover.Portal>
@@ -154,19 +173,20 @@ export function CountrySelector({
   );
 }
 
+function getCountryLabel(locale: I18nLocale) {
+  return `${locale.countryName || locale.country} · ${locale.currency}`;
+}
+
 function getCountryUrlPath({
   countryLocale,
-  defaultLocalePrefix,
-  pathWithoutLocale,
+  pathname,
+  search,
+  hash,
 }: {
   countryLocale: I18nLocale;
-  pathWithoutLocale: string;
-  defaultLocalePrefix: string;
+  pathname: string;
+  search: string;
+  hash: string;
 }) {
-  let countryPrefixPath = "";
-  const countryLocalePrefix = `${countryLocale.language}-${countryLocale.country}`;
-  if (countryLocalePrefix !== defaultLocalePrefix) {
-    countryPrefixPath = `/${countryLocalePrefix.toLowerCase()}`;
-  }
-  return `${countryPrefixPath}${pathWithoutLocale}`;
+  return switchLocalePath({ pathname, search, hash, locale: countryLocale });
 }

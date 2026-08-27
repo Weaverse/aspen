@@ -6,12 +6,10 @@ import type {
 import { IMAGES_PLACEHOLDERS } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
 import { Image } from "~/components/image";
-import type { ImageAspectRatio } from "~/types/image";
-import { calculateAspectRatio } from "~/utils/image";
 
 interface HotspotsTestimonialProps extends HydrogenComponentProps {
   image: WeaverseImage | string;
-  aspectRatio: ImageAspectRatio;
+  aspectRatio?: string;
 }
 
 let HotspotsTestimonial = forwardRef<HTMLDivElement, HotspotsTestimonialProps>(
@@ -34,13 +32,13 @@ let HotspotsTestimonial = forwardRef<HTMLDivElement, HotspotsTestimonialProps>(
       <div
         ref={ref}
         {...rest}
-        className="relative h-full w-full flex-1 overflow-hidden"
-        style={{ aspectRatio: calculateAspectRatio(imageData, aspectRatio) }}
+        data-legacy-aspect-ratio={aspectRatio || undefined}
+        className="relative order-1 w-full overflow-hidden rounded-lg aspect-[375/416] lg:order-2 lg:h-full lg:aspect-[10/9]"
       >
         {imageData.url && (
           <Image
             data={imageData}
-            sizes="auto"
+            sizes="(min-width: 1024px) 720px, 100vw"
             className="z-0 h-full w-full object-cover"
             data-motion="zoom-in"
           />
@@ -66,39 +64,32 @@ export let schema: HydrogenComponentSchema = {
           name: "image",
           label: "Image",
         },
-        {
-          type: "select",
-          name: "aspectRatio",
-          label: "Aspect ratio",
-          defaultValue: "adapt",
-          configs: {
-            options: [
-              { value: "adapt", label: "Adapt to image" },
-              { value: "1/1", label: "Square (1/1)" },
-              { value: "3/4", label: "Portrait (3/4)" },
-              { value: "4/3", label: "Landscape (4/3)" },
-              { value: "16/9", label: "Widescreen (16/9)" },
-            ],
-          },
-          helpText:
-            'Learn more about image <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/aspect-ratio" target="_blank" rel="noopener noreferrer">aspect ratio</a> property.',
-        },
       ],
     },
   ],
   presets: {
     image: IMAGES_PLACEHOLDERS.collection_1,
-    aspectRatio: "1/1",
     children: [
       {
         type: "testimonial-hot--item",
-        offsetX: 25,
-        offsetY: 30,
+        icon: "circle",
+        iconSize: 20,
+        offsetX: 12,
+        offsetY: 42,
       },
       {
         type: "testimonial-hot--item",
-        offsetX: 55,
-        offsetY: 65,
+        icon: "circle",
+        iconSize: 20,
+        offsetX: 58,
+        offsetY: 24,
+      },
+      {
+        type: "testimonial-hot--item",
+        icon: "circle",
+        iconSize: 20,
+        offsetX: 67,
+        offsetY: 63,
       },
     ],
   },

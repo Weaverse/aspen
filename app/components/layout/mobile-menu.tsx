@@ -6,40 +6,65 @@ import {
 } from "@phosphor-icons/react";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import * as Dialog from "@radix-ui/react-dialog";
+import { useTranslation } from "@weaverse/hydrogen";
 import { AnimatePresence, motion } from "framer-motion";
-import { forwardRef, useState } from "react";
+import { type Ref, useState } from "react";
 import { Image } from "~/components/image";
 import Link from "~/components/link";
-import { ScrollArea } from "~/components/scroll-area";
 import { useShopMenu } from "~/hooks/use-shop-menu";
 import type { SingleMenuItem } from "~/types/menu";
+import { cn } from "~/utils/cn";
 
-export function MobileMenu() {
+export function MobileMenu({
+  showOnDesktop = false,
+}: {
+  showOnDesktop?: boolean;
+}) {
+  const { t } = useTranslation();
   const { headerMenu } = useShopMenu();
   const [activeSubMenu, setActiveSubMenu] = useState<SingleMenuItem | null>(
     null,
   );
-  const [mainMenuOpen, setMainMenuOpen] = useState(false);
+  const [open, setOpen] = useState(false);
 
-  if (!headerMenu) return <MenuTrigger />;
+  const triggerClassName = cn(
+    "relative size-5 items-center justify-center focus-visible:outline-hidden before:absolute before:-inset-2",
+    showOnDesktop ? "flex" : "flex xl:hidden",
+  );
 
-  const closeSubMenu = () => setActiveSubMenu(null);
-  const closeAllMenus = () => {
+  if (!headerMenu) {
+    return (
+      <MenuTrigger
+        aria-label={t("accessibility.openMenu")}
+        className={triggerClassName}
+        disabled
+      />
+    );
+  }
+
+  const menuItems = headerMenu.items as unknown as SingleMenuItem[];
+
+  function closeMenu() {
     setActiveSubMenu(null);
-    setMainMenuOpen(false);
-  };
+    setOpen(false);
+  }
 
   return (
-    <Dialog.Root open={mainMenuOpen} onOpenChange={setMainMenuOpen}>
-      <Dialog.Trigger
-        asChild
-        className="relative flex h-8 w-8 items-center justify-center focus-visible:outline-hidden lg:hidden"
-      >
-        <MenuTrigger />
+    <Dialog.Root
+      open={open}
+      onOpenChange={(nextOpen) => {
+        setOpen(nextOpen);
+        if (!nextOpen) {
+          setActiveSubMenu(null);
+        }
+      }}
+    >
+      <Dialog.Trigger asChild className={triggerClassName}>
+        <MenuTrigger aria-label={t("accessibility.openMenu")} />
       </Dialog.Trigger>
       <Dialog.Portal forceMount>
         <AnimatePresence>
-          {mainMenuOpen && (
+          {open && (
             <>
               <Dialog.Overlay forceMount>
                 <motion.div
@@ -51,43 +76,62 @@ export function MobileMenu() {
               </Dialog.Overlay>
               <Dialog.Content
                 forceMount
-                onCloseAutoFocus={(e) => e.preventDefault()}
-                className="fixed inset-y-0 left-0 z-10"
+                onOpenAutoFocus={(event) => {
+                  event.preventDefault();
+                  (event.currentTarget as HTMLElement).focus({
+                    preventScroll: true,
+                  });
+                }}
+                onCloseAutoFocus={(event) => event.preventDefault()}
+                className="fixed inset-y-0 left-0 z-10 outline-hidden"
                 aria-describedby={undefined}
               >
                 <motion.div
-                  initial={{ x: "-100vw" }}
+                  initial={{ x: "-100%" }}
                   animate={{ x: 0 }}
-                  exit={{ x: "-100vw" }}
-                  transition={{
-                    type: "spring",
-                    damping: 25,
-                    stiffness: 150,
-                  }}
-                  className="h-full w-[360px] bg-(--color-header-bg-hover) pt-4 pb-2 uppercase"
+                  exit={{ x: "-100%" }}
+                  transition={{ type: "spring", damping: 25, stiffness: 150 }}
+                  className="flex h-full w-screen max-w-[360px] flex-col overflow-hidden rounded-xl bg-[#DFDFDF] text-[#343231]"
                 >
-                  <Dialog.Title asChild>
-                    <div className="px-4 font-semibold uppercase">Menu</div>
-                  </Dialog.Title>
-                  <Dialog.Close asChild>
-                    <button type="button" className="fixed top-4 right-4">
-                      <XIcon className="h-5 w-5" />
-                    </button>
-                  </Dialog.Close>
-                  <div className="mt-4 border-line-subtle border-t" />
-                  <div className="py-2">
-                    <ScrollArea className="h-[calc(100vh-5rem)]">
-                      <div className="flex w-full flex-col gap-1 px-4">
-                        {headerMenu.items.map((item) => (
-                          <TopLevelMenuItem
-                            key={item.id}
-                            item={item as unknown as SingleMenuItem}
-                            onOpenSubMenu={setActiveSubMenu}
-                            onCloseAll={closeAllMenus}
+                  <MenuHeader
+                    activeSubMenu={activeSubMenu}
+                    onBack={() => setActiveSubMenu(null)}
+                  />
+                  <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto">
+                    <AnimatePresence mode="wait" initial={false}>
+                      {activeSubMenu ? (
+                        <motion.div
+                          key={activeSubMenu.id}
+                          initial={{ opacity: 0, x: 16 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: 16 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <SubMenu
+                            item={activeSubMenu}
+                            onNavigate={closeMenu}
                           />
-                        ))}
-                      </div>
-                    </ScrollArea>
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key="main-menu"
+                          initial={{ opacity: 0, x: -16 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -16 }}
+                          transition={{ duration: 0.2 }}
+                          className="px-5"
+                        >
+                          {menuItems.map((item) => (
+                            <TopLevelMenuItem
+                              key={item.id}
+                              item={item}
+                              onOpenSubMenu={setActiveSubMenu}
+                              onNavigate={closeMenu}
+                            />
+                          ))}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 </motion.div>
               </Dialog.Content>
@@ -95,35 +139,70 @@ export function MobileMenu() {
           )}
         </AnimatePresence>
       </Dialog.Portal>
-
-      {/* SubMenu Dialog */}
-      {activeSubMenu && (
-        <SubMenuDialog
-          item={activeSubMenu}
-          onClose={closeSubMenu}
-          onCloseAll={closeAllMenus}
-        />
-      )}
     </Dialog.Root>
   );
 }
 
-// Component for top-level menu items (level 1)
+function MenuHeader({
+  activeSubMenu,
+  onBack,
+}: {
+  activeSubMenu: SingleMenuItem | null;
+  onBack: () => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <header className="relative flex h-[74px] shrink-0 items-center px-5">
+      {activeSubMenu && (
+        <button
+          type="button"
+          onClick={onBack}
+          className="relative mr-[11px] flex size-3.5 shrink-0 items-center justify-center before:absolute before:-inset-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#343231]"
+          aria-label={t("accessibility.backToMainMenu")}
+        >
+          <CaretLeftIcon aria-hidden="true" className="size-3.5" />
+        </button>
+      )}
+      <Dialog.Title
+        className={cn(
+          "text-sm uppercase leading-5 tracking-[0.02em]",
+          activeSubMenu ? "font-normal" : "font-semibold",
+        )}
+      >
+        {activeSubMenu?.title || t("navigation.menu")}
+      </Dialog.Title>
+      <Dialog.Close asChild>
+        <button
+          type="button"
+          className="absolute top-[31px] right-5 flex size-4 items-center justify-center before:absolute before:-inset-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#343231]"
+          aria-label={t("accessibility.closeMenu")}
+        >
+          <XIcon aria-hidden="true" className="size-4" />
+        </button>
+      </Dialog.Close>
+    </header>
+  );
+}
+
 function TopLevelMenuItem({
   item,
   onOpenSubMenu,
-  onCloseAll,
+  onNavigate,
 }: {
   item: SingleMenuItem;
   onOpenSubMenu: (item: SingleMenuItem) => void;
-  onCloseAll: () => void;
+  onNavigate: () => void;
 }) {
-  const { title, to, items } = item;
-
-  if (!items?.length) {
+  const { t } = useTranslation();
+  if (!item.items?.length) {
     return (
-      <Link to={to} className="py-3" onClick={onCloseAll}>
-        {title}
+      <Link
+        to={item.to}
+        prefetch="intent"
+        className="flex h-[54px] w-full items-center justify-start text-left text-sm uppercase leading-5"
+        onClick={onNavigate}
+      >
+        {item.title}
       </Link>
     );
   }
@@ -131,186 +210,169 @@ function TopLevelMenuItem({
   return (
     <button
       type="button"
-      className="flex w-full items-center justify-between gap-4 py-3"
+      className="flex h-[54px] w-full items-center justify-between text-left text-sm uppercase leading-5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#343231]"
+      aria-label={t("accessibility.openSubmenu", { item: item.title })}
       onClick={() => onOpenSubMenu(item)}
     >
-      <span className="uppercase">{title}</span>
-      <CaretRightIcon className="h-4 w-4" />
+      <span>{item.title}</span>
+      <CaretRightIcon aria-hidden="true" className="size-3.5" />
     </button>
   );
 }
 
-// SubMenu Dialog Component
-function SubMenuDialog({
+function SubMenu({
   item,
-  onClose,
-  onCloseAll,
+  onNavigate,
 }: {
   item: SingleMenuItem;
-  onClose: () => void;
-  onCloseAll: () => void;
+  onNavigate: () => void;
 }) {
-  const [open, setOpen] = useState(true);
+  const items = item.items || [];
+  const imageCardLayout =
+    items.length > 0 &&
+    items.every((subItem) => subItem.resource?.image && !subItem.items?.length);
 
-  const handleClose = () => {
-    setOpen(false);
-  };
+  if (imageCardLayout) {
+    return <ImageCardMenu items={items} onNavigate={onNavigate} />;
+  }
 
-  const handleOpenChange = (nextOpen: boolean) => {
-    setOpen(nextOpen);
-  };
+  return <AccordionMenu items={items} onNavigate={onNavigate} />;
+}
 
+function ImageCardMenu({
+  items,
+  onNavigate,
+}: {
+  items: SingleMenuItem[];
+  onNavigate: () => void;
+}) {
   return (
-    <Dialog.Root open={open} onOpenChange={handleOpenChange}>
-      <Dialog.Portal forceMount>
-        <AnimatePresence onExitComplete={onClose}>
-          {open && (
-            <>
-              <Dialog.Overlay forceMount>
-                <motion.div
-                  className="fixed inset-0 z-20 bg-black/50 backdrop-blur-xs"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
+    <div className="space-y-[22px] px-5 pb-[50px]">
+      {items.map((item) => {
+        const previewImage = item.resource?.image;
+        return (
+          <Link
+            to={item.to}
+            key={item.id}
+            className="block text-sm uppercase leading-5"
+            prefetch="intent"
+            onClick={onNavigate}
+          >
+            {previewImage && (
+              <div className="aspect-[320/193.8] w-full overflow-hidden rounded-xl bg-[#F0EFED]">
+                <Image
+                  data={previewImage}
+                  sizes="(max-width: 360px) calc(100vw - 40px), 320px"
+                  width={640}
+                  className="h-full w-full object-cover"
                 />
-              </Dialog.Overlay>
-              <Dialog.Content
-                forceMount
-                onCloseAutoFocus={(e) => e.preventDefault()}
-                className="fixed inset-y-0 left-0 z-20"
-                aria-describedby={undefined}
-              >
-                <motion.div
-                  initial={{ x: "-100vw" }}
-                  animate={{ x: 0 }}
-                  exit={{ x: "-100vw" }}
-                  transition={{
-                    type: "spring",
-                    damping: 25,
-                    stiffness: 150,
-                  }}
-                  className="h-full w-[360px] bg-(--color-header-bg-hover) pt-4 pb-2 uppercase"
-                >
-                  <div className="flex items-center justify-between px-4">
-                    <div className="flex items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={handleClose}
-                        className="flex h-6 w-6 items-center justify-center"
-                      >
-                        <CaretLeftIcon className="h-5 w-5" />
-                      </button>
-                      <Dialog.Title asChild>
-                        <div className="font-semibold uppercase">
-                          {item.title}
-                        </div>
-                      </Dialog.Title>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={onCloseAll}
-                      className="flex h-6 w-6 items-center justify-center"
-                    >
-                      <XIcon className="h-5 w-5" />
-                    </button>
-                  </div>
-                  <div className="mt-4 border-line-subtle border-t" />
-                  <div className="py-2">
-                    <ScrollArea className="h-[calc(100vh-5rem)]">
-                      <div className="flex w-full flex-col gap-1 px-4">
-                        {item.items?.map((subItem) => (
-                          <CollapsibleMenuItem
-                            key={subItem.id}
-                            item={subItem}
-                            onClose={onCloseAll}
-                          />
-                        ))}
-                      </div>
-                    </ScrollArea>
-                  </div>
-                </motion.div>
-              </Dialog.Content>
-            </>
-          )}
-        </AnimatePresence>
-      </Dialog.Portal>
-    </Dialog.Root>
+              </div>
+            )}
+            <span className="mt-5 block">{item.title}</span>
+          </Link>
+        );
+      })}
+    </div>
   );
 }
 
-// Component for sub-menu items (level 2+) - uses collapsible
-function CollapsibleMenuItem({
+function AccordionMenu({
+  items,
+  onNavigate,
+}: {
+  items: SingleMenuItem[];
+  onNavigate: () => void;
+}) {
+  const [openItemId, setOpenItemId] = useState<string | null>(null);
+
+  return (
+    <div className="px-5 pb-8">
+      {items.map((item) => {
+        const isOpen = openItemId === item.id;
+        return (
+          <AccordionMenuItem
+            item={item}
+            key={item.id}
+            onNavigate={onNavigate}
+            open={isOpen}
+            onOpenChange={(nextOpen) =>
+              setOpenItemId(nextOpen ? item.id : null)
+            }
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+function AccordionMenuItem({
   item,
-  onClose,
+  onNavigate,
+  open,
+  onOpenChange,
 }: {
   item: SingleMenuItem;
-  onClose?: () => void;
+  onNavigate: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }) {
-  const { title, to, items } = item;
-  const previewImage = item.resource?.image;
-
-  if (!items?.length) {
+  if (!item.items?.length) {
     return (
-      <Link to={to} className="block w-full py-3" onClick={onClose}>
-        <span className="flex w-full flex-col items-start gap-2">
-          {previewImage && (
-            <div className="aspect-[16/9] w-full overflow-hidden">
-              <Image
-                data={previewImage as any}
-                sizes="100vw"
-                width={1200}
-                className="h-full w-full object-cover"
-              />
-            </div>
-          )}
-          <span className="uppercase">{title}</span>
-        </span>
-      </Link>
+      <div className="mt-2 border-[#D8D8D8] border-b first:mt-0">
+        <Link
+          to={item.to}
+          prefetch="intent"
+          className="flex h-[49px] items-center text-sm uppercase leading-5"
+          onClick={onNavigate}
+        >
+          {item.title}
+        </Link>
+      </div>
     );
   }
 
   return (
-    <Collapsible.Root>
+    <Collapsible.Root
+      open={open}
+      onOpenChange={onOpenChange}
+      className="mt-2 border-[#D8D8D8] border-b first:mt-0"
+    >
       <Collapsible.Trigger asChild>
         <button
           type="button"
-          className='flex w-full flex-col items-stretch gap-2 py-3 data-[state="open"]:[&_.caret]:rotate-90'
+          className="group flex h-[49px] w-full items-center justify-between text-left text-sm uppercase leading-5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#343231]"
         >
-          {previewImage && (
-            <div className="aspect-[16/9] w-full overflow-hidden">
-              <Image
-                data={previewImage as any}
-                sizes="100vw"
-                width={1200}
-                className="h-full w-full object-cover"
-              />
-            </div>
-          )}
-          <div className="flex items-center justify-between">
-            <span className="uppercase">{title}</span>
-            <CaretRightIcon className="caret h-4 w-4" />
-          </div>
+          <span>{item.title}</span>
+          <CaretRightIcon
+            aria-hidden="true"
+            className="size-4 transition-transform group-data-[state=open]:rotate-90"
+          />
         </button>
       </Collapsible.Trigger>
-      <Collapsible.Content className="pl-4">
-        {items.map((subItem) => (
-          <CollapsibleMenuItem
-            key={subItem.id}
-            item={subItem}
-            onClose={onClose}
-          />
+      <Collapsible.Content className="pb-1">
+        {item.items.map((child) => (
+          <Link
+            to={child.to}
+            key={child.id}
+            prefetch="intent"
+            className="flex h-[34px] items-center text-sm leading-5 text-[#1E1C1A]"
+            onClick={onNavigate}
+          >
+            {child.title}
+          </Link>
         ))}
       </Collapsible.Content>
     </Collapsible.Root>
   );
 }
 
-const MenuTrigger = forwardRef<HTMLButtonElement, Dialog.DialogTriggerProps>(
-  (props, ref) => {
-    return (
-      <button ref={ref} type="button" {...props}>
-        <ListIcon className="h-5 w-5" />
-      </button>
-    );
-  },
-);
+const MenuTrigger = ({
+  ref,
+  ...props
+}: Dialog.DialogTriggerProps & { ref?: Ref<HTMLButtonElement> }) => {
+  return (
+    <button ref={ref} type="button" {...props}>
+      <ListIcon aria-hidden="true" className="size-5" />
+    </button>
+  );
+};

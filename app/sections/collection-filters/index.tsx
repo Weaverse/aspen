@@ -1,4 +1,4 @@
-import { createSchema } from "@weaverse/hydrogen";
+import { createSchema, useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { forwardRef, useEffect, useState } from "react";
 import { useLoaderData } from "react-router";
@@ -22,6 +22,7 @@ export interface CollectionFiltersData {
   enableFilter: boolean;
   filtersPosition: "sidebar" | "drawer";
   expandFilters: boolean;
+  expandedFiltersByDefault: string;
   showFiltersCount: boolean;
   enableSwatches: boolean;
   displayAsButtonFor: string;
@@ -35,6 +36,7 @@ interface CollectionFiltersProps extends SectionProps, CollectionFiltersData {}
 
 const CollectionFilters = forwardRef<HTMLElement, CollectionFiltersProps>(
   (props, ref) => {
+    const { t } = useTranslation();
     const {
       showBreadcrumb,
       showDescription,
@@ -47,6 +49,7 @@ const CollectionFilters = forwardRef<HTMLElement, CollectionFiltersProps>(
       enableFilter,
       filtersPosition,
       expandFilters,
+      expandedFiltersByDefault,
       showProductsCount,
       enableSwatches,
       displayAsButtonFor,
@@ -128,7 +131,9 @@ const CollectionFilters = forwardRef<HTMLElement, CollectionFiltersProps>(
             {enableFilter && filtersPosition === "sidebar" && (
               <div className="hidden w-72 shrink-0 lg:block">
                 <div className="sticky top-[calc(var(--height-nav)+40px)] space-y-4">
-                  <div className="font-bold uppercase">Filters</div>
+                  <div className="font-bold uppercase">
+                    {t("collection.filters")}
+                  </div>
                   <Filters />
                 </div>
               </div>
@@ -264,22 +269,32 @@ export const schema = createSchema({
         {
           type: "switch",
           name: "expandFilters",
-          label: "Expand filters",
-          defaultValue: true,
+          label: "Expand all filter groups",
+          defaultValue: false,
           condition: (data: CollectionFiltersData) => data.enableFilter,
+        },
+        {
+          type: "text",
+          name: "expandedFiltersByDefault",
+          label: "Open filter groups by default",
+          defaultValue: "Price, Size, Color",
+          helpText:
+            "Comma-separated filter names. Groups with active filters always open.",
+          condition: (data: CollectionFiltersData) =>
+            data.enableFilter && !data.expandFilters,
         },
         {
           type: "switch",
           name: "showFiltersCount",
           label: "Show filters count",
-          defaultValue: true,
+          defaultValue: false,
           condition: (data: CollectionFiltersData) => data.enableFilter,
         },
         {
           type: "switch",
           name: "enableSwatches",
           label: "Enable color/image swatches",
-          defaultValue: true,
+          defaultValue: false,
           condition: (data: CollectionFiltersData) => data.enableFilter,
         },
         {

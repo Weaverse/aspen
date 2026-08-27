@@ -4,6 +4,7 @@ import {
   type ComponentLoaderArgs,
   createSchema,
   type HydrogenComponentProps,
+  useTranslation,
   type WeaverseProduct,
 } from "@weaverse/hydrogen";
 import clsx from "clsx";
@@ -53,6 +54,7 @@ function CircleDotIcon(props: any) {
 
 const HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>(
   (props, ref) => {
+    const { t } = useTranslation();
     const {
       icon,
       iconSize,
@@ -102,17 +104,12 @@ const HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>(
           }
         >
           <div className="group relative flex cursor-pointer">
-            <span
-              className={clsx(
-                "absolute inline-flex animate-ping rounded-full",
-                {
-                  "-translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 h-3/4 w-3/4 bg-white opacity-100 group-hover:opacity-100":
-                    icon === "circle",
-                  "h-full w-full bg-gray-700 opacity-75": icon !== "circle",
-                },
-              )}
-              style={{ animationDuration: "1500ms" }}
-            />
+            {icon !== "circle" && (
+              <span
+                className="absolute inline-flex h-full w-full animate-ping rounded-full bg-gray-700 opacity-75"
+                style={{ animationDuration: "1500ms" }}
+              />
+            )}
             <span
               className={clsx(
                 "group relative inline-flex rounded-full transition-all duration-300",
@@ -162,7 +159,9 @@ const HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>(
                 {/* Header */}
                 <div className="flex flex-shrink-0 items-center justify-between px-5 py-3">
                   <Dialog.Title asChild>
-                    <span className="font-semibold uppercase">Quick Shop</span>
+                    <span className="font-semibold uppercase">
+                      {t("product.quickShop")}
+                    </span>
                   </Dialog.Title>
                   <button
                     type="button"
@@ -180,13 +179,15 @@ const HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>(
                       <QuickShop
                         data={quickShopData as any}
                         showDescription={false}
-                        setShowDescription={() => {}}
+                        setShowDescription={() => {
+                          // Description is intentionally disabled in this compact view.
+                        }}
                         onCloseAll={() => setShowQuickShop(false)}
                       />
                     ) : (
                       <div className="py-8 text-center">
                         <p className="text-body-subtle">
-                          Loading product data...
+                          {t("product.loadingData")}
                         </p>
                       </div>
                     )}
@@ -263,7 +264,7 @@ export const schema = createSchema({
               },
             ],
           },
-          defaultValue: "plus",
+          defaultValue: "circle",
         },
         {
           type: "range",
@@ -271,11 +272,11 @@ export const schema = createSchema({
           label: "Icon size",
           configs: {
             min: 16,
-            max: 32,
-            step: 2,
+            max: 40,
+            step: 1,
             unit: "px",
           },
-          defaultValue: 20,
+          defaultValue: 33,
         },
         {
           type: "range",

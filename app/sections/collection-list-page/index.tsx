@@ -1,11 +1,17 @@
 import { createSchema } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
 import { layoutInputs, Section, type SectionProps } from "~/components/section";
+import { cn } from "~/utils/cn";
 
 const CollectionList = forwardRef<HTMLElement, SectionProps>((props, ref) => {
-  const { children, ...rest } = props;
+  const { children, className, ...rest } = props;
   return (
-    <Section ref={ref} {...rest}>
+    <Section
+      ref={ref}
+      {...rest}
+      className={cn("overflow-x-clip", className)}
+      overflow="unset"
+    >
       {children}
     </Section>
   );
@@ -38,10 +44,11 @@ export const schema = createSchema({
         type: "collections-items",
         prevButtonText: "↑ Load previous",
         nextButtonText: "Load more ↓",
-        imageAspectRatio: "adapt",
-        enableOverlay: true,
-        overlayColor: "#000",
-        overlayOpacity: 30,
+        layout: "grid",
+        gap: 16,
+        desktopGap: 20,
+        collectionNameColor: "#FEF4EB",
+        collectionBackgroundColor: "#7F7866",
       },
     ],
   },

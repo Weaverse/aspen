@@ -8,15 +8,18 @@ import {
   type Session,
   type SessionStorage,
 } from "react-router";
-import type { I18nLocale } from "~/types/locale";
-import { COUNTRIES } from "~/utils/const";
+import { getCanonicalLocaleRedirect } from "~/utils/locale";
+import {
+  getRequestI18n,
+  loadStoreLocalization,
+} from "~/utils/localization.server";
 import { components } from "~/weaverse/components";
-import { themeSchema } from "~/weaverse/schema.server";
+import { getThemeSchema } from "~/weaverse/schema.server";
 
 // React Router v7 Headers polyfill for getSetCookie compatibility
 if (typeof Headers !== "undefined" && !Headers.prototype.getSetCookie) {
   Headers.prototype.getSetCookie = function () {
-    const setCookieValues = [];
+    const setCookieValues: string[] = [];
     for (const [key, value] of this.entries()) {
       if (key.toLowerCase() === "set-cookie") {
         setCookieValues.push(value);
@@ -35,7 +38,9 @@ if (typeof Headers !== "undefined") {
   Headers.prototype.set = function (name, value) {
     if (name.toLowerCase() === "set-cookie") {
       // Store set-cookie values for later retrieval
-      if (!this._setCookies) this._setCookies = [];
+      if (!this._setCookies) {
+        this._setCookies = [];
+      }
       this._setCookies = [value];
     }
     return originalSet.call(this, name, value);
@@ -44,7 +49,9 @@ if (typeof Headers !== "undefined") {
   Headers.prototype.append = function (name, value) {
     if (name.toLowerCase() === "set-cookie") {
       // Store set-cookie values for later retrieval
-      if (!this._setCookies) this._setCookies = [];
+      if (!this._setCookies) {
+        this._setCookies = [];
+      }
       this._setCookies.push(value);
     }
     return originalAppend.call(this, name, value);
@@ -73,6 +80,13 @@ export default {
         env,
         executionContext,
       );
+      const localeRedirect = getCanonicalLocaleRedirect(
+        request,
+        appLoadContext.localization,
+      );
+      if (localeRedirect) {
+        return Response.redirect(new URL(localeRedirect, request.url), 302);
+      }
 
       /**
        * Create a Remix request handler and pass
@@ -108,7 +122,6 @@ export default {
 
       return response;
     } catch (error) {
-      // biome-ignore lint/suspicious/noConsole: <explanation> --- IGNORE ---
       console.error(error);
       return new Response("An unexpected error occurred", { status: 500 });
     }
@@ -140,23 +153,31 @@ export async function createAppLoadContext(
       cache,
       waitUntil,
       session,
-      i18n: getLocaleFromRequest(request),
-      cart: { queryFragment: CART_QUERY_FRAGMENT },
+      i18n: getRequestI18n(request),
+      cart: {
+        queryFragment: CART_QUERY_FRAGMENT,
+        mutateFragment: CART_MUTATE_FRAGMENT,
+      },
     },
     {},
+  );
+
+  const localization = await loadStoreLocalization(
+    hydrogenContext.storefront,
+    request,
   );
 
   const weaverse = new WeaverseClient({
     ...hydrogenContext,
     request,
     cache,
-    themeSchema,
+    themeSchema: getThemeSchema(localization),
     components,
   });
 
-  Object.assign(hydrogenContext, { weaverse });
-
-  return hydrogenContext;
+  // `createHydrogenContext` returns React Router's context provider. Keep that
+  // instance intact: spreading it creates a plain object that middleware rejects.
+  return Object.assign(hydrogenContext, { weaverse, localization });
 }
 
 class AppSession implements HydrogenSession {
@@ -219,22 +240,6 @@ class AppSession implements HydrogenSession {
   }
 }
 
-function getLocaleFromRequest(request: Request): I18nLocale {
-  const url = new URL(request.url);
-  let firstPathPart = `/${url.pathname.substring(1).split("/")[0].toLowerCase()}`;
-  firstPathPart = firstPathPart.replace(".data", "");
-
-  return COUNTRIES[firstPathPart]
-    ? {
-        ...COUNTRIES[firstPathPart],
-        pathPrefix: firstPathPart,
-      }
-    : {
-        ...COUNTRIES.default,
-        pathPrefix: "",
-      };
-}
-
 const CART_QUERY_FRAGMENT = `#graphql
   fragment Money on MoneyV2 {
     currencyCode
@@ -246,6 +251,20 @@ const CART_QUERY_FRAGMENT = `#graphql
     attributes {
       key
       value
+    }
+    discountAllocations {
+      discountedAmount {
+        ...Money
+      }
+      ... on CartCodeDiscountAllocation {
+        code
+      }
+      ... on CartAutomaticDiscountAllocation {
+        title
+      }
+      ... on CartCustomDiscountAllocation {
+        title
+      }
     }
     cost {
       totalAmount {
@@ -309,6 +328,20 @@ const CART_QUERY_FRAGMENT = `#graphql
     attributes {
       key
       value
+    }
+    discountAllocations {
+      discountedAmount {
+        ...Money
+      }
+      ... on CartCodeDiscountAllocation {
+        code
+      }
+      ... on CartAutomaticDiscountAllocation {
+        title
+      }
+      ... on CartCustomDiscountAllocation {
+        title
+      }
     }
     cost {
       totalAmount {
@@ -421,3 +454,8 @@ const CART_QUERY_FRAGMENT = `#graphql
     }
   }
 ` as const;
+
+const CART_MUTATE_FRAGMENT = CART_QUERY_FRAGMENT.replace(
+  "fragment CartApiQuery on Cart",
+  "fragment CartApiMutation on Cart",
+).replace("lines(first: $numCartLines)", "lines(first: 250)");

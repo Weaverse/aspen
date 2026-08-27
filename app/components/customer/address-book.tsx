@@ -1,37 +1,71 @@
 import type { CustomerAddress } from "@shopify/hydrogen/customer-account-api-types";
+import { useTranslation } from "@weaverse/hydrogen";
 import type { CustomerDetailsFragment } from "customer-account-api.generated";
+import type { HTMLAttributes } from "react";
 import { Form } from "react-router";
-import { Button } from "~/components/button";
 import { Link } from "~/components/link";
+import { cn } from "~/utils/cn";
 
 export function AccountAddressBook({
   customer,
   addresses,
+  heading = "ADDRESS BOOK",
+  addAddressText = "ADD NEW ADDRESS",
+  defaultText = "DEFAULT",
+  editText = "EDIT",
+  removeText = "REMOVE",
+  className,
+  ...rest
 }: {
   customer: CustomerDetailsFragment;
   addresses: CustomerAddress[];
-}) {
+  heading?: string;
+  addAddressText?: string;
+  defaultText?: string;
+  editText?: string;
+  removeText?: string;
+} & HTMLAttributes<HTMLDivElement>) {
+  const { t } = useTranslation();
   return (
-    <div className="space-y-4">
-      <div className="font-bold">Address Book</div>
-      <div className="space-y-3">
+    <div {...rest} className={cn(className)}>
+      <h2 className="font-body font-normal text-[#343231] text-sm uppercase leading-5 tracking-[0.02em]">
+        {heading}
+      </h2>
+      <div className="mt-[13px]">
         {!addresses?.length && (
-          <div>You haven&apos;t saved any addresses yet.</div>
+          <div className="mb-5 bg-white p-5 font-body text-[#343231] text-sm">
+            {t("account.noAddresses")}
+          </div>
         )}
-        <div className="">
-          <Link to="address/add" className="mb-5" variant="outline">
-            Add an Address
+        <div>
+          <Link
+            to="address/add"
+            className="inline-flex h-[54px] min-w-[181px] items-center justify-center bg-white px-6 font-body text-[#343231] text-sm uppercase transition-opacity hover:opacity-70"
+          >
+            {addAddressText}
           </Link>
         </div>
         {addresses?.length > 0 ? (
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+          <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5">
             {customer.defaultAddress && (
-              <Address address={customer.defaultAddress} defaultAddress />
+              <Address
+                address={customer.defaultAddress}
+                defaultAddress
+                defaultText={defaultText}
+                editText={editText}
+                removeText={removeText}
+              />
             )}
             {addresses
               .filter((address) => address.id !== customer.defaultAddress?.id)
               .map((address) => (
-                <Address key={address.id} address={address} />
+                <Address
+                  key={address.id}
+                  address={address}
+                  defaultText={defaultText}
+                  editText={editText}
+                  removeText={removeText}
+                />
               ))}
           </div>
         ) : null}
@@ -43,50 +77,56 @@ export function AccountAddressBook({
 function Address({
   address,
   defaultAddress,
+  defaultText,
+  editText,
+  removeText,
 }: {
   address: CustomerAddress;
   defaultAddress?: boolean;
+  defaultText: string;
+  editText: string;
+  removeText: string;
 }) {
+  const fullName =
+    `${address.firstName || ""} ${address.lastName || ""}`.trim();
+  const formattedLines = (address.formatted || []).filter(
+    (line) => line.trim().toLowerCase() !== fullName.toLowerCase(),
+  );
+
   return (
-    <div className="flex flex-col border border-line-subtle p-5">
+    <div className="flex min-h-[206px] flex-col bg-white p-5 font-body text-[#343231] text-sm leading-[22px]">
       {defaultAddress && (
-        <div className="mb-3 flex flex-row">
-          <span className="bg-body-subtle px-3 py-1 font-medium text-body-inverse text-sm">
-            Default
+        <div className="mb-4 flex flex-row">
+          <span className="inline-flex h-[27px] min-w-[70px] items-center justify-center bg-[#4D4946] px-2.5 font-normal text-[#343231] text-xs uppercase leading-none">
+            {defaultText}
           </span>
         </div>
       )}
-      <ul className="flex-1 flex-row">
-        {(address.firstName || address.lastName) && (
-          <li className="mb-2">
-            {`${address.firstName && `${address.firstName} `}${
-              address?.lastName
-            }`}
-          </li>
+      <ul className="flex-1">
+        {fullName && (
+          <li className="mb-2 font-semibold leading-5">{fullName}</li>
         )}
-        {address.formatted?.map((line: string) => (
+        {formattedLines.map((line: string) => (
           <li key={line}>{line}</li>
         ))}
       </ul>
 
-      <div className="mt-6 flex flex-row items-baseline font-medium">
+      <div className="mt-auto flex flex-row items-center gap-4 text-[#979797] text-xs uppercase leading-5">
         <Link
           to={`/account/address/${encodeURIComponent(address.id)}`}
-          className="text-body-subtle after:bg-body-subtle"
+          className="transition-opacity hover:opacity-70"
           prefetch="intent"
-          variant="underline"
         >
-          Edit
+          {editText}
         </Link>
         <Form action="address/delete" method="delete">
           <input type="hidden" name="addressId" value={address.id} />
-          <Button
-            variant="underline"
-            className="ml-6 text-body-subtle after:bg-body-subtle"
-            animate={false}
+          <button
+            type="submit"
+            className="text-[#979797] text-xs uppercase leading-5 transition-opacity hover:opacity-70"
           >
-            Remove
-          </Button>
+            {removeText}
+          </button>
         </Form>
       </div>
     </div>

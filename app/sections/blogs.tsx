@@ -1,7 +1,10 @@
-import { createSchema } from "@weaverse/hydrogen";
+import { createSchema, useTranslation } from "@weaverse/hydrogen";
 import { type CSSProperties, forwardRef, useState } from "react";
 import { useLoaderData } from "react-router";
-import type { ArticleFragment, BlogQuery } from "storefront-api.generated";
+import type {
+  ArticleFragment,
+  BlogsIndexQuery,
+} from "storefront-api.generated";
 import { Button } from "~/components/button";
 import Heading, {
   type HeadingProps,
@@ -10,11 +13,13 @@ import Heading, {
 import { Image } from "~/components/image";
 import { Link } from "~/components/link";
 import { layoutInputs, Section, type SectionProps } from "~/components/section";
+import { useLocale } from "~/hooks/use-locale";
 import type { ImageAspectRatio } from "~/types/image";
 import { calculateAspectRatio, getImageLoadingPriority } from "~/utils/image";
+import { formatDate } from "~/utils/locale";
 
 interface BlogsProps
-  extends Omit<ArticleCardProps, "article" | "blogHandle" | "loading">,
+  extends Omit<ArticleCardProps, "article" | "loading">,
     Omit<HeadingProps, "as" | "content">,
     SectionProps {
   layout: "blog" | "default";
@@ -62,9 +67,10 @@ const Blogs = forwardRef<HTMLElement, BlogsProps>((props, ref) => {
     alignment,
     ...rest
   } = props;
-  const { blog, articles } = useLoaderData<
-    BlogQuery & { articles: ArticleFragment[] }
-  >();
+  const { blog, articles } = useLoaderData<{
+    blog: NonNullable<BlogsIndexQuery["blog"]>;
+    articles: ArticleFragment[];
+  }>();
 
   // State to manage visible articles count
   const [visibleCount, setVisibleCount] = useState(initialCount);
@@ -105,7 +111,6 @@ const Blogs = forwardRef<HTMLElement, BlogsProps>((props, ref) => {
           {visibleArticles.map((article, i) => (
             <ArticleCard
               key={article.id}
-              blogHandle={blog.handle}
               article={article}
               loading={getImageLoadingPriority(i, 2)}
               showAuthor={showAuthor}
@@ -133,7 +138,6 @@ const Blogs = forwardRef<HTMLElement, BlogsProps>((props, ref) => {
 
 export interface ArticleCardProps {
   article: ArticleFragment;
-  blogHandle: string;
   loading?: HTMLImageElement["loading"];
   showDate: boolean;
   showExcerpt: boolean;
@@ -146,7 +150,6 @@ export interface ArticleCardProps {
 }
 
 export function ArticleCard({
-  blogHandle,
   article,
   loading,
   showExcerpt,
@@ -158,10 +161,13 @@ export function ArticleCard({
   imageBorderRadius,
   className,
 }: ArticleCardProps) {
+  const { t } = useTranslation();
+  const locale = useLocale();
+
   return (
     <article className={`group ${className || ""}`}>
       <Link
-        to={`/blogs/${blogHandle}/${article.handle}`}
+        to={`/blogs/${article.handle}`}
         className="block h-full cursor-pointer"
       >
         <div className="flex h-full w-full flex-col gap-4">
@@ -199,7 +205,7 @@ export function ArticleCard({
               <div className="mt-4 flex gap-1 text-(--accent-color) opacity-80">
                 {showDate && (
                   <time>
-                    {new Date(article.publishedAt).toLocaleDateString("en-US", {
+                    {formatDate(article.publishedAt, locale, {
                       year: "numeric",
                       month: "long",
                       day: "numeric",
@@ -213,7 +219,7 @@ export function ArticleCard({
             {showReadmore && (
               <div className="mt-2">
                 <span className="text-(--accent-color) uppercase underline opacity-80 transition-opacity hover:opacity-100">
-                  Read more →
+                  {t("navigation.readMore")} →
                 </span>
               </div>
             )}

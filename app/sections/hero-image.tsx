@@ -5,11 +5,13 @@ import {
 } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
-import { forwardRef } from "react";
+import { Children, forwardRef } from "react";
+import { useRouteLoaderData } from "react-router";
 import { backgroundInputs } from "~/components/background-image";
 import { overlayInputs } from "~/components/overlay";
 import type { SectionProps } from "~/components/section";
 import { layoutInputs, Section } from "~/components/section";
+import type { loader as productRouteLoader } from "~/routes/($locale).products.$productHandle";
 
 export interface HeroImageProps extends VariantProps<typeof variants> {}
 
@@ -59,6 +61,17 @@ const HeroImage = forwardRef<HTMLElement, HeroImageProps & SectionProps>(
   (props, ref) => {
     const { children, height, contentPosition, ...rest } = props;
     const { enableTransparentHeader } = useThemeSettings();
+    const productRouteData = useRouteLoaderData<typeof productRouteLoader>(
+      "routes/($locale).products.$productHandle",
+    );
+
+    // The default product template used an empty hero as a product-detail
+    // image. Main Product now owns the complete responsive story experience,
+    // so suppress only that legacy empty block on product routes.
+    if (productRouteData?.product && Children.count(children) === 0) {
+      return null;
+    }
+
     return (
       <Section
         ref={ref}
@@ -123,28 +136,38 @@ export const schema = createSchema({
   presets: {
     height: "large",
     contentPosition: "center center",
+    width: "full",
     backgroundImage: IMAGES_PLACEHOLDERS.banner_1,
     backgroundFit: "cover",
     enableOverlay: true,
-    overlayOpacity: 40,
+    overlayColor: "#1B1B19",
+    overlayOpacity: 28,
     children: [
       {
-        type: "subheading",
-        content: "Subheading",
-        color: "#ffffff",
-      },
-      {
         type: "heading",
-        content: "Hero image with text overlay",
-        as: "h2",
-        color: "#ffffff",
-        size: "default",
+        content: "THE KITCHEN THAT INSPIRES",
+        as: "h1",
+        color: "#FEF4EB",
+        size: "scale",
+        minSize: 36,
+        maxSize: 64,
+        weight: "400",
+        letterSpacing: "tight",
       },
       {
         type: "paragraph",
         content:
-          "Use this text to share information about your brand with your customers. Describe a product, share announcements, or welcome customers to your store.",
-        color: "#ffffff",
+          "Thoughtful furniture and warm materials for the rooms where life happens.",
+        color: "#FEF4EB",
+        textSize: "base",
+        width: "narrow",
+        alignment: "center",
+      },
+      {
+        type: "button",
+        text: "SHOP NOW",
+        to: "/collections/all",
+        variant: "secondary",
       },
     ],
   },

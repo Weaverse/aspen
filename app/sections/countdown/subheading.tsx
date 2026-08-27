@@ -58,7 +58,10 @@ const SubHeading = forwardRef<
       ref={ref}
       {...rest}
       data-motion="fade-up"
-      className={cn(variants({ size, weight, alignment, className }))}
+      className={cn(
+        variants({ size, weight, alignment, className }),
+        "text-base lg:text-2xl",
+      )}
     >
       <Tag
         style={{
@@ -68,7 +71,10 @@ const SubHeading = forwardRef<
             ? `${backgroundBorderRadius}px`
             : undefined,
         }}
-        className={cn("mb-0 h-full w-fit", backgroundColor && "px-4 py-0.5")}
+        className={cn(
+          "mb-0 h-full w-fit",
+          backgroundColor && "px-4 py-0.5 lg:py-0",
+        )}
       >
         {content}
       </Tag>

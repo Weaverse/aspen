@@ -15,6 +15,7 @@ import { Logo } from "~/components/logo";
 import type { RootLoader } from "~/root";
 import { cn } from "~/utils/cn";
 import { DEFAULT_LOCALE } from "~/utils/const";
+import { stripLocalePrefix } from "~/utils/locale";
 import { CartDrawer } from "./cart-drawer";
 import { DesktopMenu } from "./desktop-menu";
 import { MobileMenu } from "./mobile-menu";
@@ -26,12 +27,12 @@ const variants = cva("", {
     width: {
       full: "h-(--height-nav) w-full",
       stretch: "h-(--height-nav) w-full",
-      fixed: "mx-auto h-(--height-nav) w-full max-w-(--page-width)",
+      fixed: "mx-auto h-(--height-nav) w-full max-w-[1360px]",
     },
     padding: {
       full: "",
-      stretch: "px-3 md:px-10 lg:px-16",
-      fixed: "mx-auto px-3 md:px-4 lg:px-6",
+      stretch: "px-4 md:px-8 xl:px-10",
+      fixed: "mx-auto px-4 md:px-8 xl:px-10",
     },
   },
 });
@@ -40,18 +41,28 @@ function useIsHomeCheck() {
   const { pathname } = useLocation();
   const rootData = useRouteLoaderData<RootLoader>("root");
   const selectedLocale = rootData?.selectedLocale ?? DEFAULT_LOCALE;
-  return pathname.replace(selectedLocale.pathPrefix, "") === "/";
+  return stripLocalePrefix(pathname) === "/";
 }
 
 export function Header() {
   let [isSearchOpen, setIsSearchOpen] = useState(false);
-  const { enableTransparentHeader, headerWidth } = useThemeSettings();
+  const {
+    designSystemPreset,
+    enableTransparentHeader,
+    headerLayout = "inline",
+    headerWidth,
+  } = useThemeSettings();
   const isHome = useIsHomeCheck();
   const { y } = useWindowScroll();
   const routeError = useRouteError();
 
   const scrolled = y >= 50;
-  const enableTransparent = enableTransparentHeader && isHome && !routeError;
+  const isCompactDesktop = headerLayout === "compact";
+  const enableTransparent =
+    designSystemPreset === "custom" &&
+    enableTransparentHeader &&
+    isHome &&
+    !routeError;
   const isTransparent = enableTransparent && !scrolled && !isSearchOpen;
 
   return (
@@ -91,17 +102,43 @@ export function Header() {
     >
       <div
         className={cn(
-          "flex items-center justify-between gap-2 lg:gap-8",
+          "grid grid-cols-[1fr_auto_1fr] items-center",
           variants({ width: headerWidth }),
         )}
       >
-        <MobileMenu />
-        <PredictiveSearchButtonMobile setIsSearchOpen={setIsSearchOpen} />
-        <Logo />
-        <DesktopMenu />
-        <div className="z-1 flex items-center gap-1">
-          <PredictiveSearchButtonDesktop setIsSearchOpen={setIsSearchOpen} />
-          <AccountLink className="relative flex h-8 w-8 items-center justify-center" />
+        <div
+          className={cn(
+            "col-start-1 row-start-1 flex items-center gap-4 justify-self-start",
+            !isCompactDesktop && "xl:hidden",
+          )}
+        >
+          <MobileMenu showOnDesktop={isCompactDesktop} />
+          <PredictiveSearchButtonMobile setIsSearchOpen={setIsSearchOpen} />
+          {isCompactDesktop ? (
+            <PredictiveSearchButtonDesktop setIsSearchOpen={setIsSearchOpen} />
+          ) : null}
+        </div>
+
+        <div
+          className={cn(
+            "col-start-2 row-start-1 justify-self-center",
+            !isCompactDesktop && "xl:col-start-1 xl:justify-self-start",
+          )}
+        >
+          <Logo />
+        </div>
+
+        {!isCompactDesktop ? (
+          <div className="col-start-2 row-start-1 hidden h-full justify-self-center xl:block">
+            <DesktopMenu />
+          </div>
+        ) : null}
+
+        <div className="z-1 col-start-3 row-start-1 flex items-center gap-4 justify-self-end">
+          {!isCompactDesktop ? (
+            <PredictiveSearchButtonDesktop setIsSearchOpen={setIsSearchOpen} />
+          ) : null}
+          <AccountLink className="relative flex size-5 items-center justify-center before:absolute before:-inset-2" />
           <CartDrawer />
         </div>
       </div>
@@ -115,16 +152,16 @@ function AccountLink({ className }: { className?: string }) {
 
   return (
     <Link to="/account" className={clsx("transition-none", className)}>
-      <Suspense fallback={<UserIcon className="h-5 w-5" />}>
+      <Suspense fallback={<UserIcon className="size-5" />}>
         <Await
           resolve={isLoggedIn}
-          errorElement={<UserIcon className="h-5 w-5" />}
+          errorElement={<UserIcon className="size-5" />}
         >
           {(loggedIn) =>
             loggedIn ? (
-              <UserIcon className="h-5 w-5" />
+              <UserIcon className="size-5" />
             ) : (
-              <UserIcon className="h-5 w-5" />
+              <UserIcon className="size-5" />
             )
           }
         </Await>

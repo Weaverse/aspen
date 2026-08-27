@@ -16,3 +16,11 @@ node_modules
 pnpm-lock.yaml
 .DS_Store
 .react-router
+/.agents/
+/.figma/
+/.tmp-qa/
+.pnpm-store/
+/app/routes/clone-preview.*
+/scripts/get_weaverse_page.mjs
+/scripts/search_shopify_docs.mjs
+/scripts/search_weaverse_docs.mjs

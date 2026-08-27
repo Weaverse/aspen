@@ -4,10 +4,12 @@ import type { PageType } from "@weaverse/hydrogen";
 import type { LoaderFunctionArgs, MetaFunction } from "react-router";
 import type { ShopQuery } from "storefront-api.generated";
 import { routeHeaders } from "~/utils/cache";
+import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 import { seoPayload } from "~/utils/seo.server";
 import { validateWeaverseData, WeaverseContent } from "~/weaverse";
 
 export const headers = routeHeaders;
+export const shouldRevalidate = skipPageRevalidationForStorefrontActions;
 
 export async function loader(args: LoaderFunctionArgs) {
   const { params, context } = args;

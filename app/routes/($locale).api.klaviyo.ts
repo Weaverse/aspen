@@ -6,22 +6,45 @@ import {
 
 const KLAVIYO_API = "https://a.klaviyo.com/api/profiles";
 
+const GENERIC_ERROR = "Something went wrong! Please try again.";
+const INVALID_EMAIL_ERROR = "Please enter a valid email address.";
+
+type KlaviyoErrorPayload = {
+  errors?: {
+    code?: string;
+    status?: number;
+    detail?: string;
+  }[];
+};
+
+function hasErrorCode(payload: KlaviyoErrorPayload, code: string) {
+  return Boolean(payload?.errors?.some((error) => error.code === code));
+}
+
+async function readErrorPayload(res: Response): Promise<KlaviyoErrorPayload> {
+  try {
+    return (await res.json()) as KlaviyoErrorPayload;
+  } catch {
+    return {};
+  }
+}
+
 export const action: ActionFunction = async ({
   request,
   context,
 }: ActionFunctionArgs) => {
   const apiToken = context.env.KLAVIYO_PRIVATE_API_TOKEN;
   if (!apiToken) {
-    return data({
-      ok: false,
-      error: "Missing KLAVIYO_PRIVATE_API_TOKEN",
-    });
+    console.error(
+      "Klaviyo signup unavailable: KLAVIYO_PRIVATE_API_TOKEN is not set",
+    );
+    return data({ ok: false, error: GENERIC_ERROR }, 503);
   }
 
   const formData = await request.formData();
   const email = formData.get("email");
-  if (!email) {
-    return data({ ok: false, error: "Email is required" });
+  if (typeof email !== "string" || !email) {
+    return data({ ok: false, error: "Email is required" }, 400);
   }
 
   try {
@@ -41,19 +64,29 @@ export const action: ActionFunction = async ({
       }),
     });
 
-    const status = res.status;
-    const klaviyoData = await res.json();
     if (res.ok) {
-      return data({ ok: true }, status);
+      return data({ ok: true }, 201);
     }
-    return data(
-      { ok: false, error: "Unable to subscribe", klaviyoData },
-      status,
+
+    const payload = await readErrorPayload(res);
+
+    // Already on the list — nothing to create, but the visitor is subscribed.
+    if (res.status === 409 && hasErrorCode(payload, "duplicate_profile")) {
+      return data({ ok: true }, 200);
+    }
+
+    // Klaviyo error details can identify existing profiles, so keep them server-side.
+    console.error(
+      `Klaviyo signup failed with status ${res.status}:`,
+      JSON.stringify(payload),
     );
-  } catch (e) {
-    return data(
-      { ok: false, error: "Something went wrong! Please try again." },
-      500,
-    );
+
+    if (res.status === 400) {
+      return data({ ok: false, error: INVALID_EMAIL_ERROR }, 400);
+    }
+    return data({ ok: false, error: GENERIC_ERROR }, res.status);
+  } catch (error) {
+    console.error("Klaviyo signup request failed:", error);
+    return data({ ok: false, error: GENERIC_ERROR }, 500);
   }
 };

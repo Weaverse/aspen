@@ -2,6 +2,7 @@ import type {
   Customer,
   CustomerUpdateInput,
 } from "@shopify/hydrogen/customer-account-api-types";
+import { useTranslation } from "@weaverse/hydrogen";
 import type { CustomerUpdateMutation } from "customer-account-api.generated";
 import {
   type ActionFunction,
@@ -15,6 +16,12 @@ import {
 import invariant from "tiny-invariant";
 import { Button } from "~/components/button";
 import Link from "~/components/link";
+import {
+  accountPath,
+  commitAccountPreviewState,
+  isAccountPreviewRequest,
+  readAccountPreviewState,
+} from "~/utils/account-preview.server";
 import { CUSTOMER_UPDATE_MUTATION } from "./($locale).account.profile";
 import { doLogout } from "./($locale).account_.logout";
 
@@ -52,6 +59,25 @@ export const handle = {
 export const action: ActionFunction = async ({ request, context, params }) => {
   const formData = await request.formData();
 
+  if (isAccountPreviewRequest(request)) {
+    const previewState = await readAccountPreviewState(request);
+    const firstName = formData.get("firstName");
+    const lastName = formData.get("lastName");
+
+    if (typeof firstName === "string") {
+      previewState.firstName = firstName;
+    }
+    if (typeof lastName === "string") {
+      previewState.lastName = lastName;
+    }
+
+    return redirect(accountPath(params.locale), {
+      headers: {
+        "Set-Cookie": await commitAccountPreviewState(previewState),
+      },
+    });
+  }
+
   // Double-check current user is logged in.
   // Will throw a logout redirect if not.
   if (!(await context.customerAccount.isLoggedIn())) {
@@ -85,7 +111,7 @@ export const action: ActionFunction = async ({ request, context, params }) => {
       updateData?.customerUpdate?.userErrors?.[0]?.message,
     );
 
-    return redirect(params?.locale ? `${params.locale}/account` : "/account");
+    return redirect(accountPath(params.locale));
   } catch (error: any) {
     return data(
       { formError: error?.message },
@@ -107,13 +133,14 @@ export const action: ActionFunction = async ({ request, context, params }) => {
  * - use the presence of outlet data (in `account.tsx`) to open/close the modal (no useState)
  */
 export default function AccountDetailsEdit() {
+  const { t } = useTranslation();
   const actionData = useActionData<ActionData>();
   const { customer } = useOutletContext<AccountOutletContext>();
   const { state } = useNavigation();
 
   return (
     <div className="space-y-2">
-      <div className="py-2.5 text-xl">Edit account</div>
+      <div className="py-2.5 text-xl">{t("account.editAccount")}</div>
       <Form method="post" className="space-y-3">
         {actionData?.formError && (
           <div className="flex items-center justify-center bg-red-100 p-3 text-red-900">
@@ -126,8 +153,8 @@ export default function AccountDetailsEdit() {
           className="w-full appearance-none border border-line p-3 focus:outline-hidden"
           type="text"
           autoComplete="given-name"
-          placeholder="First name"
-          aria-label="First name"
+          placeholder={t("account.firstName")}
+          aria-label={t("account.firstName")}
           defaultValue={customer.firstName ?? ""}
         />
         <input
@@ -136,16 +163,16 @@ export default function AccountDetailsEdit() {
           className="w-full appearance-none border border-line p-3 focus:outline-hidden"
           type="text"
           autoComplete="family-name"
-          placeholder="Last name"
-          aria-label="Last name"
+          placeholder={t("account.lastName")}
+          aria-label={t("account.lastName")}
           defaultValue={customer.lastName ?? ""}
         />
         <div className="flex items-center justify-end gap-6 py-2.5">
           <Link to="/account" className="underline-offset-4 hover:underline">
-            Cancel
+            {t("account.cancel")}
           </Link>
           <Button type="submit" variant="primary" disabled={state !== "idle"}>
-            {state !== "idle" ? "Saving" : "Save"}
+            {state !== "idle" ? t("account.saving") : t("account.save")}
           </Button>
         </div>
       </Form>

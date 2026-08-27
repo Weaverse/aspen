@@ -1,12 +1,21 @@
 import { Image } from "@shopify/hydrogen";
-import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
+import {
+  createSchema,
+  type HydrogenComponentProps,
+  useTranslation,
+} from "@weaverse/hydrogen";
 import { forwardRef, useRef } from "react";
 import { Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/navigation";
-import { Image as ImageIcon, InstagramLogo } from "@phosphor-icons/react";
-import { cva, type VariantProps } from "class-variance-authority";
+import {
+  CaretLeft,
+  CaretRight,
+  Image as ImageIcon,
+  InstagramLogo,
+} from "@phosphor-icons/react";
+import { cva } from "class-variance-authority";
 import type { Swiper as SwiperType } from "swiper";
 import { cn } from "~/utils/cn";
 import { useInstagramContext } from "./context";
@@ -48,20 +57,22 @@ interface InstagramSliderProps extends HydrogenComponentProps {
   showNavigation: boolean;
   arrowsColor: "primary" | "secondary";
   arrowsShape: "rounded-sm" | "circle" | "square";
+  arrowsIcon?: "caret" | "arrow";
 }
 
 let InstagramSlider = forwardRef<HTMLDivElement, InstagramSliderProps>(
   (props, ref) => {
+    const { t } = useTranslation();
     let {
       slidesPerView,
       spaceBetween,
       showNavigation,
       arrowsColor,
       arrowsShape,
+      arrowsIcon = "arrow",
       children,
       ...rest
     } = props;
-
     const swiperRef = useRef<SwiperType | null>(null);
     const { loaderData } = useInstagramContext();
 
@@ -76,116 +87,149 @@ let InstagramSlider = forwardRef<HTMLDivElement, InstagramSliderProps>(
       );
     };
 
-    const defaultInstagramData = Array.from({ length: 6 }).map((_, i) => ({
+    const placeholderImages = [
+      "https://cdn.shopify.com/s/files/1/0969/1650/4944/collections/Guin-Round-Coffee-Table-Square-Set_1-1710403519.webp?v=1755139816",
+      "https://cdn.shopify.com/s/files/1/0969/1650/4944/collections/Dawson-Queen-Size-Storage-Bed-Beach-Linen-Square-Det_2-1698291168.jpg?v=1755140106",
+      "https://cdn.shopify.com/s/files/1/0969/1650/4944/collections/Hamilton-Swivel-Armchairs-Brilliant-White-Square-Set_1-1692867870.jpg?v=1755140064",
+      "https://cdn.shopify.com/s/files/1/0969/1650/4944/collections/Hamilton-Sectional-Sofa-Brilliant-White-Square-Det_6-1672979175.jpg?v=1755140004",
+      "https://cdn.shopify.com/s/files/1/0969/1650/4944/collections/Guin-Round-Coffee-Table-Det_1-1710403519.webp?v=1755139972",
+      "https://cdn.shopify.com/s/files/1/0969/1650/4944/collections/Hamilton-Left-Sectional-Sofa-Brilliant-White-Square-Set_4.jpg?v=1755139930",
+      "https://cdn.shopify.com/s/files/1/0969/1650/4944/collections/Hamilton-Swivel-Armchairs-Brilliant-White-Square-Set_1-1692867870.jpg?v=1755140064",
+      "https://cdn.shopify.com/s/files/1/0969/1650/4944/collections/Dawson-Queen-Size-Storage-Bed-Beach-Linen-Square-Det_2-1698291168.jpg?v=1755140106",
+    ];
+    const defaultInstagramData = placeholderImages.map((mediaUrl, i) => ({
       id: `default-${i}`,
-      media_url: "",
+      media_url: mediaUrl,
       username: "",
     }));
 
     let res = loaderData?.data ?? defaultInstagramData;
-    let displayedImages = res?.slice(0, 6);
+    let displayedImages = res?.slice(0, 8);
+
+    const renderImage = (
+      item: (typeof displayedImages)[number],
+      index: number,
+    ) => {
+      const tile = (
+        <>
+          {item.media_url ? (
+            <Image
+              src={item.media_url}
+              alt={t("social.instagramPost", { index: index + 1 })}
+              className="h-full w-full object-cover"
+              sizes="(min-width: 1024px) 260px, calc(100vw - 40px)"
+            />
+          ) : (
+            imageItemBlank()
+          )}
+          <div className="absolute inset-0 bg-black/30 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100" />
+          <InstagramLogo className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 size-8 text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100" />
+        </>
+      );
+
+      const tileClassName =
+        "group relative block aspect-square cursor-pointer overflow-hidden rounded-(--radius-md)";
+
+      if (item.username) {
+        return (
+          <a
+            href={`https://www.instagram.com/${item.username}/`}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={t("social.instagramPostBy", {
+              index: index + 1,
+              username: item.username,
+            })}
+            className={tileClassName}
+          >
+            {tile}
+          </a>
+        );
+      }
+
+      return <div className={tileClassName}>{tile}</div>;
+    };
 
     return (
       <div
         ref={ref}
         {...rest}
-        className="relative w-full space-y-10 px-0 md:space-y-0 lg:w-3/4 lg:px-7"
+        data-legacy-slides-per-view={slidesPerView || undefined}
+        className="relative w-full lg:min-w-0 lg:flex-1"
       >
-        <Swiper
-          onSwiper={(swiper) => {
-            swiperRef.current = swiper;
-          }}
-          modules={[Navigation]}
-          spaceBetween={spaceBetween}
-          slidesPerView={1}
-          breakpoints={{
-            640: {
-              slidesPerView: slidesPerView >= 2 ? 2 : 1,
-            },
-            768: {
-              slidesPerView: slidesPerView >= 3 ? 3 : slidesPerView,
-            },
-            1024: {
-              slidesPerView,
-            },
-          }}
-          loop={true}
-          className="w-full"
-        >
+        <div className="hidden gap-5 lg:grid lg:grid-cols-4">
           {displayedImages.map((item, index) => (
-            <SwiperSlide key={item.id || index}>
-              <div className="group relative aspect-square cursor-pointer overflow-hidden rounded">
-                {item.media_url ? (
-                  <Image
-                    src={item.media_url}
-                    className="aspect-square w-full object-cover"
-                    sizes="(min-width: 1024px) 320px, (min-width: 768px) 250px, (min-width: 640px) 200px, 300px"
-                  />
-                ) : (
-                  imageItemBlank()
-                )}
-                {item.username && (
-                  <>
-                    <div className="absolute inset-0 z-10 hidden items-center justify-center group-hover:flex">
-                      <a
-                        href={`https://www.instagram.com/${item.username}/`}
-                        target="_blank"
-                        className="flex items-center justify-center gap-2"
-                        rel="noreferrer"
-                      >
-                        <InstagramLogo className="h-7 w-7 text-white" />
-                        <span className="ff-heading font-medium text-white text-xl">
-                          {item.username}
-                        </span>
-                      </a>
-                    </div>
-                    <div className="absolute inset-0 opacity-0 transition-colors duration-500 group-hover:bg-[#554612] group-hover:opacity-50" />
-                  </>
-                )}
-              </div>
-            </SwiperSlide>
+            <div key={`grid-${item.id || index}`}>
+              {renderImage(item, index)}
+            </div>
           ))}
-        </Swiper>
+        </div>
+        <div className="lg:hidden">
+          <Swiper
+            onSwiper={(swiper) => {
+              swiperRef.current = swiper;
+            }}
+            modules={[Navigation]}
+            spaceBetween={spaceBetween}
+            slidesPerView={1}
+            loop={true}
+            className="w-full"
+          >
+            {displayedImages.map((item, index) => (
+              <SwiperSlide key={item.id || index}>
+                {renderImage(item, index)}
+              </SwiperSlide>
+            ))}
+          </Swiper>
 
-        {showNavigation && (
-          <div className="md:-translate-y-1/2 pointer-events-none z-10 flex items-center justify-center gap-4 px-0 md:absolute md:top-1/2 md:right-0 md:left-0 md:justify-between md:gap-0 md:px-5 lg:px-0">
-            <button
-              type="button"
-              onClick={() => swiperRef.current?.slidePrev()}
-              className={cn(arrowVariants({ arrowsColor, arrowsShape }))}
-              aria-label="Previous slide"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 16 16"
-                width={16}
-                height={16}
-                fill="currentColor"
+          {showNavigation && (
+            <div className="pointer-events-none z-10 mt-10 flex items-center justify-center gap-4">
+              <button
+                type="button"
+                onClick={() => swiperRef.current?.slidePrev()}
+                className={cn(arrowVariants({ arrowsColor, arrowsShape }))}
+                aria-label={t("carousel.previousSlide")}
               >
-                <path d="M4.75397 12.207L5.46106 11.4999L2.46116 8.50003L15.5 8.50003V7.5L2.46125 7.5L5.46106 4.50019L4.75397 3.7931L0.546938 8.00006L4.75397 12.207Z" />
-              </svg>
-            </button>
-            <button
-              type="button"
-              onClick={() => swiperRef.current?.slideNext()}
-              className={cn(arrowVariants({ arrowsColor, arrowsShape }))}
-              aria-label="Next slide"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 16 16"
-                width={16}
-                height={16}
-                fill="currentColor"
+                {arrowsIcon === "caret" ? (
+                  <CaretLeft size={16} />
+                ) : (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 16 16"
+                    width={16}
+                    height={16}
+                    fill="currentColor"
+                  >
+                    <path d="M4.75397 12.207L5.46106 11.4999L2.46116 8.50003L15.5 8.50003V7.5L2.46125 7.5L5.46106 4.50019L4.75397 3.7931L0.546938 8.00006L4.75397 12.207Z" />
+                  </svg>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => swiperRef.current?.slideNext()}
+                className={cn(arrowVariants({ arrowsColor, arrowsShape }))}
+                aria-label={t("carousel.nextSlide")}
               >
-                <path
-                  d="M4.75397 12.207L5.46106 11.4999L2.46116 8.50003L15.5 8.50003V7.5L2.46125 7.5L5.46106 4.50019L4.75397 3.7931L0.546938 8.00006L4.75397 12.207Z"
-                  transform="translate(16,0) scale(-1,1)"
-                />
-              </svg>
-            </button>
-          </div>
-        )}
+                {arrowsIcon === "caret" ? (
+                  <CaretRight size={16} />
+                ) : (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 16 16"
+                    width={16}
+                    height={16}
+                    fill="currentColor"
+                  >
+                    <path
+                      d="M4.75397 12.207L5.46106 11.4999L2.46116 8.50003L15.5 8.50003V7.5L2.46125 7.5L5.46106 4.50019L4.75397 3.7931L0.546938 8.00006L4.75397 12.207Z"
+                      transform="translate(16,0) scale(-1,1)"
+                    />
+                  </svg>
+                )}
+              </button>
+            </div>
+          )}
+        </div>
         {children}
       </div>
     );
@@ -202,17 +246,6 @@ export let schema = createSchema({
     {
       group: "Slider Settings",
       inputs: [
-        {
-          type: "range",
-          name: "slidesPerView",
-          label: "Slides per view (desktop)",
-          defaultValue: 3,
-          configs: {
-            min: 1,
-            max: 4,
-            step: 1,
-          },
-        },
         {
           type: "range",
           name: "spaceBetween",
@@ -236,6 +269,18 @@ export let schema = createSchema({
     {
       group: "Navigation & Controls",
       inputs: [
+        {
+          type: "select",
+          label: "Arrow icon",
+          name: "arrowsIcon",
+          configs: {
+            options: [
+              { value: "caret", label: "Caret" },
+              { value: "arrow", label: "Arrow" },
+            ],
+          },
+          defaultValue: "arrow",
+        },
         {
           type: "select",
           label: "Arrows color",
@@ -265,10 +310,10 @@ export let schema = createSchema({
     },
   ],
   presets: {
-    slidesPerView: 3,
-    spaceBetween: 16,
+    spaceBetween: 20,
     showNavigation: true,
     arrowsColor: "primary",
     arrowsShape: "rounded-sm",
+    arrowsIcon: "arrow",
   },
 });

@@ -32,9 +32,9 @@ const Instagram = forwardRef<HTMLElement, InstagramProps>((props, ref) => {
   let { instagramToken, loaderData, children, ...rest } = props;
 
   return (
-    <Section ref={ref} {...rest}>
+    <Section ref={ref} {...rest} width="full" className="bg-[#EDEDED]">
       <InstagramProvider value={{ loaderData }}>
-        <div className="flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-center lg:gap-4">
+        <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-10 px-5 lg:flex-row lg:items-start lg:gap-6 lg:px-0">
           {children}
         </div>
       </InstagramProvider>
@@ -80,20 +80,29 @@ export const schema: HydrogenComponentSchema = {
   ],
   childTypes: ["instagram--content", "instagram--slider"],
   presets: {
+    width: "full",
+    verticalPadding: "medium",
+    backgroundColor: "#EDEDED",
+    backgroundFor: "section",
     children: [
       {
         type: "instagram--content",
-        title: "Instagram",
-        subtitle: "@instagram",
-        description:
-          "Meet the room edits: real life shots of our furniture in action. (We like to think we style our furniture well, but we can't help but show off how you do it.)",
-        alignment: "center",
+        headingContent: "INSTAGRAM",
+        headingTagName: "h2",
+        subheadingContent: "@aspen_life",
+        paragraphContent:
+          "Meet the room edits: real life shots of our furniture in action.",
+        buttonContent: "EXPLORE NOW",
+        to: "https://www.instagram.com/",
+        alignment: "left",
+        paragraphAlignment: "left",
       },
       {
         type: "instagram--slider",
-        slidesPerView: 3,
-        spaceBetween: 16,
+        slidesPerView: 4,
+        spaceBetween: 20,
         showNavigation: true,
+        arrowsIcon: "arrow",
       },
     ],
   },

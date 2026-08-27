@@ -4,11 +4,14 @@ import type { RouteLoaderArgs } from "@weaverse/hydrogen";
 import type { MetaFunction } from "react-router";
 import type { CollectionsQuery } from "storefront-api.generated";
 import { routeHeaders } from "~/utils/cache";
-import { PAGINATION_SIZE } from "~/utils/const";
+import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 import { seoPayload } from "~/utils/seo.server";
 import { WeaverseContent } from "~/weaverse";
 
+const COLLECTIONS_PER_PAGE = 6;
+
 export const headers = routeHeaders;
+export const shouldRevalidate = skipPageRevalidationForStorefrontActions;
 
 export const loader = async (args: RouteLoaderArgs) => {
   const {
@@ -17,7 +20,7 @@ export const loader = async (args: RouteLoaderArgs) => {
   } = args;
   const storefront = weaverse.storefront;
   const variables = getPaginationVariables(request, {
-    pageBy: PAGINATION_SIZE,
+    pageBy: COLLECTIONS_PER_PAGE,
   });
 
   // Load collections data and weaverseData in parallel
@@ -80,7 +83,7 @@ const COLLECTIONS_QUERY = `#graphql
           height
           altText
         }
-        products(first: 1) {
+        products(first: 3) {
           nodes {
             id
             title

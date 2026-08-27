@@ -1,11 +1,15 @@
 import "@fontsource/tenor-sans/index.css";
-import "@fontsource-variable/open-sans/index.css";
+import "@fontsource-variable/dm-sans/index.css";
 import tenorSansWoff2Url from "@fontsource/tenor-sans/files/tenor-sans-latin-400-normal.woff2?url";
-import openSansVarWoff2Url from "@fontsource-variable/open-sans/files/open-sans-latin-wght-normal.woff2?url";
+import dmSansVarWoff2Url from "@fontsource-variable/dm-sans/files/dm-sans-latin-wght-normal.woff2?url";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import type { SeoConfig } from "@shopify/hydrogen";
 import { Analytics, getSeoMeta, useNonce } from "@shopify/hydrogen";
-import { useThemeSettings, withWeaverse } from "@weaverse/hydrogen";
+import {
+  useThemeSettings,
+  useTranslation,
+  withWeaverse,
+} from "@weaverse/hydrogen";
 import type { CSSProperties } from "react";
 import {
   isRouteErrorResponse,
@@ -20,6 +24,7 @@ import {
   useRouteError,
   useRouteLoaderData,
 } from "react-router";
+import { CartStateProvider } from "./components/cart/cart-state-provider";
 import { Footer } from "./components/layout/footer";
 import { Header } from "./components/layout/header";
 import { ScrollingAnnouncement } from "./components/layout/scrolling-announcement";
@@ -31,12 +36,16 @@ import { CustomAnalytics } from "./components/root/custom-analytics";
 import { GenericError } from "./components/root/generic-error";
 import { GlobalLoading } from "./components/root/global-loading";
 import { NotFound } from "./components/root/not-found";
+import { WishlistProvider } from "./components/wishlist/wishlist-provider";
 import styles from "./styles/app.css?url";
 import { DEFAULT_LOCALE } from "./utils/const";
+import { skipRootRevalidationForStorefrontActions } from "./utils/revalidation";
 import { loadCriticalData, loadDeferredData } from "./utils/root.server";
 import { GlobalStyle } from "./weaverse/style";
 
 export type RootLoader = typeof loader;
+
+export const shouldRevalidate = skipRootRevalidationForStorefrontActions;
 
 export const links: LinksFunction = () => {
   return [
@@ -58,7 +67,7 @@ export const links: LinksFunction = () => {
     },
     {
       rel: "preload",
-      href: openSansVarWoff2Url as unknown as string,
+      href: dmSansVarWoff2Url as unknown as string,
       as: "font",
       type: "font/woff2",
       crossOrigin: "anonymous",
@@ -88,7 +97,7 @@ function App() {
   return <Outlet />;
 }
 
-export function ErrorBoundary({ error }: { error: Error }) {
+export function ErrorBoundary() {
   const routeError: { status?: number; data?: any } = useRouteError();
   const isRouteError = isRouteErrorResponse(routeError);
 
@@ -103,23 +112,31 @@ export function ErrorBoundary({ error }: { error: Error }) {
       <NotFound type={pageType} />
     ) : (
       <GenericError
+        statusCode={routeError.status || 500}
         error={{ message: `${routeError.status} ${routeError.data}` }}
       />
     )
   ) : (
-    <GenericError error={error instanceof Error ? error : undefined} />
+    <GenericError
+      error={routeError instanceof Error ? routeError : undefined}
+    />
   );
 }
 
-export function Layout({ children }: { children?: React.ReactNode }) {
+function RootLayout({ children }: { children?: React.ReactNode }) {
   const nonce = useNonce();
+  const { t } = useTranslation();
   const data = useRouteLoaderData<RootLoader>("root");
   const locale = data?.selectedLocale ?? DEFAULT_LOCALE;
-  const { topbarHeight, topbarText } = useThemeSettings();
+  const { designSystemPreset, topbarHeight, topbarText } = useThemeSettings();
+  const initialDesktopTopbarHeight =
+    designSystemPreset === "custom" ? (topbarHeight ?? 56) : 56;
   const shouldShowNewsletterPopup = useShouldRenderNewsletterPopup();
 
   return (
-    <html lang={locale.language}>
+    <html
+      lang={`${locale.language.toLowerCase()}-${locale.country.toUpperCase()}`}
+    >
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -132,7 +149,10 @@ export function Layout({ children }: { children?: React.ReactNode }) {
         style={
           {
             opacity: 0,
-            "--initial-topbar-height": `${topbarText ? topbarHeight : 0}px`,
+            "--initial-topbar-height-mobile": topbarText ? "44px" : "0px",
+            "--initial-topbar-height-desktop": `${
+              topbarText ? initialDesktopTopbarHeight : 0
+            }px`,
           } as CSSProperties
         }
         className="bg-background text-body antialiased opacity-100! transition-opacity duration-300"
@@ -143,26 +163,30 @@ export function Layout({ children }: { children?: React.ReactNode }) {
             shop={data.shop}
             consent={data.consent}
           >
-            <TooltipProvider disableHoverableContent>
-              <div
-                className="flex min-h-screen flex-col"
-                key={`${locale.language}-${locale.country}`}
-              >
-                <div className="">
-                  <a href="#mainContent" className="sr-only">
-                    Skip to content
-                  </a>
-                </div>
-                <ScrollingAnnouncement />
-                <Header />
-                <main id="mainContent" className="grow">
-                  {children}
-                </main>
-                <Footer />
-              </div>
-              {shouldShowNewsletterPopup && <NewsletterPopup />}
-              <CustomAnalytics />
-            </TooltipProvider>
+            <CartStateProvider initialCart={data.cart}>
+              <WishlistProvider initialWishlist={data.wishlist}>
+                <TooltipProvider disableHoverableContent>
+                  <div
+                    className="flex min-h-screen flex-col"
+                    key={`${locale.language}-${locale.country}`}
+                  >
+                    <div className="">
+                      <a href="#mainContent" className="sr-only">
+                        {t("accessibility.skipToContent")}
+                      </a>
+                    </div>
+                    <ScrollingAnnouncement />
+                    <Header />
+                    <main id="mainContent" className="grow">
+                      {children}
+                    </main>
+                    <Footer />
+                  </div>
+                  {shouldShowNewsletterPopup && <NewsletterPopup />}
+                  <CustomAnalytics />
+                </TooltipProvider>
+              </WishlistProvider>
+            </CartStateProvider>
           </Analytics.Provider>
         ) : (
           children
@@ -175,4 +199,5 @@ export function Layout({ children }: { children?: React.ReactNode }) {
   );
 }
 
-export default withWeaverse(App);
+export const Layout = withWeaverse(RootLayout);
+export default App;

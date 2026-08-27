@@ -1,31 +1,45 @@
-import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
+import {
+  createSchema,
+  type HydrogenComponentProps,
+  useTranslation,
+} from "@weaverse/hydrogen";
 import { forwardRef, useEffect, useState } from "react";
 import Heading, {
   type HeadingProps,
   headingInputs,
 } from "~/components/heading";
+import Link from "~/components/link";
 
 export interface HighlightsBadgeProps
   extends HydrogenComponentProps,
     Omit<HeadingProps, "content"> {
   iconType?: string;
+  showIcon?: boolean;
   customIcon?: string;
   badgeTextColor?: string;
   // Heading props
   headingContent?: string;
   headingTagName?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
+  description?: string;
+  linkText?: string;
+  linkTo?: string;
 }
 
 let HighlightsBadge = forwardRef<HTMLDivElement, HighlightsBadgeProps>(
   (props, ref) => {
+    const { t } = useTranslation();
     let {
       children,
       iconType = "circle",
+      showIcon = true,
       customIcon = "",
       badgeTextColor = "#29231E",
       // Heading props
       headingContent,
       headingTagName,
+      description,
+      linkText,
+      linkTo,
       color,
       size,
       mobileSize,
@@ -41,7 +55,7 @@ let HighlightsBadge = forwardRef<HTMLDivElement, HighlightsBadgeProps>(
     const [imageError, setImageError] = useState(false);
     useEffect(() => {
       setImageError(false);
-    }, [customIcon]);
+    }, []);
     const isInlineSVG = (content: string) => {
       return content.trim().startsWith("<svg");
     };
@@ -50,21 +64,21 @@ let HighlightsBadge = forwardRef<HTMLDivElement, HighlightsBadgeProps>(
         case "circle":
           return (
             <div
-              className="h-10 w-10 flex-shrink-0 rounded-full"
+              className="size-5 flex-shrink-0 rounded-full"
               style={{ backgroundColor: badgeTextColor }}
             />
           );
         case "square":
           return (
             <div
-              className="h-9 w-9 flex-shrink-0"
+              className="size-5 flex-shrink-0"
               style={{ backgroundColor: badgeTextColor }}
             />
           );
         case "triangle":
           return (
             <div
-              className="h-12 w-12 flex-shrink-0"
+              className="h-5 w-6 flex-shrink-0"
               style={{
                 clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)",
                 backgroundColor: badgeTextColor,
@@ -75,14 +89,14 @@ let HighlightsBadge = forwardRef<HTMLDivElement, HighlightsBadgeProps>(
           if (!customIcon) {
             return (
               <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center border-2 border-gray-300 border-dashed text-gray-400 text-xs">
-                No Icon
+                {t("system.noIcon")}
               </div>
             );
           }
           if (imageError && !isInlineSVG(customIcon)) {
             return (
               <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center border-2 border-red-300 border-dashed text-red-400 text-xs">
-                Error
+                {t("system.error")}
               </div>
             );
           }
@@ -101,9 +115,12 @@ let HighlightsBadge = forwardRef<HTMLDivElement, HighlightsBadgeProps>(
           }
           return (
             <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center">
+              {/* biome-ignore lint/performance/noImgElement: Custom icons can be arbitrary external URLs or data URIs rather than Shopify image data. */}
               <img
                 src={customIcon}
-                alt="Custom Icon"
+                alt={t("accessibility.customIcon")}
+                width={48}
+                height={48}
                 className="max-h-full max-w-full object-contain"
                 style={{
                   filter: customIcon.toLowerCase().endsWith(".svg")
@@ -123,18 +140,16 @@ let HighlightsBadge = forwardRef<HTMLDivElement, HighlightsBadgeProps>(
       <div
         ref={ref}
         {...rest}
-        className={
-          "flex h-full flex-col items-center justify-center gap-0 px-4 py-8 md:gap-5 md:px-8 md:py-16"
-        }
+        className="flex min-h-[320px] flex-col items-center justify-center px-5 py-10 md:min-h-[322px] md:px-10"
       >
-        {/* Icon container với vị trí cố định */}
-        <div className="flex w-full flex-shrink-0 items-center justify-center">
-          {renderIcon(iconType)}
-        </div>
+        {showIcon && (
+          <div className="mb-6 flex w-full flex-shrink-0 items-center justify-center">
+            {renderIcon(iconType)}
+          </div>
+        )}
 
-        {/* Text container với vị trí cố định */}
-        <div className="flex w-full flex-1 items-start justify-center text-center">
-          {headingContent && (
+        <div className="flex w-full justify-center text-center">
+          {headingContent ? (
             <Heading
               content={headingContent}
               as={headingTagName}
@@ -148,9 +163,26 @@ let HighlightsBadge = forwardRef<HTMLDivElement, HighlightsBadgeProps>(
               minSize={minSize}
               maxSize={maxSize}
               animate={animate}
+              className="max-w-[300px] text-xl leading-[1.1] tracking-[-0.02em] md:text-[26px]"
             />
+          ) : (
+            children
           )}
         </div>
+        {description && (
+          <p className="mt-4 max-w-[290px] text-center text-[11px] leading-snug opacity-65 md:text-xs">
+            {description}
+          </p>
+        )}
+        {linkText && (
+          <Link
+            to={linkTo || "#"}
+            className="mt-5 inline-flex items-center gap-1 text-[10px] underline underline-offset-2"
+          >
+            {linkText}
+            <span aria-hidden="true">→</span>
+          </Link>
+        )}
       </div>
     );
   },
@@ -167,6 +199,12 @@ export let schema = createSchema({
       group: "Icon",
       inputs: [
         {
+          type: "switch",
+          name: "showIcon",
+          label: "Show icon",
+          defaultValue: true,
+        },
+        {
           type: "select",
           name: "iconType",
           label: "Icon Type",
@@ -179,6 +217,7 @@ export let schema = createSchema({
             ],
           },
           defaultValue: "circle",
+          condition: (data: HighlightsBadgeProps) => data.showIcon,
         },
         {
           type: "textarea",
@@ -220,12 +259,40 @@ export let schema = createSchema({
         }),
       ],
     },
+    {
+      group: "Supporting content",
+      inputs: [
+        {
+          type: "textarea",
+          name: "description",
+          label: "Description",
+          defaultValue: "Built with durable materials for years of daily use.",
+        },
+        {
+          type: "text",
+          name: "linkText",
+          label: "Link text",
+          defaultValue: "Explore More",
+        },
+        {
+          type: "url",
+          name: "linkTo",
+          label: "Link to",
+          defaultValue: "/collections/all",
+          condition: "linkText.ne.empty",
+        },
+      ],
+    },
   ],
   presets: {
     iconType: "circle",
+    showIcon: true,
     badgeTextColor: "#29231E",
     headingContent:
       "Quality furniture made to last through moves and milestones.",
     color: "#29231E",
+    description: "Built with durable materials for years of daily use.",
+    linkText: "Explore More",
+    linkTo: "/collections/all",
   },
 });

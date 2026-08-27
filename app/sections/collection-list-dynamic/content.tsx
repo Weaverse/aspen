@@ -1,6 +1,12 @@
-import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
+import {
+  createSchema,
+  type HydrogenComponentProps,
+  useChildInstances,
+  useParentInstance,
+} from "@weaverse/hydrogen";
 import { cva, type VariantProps } from "class-variance-authority";
-import { forwardRef } from "react";
+import clsx from "clsx";
+import { forwardRef, useCallback, useSyncExternalStore } from "react";
 import Heading, {
   type HeadingProps,
   headingInputs,
@@ -17,6 +23,7 @@ interface CollectionListDynamicProps
   // Heading props
   headingContent?: string;
   headingTagName?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
+  sliderHeadingContent?: string;
   // Paragraph props
   paragraphContent?: string;
   paragraphTag?: "p" | "div";
@@ -26,17 +33,26 @@ interface CollectionListDynamicProps
   paragraphWidth?: ParagraphProps["width"];
   // Button/Link props
   buttonContent?: string;
+  sliderButtonContent?: string;
   to?: LinkProps["to"];
+  sliderTo?: LinkProps["to"];
   variant?: LinkProps["variant"];
   openInNewTab?: boolean;
   textColor?: string;
-  buttonBackgroundColor?: string;
+  backgroundColor?: string;
   borderColor?: string;
   textColorHover?: string;
   backgroundColorHover?: string;
   borderColorHover?: string;
   textColorDecor?: string;
 }
+
+type CollectionLayout = "grid" | "slider" | "showcase";
+type CollectionChildData = {
+  type?: string;
+  layout?: CollectionLayout;
+};
+const noopUnsubscribe = () => undefined;
 
 let variants = cva("flex flex-col [&_.paragraph]:mx-[unset]", {
   variants: {
@@ -66,7 +82,7 @@ let variants = cva("flex flex-col [&_.paragraph]:mx-[unset]", {
   },
   defaultVariants: {
     contentPosition: "center",
-    gap: 32,
+    gap: 24,
   },
 });
 
@@ -74,6 +90,33 @@ let CollectionContentDynamic = forwardRef<
   HTMLDivElement,
   CollectionListDynamicProps
 >((props, ref) => {
+  const parentInstance = useParentInstance();
+  const serializedCollectionLayout = (
+    parentInstance?.data.children as CollectionChildData[] | undefined
+  )?.find((child) => child.type === "collection-list-dynamic-items")?.layout;
+  const siblingInstances = useChildInstances(parentInstance?._id);
+  const collectionItemsInstance = siblingInstances.find(
+    (instance) => instance.data.type === "collection-list-dynamic-items",
+  );
+  const subscribeToCollectionLayout = useCallback(
+    (onStoreChange: () => void) =>
+      collectionItemsInstance?.subscribe(onStoreChange) ?? noopUnsubscribe,
+    [collectionItemsInstance],
+  );
+  const getCollectionLayout = useCallback(
+    () => collectionItemsInstance?.data.layout as CollectionLayout | undefined,
+    [collectionItemsInstance],
+  );
+  const getServerCollectionLayout = useCallback(
+    () => serializedCollectionLayout,
+    [serializedCollectionLayout],
+  );
+  const collectionLayout = useSyncExternalStore(
+    subscribeToCollectionLayout,
+    getCollectionLayout,
+    getServerCollectionLayout,
+  );
+
   const {
     gap,
     contentPosition,
@@ -81,6 +124,7 @@ let CollectionContentDynamic = forwardRef<
     // Heading props
     headingContent,
     headingTagName,
+    sliderHeadingContent,
     color,
     size,
     mobileSize,
@@ -100,11 +144,13 @@ let CollectionContentDynamic = forwardRef<
     paragraphWidth,
     // Button/Link props
     buttonContent,
+    sliderButtonContent,
     to,
+    sliderTo,
     variant,
     openInNewTab,
     textColor,
-    buttonBackgroundColor,
+    backgroundColor,
     borderColor,
     textColorHover,
     backgroundColorHover,
@@ -112,17 +158,38 @@ let CollectionContentDynamic = forwardRef<
     textColorDecor,
     ...rest
   } = props;
+  const effectiveDisplayMode = collectionLayout
+    ? collectionLayout === "slider"
+      ? "horizontal"
+      : "vertical"
+    : displayMode;
+  const isSliderLayout = effectiveDisplayMode === "horizontal";
+  const effectiveHeadingContent = isSliderLayout
+    ? (sliderHeadingContent ?? "COLLECTIONS")
+    : headingContent;
+  const effectiveButtonContent = isSliderLayout
+    ? (sliderButtonContent ?? "VIEW ALL")
+    : buttonContent;
+  const effectiveTo = isSliderLayout ? (sliderTo ?? to) : to;
+  const designHeadingClassName =
+    !size || size === "default"
+      ? clsx(
+          "text-[37px] leading-[1.1] md:text-[44px]",
+          (!letterSpacing || letterSpacing === "normal") &&
+            "tracking-[-0.02em] md:tracking-[-0.03em]",
+        )
+      : undefined;
 
-  if (displayMode === "horizontal") {
+  if (effectiveDisplayMode === "horizontal") {
     return (
       <div
         ref={ref}
         {...rest}
-        className="flex w-full items-center justify-between"
+        className="flex w-full flex-col items-start gap-4 md:flex-row md:items-center md:justify-between"
       >
-        {headingContent && (
+        {effectiveHeadingContent && (
           <Heading
-            content={headingContent}
+            content={effectiveHeadingContent}
             as={headingTagName}
             color={color}
             size={size}
@@ -134,24 +201,24 @@ let CollectionContentDynamic = forwardRef<
             minSize={minSize}
             maxSize={maxSize}
             animate={animate}
-            className="flex-1"
+            className={clsx("w-full md:flex-1", designHeadingClassName)}
           />
         )}
-        {buttonContent && (
+        {effectiveButtonContent && (
           <Link
             variant={variant}
             textColor={textColor}
-            backgroundColor={buttonBackgroundColor}
+            backgroundColor={backgroundColor}
             borderColor={borderColor}
             textColorHover={textColorHover}
             backgroundColorHover={backgroundColorHover}
             borderColorHover={borderColorHover}
             textColorDecor={textColorDecor}
             openInNewTab={openInNewTab}
-            to={to}
+            to={effectiveTo}
             className="mr-1 w-fit flex-shrink-0"
           >
-            {buttonContent}
+            {effectiveButtonContent}
           </Link>
         )}
       </div>
@@ -167,9 +234,9 @@ let CollectionContentDynamic = forwardRef<
         gap,
       })}
     >
-      {headingContent && (
+      {effectiveHeadingContent && (
         <Heading
-          content={headingContent}
+          content={effectiveHeadingContent}
           as={headingTagName}
           color={color}
           size={size}
@@ -181,6 +248,7 @@ let CollectionContentDynamic = forwardRef<
           minSize={minSize}
           maxSize={maxSize}
           animate={animate}
+          className={designHeadingClassName}
         />
       )}
       {paragraphContent && (
@@ -193,21 +261,21 @@ let CollectionContentDynamic = forwardRef<
           width={paragraphWidth}
         />
       )}
-      {buttonContent && (
+      {effectiveButtonContent && (
         <Link
           variant={variant}
           textColor={textColor}
-          backgroundColor={buttonBackgroundColor}
+          backgroundColor={backgroundColor}
           borderColor={borderColor}
           textColorHover={textColorHover}
           backgroundColorHover={backgroundColorHover}
           borderColorHover={borderColorHover}
           textColorDecor={textColorDecor}
           openInNewTab={openInNewTab}
-          to={to}
+          to={effectiveTo}
           className="w-fit"
         >
-          {buttonContent}
+          {effectiveButtonContent}
         </Link>
       )}
     </div>
@@ -215,10 +283,9 @@ let CollectionContentDynamic = forwardRef<
 });
 
 export default CollectionContentDynamic;
-
 export const schema = createSchema({
   type: "collection-content-dynamic",
-  title: "Collection content dynamic",
+  title: "Heading and link",
   limit: 1,
   settings: [
     {
@@ -226,20 +293,10 @@ export const schema = createSchema({
       inputs: [
         {
           type: "toggle-group",
-          name: "displayMode",
-          label: "Display mode",
-          defaultValue: "vertical",
-          configs: {
-            options: [
-              { value: "vertical", label: "Vertical" },
-              { value: "horizontal", label: "Horizontal" },
-            ],
-          },
-        },
-        {
-          type: "toggle-group",
           name: "contentPosition",
-          label: "Content position",
+          label: "Content position (Grid / Editorial)",
+          helpText:
+            "Card Slider automatically uses a title with a side link instead.",
           defaultValue: "center",
           configs: {
             options: [
@@ -248,33 +305,29 @@ export const schema = createSchema({
               { value: "right", label: "right" },
             ],
           },
-          condition: (data: CollectionListDynamicProps) =>
-            data.displayMode === "vertical",
         },
         {
           type: "range",
           name: "gap",
-          label: "Gap",
-          defaultValue: 32,
+          label: "Content gap (Grid / Editorial)",
+          defaultValue: 24,
           configs: {
             min: 0,
             max: 60,
             step: 4,
             unit: "px",
           },
-          condition: (data: CollectionListDynamicProps) =>
-            data.displayMode === "vertical",
         },
       ],
     },
     {
-      group: "Heading (optional)",
+      group: "Grid / editorial heading",
       inputs: [
         {
           type: "text",
           name: "headingContent",
           label: "Heading content",
-          defaultValue: "Collections",
+          defaultValue: "EXPLORE COLLECTIONS",
           placeholder: "Enter heading text",
         },
         ...headingInputs.map((input) => {
@@ -289,17 +342,17 @@ export const schema = createSchema({
       ],
     },
     {
-      group: "Paragraph (optional)",
+      group: "Grid / editorial description",
       inputs: [
         {
           type: "richtext",
           name: "paragraphContent",
           label: "Paragraph content",
           defaultValue:
-            "Discover our most-loved collections and curated highlights.",
+            "If you're looking for products that bring ease through form and function, we offer no-fuss furniture built to last.",
           placeholder: "Enter paragraph text",
-          condition: (data: CollectionListDynamicProps) =>
-            data.displayMode === "vertical",
+          helpText:
+            "Shown in Grid and Editorial layouts; hidden in Card Slider.",
         },
         {
           type: "select",
@@ -312,15 +365,11 @@ export const schema = createSchema({
             ],
           },
           defaultValue: "p",
-          condition: (data: CollectionListDynamicProps) =>
-            data.displayMode === "vertical",
         },
         {
           type: "color",
           name: "paragraphColor",
           label: "Text color",
-          condition: (data: CollectionListDynamicProps) =>
-            data.displayMode === "vertical",
         },
         {
           type: "select",
@@ -344,8 +393,6 @@ export const schema = createSchema({
             ],
           },
           defaultValue: "base",
-          condition: (data: CollectionListDynamicProps) =>
-            data.displayMode === "vertical",
         },
         {
           type: "toggle-group",
@@ -362,8 +409,6 @@ export const schema = createSchema({
             ],
           },
           defaultValue: "full",
-          condition: (data: CollectionListDynamicProps) =>
-            data.displayMode === "vertical",
         },
         {
           type: "toggle-group",
@@ -381,13 +426,11 @@ export const schema = createSchema({
             ],
           },
           defaultValue: "left",
-          condition: (data: CollectionListDynamicProps) =>
-            data.displayMode === "vertical",
         },
       ],
     },
     {
-      group: "Button (optional)",
+      group: "Grid / editorial link",
       inputs: [
         {
           type: "text",
@@ -406,14 +449,50 @@ export const schema = createSchema({
           .filter(Boolean) as any),
       ],
     },
+    {
+      group: "Card slider content",
+      inputs: [
+        {
+          type: "text",
+          name: "sliderHeadingContent",
+          label: "Heading",
+          defaultValue: "COLLECTIONS",
+          placeholder: "Enter slider heading",
+        },
+        {
+          type: "text",
+          name: "sliderButtonContent",
+          label: "Link text",
+          defaultValue: "VIEW ALL",
+          placeholder: "Enter slider link text",
+        },
+        {
+          type: "url",
+          name: "sliderTo",
+          label: "Link to",
+          defaultValue: "/collections",
+        },
+      ],
+    },
   ],
   presets: {
     displayMode: "vertical",
-    gap: 32,
-    headingContent: "Collections",
+    contentPosition: "center",
+    gap: 24,
+    headingContent: "EXPLORE COLLECTIONS",
+    headingTagName: "h2",
+    weight: "400",
+    letterSpacing: "normal",
+    alignment: "center",
     paragraphContent:
-      "Discover our most-loved collections and curated highlights.",
+      "If you're looking for products that bring ease through form and function, we offer no-fuss furniture built to last.",
+    paragraphAlignment: "center",
+    paragraphWidth: "narrow",
     buttonContent: "EXPLORE NOW",
+    to: "/collections",
     variant: "decor",
+    sliderHeadingContent: "COLLECTIONS",
+    sliderButtonContent: "VIEW ALL",
+    sliderTo: "/collections",
   },
 });

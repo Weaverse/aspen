@@ -5,6 +5,9 @@ import type { ApiAllProductsQuery } from "storefront-api.generated";
 import invariant from "tiny-invariant";
 import { PRODUCT_CARD_FRAGMENT } from "~/graphql/fragments";
 import { maybeFilterOutCombinedListingsQuery } from "~/utils/combined-listings";
+import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
+
+export const shouldRevalidate = skipPageRevalidationForStorefrontActions;
 
 /**
  * Fetch a given set of products from the storefront API

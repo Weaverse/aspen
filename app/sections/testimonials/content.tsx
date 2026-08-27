@@ -1,13 +1,23 @@
-import { ArrowLeft, ArrowRight, Quotes, Star } from "@phosphor-icons/react";
-import type {
-  HydrogenComponentProps,
-  HydrogenComponentSchema,
+import {
+  ArrowLeft,
+  ArrowRight,
+  CaretLeft,
+  CaretRight,
+  Quotes,
+  Star,
+} from "@phosphor-icons/react";
+import {
+  type HydrogenComponentProps,
+  type HydrogenComponentSchema,
+  useTranslation,
 } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
 import Heading, {
   type HeadingProps,
   headingInputs,
 } from "~/components/heading";
+import { cn } from "~/utils/cn";
+import { useTestimonialNavigation } from "./context";
 
 interface TestimonialContentProps
   extends Omit<HeadingProps, "as">,
@@ -24,8 +34,37 @@ interface TestimonialContentProps
   subHeadingAlignment?: "left" | "center" | "right";
 }
 
+const BLOCK_HTML_PATTERN =
+  /<(?:article|blockquote|div|h[1-6]|li|ol|p|section|table|ul)\b/i;
+
+function getSafeRichTextElement(
+  description: string | undefined,
+  preferredTag: NonNullable<TestimonialContentProps["subHeadingTag"]>,
+) {
+  if (!description) {
+    return { Tag: preferredTag, html: "" };
+  }
+
+  const trimmedDescription = description.trim();
+  const singleParagraphMatch = trimmedDescription.match(
+    /^<p(?:\s[^>]*)?>([\s\S]*)<\/p>$/i,
+  );
+  const hasMultipleParagraphs = /<\/p>\s*<p(?:\s|>)/i.test(trimmedDescription);
+
+  if (singleParagraphMatch && !hasMultipleParagraphs) {
+    return { Tag: preferredTag, html: singleParagraphMatch[1] };
+  }
+
+  if (BLOCK_HTML_PATTERN.test(trimmedDescription)) {
+    return { Tag: "div" as const, html: trimmedDescription };
+  }
+
+  return { Tag: preferredTag, html: trimmedDescription };
+}
+
 let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
   (props, ref) => {
+    const { t } = useTranslation();
     let {
       alignment,
       headingTagName,
@@ -37,54 +76,71 @@ let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
       maxSize,
       weight,
       letterSpacing,
-      content,
+      content = "TESTIMONIALS",
       description,
-      ratting,
+      ratting = 5,
       author,
       // Description styling props
       subHeadingTag = "h4",
       subHeadingSize = "large",
       subHeadingWeight = "normal",
-      subHeadingColor = "#4B5563",
+      subHeadingColor = "var(--color-text-subtle)",
       subHeadingAlignment = "left",
       children,
       ...rest
     } = props;
 
-    // Generate dynamic classes for description text
     const descriptionClasses = [
-      `text-${subHeadingAlignment}`,
-      subHeadingSize === "large" ? "text-lg" : "text-base",
+      subHeadingAlignment === "center"
+        ? "text-center"
+        : subHeadingAlignment === "right"
+          ? "text-right"
+          : "text-left",
+      subHeadingSize === "large"
+        ? "font-heading text-2xl leading-[1.1] tracking-[-0.02em] lg:text-[37px]"
+        : "text-base",
       subHeadingWeight === "medium" ? "font-medium" : "font-normal",
     ].join(" ");
 
-    // Create the description element based on the selected tag
-    const DescriptionTag = subHeadingTag;
+    const { Tag: DescriptionTag, html: descriptionHtml } =
+      getSafeRichTextElement(description, subHeadingTag);
 
-    const handlePrevSlide = () => {
-      if (window.testimonialSwiper) {
-        window.testimonialSwiper.slidePrev();
-      }
-    };
-
-    const handleNextSlide = () => {
-      if (window.testimonialSwiper) {
-        window.testimonialSwiper.slideNext();
-      }
-    };
+    const {
+      canGoPrevious,
+      canGoNext,
+      goToPrevious,
+      goToNext,
+      navigationButtonColor,
+      navigationButtonHoverColor,
+      navigationIconColor,
+      navigationIcon,
+      navigationShape,
+    } = useTestimonialNavigation();
+    const PreviousIcon = navigationIcon === "caret" ? CaretLeft : ArrowLeft;
+    const NextIcon = navigationIcon === "caret" ? CaretRight : ArrowRight;
+    const navigationShapeClass =
+      navigationShape === "circle"
+        ? "rounded-full"
+        : navigationShape === "square"
+          ? "rounded-none"
+          : "rounded-lg";
 
     const renderStars = () => {
-      const stars = [];
-      for (let i = 0; i < ratting; i++) {
-        stars.push(<Star size={24} weight="fill" fill="#918379" key={i} />);
-      }
-      return stars;
+      return Array.from({ length: Math.max(0, ratting ?? 0) }, (_, index) => (
+        <Star
+          size={20}
+          weight="fill"
+          className="text-[#9d9d9d]"
+          fill="currentColor"
+          key={index}
+        />
+      ));
     };
     return (
       <div
         ref={ref}
         {...rest}
-        className="flex flex-1 flex-col justify-center gap-5"
+        className="order-2 flex min-w-0 flex-col px-5 pt-5 pb-10 lg:order-1 lg:h-[648px] lg:px-0 lg:py-0"
       >
         {content && (
           <Heading
@@ -99,47 +155,80 @@ let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
             weight={weight}
             letterSpacing={letterSpacing}
             alignment={alignment}
-            className="h-1/2"
+            className="text-[37px] leading-[1.1] tracking-[-0.03em] lg:text-[53px]"
           />
         )}
-        <div className="flex h-1/2 flex-col justify-end gap-16">
-          <div className="flex flex-col gap-5">
-            <Quotes size={32} className="rotate-180" />
-            {description && (
+        <div className="mt-16 flex flex-1 flex-col justify-end lg:mt-0 lg:pb-0">
+          <div className="flex max-w-[430px] flex-col gap-4 lg:gap-5">
+            <Quotes size={28} className="rotate-180 lg:size-8" />
+            {descriptionHtml && (
               <DescriptionTag
                 className={`testimonial-description ${descriptionClasses}`}
                 style={{ color: subHeadingColor }}
-              >
-                {description}
-              </DescriptionTag>
+                dangerouslySetInnerHTML={{ __html: descriptionHtml }}
+              />
             )}
           </div>
-          <div className="flex justify-between">
-            <div className="flex flex-col gap-4">
+          <div className="mt-7 flex items-end justify-between lg:mt-8">
+            <div className="flex flex-col gap-2">
               <span className="flex gap-0.5">{renderStars()}</span>
-              <p className="text-base">{author}</p>
+              <p className="font-semibold text-sm leading-none tracking-[0.02em]">
+                {author}
+              </p>
             </div>
             <div className="flex gap-2">
-              <span
-                onClick={handlePrevSlide}
-                className="h-fit w-fit cursor-pointer rounded-full bg-[#EDEAE6] p-4"
+              <button
+                type="button"
+                aria-label={t("testimonial.previous")}
+                onClick={goToPrevious}
+                disabled={!canGoPrevious}
+                className={cn(
+                  "flex size-12 items-center justify-center bg-(--testimonial-nav-bg) text-(--testimonial-nav-color) transition-colors hover:bg-(--testimonial-nav-bg-hover)",
+                  navigationShapeClass,
+                  canGoPrevious
+                    ? "cursor-pointer"
+                    : "cursor-not-allowed opacity-50",
+                )}
+                style={
+                  {
+                    "--testimonial-nav-bg": navigationButtonColor,
+                    "--testimonial-nav-bg-hover": navigationButtonHoverColor,
+                    "--testimonial-nav-color": navigationIconColor,
+                  } as React.CSSProperties
+                }
               >
-                <ArrowLeft
+                <PreviousIcon
                   size={16}
-                  weight="thin"
+                  weight="regular"
                   className="transition-opacity hover:opacity-70"
                 />
-              </span>
-              <span
-                onClick={handleNextSlide}
-                className="h-fit w-fit cursor-pointer rounded-full bg-[#EDEAE6] p-4"
+              </button>
+              <button
+                type="button"
+                aria-label={t("testimonial.next")}
+                onClick={goToNext}
+                disabled={!canGoNext}
+                className={cn(
+                  "flex size-12 items-center justify-center bg-(--testimonial-nav-bg) text-(--testimonial-nav-color) transition-colors hover:bg-(--testimonial-nav-bg-hover)",
+                  navigationShapeClass,
+                  canGoNext
+                    ? "cursor-pointer"
+                    : "cursor-not-allowed opacity-50",
+                )}
+                style={
+                  {
+                    "--testimonial-nav-bg": navigationButtonColor,
+                    "--testimonial-nav-bg-hover": navigationButtonHoverColor,
+                    "--testimonial-nav-color": navigationIconColor,
+                  } as React.CSSProperties
+                }
               >
-                <ArrowRight
+                <NextIcon
                   size={16}
-                  weight="thin"
+                  weight="regular"
                   className="transition-opacity hover:opacity-70"
                 />
-              </span>
+              </button>
             </div>
           </div>
         </div>
@@ -170,7 +259,7 @@ export let schema: HydrogenComponentSchema = {
           type: "range",
           name: "ratting",
           label: "Reviews",
-          defaultValue: 3,
+          defaultValue: 5,
           configs: {
             min: 1,
             max: 5,
@@ -189,6 +278,12 @@ export let schema: HydrogenComponentSchema = {
     {
       group: "Heading (optional)",
       inputs: headingInputs.map((input) => {
+        if (input.name === "content") {
+          return {
+            ...input,
+            defaultValue: "TESTIMONIALS",
+          };
+        }
         if (input.name === "as") {
           return {
             ...input,
@@ -265,4 +360,20 @@ export let schema: HydrogenComponentSchema = {
       ],
     },
   ],
+  presets: {
+    content: "TESTIMONIALS",
+    headingTagName: "h2",
+    weight: "400",
+    letterSpacing: "tight",
+    alignment: "left",
+    description:
+      "Beautiful dining set, the color is natural and the chairs very comfortable!",
+    ratting: 5,
+    author: "Stephanie L.",
+    subHeadingTag: "p",
+    subHeadingSize: "large",
+    subHeadingWeight: "normal",
+    subHeadingColor: "#524B46",
+    subHeadingAlignment: "left",
+  },
 };

@@ -9,7 +9,7 @@ import type {
   Storefront as StorefrontBase,
 } from "@shopify/hydrogen";
 import type { WeaverseClient } from "@weaverse/hydrogen";
-import type { I18nLocale } from "./app/types/locale";
+import type { I18nLocale, StoreLocalization } from "./app/types/locale";
 import type { createAppLoadContext } from "./server";
 
 declare global {
@@ -27,12 +27,15 @@ declare global {
     METAOBJECT_COLOR_NAME_KEY: string;
     METAOBJECT_COLOR_VALUE_KEY: string;
     KLAVIYO_PRIVATE_API_TOKEN: string;
+    LOYALTYLION_SITE_ID: string;
+    LOYALTYLION_API_KEY: string;
     PUBLIC_SHOPIFY_INBOX_SHOP_ID: string;
     WEAVERSE_HOST?: string;
   }
 
   interface HydrogenAdditionalContext {
     weaverse: WeaverseClient;
+    localization: StoreLocalization;
   }
 }
 

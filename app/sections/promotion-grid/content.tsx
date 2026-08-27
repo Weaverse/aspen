@@ -6,7 +6,9 @@ interface PromotionGridProps
   extends HydrogenComponentProps,
     VariantProps<typeof variants> {}
 
-let variants = cva("flex flex-col [&_.paragraph]:mx-[unset]", {
+// Legacy instances stay registered so old project data can still load, but the
+// block is no longer part of the Promotion Grid composition or editor schema.
+let variants = cva("hidden", {
   variants: {
     contentPosition: {
       left: "items-start justify-center [&_.paragraph]:[text-align:left]",

@@ -26,13 +26,16 @@ export interface SingleMenuItem {
   title: string;
   items: SingleMenuItem[];
   to: string;
+  tags?: string[];
   resource?: {
+    __typename?: string;
+    articleTags?: string[];
     image?: {
-      altText: string;
+      altText?: string | null;
       height: number;
       id: string;
       url: string;
       width: number;
-    };
-  };
+    } | null;
+  } | null;
 }

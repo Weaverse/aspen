@@ -1,34 +1,29 @@
 import {
   FacebookLogo,
   InstagramLogo,
-  LinkedinLogo,
-  XLogo,
+  TwitterLogo,
+  YoutubeLogo,
 } from "@phosphor-icons/react";
-import { useThemeSettings } from "@weaverse/hydrogen";
+import { useThemeSettings, useTranslation } from "@weaverse/hydrogen";
 import { cva } from "class-variance-authority";
-import { useEffect, useRef } from "react";
-import { Link } from "react-router";
-import { Navigation } from "swiper/modules";
+import { type CSSProperties, useEffect, useRef } from "react";
+import type { Swiper as SwiperClass } from "swiper";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { cn } from "~/utils/cn";
 import { CountrySelector } from "./country-selector";
 
-let variants = cva("", {
+const announcementWidthVariants = cva("relative h-full w-full", {
   variants: {
     width: {
-      full: "h-full w-full",
-      stretch: "h-full w-full",
-      fixed: "mx-auto h-full w-full max-w-(--page-width)",
-    },
-    padding: {
       full: "",
-      stretch: "px-3 md:px-10 lg:px-16",
-      fixed: "mx-auto px-3 md:px-4 lg:px-6",
+      stretch: "px-5 md:px-8 xl:px-12",
+      fixed: "mx-auto max-w-[1360px]",
     },
   },
+  defaultVariants: {
+    width: "fixed",
+  },
 });
-
-const MAX_DURATION = 20;
 
 function splitHtmlByLineBreaks(html: string): string[] {
   return html
@@ -37,131 +32,135 @@ function splitHtmlByLineBreaks(html: string): string[] {
     .filter(Boolean);
 }
 
+function AnnouncementArrow({ direction }: { direction: "left" | "right" }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={cn("size-5", direction === "left" && "rotate-180")}
+      fill="none"
+      viewBox="0 0 20 20"
+    >
+      <path
+        d="M14.0575 4.74121L13.1737 5.62508L16.9236 9.37496H0.625V10.625H16.9234L13.1737 14.3748L14.0575 15.2586L19.3163 9.99992L14.0575 4.74121Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
 export function ScrollingAnnouncement() {
+  const { t } = useTranslation();
   const themeSettings = useThemeSettings();
   const {
-    topbarText,
-    topbarHeight,
-    topbarTextColor,
-    topbarBgColor,
-    topbarScrollingGap,
-    topbarScrollingSpeed,
+    announcementWidth,
+    designSystemPreset,
+    socialFacebookAnnouncement,
     socialInstagramAnnouncement,
     socialXAnnouncement,
-    socialLinkedInAnnouncement,
-    socialFacebookAnnouncement,
-    announcementWidth,
+    socialYoutubeAnnouncement,
+    topbarHeight,
+    topbarText,
   } = themeSettings;
 
-  const ref = useRef<HTMLDivElement>(null);
+  const barRef = useRef<HTMLDivElement>(null);
+  const swiperRef = useRef<SwiperClass | null>(null);
   const slides = splitHtmlByLineBreaks(topbarText || "");
+  const isVisible = Boolean(topbarText && slides.length > 0);
+  const desktopHeight =
+    designSystemPreset === "custom" ? (topbarHeight ?? 56) : 56;
 
-  let socialItems = [
-    {
-      name: "Instagram",
-      to: socialInstagramAnnouncement,
-      icon: <InstagramLogo className="h-5 w-5" />,
-    },
-    {
-      name: "X",
-      to: socialXAnnouncement,
-      icon: <XLogo className="h-5 w-5" />,
-    },
-    {
-      name: "LinkedIn",
-      to: socialLinkedInAnnouncement,
-      icon: <LinkedinLogo className="h-5 w-5" />,
-    },
+  const socialItems = [
     {
       name: "Facebook",
       to: socialFacebookAnnouncement,
-      icon: <FacebookLogo className="h-5 w-5" />,
+      Icon: FacebookLogo,
+    },
+    { name: "X", to: socialXAnnouncement, Icon: TwitterLogo },
+    {
+      name: "Instagram",
+      to: socialInstagramAnnouncement,
+      Icon: InstagramLogo,
+    },
+    {
+      name: "YouTube",
+      to: socialYoutubeAnnouncement,
+      Icon: YoutubeLogo,
     },
   ];
 
-  function updateHeight() {
-    const height = ref.current.offsetHeight;
-    if (topbarText) {
+  useEffect(() => {
+    const element = barRef.current;
+
+    if (!isVisible || !element) {
+      document.body.style.setProperty("--topbar-height", "0px");
+      return;
+    }
+
+    const updateHeight = () => {
       document.body.style.setProperty(
         "--topbar-height",
-        `${Math.max(height - window.scrollY, 0)}px`,
+        `${Math.max(element.offsetHeight - window.scrollY, 0)}px`,
       );
-    } else {
-      document.body.style.setProperty("--topbar-height", "0px");
-    }
-  }
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
+    };
 
     updateHeight();
-
-    const observer = new ResizeObserver(() => updateHeight());
-    observer.observe(el);
-
-    window.addEventListener("scroll", updateHeight);
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(element);
+    window.addEventListener("scroll", updateHeight, { passive: true });
 
     return () => {
       observer.disconnect();
       window.removeEventListener("scroll", updateHeight);
     };
-  }, [topbarText]);
+  }, [isVisible]);
 
-  if (!topbarText || slides.length === 0) return null;
+  if (!isVisible) {
+    return null;
+  }
 
   return (
     <div
       id="announcement-bar"
-      ref={ref}
-      className="z-10 flex w-full items-center justify-center overflow-visible px-5 md:px-6 lg:px-6"
+      ref={barRef}
+      className="z-10 h-11 w-full overflow-hidden bg-(--color-topbar-bg) text-(--color-topbar-text) xl:h-(--announcement-height)"
       style={
         {
-          minHeight: `${topbarHeight}px`,
-          backgroundColor: topbarBgColor,
-          color: topbarTextColor,
-          "--marquee-duration": `${MAX_DURATION / topbarScrollingSpeed}s`,
-          "--gap": `${topbarScrollingGap}px`,
-        } as React.CSSProperties
+          "--announcement-height": `${desktopHeight}px`,
+        } as CSSProperties
       }
     >
-      <div
-        className={cn(
-          "grid grid-cols-1 items-center justify-center py-1 md:grid-cols-3 md:gap-8",
-          variants({ width: announcementWidth }),
-        )}
-      >
-        <div className="hidden justify-start gap-4 md:flex">
-          {socialItems.map((social) =>
-            social.to ? (
-              <Link
-                key={social.name}
-                to={social.to}
+      <div className={announcementWidthVariants({ width: announcementWidth })}>
+        <div className="absolute inset-y-0 left-0 hidden items-center gap-3 xl:flex">
+          {socialItems.map(({ name, to, Icon }) =>
+            to ? (
+              <a
+                key={name}
+                href={to}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 text-lg"
+                aria-label={name}
+                className="transition-opacity hover:opacity-70"
               >
-                {social.icon}
-              </Link>
+                <Icon aria-hidden="true" className="size-[18px]" />
+              </a>
             ) : null,
           )}
         </div>
-        <div className="relative w-full">
+
+        <div className="relative h-full w-full xl:absolute xl:left-1/2 xl:w-[600px] xl:-translate-x-1/2">
           <Swiper
-            modules={[Navigation]}
-            navigation={{
-              prevEl: ".announcement-prev",
-              nextEl: ".announcement-next",
+            allowTouchMove={slides.length > 1}
+            className="h-full w-full [&_.swiper-slide]:h-full [&_.swiper-wrapper]:h-full"
+            loop={slides.length > 1}
+            onSwiper={(swiper) => {
+              swiperRef.current = swiper;
             }}
             slidesPerView={1}
-            loop
-            autoHeight
-            className="w-full"
           >
-            {slides.map((slide, idx) => (
-              <SwiperSlide key={idx}>
+            {slides.map((slide, index) => (
+              <SwiperSlide key={`${index}-${slide.slice(0, 24)}`}>
                 <div
-                  className="overflow-hidden text-ellipsis whitespace-nowrap px-12 py-1 text-center [&_p]:m-0 [&_p]:inline"
+                  className="flex h-full items-center justify-center overflow-hidden text-ellipsis whitespace-nowrap px-12 text-center text-xs uppercase leading-[18px] opacity-80 [&_p]:m-0 [&_p]:inline xl:px-14 xl:text-sm xl:leading-5"
                   dangerouslySetInnerHTML={{ __html: slide }}
                 />
               </SwiperSlide>
@@ -170,47 +169,35 @@ export function ScrollingAnnouncement() {
 
           <button
             type="button"
-            className="announcement-prev -translate-y-1/2 absolute top-1/2 left-0 z-10 p-2"
-            style={{ backgroundColor: topbarBgColor } as React.CSSProperties}
-            aria-label="Previous slide"
+            className="absolute top-1/2 left-5 z-10 -translate-y-1/2 opacity-80 transition-opacity hover:opacity-100 md:left-8 xl:left-0"
+            onClick={() => swiperRef.current?.slidePrev()}
+            aria-label={t("announcement.previous")}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 20 20"
-              fill="none"
-              className="rotate-180"
-            >
-              <path
-                d="M14.0575 4.74121L13.1737 5.62508L16.9236 9.37496H0.625V10.625H16.9234L13.1737 14.3748L14.0575 15.2586L19.3163 9.99992L14.0575 4.74121Z"
-                fill="#29231E"
-              />
-            </svg>
+            <AnnouncementArrow direction="left" />
           </button>
 
           <button
             type="button"
-            className="announcement-next -translate-y-1/2 absolute top-1/2 right-0 z-10 p-2"
-            style={{ backgroundColor: topbarBgColor } as React.CSSProperties}
-            aria-label="Next slide"
+            className="absolute top-1/2 right-5 z-10 -translate-y-1/2 opacity-80 transition-opacity hover:opacity-100 md:right-8 xl:right-0"
+            onClick={() => swiperRef.current?.slideNext()}
+            aria-label={t("announcement.next")}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 20 20"
-              fill="none"
-            >
-              <path
-                d="M14.0575 4.74121L13.1737 5.62508L16.9236 9.37496H0.625V10.625H16.9234L13.1737 14.3748L14.0575 15.2586L19.3163 9.99992L14.0575 4.74121Z"
-                fill="#29231E"
-              />
-            </svg>
+            <AnnouncementArrow direction="right" />
           </button>
         </div>
-        <div className="hidden justify-end md:flex">
-          <CountrySelector inputClassName="px-4 py-1" enableFlag={false} />
+
+        <div className="absolute inset-y-0 right-0 hidden items-center gap-1.5 text-sm xl:flex">
+          <CountrySelector
+            enableFlag={false}
+            inputClassName="h-8 rounded-lg border-[#9D9D9D] px-4 tracking-[0.02em]"
+            wrapperClassName="w-[191px]"
+          />
+          <CountrySelector
+            enableFlag={false}
+            inputClassName="h-8 whitespace-nowrap rounded-lg border-[#9D9D9D] px-4 tracking-[0.02em]"
+            mode="language"
+            wrapperClassName="w-[140px]"
+          />
         </div>
       </div>
     </div>

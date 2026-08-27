@@ -1,7 +1,8 @@
 import {
   createSchema,
   type HydrogenComponentProps,
-  isBrowser,
+  IMAGES_PLACEHOLDERS,
+  type WeaverseImage,
 } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
@@ -13,9 +14,11 @@ import {
   Suspense,
   useCallback,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import { useInView } from "react-intersection-observer";
+import { Image } from "~/components/image";
 import type { OverlayProps } from "~/components/overlay";
 import { Overlay, overlayInputs } from "~/components/overlay";
 import { useAnimation } from "~/hooks/use-animation";
@@ -34,39 +37,55 @@ const SECTION_HEIGHTS = {
     desktop: "70vh",
     mobile: "80vh",
   },
+  aspen: null,
   custom: null,
-};
+} as const;
 
-interface HeroVideoData extends OverlayProps, VariantProps<typeof variants> {
-  videoURL: string;
-  height: "small" | "medium" | "large" | "custom";
+const VIDEO_ASPECT_RATIOS = {
+  "16/9": 16 / 9,
+  "1/1": 1,
+  "4/3": 4 / 3,
+  "9/16": 9 / 16,
+} as const;
+
+type SectionHeight = keyof typeof SECTION_HEIGHTS;
+type VideoAspectRatio = keyof typeof VIDEO_ASPECT_RATIOS;
+type ContentLayout = "aspen" | "stacked";
+
+interface HeroVideoData extends OverlayProps, VariantProps<typeof gapVariants> {
+  videoURL?: string;
+  videoAspectRatio?: VideoAspectRatio;
+  posterImage?: string | WeaverseImage;
+  mobilePosterImage?: string | WeaverseImage;
+  height: SectionHeight;
   heightOnDesktop: number;
   heightOnMobile: number;
+  contentLayout?: ContentLayout;
 }
 
 export interface HeroVideoProps extends HeroVideoData, HydrogenComponentProps {}
 
-const variants = cva(
-  "absolute inset-0 z-10 mx-auto flex max-w-screen flex-col items-center justify-center px-3",
+const gapVariants = cva(
+  "absolute inset-0 z-20 mx-auto flex max-w-screen flex-col items-center justify-center px-5",
   {
     variants: {
       gap: {
         0: "",
-        4: "space-y-1",
-        8: "space-y-2",
-        12: "space-y-3",
-        16: "space-y-4",
-        20: "space-y-5",
-        24: "space-y-3 lg:space-y-6",
-        28: "space-y-3.5 lg:space-y-7",
-        32: "space-y-4 lg:space-y-8",
-        36: "space-y-4 lg:space-y-9",
-        40: "space-y-5 lg:space-y-10",
-        44: "space-y-5 lg:space-y-11",
-        48: "space-y-6 lg:space-y-12",
-        52: "space-y-6 lg:space-y-[52px]",
-        56: "space-y-7 lg:space-y-14",
-        60: "space-y-7 lg:space-y-[60px]",
+        4: "gap-1",
+        8: "gap-2",
+        12: "gap-3",
+        16: "gap-4",
+        20: "gap-5",
+        24: "gap-3 md:gap-6",
+        28: "gap-3.5 md:gap-7",
+        32: "gap-4 md:gap-8",
+        36: "gap-4 md:gap-9",
+        40: "gap-5 md:gap-10",
+        44: "gap-5 md:gap-11",
+        48: "gap-6 md:gap-12",
+        52: "gap-6 md:gap-[52px]",
+        56: "gap-7 md:gap-14",
+        60: "gap-7 md:gap-[60px]",
       },
     },
     defaultVariants: {
@@ -75,18 +94,54 @@ const variants = cva(
   },
 );
 
-function getPlayerSize(id: string) {
-  if (isBrowser) {
-    const section = document.querySelector(`[data-wv-id="${id}"]`);
-    if (section) {
-      const rect = section.getBoundingClientRect();
-      const aspectRatio = rect.width / rect.height;
-      if (aspectRatio < 16 / 9) {
-        return { width: "auto", height: "100%" };
-      }
-    }
+const ASPEN_CONTENT_CLASSES = [
+  "absolute inset-0 z-20 mx-auto w-full max-w-screen px-5 text-center",
+  "[&_.subheading]:absolute [&_.subheading]:top-[10.5%] [&_.subheading]:right-0 [&_.subheading]:left-0 [&_.subheading]:mx-auto [&_.subheading]:max-w-[300px] [&_.subheading]:font-body [&_.subheading]:text-[32px] [&_.subheading]:leading-[32px] [&_.subheading]:font-normal [&_.subheading]:tracking-normal [&_.subheading]:opacity-50 [&_.subheading]:[text-wrap:wrap]",
+  "md:[&_.subheading]:top-[6.5%] md:[&_.subheading]:max-w-[1120px] md:[&_.subheading]:text-[72px] md:[&_.subheading]:leading-[96px]",
+  "[&_.heading]:absolute [&_.heading]:top-[13.76%] [&_.heading]:right-0 [&_.heading]:left-0 [&_.heading]:mx-auto [&_.heading]:max-w-[290px] [&_.heading]:font-body [&_.heading]:text-[42px] [&_.heading]:leading-[41px] [&_.heading]:tracking-normal [&_.heading]:[text-wrap:wrap]",
+  "md:[&_.heading]:top-[33.36%] md:[&_.heading]:max-w-[570px] md:[&_.heading]:text-[48px] md:[&_.heading]:leading-[48px]",
+  "[&_.paragraph]:absolute [&_.paragraph]:top-[64.96%] [&_.paragraph]:right-0 [&_.paragraph]:left-0 [&_.paragraph]:mx-auto [&_.paragraph]:max-w-[276px] [&_.paragraph]:text-[14px] [&_.paragraph]:leading-[21px]",
+  "md:[&_.paragraph]:top-[55.84%] md:[&_.paragraph]:max-w-[472px]",
+  "[&_.button]:absolute [&_.button]:top-[83.54%] [&_.button]:right-0 [&_.button]:left-0 [&_.button]:mx-auto [&_.button]:w-fit [&_.button]:font-semibold [&_.button]:text-[14px]",
+  "md:[&_.button]:top-[65.2%]",
+].join(" ");
+
+interface PlayerSize {
+  width: number | string;
+  height: number | string;
+}
+
+function getPlayerSize(
+  section: HTMLElement | null,
+  aspectRatio: VideoAspectRatio,
+): PlayerSize {
+  if (!section) {
+    return { width: "100%", height: "100%" };
   }
-  return { width: "100%", height: "auto" };
+
+  const rect = section.getBoundingClientRect();
+  if (!(rect.width && rect.height)) {
+    return { width: "100%", height: "100%" };
+  }
+
+  const sourceRatio = VIDEO_ASPECT_RATIOS[aspectRatio];
+  const widthScale = rect.width;
+  const heightScale = rect.height * sourceRatio;
+  const width = Math.max(widthScale, heightScale);
+
+  return {
+    width: Math.ceil(width),
+    height: Math.ceil(width / sourceRatio),
+  };
+}
+
+function getImageData(image?: string | WeaverseImage) {
+  if (!image) {
+    return undefined;
+  }
+  return typeof image === "string"
+    ? { url: image, altText: "Hero video poster" }
+    : image;
 }
 
 // react-player v3 is ESM-only and lazy-loads individual players internally.
@@ -95,10 +150,14 @@ const ReactPlayer = lazy(() => import("react-player"));
 const HeroVideo = forwardRef<HTMLElement, HeroVideoProps>((props, ref) => {
   const {
     videoURL,
+    videoAspectRatio = "16/9",
+    posterImage,
+    mobilePosterImage,
     gap,
     height,
     heightOnDesktop,
     heightOnMobile,
+    contentLayout = "stacked",
     enableOverlay,
     overlayColor,
     overlayColorHover,
@@ -107,89 +166,124 @@ const HeroVideo = forwardRef<HTMLElement, HeroVideoProps>((props, ref) => {
     ...rest
   } = props;
 
-  const id = rest["data-wv-id"];
-  const [size, setSize] = useState(() => getPlayerSize(id));
-
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const [size, setSize] = useState<PlayerSize>({
+    width: "100%",
+    height: "100%",
+  });
+  const isAspenLayout = height === "aspen";
   const desktopHeight =
     SECTION_HEIGHTS[height]?.desktop || `${heightOnDesktop}px`;
   const mobileHeight = SECTION_HEIGHTS[height]?.mobile || `${heightOnMobile}px`;
-  const sectionStyle: CSSProperties = {
+  const sectionStyle = {
     "--desktop-height": desktopHeight,
     "--mobile-height": mobileHeight,
   } as CSSProperties;
 
-  const { ref: inViewRef, inView } = useInView({
-    triggerOnce: true,
-  });
+  const { ref: inViewRef, inView } = useInView({ triggerOnce: true });
   const clientReady = useClientReady();
 
-  // Use `useCallback` so we don't recreate the function on each render
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation> --- IGNORE ---
   const setRefs = useCallback(
-    (node: HTMLElement) => {
-      // Ref's from useRef needs to have the node assigned to `current`
-      ref && Object.assign(ref, { current: node });
-      // Callback refs, like the one from `useInView`, is a function that takes the node as an argument
+    (node: HTMLElement | null) => {
+      sectionRef.current = node;
       inViewRef(node);
+      if (typeof ref === "function") {
+        ref(node);
+      } else if (ref) {
+        Object.assign(ref, { current: node });
+      }
     },
-    [inViewRef],
+    [inViewRef, ref],
   );
 
-  function handleResize() {
-    setSize(getPlayerSize(id));
-  }
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation> --- IGNORE ---
   useEffect(() => {
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => {
-      window.removeEventListener("resize", handleResize);
+    const section = sectionRef.current;
+    if (!section) {
+      return;
+    }
+
+    const handleResize = () => {
+      setSize(getPlayerSize(section, videoAspectRatio));
     };
-  }, [inView, height, heightOnDesktop, heightOnMobile]);
+    handleResize();
+
+    const resizeObserver = new ResizeObserver(handleResize);
+    resizeObserver.observe(section);
+    return () => resizeObserver.disconnect();
+  }, [videoAspectRatio]);
 
   const [scope] = useAnimation();
+  const desktopPoster = getImageData(posterImage);
+  const mobilePoster = getImageData(mobilePosterImage);
 
   return (
     <section
       ref={setRefs}
       {...rest}
-      className="h-full w-full overflow-hidden"
+      className={clsx(
+        "relative isolate w-full overflow-hidden bg-(--color-background-subtle)",
+        isAspenLayout
+          ? "aspect-[375/469.125] md:aspect-[2/1]"
+          : "h-(--mobile-height) md:h-(--desktop-height)",
+      )}
       style={sectionStyle}
     >
-      <div
-        className={clsx(
-          "relative flex items-center justify-center overflow-hidden",
-          "h-(--mobile-height) sm:h-(--desktop-height)",
-          "w-[max(var(--mobile-height)/9*16,100vw)] sm:w-[max(var(--desktop-height)/9*16,100vw)]",
-          "translate-x-[min(0px,calc((var(--mobile-height)/9*16-100vw)/-2))]",
-          "sm:translate-x-[min(0px,calc((var(--desktop-height)/9*16-100vw)/-2))]",
-        )}
-      >
-        {clientReady && inView && (
+      {desktopPoster && (
+        <Image
+          data={desktopPoster}
+          sizes="100vw"
+          className={clsx(
+            "absolute inset-0 z-0",
+            mobilePoster && "hidden md:block",
+          )}
+        />
+      )}
+      {mobilePoster && (
+        <Image
+          data={mobilePoster}
+          sizes="100vw"
+          className="absolute inset-0 z-0 md:hidden"
+        />
+      )}
+
+      {clientReady && inView && videoURL && (
+        <div
+          className="absolute top-1/2 left-1/2 z-1 -translate-x-1/2 -translate-y-1/2"
+          style={size}
+        >
           <Suspense fallback={null}>
             <ReactPlayer
               src={videoURL}
               playing
               muted
-              loop={true}
-              width={size.width}
-              height={size.height}
+              loop
+              playsInline
+              width="100%"
+              height="100%"
               controls={false}
-              className="aspect-video"
+              className="h-full w-full [&_iframe]:h-full [&_iframe]:w-full [&_video]:h-full [&_video]:w-full [&_video]:object-cover"
             />
           </Suspense>
-        )}
-        <Overlay
-          enableOverlay={enableOverlay}
-          overlayColor={overlayColor}
-          overlayColorHover={overlayColorHover}
-          overlayOpacity={overlayOpacity}
-          className="z-0"
-        />
-        <div ref={scope} className={clsx(variants({ gap }))}>
-          {children}
         </div>
+      )}
+
+      <Overlay
+        enableOverlay={enableOverlay}
+        overlayColor={overlayColor}
+        overlayColorHover={overlayColorHover}
+        overlayOpacity={overlayOpacity}
+        className="z-10"
+      />
+
+      <div
+        ref={scope}
+        className={
+          contentLayout === "aspen"
+            ? ASPEN_CONTENT_CLASSES
+            : gapVariants({ gap })
+        }
+      >
+        {children}
       </div>
     </section>
   );
@@ -208,27 +302,58 @@ export const schema = createSchema({
           type: "text",
           name: "videoURL",
           label: "Video URL",
-          defaultValue: "https://www.youtube.com/watch?v=Su-x4Mo5xmU",
-          placeholder: "https://www.youtube.com/watch?v=Su-x4Mo5xmU",
-          helpText: "Support YouTube, Vimeo, MP4, WebM, and HLS streams.",
+          defaultValue: "https://www.youtube.com/watch?v=gbLmku5QACM",
+          placeholder: "https://www.youtube.com/watch?v=gbLmku5QACM",
+          helpText: "Supports YouTube, Vimeo, MP4, WebM, and HLS streams.",
         },
         {
-          type: "heading",
-          label: "Layout",
+          type: "select",
+          name: "videoAspectRatio",
+          label: "Source video aspect ratio",
+          defaultValue: "16/9",
+          configs: {
+            options: [
+              { value: "16/9", label: "Landscape (16:9)" },
+              { value: "1/1", label: "Square (1:1)" },
+              { value: "4/3", label: "Landscape (4:3)" },
+              { value: "9/16", label: "Portrait (9:16)" },
+            ],
+          },
+          helpText:
+            "Choose the uploaded video's real ratio so it can crop like a cover image without distortion.",
         },
+        {
+          type: "image",
+          name: "posterImage",
+          label: "Poster image",
+          helpText:
+            "Shown while the video loads and used as its visual fallback.",
+        },
+        {
+          type: "image",
+          name: "mobilePosterImage",
+          label: "Mobile poster image",
+          helpText: "Optional. Leave blank to reuse the desktop poster.",
+        },
+      ],
+    },
+    {
+      group: "Layout",
+      inputs: [
         {
           type: "select",
           name: "height",
           label: "Section height",
           configs: {
             options: [
+              { value: "aspen", label: "Aspen design (2:1 / 4:5)" },
               { value: "small", label: "Small" },
               { value: "medium", label: "Medium" },
               { value: "large", label: "Large" },
               { value: "custom", label: "Custom" },
             ],
           },
-          defaultValue: "medium",
+          defaultValue: "aspen",
         },
         {
           type: "range",
@@ -237,7 +362,7 @@ export const schema = createSchema({
           defaultValue: 650,
           configs: {
             min: 400,
-            max: 800,
+            max: 1000,
             step: 10,
             unit: "px",
           },
@@ -247,14 +372,28 @@ export const schema = createSchema({
           type: "range",
           name: "heightOnMobile",
           label: "Height on mobile",
-          defaultValue: 300,
+          defaultValue: 470,
           configs: {
             min: 250,
-            max: 500,
+            max: 700,
             step: 10,
             unit: "px",
           },
           condition: (data: HeroVideoData) => data.height === "custom",
+        },
+        {
+          type: "select",
+          name: "contentLayout",
+          label: "Content layout",
+          defaultValue: "aspen",
+          configs: {
+            options: [
+              { value: "aspen", label: "Aspen design" },
+              { value: "stacked", label: "Centered stack" },
+            ],
+          },
+          helpText:
+            "Aspen design follows the approved desktop/mobile positions. Centered stack uses an adjustable gap.",
         },
         {
           type: "range",
@@ -262,11 +401,12 @@ export const schema = createSchema({
           label: "Items spacing",
           configs: {
             min: 0,
-            max: 40,
+            max: 60,
             step: 4,
             unit: "px",
           },
           defaultValue: 20,
+          condition: (data: HeroVideoData) => data.contentLayout === "stacked",
         },
       ],
     },
@@ -279,27 +419,50 @@ export const schema = createSchema({
   presets: {
     enableOverlay: true,
     overlayColor: "#000000",
-    overlayOpacity: 40,
+    overlayOpacity: 20,
     videoURL: "https://www.youtube.com/watch?v=gbLmku5QACM",
-    height: "large",
+    videoAspectRatio: "1/1",
+    posterImage: IMAGES_PLACEHOLDERS.banner_1,
+    height: "aspen",
+    contentLayout: "aspen",
     gap: 20,
     children: [
       {
         type: "subheading",
-        content: "Seamless hero videos",
-        color: "#fff",
+        content: "A laidback, sophisticated lounge piece",
+        as: "p",
+        color: "#FEF4EB",
+        size: "base",
+        weight: "normal",
+        alignment: "center",
       },
       {
         type: "heading",
-        content: "Bring your brand to life.",
+        content: "CLOUD-LIKE SOFAS THAT SUPPORT RELAXING ANY TIME",
         as: "h2",
-        color: "#fff",
+        color: "#FEF4EB",
+        size: "custom",
+        mobileSize: "5xl",
+        desktopSize: "5xl",
+        weight: "400",
+        letterSpacing: "normal",
+        alignment: "center",
       },
       {
         type: "paragraph",
         content:
-          "Pair large video with a compelling message to captivate your audience.",
-        color: "#fff",
+          "A thoughtfully designed, curated furniture collection—made for real life.",
+        color: "#FEF4EB",
+        textSize: "sm",
+        width: "full",
+        alignment: "center",
+      },
+      {
+        type: "button",
+        text: "EXPLORE NOW",
+        to: "/collections/all",
+        variant: "decor",
+        textColorDecor: "#FEF4EB",
       },
     ],
   },

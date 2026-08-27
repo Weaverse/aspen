@@ -4,6 +4,7 @@ import {
   type ComponentLoaderArgs,
   createSchema,
   type HydrogenComponentProps,
+  useTranslation,
   type WeaverseProduct,
 } from "@weaverse/hydrogen";
 import clsx from "clsx";
@@ -43,6 +44,7 @@ let TestimonialHotspotsItem = forwardRef<
   HTMLDivElement,
   TestimonialHotspotsItemProps
 >((props, ref) => {
+  const { t } = useTranslation();
   const {
     icon,
     iconSize,
@@ -147,7 +149,9 @@ let TestimonialHotspotsItem = forwardRef<
               {/* Header */}
               <div className="flex flex-shrink-0 items-center justify-between px-5 py-3">
                 <Dialog.Title asChild>
-                  <span className="font-semibold uppercase">Quick Shop</span>
+                  <span className="font-semibold uppercase">
+                    {t("product.quickShop")}
+                  </span>
                 </Dialog.Title>
                 <button
                   type="button"
@@ -165,13 +169,15 @@ let TestimonialHotspotsItem = forwardRef<
                     <QuickShop
                       data={quickShopData as any}
                       showDescription={false}
-                      setShowDescription={() => {}}
+                      setShowDescription={() => {
+                        // Description is intentionally disabled in this compact view.
+                      }}
                       onCloseAll={() => setShowQuickShop(false)}
                     />
                   ) : (
                     <div className="py-8 text-center">
                       <p className="text-body-subtle">
-                        Loading product data...
+                        {t("product.loadingData")}
                       </p>
                     </div>
                   )}

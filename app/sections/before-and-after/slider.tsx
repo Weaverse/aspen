@@ -1,248 +1,243 @@
-import { List } from "@phosphor-icons/react";
-// import { IconArrowSlideRight, IconArrowSlideLeft, IconImageBlank } from '~/components/Icon';
 import { Image } from "@shopify/hydrogen";
 import {
   type HydrogenComponentProps,
   type HydrogenComponentSchema,
   IMAGES_PLACEHOLDERS,
+  useTranslation,
   type WeaverseImage,
 } from "@weaverse/hydrogen";
 import clsx from "clsx";
-import React, {
-  type CSSProperties,
-  forwardRef,
-  useEffect,
-  useRef,
-} from "react";
+import type { CSSProperties, KeyboardEvent, PointerEvent } from "react";
+import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
+
+type HeightMode = "aspen" | "custom";
 
 interface BeforeAndAfterProps extends HydrogenComponentProps {
-  beforeImage1: WeaverseImage | string;
-  afterImage2: WeaverseImage | string;
-  separatorColor: string;
-  showList: boolean;
-  listColor: string;
-  separatorWidth: number;
-  sliderHeightDesktop: number;
-  sliderHeightMobile: number;
+  beforeImage1?: WeaverseImage | string;
+  afterImage2?: WeaverseImage | string;
+  separatorColor?: string;
+  showList?: boolean;
+  listColor?: string;
+  separatorWidth?: number;
+  heightMode?: HeightMode;
+  sliderHeightDesktop?: number;
+  sliderHeightMobile?: number;
+  initialPositionDesktop?: number;
+  initialPositionMobile?: number;
+}
+
+const clampPosition = (position: number) =>
+  Math.min(100, Math.max(0, position));
+
+function getImageData(
+  image: WeaverseImage | string | undefined,
+  altText: string,
+) {
+  if (!image) {
+    return undefined;
+  }
+  return typeof image === "string" ? { url: image, altText } : image;
 }
 
 const BeforeAndAfter = forwardRef<HTMLDivElement, BeforeAndAfterProps>(
   (props, ref) => {
-    let {
+    const { t } = useTranslation();
+    const {
       beforeImage1,
       afterImage2,
-      separatorColor,
-      showList,
-      listColor,
-      separatorWidth,
-      sliderHeightDesktop,
-      sliderHeightMobile,
+      separatorColor = "#FFFFFF",
+      showList = true,
+      listColor = "#524B46",
+      separatorWidth = 8,
+      heightMode = "aspen",
+      sliderHeightDesktop = 600,
+      sliderHeightMobile = 200,
+      initialPositionDesktop = 51,
+      initialPositionMobile = 44,
       ...rest
     } = props;
 
     const containerRef = useRef<HTMLDivElement>(null);
-    const firstHalfRef = useRef<HTMLDivElement>(null);
-    const secondHalfRef = useRef<HTMLDivElement>(null);
-    const resizerRef = useRef<HTMLDivElement>(null);
-    let beforeImage =
-      typeof beforeImage1 === "string"
-        ? { url: beforeImage1, altText: "Section background" }
-        : beforeImage1;
-    let afterImage =
-      typeof afterImage2 === "string"
-        ? { url: afterImage2, altText: "Section background" }
-        : afterImage2;
-    const handleMouseDown = React.useCallback((e: React.MouseEvent) => {
-      const startPos = {
-        x: e.clientX,
-        y: e.clientY,
-      };
-      const currentLeftWidth = Number.parseFloat(
-        window.getComputedStyle(resizerRef.current as Element).left,
-      );
+    const dragCleanupRef = useRef<(() => void) | null>(null);
+    const [position, setPosition] = useState<number | null>(null);
+    const beforeImage = getImageData(beforeImage1, "Before");
+    const afterImage = getImageData(afterImage2, "After");
 
-      const handleMouseMove = (e: MouseEvent) => {
-        const dx = e.clientX - startPos.x;
-        const dy = e.clientY - startPos.y;
-        updateWidth(currentLeftWidth, dx);
-        updateCursor();
-      };
-
-      const handleMouseUp = () => {
-        document.removeEventListener("mousemove", handleMouseMove);
-        document.removeEventListener("mouseup", handleMouseUp);
-        resetCursor();
-      };
-
-      document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mouseup", handleMouseUp);
-
-      return () => {
-        document.removeEventListener("mousemove", handleMouseMove);
-        document.removeEventListener("mouseup", handleMouseUp);
-      };
-    }, []);
-
-    const handleTouchStart = React.useCallback((e: React.TouchEvent) => {
-      const touch = e.touches[0];
-      const startPos = {
-        x: touch.clientX,
-        y: touch.clientY,
-      };
-      const currentLeftWidth = Number.parseFloat(
-        window.getComputedStyle(resizerRef.current as Element).left,
-      );
-
-      const handleTouchMove = (e: TouchEvent) => {
-        const touch = e.touches[0];
-        const dx = touch.clientX - startPos.x;
-        const dy = touch.clientY - startPos.y;
-        updateWidth(currentLeftWidth, dx);
-        updateCursor();
-      };
-
-      const handleTouchEnd = () => {
-        document.removeEventListener("touchmove", handleTouchMove);
-        document.removeEventListener("touchend", handleTouchEnd);
-        resetCursor();
-      };
-
-      document.addEventListener("touchmove", handleTouchMove);
-      document.addEventListener("touchend", handleTouchEnd);
-
-      return () => {
-        document.removeEventListener("touchmove", handleTouchMove);
-        document.removeEventListener("touchend", handleTouchEnd);
-      };
-    }, []);
-
-    const updateWidth = (currentLeftWidth: number, dx: number) => {
-      const container = containerRef.current;
-      const firstHalfEle = firstHalfRef.current;
-      const resizerEle = resizerRef.current;
-
-      if (!(container && firstHalfEle && resizerEle)) {
-        return;
-      }
-
-      const containerWidth = container.getBoundingClientRect().width;
-      const delta = currentLeftWidth + dx;
-      const newFirstHalfWidth = (delta * 100) / containerWidth;
-      const normalizedWidth = Math.min(Math.max(0, newFirstHalfWidth), 100);
-
-      firstHalfEle.style.clipPath = `inset(0 0 0 ${normalizedWidth}%)`;
-      resizerEle.style.left = `${normalizedWidth}%`;
-    };
-
-    const updateCursor = () => {
-      const container = containerRef.current;
-      const firstHalfEle = firstHalfRef.current;
-      const resizerEle = resizerRef.current;
-      const secondHalfEle = secondHalfRef.current;
-
-      if (!(container && firstHalfEle && resizerEle && secondHalfEle)) {
-        return;
-      }
-
-      resizerEle.style.cursor = "ew-resize";
-      document.body.style.cursor = "ew-resize";
-      firstHalfEle.style.userSelect = "none";
-      firstHalfEle.style.pointerEvents = "none";
-      secondHalfEle.style.userSelect = "none";
-      secondHalfEle.style.pointerEvents = "none";
-    };
-
-    const resetCursor = () => {
-      const container = containerRef.current;
-      const firstHalfEle = firstHalfRef.current;
-      const resizerEle = resizerRef.current;
-      const secondHalfEle = secondHalfRef.current;
-
-      if (!(container && firstHalfEle && resizerEle && secondHalfEle)) {
-        return;
-      }
-
-      resizerEle.style.removeProperty("cursor");
-      document.body.style.removeProperty("cursor");
-      firstHalfEle.style.removeProperty("user-select");
-      firstHalfEle.style.removeProperty("pointer-events");
-      secondHalfEle.style.removeProperty("user-select");
-      secondHalfEle.style.removeProperty("pointer-events");
-    };
+    const setRefs = useCallback(
+      (node: HTMLDivElement | null) => {
+        containerRef.current = node;
+        if (typeof ref === "function") {
+          ref(node);
+        } else if (ref) {
+          Object.assign(ref, { current: node });
+        }
+      },
+      [ref],
+    );
 
     useEffect(() => {
-      const resizerEle = resizerRef.current;
-      const containerEle = containerRef.current;
-      if (!(resizerEle && containerEle)) return;
-      const defaultWidth = 50;
-      resizerEle.style.left = `${defaultWidth}%`;
-      updateWidth(
-        (defaultWidth * containerRef.current.getBoundingClientRect().width) /
-          100,
-        0,
-      );
-    }, [afterImage]);
+      const mediaQuery = window.matchMedia("(min-width: 768px)");
+      const syncPosition = (isDesktop: boolean) => {
+        setPosition(
+          clampPosition(
+            isDesktop ? initialPositionDesktop : initialPositionMobile,
+          ),
+        );
+      };
+      const handleChange = (event: MediaQueryListEvent) => {
+        syncPosition(event.matches);
+      };
 
-    let sliderStyle: CSSProperties = {
+      syncPosition(mediaQuery.matches);
+      mediaQuery.addEventListener("change", handleChange);
+      return () => mediaQuery.removeEventListener("change", handleChange);
+    }, [initialPositionDesktop, initialPositionMobile]);
+
+    useEffect(
+      () => () => {
+        dragCleanupRef.current?.();
+      },
+      [],
+    );
+
+    const updatePosition = useCallback((clientX: number) => {
+      const container = containerRef.current;
+      if (!container) {
+        return;
+      }
+      const rect = container.getBoundingClientRect();
+      setPosition(clampPosition(((clientX - rect.left) / rect.width) * 100));
+    }, []);
+
+    const handlePointerDown = useCallback(
+      (event: PointerEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        dragCleanupRef.current?.();
+        updatePosition(event.clientX);
+        document.body.style.cursor = "ew-resize";
+
+        const handlePointerMove = (moveEvent: globalThis.PointerEvent) => {
+          updatePosition(moveEvent.clientX);
+        };
+        const cleanup = () => {
+          document.body.style.removeProperty("cursor");
+          document.removeEventListener("pointermove", handlePointerMove);
+          document.removeEventListener("pointerup", cleanup);
+          document.removeEventListener("pointercancel", cleanup);
+          dragCleanupRef.current = null;
+        };
+
+        dragCleanupRef.current = cleanup;
+        document.addEventListener("pointermove", handlePointerMove);
+        document.addEventListener("pointerup", cleanup);
+        document.addEventListener("pointercancel", cleanup);
+      },
+      [updatePosition],
+    );
+
+    const handleKeyDown = useCallback(
+      (event: KeyboardEvent<HTMLDivElement>) => {
+        const direction = event.key === "ArrowLeft" ? -1 : 1;
+        if (event.key === "Home" || event.key === "End") {
+          event.preventDefault();
+          setPosition(event.key === "Home" ? 0 : 100);
+        } else if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+          event.preventDefault();
+          setPosition((current) =>
+            clampPosition((current ?? initialPositionMobile) + direction),
+          );
+        }
+      },
+      [initialPositionMobile],
+    );
+
+    const sliderStyle = {
       "--separator-color": separatorColor,
       "--list-color": listColor,
       "--separator-width": `${separatorWidth}px`,
       "--slider-height-desktop": `${sliderHeightDesktop}px`,
       "--slider-height-mobile": `${sliderHeightMobile}px`,
+      "--initial-position-desktop": `${clampPosition(initialPositionDesktop)}%`,
+      "--initial-position-mobile": `${clampPosition(initialPositionMobile)}%`,
+      "--initial-clip-desktop": `${100 - clampPosition(initialPositionDesktop)}%`,
+      "--initial-clip-mobile": `${100 - clampPosition(initialPositionMobile)}%`,
     } as CSSProperties;
 
     return (
       <div
         data-motion="slide-in"
-        ref={containerRef}
+        ref={setRefs}
         {...rest}
-        className="relative h-[var(--slider-height-mobile)] w-full select-none sm:h-[var(--slider-height-desktop)]"
+        className={clsx(
+          "relative w-full select-none overflow-hidden bg-white",
+          heightMode === "aspen"
+            ? "aspect-[2/1]"
+            : "h-[var(--slider-height-mobile)] md:h-[var(--slider-height-desktop)]",
+        )}
         style={sliderStyle}
       >
-        <div className="absolute top-0 left-0 h-full w-full" ref={firstHalfRef}>
-          {afterImage && (
+        <div className="absolute inset-0">
+          {afterImage ? (
             <Image
               data={afterImage}
-              sizes="auto"
-              className="box-border h-full w-full object-cover object-center"
+              sizes="100vw"
+              className="h-full w-full object-cover object-center"
             />
-          )}
+          ) : null}
         </div>
-        <div
-          ref={resizerRef}
-          onMouseDown={handleMouseDown}
-          onTouchStart={handleTouchStart}
-          className={clsx(
-            "absolute top-0 left-1/2 z-10 flex h-full transform touch-none select-none items-center",
-            {
-              "-translate-x-full": !showList,
-              "-translate-x-1": showList,
-            },
-          )}
-        >
-          <div className="relative h-full">
-            {/* Separator Bar */}
-            <div className="relative h-full w-[var(--separator-width)] cursor-ew-resize bg-[var(--separator-color)]" />
 
-            {/* List Icon */}
-            {showList && (
-              <div className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 z-20 flex items-center justify-center">
-                <List
-                  size={32}
-                  className="rotate-90 transform rounded-full bg-[var(--separator-color)] p-1 text-[var(--list-color)]"
-                />
-              </div>
-            )}
-          </div>
-        </div>
-        <div ref={secondHalfRef} className="h-full w-full">
-          {beforeImage && (
+        <div
+          className="absolute inset-0 z-1 [clip-path:inset(0_var(--initial-clip-mobile)_0_0)] md:[clip-path:inset(0_var(--initial-clip-desktop)_0_0)]"
+          style={
+            position === null
+              ? undefined
+              : { clipPath: `inset(0 ${100 - position}% 0 0)` }
+          }
+        >
+          {beforeImage ? (
             <Image
               data={beforeImage}
-              sizes="auto"
-              className="box-border h-full w-full object-cover object-center"
+              sizes="100vw"
+              className="h-full w-full object-cover object-center"
             />
-          )}
+          ) : null}
+        </div>
+
+        <div
+          role="slider"
+          tabIndex={0}
+          aria-label={t("accessibility.beforeAfterComparison")}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(position ?? initialPositionMobile)}
+          onKeyDown={handleKeyDown}
+          onPointerDown={handlePointerDown}
+          className="group absolute top-0 left-[var(--initial-position-mobile)] z-10 h-full cursor-ew-resize touch-none outline-none md:left-[var(--initial-position-desktop)]"
+          style={{
+            left: position === null ? undefined : `${position}%`,
+            width: "var(--separator-width)",
+            transform: "translateX(-50%)",
+          }}
+        >
+          <div className="h-full w-full bg-[var(--separator-color)]" />
+
+          {showList ? (
+            <div
+              className={clsx(
+                "-translate-x-1/2 -translate-y-1/2 absolute left-1/2 flex h-14 w-10 items-center justify-center rounded-[20px] bg-[var(--separator-color)] group-focus-visible:ring-2 group-focus-visible:ring-(--color-text) group-focus-visible:ring-offset-2",
+                heightMode === "aspen" ? "top-[57.6%] md:top-1/2" : "top-1/2",
+              )}
+            >
+              <span
+                className="flex h-[15px] w-3 items-stretch justify-between"
+                aria-hidden="true"
+              >
+                <span className="w-[1.25px] rounded-full bg-[var(--list-color)]" />
+                <span className="w-[1.25px] rounded-full bg-[var(--list-color)]" />
+                <span className="w-[1.25px] rounded-full bg-[var(--list-color)]" />
+              </span>
+            </div>
+          ) : null}
         </div>
       </div>
     );
@@ -258,7 +253,7 @@ export let schema: HydrogenComponentSchema = {
   // toolbar: ["general-settings", ["duplicate", "delete"]],
   settings: [
     {
-      group: "Slider",
+      group: "Images",
       inputs: [
         {
           type: "image",
@@ -270,34 +265,56 @@ export let schema: HydrogenComponentSchema = {
           label: "Image (after)",
           name: "afterImage2",
         },
+      ],
+    },
+    {
+      group: "Handle",
+      inputs: [
         {
           type: "color",
           label: "Separator color",
           name: "separatorColor",
-          defaultValue: "#333333",
+          defaultValue: "#FFFFFF",
         },
         {
           type: "switch",
           name: "showList",
-          label: "Show list",
+          label: "Show drag handle",
           defaultValue: true,
         },
         {
           type: "color",
-          label: "List color",
+          label: "Handle icon color",
           name: "listColor",
-          defaultValue: "#ffffff",
+          defaultValue: "#524B46",
         },
         {
           type: "range",
           name: "separatorWidth",
           label: "Separator width",
-          defaultValue: 6,
+          defaultValue: 8,
           configs: {
             min: 2,
-            max: 10,
+            max: 12,
             step: 1,
             unit: "px",
+          },
+        },
+      ],
+    },
+    {
+      group: "Layout",
+      inputs: [
+        {
+          type: "select",
+          name: "heightMode",
+          label: "Section height",
+          defaultValue: "aspen",
+          configs: {
+            options: [
+              { value: "aspen", label: "Aspen design (2:1)" },
+              { value: "custom", label: "Custom height" },
+            ],
           },
         },
         {
@@ -311,17 +328,45 @@ export let schema: HydrogenComponentSchema = {
             step: 10,
             unit: "px",
           },
+          condition: (data: BeforeAndAfterProps) =>
+            data.heightMode === "custom",
         },
         {
           type: "range",
           name: "sliderHeightMobile",
           label: "Slider height mobile",
-          defaultValue: 400,
+          defaultValue: 200,
           configs: {
-            min: 300,
+            min: 120,
             max: 1000,
             step: 10,
             unit: "px",
+          },
+          condition: (data: BeforeAndAfterProps) =>
+            data.heightMode === "custom",
+        },
+        {
+          type: "range",
+          name: "initialPositionDesktop",
+          label: "Initial divider position (desktop)",
+          defaultValue: 51,
+          configs: {
+            min: 0,
+            max: 100,
+            step: 1,
+            unit: "%",
+          },
+        },
+        {
+          type: "range",
+          name: "initialPositionMobile",
+          label: "Initial divider position (mobile)",
+          defaultValue: 44,
+          configs: {
+            min: 0,
+            max: 100,
+            step: 1,
+            unit: "%",
           },
         },
       ],
@@ -330,5 +375,12 @@ export let schema: HydrogenComponentSchema = {
   presets: {
     beforeImage1: IMAGES_PLACEHOLDERS.banner_1,
     afterImage2: IMAGES_PLACEHOLDERS.banner_2,
+    separatorColor: "#FFFFFF",
+    showList: true,
+    listColor: "#524B46",
+    separatorWidth: 8,
+    heightMode: "aspen",
+    initialPositionDesktop: 51,
+    initialPositionMobile: 44,
   },
 };

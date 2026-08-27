@@ -6,10 +6,12 @@ import { PRODUCT_CARD_FRAGMENT } from "~/graphql/fragments";
 import { routeHeaders } from "~/utils/cache";
 import { maybeFilterOutCombinedListingsQuery } from "~/utils/combined-listings";
 import { PAGINATION_SIZE } from "~/utils/const";
+import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 import { seoPayload } from "~/utils/seo.server";
 import { WeaverseContent } from "~/weaverse";
 
 export const headers = routeHeaders;
+export const shouldRevalidate = skipPageRevalidationForStorefrontActions;
 
 export async function loader({
   request,

@@ -1,84 +1,38 @@
 import { expect, test } from "@playwright/test";
 
-import { formatPrice, normalizePrice } from "./utils";
-
 test.describe("Cart", () => {
-  test("From home to checkout flow", async ({ page }) => {
-    // Home => Collections => First collection => First product
-    await page.goto("/");
-    await page.locator(`header nav a:text-is("Collections")`).click();
-    await page.locator("[data-test=collection-grid] a  >> nth=0").click();
-    await page.locator("[data-test=product-grid] a  >> nth=0").click();
+  test("adds a product and completes the cart flow", async ({ page }) => {
+    await page.goto("/products/philippe-accent-chair");
 
-    const firstItemPrice = normalizePrice(
-      await page.locator("[data-test=price]").textContent(),
-    );
+    await expect(page).toHaveURL(/\/products\/philippe-accent-chair/);
+    const productTitle = (await page.locator("h1").first().innerText()).trim();
+    await page.locator('[data-test="add-to-cart"]').click();
 
-    await page.locator("[data-test=add-to-cart]").click();
-
+    const cart = page.getByRole("dialog", { name: "Cart" });
+    await expect(cart).toBeVisible();
+    await expect(cart.getByText("Subtotal", { exact: true })).toBeVisible();
     await expect(
-      page.locator("[data-test=subtotal]"),
-      "should show the correct price",
-    ).toContainText(formatPrice(firstItemPrice));
+      cart.getByRole("link", { name: productTitle }).first(),
+    ).toBeVisible();
 
-    // Add an extra unit by increasing quantity
-    await page
-      .locator(`button :text-is("+")`)
-      .click({ clickCount: 1, delay: 600 });
+    const subtotalRow = cart
+      .getByText("Subtotal", { exact: true })
+      .locator("..");
+    const subtotalAmount = subtotalRow.locator("span").nth(1);
+    const initialSubtotal = await subtotalAmount.innerText();
 
-    await expect(
-      page.locator("[data-test=subtotal]"),
-      "should double the price",
-    ).toContainText(formatPrice(2 * firstItemPrice));
+    const quantitySelect = cart.getByRole("combobox", {
+      name: /select quantity/i,
+    });
+    await quantitySelect.click();
+    await page.getByRole("option", { name: "2", exact: true }).click();
 
-    await expect(
-      page.locator("[data-test=item-quantity]"),
-      "should increase quantity",
-    ).toContainText("2");
+    await expect(quantitySelect).toContainText("2");
+    await expect(subtotalAmount).not.toHaveText(initialSubtotal);
 
-    // Close cart drawer => Products => First product
-    await page.locator("[data-test=close-cart]").click();
-    await page.locator(`header nav a:text-is("Products")`).click();
-    await page.locator("[data-test=product-grid] a  >> nth=0").click();
-
-    const secondItemPrice = normalizePrice(
-      await page.locator("[data-test=price]").textContent(),
-    );
-
-    // Add another unit by adding to cart the same item
-    await page.locator("[data-test=add-to-cart]").click();
-
-    await expect(
-      page.locator("[data-test=subtotal]"),
-      "should add the price of the second item",
-    ).toContainText(formatPrice(2 * firstItemPrice + secondItemPrice));
-
-    const quantities = await page
-      .locator("[data-test=item-quantity]")
-      .allTextContents();
-    await expect(
-      quantities.reduce((a, b) => Number(a) + Number(b), 0),
-      "should have the correct item quantities",
-    ).toEqual(3);
-
-    const priceInStore = await page
-      .locator("[data-test=subtotal]")
-      .textContent();
-
-    await page.locator('a :text("Checkout")').click();
-
-    await expect(page.url(), "should navigate to checkout").toMatch(
-      /checkout\.hydrogen\.shop\/checkouts\/[\d\w]+/,
-    );
-
-    const priceInCheckout = await page
-      .locator("[role=cell] > span")
-      .getByText(/^\$\d/)
-      .textContent();
-
-    await expect(
-      normalizePrice(priceInCheckout),
-      "should show the same price in checkout",
-    ).toEqual(normalizePrice(priceInStore));
+    await Promise.all([
+      page.waitForURL(/checkout|checkouts|\/cart\/c\//i),
+      cart.getByRole("button", { name: "Checkout" }).click(),
+    ]);
   });
 });

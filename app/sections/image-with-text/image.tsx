@@ -60,7 +60,11 @@ const ImageWithTextImage = forwardRef<HTMLDivElement, ImageWithTextImageProps>(
       imageAspectRatio: propAspectRatio,
       ...rest
     } = props;
-    const { imageAspectRatio: contextAspectRatio } = useImageWithTextContext();
+    const {
+      imageAspectRatio: contextAspectRatio,
+      layout,
+      isLegacyLayout,
+    } = useImageWithTextContext();
     const finalAspectRatio = propAspectRatio || contextAspectRatio;
     const imageData: Partial<WeaverseImage> =
       typeof image === "string"
@@ -83,8 +87,12 @@ const ImageWithTextImage = forwardRef<HTMLDivElement, ImageWithTextImageProps>(
         data={imageData}
         data-motion="slide-in"
         sizes="auto"
-        aspectRatio={aspRt}
-        className={cn("h-auto w-full", variants({ objectFit, borderRadius }))}
+        aspectRatio={isLegacyLayout ? aspRt : undefined}
+        className={cn(
+          "h-full w-full",
+          layout === "overlay" && "min-w-0 flex-1",
+          variants({ objectFit, borderRadius }),
+        )}
         data-aspect-ratio={finalAspectRatio}
       />
     );

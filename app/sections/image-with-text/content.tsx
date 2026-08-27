@@ -52,7 +52,13 @@ const ImageWithTextContent = forwardRef<
   ImageWithTextContentProps
 >((props, ref) => {
   const { gap, contentPosition, children, ...rest } = props;
-  const { imageCount } = useImageWithTextContext();
+  const { imageCount, layout, isLegacyLayout } = useImageWithTextContext();
+  const resolvedLayout = isLegacyLayout
+    ? imageCount > 1
+      ? "overlay"
+      : "split"
+    : layout;
+  const isOverlay = resolvedLayout === "overlay";
 
   return (
     <div
@@ -60,10 +66,12 @@ const ImageWithTextContent = forwardRef<
       {...rest}
       className={cn(
         variants({ gap, contentPosition }),
-        imageCount > 1 && "absolute inset-0 z-1 flex w-full",
-        imageCount <= 1 && "aspect-square w-full md:w-1/2",
+        isOverlay &&
+          "absolute inset-0 z-1 flex w-full items-center justify-end px-5 pb-10 text-[#FEF4EB] [&_.button]:text-[#FEF4EB] md:px-16 md:pb-12 md:[&_h2]:text-[44px]",
+        !isOverlay &&
+          "h-[430px] w-full items-center justify-center px-5 py-10 md:h-full md:w-1/2 md:px-16 md:py-20",
       )}
-      data-content-with-images={imageCount}
+      data-content-layout={resolvedLayout}
     >
       {children}
     </div>
@@ -117,20 +125,26 @@ export const schema = createSchema({
     contentPosition: "center center",
     children: [
       {
-        type: "subheading",
-        content: "Subheading",
-      },
-      {
         type: "heading",
-        content: "Heading for image",
+        content: "MAKE YOURSELF AT HOME",
+        as: "h2",
+        weight: "400",
+        letterSpacing: "tight",
+        alignment: "center",
       },
       {
         type: "paragraph",
-        content: "Pair large text with an image to tell a story.",
+        content:
+          "Discover nomad, our best-selling and most-awarded modular seating.",
+        width: "full",
+        alignment: "center",
       },
       {
         type: "button",
-        text: "Shop now",
+        text: "EXPLORE NOW",
+        to: "/collections",
+        variant: "decor",
+        textColorDecor: "#FEF4EB",
       },
     ],
   },

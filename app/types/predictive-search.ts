@@ -4,17 +4,36 @@ import type {
   PredictiveProductFragment,
 } from "storefront-api.generated";
 
+export const PREDICTIVE_SEARCH_FETCHER_KEY = "predictive-search";
+
 type PredictiveSearchResultItemImage =
   | PredictiveCollectionFragment["image"]
   | PredictiveArticleFragment["image"]
   | PredictiveProductFragment["featuredImage"];
 
-type PredictiveSearchResultItemPrice =
-  PredictiveProductFragment["selectedOrFirstAvailableVariant"]["price"];
+type PredictiveSearchResultItemPrice = NonNullable<
+  PredictiveProductFragment["selectedOrFirstAvailableVariant"]
+>["price"];
+
+export type PredictiveSearchSwatch = {
+  name: string;
+  color?: string | null;
+  image?: {
+    url: string;
+    altText?: string | null;
+  } | null;
+  selected?: boolean;
+};
 
 export type NormalizedPredictiveSearch = {
   results: NormalizedPredictiveSearchResults;
   totalResults: number;
+};
+
+export type PredictiveSearchResponse = {
+  searchResults?: NormalizedPredictiveSearch;
+  searchTerm?: string;
+  error?: string;
 };
 
 export type NormalizedPredictiveSearchResults = Array<
@@ -26,14 +45,22 @@ export type NormalizedPredictiveSearchResults = Array<
 >;
 
 export type NormalizedPredictiveSearchResultItem = {
-  __typename?: "SearchQuerySuggestion" | "Product" | "Article";
+  __typename?:
+    | "SearchQuerySuggestion"
+    | "Product"
+    | "Collection"
+    | "Page"
+    | "Article";
   handle: string;
   id: string;
   image?: PredictiveSearchResultItemImage;
   price?: PredictiveSearchResultItemPrice;
   compareAtPrice?: PredictiveSearchResultItemPrice;
+  ratingValue?: string;
+  ratingCountValue?: string;
+  swatches?: PredictiveSearchSwatch[];
   styledTitle?: string;
   title: string;
-  vendor: string;
+  vendor?: string;
   url: string;
 };

@@ -1,10 +1,13 @@
 import { type ReactNode, type RefObject, useEffect, useRef } from "react";
 import { type FormProps, useFetcher, useParams } from "react-router";
-import type { NormalizedPredictiveSearchResults } from "~/types/predictive-search";
+import {
+  PREDICTIVE_SEARCH_FETCHER_KEY,
+  type PredictiveSearchResponse,
+} from "~/types/predictive-search";
 
 type ChildrenRenderProps = {
   fetchResults: (event: string) => void;
-  fetcher: ReturnType<typeof useFetcher<NormalizedPredictiveSearchResults>>;
+  fetcher: ReturnType<typeof useFetcher<PredictiveSearchResponse>>;
   inputRef: RefObject<HTMLInputElement | null>;
 };
 
@@ -12,6 +15,7 @@ type SearchFromProps = {
   action?: FormProps["action"];
   method?: FormProps["method"];
   className?: string;
+  limit?: number;
   children: (passedProps: ChildrenRenderProps) => ReactNode;
   [key: string]: unknown;
 };
@@ -23,11 +27,14 @@ export function PredictiveSearchForm({
   action,
   children,
   className = "predictive-search-form",
+  limit = 6,
   method = "POST",
   ...props
 }: SearchFromProps) {
   const params = useParams();
-  const fetcher = useFetcher<NormalizedPredictiveSearchResults>();
+  const fetcher = useFetcher<PredictiveSearchResponse>({
+    key: PREDICTIVE_SEARCH_FETCHER_KEY,
+  });
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   function fetchResults(searchTerm: string) {
@@ -36,7 +43,7 @@ export function PredictiveSearchForm({
       ? `/${params.locale}${searchAction}`
       : searchAction;
     fetcher.submit(
-      { q: searchTerm, limit: "6" },
+      { q: searchTerm, limit: String(limit) },
       { method, action: localizedAction },
     );
   }

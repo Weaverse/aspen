@@ -7,7 +7,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["!.weaverse"]
+    "includes": ["!.weaverse", "!.agents", "!scripts"]
   },
   "linter": {
     "rules": {
@@ -31,7 +31,8 @@
         "noConsole": "off",
         "noAlert": "off",
         "noArrayIndexKey": "off",
-        "noUnnecessaryConditions": "off"
+        "noUnnecessaryConditions": "off",
+        "noReactForwardRef": "off"
       },
       "correctness": {
         "noUnusedVariables": "off",

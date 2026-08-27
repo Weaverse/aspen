@@ -1,5 +1,5 @@
 import { Pagination } from "@shopify/hydrogen";
-import { createSchema } from "@weaverse/hydrogen";
+import { createSchema, useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { forwardRef } from "react";
 import { useLoaderData } from "react-router";
@@ -17,6 +17,7 @@ interface AllProductsProps extends SectionProps {
 }
 
 const AllProducts = forwardRef<HTMLElement, AllProductsProps>((props, ref) => {
+  const { t } = useTranslation();
   const { heading, prevPageText, nextPageText, ...rest } = props;
   const { products } = useLoaderData<AllProductsQuery>();
 
@@ -39,12 +40,12 @@ const AllProducts = forwardRef<HTMLElement, AllProductsProps>((props, ref) => {
                 <PreviousLink
                   className={cn("mx-auto", variants({ variant: "outline" }))}
                 >
-                  {isLoading ? "Loading..." : prevPageText}
+                  {isLoading ? t("system.loading") : prevPageText}
                 </PreviousLink>
               )}
               <div
                 className={clsx([
-                  "w-full gap-x-4 gap-y-6 lg:gap-y-10",
+                  "w-full gap-x-5 gap-y-8",
                   "grid grid-cols-1 lg:grid-cols-2",
                 ])}
               >
@@ -56,7 +57,7 @@ const AllProducts = forwardRef<HTMLElement, AllProductsProps>((props, ref) => {
                 <NextLink
                   className={cn("mx-auto", variants({ variant: "outline" }))}
                 >
-                  {isLoading ? "Loading..." : nextPageText}
+                  {isLoading ? t("system.loading") : nextPageText}
                 </NextLink>
               )}
             </div>
