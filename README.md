@@ -40,6 +40,10 @@ _Aspen is a sophisticated Shopify theme crafted specifically for home furniture 
 
 ## Getting started
 
+For complete local setup, Shopify and Weaverse connection, environment
+variables, theme customization, Oxygen deployment, and troubleshooting, see
+the [Aspen setup and usage guide](docs/setup.md).
+
 **Requirements:**
 
 - Node.js version 22.12.0 or higher
