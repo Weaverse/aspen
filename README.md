@@ -1,18 +1,10 @@
-# Aspen — Shopify Hydrogen theme
+<h1 align="center">Aspen - Shopify Hydrogen Theme</h1>
 
-Aspen is a premium home-furniture storefront built with Shopify Hydrogen,
-React Router, TypeScript, Tailwind CSS, and Weaverse. Developers build reusable
-sections and commerce behavior in this repository; merchants compose pages and
-adjust theme settings in Weaverse Studio.
+<div align="center">
 
-## Stack
+📚 [Read the docs](https://weaverse.io/docs) | 🗣 [Join our community on Slack](https://join.slack.com/t/weaversecommunity/shared_invite/zt-235bv7d80-velzJU8CpZIHWdrzFwAdXg) | 🐞 [Report a bug](https://github.com/weaverse/aspen/issues)
 
-- Node.js 22.12 or newer and npm
-- React 19 and React Router 7
-- Shopify Hydrogen 2026.4 and the Storefront API
-- Weaverse Hydrogen 5
-- Tailwind CSS 4, Biome, TypeScript, and Playwright
-- Shopify Oxygen for the recommended production runtime
+</div>
 
 _Aspen is a sophisticated Shopify theme crafted specifically for home furniture and interior design stores. Powered by Hydrogen, React Router, and Weaverse, this theme delivers lightning-fast storefronts with exceptional performance and elegant design aesthetics perfect for showcasing furniture collections, home decor, and interior design services._
 
@@ -68,103 +60,328 @@ the [Aspen setup and usage guide](docs/setup.md).
 ## Quick Start Commands
 
 ```bash
-git clone <repository-url> aspen
-cd aspen
-npm ci
-cp .env.example .env
-```
+# Install dependencies
+npm install
 
-Fill the required placeholders in `.env`, then run:
-
-```bash
+# Start development server on port 3456
 npm run dev
-```
 
-The storefront runs at <http://localhost:3456>.
-
-The minimum local configuration is:
-
-```env
-SESSION_SECRET="<random-64-character-hex-string>"
-PUBLIC_STORE_DOMAIN="<store>.myshopify.com"
-PUBLIC_STOREFRONT_API_TOKEN="<public-storefront-token>"
-WEAVERSE_PROJECT_ID="<weaverse-project-id>"
-```
-
-Generate a local session secret without copying one from another environment:
-
-```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-```
-
-Do not commit `.env`. Never put private Storefront, Weaverse, Judge.me,
-Klaviyo, LoyaltyLion, admin, or deployment tokens in `PUBLIC_*` variables.
-
-## Setup and usage
-
-Read [docs/setup.md](docs/setup.md) for:
-
-- prerequisites and local development
-- Shopify Hydrogen and Storefront API connection
-- Weaverse Studio connection and preview URLs
-- the complete environment-variable table
-- theme and section customization
-- Oxygen production deployment
-- troubleshooting
-
-Additional project documentation:
-
-- [Section usage guide](docs/sections.md)
-- [Third-party integrations](docs/integrations.md)
-- [Customer wishlist setup](docs/customer-wishlist-setup.md)
-- [Product detail QA](docs/pdp-qa.md)
-- [Cart QA](docs/cart-qa.md)
-
-## Commands
-
-| Command | Purpose |
-| --- | --- |
-| `npm run dev` | Generate route/API types and start MiniOxygen on port 3456 |
-| `npm run dev:ca` | Start development and push Customer Account callback configuration |
-| `npm run codegen` | Regenerate Storefront and Customer Account GraphQL types |
-| `npm run typecheck` | Generate React Router types and run TypeScript |
-| `npm run biome` | Check formatting and lint rules without changing files |
-| `npm run biome:fix` | Apply Biome-safe fixes |
-| `npm run routes-check` | Validate standard Hydrogen routes |
-| `npm run build` | Run GraphQL codegen and create the Oxygen production build |
-| `npm run preview` | Build and serve the production bundle locally |
-| `npm run e2e` | Run Playwright end-to-end tests |
-
-Before opening a pull request, run:
-
-```bash
-npm run biome
+# Run code quality checks before committing
+npm run biome:fix
 npm run typecheck
-npm run routes-check
+
+# Build for production
 npm run build
+
+# Run E2E tests
+npm run e2e
 ```
 
-## Project map
+## Features overview
 
-```text
+### Fetching page data with parallel loading
+
+Aspen uses parallel data loading for optimal performance. Every route loads Weaverse data alongside GraphQL queries using `Promise.all()`:
+
+```ts:routes/($locale)._index.tsx
+import { data } from 'react-router';
+import { type LoaderFunctionArgs } from 'react-router';
+
+export async function loader({ context }: LoaderFunctionArgs) {
+  const { storefront, weaverse } = context;
+
+  // Parallel data loading for best performance
+  const [collections, weaverseData] = await Promise.all([
+    storefront.query(COLLECTIONS_QUERY),
+    weaverse.loadPage({ type: 'INDEX' }),
+  ]);
+
+  return data({
+    collections,
+    weaverseData,
+  });
+}
+```
+
+`weaverse` is a `WeaverseClient` instance that has been injected into the app context by Weaverse. It provides a set of methods to interact with the Weaverse API.
+
+```ts:app/lib/context.ts
+// app/lib/context.ts
+
+const hydrogenContext = createHydrogenContext(
+  {
+    env,
+    request,
+    cache,
+    waitUntil,
+    session,
+    i18n: getLocaleFromRequest(request),
+    cart: {
+      queryFragment: CART_QUERY_FRAGMENT,
+    },
+  },
+  {},
+);
+
+const weaverse = new WeaverseClient({
+  ...hydrogenContext,
+  request,
+  cache,
+  themeSchema,
+  components,
+});
+
+Object.assign(hydrogenContext, { weaverse });
+
+return hydrogenContext;
+```
+
+### Rendering page content
+
+Weaverse pages is rendered using `<WeaverseContent />` component.
+
+```tsx:app/weaverse/index.tsx
+import { WeaverseHydrogenRoot } from '@weaverse/hydrogen';
+import { GenericError } from '~/components/generic-error';
+import { components } from './components';
+
+export function WeaverseContent() {
+  return (
+    <WeaverseHydrogenRoot
+      components={components}
+      errorComponent={GenericError}
+    />
+  );
+}
+
+```
+
+And in your route:
+
+```tsx:routes/($locale)/_index.tsx
+export default function Homepage() {
+  return <WeaverseContent />;
+}
+```
+
+Dead simple, right?
+
+### Global theme settings
+
+Weaverse global theme settings is loaded in the `root`'s loader with `context.weaverse.loadThemeSettings` function.
+
+```tsx:root.tsx
+export async function loader({request, context}: RouteLoaderArgs) {
+  return defer({
+    // App data...
+    weaverseTheme: await context.weaverse.loadThemeSettings(),
+  });
+}
+```
+
+And then you can use it in your components with `useThemeSettings` hook.
+
+```tsx:app/weaverse/components/logo.tsx
+import { useThemeSettings } from '@weaverse/hydrogen';
+
+function Logo() {
+  let {logo} = useThemeSettings();
+
+  return (
+    <div className="flex items-center">
+      <img src={logo} alt="Logo" />
+    </div>
+  );
+}
+```
+
+The `App` component is wrapped with `withWeaverse` HoC in order to SSR the theme settings.
+
+```tsx:root.tsx
+import { withWeaverse } from '@weaverse/hydrogen';
+
+function App() {
+  return (
+    <html lang={locale.language}>
+      // App markup
+    </html>
+  );
+}
+
+export default withWeaverse(App);
+```
+
+### Create a Weaverse section
+
+To create a section, you need to create a new file in [`app/sections`](app/sections) directory and register it in [`app/weaverse/components.ts`](app/weaverse/components.ts) file.
+
+**Important:** All Weaverse sections must use `forwardRef` and extend `HydrogenComponentProps`.
+
+```tsx:app/sections/video/index.tsx
+import type {
+  HydrogenComponentProps,
+  createSchema,
+} from '@weaverse/hydrogen';
+import { forwardRef } from 'react';
+
+interface VideoProps extends HydrogenComponentProps {
+  heading: string;
+  description: string;
+  videoUrl: string;
+}
+
+const Video = forwardRef<HTMLElement, VideoProps>((props, ref) => {
+  const { heading, description, videoUrl, ...rest } = props;
+  return (
+    <section ref={ref} {...rest}>
+      <div className="mx-auto max-w-7xl px-4 py-8 lg:px-12 lg:py-16 sm:text-center">
+        <h2 className="mb-4 text-4xl font-extrabold tracking-tight text-gray-900">
+          {heading}
+        </h2>
+        <p className="font-light text-gray-500 sm:text-lg md:px-20 lg:px-38 xl:px-48">
+          {description}
+        </p>
+        <iframe
+          className="mx-auto mt-8 h-64 w-full max-w-2xl rounded-lg lg:mt-12 sm:h-96"
+          src={videoUrl}
+          title="YouTube video player"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+      </div>
+    </section>
+  );
+});
+
+export default Video;
+```
+
+Export a `schema` object from the file to define the component's schema with default data and settings to be used in the **Weaverse Studio**.
+
+```tsx:app/sections/video/index.tsx (continued)
+export const schema = createSchema({
+  type: 'video',
+  title: 'Video',
+  settings: [
+    {
+      group: 'Video',
+      inputs: [
+        {
+          type: 'text',
+          name: 'heading',
+          label: 'Heading',
+          defaultValue: 'Learn More About Our Products',
+          placeholder: 'Learn More About Our Products',
+        },
+        {
+          type: 'textarea',
+          name: 'description',
+          label: 'Description',
+          defaultValue: `Watch these short videos to see our products in action. Learn how to use them and what makes them special. See demos of our products being used in real-life situations. The videos provide extra details and showcase the full capabilities of what we offer. If you're interested in learning more before you buy, be sure to check out these informative product videos.`,
+          placeholder: 'Video description',
+        },
+        {
+          type: 'text',
+          name: 'videoUrl',
+          label: 'Video URL',
+          defaultValue: 'https://www.youtube.com/embed/-akQyQN8rYM',
+          placeholder: 'https://www.youtube.com/embed/-akQyQN8rYM',
+        },
+      ],
+    },
+  ],
+});
+```
+
+What if your component needs to fetch data from Shopify API or any third-party API?
+
+**Weaverse** provide a powerful `loader` function to fetch data from _any_ API, and it's run on the **server-side** 🤯😎.
+
+Just export a `loader` function from your component:
+
+```tsx:app/sections/video/index.tsx (loader example)
+import type { ComponentLoaderArgs } from '@weaverse/hydrogen';
+
+export const loader = async ({ weaverse, data }: ComponentLoaderArgs) => {
+  const result = await weaverse.storefront.query<SeoCollectionContentQuery>(
+    HOMEPAGE_SEO_QUERY,
+    {
+      variables: { handle: data.collection.handle || 'frontpage' },
+    },
+  );
+  return result.data;
+};
+```
+
+And then you can use the data in your component with `Component.props.loaderData` 🤗
+
+Don't forget to register your new section in `app/weaverse/components.ts`:
+
+```typescript
+import * as Video from "~/sections/video";
+
+export const components: HydrogenComponent[] = [
+  // ... existing components
+  Video,
+];
+```
+
+### Manage content and style your pages within Weaverse Studio
+
+Weaverse provides a convenient way to customize your theme inside the **Weaverse Studio**. You can add new sections, customize existing ones, and change the theme settings.
+
+![Aspen in Weaverse Studio](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/aspen-demo.png?v=1755246830)
+
+### Project Structure
+
+```
 app/
-├── components/       Shared storefront UI
-├── graphql/          Shared GraphQL fragments and queries
-├── routes/           React Router loaders, actions, and pages
-├── sections/         Weaverse sections and child blocks
-├── styles/           Global styles and fonts
-└── weaverse/
-    ├── components.ts Section/component registry
-    ├── schema.server.ts Global theme settings schema
-    ├── style.tsx     Theme settings → CSS variables
-    └── csp.ts        Studio-aware Content Security Policy
-server.ts             Hydrogen context, sessions, localization, Weaverse client
+├── components/      # Reusable UI components
+│   ├── layout/     # Header, footer, navigation
+│   ├── product/    # Product-specific components
+│   └── cart/       # Cart components
+├── sections/       # Weaverse page builder sections
+├── routes/         # React Router routes (with locale prefix)
+├── graphql/        # GraphQL queries and fragments
+├── utils/          # Helper functions
+└── weaverse/       # Weaverse configuration
+
+Key configuration files:
+- biome.json        # Code formatting and linting
+- codegen.ts       # GraphQL code generation
+- react-router.config.ts # React Router configuration
+- vite.config.ts   # Vite bundler configuration
 ```
 
-## Demo and support
+### Development Tools
 
-- [Aspen demo store](https://weaverse-aspen-furniture.fly.dev/)
-- [Aspen Studio demo](https://studio.weaverse.io/demo?theme=aspen)
-- [Weaverse documentation](https://docs.weaverse.io/)
-- [Shopify Hydrogen documentation](https://shopify.dev/docs/storefronts/headless/hydrogen)
-- [Issue tracker](https://github.com/Weaverse/aspen/issues)
+- **Development server**: http://localhost:3456
+- **GraphiQL API browser**: http://localhost:3456/graphiql
+- **Network inspector**: http://localhost:3456/debug-network
+- **Weaverse Studio**: Access through your Shopify admin
+
+### Code Quality
+
+Before committing, always run:
+```bash
+npm run biome:fix    # Fix linting/formatting
+npm run typecheck    # Check TypeScript types
+npm run codegen      # Update GraphQL types
+```
+
+## References
+
+- [Weaverse docs](https://weaverse.io/docs)
+- [Hydrogen docs](https://shopify.dev/custom-storefronts/hydrogen)
+- [React Router](https://reactrouter.com/)
+- [Tailwind CSS v4](https://tailwindcss.com/)
+- [Radix UI](https://www.radix-ui.com/)
+- [Biome](https://biomejs.dev/)
+
+## License
+
+This project is provided under the [MIT License](LICENSE).
+
+---
+
+Let **Weaverse** & **Aspen** empower your furniture store with top-notch performance, elegant design, and unmatched customization possibilities perfectly tailored for the home furniture and interior design industry! 🪑🏠
