@@ -10,6 +10,7 @@ import { Button } from "~/components/button";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import { getCartMutationError } from "~/utils/cart-error";
 import { AnimatedBottomSheet } from "./animate-bottom-sheet";
+import { useCartFetcherSync } from "./cart-sync";
 
 type DialogLayout = "page" | "drawer";
 
@@ -79,7 +80,7 @@ export function NoteDialog({
   const fetcher = useFetcher<CartMutationResponse>();
   const cartRoute = usePrefixPathWithLocale("/cart");
   const mutationError = getCartMutationError(fetcher.data, t);
-
+  useCartFetcherSync(fetcher);
   useEffect(() => {
     if (fetcher.state === "idle" && fetcher.data && !mutationError) {
       setSubmitted(true);
@@ -178,6 +179,7 @@ export function DiscountDialog({
   const [submittedCode, setSubmittedCode] = useState("");
   const fetcher = useFetcher<CartMutationResponse>();
   const cartRoute = usePrefixPathWithLocale("/cart");
+  useCartFetcherSync(fetcher);
   const submitted = Boolean(
     submittedCode && fetcher.state === "idle" && fetcher.data,
   );
@@ -287,6 +289,7 @@ export function GiftCardDialog({
   const [submittedCode, setSubmittedCode] = useState("");
   const fetcher = useFetcher<CartMutationResponse>();
   const cartRoute = usePrefixPathWithLocale("/cart");
+  useCartFetcherSync(fetcher);
   const submitted = Boolean(
     submittedCode && fetcher.state === "idle" && fetcher.data,
   );
