@@ -7,6 +7,16 @@ import type {
 export const WISHLIST_PRODUCT_ID_PATTERN = /^gid:\/\/shopify\/Product\/\d+$/;
 export const MAX_WISHLIST_SIZE = 100;
 
+const WISHLIST_SETUP_GRAPHQL_ERROR_CODES = new Set([
+  "ACCESS_DENIED",
+  "FORBIDDEN",
+]);
+const WISHLIST_SETUP_USER_ERROR_CODES = new Set([
+  "APP_NOT_AUTHORIZED",
+  "DISALLOWED_OWNER_TYPE",
+  "INVALID_TYPE",
+]);
+
 export type WishlistRecord = {
   customerId: string;
   compareDigest: string | null;
@@ -62,12 +72,26 @@ export async function writeWishlist(
     return {
       ok: false as const,
       conflict: false,
-      setupRequired: true,
+      setupRequired: errors.some((error) =>
+        WISHLIST_SETUP_GRAPHQL_ERROR_CODES.has(
+          String(error.extensions?.code ?? ""),
+        ),
+      ),
       message: errors[0].message,
     };
   }
 
-  const userError = result?.metafieldsSet?.userErrors?.[0];
+  const payload = result?.metafieldsSet;
+  if (!payload) {
+    return {
+      ok: false as const,
+      conflict: false,
+      setupRequired: false,
+      message: "Wishlist is temporarily unavailable.",
+    };
+  }
+
+  const userError = payload.userErrors[0];
   if (!userError) {
     return {
       ok: true as const,
@@ -81,7 +105,7 @@ export async function writeWishlist(
   return {
     ok: false as const,
     conflict,
-    setupRequired: !conflict,
+    setupRequired: WISHLIST_SETUP_USER_ERROR_CODES.has(userError.code ?? ""),
     message: conflict
       ? "Wishlist changed in another session. Please try again."
       : userError.message,
