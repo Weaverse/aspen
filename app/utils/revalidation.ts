@@ -9,8 +9,8 @@ const PAGE_INDEPENDENT_ACTION_PATH =
  * worker dev runtime, where Weaverse's dynamic module import can outlive the
  * request that created it.
  *
- * Cart mutation responses are synchronized into CartStateProvider, so the
- * global cart UI still receives Shopify's authoritative response.
+ * Cart mutation responses are synchronized into the cart Zustand store, so
+ * the global cart UI still receives Shopify's authoritative response.
  */
 export function skipPageRevalidationForStorefrontActions({
   currentUrl,
@@ -37,7 +37,7 @@ export function skipPageRevalidationForStorefrontActions({
 
 /**
  * Wishlist and cart actions return authoritative state to their client-side
- * providers. Avoid reloading root CMS/theme data after either mutation.
+ * stores. Avoid reloading root CMS/theme data after either mutation.
  */
 export function skipRootRevalidationForStorefrontActions({
   currentUrl,

@@ -12,20 +12,15 @@ import { useTranslation } from "@weaverse/hydrogen";
 import {
   type ActionFunctionArgs,
   type AppLoadContext,
-  Await,
   data,
   type LoaderFunctionArgs,
   redirect,
-  useRouteLoaderData,
 } from "react-router";
-import type { CartApiQueryFragment } from "storefront-api.generated";
 import invariant from "tiny-invariant";
 import { Cart } from "~/components/cart/cart";
 import { CART_CODE_APPLY_ACTION } from "~/components/cart/cart-actions";
 import { CartBestSellers } from "~/components/cart/cart-best-sellers";
-import { useCartState } from "~/components/cart/cart-state-provider";
 import { Section } from "~/components/section";
-import type { RootLoader } from "~/root";
 import { CART_ERROR_KEYS } from "~/utils/cart-error";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 
@@ -244,11 +239,6 @@ export async function loader({ context }: LoaderFunctionArgs) {
 
 export default function CartRoute() {
   const { t } = useTranslation();
-  const rootData = useRouteLoaderData<RootLoader>("root");
-  const { cart: latestCart, isResolved } = useCartState();
-  if (!rootData) {
-    return null;
-  }
 
   return (
     <>
@@ -259,9 +249,7 @@ export default function CartRoute() {
         containerClassName="!max-w-[1360px]"
       >
         <h4 className="text-left font-normal uppercase">{t("cart.title")}</h4>
-        <Await resolve={isResolved ? latestCart : rootData?.cart}>
-          {(cart) => <Cart layout="page" cart={cart as CartApiQueryFragment} />}
-        </Await>
+        <Cart layout="page" />
       </Section>
       <Section
         width="fixed"
