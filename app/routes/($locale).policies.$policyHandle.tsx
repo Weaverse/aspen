@@ -1,5 +1,5 @@
 import { useTranslation } from "@weaverse/hydrogen";
-import type { LoaderFunctionArgs } from "react-router";
+import type { LoaderFunctionArgs, MetaFunction } from "react-router";
 import { useLoaderData } from "react-router";
 import type { PoliciesHandleQuery } from "storefront-api.generated";
 import invariant from "tiny-invariant";
@@ -7,9 +7,13 @@ import { BreadCrumb } from "~/components/breadcrumb";
 import Link from "~/components/link";
 import { Section } from "~/components/section";
 import { routeHeaders } from "~/utils/cache";
+import { getLocalizedMeta } from "~/utils/metadata";
 import { seoPayload } from "~/utils/seo.server";
 
 export const headers = routeHeaders;
+
+export const meta: MetaFunction<typeof loader> = ({ data, params }) =>
+  getLocalizedMeta({ locale: params.locale, page: "policy", seo: data?.seo });
 
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
   invariant(params.policyHandle, "Missing policy handle");

@@ -15,6 +15,7 @@ import {
   useNavigation,
   useOutletContext,
 } from "react-router";
+import { getLocalizedMeta } from "~/utils/metadata";
 import {
   CREATE_ADDRESS_MUTATION,
   DELETE_ADDRESS_MUTATION,
@@ -30,9 +31,8 @@ export type ActionResponse = {
   updatedAddress?: AddressPartialFragment;
 };
 
-export const meta: MetaFunction = () => {
-  return [{ title: "Addresses" }];
-};
+export const meta: MetaFunction = ({ params }) =>
+  getLocalizedMeta({ locale: params.locale, page: "addresses" });
 
 export async function loader({ context }: LoaderFunctionArgs) {
   await context.customerAccount.handleAuthStatus();

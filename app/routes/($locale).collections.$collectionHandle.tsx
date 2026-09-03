@@ -2,7 +2,6 @@ import {
   Analytics,
   flattenConnection,
   getPaginationVariables,
-  getSeoMeta,
 } from "@shopify/hydrogen";
 import type {
   ProductCollectionSortKeys,
@@ -21,6 +20,7 @@ import type { I18nLocale } from "~/types/locale";
 import { routeHeaders } from "~/utils/cache";
 import { PAGINATION_SIZE } from "~/utils/const";
 import { FILTER_URL_PREFIX, type SortParam } from "~/utils/filter";
+import { getLocalizedMeta } from "~/utils/metadata";
 import { redirectIfHandleIsLocalized } from "~/utils/redirect";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 import { seoPayload } from "~/utils/seo.server";
@@ -167,11 +167,12 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
   };
 }
 
-export const meta = ({ matches }: MetaArgs<typeof loader>) => {
-  return getSeoMeta(
-    ...matches.map((match) => (match.data as any)?.seo).filter(Boolean),
-  );
-};
+export const meta = ({ data, params }: MetaArgs<typeof loader>) =>
+  getLocalizedMeta({
+    locale: params.locale,
+    page: "collection",
+    seo: data?.seo,
+  });
 
 export default function Collection() {
   const { collection } = useLoaderData<typeof loader>();

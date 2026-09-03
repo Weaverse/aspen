@@ -1,11 +1,15 @@
-import type { SeoConfig } from "@shopify/hydrogen";
-import { getPaginationVariables, getSeoMeta } from "@shopify/hydrogen";
+import { getPaginationVariables } from "@shopify/hydrogen";
 import type { LoaderFunctionArgs, MetaFunction } from "react-router";
 import invariant from "tiny-invariant";
 import { PRODUCT_CARD_FRAGMENT } from "~/graphql/fragments";
 import { routeHeaders } from "~/utils/cache";
 import { maybeFilterOutCombinedListingsQuery } from "~/utils/combined-listings";
 import { PAGINATION_SIZE } from "~/utils/const";
+import {
+  createLocalizedSeoConfig,
+  getLocalizedMeta,
+  getMetadataCopy,
+} from "~/utils/metadata";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 import { seoPayload } from "~/utils/seo.server";
 import { WeaverseContent } from "~/weaverse";
@@ -35,23 +39,28 @@ export async function loader({
   ]);
 
   invariant(data, "No data returned from Shopify API");
+  const metadata = getMetadataCopy(request.url, "products");
 
-  const seo = seoPayload.collection({
-    url: request.url,
-    collection: {
-      id: "all-products",
-      title: "All Products",
-      handle: "products",
-      descriptionHtml: "All the store products",
-      description: "All the store products",
-      seo: {
-        title: "All Products",
-        description: "All the store products",
+  const seo = createLocalizedSeoConfig({
+    locale: request.url,
+    page: "products",
+    seo: seoPayload.collection({
+      url: request.url,
+      collection: {
+        id: "all-products",
+        title: metadata.title,
+        handle: "products",
+        descriptionHtml: metadata.description,
+        description: metadata.description,
+        seo: {
+          title: metadata.title,
+          description: metadata.description,
+        },
+        metafields: [],
+        products: data.products,
+        updatedAt: "",
       },
-      metafields: [],
-      products: data.products,
-      updatedAt: "",
-    },
+    }),
   });
 
   return {
@@ -61,9 +70,8 @@ export async function loader({
   };
 }
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  return getSeoMeta(data.seo as SeoConfig);
-};
+export const meta: MetaFunction<typeof loader> = ({ data, params }) =>
+  getLocalizedMeta({ locale: params.locale, page: "products", seo: data?.seo });
 export default function AllProducts() {
   return <WeaverseContent />;
 }

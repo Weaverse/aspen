@@ -8,6 +8,7 @@ import {
   type ActionFunction,
   data,
   Form,
+  type MetaFunction,
   redirect,
   useActionData,
   useNavigation,
@@ -22,6 +23,7 @@ import {
   isAccountPreviewRequest,
   readAccountPreviewState,
 } from "~/utils/account-preview.server";
+import { getLocalizedMeta } from "~/utils/metadata";
 import { CUSTOMER_UPDATE_MUTATION } from "./($locale).account.profile";
 import { doLogout } from "./($locale).account_.logout";
 
@@ -55,6 +57,9 @@ function formDataHas(formData: FormData, key: string) {
 export const handle = {
   renderInModal: true,
 };
+
+export const meta: MetaFunction = ({ params }) =>
+  getLocalizedMeta({ locale: params.locale, page: "editProfile" });
 
 export const action: ActionFunction = async ({ request, context, params }) => {
   const formData = await request.formData();

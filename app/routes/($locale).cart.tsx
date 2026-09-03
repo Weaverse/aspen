@@ -15,6 +15,7 @@ import {
   Await,
   data,
   type LoaderFunctionArgs,
+  type MetaFunction,
   redirect,
   useRouteLoaderData,
 } from "react-router";
@@ -27,9 +28,13 @@ import { useCartState } from "~/components/cart/cart-state-provider";
 import { Section } from "~/components/section";
 import type { RootLoader } from "~/root";
 import { CART_ERROR_KEYS } from "~/utils/cart-error";
+import { getLocalizedMeta } from "~/utils/metadata";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 
 export const shouldRevalidate = skipPageRevalidationForStorefrontActions;
+
+export const meta: MetaFunction = ({ params }) =>
+  getLocalizedMeta({ locale: params.locale, page: "cart" });
 
 export async function action({ request, context }: ActionFunctionArgs) {
   const { cart } = context;

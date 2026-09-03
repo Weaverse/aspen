@@ -8,7 +8,6 @@ import * as Dialog from "@radix-ui/react-dialog";
 import {
   Analytics,
   getPaginationVariables,
-  getSeoMeta,
   Pagination,
 } from "@shopify/hydrogen";
 import type { ProductFilter } from "@shopify/hydrogen/storefront-api-types";
@@ -50,6 +49,11 @@ import {
   getAppliedFilterLink,
   type SortParam,
 } from "~/utils/filter";
+import {
+  createLocalizedSeoConfig,
+  getLocalizedMeta,
+  getMetadataCopy,
+} from "~/utils/metadata";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 import { seoPayload } from "~/utils/seo.server";
 
@@ -124,19 +128,14 @@ export async function loader({
     products.filters,
     storefront.i18n,
   );
-  const hasResults = products.nodes.length > 0;
-  const seoDescription = hasResults
-    ? `Showing search results for "${searchTerm}"`
-    : searchTerm
-      ? `No results found for "${searchTerm}"`
-      : "Search our store";
+  const metadata = getMetadataCopy(request.url, "search");
   const mockCollection = {
     id: `search:${searchTerm}`,
-    title: "Search Results",
+    title: metadata.title,
     handle: "search",
-    description: "Search results",
-    descriptionHtml: "Search results",
-    seo: { title: "Search", description: seoDescription },
+    description: metadata.description,
+    descriptionHtml: metadata.description,
+    seo: { title: metadata.title, description: metadata.description },
     metafields: [],
     products,
     updatedAt: new Date().toISOString(),
@@ -145,9 +144,13 @@ export async function loader({
   };
 
   return {
-    seo: seoPayload.collection({
-      url: request.url,
-      collection: mockCollection,
+    seo: createLocalizedSeoConfig({
+      locale: request.url,
+      page: "search",
+      seo: seoPayload.collection({
+        url: request.url,
+        collection: mockCollection,
+      }),
     }),
     searchTerm,
     products,
@@ -157,11 +160,8 @@ export async function loader({
   };
 }
 
-export const meta = ({ matches }: MetaArgs<typeof loader>) => {
-  return getSeoMeta(
-    ...matches.map((match) => (match.data as any)?.seo).filter(Boolean),
-  );
-};
+export const meta = ({ data, params }: MetaArgs<typeof loader>) =>
+  getLocalizedMeta({ locale: params.locale, page: "search", seo: data?.seo });
 
 export default function Search() {
   const { t } = useTranslation();

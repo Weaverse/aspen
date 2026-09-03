@@ -15,6 +15,7 @@ import { useLoaderData } from "react-router";
 import { Link } from "~/components/link";
 import { useLocale } from "~/hooks/use-locale";
 import { formatDate } from "~/utils/locale";
+import { getLocalizedMeta } from "~/utils/metadata";
 
 // https://shopify.dev/docs/api/customer/latest/objects/Order
 const ORDER_ITEM_FRAGMENT = `#graphql
@@ -75,9 +76,8 @@ const CUSTOMER_ORDERS_QUERY = `#graphql
   }
 ` as const;
 
-export const meta: MetaFunction = () => {
-  return [{ title: "Orders" }];
-};
+export const meta: MetaFunction = ({ params }) =>
+  getLocalizedMeta({ locale: params.locale, page: "orders" });
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const paginationVariables = getPaginationVariables(request, {

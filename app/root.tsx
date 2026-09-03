@@ -90,7 +90,7 @@ export async function loader(args: LoaderFunctionArgs) {
 }
 
 export const meta = ({ data }: MetaArgs<typeof loader>) => {
-  return getSeoMeta(data?.seo as SeoConfig);
+  return getSeoMeta((data?.seo ?? { title: "Aspen" }) as SeoConfig);
 };
 
 function App() {

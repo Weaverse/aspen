@@ -10,6 +10,28 @@ import type {
 } from "@shopify/hydrogen/storefront-api-types";
 import type { BreadcrumbList, CollectionPage, Offer } from "schema-dts";
 import type { ProductQuery, ShopFragment } from "storefront-api.generated";
+import { getLocaleSegment } from "~/utils/locale";
+import { createLocalizedSeoConfig, getMetadataCopy } from "~/utils/metadata";
+
+const DEFAULT_SITE_TITLE = "Aspen";
+
+function storefrontUrl(url: string, pathname: string) {
+  const requestUrl = new URL(url);
+  const locale = getLocaleSegment(requestUrl.pathname);
+  const localePrefix = locale ? `/${locale}` : "";
+  const normalizedPath = pathname.startsWith("/") ? pathname : `/${pathname}`;
+  return `${requestUrl.origin}${localePrefix}${normalizedPath}`;
+}
+
+export function resolveSeoTitle(
+  ...candidates: Array<string | null | undefined>
+) {
+  return (
+    candidates
+      .find((candidate): candidate is string => Boolean(candidate?.trim()))
+      ?.trim() ?? DEFAULT_SITE_TITLE
+  );
+}
 
 function root({
   shop,
@@ -18,8 +40,10 @@ function root({
   shop: ShopFragment;
   url: Request["url"];
 }): SeoConfig {
+  const title = resolveSeoTitle(shop?.name, DEFAULT_SITE_TITLE);
+
   return {
-    title: shop?.name,
+    title,
     titleTemplate: "%s | Weaverse Hydrogen Demo Store",
     description: truncate(shop?.description ?? ""),
     handle: "@weaverse",
@@ -31,7 +55,7 @@ function root({
     jsonLd: {
       "@context": "https://schema.org",
       "@type": "Organization",
-      name: shop.name,
+      name: title,
       logo: shop.brand?.logo?.image?.url,
       sameAs: [
         "https://twitter.com/weaverseio",
@@ -42,28 +66,30 @@ function root({
       url,
       potentialAction: {
         "@type": "SearchAction",
-        target: `${url}search?q={search_term}`,
+        target: `${storefrontUrl(url, "/search")}?q={search_term}`,
         query: "required name='search_term'",
       },
     },
   };
 }
 
-function home(): SeoConfig {
-  return {
-    title: "Home",
-    titleTemplate: "%s | Weaverse Hydrogen Demo Store",
-    description: "The best Shopify Hydrogen Theme Customizer",
-    robots: {
-      noIndex: false,
-      noFollow: false,
+function home({ url }: { url: Request["url"] }): SeoConfig {
+  return createLocalizedSeoConfig({
+    locale: url,
+    page: "home",
+    seo: {
+      url,
+      robots: {
+        noIndex: false,
+        noFollow: false,
+      },
+      jsonLd: {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        name: "Aspen",
+      },
     },
-    jsonLd: {
-      "@context": "https://schema.org",
-      "@type": "WebPage",
-      name: "Home page",
-    },
-  };
+  });
 }
 
 function productJsonLd({
@@ -75,7 +101,7 @@ function productJsonLd({
   selectedVariant: ProductQuery["product"]["selectedOrFirstAvailableVariant"];
   url: Request["url"];
 }): SeoConfig["jsonLd"] {
-  const origin = new URL(url).origin;
+  const productsCopy = getMetadataCopy(url, "products");
   const description = truncate(
     productData?.seo?.description ?? productData?.description,
   );
@@ -127,8 +153,8 @@ function productJsonLd({
         {
           "@type": "ListItem",
           position: 1,
-          name: "Products",
-          item: `${origin}/products`,
+          name: productsCopy.title,
+          item: storefrontUrl(url, "/products"),
         },
         {
           "@type": "ListItem",
@@ -165,12 +191,20 @@ function product({
     productData?.seo?.description ?? productData?.description ?? "",
   );
   const selectedVariant = productData?.selectedOrFirstAvailableVariant;
-  return {
-    title: productData?.seo?.title ?? productData?.title,
-    description,
-    media: selectedVariant?.image,
-    jsonLd: productJsonLd({ product: productData, selectedVariant, url }),
-  };
+  return createLocalizedSeoConfig({
+    locale: url,
+    page: "product",
+    seo: {
+      title: resolveSeoTitle(
+        productData?.seo?.title,
+        productData?.title,
+        "Product",
+      ),
+      description,
+      media: selectedVariant?.image,
+      jsonLd: productJsonLd({ product: productData, selectedVariant, url }),
+    },
+  });
 }
 
 type CollectionRequiredFields = Omit<
@@ -191,13 +225,13 @@ function collectionJsonLd({
   url: Request["url"];
   collection: CollectionRequiredFields;
 }): SeoConfig["jsonLd"] {
-  const siteUrl = new URL(url);
+  const collectionsCopy = getMetadataCopy(url, "collections");
   const itemListElement: CollectionPage["mainEntity"] =
     collectionData.products.nodes.map((prod, index) => {
       return {
         "@type": "ListItem",
         position: index + 1,
-        url: `/products/${prod.handle}`,
+        url: storefrontUrl(url, `/products/${prod.handle}`),
       };
     });
 
@@ -209,8 +243,8 @@ function collectionJsonLd({
         {
           "@type": "ListItem",
           position: 1,
-          name: "Collections",
-          item: `${siteUrl.host}/collections`,
+          name: collectionsCopy.title,
+          item: storefrontUrl(url, "/collections"),
         },
         {
           "@type": "ListItem",
@@ -222,12 +256,16 @@ function collectionJsonLd({
     {
       "@context": "https://schema.org",
       "@type": "CollectionPage",
-      name: collectionData?.seo?.title ?? collectionData?.title ?? "",
+      name: resolveSeoTitle(
+        collectionData?.seo?.title,
+        collectionData?.title,
+        "Collection",
+      ),
       description: truncate(
         collectionData?.seo?.description ?? collectionData?.description ?? "",
       ),
       image: collectionData?.image?.url,
-      url: `/collections/${collectionData.handle}`,
+      url,
       mainEntity: {
         "@type": "ItemList",
         itemListElement,
@@ -243,22 +281,30 @@ function collection({
   collection: CollectionRequiredFields;
   url: Request["url"];
 }): SeoConfig {
-  return {
-    title: collectionData?.seo?.title,
-    description: truncate(
-      collectionData?.seo?.description ?? collectionData?.description ?? "",
-    ),
-    titleTemplate: "%s | Collection",
-    url,
-    media: {
-      type: "image",
-      url: collectionData?.image?.url,
-      height: collectionData?.image?.height,
-      width: collectionData?.image?.width,
-      altText: collectionData?.image?.altText,
+  return createLocalizedSeoConfig({
+    locale: url,
+    page: "collection",
+    seo: {
+      title: resolveSeoTitle(
+        collectionData?.seo?.title,
+        collectionData?.title,
+        "Collection",
+      ),
+      description: truncate(
+        collectionData?.seo?.description ?? collectionData?.description ?? "",
+      ),
+      titleTemplate: "%s | Collection",
+      url,
+      media: {
+        type: "image",
+        url: collectionData?.image?.url,
+        height: collectionData?.image?.height,
+        width: collectionData?.image?.width,
+        altText: collectionData?.image?.altText,
+      },
+      jsonLd: collectionJsonLd({ collection: collectionData, url }),
     },
-    jsonLd: collectionJsonLd({ collection: collectionData, url }),
-  };
+  });
 }
 
 type CollectionListRequiredFields = {
@@ -272,12 +318,13 @@ function collectionsJsonLd({
   url: Request["url"];
   collections: CollectionListRequiredFields;
 }): SeoConfig["jsonLd"] {
+  const copy = getMetadataCopy(url, "collections");
   const itemListElement: CollectionPage["mainEntity"] = collections.nodes.map(
     (col, index) => {
       return {
         "@type": "ListItem",
         position: index + 1,
-        url: `/collections/${col.handle}`,
+        url: storefrontUrl(url, `/collections/${col.handle}`),
       };
     },
   );
@@ -285,8 +332,8 @@ function collectionsJsonLd({
   return {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    name: "Collections",
-    description: "All collections",
+    name: copy.title,
+    description: copy.description,
     url,
     mainEntity: {
       "@type": "ItemList",
@@ -302,13 +349,14 @@ function listCollections({
   collections: CollectionListRequiredFields;
   url: Request["url"];
 }): SeoConfig {
-  return {
-    title: "Collections",
-    titleTemplate: "%s | Collections",
-    description: "All hydrogen collections",
-    url,
-    jsonLd: collectionsJsonLd({ collections, url }),
-  };
+  return createLocalizedSeoConfig({
+    locale: url,
+    page: "collections",
+    seo: {
+      url,
+      jsonLd: collectionsJsonLd({ collections, url }),
+    },
+  });
 }
 
 function article({
@@ -326,32 +374,44 @@ function article({
   };
   url: Request["url"];
 }): SeoConfig {
-  return {
-    title: articleData?.seo?.title ?? articleData?.title,
-    description: truncate(articleData?.seo?.description ?? ""),
-    titleTemplate: "%s | Journal",
-    url,
-    media: {
-      type: "image",
-      url: articleData?.image?.url,
-      height: articleData?.image?.height,
-      width: articleData?.image?.width,
-      altText: articleData?.image?.altText,
-    },
-    jsonLd: {
-      "@context": "https://schema.org",
-      "@type": "Article",
-      alternativeHeadline: articleData.title,
-      articleBody: articleData.contentHtml,
-      datePublished: articleData?.publishedAt,
-      description: truncate(
-        articleData?.seo?.description || articleData?.excerpt || "",
+  return createLocalizedSeoConfig({
+    locale: url,
+    page: "article",
+    seo: {
+      title: resolveSeoTitle(
+        articleData?.seo?.title,
+        articleData?.title,
+        "Article",
       ),
-      headline: articleData?.seo?.title || "",
-      image: articleData?.image?.url,
+      description: truncate(articleData?.seo?.description ?? ""),
+      titleTemplate: "%s | Journal",
       url,
+      media: {
+        type: "image",
+        url: articleData?.image?.url,
+        height: articleData?.image?.height,
+        width: articleData?.image?.width,
+        altText: articleData?.image?.altText,
+      },
+      jsonLd: {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        alternativeHeadline: articleData.title,
+        articleBody: articleData.contentHtml,
+        datePublished: articleData?.publishedAt,
+        description: truncate(
+          articleData?.seo?.description || articleData?.excerpt || "",
+        ),
+        headline: resolveSeoTitle(
+          articleData?.seo?.title,
+          articleData?.title,
+          "Article",
+        ),
+        image: articleData?.image?.url,
+        url,
+      },
     },
-  };
+  });
 }
 
 function blog({
@@ -361,19 +421,25 @@ function blog({
   blog: Pick<Blog, "seo" | "title">;
   url: Request["url"];
 }): SeoConfig {
-  return {
-    title: blogData?.seo?.title,
-    description: truncate(blogData?.seo?.description || ""),
-    titleTemplate: "%s | Blog",
-    url,
-    jsonLd: {
-      "@context": "https://schema.org",
-      "@type": "Blog",
-      name: blogData?.seo?.title || blogData?.title || "",
-      description: blogData?.seo?.description || "",
+  const title = resolveSeoTitle(blogData?.seo?.title, blogData?.title, "Blog");
+
+  return createLocalizedSeoConfig({
+    locale: url,
+    page: "blogs",
+    seo: {
+      title,
+      description: truncate(blogData?.seo?.description || ""),
+      titleTemplate: "%s | Blog",
       url,
+      jsonLd: {
+        "@context": "https://schema.org",
+        "@type": "Blog",
+        name: title,
+        description: blogData?.seo?.description || "",
+        url,
+      },
     },
-  };
+  });
 }
 
 function page({
@@ -383,17 +449,23 @@ function page({
   page: Pick<Page, "title" | "seo">;
   url: Request["url"];
 }): SeoConfig {
-  return {
-    description: truncate(pageData?.seo?.description || ""),
-    title: pageData?.seo?.title ?? pageData?.title,
-    titleTemplate: "%s | Page",
-    url,
-    jsonLd: {
-      "@context": "https://schema.org",
-      "@type": "WebPage",
-      name: pageData.title,
+  const title = resolveSeoTitle(pageData?.seo?.title, pageData?.title, "Page");
+
+  return createLocalizedSeoConfig({
+    locale: url,
+    page: "page",
+    seo: {
+      description: truncate(pageData?.seo?.description || ""),
+      title,
+      titleTemplate: "%s | Page",
+      url,
+      jsonLd: {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        name: title,
+      },
     },
-  };
+  });
 }
 
 function policy({
@@ -403,12 +475,15 @@ function policy({
   policy: Pick<ShopPolicy, "title" | "body">;
   url: Request["url"];
 }): SeoConfig {
-  return {
-    description: truncate(policyData?.body ?? ""),
-    title: policyData?.title,
-    titleTemplate: "%s | Policy",
-    url,
-  };
+  return createLocalizedSeoConfig({
+    locale: url,
+    page: "policy",
+    seo: {
+      description: truncate(policyData?.body ?? ""),
+      title: resolveSeoTitle(policyData?.title, "Policy"),
+      url,
+    },
+  });
 }
 
 function policies({
@@ -418,7 +493,7 @@ function policies({
   policies: Pick<ShopPolicy, "title" | "handle">[];
   url: Request["url"];
 }): SeoConfig {
-  const origin = new URL(url).origin;
+  const copy = getMetadataCopy(url, "policies");
   const itemListElement: BreadcrumbList["itemListElement"] = policiesData
     .filter(Boolean)
     .map((pol, index) => {
@@ -426,28 +501,30 @@ function policies({
         "@type": "ListItem",
         position: index + 1,
         name: pol.title,
-        item: `${origin}/policies/${pol.handle}`,
+        item: storefrontUrl(url, `/policies/${pol.handle}`),
       };
     });
-  return {
-    title: "Policies",
-    titleTemplate: "%s | Policies",
-    description: "Weaverse Hydrogen store policies",
-    jsonLd: [
-      {
-        "@context": "https://schema.org",
-        "@type": "BreadcrumbList",
-        itemListElement,
-      },
-      {
-        "@context": "https://schema.org",
-        "@type": "WebPage",
-        description: "Weaverse Hydrogen store policies",
-        name: "Policies",
-        url,
-      },
-    ],
-  };
+  return createLocalizedSeoConfig({
+    locale: url,
+    page: "policies",
+    seo: {
+      url,
+      jsonLd: [
+        {
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement,
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          description: copy.description,
+          name: copy.title,
+          url,
+        },
+      ],
+    },
+  });
 }
 
 export const seoPayload = {

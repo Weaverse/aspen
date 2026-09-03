@@ -1,7 +1,6 @@
 import {
   Analytics,
   getAdjacentAndFirstAvailableVariants,
-  getSeoMeta,
   useOptimisticVariant,
 } from "@shopify/hydrogen";
 import { getSelectedProductOptions } from "@weaverse/hydrogen";
@@ -21,6 +20,7 @@ import {
   isCombinedListing,
 } from "~/utils/combined-listings";
 import { createJudgeMeReview, getJudgeMeProductReviews } from "~/utils/judgeme";
+import { getLocalizedMeta } from "~/utils/metadata";
 import { getRecommendedProducts } from "~/utils/product";
 import {
   redirectIfCombinedListing,
@@ -99,11 +99,12 @@ export async function action({
   }
 }
 
-export const meta = ({ matches }: MetaArgs<typeof loader>) => {
-  return getSeoMeta(
-    ...matches.map((match) => (match.data as any)?.seo).filter(Boolean),
-  );
-};
+export const meta = ({ data: loaderData, params }: MetaArgs<typeof loader>) =>
+  getLocalizedMeta({
+    locale: params.locale,
+    page: "product",
+    seo: loaderData?.seo,
+  });
 
 export default function Product() {
   const { product } = useLoaderData<typeof loader>();

@@ -7,6 +7,7 @@ import type {
 import {
   data,
   type LoaderFunctionArgs,
+  type MetaFunction,
   Outlet,
   useLoaderData,
   useMatches,
@@ -23,12 +24,16 @@ import {
   readAccountPreviewState,
 } from "~/utils/account-preview.server";
 import { routeHeaders } from "~/utils/cache";
+import { getLocalizedMeta } from "~/utils/metadata";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 import { WeaverseContent } from "~/weaverse";
 import { doLogout } from "./($locale).account_.logout";
 
 export const headers = routeHeaders;
 export const shouldRevalidate = skipPageRevalidationForStorefrontActions;
+
+export const meta: MetaFunction = ({ params }) =>
+  getLocalizedMeta({ locale: params.locale, page: "account" });
 
 export async function loader({ context, request }: LoaderFunctionArgs) {
   const weaverseData = await context.weaverse.loadPage({

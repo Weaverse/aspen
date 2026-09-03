@@ -1,6 +1,4 @@
 import { FileTextIcon } from "@phosphor-icons/react";
-import type { SeoConfig } from "@shopify/hydrogen";
-import { getSeoMeta } from "@shopify/hydrogen";
 import { useTranslation } from "@weaverse/hydrogen";
 import type { LoaderFunctionArgs, MetaFunction } from "react-router";
 import { useLoaderData } from "react-router";
@@ -10,6 +8,7 @@ import { BreadCrumb } from "~/components/breadcrumb";
 import { Link } from "~/components/link";
 import { Section } from "~/components/section";
 import { routeHeaders } from "~/utils/cache";
+import { getLocalizedMeta } from "~/utils/metadata";
 import { seoPayload } from "~/utils/seo.server";
 
 export const headers = routeHeaders;
@@ -42,9 +41,8 @@ export async function loader({
   };
 }
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  return getSeoMeta(data.seo as SeoConfig);
-};
+export const meta: MetaFunction<typeof loader> = ({ data, params }) =>
+  getLocalizedMeta({ locale: params.locale, page: "policies", seo: data?.seo });
 
 export default function Policies() {
   const { t } = useTranslation();

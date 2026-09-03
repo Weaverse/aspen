@@ -4,7 +4,12 @@ import type {
   CustomerAddressDeleteMutation,
   CustomerAddressUpdateMutation,
 } from "customer-account-api.generated";
-import { type ActionFunction, data, redirect } from "react-router";
+import {
+  type ActionFunction,
+  data,
+  type MetaFunction,
+  redirect,
+} from "react-router";
 import invariant from "tiny-invariant";
 // biome-ignore lint/style/noExportedImports: <explanation> --- IGNORE ---
 import { AccountEditAddressForm } from "~/components/customer/edit-address-form";
@@ -15,11 +20,15 @@ import {
   isAccountPreviewRequest,
   readAccountPreviewState,
 } from "~/utils/account-preview.server";
+import { getLocalizedMeta } from "~/utils/metadata";
 import { doLogout } from "./($locale).account_.logout";
 
 export const handle = {
   renderInModal: true,
 };
+
+export const meta: MetaFunction = ({ params }) =>
+  getLocalizedMeta({ locale: params.locale, page: "editAddress" });
 
 export const action: ActionFunction = async ({ request, context, params }) => {
   const { customerAccount } = context;

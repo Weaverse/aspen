@@ -1,9 +1,9 @@
-import type { SeoConfig } from "@shopify/hydrogen";
-import { getPaginationVariables, getSeoMeta } from "@shopify/hydrogen";
+import { getPaginationVariables } from "@shopify/hydrogen";
 import type { RouteLoaderArgs } from "@weaverse/hydrogen";
 import type { MetaFunction } from "react-router";
 import type { CollectionsQuery } from "storefront-api.generated";
 import { routeHeaders } from "~/utils/cache";
+import { getLocalizedMeta } from "~/utils/metadata";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 import { seoPayload } from "~/utils/seo.server";
 import { WeaverseContent } from "~/weaverse";
@@ -49,9 +49,12 @@ export const loader = async (args: RouteLoaderArgs) => {
   };
 };
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  return getSeoMeta(data?.seo as SeoConfig);
-};
+export const meta: MetaFunction<typeof loader> = ({ data, params }) =>
+  getLocalizedMeta({
+    locale: params.locale,
+    page: "collections",
+    seo: data?.seo,
+  });
 
 export default function Collections() {
   return <WeaverseContent />;

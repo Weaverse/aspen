@@ -11,6 +11,7 @@ import {
   useNavigation,
   useOutletContext,
 } from "react-router";
+import { getLocalizedMeta } from "~/utils/metadata";
 
 // https://shopify.dev/docs/api/customer/latest/mutations/customerUpdate
 export const CUSTOMER_UPDATE_MUTATION = `#graphql
@@ -42,9 +43,8 @@ export type ActionResponse = {
   customer: CustomerUpdateMutation["customerUpdate"]["customer"] | null;
 };
 
-export const meta: MetaFunction = () => {
-  return [{ title: "Profile" }];
-};
+export const meta: MetaFunction = ({ params }) =>
+  getLocalizedMeta({ locale: params.locale, page: "profile" });
 
 export async function loader({ context }: LoaderFunctionArgs) {
   await context.customerAccount.handleAuthStatus();

@@ -17,10 +17,16 @@ import {
   accountPreviewOrderDetails,
   isAccountPreviewRequest,
 } from "~/utils/account-preview.server";
+import { getLocalizedMeta, getMetadataCopy } from "~/utils/metadata";
 import { WeaverseContent } from "~/weaverse";
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  return [{ title: `Order ${data?.order?.name}` }];
+export const meta: MetaFunction<typeof loader> = ({ data, params }) => {
+  const copy = getMetadataCopy(params.locale, "order");
+  return getLocalizedMeta({
+    locale: params.locale,
+    page: "order",
+    title: data?.order?.name ? `${copy.title} ${data.order.name}` : copy.title,
+  });
 };
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {

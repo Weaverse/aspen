@@ -1,9 +1,9 @@
-import type { SeoConfig } from "@shopify/hydrogen";
-import { AnalyticsPageType, getSeoMeta } from "@shopify/hydrogen";
+import { AnalyticsPageType } from "@shopify/hydrogen";
 import type { PageType } from "@weaverse/hydrogen";
 import type { LoaderFunctionArgs, MetaFunction } from "react-router";
 import type { ShopQuery } from "storefront-api.generated";
 import { routeHeaders } from "~/utils/cache";
+import { getLocalizedMeta } from "~/utils/metadata";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 import { seoPayload } from "~/utils/seo.server";
 import { validateWeaverseData, WeaverseContent } from "~/weaverse";
@@ -23,7 +23,7 @@ export async function loader(args: LoaderFunctionArgs) {
   }
 
   // Calculate seo payload synchronously
-  const seo = seoPayload.home();
+  const seo = seoPayload.home({ url: args.request.url });
 
   // Load async data in parallel for better performance
   const [weaverseData, { shop }] = await Promise.all([
@@ -44,9 +44,8 @@ export async function loader(args: LoaderFunctionArgs) {
   };
 }
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  return getSeoMeta(data?.seo as SeoConfig);
-};
+export const meta: MetaFunction<typeof loader> = ({ data, params }) =>
+  getLocalizedMeta({ locale: params.locale, page: "home", seo: data?.seo });
 export default function Homepage() {
   return <WeaverseContent />;
 }
