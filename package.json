@@ -26,7 +26,7 @@
     "i18n:check": "node scripts/check-translations.mjs && node scripts/check-hardcoded-translations.mjs",
     "locale:check": "node --test tests/locale.unit.test.ts",
     "cf-typegen": "wrangler types && react-router typegen",
-    "check": "tsc --noEmit && react-router build && wrangler deploy --dry-run",
+    "check": "react-router typegen && tsc --noEmit && react-router build && wrangler deploy --dry-run",
     "deploy": "wrangler deploy",
     "cf-dev": "wrangler dev --port 8787"
   },
