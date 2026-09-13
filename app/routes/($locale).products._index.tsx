@@ -1,5 +1,5 @@
 import type { SeoConfig } from "@shopify/hydrogen";
-import { getPaginationVariables, getSeoMeta } from "@shopify/hydrogen";
+import { getPaginationVariables } from "@shopify/hydrogen";
 import type { LoaderFunctionArgs, MetaFunction } from "react-router";
 import invariant from "tiny-invariant";
 import { PRODUCT_CARD_FRAGMENT } from "~/graphql/fragments";
@@ -7,7 +7,9 @@ import { routeHeaders } from "~/utils/cache";
 import { maybeFilterOutCombinedListingsQuery } from "~/utils/combined-listings";
 import { PAGINATION_SIZE } from "~/utils/const";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
+import { paginateSaleProducts } from "~/utils/sale-pagination.server";
 import { seoPayload } from "~/utils/seo.server";
+import { localizedSeoMeta } from "~/utils/seo-translation";
 import { WeaverseContent } from "~/weaverse";
 
 export const headers = routeHeaders;
@@ -36,17 +38,35 @@ export async function loader({
 
   invariant(data, "No data returned from Shopify API");
 
+  if (new URL(request.url).searchParams.get("sale") === "true") {
+    data.products = await paginateSaleProducts(
+      data.products,
+      variables,
+      async (page) => {
+        const next = await storefront.query(ALL_PRODUCTS_QUERY, {
+          variables: {
+            ...page,
+            country: storefront.i18n.country,
+            language: storefront.i18n.language,
+            query: maybeFilterOutCombinedListingsQuery,
+          },
+        });
+        return next.products;
+      },
+    );
+  }
+
   const seo = seoPayload.collection({
     url: request.url,
     collection: {
       id: "all-products",
-      title: "All Products",
+      title: "seo.allProducts",
       handle: "products",
-      descriptionHtml: "All the store products",
-      description: "All the store products",
+      descriptionHtml: "seo.allProductsDescription",
+      description: "seo.allProductsDescription",
       seo: {
-        title: "All Products",
-        description: "All the store products",
+        title: "seo.allProducts",
+        description: "seo.allProductsDescription",
       },
       metafields: [],
       products: data.products,
@@ -61,8 +81,12 @@ export async function loader({
   };
 }
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  return getSeoMeta(data.seo as SeoConfig);
+export const meta: MetaFunction<typeof loader> = ({ data, matches }) => {
+  return localizedSeoMeta(matches, {
+    ...data.seo,
+    title: "seo.allProducts",
+    description: "seo.allProductsDescription",
+  } as SeoConfig);
 };
 export default function AllProducts() {
   return <WeaverseContent />;
@@ -79,6 +103,7 @@ const ALL_PRODUCTS_QUERY = `#graphql
     $query: String
   ) @inContext(country: $country, language: $language) {
     products(first: $first, last: $last, before: $startCursor, after: $endCursor, query: $query) {
+      edges { cursor }
       nodes {
         ...ProductCard
       }

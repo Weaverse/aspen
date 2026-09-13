@@ -18,7 +18,9 @@ import clsx from "clsx";
 import { forwardRef, useEffect, useMemo, useState } from "react";
 import { Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
+import { ArrowButton } from "~/components/arrow-button";
 import { ProductCard } from "~/components/product/product-card";
+import { translatePreview } from "~/utils/preview-translation";
 import "swiper/css";
 import "swiper/css/navigation";
 import Link from "~/components/link";
@@ -159,7 +161,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
       productsConnection = new Array(placeholderCount)
         .fill(null)
         .map((_, index) => ({
-          ...PRODUCT_PLACEHOLDER,
+          ...translatePreview(t, PRODUCT_PLACEHOLDER),
           id: `placeholder-${index}`,
         }));
     }
@@ -168,6 +170,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
     const maxProductsToShow = productsToShow;
     const displayedProducts = productsConnection.slice(0, maxProductsToShow);
     const hasMoreProducts = totalProducts > maxProductsToShow;
+    const isSingleProduct = displayedProducts.length === 1;
 
     const arrowColorClasses = useMemo(() => {
       return arrowsColor === "secondary"
@@ -201,7 +204,8 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
 
     const renderArrowControls = (classPrefix: string) => (
       <div className="flex justify-center gap-2">
-        <button
+        <ArrowButton
+          tone="neutral"
           type="button"
           className={clsx(
             `${classPrefix}-prev`,
@@ -216,8 +220,9 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
           ) : (
             <ArrowLeft size={16} />
           )}
-        </button>
-        <button
+        </ArrowButton>
+        <ArrowButton
+          tone="neutral"
           type="button"
           className={clsx(
             `${classPrefix}-next`,
@@ -232,74 +237,118 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
           ) : (
             <ArrowRight size={16} />
           )}
-        </button>
+        </ArrowButton>
+      </div>
+    );
+
+    const tabletCardClassName =
+      "flex w-full flex-col items-start gap-5 [&>div:last-child]:pt-0";
+    const desktopGridCols = {
+      "2": "lg:grid-cols-2",
+      "3": "lg:grid-cols-3",
+      "4": "lg:grid-cols-4",
+      "5": "lg:grid-cols-5",
+    }[itemsPerRow ?? "2"];
+    const desktopGridGap = {
+      8: "lg:gap-2",
+      12: "lg:gap-3",
+      16: "lg:gap-4",
+      20: "lg:gap-5",
+      24: "lg:gap-6",
+      28: "lg:gap-7",
+      32: "lg:gap-8",
+    }[designGap];
+
+    const renderMobileSingleProduct = (
+      product: (typeof displayedProducts)[number],
+      quickShopIconOnlyOnTablet?: boolean,
+    ) => (
+      <div className="relative left-1/2 flex w-screen -translate-x-1/2 justify-center px-5 md:hidden">
+        <div className="w-full">
+          <ProductCard
+            product={product}
+            className="h-full w-full"
+            quickShopIconOnlyOnTablet={quickShopIconOnlyOnTablet}
+          />
+        </div>
       </div>
     );
 
     if (activeLayout === "grid") {
       return (
         <div ref={ref} {...rest} className="relative">
-          <div className="relative left-1/2 w-screen -translate-x-1/2 md:hidden">
-            <Swiper
-              key={`swiper-grid-mobile-${designGap}`}
-              slidesPerView="auto"
-              centeredSlides
-              spaceBetween={designGap}
-              loop={displayedProducts.length > 1}
-              onSwiper={() => {
-                requestAnimationFrame(() => {
-                  setIsSwiperInitialized(true);
-                });
-              }}
-              navigation={{
-                nextEl: ".featured-products-next",
-                prevEl: ".featured-products-prev",
-              }}
-              modules={[Navigation]}
-              className={clsx(
-                "mb-6 w-full py-4 transition-opacity duration-300",
-                isSwiperInitialized ? "opacity-100" : "opacity-0",
-              )}
-            >
-              {displayedProducts.map((product) => (
-                <SwiperSlide
-                  key={product.id}
-                  style={{ width: "min(335px, calc(100vw - 40px))" }}
-                >
-                  <div className="relative h-full">
-                    <ProductCard product={product} className="h-full w-full" />
-                  </div>
-                </SwiperSlide>
-              ))}
-            </Swiper>
+          {isSingleProduct ? (
+            renderMobileSingleProduct(displayedProducts[0])
+          ) : (
+            <div className="relative left-1/2 w-screen -translate-x-1/2 md:hidden">
+              <Swiper
+                key={`swiper-grid-mobile-${displayedProducts.length}`}
+                slidesPerView="auto"
+                centeredSlides
+                centerInsufficientSlides
+                spaceBetween={20}
+                slidesOffsetBefore={20}
+                slidesOffsetAfter={20}
+                onSwiper={() => {
+                  requestAnimationFrame(() => {
+                    setIsSwiperInitialized(true);
+                  });
+                }}
+                navigation={{
+                  nextEl: ".featured-products-next",
+                  prevEl: ".featured-products-prev",
+                }}
+                modules={[Navigation]}
+                className={clsx(
+                  "mb-6 w-full py-4 transition-opacity duration-300",
+                  isSwiperInitialized ? "opacity-100" : "opacity-0",
+                )}
+              >
+                {displayedProducts.map((product) => (
+                  <SwiperSlide
+                    key={product.id}
+                    style={{ width: "calc(100vw - 80px)" }}
+                  >
+                    <div className="relative h-full">
+                      <ProductCard
+                        product={product}
+                        className="h-full w-full"
+                      />
+                    </div>
+                  </SwiperSlide>
+                ))}
+              </Swiper>
 
-            {renderArrowControls("featured-products")}
-          </div>
+              {renderArrowControls("featured-products")}
+            </div>
+          )}
 
           <div className="hidden md:block">
             <div
               className={clsx(
-                "grid",
-                productItemsVariants({
-                  layout: activeLayout,
-                  itemsPerRow,
-                  gap: designGap,
-                }),
-                "gap-y-[86px]",
+                "grid grid-cols-2 gap-x-5 gap-y-16",
+                desktopGridCols,
+                desktopGridGap,
+                "lg:gap-y-[86px]",
               )}
             >
               {displayedProducts.map((product) => (
                 <ProductCard
                   key={product.id}
                   product={product}
-                  className="h-full w-full"
+                  className="w-full md:flex md:flex-col md:items-start md:gap-5 md:[&>div:last-child]:pt-0 lg:block lg:[&>div:last-child]:pt-5"
+                  stretchImageOnTablet
                 />
               ))}
             </div>
 
             {hasMoreProducts && (
               <div className="mt-16 flex justify-center">
-                <Link to="/products" variant="outline" className="uppercase">
+                <Link
+                  to="/products"
+                  variant="outline"
+                  className="font-semibold text-sm uppercase leading-none tracking-[0.02em]"
+                >
                   {t("product.seeMoreProducts")}
                 </Link>
               </div>
@@ -310,43 +359,86 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
     }
 
     return (
-      <div ref={ref} {...rest} className="relative">
-        <div className="relative left-1/2 w-screen -translate-x-1/2 md:hidden">
+      <div
+        ref={ref}
+        {...rest}
+        className={clsx("relative", isProductPage && "md:!mt-10 lg:!mt-16")}
+      >
+        {isSingleProduct ? (
+          renderMobileSingleProduct(displayedProducts[0], isProductPage)
+        ) : (
+          <div className="relative left-1/2 w-screen -translate-x-1/2 md:hidden">
+            <Swiper
+              key={`swiper-carousel-mobile-${displayedProducts.length}`}
+              slidesPerView="auto"
+              centeredSlides
+              centerInsufficientSlides
+              spaceBetween={20}
+              navigation={{
+                nextEl: ".featured-products-carousel-mobile-next",
+                prevEl: ".featured-products-carousel-mobile-prev",
+              }}
+              modules={[Navigation]}
+              className={clsx(
+                "mb-6 w-full py-4 transition-opacity duration-300",
+                isSwiperInitialized ? "opacity-100" : "opacity-0",
+              )}
+              onSwiper={() => {
+                requestAnimationFrame(() => setIsSwiperInitialized(true));
+              }}
+            >
+              {displayedProducts.map((product) => (
+                <SwiperSlide
+                  key={product.id}
+                  style={{ width: "calc(100vw - 40px)" }}
+                >
+                  <ProductCard
+                    product={product}
+                    className="h-full w-full"
+                    quickShopIconOnlyOnTablet={isProductPage}
+                  />
+                </SwiperSlide>
+              ))}
+            </Swiper>
+            {renderArrowControls("featured-products-carousel-mobile")}
+          </div>
+        )}
+
+        <div className="hidden md:block lg:hidden">
           <Swiper
-            key={`swiper-carousel-mobile-${designGap}`}
-            slidesPerView="auto"
-            spaceBetween={designGap}
-            slidesOffsetBefore={8}
-            slidesOffsetAfter={8}
+            key={`swiper-carousel-tablet-${displayedProducts.length}`}
+            slidesPerView={3}
+            spaceBetween={16}
+            centerInsufficientSlides
             navigation={{
-              nextEl: ".featured-products-carousel-mobile-next",
-              prevEl: ".featured-products-carousel-mobile-prev",
+              nextEl: ".featured-products-carousel-tablet-next",
+              prevEl: ".featured-products-carousel-tablet-prev",
             }}
             modules={[Navigation]}
-            className={clsx(
-              "mb-6 w-full py-4 transition-opacity duration-300",
-              isSwiperInitialized ? "opacity-100" : "opacity-0",
-            )}
+            className={clsx("mb-6 w-full py-4", isProductPage && "md:py-0")}
             onSwiper={() => {
               requestAnimationFrame(() => setIsSwiperInitialized(true));
             }}
           >
             {displayedProducts.map((product) => (
-              <SwiperSlide
-                key={product.id}
-                style={{ width: "min(335px, calc(100vw - 40px))" }}
-              >
-                <ProductCard product={product} className="h-full w-full" />
+              <SwiperSlide key={product.id} className="!h-auto">
+                <ProductCard
+                  product={product}
+                  className={clsx(tabletCardClassName, "md:w-full")}
+                  quickShopIconOnlyOnTablet={isProductPage}
+                  stretchImageOnTablet
+                />
               </SwiperSlide>
             ))}
           </Swiper>
-          {renderArrowControls("featured-products-carousel-mobile")}
+          {renderArrowControls("featured-products-carousel-tablet")}
         </div>
 
-        <div className="hidden md:block">
+        <div className="hidden lg:block">
           <Swiper
             key={`swiper-carousel-desktop-${resolvedSlidesPerView}-${designGap}`}
             slidesPerView={resolvedSlidesPerView || 3}
+            centerInsufficientSlides
             spaceBetween={designGap}
             navigation={{
               nextEl: ".featured-products-carousel-desktop-next",
@@ -355,6 +447,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
             modules={[Navigation]}
             className={clsx(
               "mb-6 w-full py-4 transition-opacity duration-300",
+              isProductPage && "md:py-0 lg:py-4",
               isSwiperInitialized ? "opacity-100" : "opacity-0",
             )}
             onSwiper={() => {
@@ -363,7 +456,11 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
           >
             {displayedProducts.map((product) => (
               <SwiperSlide key={product.id}>
-                <ProductCard product={product} className="h-full w-full" />
+                <ProductCard
+                  product={product}
+                  className="h-full w-full"
+                  quickShopIconOnlyOnTablet={isProductPage}
+                />
               </SwiperSlide>
             ))}
           </Swiper>
@@ -529,17 +626,6 @@ export const schema = createSchema({
         },
         {
           type: "range",
-          name: "gap",
-          label: "Items gap",
-          configs: {
-            min: 8,
-            max: 32,
-            step: 4,
-          },
-          defaultValue: 16,
-        },
-        {
-          type: "range",
           name: "productsToShow",
           label: "Number of products to show",
           configs: {
@@ -560,6 +646,8 @@ export const schema = createSchema({
           type: "select",
           label: "Arrow icon",
           name: "arrowsIcon",
+          helpText:
+            "In Scenario 2, arrow settings apply to the mobile product slider only.",
           configs: {
             options: [
               { value: "caret", label: "Caret" },
@@ -600,7 +688,6 @@ export const schema = createSchema({
     layout: "grid",
     slidesPerView: 3,
     itemsPerRow: "2",
-    gap: 16,
     productsToShow: 4,
     arrowsColor: "secondary",
     arrowsShape: "rounded-sm",

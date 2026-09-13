@@ -1,6 +1,7 @@
 import { HeartIcon } from "@phosphor-icons/react";
 import { useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
+import { translateError } from "~/utils/translated-error";
 import { useWishlist } from "./wishlist-provider";
 
 export function ProductWishlistButton({
@@ -36,7 +37,13 @@ export function ProductWishlistButton({
       )}
       disabled={isLoading || updating}
       onClick={() => toggle(productId)}
-      title={setupRequired ? t("wishlist.setupRequired") : error || label}
+      title={
+        setupRequired
+          ? t("wishlist.setupRequired")
+          : error
+            ? translateError(t, error)
+            : label
+      }
     >
       <HeartIcon
         aria-hidden="true"

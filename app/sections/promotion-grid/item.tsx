@@ -16,6 +16,7 @@ import Link, { type LinkProps, linkInputs } from "~/components/link";
 import type { OverlayProps } from "~/components/overlay";
 import { overlayInputs } from "~/components/overlay";
 import Paragraph, { type ParagraphProps } from "~/components/paragraph";
+import { useTranslatedText } from "~/hooks/use-translated-text";
 
 const variants = cva(
   [
@@ -112,6 +113,7 @@ interface PromotionItemProps
 
 const PromotionGridItem = forwardRef<HTMLDivElement, PromotionItemProps>(
   (props, ref) => {
+    const translateText = useTranslatedText();
     const {
       contentPosition,
       backgroundImage,
@@ -207,7 +209,10 @@ const PromotionGridItem = forwardRef<HTMLDivElement, PromotionItemProps>(
         <div className="flex flex-col gap-2">
           {headingContent && (
             <Heading
-              content={headingContent}
+              content={translateText(
+                headingContent,
+                "themeContent.componentsHeading.content",
+              )}
               as={headingTagName}
               color={color}
               size={size}
@@ -226,14 +231,20 @@ const PromotionGridItem = forwardRef<HTMLDivElement, PromotionItemProps>(
               className={subheadingClasses}
               style={{ color: subheadingColor }}
             >
-              {subheadingContent}
+              {translateText(
+                subheadingContent,
+                "themeContent.componentsSubheading.content",
+              )}
             </SubheadingTag>
           )}
         </div>
         {paragraphContent && (
           <Paragraph
             className="font-body text-sm leading-[1.55]"
-            content={paragraphContent}
+            content={translateText(
+              paragraphContent,
+              "themeContent.componentsParagraph.content",
+            )}
             as={paragraphTag}
             color={paragraphColor}
             textSize={paragraphSize}
@@ -259,7 +270,7 @@ const PromotionGridItem = forwardRef<HTMLDivElement, PromotionItemProps>(
               fontSize: `${buttonTextSize}px`,
             }}
           >
-            {buttonContent}
+            {translateText(buttonContent, "themeContent.componentsLink.text")}
           </Link>
         )}
       </div>
@@ -538,14 +549,14 @@ export const schema = createSchema({
       ],
     },
     {
-      group: "Scenario 2: Tabs content",
+      group: "Scenario 2 content",
       inputs: [
         {
           type: "text",
           name: "tabLabel",
           label: "Heading / tab label",
           defaultValue: "Best Selling",
-          helpText: "Used as the navigation label in the Tabs layout.",
+          helpText: "Used as the navigation label in Scenario 2.",
         },
         {
           type: "richtext",

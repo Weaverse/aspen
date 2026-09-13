@@ -1,3 +1,4 @@
+import { PackageIcon } from "@phosphor-icons/react";
 import { getProductOptions, Money, ShopPayButton } from "@shopify/hydrogen";
 import type { MoneyV2 } from "@shopify/hydrogen/storefront-api-types";
 import {
@@ -9,26 +10,30 @@ import {
   type WeaverseProduct,
 } from "@weaverse/hydrogen";
 import clsx from "clsx";
-import { forwardRef, useState } from "react";
+import { forwardRef, useEffect, useState } from "react";
 import type { ProductQuery } from "storefront-api.generated";
 import { Button } from "~/components/button";
 import { Image } from "~/components/image";
 import Link from "~/components/link";
 import { AddToCartButton } from "~/components/product/add-to-cart-button";
 import { ProductBadges, SoldOutBadge } from "~/components/product/badges";
+import { ProductCardRating } from "~/components/product/product-card-rating";
 import { ProductMedia } from "~/components/product/product-media";
 import { Quantity } from "~/components/product/quantity";
-import { CompareAtPrice } from "~/components/product/variant-prices";
+import { SpacedMoney } from "~/components/product/variant-prices";
 import { layoutInputs, Section } from "~/components/section";
+import { SellingPlanSelector } from "~/components/subscriptions/selling-plan-selector";
+import { ProductCardWishlistButton } from "~/components/wishlist/product-card-wishlist-button";
 import { PRODUCT_QUERY } from "~/graphql/queries";
 import { useAnimation } from "~/hooks/use-animation";
+import { useTranslatedText } from "~/hooks/use-translated-text";
 import { isDiscounted } from "~/utils/product";
-import { ProductDetails } from "../main-product/product-details";
 import { ProductVariants } from "../main-product/variants";
 
 interface SingleProductData {
   productsCount: number;
   product: WeaverseProduct;
+  heading: string;
   // Product Media settings
   mediaLayout: "grid" | "slider";
   gridSize: "1x1" | "2x2" | "mix";
@@ -49,9 +54,7 @@ interface SingleProductData {
   soldOutText: string;
   showVendor: boolean;
   showSalePrice: boolean;
-  showShortDescription: boolean;
-  showShippingPolicy: boolean;
-  showRefundPolicy: boolean;
+  estimatedDeliveryText: string;
 }
 
 type SingleProductProps = HydrogenComponentProps<
@@ -61,16 +64,19 @@ type SingleProductProps = HydrogenComponentProps<
 
 const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
   (props, ref) => {
+    const translateText = useTranslatedText();
+
     const { t } = useTranslation();
     const {
       loaderData,
       children,
       product: _product,
+      heading: rawI18nHeading,
       // Product Media props
       mediaLayout,
       gridSize,
-      imageAspectRatio,
-      showThumbnails,
+      imageAspectRatio: _imageAspectRatio,
+      showThumbnails: _showThumbnails,
       showDots,
       navigationStyle,
       arrowsColor,
@@ -82,18 +88,46 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
       zoomShape,
       showBadgesOnProductMedia,
       // Product information props
-      addToCartText,
-      soldOutText,
+      addToCartText: rawI18nAddToCartText,
+      soldOutText: rawI18nSoldOutText,
       showVendor,
       showSalePrice = true,
-      showShortDescription,
-      showShippingPolicy = true,
-      showRefundPolicy = true,
+      estimatedDeliveryText: rawI18nEstimatedDeliveryText,
       ...rest
     } = props;
+    const estimatedDeliveryText = translateText(
+      rawI18nEstimatedDeliveryText,
+      "themeContent.sectionsSingleProductIndex.estimatedDeliveryText",
+    );
+    const soldOutText = translateText(
+      rawI18nSoldOutText,
+      "themeContent.sectionsSingleProductIndex.soldOutText",
+    );
+    const addToCartText = translateText(
+      rawI18nAddToCartText,
+      "themeContent.sectionsSingleProductIndex.addToCartText",
+    );
+    const heading = translateText(
+      rawI18nHeading,
+      "themeContent.sectionsSingleProductIndex.heading",
+    );
     const { storeDomain, product } = loaderData || {};
     const [quantity, setQuantity] = useState<number>(1);
-    const currentVariant = product?.selectedOrFirstAvailableVariant;
+    const [selectedVariant, setSelectedVariant] = useState(
+      product?.selectedOrFirstAvailableVariant,
+    );
+    const [selectedSellingPlanId, setSelectedSellingPlanId] = useState<
+      string | null
+    >(null);
+    const currentVariant =
+      selectedVariant?.product?.handle === product?.handle
+        ? selectedVariant
+        : product?.selectedOrFirstAvailableVariant;
+    useEffect(() => {
+      setSelectedVariant(product?.selectedOrFirstAvailableVariant);
+      setSelectedSellingPlanId(null);
+      setQuantity(1);
+    }, [product?.selectedOrFirstAvailableVariant]);
     const [scope] = useAnimation(ref);
 
     // Get price range for when no variant is selected
@@ -177,130 +211,155 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
 
     return (
       <Section ref={ref} {...rest} overflow="unset">
-        <div ref={scope}>
+        <div ref={scope} className="flex flex-col gap-10 md:gap-16">
+          {heading && (
+            <h2 className="max-w-[260px] font-heading font-normal text-[37px] md:max-w-none md:text-[44px] uppercase leading-[1.1] tracking-[-0.03em]">
+              {heading}
+            </h2>
+          )}
           <div
             className={clsx([
               "space-y-5 lg:grid lg:space-y-0",
               "lg:gap-10",
-              "lg:grid-cols-[minmax(0,1fr)_clamp(360px,40vw,543px)]",
+              "lg:max-w-[1360px] lg:grid-cols-[minmax(0,778fr)_minmax(0,542fr)]",
             ])}
           >
-            <ProductMedia
-              mediaLayout={mediaLayout || "slider"}
-              gridSize={gridSize || "2x2"}
-              imageAspectRatio={imageAspectRatio || "1/1"}
-              media={product?.media.nodes}
-              selectedVariant={currentVariant}
-              showThumbnails={showThumbnails}
-              enableZoom={enableZoom}
-              showDots={showDots}
-              navigationStyle={navigationStyle}
-              arrowsColor={arrowsColor}
-              arrowsShape={arrowsShape}
-              zoomColor={zoomColor}
-              zoomShape={zoomShape}
-              arrowsZoomColor={arrowsZoomColor}
-              arrowsZoomShape={arrowsZoomShape}
-              showBadges={showBadgesOnProductMedia}
-              badges={
-                currentVariant && (
-                  <ProductBadges
-                    product={product}
-                    selectedVariant={currentVariant}
-                  />
-                )
-              }
-            />
-            <div>
+            <div className="featured-product-media relative mx-auto flex aspect-square w-full min-w-0 items-center justify-center overflow-hidden rounded-[var(--Radius-border-radius-md,12px)] [&>div]:h-full [&>div]:w-full [&_.swiper]:h-full [&_.swiper]:w-full [&_.swiper-slide]:h-full [&_img]:h-full [&_img]:w-full [&_img]:object-cover [&_img]:object-center [&_img]:rounded-[var(--Radius-border-radius-md,12px)] lg:mx-0 lg:max-w-[778px]">
+              <ProductMedia
+                mediaLayout={mediaLayout || "slider"}
+                navigationVariant="quick-shop"
+                gridSize={gridSize || "2x2"}
+                imageAspectRatio="1/1"
+                media={product?.media.nodes}
+                selectedVariant={currentVariant}
+                showThumbnails={false}
+                enableZoom={enableZoom}
+                showDots={showDots}
+                navigationStyle={navigationStyle ?? "sides"}
+                arrowsColor={arrowsColor}
+                arrowsShape={arrowsShape}
+                zoomColor={zoomColor}
+                zoomShape={zoomShape}
+                arrowsZoomColor={arrowsZoomColor}
+                arrowsZoomShape={arrowsZoomShape}
+                showBadges={showBadgesOnProductMedia}
+                badges={
+                  currentVariant && (
+                    <ProductBadges
+                      product={product}
+                      selectedVariant={currentVariant}
+                    />
+                  )
+                }
+              />
+              <ProductCardWishlistButton
+                productId={product.id}
+                productTitle={product.title}
+                showOnMobile
+              />
+            </div>
+            <div className="min-w-0">
               <div
-                className="sticky flex flex-col justify-start space-y-5"
+                className="lg:sticky flex flex-col justify-start gap-8"
                 style={{ top: "calc(var(--height-nav) + 20px)" }}
                 data-motion="slide-in"
               >
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-4">
                   {showVendor && product.vendor && (
                     <span className="text-body-subtle">{product.vendor}</span>
                   )}
-                  <h3 className="font-normal uppercase tracking-tight">
+                  <h3 className="font-heading font-normal text-[37px] uppercase leading-[1.1] tracking-[-0.03em] lg:text-[44px]">
                     {product?.title}
                   </h3>
-                </div>
 
-                <div className="space-y-5 divide-y divide-line-subtle [&>*:not(:last-child)]:pb-3">
                   {currentVariant ? (
-                    <div className="flex justify-between">
-                      <span className="font-normal uppercase">
-                        {t("product.price")}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <Money
-                          withoutTrailingZeros
-                          data={currentVariant.price}
-                          as="span"
-                          className=""
-                        />
-                        {isDiscounted(
-                          currentVariant.price as MoneyV2,
-                          currentVariant.compareAtPrice as MoneyV2,
-                        ) &&
-                          showSalePrice && (
-                            <CompareAtPrice
+                    <div className="flex items-center gap-3 font-heading font-normal text-2xl">
+                      {isDiscounted(
+                        currentVariant.price as MoneyV2,
+                        currentVariant.compareAtPrice as MoneyV2,
+                      ) &&
+                        showSalePrice && (
+                          <span className="text-body-subtle line-through">
+                            <SpacedMoney
                               data={currentVariant.compareAtPrice as MoneyV2}
-                              className=""
                             />
-                          )}
-                      </div>
+                          </span>
+                        )}
+                      <SpacedMoney data={currentVariant.price} />
                     </div>
                   ) : (
-                    <div className="flex justify-between">
-                      <span className="font-normal uppercase">
-                        {t("product.price")}
-                      </span>
-                      {priceRange && (
-                        <Money
-                          withoutTrailingZeros
-                          data={priceRange.minVariantPrice}
-                          as="div"
-                          className=""
-                        />
-                      )}
-                    </div>
+                    priceRange && (
+                      <Money
+                        withoutTrailingZeros
+                        data={priceRange.minVariantPrice}
+                        as="div"
+                        className="font-heading font-normal text-2xl"
+                      />
+                    )
                   )}
 
+                  <ProductCardRating
+                    ratingValue={product.reviewRating?.value}
+                    ratingCountValue={product.reviewRatingCount?.value}
+                  />
+                </div>
+
+                <div className="flex flex-col gap-7">
                   {children}
 
                   {shouldRenderVariants ? (
                     <ProductVariants
                       productOptions={productOptions}
                       selectedVariant={currentVariant}
+                      onVariantChange={(variant) => {
+                        setSelectedVariant(variant);
+                        setSelectedSellingPlanId(null);
+                      }}
                     />
                   ) : null}
-
-                  <Quantity value={quantity} onChange={setQuantity} />
+                  {currentVariant && (
+                    <SellingPlanSelector
+                      variant={currentVariant}
+                      product={product}
+                      selectedSellingPlanId={selectedSellingPlanId}
+                      onSellingPlanChange={setSelectedSellingPlanId}
+                    />
+                  )}
                 </div>
 
                 <div
-                  className="sp-button space-y-2 py-3"
+                  className="sp-button space-y-3"
                   style={
                     {
-                      "--shop-pay-button-height": "54px",
+                      "--shop-pay-button-height": "56px",
                     } as React.CSSProperties
                   }
                 >
-                  <AddToCartButton
-                    disabled={!currentVariant?.availableForSale}
-                    lines={[
-                      {
-                        merchandiseId: currentVariant?.id,
-                        quantity,
-                        selectedVariant: currentVariant,
-                      },
-                    ]}
-                    data-test="add-to-cart"
-                    className="h-[54px] w-full uppercase"
-                  >
-                    {atcText}
-                  </AddToCartButton>
+                  <div className="flex gap-3">
+                    <Quantity
+                      value={quantity}
+                      onChange={setQuantity}
+                      variant="stepper"
+                      className="w-[34%] min-w-0 shrink-0 bg-[#DFDFDF]"
+                    />
+                    <AddToCartButton
+                      width="auto"
+                      containerClassName="min-w-0 flex-1"
+                      disabled={!currentVariant?.availableForSale}
+                      lines={[
+                        {
+                          merchandiseId: currentVariant?.id,
+                          quantity,
+                          selectedVariant: currentVariant,
+                          sellingPlanId: selectedSellingPlanId,
+                        },
+                      ]}
+                      data-test="add-to-cart"
+                      className="h-[54px] w-full rounded-lg uppercase"
+                    >
+                      {atcText}
+                    </AddToCartButton>
+                  </div>
                   {currentVariant?.availableForSale && (
                     <ShopPayButton
                       width="100%"
@@ -315,20 +374,24 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
                   )}
                 </div>
 
-                <ProductDetails
-                  showShippingPolicy={showShippingPolicy}
-                  showRefundPolicy={showRefundPolicy}
-                  showShortDescription={showShortDescription}
-                  product={product}
-                />
+                {estimatedDeliveryText && (
+                  <div className="flex w-fit max-w-full items-center gap-2.5 rounded-lg bg-(--color-background) text-(--color-text-subtle) text-sm">
+                    <PackageIcon
+                      aria-hidden="true"
+                      className="size-5 shrink-0"
+                    />
+                    <span className="min-w-0 whitespace-normal">
+                      {estimatedDeliveryText}
+                    </span>
+                  </div>
+                )}
 
                 <Link
                   to={`/products/${product.handle}`}
                   prefetch="intent"
-                  variant="underline"
-                  className="w-fit"
+                  className="w-fit justify-start font-normal text-(--color-text-subtle) text-sm underline underline-offset-2"
                 >
-                  {t("product.viewFullDetails")} →
+                  {t("product.viewFullDetails")}
                 </Link>
               </div>
             </div>
@@ -367,10 +430,22 @@ export const loader = async (args: ComponentLoaderArgs<SingleProductData>) => {
 
 export const schema = createSchema({
   type: "single-product",
-  title: "Single product",
-  childTypes: ["judgeme"],
+  title: "Featured Product",
   settings: [
     { group: "Layout", inputs: layoutInputs },
+    {
+      group: "Content",
+      inputs: [
+        {
+          type: "text",
+          name: "heading",
+          label: "Heading",
+          defaultValue: "FEATURED PRODUCT",
+          placeholder: "FEATURED PRODUCT",
+          helpText: "Leave blank to hide the heading.",
+        },
+      ],
+    },
     {
       group: "Product",
       inputs: [
@@ -386,32 +461,18 @@ export const schema = createSchema({
       group: "Product Media",
       inputs: [
         {
-          type: "select",
-          name: "imageAspectRatio",
-          label: "Aspect ratio",
-          defaultValue: "adapt",
-          configs: {
-            options: [
-              { value: "adapt", label: "Adapt to image" },
-              { value: "1/1", label: "Square (1/1)" },
-              { value: "3/4", label: "Portrait (3/4)" },
-              { value: "4/3", label: "Landscape (4/3)" },
-            ],
-          },
-        },
-        {
           type: "toggle-group",
           name: "mediaLayout",
           label: "Layout",
           configs: {
             options: [
               {
-                label: "Grid",
+                label: "Scenario 1",
                 value: "grid",
                 icon: "grid-2x2",
               },
               {
-                label: "Slider",
+                label: "Scenario 2",
                 value: "slider",
                 icon: "slideshow-outline",
               },
@@ -422,7 +483,7 @@ export const schema = createSchema({
         {
           type: "select",
           name: "gridSize",
-          label: "Grid size",
+          label: "Scenario 1 grid size",
           defaultValue: "2x2",
           configs: {
             options: [
@@ -432,13 +493,6 @@ export const schema = createSchema({
             ],
           },
           condition: (data: SingleProductData) => data.mediaLayout === "grid",
-        },
-        {
-          label: "Show thumbnails",
-          name: "showThumbnails",
-          type: "switch",
-          defaultValue: true,
-          condition: (data: SingleProductData) => data.mediaLayout === "slider",
         },
         {
           label: "Show dots",
@@ -455,7 +509,7 @@ export const schema = createSchema({
           label: "Navigation style",
           name: "navigationStyle",
           type: "select",
-          defaultValue: "corner",
+          defaultValue: "sides",
           configs: {
             options: [
               { value: "corner", label: "Corner" },
@@ -577,7 +631,7 @@ export const schema = createSchema({
           type: "text",
           label: "Add to cart text",
           name: "addToCartText",
-          defaultValue: "Add to cart",
+          defaultValue: "Add to bag",
           placeholder: "Add to cart",
         },
         {
@@ -600,22 +654,12 @@ export const schema = createSchema({
           defaultValue: true,
         },
         {
-          type: "switch",
-          label: "Show short description",
-          name: "showShortDescription",
-          defaultValue: true,
-        },
-        {
-          type: "switch",
-          label: "Show shipping policy",
-          name: "showShippingPolicy",
-          defaultValue: true,
-        },
-        {
-          type: "switch",
-          label: "Show refund policy",
-          name: "showRefundPolicy",
-          defaultValue: true,
+          type: "text",
+          label: "Estimated delivery text",
+          name: "estimatedDeliveryText",
+          defaultValue: "Estimated delivery within 3-5 business days",
+          placeholder: "Estimated delivery within 3-5 business days",
+          helpText: "Leave blank to hide the delivery estimate row.",
         },
       ],
     },

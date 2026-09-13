@@ -4,6 +4,7 @@ import { cva } from "class-variance-authority";
 import { forwardRef } from "react";
 import type { SectionProps } from "~/components/section";
 import { layoutInputs, Section } from "~/components/section";
+import { cn } from "~/utils/cn";
 
 export interface HighlightsProps extends VariantProps<typeof variants> {
   backgroundColor?: string;
@@ -24,13 +25,21 @@ let variants = cva("w-full", {
 
 let Highlights = forwardRef<HTMLElement, HighlightsProps & SectionProps>(
   (props, ref) => {
-    let { children, backgroundColor = "#FFFFFF", alignment, ...rest } = props;
+    let {
+      children,
+      backgroundColor = "#FFFFFF",
+      alignment,
+      verticalPadding: _verticalPadding,
+      containerClassName,
+      ...rest
+    } = props;
 
     return (
       <Section
         ref={ref}
         {...rest}
         className={variants({ alignment })}
+        containerClassName={cn(containerClassName, "py-20!")}
         style={{ backgroundColor }}
       >
         <div className="mx-5 grid grid-cols-1 overflow-hidden rounded-lg border border-[#9D9D9D] [&>*]:border-[#DEDEDE] [&>*]:border-b [&>*:last-child]:border-b-0 md:mx-0 md:grid-cols-3 md:[&>*]:border-b-0 md:[&>*+*]:border-l">
@@ -50,7 +59,10 @@ export let schema = createSchema({
     {
       group: "Layout",
       inputs: layoutInputs.filter(
-        (inp) => inp.name !== "divider" && inp.name !== "borderRadius",
+        (inp) =>
+          inp.name !== "divider" &&
+          inp.name !== "borderRadius" &&
+          inp.name !== "verticalPadding",
       ),
     },
     {
@@ -69,7 +81,6 @@ export let schema = createSchema({
   presets: {
     width: "fixed",
     gap: 0,
-    verticalPadding: "medium",
     alignment: "center",
     backgroundColor: "#FFFFFF",
     children: [

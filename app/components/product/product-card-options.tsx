@@ -1,5 +1,5 @@
 import { Image } from "@shopify/hydrogen";
-import { useThemeSettings, useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import type {
   ProductCardFragment,
@@ -8,6 +8,7 @@ import type {
 import { Button } from "~/components/button";
 import { Link } from "~/components/link";
 import { Tooltip, TooltipContent, TooltipTrigger } from "~/components/tooltip";
+import { useTranslatedThemeSettings } from "~/hooks/use-translated-theme-settings";
 import { RevealUnderline } from "~/reveal-underline";
 import { cn } from "~/utils/cn";
 import { isLightColor, isValidColor } from "~/utils/misc";
@@ -25,7 +26,7 @@ export function ProductCardOptions({
   className?: string;
 }) {
   const { pcardShowOptionValues, pcardOptionToShow, pcardMaxOptionValues } =
-    useThemeSettings();
+    useTranslatedThemeSettings();
   const { t } = useTranslation();
   const { handle, options } = product;
   const option = options.find(
@@ -73,7 +74,7 @@ export function ProductCardOptions({
                   <button
                     type="button"
                     className={cn(
-                      "flex size-5 items-center justify-center rounded-xs border p-0.5 transition-colors",
+                      "flex size-4 items-center justify-center rounded-xs border p-px transition-colors",
                       "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body",
                       selected
                         ? "border-line"

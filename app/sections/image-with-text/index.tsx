@@ -53,10 +53,11 @@ const ImageWithText = forwardRef<HTMLElement, ImageWithTextProps>(
             isOverlay
               ? "relative flex h-[417px] flex-row md:h-[960px]"
               : cn(
-                  "flex h-[860px] flex-col-reverse md:h-[944px] md:flex-row",
+                  "iwt-split-row flex flex-col-reverse md:h-auto md:flex-row md:py-10 lg:h-[944px]",
                   mediaPosition === "left" && "md:flex-row-reverse",
                 ),
           )}
+          data-media-position={!isOverlay ? mediaPosition : undefined}
           backgroundColor={backgroundColor || "#F0F0EF"}
           backgroundFor="section"
           gap={0}
@@ -88,9 +89,9 @@ export const schema = createSchema({
             options: [
               {
                 value: "overlay",
-                label: "Scenario 1 — Two-image overlay",
+                label: "Scenario 1",
               },
-              { value: "split", label: "Scenario 2 — Image and text" },
+              { value: "split", label: "Scenario 2" },
             ],
           },
           defaultValue: "overlay",

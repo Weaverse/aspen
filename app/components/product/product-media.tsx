@@ -1,6 +1,8 @@
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
+  CaretLeftIcon,
+  CaretRightIcon,
   MagnifyingGlassPlusIcon,
   VideoCameraIcon,
 } from "@phosphor-icons/react";
@@ -16,8 +18,10 @@ import type {
 } from "storefront-api.generated";
 import { FreeMode, Navigation, Pagination, Thumbs } from "swiper/modules";
 import { Swiper, type SwiperClass, SwiperSlide } from "swiper/react";
+import { ArrowButton } from "~/components/arrow-button";
 import { Image } from "~/components/image";
 import type { ImageAspectRatio } from "~/types/image";
+import { DESKTOP_MIN_PX, minWidthQuery } from "~/utils/breakpoints";
 import { cn } from "~/utils/cn";
 import { calculateAspectRatio } from "~/utils/image";
 import { ZoomModal } from "./media-zoom";
@@ -48,6 +52,7 @@ export interface ProductMediaProps extends VariantProps<typeof variants> {
   selectedVariant: ProductVariantFragment;
   media: MediaFragment[];
   enableZoom?: boolean;
+  zoomButtonClassName?: string;
   showDots?: boolean;
   navigationStyle?: "corner" | "sides";
   arrowsColor?: "primary" | "secondary";
@@ -58,6 +63,7 @@ export interface ProductMediaProps extends VariantProps<typeof variants> {
   zoomShape?: "rounded-sm" | "circle" | "square";
   showBadges?: boolean;
   badges?: React.ReactNode;
+  navigationVariant?: "default" | "quick-shop" | "product-page";
 }
 
 export function ProductMedia(props: ProductMediaProps) {
@@ -70,6 +76,7 @@ export function ProductMedia(props: ProductMediaProps) {
     selectedVariant,
     media,
     enableZoom,
+    zoomButtonClassName,
     showDots = false,
     navigationStyle = "corner",
     arrowsColor = "primary",
@@ -80,6 +87,7 @@ export function ProductMedia(props: ProductMediaProps) {
     zoomShape = "circle",
     showBadges = false,
     badges,
+    navigationVariant = "default",
   } = props;
 
   // Base navigation button styling + dynamic color/shape helpers
@@ -107,7 +115,7 @@ export function ProductMedia(props: ProductMediaProps) {
       return "rounded-full";
     }
     if (shape === "square") {
-      return "";
+      return "rounded-none";
     }
     return "rounded-md"; // closest to rounded-sm in existing styles
   };
@@ -198,7 +206,7 @@ export function ProductMedia(props: ProductMediaProps) {
                   "w-full object-cover",
                   gridSize === "mix" && idx % 3 === 0 && "lg:col-span-2",
                 )}
-                sizes="(min-width: 1024px) 60vw, 100vw"
+                sizes={`${minWidthQuery(DESKTOP_MIN_PX)} 60vw, 100vw`}
               />
             );
           })}
@@ -208,11 +216,17 @@ export function ProductMedia(props: ProductMediaProps) {
   }
 
   return (
-    <div className="product-media-slider overflow-hidden bg-[#f7f7f7]">
+    <div
+      className={cn(
+        "product-media-slider overflow-hidden bg-[#f7f7f7]",
+        navigationVariant === "product-page" && "md:h-full lg:h-auto",
+      )}
+    >
       <div
         className={clsx(
           "flex items-start gap-4 overflow-hidden [--thumbs-width:0px]",
           showThumbnails && "lg:[--thumbs-width:8rem]",
+          navigationVariant === "product-page" && "md:h-full lg:h-auto",
         )}
       >
         {showThumbnails && (
@@ -269,7 +283,12 @@ export function ProductMedia(props: ProductMediaProps) {
             </Swiper>
           </div>
         )}
-        <div className="relative w-[calc(100%-var(--thumbs-width,0px))]">
+        <div
+          className={cn(
+            "relative w-[calc(100%-var(--thumbs-width,0px))]",
+            navigationVariant === "product-page" && "md:h-full lg:h-auto",
+          )}
+        >
           <Swiper
             key={`media-slider-${mediaLayout}-${navigationStyle}`}
             onSwiper={(swiperInstance) => {
@@ -352,6 +371,7 @@ export function ProductMedia(props: ProductMediaProps) {
                       baseButtonClasses,
                       colorClasses(zoomColor),
                       shapeClass(zoomShape),
+                      zoomButtonClassName,
                     )}
                     aria-label={t("product.zoomImage")}
                     onClick={() => {
@@ -375,41 +395,72 @@ export function ProductMedia(props: ProductMediaProps) {
                   navigationStyle === "sides",
               })}
             >
-              <button
+              <ArrowButton
+                customizable
                 type="button"
                 className={clsx(
                   `media_slider__prev--${navigationStyle}`,
                   baseButtonClasses,
                   colorClasses(arrowsColor),
+                  navigationStyle === "sides" &&
+                    navigationVariant !== "quick-shop" && [
+                      "ml-6 size-12 rounded-lg border-transparent bg-white p-0 text-body shadow-sm",
+                      navigationVariant === "product-page" &&
+                        "md:ml-[39px] lg:ml-8",
+                      navigationVariant !== "product-page" && "lg:ml-8",
+                    ],
+                  navigationStyle === "sides" &&
+                    navigationVariant === "quick-shop" &&
+                    "ml-[12.5px] size-12 rounded-xl border-transparent bg-white/80 p-3 text-body",
                   shapeClass(arrowsShape),
-                  navigationStyle === "sides" && [
-                    "ml-6 size-12 rounded-lg! border-transparent! bg-white! p-0 text-body! shadow-sm",
-                    "lg:ml-8",
-                  ],
                 )}
                 aria-label={t("product.previousMedia")}
               >
-                <ArrowLeftIcon aria-hidden="true" className="size-5 shrink-0" />
-              </button>
-              <button
+                {navigationVariant !== "default" ? (
+                  <CaretLeftIcon
+                    aria-hidden="true"
+                    className="size-6 shrink-0"
+                  />
+                ) : (
+                  <ArrowLeftIcon
+                    aria-hidden="true"
+                    className="size-5 shrink-0"
+                  />
+                )}
+              </ArrowButton>
+              <ArrowButton
+                customizable
                 type="button"
                 className={clsx(
                   `media_slider__next--${navigationStyle}`,
                   baseButtonClasses,
                   colorClasses(arrowsColor),
+                  navigationStyle === "sides" &&
+                    navigationVariant !== "quick-shop" && [
+                      "mr-6 size-12 rounded-lg border-transparent bg-white p-0 text-body shadow-sm",
+                      navigationVariant === "product-page" &&
+                        "md:mr-[39px] lg:mr-8",
+                      navigationVariant !== "product-page" && "lg:mr-8",
+                    ],
+                  navigationStyle === "sides" &&
+                    navigationVariant === "quick-shop" &&
+                    "mr-[12.5px] size-12 rounded-xl border-transparent bg-white/80 p-3 text-body",
                   shapeClass(arrowsShape),
-                  navigationStyle === "sides" && [
-                    "mr-6 size-12 rounded-lg! border-transparent! bg-white! p-0 text-body! shadow-sm",
-                    "lg:mr-8",
-                  ],
                 )}
                 aria-label={t("product.nextMedia")}
               >
-                <ArrowRightIcon
-                  aria-hidden="true"
-                  className="size-5 shrink-0"
-                />
-              </button>
+                {navigationVariant !== "default" ? (
+                  <CaretRightIcon
+                    aria-hidden="true"
+                    className="size-6 shrink-0"
+                  />
+                ) : (
+                  <ArrowRightIcon
+                    aria-hidden="true"
+                    className="size-5 shrink-0"
+                  />
+                )}
+              </ArrowButton>
             </div>
           )}
 
@@ -419,12 +470,20 @@ export function ProductMedia(props: ProductMediaProps) {
               slidesCount={media.length}
               activeIndex={activeSlide}
               onDotClick={(index) => swiper.slideToLoop(index)}
+              variant={navigationVariant}
             />
           )}
 
           {/* Badges Overlay */}
           {showBadges && badges && (
-            <div className="absolute top-5 left-5 z-[1] flex items-center gap-2 lg:top-6 lg:left-6">
+            <div
+              className={clsx(
+                "absolute z-[1] flex items-center gap-2",
+                navigationVariant === "quick-shop"
+                  ? "top-[17px] left-5"
+                  : "top-5 left-5 lg:top-6 lg:left-6",
+              )}
+            >
               {badges}
             </div>
           )}
@@ -462,7 +521,7 @@ function Media({
       <Image
         data={{ ...image, altText: alt || t("product.imageAlt") }}
         loading={index === 0 ? "eager" : "lazy"}
-        className="aspect-square h-full w-full object-contain lg:aspect-auto lg:h-auto lg:object-cover"
+        className="aspect-square h-full w-full object-cover object-center lg:aspect-auto lg:h-auto"
         width={2048}
         aspectRatio={calculateAspectRatio(image, imageAspectRatio)}
         sizes="auto"
@@ -475,14 +534,14 @@ function Media({
       <video
         controls
         aria-label={mediaVideo.alt || t("product.video")}
-        className="aspect-square h-full w-full object-contain lg:aspect-auto lg:h-auto lg:object-cover"
+        className="aspect-square h-full w-full object-cover object-center lg:aspect-auto lg:h-auto"
         style={{ aspectRatio: imageAspectRatio }}
         onError={console.error}
       >
         <track
           kind="captions"
           src={mediaVideo.sources[0].url}
-          label="English"
+          label={t("locale.english")}
           srcLang="en"
           default
         />
@@ -526,12 +585,14 @@ interface ProductMediaDotsProps {
   slidesCount: number;
   activeIndex: number;
   onDotClick: (index: number) => void;
+  variant?: "default" | "quick-shop" | "product-page";
 }
 
 function ProductMediaDots({
   slidesCount,
   activeIndex,
   onDotClick,
+  variant = "default",
 }: ProductMediaDotsProps) {
   const { t } = useTranslation();
 
@@ -556,9 +617,13 @@ function ProductMediaDots({
 
   return (
     <div
-      className="-translate-x-1/2 absolute bottom-6 left-1/2 z-[5] flex items-center justify-center gap-0"
+      className={cn(
+        "-translate-x-1/2 absolute left-1/2 z-[5] flex items-center justify-center gap-0",
+        variant === "quick-shop" ? "bottom-[37.5px]" : "bottom-6",
+        variant === "product-page" && "bottom-[38px] !w-[160px]",
+      )}
       style={{
-        maxWidth: maxContainerWidth,
+        maxWidth: variant === "quick-shop" ? "160px" : maxContainerWidth,
         width: "fit-content",
       }}
     >
@@ -570,10 +635,14 @@ function ProductMediaDots({
             dotVariants({
               isActive: index === activeIndex,
             }),
+            variant === "product-page" &&
+              "lg:!min-w-0 lg:!w-auto lg:flex-1 lg:bg-[#D8D8D8]",
           )}
           style={{
-            width: dotWidth,
-            minWidth: dotWidth,
+            width:
+              variant === "quick-shop" ? `${160 / slidesCount}px` : dotWidth,
+            minWidth:
+              variant === "quick-shop" ? `${160 / slidesCount}px` : dotWidth,
           }}
           onClick={() => onDotClick(index)}
           aria-label={t("carousel.goToSlide", { index: index + 1 })}

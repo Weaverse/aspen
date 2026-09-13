@@ -10,46 +10,30 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/navigation";
 import {
+  ArrowLeft,
+  ArrowRight,
   CaretLeft,
   CaretRight,
   Image as ImageIcon,
   InstagramLogo,
 } from "@phosphor-icons/react";
-import { cva } from "class-variance-authority";
 import type { Swiper as SwiperType } from "swiper";
-import { cn } from "~/utils/cn";
+import {
+  DESKTOP_MIN_PX,
+  minWidthQuery,
+  TABLET_MIN_PX,
+} from "~/utils/breakpoints";
 import { useInstagramContext } from "./context";
 
-const arrowVariants = cva(
-  "pointer-events-auto flex h-12 w-12 items-center justify-center transition-colors",
-  {
-    variants: {
-      arrowsColor: {
-        primary: [
-          "bg-(--btn-primary-bg)",
-          "text-(--btn-primary-text)",
-          "border-(--btn-primary-bg)",
-          "hover:bg-(--btn-primary-bg)",
-          "hover:text-(--btn-primary-text)",
-          "hover:border-(--btn-primary-bg)",
-        ],
-        secondary: [
-          "bg-(--btn-secondary-bg)",
-          "text-(--btn-secondary-text)",
-          "border-(--btn-secondary-bg)",
-          "hover:bg-(--btn-secondary-bg)",
-          "hover:text-(--btn-secondary-text)",
-          "hover:border-(--btn-secondary-bg)",
-        ],
-      },
-      arrowsShape: {
-        "rounded-sm": "rounded",
-        circle: "rounded-full",
-        square: "rounded-none",
-      },
-    },
-  },
-);
+const overlayNavButtonStyle = {
+  display: "flex",
+  padding: "var(--p-12, 12px)",
+  justifyContent: "center",
+  alignItems: "center",
+  gap: "8px",
+  borderRadius: "var(--Radius-border-radius-md, 12px)",
+  background: "#FFF",
+} as const;
 
 interface InstagramSliderProps extends HydrogenComponentProps {
   slidesPerView: number;
@@ -67,18 +51,22 @@ let InstagramSlider = forwardRef<HTMLDivElement, InstagramSliderProps>(
       slidesPerView,
       spaceBetween,
       showNavigation,
-      arrowsColor,
-      arrowsShape,
-      arrowsIcon = "arrow",
+      arrowsColor: _arrowsColor,
+      arrowsShape = "rounded-sm",
+      arrowsIcon = "caret",
       children,
       ...rest
     } = props;
     const swiperRef = useRef<SwiperType | null>(null);
+    const navigationStyle = {
+      ...overlayNavButtonStyle,
+      borderRadius: arrowsShape === "square" ? 0 : arrowsShape === "circle" ? "50%" : overlayNavButtonStyle.borderRadius,
+    };
     const { loaderData } = useInstagramContext();
 
     const imageItemBlank = () => {
       return (
-        <div className="flex aspect-square w-full items-center justify-center rounded bg-[#EBE8E5]">
+        <div className="flex aspect-square w-full items-center justify-center rounded-none bg-[#EBE8E5] md:rounded">
           <ImageIcon
             size={120}
             className="!h-[50px] !w-[50px] text-[#524B46] opacity-60"
@@ -116,19 +104,19 @@ let InstagramSlider = forwardRef<HTMLDivElement, InstagramSliderProps>(
             <Image
               src={item.media_url}
               alt={t("social.instagramPost", { index: index + 1 })}
-              className="h-full w-full object-cover"
-              sizes="(min-width: 1024px) 260px, calc(100vw - 40px)"
+              className="h-full w-full object-cover object-center"
+              sizes={`${minWidthQuery(DESKTOP_MIN_PX)} 260px, ${minWidthQuery(TABLET_MIN_PX)} 22vw, 335px`}
             />
           ) : (
             imageItemBlank()
           )}
-          <div className="absolute inset-0 bg-black/30 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100" />
-          <InstagramLogo className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 size-8 text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100" />
+          <div className="instagram-tile-overlay absolute inset-0 bg-black/30 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100" />
+          <InstagramLogo className="instagram-tile-logo -translate-x-1/2 -translate-y-1/2 pointer-events-none absolute top-1/2 left-1/2 z-1 size-8 text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100" />
         </>
       );
 
       const tileClassName =
-        "group relative block aspect-square cursor-pointer overflow-hidden rounded-(--radius-md)";
+        "instagram-tile group relative mx-auto flex aspect-square w-[335px] max-w-full cursor-pointer items-start self-stretch overflow-hidden rounded-none bg-white bg-cover bg-center bg-no-repeat md:w-full md:rounded-[var(--Radius-border-radius-md,12px)]";
 
       if (item.username) {
         return (
@@ -155,16 +143,16 @@ let InstagramSlider = forwardRef<HTMLDivElement, InstagramSliderProps>(
         ref={ref}
         {...rest}
         data-legacy-slides-per-view={slidesPerView || undefined}
-        className="relative w-full lg:min-w-0 lg:flex-1"
+        className="instagram-slider-wrap relative w-full min-w-0 md:flex-1"
       >
-        <div className="hidden gap-5 lg:grid lg:grid-cols-4">
+        <div className="instagram-grid hidden gap-5 md:grid md:grid-cols-4">
           {displayedImages.map((item, index) => (
-            <div key={`grid-${item.id || index}`}>
+            <div key={`grid-${item.id || index}`} className="instagram-grid-cell">
               {renderImage(item, index)}
             </div>
           ))}
         </div>
-        <div className="lg:hidden">
+        <div className="instagram-carousel flex w-full flex-col items-center self-stretch md:hidden">
           <Swiper
             onSwiper={(swiper) => {
               swiperRef.current = swiper;
@@ -173,58 +161,44 @@ let InstagramSlider = forwardRef<HTMLDivElement, InstagramSliderProps>(
             spaceBetween={spaceBetween}
             slidesPerView={1}
             loop={true}
-            className="w-full"
+            className="w-full max-w-[335px] self-stretch md:max-w-none"
           >
             {displayedImages.map((item, index) => (
-              <SwiperSlide key={item.id || index}>
+              <SwiperSlide
+                key={item.id || index}
+                className="!flex self-stretch"
+              >
                 {renderImage(item, index)}
               </SwiperSlide>
             ))}
           </Swiper>
 
           {showNavigation && (
-            <div className="pointer-events-none z-10 mt-10 flex items-center justify-center gap-4">
+            <div className="mt-4 flex items-center justify-center gap-2 md:pointer-events-none md:absolute md:inset-0 md:z-10 md:mt-0 md:justify-between md:px-3">
               <button
                 type="button"
                 onClick={() => swiperRef.current?.slidePrev()}
-                className={cn(arrowVariants({ arrowsColor, arrowsShape }))}
                 aria-label={t("carousel.previousSlide")}
+                className="pointer-events-auto appearance-none border-0 text-[#524B46] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
+                style={navigationStyle}
               >
-                {arrowsIcon === "caret" ? (
-                  <CaretLeft size={16} />
+                {arrowsIcon === "arrow" ? (
+                  <ArrowLeft size={24} weight="regular" />
                 ) : (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 16 16"
-                    width={16}
-                    height={16}
-                    fill="currentColor"
-                  >
-                    <path d="M4.75397 12.207L5.46106 11.4999L2.46116 8.50003L15.5 8.50003V7.5L2.46125 7.5L5.46106 4.50019L4.75397 3.7931L0.546938 8.00006L4.75397 12.207Z" />
-                  </svg>
+                  <CaretLeft size={24} weight="regular" />
                 )}
               </button>
               <button
                 type="button"
                 onClick={() => swiperRef.current?.slideNext()}
-                className={cn(arrowVariants({ arrowsColor, arrowsShape }))}
                 aria-label={t("carousel.nextSlide")}
+                className="pointer-events-auto appearance-none border-0 text-[#524B46] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
+                style={navigationStyle}
               >
-                {arrowsIcon === "caret" ? (
-                  <CaretRight size={16} />
+                {arrowsIcon === "arrow" ? (
+                  <ArrowRight size={24} weight="regular" />
                 ) : (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 16 16"
-                    width={16}
-                    height={16}
-                    fill="currentColor"
-                  >
-                    <path
-                      d="M4.75397 12.207L5.46106 11.4999L2.46116 8.50003L15.5 8.50003V7.5L2.46125 7.5L5.46106 4.50019L4.75397 3.7931L0.546938 8.00006L4.75397 12.207Z"
-                      transform="translate(16,0) scale(-1,1)"
-                    />
-                  </svg>
+                  <CaretRight size={24} weight="regular" />
                 )}
               </button>
             </div>
@@ -279,7 +253,7 @@ export let schema = createSchema({
               { value: "arrow", label: "Arrow" },
             ],
           },
-          defaultValue: "arrow",
+          defaultValue: "caret",
         },
         {
           type: "select",
@@ -314,6 +288,6 @@ export let schema = createSchema({
     showNavigation: true,
     arrowsColor: "primary",
     arrowsShape: "rounded-sm",
-    arrowsIcon: "arrow",
+    arrowsIcon: "caret",
   },
 });

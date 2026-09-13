@@ -14,10 +14,15 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { FetcherWithComponents } from "react-router";
 import { useMatches } from "react-router";
 import { Button } from "~/components/button";
-import { syncCartState } from "~/components/cart/cart-state-provider";
-import { toggleCartDrawer } from "~/components/layout/cart-drawer";
+import {
+  syncCartState,
+  useCartState,
+} from "~/components/cart/cart-state-provider";
+import { useCartFetcherSync } from "~/components/cart/cart-sync";
+import { useCartStore } from "~/components/cart/store";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import { getCartMutationError } from "~/utils/cart-error";
+import { exceedsAvailableInventory } from "~/utils/cart-inventory";
 import { cn } from "~/utils/cn";
 import { DEFAULT_LOCALE } from "~/utils/const";
 
@@ -44,6 +49,13 @@ export function AddToCartButton({
 }) {
   const { t } = useTranslation();
   const cartRoute = usePrefixPathWithLocale("/cart");
+  const { cart, isResolved } = useCartState();
+  const pendingToken = useRef<string | null>(null);
+  const submitted = useRef(false);
+  const inventoryLimitReached = exceedsAvailableInventory(
+    lines,
+    cart?.lines.nodes ?? [],
+  );
   const [isHydrated, setIsHydrated] = useState(false);
   const hasValidLines =
     lines.length > 0 &&
@@ -62,6 +74,22 @@ export function AddToCartButton({
   return (
     <div
       className={cn(width === "full" ? "w-full" : "w-auto", containerClassName)}
+      onSubmitCapture={(event) => {
+        if (submitted.current) {
+          event.preventDefault();
+          return;
+        }
+        submitted.current = true;
+        pendingToken.current = useCartStore.getState().stagePendingAdd(lines);
+        const tokenInput = (event.target as HTMLFormElement).elements.namedItem(
+          "cartStageToken",
+        );
+        if (tokenInput instanceof HTMLInputElement) {
+          tokenInput.value = pendingToken.current ?? "";
+        }
+        useCartStore.setState({ lastAddError: null });
+        useCartStore.getState().open();
+      }}
     >
       <CartForm
         route={cartRoute}
@@ -72,7 +100,13 @@ export function AddToCartButton({
           const isAdding = fetcher.state !== "idle";
           const errorMessage = getCartMutationError(fetcher.data, t);
           return (
-            <AddToCartAnalytics fetcher={fetcher} onAdded={onAdded}>
+            <AddToCartAnalytics
+              fetcher={fetcher}
+              onAdded={onAdded}
+              pendingToken={pendingToken}
+              submitted={submitted}
+            >
+              <input type="hidden" name="cartStageToken" defaultValue="" />
               <input
                 type="hidden"
                 name="analytics"
@@ -82,9 +116,14 @@ export function AddToCartButton({
                 <Button
                   type="submit"
                   variant="primary"
-                  className={cn(className, "!border-none px-6 py-5")}
+                  className={cn("!border-none", className)}
                   disabled={Boolean(
-                    disabled || isAdding || !hasValidLines || !isHydrated,
+                    disabled ||
+                      inventoryLimitReached ||
+                      !isResolved ||
+                      isAdding ||
+                      !hasValidLines ||
+                      !isHydrated,
                   )}
                   {...props}
                 >
@@ -162,11 +201,39 @@ function AddToCartAnalytics({
   fetcher,
   children,
   onAdded,
+  pendingToken,
+  submitted,
 }: {
   fetcher: FetcherWithComponents<any>;
   children: React.ReactNode;
   onAdded?: () => void;
+  pendingToken: React.MutableRefObject<string | null>;
+  submitted: React.MutableRefObject<boolean>;
 }) {
+  const { t } = useTranslation();
+  useCartFetcherSync(fetcher);
+  useEffect(() => {
+    if (!submitted.current || fetcher.state !== "idle") {
+      return;
+    }
+    submitted.current = false;
+    if (pendingToken.current) {
+      useCartStore.getState().clearPendingAdd(pendingToken.current);
+      pendingToken.current = null;
+    }
+    useCartStore.setState({
+      lastAddError: getCartMutationError(fetcher.data, t),
+    });
+  }, [fetcher.state, fetcher.data, t, pendingToken, submitted]);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Read the latest token only on owner unmount.
+  useEffect(
+    () => () => {
+      if (pendingToken.current) {
+        useCartStore.getState().clearPendingAdd(pendingToken.current);
+      }
+    },
+    [],
+  );
   const fetcherData = fetcher.data;
   const formData = fetcher.formData;
   const pageAnalytics = usePageAnalytics({ hasUserConsent: true });
@@ -200,7 +267,6 @@ function AddToCartAnalytics({
         window.setTimeout(() => {
           syncCartState(fetcherData.cart);
           onAdded?.();
-          toggleCartDrawer(true);
         }, 0);
       }
 

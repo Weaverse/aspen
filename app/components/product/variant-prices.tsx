@@ -4,6 +4,37 @@ import type { ProductVariantFragment } from "storefront-api.generated";
 import { cn } from "~/utils/cn";
 import { isDiscounted } from "~/utils/product";
 
+/** Preserve locale currency placement while separating it from the amount. */
+export function SpacedMoney({
+  data,
+  className,
+}: {
+  data: MoneyV2;
+  className?: string;
+}) {
+  const { withoutTrailingZeros, currencySymbol } = useMoney(data);
+  if (!currencySymbol) {
+    return <span className={className}>{withoutTrailingZeros}</span>;
+  }
+  const index = withoutTrailingZeros.indexOf(currencySymbol);
+  if (index < 0) {
+    return <span className={className}>{withoutTrailingZeros}</span>;
+  }
+  const before = withoutTrailingZeros.slice(0, index).trimEnd();
+  const after = withoutTrailingZeros
+    .slice(index + currencySymbol.length)
+    .trimStart();
+  return (
+    <span className={className}>
+      {before}
+      {before ? "\u00a0" : ""}
+      {currencySymbol}
+      {after ? "\u00a0" : ""}
+      {after}
+    </span>
+  );
+}
+
 export function CompareAtPrice({
   data,
   className,
@@ -25,26 +56,52 @@ export function VariantPrices({
   variant,
   showCompareAtPrice = true,
   className,
+  spacedCurrency = false,
+  compareAtFirst = false,
+  priceClassName,
+  compareAtPriceClassName,
 }: {
+  spacedCurrency?: boolean;
   variant:
     | ProductVariantFragment
     | { price: Pick<MoneyV2, "amount" | "currencyCode"> };
   showCompareAtPrice?: boolean;
   className?: string;
+  compareAtFirst?: boolean;
+  priceClassName?: string;
+  compareAtPriceClassName?: string;
 }) {
   if (variant) {
     const { price } = variant;
     const compareAtPrice =
       "compareAtPrice" in variant ? variant.compareAtPrice : undefined;
     if (price) {
+      const priceElement = spacedCurrency ? (
+        <SpacedMoney className={priceClassName} data={price as MoneyV2} />
+      ) : (
+        <Money withoutTrailingZeros className={priceClassName} data={price} />
+      );
+      const compareAtPriceElement =
+        showCompareAtPrice &&
+        compareAtPrice &&
+        isDiscounted(price as MoneyV2, compareAtPrice as MoneyV2) ? (
+          spacedCurrency ? (
+            <span className={cn("strike", compareAtPriceClassName)}>
+              <SpacedMoney data={compareAtPrice as MoneyV2} />
+            </span>
+          ) : (
+            <CompareAtPrice
+              className={compareAtPriceClassName}
+              data={compareAtPrice as MoneyV2}
+            />
+          )
+        ) : null;
+
       return (
         <div className={cn("flex items-center gap-2", className)}>
-          <Money withoutTrailingZeros data={price} />
-          {showCompareAtPrice &&
-            compareAtPrice &&
-            isDiscounted(price as MoneyV2, compareAtPrice as MoneyV2) && (
-              <CompareAtPrice data={compareAtPrice as MoneyV2} />
-            )}
+          {compareAtFirst && compareAtPriceElement}
+          {priceElement}
+          {!compareAtFirst && compareAtPriceElement}
         </div>
       );
     }

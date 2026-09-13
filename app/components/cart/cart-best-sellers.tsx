@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight } from "@phosphor-icons/react";
+import { ArrowRight, CaretLeft, CaretRight } from "@phosphor-icons/react";
 import type {
   Product,
   ProductSortKeys,
@@ -8,10 +8,12 @@ import clsx from "clsx";
 import { useEffect, useId, useMemo, useRef } from "react";
 import { useFetcher } from "react-router";
 import type { ProductCardFragment } from "storefront-api.generated";
+import { ArrowButton } from "~/components/arrow-button";
 import { Link } from "~/components/link";
 import { ProductCard } from "~/components/product/product-card";
 import { Skeleton } from "~/components/skeleton";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
+import { useTranslatedText } from "~/hooks/use-translated-text";
 
 interface CartBestSellersProps {
   count: number;
@@ -34,12 +36,18 @@ interface CartBestSellersProps {
  */
 export function CartBestSellers({
   count = 4,
-  heading = "Shop Best Sellers",
+  heading: rawI18nHeading = "Shop Best Sellers",
   layout = "drawer",
   query,
   reverse,
   sortKey = "BEST_SELLING",
 }: CartBestSellersProps) {
+  const translateText = useTranslatedText();
+  const heading = translateText(
+    rawI18nHeading,
+    "themeContent.componentsCartCartBestSellers.heading",
+  );
+
   const { t } = useTranslation();
   const { load, data } = useFetcher<{ products: Product[] }>();
   const queryString = useMemo(
@@ -71,19 +79,19 @@ export function CartBestSellers({
     return (
       <div className="space-y-8 xl:space-y-10">
         <div className="flex items-center justify-between gap-4">
-          <h4 className="font-normal text-[28px] leading-[1.2] uppercase">
+          <h4 className="whitespace-nowrap font-normal text-[clamp(16px,4.5vw,22px)] leading-[1.2] uppercase md:text-[28px]">
             {heading}
           </h4>
           <Link
             to={productsPath}
-            className="flex shrink-0 items-center gap-2 text-sm uppercase"
+            className="flex shrink-0 items-center gap-2 whitespace-nowrap font-normal! text-sm uppercase"
           >
             {t("product.viewAll")} <ArrowRight size={18} aria-hidden="true" />
           </Link>
         </div>
         <div
           ref={railRef}
-          className="scrollbar-hide flex snap-x snap-mandatory gap-4 overflow-x-auto"
+          className="scrollbar-hide flex snap-x snap-mandatory gap-4 overflow-x-auto px-[9%] md:px-0"
         >
           <CartBestSellersContent
             count={count}
@@ -92,22 +100,22 @@ export function CartBestSellers({
           />
         </div>
         <div className="flex justify-center gap-2">
-          <button
+          <ArrowButton
             type="button"
             onClick={() => scrollRail(-1)}
-            className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#F0EFED]"
+            tone="neutral"
             aria-label={t("product.previousRecommendations")}
           >
-            <ArrowLeft size={22} aria-hidden="true" />
-          </button>
-          <button
+            <CaretLeft aria-hidden="true" />
+          </ArrowButton>
+          <ArrowButton
             type="button"
             onClick={() => scrollRail(1)}
-            className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#F0EFED]"
+            tone="neutral"
             aria-label={t("product.nextRecommendations")}
           >
-            <ArrowRight size={22} aria-hidden="true" />
-          </button>
+            <CaretRight aria-hidden="true" />
+          </ArrowButton>
         </div>
       </div>
     );
@@ -156,7 +164,7 @@ function CartBestSellersContent({
             className={clsx(
               "grid gap-2",
               layout === "page" &&
-                "w-[82%] shrink-0 snap-start sm:w-[calc((100%_-_16px)/2)] md:w-[calc((100%_-_32px)/3)]",
+                "w-full shrink-0 snap-center md:w-[calc((100%_-_32px)/3)] md:snap-start",
             )}
           >
             <Skeleton className="aspect-square" />
@@ -179,10 +187,13 @@ function CartBestSellersContent({
         key={product.id}
         className={clsx(
           layout === "page" &&
-            "w-[82%] shrink-0 snap-start sm:w-[calc((100%_-_16px)/2)] md:w-[calc((100%_-_32px)/3)]",
+            "w-full shrink-0 snap-center md:w-[calc((100%_-_32px)/3)] md:snap-start",
         )}
       >
-        <ProductCard product={product as unknown as ProductCardFragment} />
+        <ProductCard
+          product={product as unknown as ProductCardFragment}
+          quickShopIconOnly={layout === "drawer"}
+        />
       </div>
     ));
 }

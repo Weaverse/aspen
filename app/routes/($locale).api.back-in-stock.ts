@@ -51,7 +51,7 @@ export const action: ActionFunction = async ({
   const numericVariantId =
     typeof variantId === "string" ? shopifyNumericId(variantId) : "";
   if (!numericVariantId) {
-    return data({ ok: false, error: "A product variant is required" }, 400);
+    return data({ ok: false, error: "errors.variantRequired" }, 400);
   }
 
   try {
@@ -89,7 +89,7 @@ export const action: ActionFunction = async ({
         {
           ok: false,
           error:
-            "This product isn't available for restock alerts yet. Please try again later.",
+            "errors.restockUnavailable",
         },
         422,
       );

@@ -14,9 +14,11 @@ const OPTIONS_WITH_IMAGE = ["Style", "Pattern", "Material"];
 export function QuickShopOptionValues({
   option,
   onVariantChange,
+  layout = "select",
 }: {
   option: MappedProductOptions;
   onVariantChange: (variantId: string) => void;
+  layout?: "select" | "buttons";
 }) {
   const { t } = useTranslation();
   const { name: optionName, optionValues } = option || {};
@@ -29,6 +31,94 @@ export function QuickShopOptionValues({
   const selectedOption = optionValues.find((v) => v.selected);
   const showSwatch = OPTIONS_WITH_SWATCH.includes(optionName);
   const showImage = OPTIONS_WITH_IMAGE.includes(optionName);
+
+  if (layout === "buttons") {
+    return (
+      <div className="flex max-w-full flex-wrap items-center gap-3 md:gap-2.5">
+        {optionValues.map(
+          ({
+            name: value,
+            selected,
+            available,
+            swatch,
+            firstSelectableVariant,
+          }) => {
+            const selectVariant = () => {
+              if (available && firstSelectableVariant?.id) {
+                onVariantChange(firstSelectableVariant.id);
+              }
+            };
+
+            if (showSwatch) {
+              const swatchColor = swatch?.color || value;
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  className={clsx(
+                    "flex size-[30px] items-center justify-center rounded border bg-white p-1 transition-colors",
+                    selected ? "border-2 border-[#9D9D9D]" : "border-[#D8D8D8]",
+                    !available && "cursor-not-allowed opacity-40",
+                  )}
+                  disabled={!available}
+                  aria-label={`${optionName}: ${value}`}
+                  aria-pressed={selected}
+                  onClick={selectVariant}
+                >
+                  {swatch?.image?.previewImage ? (
+                    <Image
+                      data={swatch.image.previewImage}
+                      className="size-5 rounded object-cover object-center"
+                      width={20}
+                      height={20}
+                      sizes="20px"
+                    />
+                  ) : (
+                    <span
+                      className={clsx(
+                        "size-5 rounded",
+                        (!isValidColor(swatchColor) ||
+                          isLightColor(swatchColor)) &&
+                          "border border-line-subtle",
+                      )}
+                      style={{ backgroundColor: swatchColor }}
+                    />
+                  )}
+                </button>
+              );
+            }
+
+            return (
+              <button
+                key={value}
+                type="button"
+                className={clsx(
+                  "flex h-[40px] items-center justify-center rounded-xl border bg-white px-2.5 text-sm leading-none transition-colors",
+                  selected ? "border-2 border-[#9D9D9D]" : "border-[#D8D8D8]",
+                  !available &&
+                    "cursor-not-allowed text-body-subtle line-through opacity-50",
+                )}
+                disabled={!available}
+                aria-pressed={selected}
+                onClick={selectVariant}
+              >
+                {showImage && firstSelectableVariant?.image && (
+                  <Image
+                    data={firstSelectableVariant.image}
+                    className="mr-2 size-5 rounded object-cover object-center"
+                    width={20}
+                    height={20}
+                    sizes="20px"
+                  />
+                )}
+                {value}
+              </button>
+            );
+          },
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center gap-3">

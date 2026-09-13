@@ -4,6 +4,7 @@ import {
   type HydrogenComponentProps,
   type HydrogenComponentSchema,
   IMAGES_PLACEHOLDERS,
+  useTranslation,
   type WeaverseBlog,
 } from "@weaverse/hydrogen";
 import clsx from "clsx";
@@ -17,6 +18,10 @@ import Heading, {
 import { Image } from "~/components/image";
 import Link from "~/components/link";
 import { layoutInputs, Section } from "~/components/section";
+import { useLocale } from "~/hooks/use-locale";
+import { useTranslatedText } from "~/hooks/use-translated-text";
+import { DESKTOP_MIN_PX, minWidthQuery } from "~/utils/breakpoints";
+import { formatDate } from "~/utils/locale";
 
 type ArticleData = {
   blogs: WeaverseBlog;
@@ -54,27 +59,32 @@ let articlesPerRowClasses: { [item: number]: string } = {
 };
 
 const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
+  const { t } = useTranslation();
+
+  const translateText = useTranslatedText();
+  const locale = useLocale();
+
   let {
     blogs,
     articlePerRow,
     showSeperator,
     loaderData,
     children,
-    viewAllText = "VIEW ALL",
+    viewAllText: rawI18nViewAllText = "VIEW ALL",
     accentColor = "#343231",
     borderRadius = 8,
     showPublishedDate = true,
     showCategory = true,
     showReadMore = true,
-    readMoreText = "Read More",
+    readMoreText: rawI18nReadMoreText = "Read More",
     enableLoadMore = false,
     // Load More props
     initialCount = 3,
     loadMoreCount = 3,
     buttonVariant = "primary",
-    buttonText = "Load More",
+    buttonText: rawI18nButtonText = "Load More",
     // Heading props
-    headingContent = "ARTICLES",
+    headingContent: rawI18nHeadingContent = "ARTICLES",
     headingTagName = "h2",
     color,
     size,
@@ -88,9 +98,30 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
     animate,
     ...rest
   } = props;
+  const headingContent = translateText(
+    rawI18nHeadingContent,
+    "themeContent.sectionsArticlesIndex.headingContent",
+  );
+  const buttonText = translateText(
+    rawI18nButtonText,
+    "themeContent.sectionsArticlesIndex.buttonText",
+  );
+  const readMoreText = translateText(
+    rawI18nReadMoreText,
+    "themeContent.sectionsArticlesIndex.readMoreText",
+  );
+  const viewAllText = translateText(
+    rawI18nViewAllText,
+    "themeContent.sectionsArticlesIndex.viewAllText",
+  );
 
   // State to manage visible articles count
-  const [visibleCount, setVisibleCount] = useState(initialCount);
+  const [pagination, setPagination] = useState({ initialCount, extra: 0 });
+  const extra = pagination.initialCount === initialCount ? pagination.extra : 0;
+  if (pagination.initialCount !== initialCount) {
+    setPagination({ initialCount, extra: 0 });
+  }
+  const visibleCount = initialCount + extra;
 
   let sectionStyle: CSSProperties = {
     "--min-size-px": `${minSize}px`,
@@ -103,49 +134,46 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
   const defaultArticles = [
     {
       id: 1,
-      title: "Summer Florals in the Modern Home",
-      excerpt:
-        "A considered guide to warm materials, balanced proportions, and rooms designed around daily life.",
+      title: t("blog.samples.article1Title"),
+      excerpt: t("blog.samples.article1Excerpt"),
       image: {
-        altText: "A calm, naturally styled living room",
+        altText: t("blog.samples.article1AltText"),
         url: IMAGES_PLACEHOLDERS.collection_6,
         width: 640,
         height: 480,
       },
       handle: null,
-      tags: ["DESIGN"],
+      tags: [t("blog.categories.design")],
       publishedAt: "2025-08-12T00:00:00Z",
       author: { name: "Rylan Holden" },
     },
     {
       id: 2,
-      title: "The Art of Minimalist Layering",
-      excerpt:
-        "Why solid wood, linen, and tactile finishes only grow more beautiful with time.",
+      title: t("blog.samples.article2Title"),
+      excerpt: t("blog.samples.article2Excerpt"),
       image: {
-        altText: "Natural furniture materials and textures",
+        altText: t("blog.samples.article2AltText"),
         url: IMAGES_PLACEHOLDERS.collection_5,
         width: 640,
         height: 480,
       },
       handle: null,
-      tags: ["INSPIRATION"],
+      tags: [t("blog.categories.inspiration")],
       publishedAt: "2025-07-28T00:00:00Z",
       author: { name: "Sarah Jenkins" },
     },
     {
       id: 3,
-      title: "Curating a Calm Morning Routine",
-      excerpt:
-        "Simple ways to make the everyday moments around your home feel more intentional.",
+      title: t("blog.samples.article3Title"),
+      excerpt: t("blog.samples.article3Excerpt"),
       image: {
-        altText: "A thoughtfully arranged home interior",
+        altText: t("blog.samples.article3AltText"),
         url: IMAGES_PLACEHOLDERS.collection_4,
         width: 640,
         height: 480,
       },
       handle: null,
-      tags: ["INTERIORS"],
+      tags: [t("blog.categories.interiors")],
       publishedAt: "2025-06-16T00:00:00Z",
       author: { name: "Marcus Thorne" },
     },
@@ -159,7 +187,10 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
 
   // Handle load more
   const handleLoadMore = () => {
-    setVisibleCount((prev) => Math.min(prev + loadMoreCount, res.length));
+    setPagination({
+      initialCount,
+      extra: Math.min(extra + loadMoreCount, Math.max(0, res.length - initialCount)),
+    });
   };
 
   return (
@@ -227,7 +258,7 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
                     <div className="aspect-video overflow-hidden rounded-(--border-radius)">
                       <Image
                         data={idx.image}
-                        sizes="(min-width: 1024px) 440px, (min-width: 640px) 50vw, calc(100vw - 40px)"
+                        sizes={`${minWidthQuery(DESKTOP_MIN_PX)} 440px, (min-width: 640px) 50vw, calc(100vw - 40px)`}
                         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                     </div>
@@ -236,7 +267,11 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
                     {showCategory && (
                       <p className="text-(--accent-color) text-[9px] uppercase tracking-[0.08em] opacity-60">
                         {idx.tags?.[0] ||
-                          ["DESIGN", "INSPIRATION", "INTERIORS"][i % 3]}
+                          [
+                            t("blog.categories.design"),
+                            t("blog.categories.inspiration"),
+                            t("blog.categories.interiors"),
+                          ][i % 3]}
                       </p>
                     )}
                     <h3 className="line-clamp-2 font-normal text-(--accent-color) text-xl leading-[1.1] tracking-normal lg:text-[24px]">
@@ -248,13 +283,11 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
                     {showPublishedDate && idx.publishedAt && (
                       <div className="flex gap-1 text-(--accent-color) text-[9px] uppercase tracking-[0.03em] opacity-50">
                         <time>
-                          {new Date(idx.publishedAt)
-                            .toLocaleDateString("en-US", {
-                              year: "numeric",
-                              month: "long",
-                              day: "numeric",
-                            })
-                            .toUpperCase()}
+                          {formatDate(new Date(idx.publishedAt), locale, {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          }).toUpperCase()}
                         </time>
                         <span aria-hidden="true">—</span>
                         <p>{idx.author?.name}</p>
@@ -474,7 +507,7 @@ export const schema: HydrogenComponentSchema = {
           defaultValue: "ARTICLES",
           placeholder: "Enter heading text",
         },
-        ...headingInputs.map((input) => {
+        ...headingInputs.filter((input) => input.name !== "content").map((input) => {
           if (input.name === "as") {
             return {
               ...input,

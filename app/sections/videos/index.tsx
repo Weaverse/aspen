@@ -18,8 +18,9 @@ let Videos = forwardRef<HTMLElement, VideosProps>((props, ref) => {
     <Section
       ref={ref}
       {...rest}
+      verticalPadding="none"
       className="bg-white lg:bg-[#F4F4F5]"
-      containerClassName="!max-w-[1360px] !space-y-10 [&>.heading]:text-left lg:!space-y-16"
+      containerClassName="!max-w-[1360px] !space-y-10 py-16 [&>.heading]:text-left md:!space-y-16"
     >
       {children}
     </Section>
@@ -33,7 +34,7 @@ export let schema: HydrogenComponent["schema"] = {
   childTypes: ["heading", "video--items"],
   presets: {
     width: "fixed",
-    verticalPadding: "medium",
+    verticalPadding: "none",
     gap: 40,
     children: [
       {

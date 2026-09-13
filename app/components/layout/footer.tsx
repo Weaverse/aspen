@@ -1,4 +1,11 @@
-import { Minus, Plus } from "@phosphor-icons/react";
+import {
+  FacebookLogo,
+  InstagramLogo,
+  LinkedinLogo,
+  Minus,
+  Plus,
+  TwitterLogo,
+} from "@phosphor-icons/react";
 import * as Accordion from "@radix-ui/react-accordion";
 import { Image } from "@shopify/hydrogen";
 import { useThemeSettings, useTranslation } from "@weaverse/hydrogen";
@@ -8,36 +15,72 @@ import { useEffect, useState } from "react";
 import type { FetcherWithComponents } from "react-router";
 import { useFetcher } from "react-router";
 import { Link } from "~/components/link";
+import { AspenWordmark } from "~/components/logo";
 import { useShopMenu } from "~/hooks/use-shop-menu";
+import { useTranslatedText } from "~/hooks/use-translated-text";
+import { useTranslatedThemeSettings } from "~/hooks/use-translated-theme-settings";
 import { RevealUnderline } from "~/reveal-underline";
 import type { SingleMenuItem } from "~/types/menu";
 import { cn } from "~/utils/cn";
-import { CountrySelector } from "./country-selector";
+import { translateError } from "~/utils/translated-error";
+import {
+  CountrySelector,
+  currencySelectorWrapperClassName,
+  languageSelectorWrapperClassName,
+  localeSelectorGroupClassName,
+} from "./country-selector";
 import { PAYMENT_ICON_MAP } from "./payment-icons";
 
 type NewsletterResponse = { ok: boolean; error: string };
 type FooterLogoData = React.ComponentProps<typeof Image>["data"];
 
 export function Footer() {
+  const translateText = useTranslatedText();
+
   const { t } = useTranslation();
   const { shopName, footerMenu, paymentSettings } = useShopMenu();
   const {
-    footerWidth = "full",
     footerLogoData,
     footerLogoWidth = 300,
+    footerPaddingMobile = 20,
+    footerPaddingTablet = 32,
+    footerPaddingDesktop = 40,
+    footerSectionSpacing = 56,
+    footerColumnGap = 80,
+    footerBrandColumnWidth = 460,
+    footerNewsletterWidth = 400,
+    footerNewsletterHeight = 54,
+    footerMenuColumns = "4",
+    footerDividerColor = "#3E3E3E",
+    footerInputBackground = "#FFFFFF",
+    footerInputTextColor = "#343231",
+    footerInputBorderColor = "#9D9D9D",
+    footerInputPlaceholderColor = "#918379",
+    footerSocialIconSize = 20,
+    footerFontSize = 14,
+    footerLineHeight = 1.55,
     bio,
-    copyright = '© 2025 Aspen Theme. <a href="https://www.shopify.com/?utm_campaign=poweredby&utm_medium=shopify&utm_source=onlinestore">Powered by Shopify</a>',
-    addressTitle = "CONTACT",
-    storeAddress = "123 Main Street, Suite 200\nLos Angeles, CA, USA, 90015",
+    copyright:
+      rawI18nCopyright = '© 2026 Aspen Theme. <a href="https://www.shopify.com/?utm_campaign=poweredby&utm_medium=shopify&utm_source=onlinestore" target="_blank" rel="noopener noreferrer">Powered by Shopify</a>',
+    addressTitle: rawI18nAddressTitle = "CONTACT",
+    storeAddress:
+      rawI18nStoreAddress = "123 Main Street, Suite 200\nLos Angeles, CA, USA, 90015",
     storeEmail = "hello@aspen.com",
     storePhone = "+1 (555) 123-4567",
-    businessHoursTitle = "BUSINESS HOURS",
-    businessHoursWeekdays = "Monday to Friday, 9:00 AM – 6:00 PM",
-    businessHoursWeekend = "Saturday to Sunday, 10:00 AM – 2:00 PM",
-    newsletterTitle = "STAY IN TOUCH",
-    newsletterDescription = "News and inspiration in your inbox, every week.",
-    newsletterPlaceholder = "Enter your email",
-    newsletterButtonText = "SEND",
+    businessHoursTitle: rawI18nBusinessHoursTitle = "BUSINESS HOURS",
+    businessHoursWeekdays:
+      rawI18nBusinessHoursWeekdays = "Monday to Friday, 9:00 AM – 6:00 PM",
+    businessHoursWeekend:
+      rawI18nBusinessHoursWeekend = "Saturday to Sunday, 10:00 AM – 2:00 PM",
+    newsletterTitle: rawI18nNewsletterTitle = "STAY IN TOUCH",
+    newsletterDescription:
+      rawI18nNewsletterDescription = "News and inspiration in your inbox, every week.",
+    newsletterPlaceholder: rawI18nNewsletterPlaceholder = "Enter your email",
+    newsletterButtonText: rawI18nNewsletterButtonText = "SEND",
+    socialInstagram,
+    socialX,
+    socialLinkedIn,
+    socialFacebook,
     showVisaIcon,
     showMastercardIcon,
     showAmexIcon,
@@ -48,7 +91,50 @@ export function Footer() {
     showUnionpayIcon,
     showApplePayIcon,
     showGooglePayIcon,
-  } = useThemeSettings();
+  } = useTranslatedThemeSettings();
+  const newsletterButtonText = translateText(
+    rawI18nNewsletterButtonText,
+    "themeContent.componentsLayoutFooter.newsletterButtonText",
+  );
+  const newsletterPlaceholder = translateText(
+    rawI18nNewsletterPlaceholder,
+    "themeContent.componentsLayoutFooter.newsletterPlaceholder",
+  );
+  const newsletterDescription = translateText(
+    rawI18nNewsletterDescription,
+    "themeContent.componentsLayoutFooter.newsletterDescription",
+  );
+  const newsletterTitle = translateText(
+    rawI18nNewsletterTitle,
+    "themeContent.componentsLayoutFooter.newsletterTitle",
+  );
+  const businessHoursWeekend = translateText(
+    rawI18nBusinessHoursWeekend,
+    "themeContent.componentsLayoutFooter.businessHoursWeekend",
+  );
+  const businessHoursWeekdays = translateText(
+    rawI18nBusinessHoursWeekdays,
+    "themeContent.componentsLayoutFooter.businessHoursWeekdays",
+  );
+  const businessHoursTitle = translateText(
+    rawI18nBusinessHoursTitle,
+    "themeContent.componentsLayoutFooter.businessHoursTitle",
+  );
+  const storeAddress = translateText(
+    rawI18nStoreAddress,
+    "themeContent.componentsLayoutFooter.storeAddress",
+  );
+  const addressTitle = translateText(
+    rawI18nAddressTitle,
+    "themeContent.componentsLayoutFooter.addressTitle",
+  );
+  const copyright = resolveFooterCopyright(
+    translateText(
+      rawI18nCopyright,
+      "themeContent.componentsLayoutFooter.copyright",
+    ),
+    t("themeContent.componentsLayoutFooter.copyright"),
+  );
   const fetcher = useFetcher<NewsletterResponse>();
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -93,8 +179,13 @@ export function Footer() {
     0,
   );
   const menuItems = (footerMenu?.items || []) as unknown as SingleMenuItem[];
-  const contentWidthClass =
-    footerWidth === "fixed" ? "mx-auto max-w-(--page-width)" : "";
+  const socialLinks = [
+    { name: "Instagram", url: socialInstagram, Icon: InstagramLogo },
+    { name: "X", url: socialX, Icon: TwitterLogo },
+    { name: "LinkedIn", url: socialLinkedIn, Icon: LinkedinLogo },
+    { name: "Facebook", url: socialFacebook, Icon: FacebookLogo },
+  ];
+  const menuColumns = Number(footerMenuColumns) as 2 | 3 | 4;
 
   const newsletterProps = {
     fetcher,
@@ -111,10 +202,32 @@ export function Footer() {
   };
 
   return (
-    <footer className="w-full bg-(--color-footer-bg) text-(--color-footer-text) text-sm leading-[1.55]">
-      <div className={cn("w-full", contentWidthClass)}>
-        <div className="hidden lg:block">
-          <div className="grid min-h-[338px] grid-cols-[463px_1fr] gap-20 border-[#3E3E3E] border-b px-10 pt-16 pb-12">
+    <footer
+      className="w-full bg-(--color-footer-bg) text-(--color-footer-text) [font-size:var(--footer-font-size)] [line-height:var(--footer-line-height)]"
+      style={
+        {
+          "--footer-padding-mobile": `${footerPaddingMobile}px`,
+          "--footer-padding-tablet": `${footerPaddingTablet}px`,
+          "--footer-padding-desktop": `${footerPaddingDesktop}px`,
+          "--footer-section-spacing": `${footerSectionSpacing}px`,
+          "--footer-column-gap": `${footerColumnGap}px`,
+          "--footer-brand-column": `${footerBrandColumnWidth}px`,
+          "--footer-newsletter-width": `${footerNewsletterWidth}px`,
+          "--footer-newsletter-height": `${footerNewsletterHeight}px`,
+          "--footer-divider-color": footerDividerColor,
+          "--footer-input-bg": footerInputBackground,
+          "--footer-input-text": footerInputTextColor,
+          "--footer-input-border": footerInputBorderColor,
+          "--footer-input-placeholder": footerInputPlaceholderColor,
+          "--footer-social-size": `${footerSocialIconSize}px`,
+          "--footer-font-size": `${footerFontSize}px`,
+          "--footer-line-height": footerLineHeight,
+        } as React.CSSProperties
+      }
+    >
+      <div className="mx-auto w-full max-w-(--page-width)">
+        <div className="hidden xl:block">
+          <div className="grid grid-cols-[minmax(280px,var(--footer-brand-column))_1fr] items-start gap-(--footer-column-gap) border-(--footer-divider-color) border-b [padding:var(--footer-section-spacing)_var(--footer-padding-desktop)]">
             <DesktopBrand
               shopName={shopName}
               logoData={footerLogoData}
@@ -124,24 +237,27 @@ export function Footer() {
               businessHoursWeekdays={businessHoursWeekdays}
               businessHoursWeekend={businessHoursWeekend}
             />
-            <FooterMenu items={menuItems} desktopOnly />
+            <FooterMenu items={menuItems} desktopOnly columns={menuColumns} />
           </div>
 
-          <div className="grid min-h-[239px] grid-cols-2 border-[#3E3E3E] border-b px-10 py-14">
+          <div className="grid grid-cols-2 border-(--footer-divider-color) border-b [padding:var(--footer-section-spacing)_var(--footer-padding-desktop)]">
             <ContactBlock
               title={addressTitle}
               address={storeAddress}
               email={storeEmail}
               phone={storePhone}
             />
-            <div className="w-full max-w-[400px] justify-self-end">
-              <NewsletterSignup {...newsletterProps} desktop />
+            <div className="w-full max-w-(--footer-newsletter-width) justify-self-end">
+              <NewsletterSignup {...newsletterProps} />
             </div>
           </div>
 
-          <div className="flex min-h-[115px] items-center justify-between gap-8 px-10 py-8">
-            <Copyright html={copyright} />
-            <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between gap-8 [padding:calc(var(--footer-section-spacing)*0.57)_var(--footer-padding-desktop)]">
+            <div className="flex items-center gap-6">
+              <Copyright html={copyright} />
+              <SocialLinks links={socialLinks} />
+            </div>
+            <div className="flex min-w-0 items-center gap-4">
               <LocaleSelectors />
               <PaymentMethods
                 methods={visiblePaymentMethods}
@@ -151,34 +267,43 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="hidden min-h-[729px] px-8 pt-16 pb-12 md:block lg:hidden">
-          <div className="grid min-h-[296px] grid-cols-[1fr_1.05fr] gap-12">
-            <CompactBrand
+        <div className="hidden [padding:var(--footer-section-spacing)_var(--footer-padding-tablet)] md:block xl:hidden">
+          <div className="pb-11">
+            <BrandMark
               shopName={shopName}
               logoData={footerLogoData}
               logoWidth={footerLogoWidth}
-              businessHoursWeekdays={businessHoursWeekdays}
-              address={storeAddress}
             />
-            <NewsletterSignup {...newsletterProps} />
+            <div className="mt-7 grid grid-cols-2 items-start gap-4">
+              <CompactBrand
+                shopName={shopName}
+                logoData={footerLogoData}
+                logoWidth={footerLogoWidth}
+                businessHoursWeekdays={businessHoursWeekdays}
+                address={storeAddress}
+                showMark={false}
+              />
+              <NewsletterSignup {...newsletterProps} />
+            </div>
           </div>
 
-          <div className="border-[#9D9D9D] border-t pt-11">
-            <FooterMenu items={menuItems} desktopOnly />
-            <div className="mt-10 flex items-center justify-between gap-6">
+          <div className="border-(--footer-divider-color) border-t pt-(--footer-section-spacing)">
+            <FooterMenu items={menuItems} desktopOnly columns={menuColumns} />
+            <div className="mt-10 flex min-w-0 items-center justify-between gap-6">
               <LocaleSelectors />
               <PaymentMethods
                 methods={visiblePaymentMethods}
                 remainingCount={remainingPaymentMethods}
               />
             </div>
-            <div className="mt-8">
+            <div className="mt-8 flex items-center justify-between gap-6">
               <Copyright html={copyright} />
+              <SocialLinks links={socialLinks} />
             </div>
           </div>
         </div>
 
-        <div className="min-h-[940px] px-5 pt-16 pb-[46px] md:hidden">
+        <div className="[padding:var(--footer-section-spacing)_var(--footer-padding-mobile)] md:hidden">
           <CompactBrand
             shopName={shopName}
             logoData={footerLogoData}
@@ -193,6 +318,9 @@ export function Footer() {
             <NewsletterSignup {...newsletterProps} mobile />
           </div>
           <div className="mt-8">
+            <SocialLinks links={socialLinks} />
+          </div>
+          <div className="mt-8 min-w-0 max-w-full">
             <LocaleSelectors />
           </div>
           <div className="mt-[38px]">
@@ -219,18 +347,26 @@ function BrandMark({
   logoData?: FooterLogoData;
   logoWidth: number;
 }) {
+  const { designSystemPreset } = useThemeSettings();
+  const resolvedLogoWidth = Number(logoWidth) || 300;
+
   if (logoData) {
     return (
-      <div
-        className="max-w-full"
-        style={{ width: Math.min(Number(logoWidth) || 300, 300) }}
-      >
+      <div className="max-w-full" style={{ width: resolvedLogoWidth }}>
         <Image
           data={logoData}
-          sizes="300px"
-          width={600}
+          sizes={`${resolvedLogoWidth}px`}
+          width={1200}
           className="h-auto w-full object-contain object-left brightness-0 invert"
         />
+      </div>
+    );
+  }
+
+  if (designSystemPreset !== "custom") {
+    return (
+      <div className="max-w-full" style={{ width: resolvedLogoWidth }}>
+        <AspenWordmark className="h-auto w-full text-current" />
       </div>
     );
   }
@@ -259,20 +395,21 @@ function DesktopBrand({
   businessHoursWeekdays: string;
   businessHoursWeekend: string;
 }) {
+  const { t } = useTranslation();
+  const bioHtml = hasRichText(bio) ? bio : t("themeSettings.bio");
+
   return (
-    <div>
+    <div className="flex flex-col gap-4">
       <BrandMark
         shopName={shopName}
         logoData={logoData}
         logoWidth={logoWidth}
       />
-      {bio ? (
-        <div
-          className="mt-7 max-w-[320px] [&_p]:m-0"
-          dangerouslySetInnerHTML={{ __html: bio }}
-        />
-      ) : null}
-      <div className="mt-4">
+      <div
+        className="max-w-[320px] font-normal [&_p]:m-0"
+        dangerouslySetInnerHTML={{ __html: bioHtml }}
+      />
+      <div className="font-normal">
         <p className="font-semibold uppercase">{businessHoursTitle}</p>
         <p>{businessHoursWeekdays}</p>
         <p>{businessHoursWeekend}</p>
@@ -287,23 +424,29 @@ function CompactBrand({
   logoWidth,
   businessHoursWeekdays,
   address,
+  showMark = true,
 }: {
   shopName: string;
   logoData?: FooterLogoData;
   logoWidth: number;
   businessHoursWeekdays: string;
   address: string;
+  showMark?: boolean;
 }) {
   const { t } = useTranslation();
+  const { designSystemPreset } = useThemeSettings();
+  const brandTitle = designSystemPreset !== "custom" ? "ASPEN" : shopName;
   return (
     <div>
-      <BrandMark
-        shopName={shopName}
-        logoData={logoData}
-        logoWidth={logoWidth}
-      />
-      <div className="mt-7 max-w-[350px]">
-        <p className="font-semibold uppercase">{shopName}</p>
+      {showMark ? (
+        <BrandMark
+          shopName={shopName}
+          logoData={logoData}
+          logoWidth={logoWidth}
+        />
+      ) : null}
+      <div className={cn(showMark && "mt-7", "max-w-[350px]")}>
+        <p className="font-semibold uppercase">{brandTitle}</p>
         <p>
           {t("footer.businessHours")}: {businessHoursWeekdays}
         </p>
@@ -343,6 +486,41 @@ function ContactBlock({
   );
 }
 
+function SocialLinks({
+  links,
+}: {
+  links: Array<{
+    name: string;
+    url?: string;
+    Icon: React.ComponentType<{ className?: string }>;
+  }>;
+}) {
+  const visibleLinks = links.filter(
+    (link): link is typeof link & { url: string } => Boolean(link.url?.trim()),
+  );
+
+  if (visibleLinks.length === 0) {
+    return null;
+  }
+
+  return (
+    <nav className="flex items-center gap-4" aria-label="Social media">
+      {visibleLinks.map(({ name, url, Icon }) => (
+        <a
+          key={name}
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={name}
+          className="transition-opacity hover:opacity-70"
+        >
+          <Icon className="size-(--footer-social-size)" />
+        </a>
+      ))}
+    </nav>
+  );
+}
+
 function NewsletterSignup({
   fetcher,
   title,
@@ -352,7 +530,6 @@ function NewsletterSignup({
   message,
   error,
   onSubmitStart,
-  desktop = false,
   mobile = false,
 }: {
   fetcher: FetcherWithComponents<NewsletterResponse>;
@@ -363,9 +540,10 @@ function NewsletterSignup({
   message: string;
   error: string;
   onSubmitStart: () => void;
-  desktop?: boolean;
   mobile?: boolean;
 }) {
+  const { t } = useTranslation();
+
   return (
     <div>
       <p className="font-semibold uppercase">{title}</p>
@@ -384,7 +562,7 @@ function NewsletterSignup({
         method="POST"
         encType="multipart/form-data"
         className={clsx(
-          "flex h-[54px] w-full gap-3",
+          "flex h-(--footer-newsletter-height) w-full gap-3",
           mobile ? "mt-[17px]" : "mt-3",
         )}
       >
@@ -394,28 +572,21 @@ function NewsletterSignup({
           required
           aria-label={placeholder}
           placeholder={placeholder}
-          className={clsx(
-            "min-w-0 flex-1 border border-[#9D9D9D] px-4 outline-none placeholder:text-[#918379] focus-visible:ring-1 focus-visible:ring-current",
-            desktop
-              ? "bg-transparent text-(--color-footer-text)"
-              : "bg-white text-[#343231]",
-          )}
+          className="min-w-0 flex-1 border border-(--footer-input-border) bg-(--footer-input-bg) px-4 text-(--footer-input-text) [font-size:inherit] outline-none placeholder:text-(--footer-input-placeholder) focus-visible:ring-1 focus-visible:ring-current"
         />
         <button
           type="submit"
           disabled={fetcher.state === "submitting"}
-          className={clsx(
-            "w-[86px] shrink-0 rounded-md font-semibold uppercase transition-colors disabled:cursor-wait disabled:opacity-60 md:w-[98px]",
-            "hover:bg-white hover:text-black",
-            desktop ? "bg-[#EDEDED] text-[#343231]" : "bg-[#524B46] text-white",
-          )}
+          className="w-[86px] shrink-0 rounded-(--radius-sm) bg-(--btn-primary-bg) font-semibold text-(--btn-primary-text) [font-size:inherit] uppercase transition-colors disabled:cursor-wait disabled:opacity-60 hover:bg-(--btn-primary-bg-hover) hover:text-(--btn-primary-text-hover) md:w-[98px]"
         >
           {buttonText}
         </button>
       </fetcher.Form>
       {error || message ? (
         <div className="mt-2 text-xs" aria-live="polite">
-          {error ? <p className="text-red-400">{error}</p> : null}
+          {error ? (
+            <p className="text-red-400">{translateError(t, error)}</p>
+          ) : null}
           {message ? <p className="text-green-400">{message}</p> : null}
         </div>
       ) : null}
@@ -425,17 +596,17 @@ function NewsletterSignup({
 
 function LocaleSelectors() {
   return (
-    <div className="flex items-center gap-2">
+    <div className={localeSelectorGroupClassName}>
       <CountrySelector
         enableFlag={false}
-        wrapperClassName="w-[198px]"
-        inputClassName="h-[50px] px-5"
+        wrapperClassName={currencySelectorWrapperClassName}
+        inputClassName="min-h-[50px] w-auto max-w-full rounded-none border border-[var(--Border-Border,#9D9D9D)] px-5 py-1 tracking-[0.02em]"
       />
       <CountrySelector
         mode="language"
         enableFlag={false}
-        wrapperClassName="w-[112px]"
-        inputClassName="h-[50px] px-4"
+        wrapperClassName={languageSelectorWrapperClassName}
+        inputClassName="min-h-[50px] w-auto max-w-full rounded-none border border-[var(--Border-Border,#9D9D9D)] px-4 py-1 tracking-[0.02em]"
       />
     </div>
   );
@@ -486,10 +657,30 @@ function PaymentMethods({
   );
 }
 
+function hasRichText(value?: string) {
+  return Boolean(value?.replace(/<[^>]*>/g, "").trim());
+}
+
+function isLegacyFooterCopyright(html: string) {
+  const plain = html
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return (
+    /© 20\d{2} Weaverse\.? All rights reserved\.?/i.test(plain) ||
+    /© 20(24|25) Aspen Theme\.? Powered by Shopify/i.test(plain)
+  );
+}
+
+function resolveFooterCopyright(html: string, designCopyright: string) {
+  return isLegacyFooterCopyright(html) ? designCopyright : html;
+}
+
 function Copyright({ html }: { html: string }) {
   return (
     <div
-      className="[&_a]:underline [&_a]:underline-offset-2 [&_p]:m-0"
+      className="font-normal leading-none xl:whitespace-nowrap [&_a]:font-normal [&_a]:text-inherit [&_a]:underline [&_a]:decoration-solid [&_a]:[text-decoration-skip-ink:none] [&_a]:[text-underline-position:from-font] [&_p]:m-0"
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );
@@ -498,9 +689,11 @@ function Copyright({ html }: { html: string }) {
 function FooterMenu({
   items,
   desktopOnly = false,
+  columns = 4,
 }: {
   items: SingleMenuItem[];
   desktopOnly?: boolean;
+  columns?: 2 | 3 | 4;
 }) {
   const { t } = useTranslation();
   const [openItems, setOpenItems] = useState<string[]>([]);
@@ -509,9 +702,14 @@ function FooterMenu({
     return (
       <nav
         aria-label={t("footer.navigation")}
-        className="grid w-full grid-cols-[234px_234px_234px_1fr] gap-3 pt-1"
+        className={cn(
+          "grid w-full gap-6 pt-1 xl:gap-8",
+          columns === 2 && "grid-cols-2",
+          columns === 3 && "grid-cols-3",
+          columns === 4 && "grid-cols-4",
+        )}
       >
-        {items.slice(0, 4).map(({ id, to, title, items: subItems }) => (
+        {items.slice(0, columns).map(({ id, to, title, items: subItems }) => (
           <div key={id}>
             <div className="font-semibold uppercase">
               {["#", "/"].includes(to) ? (
@@ -521,10 +719,14 @@ function FooterMenu({
               )}
             </div>
             {subItems?.length ? (
-              <div className="mt-4 flex flex-col gap-2">
+              <div className="mt-3 flex flex-col gap-2">
                 {subItems.map((item) => (
-                  <Link to={item.to} key={item.id} className="w-fit">
-                    <RevealUnderline className="ff-body [--underline-color:var(--color-footer-text)]">
+                  <Link
+                    to={item.to}
+                    key={item.id}
+                    className="w-fit font-normal !font-normal leading-[inherit] tracking-normal"
+                  >
+                    <RevealUnderline className="ff-body font-normal [--underline-color:var(--color-footer-text)]">
                       {item.title}
                     </RevealUnderline>
                   </Link>
@@ -537,16 +739,14 @@ function FooterMenu({
     );
   }
 
-  const mobileItems = items
-    .filter((item) => !item.title.toLowerCase().includes("support"))
-    .slice(0, 3);
+  const mobileItems = items;
 
   return (
     <Accordion.Root
       type="multiple"
       value={openItems}
       onValueChange={setOpenItems}
-      className="w-full border-[#9D9D9D] border-t"
+      className="w-full border-(--footer-divider-color) border-t"
     >
       {mobileItems.map(({ id, to, title, items: subItems }) => {
         const hasChildren = Boolean(subItems?.length);
@@ -556,7 +756,7 @@ function FooterMenu({
           <Accordion.Item
             key={id}
             value={id}
-            className="border-[#9D9D9D] border-b"
+            className="border-(--footer-divider-color) border-b"
           >
             {hasChildren ? (
               <Accordion.Trigger className="group flex min-h-[61px] w-full items-center justify-between text-left font-medium uppercase">
@@ -589,7 +789,11 @@ function FooterMenu({
               <Accordion.Content className="overflow-hidden data-[state=closed]:animate-collapse data-[state=open]:animate-expand">
                 <div className="flex flex-col gap-3 pb-5">
                   {subItems.map((item) => (
-                    <Link to={item.to} key={item.id} className="w-fit">
+                    <Link
+                      to={item.to}
+                      key={item.id}
+                      className="w-fit font-normal"
+                    >
                       {item.title}
                     </Link>
                   ))}

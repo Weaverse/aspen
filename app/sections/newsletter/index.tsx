@@ -42,7 +42,7 @@ const Newsletter = forwardRef<HTMLElement, NewsletterProps>((props, ref) => {
       backgroundFor="section"
       containerClassName={cn(
         "flex h-(--newsletter-mobile-height) w-full flex-col items-center px-5 pt-16 md:h-(--newsletter-desktop-height)",
-        "[&>.heading]:w-full [&>.heading]:shrink-0 [&>.heading]:font-heading [&>.heading]:text-[32px] [&>.heading]:text-[#343231] [&>.heading]:leading-[1.1] [&>.heading]:[text-wrap:wrap] md:[&>.heading]:[text-wrap:balance]",
+        "[--text-3xl:32px] [&>.heading]:w-full [&>.heading]:shrink-0 [&>.heading]:font-heading [&>.heading]:text-[#343231] [&>.heading]:leading-[1.1] [&>.heading]:[text-wrap:wrap] md:[&>.heading]:[text-wrap:balance]",
         "[&>.paragraph]:mt-5 [&>.paragraph]:w-full [&>.paragraph]:shrink-0 [&>.paragraph]:font-body [&>.paragraph]:text-sm [&>.paragraph]:text-[#343231] [&>.paragraph]:leading-[1.5]",
         "[&>.newsletter-form]:mt-8 [&>.newsletter-form]:shrink-0",
         containerClassName,

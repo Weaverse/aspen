@@ -1,35 +1,37 @@
-import { CaretDown, Tag, X } from "@phosphor-icons/react";
+import { CaretDown, Tag, Truck, X } from "@phosphor-icons/react";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as Select from "@radix-ui/react-select";
 import {
   CartForm,
   Money,
   type OptimisticCart,
-  useOptimisticCart,
   useOptimisticData,
 } from "@shopify/hydrogen";
-import { useThemeSettings, useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import {
   createContext,
-  useCallback,
   useContext,
   useEffect,
   useId,
   useRef,
   useState,
 } from "react";
-import { Form, useFetcher } from "react-router";
+import { useFetcher } from "react-router";
 import useScroll from "react-use/esm/useScroll";
 import type { CartApiQueryFragment } from "storefront-api.generated";
 import { Button } from "~/components/button";
 import { CART_CODE_APPLY_ACTION } from "~/components/cart/cart-actions";
-import { syncCartState } from "~/components/cart/cart-state-provider";
+import {
+  CartResponseSync,
+  useSyncCartResponse,
+} from "~/components/cart/cart-state-provider";
 import { Image } from "~/components/image";
 import { Link } from "~/components/link";
 import { LoyaltyPointsHint } from "~/components/loyalty/loyalty-points-hint";
 import { SubscriptionLineItem } from "~/components/subscriptions/subscription-line-item";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
+import { useTranslatedThemeSettings } from "~/hooks/use-translated-theme-settings";
 import { getCartMutationError } from "~/utils/cart-error";
 import { calculateAspectRatio } from "~/utils/image";
 import { toggleCartDrawer } from "../layout/cart-drawer";
@@ -39,9 +41,13 @@ import {
   GiftCardDialog,
   NoteDialog,
 } from "./cart-summary-actions";
+import { getCartLineRenderKeys } from "./optimistic-cart";
+import { useCart, useCartStore } from "./store";
 
 type CartLine = OptimisticCart<CartApiQueryFragment>["lines"]["nodes"][0];
 type Layouts = "page" | "drawer";
+const cartCodeBadgeClassName =
+  "flex items-center gap-2 bg-[var(--background-subtle-2-ui,#DFDFDF)] px-2 py-1 font-['DM_Sans'] text-[12px] font-normal not-italic leading-none tracking-[0.24px] text-[color:var(--Text-Subtle,#524B46)]";
 type OptimisticData = {
   action?: string;
   quantity?: number;
@@ -79,87 +85,52 @@ function useCartMutation() {
 export function Cart({
   layout,
   onClose,
-  cart: originalCart,
 }: {
   layout: Layouts;
   onClose?: () => void;
-  cart: CartApiQueryFragment;
+  cart?: CartApiQueryFragment;
 }) {
   const { t } = useTranslation();
-  const cartRoute = usePrefixPathWithLocale("/cart");
-  const mutationFetcher = useFetcher<CartMutationResponse>({
-    key: `cart-${layout}-line-mutation`,
-  });
-  const handledMutationResponse = useRef<unknown>(null);
-  const mutationInFlight = useRef(false);
-  const [pendingIdentifier, setPendingIdentifier] = useState<string | null>(
-    null,
-  );
-  const cart = useOptimisticCart<CartApiQueryFragment>(originalCart);
-  const linesCount = Boolean(cart?.lines?.nodes?.length || 0);
-  const cartHasItems = Boolean(cart) && cart.totalQuantity > 0;
-  const errorMessage = getCartMutationError(mutationFetcher.data, t);
-
-  useEffect(() => {
-    const response = mutationFetcher.data;
-    if (mutationFetcher.state !== "idle") {
-      return;
-    }
-
-    mutationInFlight.current = false;
-    setPendingIdentifier(null);
-    if (!response || handledMutationResponse.current === response) {
-      return;
-    }
-
-    handledMutationResponse.current = response;
-    if (
-      response.cart &&
-      !response.userErrors?.length &&
-      !response.errors?.length
-    ) {
-      syncCartState(response.cart);
-    }
-  }, [mutationFetcher.data, mutationFetcher.state]);
-
-  const submitMutation = useCallback(
-    (
-      action: string,
-      inputs: Record<string, unknown>,
-      optimistic?: { id: string; data: OptimisticData },
-    ) => {
-      if (mutationInFlight.current) {
-        return;
-      }
-
-      mutationInFlight.current = true;
-      const formData = new FormData();
-      formData.set(CartForm.INPUT_NAME, JSON.stringify({ action, inputs }));
-      if (optimistic) {
-        formData.set("optimistic-identifier", optimistic.id);
-        formData.set("optimistic-data", JSON.stringify(optimistic.data));
-      }
-
-      setPendingIdentifier(optimistic?.id ?? null);
-      mutationFetcher.submit(formData, {
-        action: cartRoute,
-        method: "post",
-      });
-    },
-    [cartRoute, mutationFetcher],
-  );
-
+  const cart = useCart();
+  const lastAddError = useCartStore((state) => state.lastAddError);
+  const lineUpdateErrors = useCartStore((state) => state.lineUpdateErrors);
+  const lineRemovalErrors = useCartStore((state) => state.lineRemovalErrors);
+  const linesCount = Boolean(cart?.lines?.nodes?.length);
+  const cartHasItems = Boolean(cart && cart.totalQuantity > 0);
+  const errorMessage =
+    lastAddError ||
+    getCartMutationError(
+      [...lineUpdateErrors.values(), ...lineRemovalErrors.values()][0],
+      t,
+    );
   const mutationContext: CartMutationContextValue = {
     errorMessage,
-    isPending: mutationFetcher.state !== "idle" || pendingIdentifier !== null,
-    pendingIdentifier,
-    submitMutation,
+    isPending: false,
+    pendingIdentifier: null,
+    submitMutation(action, inputs) {
+      if (action === CartForm.ACTIONS.LinesUpdate) {
+        for (const line of inputs.lines as Array<{
+          id: string;
+          quantity: number;
+        }>) {
+          useCartStore.getState().stageLineUpdate(line.id, line.quantity);
+        }
+      } else if (action === CartForm.ACTIONS.LinesRemove) {
+        for (const lineId of inputs.lineIds as string[]) {
+          useCartStore.getState().stageLineRemoval(lineId);
+        }
+      }
+    },
   };
-
   return (
     <CartMutationContext.Provider value={mutationContext}>
+      {!cartHasItems && errorMessage && (
+        <p role="alert" className="text-red-700 text-sm">
+          {errorMessage}
+        </p>
+      )}
       {cartHasItems ? (
-        <CartDetails cart={cart} layout={layout} />
+        <CartDetails cart={cart!} layout={layout} />
       ) : (
         <CartEmpty hidden={linesCount} onClose={onClose} layout={layout} />
       )}
@@ -186,7 +157,8 @@ function CartNoteDialogWrapper({
           type="button"
           className={clsx(
             layout === "page" ? "bg-white" : "bg-[#F0EFED]",
-            "rounded-md px-3 py-2 text-sm",
+            "rounded-lg px-3 py-2 font-semibold text-sm",
+            layout === "drawer" && "max-xl:py-1.5",
           )}
         >
           {cartNoteButtonText}
@@ -220,7 +192,8 @@ function DiscountCodeDialogWrapper({
           type="button"
           className={clsx(
             layout === "page" ? "bg-white" : "bg-[#F0EFED]",
-            "rounded-md px-3 py-2 text-sm",
+            "rounded-lg px-3 py-2 font-semibold text-sm",
+            layout === "drawer" && "max-xl:py-1.5",
           )}
         >
           {discountCodeButtonText}
@@ -252,7 +225,8 @@ function GiftCardDialogWrapper({
           type="button"
           className={clsx(
             layout === "page" ? "bg-white" : "bg-[#F0EFED]",
-            "rounded-md px-3 py-2 text-sm",
+            "rounded-lg px-3 py-2 font-semibold text-sm",
+            layout === "drawer" && "max-xl:py-1.5",
           )}
         >
           {giftCardButtonText}
@@ -283,10 +257,14 @@ function CartDetails({
     discountCodeButtonText,
     enableGiftCard,
     giftCardButtonText,
-  } = useThemeSettings();
+  } = useTranslatedThemeSettings();
 
   const { note, discountCodes, appliedGiftCards, isOptimistic } = cart;
   const { errorMessage } = useCartMutation();
+  const drawerDiscountTotal = getCartDiscountTotal(cart.lines.nodes);
+  const subtotalBeforeDiscounts =
+    Number.parseFloat(cart.cost?.subtotalAmount?.amount || "0") +
+    drawerDiscountTotal;
 
   const mutationError = errorMessage ? (
     <p className="bg-red-50 p-3 text-red-700 text-sm" role="alert">
@@ -297,7 +275,7 @@ function CartDetails({
   const summaryActions = (enableCartNote ||
     enableDiscountCode ||
     enableGiftCard) && (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-wrap items-center justify-end gap-2">
       {enableCartNote && (
         <CartNoteDialogWrapper
           cartNote={note}
@@ -323,10 +301,13 @@ function CartDetails({
 
   if (layout === "drawer") {
     return (
-      <div className="flex min-h-0 flex-1 flex-col">
-        {enableFreeShipping && <CartProgression cost={cart.cost} />}
-        <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_auto] px-5">
-          <div className="overflow-y-auto pr-2 pb-5">
+      // Keep checkout visible while the line items scroll at every viewport.
+      <div className="flex min-h-0 w-full flex-1 flex-col gap-4 overflow-hidden max-xl:gap-6">
+        {enableFreeShipping && !isOptimistic && (
+          <CartProgression cost={cart.cost} />
+        )}
+        <div className="flex min-h-0 flex-1 flex-col">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-4">
             {mutationError}
             <CartLines
               discountCodes={discountCodes}
@@ -334,32 +315,57 @@ function CartDetails({
               layout={layout}
             />
           </div>
-          <CartSummary layout={layout}>
+          <CartSummary layout={layout} className="mt-auto">
             <AppliedCartCodes
+              discountAmounts={getCartCodeDiscountAmounts(cart.lines.nodes)}
               appliedGiftCards={appliedGiftCards}
               discountCodes={discountCodes}
               layout={layout}
             />
-            <div className="flex items-center justify-between font-medium">
-              <span>{t("cart.subtotal")}</span>
-              <span>
+            {/* Figma 3572:14579 — the pre-discount subtotal is struck through
+                beside the amount actually payable. */}
+            <div className="flex items-end gap-2.5 font-semibold">
+              <span className="flex-1 text-base">{t("cart.subtotal")}</span>
+              {isOptimistic ? (
+                <PriceLoadingSpinner />
+              ) : cart.cost?.subtotalAmount?.amount ? (
+                <>
+                  {drawerDiscountTotal > 0 && (
+                    <span className="text-(--color-text-light) text-sm line-through">
+                      <Money
+                        data={{
+                          amount: subtotalBeforeDiscounts.toString(),
+                          currencyCode: cart.cost.subtotalAmount.currencyCode,
+                        }}
+                      />
+                    </span>
+                  )}
+                  <span className="text-base">
+                    <Money data={cart.cost.subtotalAmount} />
+                  </span>
+                </>
+              ) : (
+                "-"
+              )}
+            </div>
+            {appliedGiftCards.length > 0 && (
+              <div className="flex items-center justify-between font-semibold">
+                <span>{t("cart.remainingToPay")}</span>
                 {isOptimistic ? (
                   <PriceLoadingSpinner />
-                ) : cart.cost?.subtotalAmount?.amount ? (
-                  <Money data={cart.cost.subtotalAmount} />
                 ) : (
-                  "-"
+                  <Money data={cart.cost.totalAmount} />
                 )}
-              </span>
-            </div>
-            <p className="text-[#918379] text-sm">
+              </div>
+            )}
+            <p className="text-(--color-text-light) text-sm">
               {t("cart.shippingTaxesCheckout")}
             </p>
-            <LoyaltyPointsHint amount={cart.cost?.subtotalAmount?.amount} />
             {summaryActions}
             <CartCheckoutActions
               checkoutUrl={cart.checkoutUrl}
               layout={layout}
+              pending={isOptimistic}
             />
           </CartSummary>
         </div>
@@ -370,7 +376,7 @@ function CartDetails({
   return (
     <div className="space-y-4">
       {mutationError}
-      <div className="grid gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)] lg:items-start lg:gap-5 min-[1440px]:grid-cols-[900px_440px]">
+      <div className="grid gap-10 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)] xl:items-start xl:gap-5 min-[1440px]:grid-cols-[900px_440px]">
         <div className="w-full">
           <CartLines
             discountCodes={discountCodes}
@@ -380,11 +386,16 @@ function CartDetails({
         </div>
         <CartSummary layout={layout}>
           <CartDiscounts
+            lines={cart.lines.nodes}
             appliedGiftCards={appliedGiftCards}
             discountCodes={discountCodes}
           />
           <CartPageTotals cart={cart} isOptimistic={isOptimistic} />
-          <CartCheckoutActions checkoutUrl={cart.checkoutUrl} layout={layout} />
+          <CartCheckoutActions
+            checkoutUrl={cart.checkoutUrl}
+            layout={layout}
+            pending={isOptimistic}
+          />
         </CartSummary>
       </div>
     </div>
@@ -393,7 +404,7 @@ function CartDetails({
 
 function CartProgression({ cost }: { cost: CartApiQueryFragment["cost"] }) {
   const { t } = useTranslation();
-  let { freeShippingThreshold } = useThemeSettings();
+  let { freeShippingThreshold } = useTranslatedThemeSettings();
 
   let subtotal = Number.parseFloat(cost?.subtotalAmount?.amount || "0");
   const configuredThreshold = Number.parseFloat(freeShippingThreshold || "100");
@@ -409,53 +420,88 @@ function CartProgression({ cost }: { cost: CartApiQueryFragment["cost"] }) {
     { amount: amountToken },
   ).split(amountToken);
   return (
-    <div className="flex w-full flex-col gap-2 px-5 pb-2">
-      <div className="relative h-1 w-full overflow-hidden rounded-full bg-[#F2F0EE]">
-        <div
-          className="h-full bg-[#A79D95] transition-all duration-300"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
-      <p className="text-sm">
-        {amountRemaining > 0 ? (
-          <>
-            {freeShippingPrefix}
-            <b>
+    <div className="flex w-full shrink-0 flex-col gap-2">
+      {/* Figma 512:13480 — the message lives inside a filled pill. */}
+      <div className="flex items-center gap-2 self-stretch rounded-xl bg-(--color-background-subtle) px-4 py-2 text-(--color-text-subtle) text-sm max-xl:order-2 max-xl:rounded-none max-xl:bg-transparent max-xl:p-0">
+        <Truck aria-hidden="true" className="size-4 shrink-0 max-xl:hidden" />
+        {/* `Money` renders a <div> unless told otherwise, which would break the
+            sentence onto its own line inside the pill. */}
+        <p className="min-w-0 flex-1 text-pretty break-words">
+          {amountRemaining > 0 ? (
+            <>
+              {freeShippingPrefix}
               <Money
+                as="b"
+                className="whitespace-nowrap font-semibold"
                 withoutTrailingZeros
                 data={{
                   amount: amountRemaining.toString(),
                   currencyCode: cost.subtotalAmount.currencyCode,
                 }}
               />
-            </b>
-            {freeShippingSuffix}
-          </>
-        ) : (
-          t("cart.freeShippingUnlocked")
-        )}
-      </p>
+              {freeShippingSuffix}
+            </>
+          ) : (
+            t("cart.freeShippingUnlocked")
+          )}
+        </p>
+      </div>
+      <div className="relative h-1 w-full overflow-hidden rounded-full bg-[#F2F0EE] max-xl:order-1 max-xl:rounded-none max-xl:bg-[#ECECEC]">
+        <div
+          className="h-full bg-[#A79D95] transition-all duration-300 max-xl:bg-[#9B9B9B]"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
     </div>
   );
 }
 
 function CartDiscounts({
+  lines,
   discountCodes,
   appliedGiftCards,
 }: {
+  lines: CartLine[];
   discountCodes: CartApiQueryFragment["discountCodes"];
   appliedGiftCards: CartApiQueryFragment["appliedGiftCards"];
 }) {
+  const discountAmounts = getCartCodeDiscountAmounts(lines);
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <CartCodeForm />
       <AppliedCartCodes
+        discountAmounts={discountAmounts}
         appliedGiftCards={appliedGiftCards}
         discountCodes={discountCodes}
         layout="page"
       />
     </div>
   );
+}
+
+function getCartCodeDiscountAmounts(lines: CartLine[]) {
+  const discountAmounts: Record<
+    string,
+    {
+      amount: string;
+      currencyCode: CartLine["cost"]["totalAmount"]["currencyCode"];
+    }
+  > = {};
+  for (const line of lines) {
+    for (const allocation of line.discountAllocations ?? []) {
+      if ("code" in allocation && allocation.code) {
+        const key = allocation.code.toLowerCase();
+        discountAmounts[key] = {
+          currencyCode: allocation.discountedAmount.currencyCode,
+          amount: String(
+            Number(discountAmounts[key]?.amount ?? 0) +
+              Number(allocation.discountedAmount.amount),
+          ),
+        };
+      }
+    }
+  }
+  return discountAmounts;
 }
 
 function CartCodeForm() {
@@ -466,6 +512,7 @@ function CartCodeForm() {
     errors?: Array<{ message?: string }>;
     userErrors?: Array<{ message?: string }>;
   }>({ key: "cart-code-apply" });
+  useSyncCartResponse(fetcher);
   const errorMessage =
     getCartMutationError(fetcher.data, t) ||
     (fetcher.data?.cartCodeApplied === false ? t("cart.invalidCode") : null);
@@ -486,7 +533,7 @@ function CartCodeForm() {
         </label>
         <input
           id="cart-page-discount"
-          className="h-[54px] min-w-0 grow border border-line bg-white px-4 leading-tight! outline-none focus:border-gray-700"
+          className="h-[54px] min-w-0 grow rounded-lg border border-line bg-white px-4 leading-tight! outline-none focus:border-gray-700"
           type="text"
           name="discountCode"
           placeholder={t("cart.code")}
@@ -497,7 +544,7 @@ function CartCodeForm() {
           type="submit"
           loading={fetcher.state !== "idle"}
           disabled={fetcher.state !== "idle"}
-          className="!px-6 !py-0 h-[54px] shrink-0 leading-tight!"
+          className="!px-6 !py-0 h-[54px] shrink-0 rounded-lg leading-tight!"
         >
           {t("cart.apply")}
         </Button>
@@ -533,10 +580,18 @@ function UpdateDiscountForm({
 }
 
 function AppliedCartCodes({
+  discountAmounts = {},
   discountCodes,
   appliedGiftCards,
   layout,
 }: {
+  discountAmounts?: Record<
+    string,
+    {
+      amount: string;
+      currencyCode: CartLine["cost"]["totalAmount"]["currencyCode"];
+    }
+  >;
   discountCodes: CartApiQueryFragment["discountCodes"];
   appliedGiftCards: CartApiQueryFragment["appliedGiftCards"];
   layout: Layouts;
@@ -570,50 +625,113 @@ function AppliedCartCodes({
                 .map((item) => item.code),
             }}
           >
-            <div className="inline-flex items-center gap-1.5 rounded-sm bg-[#EBE8E5] px-2 py-1 text-[#574F49] text-xs">
-              <Tag size={13} aria-hidden="true" />
-              <span>{discount.code}</span>
-              <button
-                type="submit"
-                className="flex h-4 w-4 items-center justify-center"
-                aria-label={t("cart.removeDiscountCode", {
-                  code: discount.code,
-                })}
-              >
-                <X size={12} aria-hidden="true" />
-              </button>
-            </div>
+            {(fetcher) => (
+              <>
+                <CartResponseSync fetcher={fetcher} />
+                <div className={cartCodeBadgeClassName}>
+                  <Tag size={16} aria-hidden="true" className="shrink-0" />
+                  <span className="whitespace-nowrap">
+                    {discount.code}
+                    {layout === "page" &&
+                      discountAmounts[discount.code.toLowerCase()] && (
+                        <>
+                          {" "}
+                          (-
+                          <Money
+                            as="span"
+                            data={discountAmounts[discount.code.toLowerCase()]}
+                          />
+                          )
+                        </>
+                      )}
+                  </span>
+                  <button
+                    type="submit"
+                    className="flex h-4 w-4 shrink-0 items-center justify-center"
+                    aria-label={t("cart.removeDiscountCode", {
+                      code: discount.code,
+                    })}
+                  >
+                    <X size={12} aria-hidden="true" />
+                  </button>
+                </div>
+              </>
+            )}
           </CartForm>
         </li>
       ))}
       {appliedGiftCards.map((giftCard) => (
         <li key={giftCard.id}>
-          <Form action={cartRoute} method="post">
-            <input
-              type="hidden"
-              name={CartForm.INPUT_NAME}
-              value={JSON.stringify({
-                action: CartForm.ACTIONS.GiftCardCodesRemove,
-                inputs: { appliedGiftCardIds: [giftCard.id] },
-              })}
-            />
-            <div className="inline-flex items-center gap-1.5 rounded-sm bg-[#EBE8E5] px-2 py-1 text-[#574F49] text-xs">
-              <Tag size={13} aria-hidden="true" />
-              <span>•••• {giftCard.lastCharacters}</span>
-              <button
-                type="submit"
-                className="flex h-4 w-4 items-center justify-center"
-                aria-label={t("cart.removeGiftCard", {
-                  digits: giftCard.lastCharacters,
-                })}
-              >
-                <X size={12} aria-hidden="true" />
-              </button>
-            </div>
-          </Form>
+          <GiftCardRemoveForm giftCardId={giftCard.id}>
+            {(pending) => (
+              <>
+                <div className={cartCodeBadgeClassName}>
+                  <Tag size={16} aria-hidden="true" className="shrink-0" />
+                  <span className="whitespace-nowrap">
+                    •••• {giftCard.lastCharacters}
+                    {layout === "page" && (
+                      <>
+                        {" "}
+                        (-
+                        <Money as="span" data={giftCard.amountUsed} />)
+                      </>
+                    )}
+                  </span>
+                  <button
+                    type="submit"
+                    disabled={pending}
+                    aria-busy={pending}
+                    className="flex h-4 w-4 items-center justify-center"
+                    aria-label={t("cart.removeGiftCard", {
+                      digits: giftCard.lastCharacters,
+                    })}
+                  >
+                    {pending ? (
+                      <PriceLoadingSpinner />
+                    ) : (
+                      <X size={12} aria-hidden="true" />
+                    )}
+                  </button>
+                </div>
+              </>
+            )}
+          </GiftCardRemoveForm>
         </li>
       ))}
     </ul>
+  );
+}
+
+function GiftCardRemoveForm({
+  giftCardId,
+  children,
+}: {
+  giftCardId: string;
+  children: (pending: boolean) => React.ReactNode;
+}) {
+  const { t } = useTranslation();
+  const cartRoute = usePrefixPathWithLocale("/cart");
+  const fetcher = useFetcher<CartMutationResponse>();
+  useSyncCartResponse(fetcher);
+  const pending = fetcher.state !== "idle";
+  const error = getCartMutationError(fetcher.data, t);
+  return (
+    <fetcher.Form method="post" action={cartRoute}>
+      <input
+        type="hidden"
+        name={CartForm.INPUT_NAME}
+        value={JSON.stringify({
+          action: CartForm.ACTIONS.GiftCardCodesRemove,
+          inputs: { appliedGiftCardIds: [giftCardId] },
+        })}
+      />
+      {children(pending)}
+      {!pending && error && (
+        <p role="alert" className="mt-2 text-red-700 text-sm">
+          {error}
+        </p>
+      )}
+    </fetcher.Form>
   );
 }
 
@@ -649,10 +767,10 @@ function CartPageTotals({
 
   return (
     <>
-      <div className="flex flex-col gap-5 border-line-subtle border-y py-6">
+      <div className="flex flex-col gap-6 py-6">
         <div className="flex items-center justify-between">
           <span>{t("cart.subtotal")}</span>
-          <span>
+          <span className="shrink-0 whitespace-nowrap">
             {isOptimistic ? (
               <PriceLoadingSpinner />
             ) : (
@@ -668,21 +786,26 @@ function CartPageTotals({
         {discountTotal > 0 && (
           <div className="flex items-center justify-between">
             <span>{t("cart.discount")}</span>
-            <span>
-              -
+            <span className="inline-flex shrink-0 items-baseline whitespace-nowrap">
+              −
               <Money
+                as="span"
                 data={{ amount: discountTotal.toString(), currencyCode }}
               />
             </span>
           </div>
         )}
-        <span className="text-[#918379]">
+        <span className="text-(--color-text-light)">
           {t("cart.shippingTaxesCalculated")}
         </span>
       </div>
-      <div className="flex items-center justify-between font-semibold">
-        <span>{t("cart.total")}</span>
+      <div className="flex items-center justify-between gap-4">
         <span>
+          {t(
+            cart.appliedGiftCards.length ? "cart.remainingToPay" : "cart.total",
+          )}
+        </span>
+        <span className="shrink-0 whitespace-nowrap font-semibold">
           {isOptimistic ? (
             <PriceLoadingSpinner />
           ) : cart.cost.totalAmount?.amount ? (
@@ -692,7 +815,9 @@ function CartPageTotals({
           )}
         </span>
       </div>
-      <LoyaltyPointsHint amount={cart.cost.subtotalAmount?.amount} />
+      {!isOptimistic && (
+        <LoyaltyPointsHint amount={cart.cost.subtotalAmount?.amount} />
+      )}
     </>
   );
 }
@@ -722,12 +847,12 @@ function CartLines({
       <ul
         className={clsx(
           layout === "page" && "flex flex-col gap-6",
-          layout === "drawer" && "grid gap-5",
+          layout === "drawer" && "grid gap-6",
         )}
       >
-        {currentLines.map((line) => (
+        {currentLines.map((line, index) => (
           <CartLineItem
-            key={line.id}
+            key={getCartLineRenderKeys(currentLines)[index]}
             line={line}
             layout={layout}
             discountCodes={discountCodes}
@@ -741,32 +866,42 @@ function CartLines({
 function CartCheckoutActions({
   checkoutUrl,
   layout,
+  pending = false,
 }: {
   checkoutUrl: string;
   layout: Layouts;
+  pending?: boolean;
 }) {
   const { t } = useTranslation();
+  const { checkoutButtonText } = useTranslatedThemeSettings();
   const cartRoute = usePrefixPathWithLocale("/cart");
-  if (!checkoutUrl) {
+  if (!checkoutUrl && !pending) {
     return null;
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2.5">
       {/* @todo: <CartShopPayButton cart={cart} /> */}
       {layout === "drawer" && (
         <Link
           variant="outline"
           to={cartRoute}
           onClick={() => toggleCartDrawer(false)}
-          className="flex h-[54px] w-full items-center justify-center"
+          className="flex h-[54px] w-full items-center justify-center uppercase"
         >
           {t("cart.viewCart")}
         </Link>
       )}
-      <a href={checkoutUrl} target="_self">
-        <Button className="!px-6 !py-5 h-[54px] w-full">
-          {t("cart.checkout")}
+      <a
+        href={pending ? undefined : checkoutUrl}
+        aria-disabled={pending}
+        target="_self"
+      >
+        <Button
+          disabled={pending}
+          className="!px-6 !py-5 h-[54px] w-full uppercase"
+        >
+          {checkoutButtonText || t("cart.checkout")}
         </Button>
       </a>
     </div>
@@ -775,23 +910,26 @@ function CartCheckoutActions({
 
 function CartSummary({
   layout,
+  className,
   children = null,
 }: {
   children?: React.ReactNode;
+  className?: string;
   layout: Layouts;
 }) {
   const { t } = useTranslation();
   return (
     <div
       className={clsx(
+        className,
         layout === "drawer" &&
-          "grid gap-3 border-line-subtle border-t bg-white py-4",
+          "grid max-h-[55dvh] shrink-0 gap-2.5 overflow-y-auto border-line-subtle border-t bg-white py-4 max-xl:gap-3.5 max-xl:pt-2.5 max-xl:pb-0",
         layout === "page" &&
-          "flex w-full flex-col gap-6 px-5 pb-6 md:w-[432px] md:px-0 lg:w-full lg:px-6",
+          "flex w-full flex-col gap-6 px-5 pb-6 md:mx-auto md:w-[432px] md:px-0 xl:mx-0 xl:w-full xl:px-6",
       )}
     >
       {layout === "page" && (
-        <span className="border-line-subtle border-b pb-6 font-semibold uppercase">
+        <span className="pb-6 font-medium uppercase">
           {t("cart.orderSummary")}
         </span>
       )}
@@ -840,11 +978,11 @@ function CartLineItem({
         "relative transition-all duration-300",
         layout === "drawer"
           ? "flex gap-4"
-          : "flex h-full flex-col items-center bg-white md:flex-row",
+          : "flex h-full flex-col items-center md:flex-row",
         (isOptimistic || isLinePending) &&
           optimisticData?.action !== "remove" &&
           "opacity-70",
-        (isOptimistic || isLinePending) && "pointer-events-none",
+        id.startsWith("optimistic-") && "pointer-events-none",
         optimisticData?.action === "remove" &&
           "h-0 scale-95 overflow-hidden opacity-0",
       )}
@@ -863,7 +1001,7 @@ function CartLineItem({
       <div
         className={clsx(
           layout === "drawer"
-            ? "shrink-0"
+            ? "shrink-0 max-xl:w-[clamp(100px,32.56vw,140px)]"
             : "aspect-square w-full md:h-[360px] md:w-[360px] md:shrink-0",
         )}
       >
@@ -875,7 +1013,7 @@ function CartLineItem({
             className={clsx(
               "!object-cover",
               layout === "drawer"
-                ? "h-auto w-[140px]"
+                ? "h-auto w-[140px] rounded-xl max-xl:aspect-square max-xl:h-full max-xl:max-h-[140px] max-xl:w-full"
                 : "h-full w-full rounded",
             )}
             alt={title}
@@ -889,13 +1027,13 @@ function CartLineItem({
         className={clsx(
           "flex flex-col",
           layout === "drawer"
-            ? "grow justify-between"
-            : "h-full w-full p-6 md:h-[360px]",
+            ? "min-w-0 grow justify-between gap-2.5 max-xl:min-h-[140px] max-xl:text-sm"
+            : "h-full w-full rounded-r-[var(--Radius-border-radius-md,12px)] bg-[var(--Background-Background,#FFF)] p-6 md:h-[360px]",
         )}
       >
         {layout === "page" ? (
           // Page Layout - New Design
-          <div className="flex h-full flex-col justify-between">
+          <div className="flex h-full flex-col justify-between gap-4">
             <div>
               {/* Title and Close Button */}
               <div className="mb-4 flex items-center justify-between gap-1">
@@ -921,33 +1059,35 @@ function CartLineItem({
               </div>
 
               {/* Variant Information */}
-              <CartLineOptions selectedOptions={selectedOptions} />
+              <CartLineOptions selectedOptions={selectedOptions} showSize />
             </div>
 
-            <div className="space-y-3">
-              {/* Subscription and discount information sit directly above pricing. */}
-              <SubscriptionLineItem line={line as any} />
+            <div className="flex flex-col items-start gap-4">
+              {/* Show applied discounts before the delivery plan and pricing. */}
               <CartLineDiscountBadges
                 discountCodes={discountCodes}
                 line={line}
               />
+              <SubscriptionLineItem line={line as any} />
 
               {/* Quantity and Pricing */}
-              <div className="grid grid-cols-[1fr_auto_1fr] items-center">
+              <div className="grid w-full grid-cols-[1fr_auto_1fr] items-center">
                 <div>
                   {t("product.itemPrice")}:{" "}
                   <CartLinePrice
                     line={line}
                     amountType="unit"
+                    fontWeight="normal"
                     as="span"
                     isLoading={isOptimistic || isLinePending}
                   />
                 </div>
                 <CartLineQuantityAdjust line={line} layout={layout} />
-                <div className="justify-self-end font-medium">
+                <div className="justify-self-end font-normal">
                   <CartLinePrice
                     line={line}
                     amountType="total"
+                    fontWeight="normal"
                     as="span"
                     isLoading={isOptimistic || isLinePending}
                   />
@@ -958,37 +1098,46 @@ function CartLineItem({
         ) : (
           // Drawer Layout - Original Design
           <>
-            <div className="flex justify-between gap-4">
-              <div className="space-y-3">
-                <div>
-                  {product?.handle ? (
-                    <Link to={url} onClick={() => toggleCartDrawer(false)}>
-                      <span className="line-clamp-1 font-semibold uppercase">
-                        {product?.title || ""}
-                      </span>
-                    </Link>
-                  ) : (
-                    <p>{product?.title || ""}</p>
-                  )}
-                </div>
+            {/* Figma 512:13491 — title + variant, subscription pill, then the
+                quantity/price row. REMOVE is pinned to the bottom of the row. */}
+            <div className="flex min-h-0 flex-1 flex-col items-start gap-2">
+              <div className="flex w-full flex-col gap-1">
+                {product?.handle ? (
+                  <Link
+                    to={url}
+                    className="w-full justify-start text-left max-xl:leading-5"
+                    onClick={() => toggleCartDrawer(false)}
+                  >
+                    <span className="max-xl:line-clamp-2 xl:line-clamp-1 font-semibold uppercase">
+                      {product?.title || ""}
+                    </span>
+                  </Link>
+                ) : (
+                  <p className="max-xl:line-clamp-2 xl:line-clamp-1 font-semibold uppercase">
+                    {product?.title || ""}
+                  </p>
+                )}
                 <CartLineOptions selectedOptions={selectedOptions} />
-                {/* Subscription Information */}
-                <SubscriptionLineItem line={line as any} className="mt-2" />
               </div>
-            </div>
-            <div className="flex items-center justify-between gap-2">
-              <CartLineQuantityAdjust line={line} layout={layout} />
-              <CartLinePrice
-                line={line}
-                amountType="total"
-                as="span"
-                isLoading={isOptimistic || isLinePending}
+              <SubscriptionLineItem
+                line={line as any}
+                className="max-xl:max-w-full"
               />
+              <div className="flex w-full flex-wrap items-center gap-2 pt-1 max-xl:mt-auto">
+                <CartLineQuantityAdjust line={line} layout={layout} />
+                <CartLinePrice
+                  line={line}
+                  amountType="total"
+                  as="span"
+                  className="ml-auto"
+                  isLoading={isOptimistic || isLinePending}
+                />
+              </div>
             </div>
             <ItemRemoveButton
               lineId={id}
               productTitle={product?.title || title}
-              className=""
+              className="shrink-0 self-start"
               layout={layout}
             />
           </>
@@ -1000,12 +1149,20 @@ function CartLineItem({
 
 function CartLineOptions({
   selectedOptions,
+  showSize = false,
 }: {
   selectedOptions: CartLine["merchandise"]["selectedOptions"];
+  showSize?: boolean;
 }) {
   const visibleOptions = selectedOptions.filter(
     (option) =>
-      option.name.toLowerCase() !== "title" &&
+      [
+        "color",
+        "colour",
+        "colors",
+        "colours",
+        ...(showSize ? ["size"] : []),
+      ].includes(option.name.trim().toLowerCase()) &&
       option.value.toLowerCase() !== "default title",
   );
 
@@ -1014,7 +1171,7 @@ function CartLineOptions({
   }
 
   return (
-    <div className="flex flex-col font-normal">
+    <div className="flex flex-col font-normal text-(--color-text-subtle)">
       {visibleOptions.map((option) => (
         <span key={`${option.name}-${option.value}`}>
           {option.name} {option.value}
@@ -1031,6 +1188,8 @@ function CartLineDiscountBadges({
   line: CartLine;
   discountCodes: CartApiQueryFragment["discountCodes"];
 }) {
+  const { t } = useTranslation();
+
   const allocations = line.discountAllocations ?? [];
   const applicableCodes = discountCodes.filter(
     (discount) => discount.applicable,
@@ -1041,22 +1200,27 @@ function CartLineDiscountBadges({
   }
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-col items-start gap-2">
       {allocations.map((allocation, index) => {
         const label =
           ("code" in allocation && allocation.code) ||
           ("title" in allocation && allocation.title) ||
           applicableCodes[index]?.code ||
-          "Discount";
+          t("cart.discount");
 
         return (
           <span
             key={`${label}-${allocation.discountedAmount.amount}-${index}`}
-            className="inline-flex items-center gap-1.5 rounded-sm bg-[#EBE8E5] px-2 py-1 text-[#574F49] text-xs"
+            className={clsx(
+              cartCodeBadgeClassName,
+              "rounded-[var(--Radius-border-radius-sm,8px)]",
+            )}
           >
-            <Tag size={13} aria-hidden="true" />
-            {label} (-
-            <Money data={allocation.discountedAmount} />)
+            <Tag size={16} className="shrink-0" aria-hidden="true" />
+            <span className="whitespace-nowrap">
+              {label} (-
+              <Money as="span" data={allocation.discountedAmount} />)
+            </span>
           </span>
         );
       })}
@@ -1082,7 +1246,7 @@ function ItemRemoveButton({
     <button
       className={clsx("flex items-center justify-center", className)}
       type="button"
-      disabled={isPending}
+      disabled={isPending || lineId.startsWith("optimistic-")}
       aria-label={t("cart.removeItem", { product: productTitle })}
       onClick={() =>
         submitMutation(
@@ -1094,7 +1258,9 @@ function ItemRemoveButton({
     >
       {layout === "page" && <X className="h-4 w-4" />}
       {layout === "drawer" && (
-        <span className="uppercase underline">{t("cart.remove")}</span>
+        <span className="text-xs uppercase underline underline-offset-2">
+          {t("cart.remove")}
+        </span>
       )}
     </button>
   );
@@ -1134,12 +1300,76 @@ function CartLineQuantityAdjust({
     new Set<number>([...quantities, optimisticQuantity, selectedQty]),
   ).sort((a, b) => a - b);
 
+  const disabled = lineId.startsWith("optimistic-") || isPending;
+  const desktopStepper = (() => {
+    if (layout !== "drawer") {
+      return null;
+    }
+    const updateQuantity = (nextQuantity: number) => {
+      if (!Number.isInteger(nextQuantity) || nextQuantity < 1) {
+        return;
+      }
+      submitMutation(
+        CartForm.ACTIONS.LinesUpdate,
+        { lines: [{ id: lineId, quantity: nextQuantity }] },
+        { id: lineId, data: { quantity: nextQuantity } },
+      );
+    };
+
+    return (
+      <fieldset
+        className="hidden h-[30px] items-center rounded-lg bg-(--color-background-subtle) xl:inline-flex"
+        aria-label={t("product.quantityValue", {
+          quantity: optimisticQuantity,
+        })}
+      >
+        <button
+          type="button"
+          className="flex h-full w-11 items-center justify-center disabled:opacity-40"
+          disabled={disabled || optimisticQuantity <= 1}
+          aria-label={t("product.decreaseQuantity")}
+          onClick={() => updateQuantity(optimisticQuantity - 1)}
+        >
+          <span
+            aria-hidden="true"
+            className="font-semibold text-sm leading-none"
+          >
+            -
+          </span>
+        </button>
+        <span className="flex h-full w-[30px] items-center justify-center border-white/20 border-x font-semibold text-sm">
+          {optimisticQuantity}
+        </span>
+        <button
+          type="button"
+          className="flex h-full w-11 items-center justify-center disabled:opacity-40"
+          disabled={disabled}
+          aria-label={t("product.increaseQuantity")}
+          onClick={() => updateQuantity(optimisticQuantity + 1)}
+        >
+          <span
+            aria-hidden="true"
+            className="font-semibold text-sm leading-none"
+          >
+            +
+          </span>
+        </button>
+      </fieldset>
+    );
+  })();
+
   return (
     <>
+      {desktopStepper}
       <label htmlFor={quantityId} className="sr-only">
         {t("product.quantityValue", { quantity: optimisticQuantity })}
       </label>
-      <div className="quantity-selector relative">
+      <div
+        className={clsx(
+          "quantity-selector relative",
+          layout === "drawer" && "xl:hidden",
+        )}
+      >
         <Select.Root
           value={String(selectedQty)}
           onValueChange={(value) => {
@@ -1159,13 +1389,13 @@ function CartLineQuantityAdjust({
               { id: lineId, data: { quantity: nextQuantity } },
             );
           }}
-          disabled={isOptimistic || isPending}
+          disabled={disabled}
         >
           <Select.Trigger
             id={quantityId}
             className={clsx(
               "inline-flex min-w-[80px] items-center justify-between gap-2 bg-white outline-hidden",
-              layout === "page" ? "" : "",
+              layout === "drawer" && "min-h-8 min-w-20 focus-visible:outline-2",
             )}
             aria-label={t("product.selectQuantity")}
           >
@@ -1183,7 +1413,7 @@ function CartLineQuantityAdjust({
               <Select.Value />
             </span>
             <Select.Icon className="shrink-0">
-              <CaretDown className={clsx(layout === "page" ? "h-3 w-3" : "")} />
+              <CaretDown className="h-3 w-3" />
             </Select.Icon>
           </Select.Trigger>
           <Select.Portal>
@@ -1240,11 +1470,13 @@ function CartLinePrice({
   line,
   amountType = "total",
   isLoading = false,
+  fontWeight = "semibold",
   ...passthroughProps
 }: {
   line: CartLine;
   amountType?: "unit" | "total" | "compareAt";
   isLoading?: boolean;
+  fontWeight?: "normal" | "semibold";
   [key: string]: any;
 }) {
   if (!(line?.cost?.amountPerQuantity && line?.cost?.totalAmount)) {
@@ -1271,7 +1503,10 @@ function CartLinePrice({
       withoutTrailingZeros
       {...passthroughProps}
       data={moneyV2}
-      className="mr-2 font-semibold"
+      className={clsx(
+        fontWeight === "normal" ? "font-normal" : "font-semibold",
+        passthroughProps.className,
+      )}
     />
   );
 }
@@ -1285,8 +1520,10 @@ function CartEmpty({
   layout?: Layouts;
   onClose?: () => void;
 }) {
+  const { t } = useTranslation();
+
   let { cartTitleEmpty, buttonStartShopping, enableCartBestSellers } =
-    useThemeSettings();
+    useTranslatedThemeSettings();
   const scrollRef = useRef(null);
   const { y } = useScroll(scrollRef);
   return (
@@ -1294,7 +1531,7 @@ function CartEmpty({
       ref={scrollRef}
       className={clsx(
         layout === "drawer" && [
-          "h-full min-h-0 w-full content-start space-y-12 overflow-y-auto px-5 pb-5 transition",
+          "h-full min-h-0 w-full content-start space-y-12 overflow-y-auto transition",
           y > 0 ? "border-t" : "",
         ],
         layout === "page" && [
@@ -1320,7 +1557,7 @@ function CartEmpty({
         <div className="grid gap-4">
           <CartBestSellers
             count={4}
-            heading="Shop Best Sellers"
+            heading={t("cart.shopBestSellers")}
             layout={layout}
             sortKey="BEST_SELLING"
           />

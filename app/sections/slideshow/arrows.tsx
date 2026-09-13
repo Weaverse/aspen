@@ -4,12 +4,13 @@ import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import type React from "react";
 import { useSwiper } from "swiper/react";
+import { ArrowButton } from "~/components/arrow-button";
 import { cn } from "~/utils/cn";
 
 const buttonVariants = cva(
   [
-    "flex size-12 cursor-pointer items-center justify-center border",
-    "transition-colors duration-200",
+    "flex size-10 cursor-pointer items-center justify-center border lg:size-12",
+    "transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white",
   ],
   {
     variants: {
@@ -21,7 +22,7 @@ const buttonVariants = cva(
           "hover:text-(--btn-primary-text-hover)",
         ],
         secondary: [
-          "border-transparent bg-white text-[#343231]",
+          "border-transparent bg-[#EDEAE6] text-[#343231]",
           "hover:bg-white/80 hover:text-[#343231]",
         ],
       },
@@ -89,26 +90,33 @@ export function Arrows(props: SlideshowArrowsProps) {
       className={cn(
         "pointer-events-none absolute inset-x-0 bottom-[53px] z-2 md:bottom-[51px]",
         "transition-opacity duration-200",
-        showArrowsOnHover && "opacity-0 group-hover:opacity-100",
+        showArrowsOnHover &&
+          "md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100",
       )}
     >
-      <div className="pointer-events-auto mx-auto flex w-full max-w-(--page-width) justify-end gap-4 px-8 md:px-(--page-padding) 2xl:translate-x-1 2xl:px-0">
-        <button
+      <div className="pointer-events-none mx-auto flex w-full max-w-(--page-width) justify-end gap-4 px-8 md:px-(--page-padding) 2xl:translate-x-1 2xl:px-0">
+        <ArrowButton
           type="button"
-          className={cn(buttonVariants({ arrowsColor, arrowsShape }))}
+          className={cn(
+            "pointer-events-auto !size-10 !p-2 [&>svg]:!size-4 lg:!size-12 lg:!p-3 lg:[&>svg]:!size-5",
+            buttonVariants({ arrowsColor, arrowsShape }),
+          )}
           onClick={handlePrevClick}
           aria-label={t("carousel.previousSlide")}
         >
           {renderArrow("left")}
-        </button>
-        <button
+        </ArrowButton>
+        <ArrowButton
           type="button"
-          className={cn(buttonVariants({ arrowsColor, arrowsShape }))}
+          className={cn(
+            "pointer-events-auto !size-10 !p-2 [&>svg]:!size-4 lg:!size-12 lg:!p-3 lg:[&>svg]:!size-5",
+            buttonVariants({ arrowsColor, arrowsShape }),
+          )}
           onClick={handleNextClick}
           aria-label={t("carousel.nextSlide")}
         >
           {renderArrow("right")}
-        </button>
+        </ArrowButton>
       </div>
     </div>
   );

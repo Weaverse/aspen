@@ -32,9 +32,14 @@ const Instagram = forwardRef<HTMLElement, InstagramProps>((props, ref) => {
   let { instagramToken, loaderData, children, ...rest } = props;
 
   return (
-    <Section ref={ref} {...rest} width="full" className="bg-[#EDEDED]">
+    <Section
+      ref={ref}
+      {...rest}
+      width="full"
+      className="instagram-section bg-[#EDEDED]"
+    >
       <InstagramProvider value={{ loaderData }}>
-        <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-10 px-5 lg:flex-row lg:items-start lg:gap-6 lg:px-0">
+        <div className="instagram-row mx-auto flex w-full max-w-[1440px] flex-col gap-10 px-5 md:flex-row md:items-stretch md:gap-6 md:px-8 lg:gap-6 lg:px-0">
           {children}
         </div>
       </InstagramProvider>
@@ -102,7 +107,7 @@ export const schema: HydrogenComponentSchema = {
         slidesPerView: 4,
         spaceBetween: 20,
         showNavigation: true,
-        arrowsIcon: "arrow",
+        arrowsIcon: "caret",
       },
     ],
   },

@@ -11,6 +11,7 @@ import { usePredictiveSearch } from "~/hooks/use-predictive-search";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import type { NormalizedPredictiveSearchResultItem } from "~/types/predictive-search";
 import { PopularSearch } from "../PopularSearch";
+import { withPinnedCollections } from "../pinned-collections";
 import { PredictiveSearchForm } from "../search-form";
 import { PredictiveSearchResult } from "./predictive-search-result";
 
@@ -188,8 +189,9 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
                           className="py-7"
                         >
                           <PopularSearch
-                            className="pb-6"
-                            itemClassName="text-sm tracking-[0.01em]"
+                            className="mx-0 w-[258px] max-w-full pb-6"
+                            headingClassName="flex h-7 w-full items-start gap-2 self-stretch border-[#D8D8D8] border-b"
+                            itemClassName="font-normal text-sm tracking-[0.01em]"
                             useSearchHistory
                           />
                         </motion.div>
@@ -235,11 +237,19 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
 function PredictiveSearchResults() {
   const { t } = useTranslation();
   const [activeType, setActiveType] = useState<ResourceType>("products");
-  const { results, searchTerm, searchTermValue } = usePredictiveSearch();
+  const { results, searchTermValue } = usePredictiveSearch();
+  const collectionsPath = usePrefixPathWithLocale("/collections");
+  const newArrivalsPath = usePrefixPathWithLocale("/collections/new-arrivals");
   const queries = results?.find(({ type }) => type === "queries");
   const products = results?.find(({ type }) => type === "products");
   const collections = results?.find(({ type }) => type === "collections");
   const pages = results?.find(({ type }) => type === "pages");
+  const collectionItems = withPinnedCollections(collections?.items, {
+    allTitle: t("search.all"),
+    allUrl: collectionsPath,
+    newArrivalsTitle: t("search.newArrivals"),
+    newArrivalsUrl: newArrivalsPath,
+  });
   const hasResourceResults = Boolean(
     products?.items.length || collections?.items.length || pages?.items.length,
   );
@@ -272,7 +282,7 @@ function PredictiveSearchResults() {
           activeType={activeType}
           counts={{
             products: products?.items.length || 0,
-            collections: collections?.items.length || 0,
+            collections: collectionItems.length,
             pages: pages?.items.length || 0,
           }}
           onChange={setActiveType}
@@ -287,7 +297,7 @@ function PredictiveSearchResults() {
           {activeType === "collections" && (
             <PredictiveSearchResult
               type="collections"
-              items={collections?.items.slice(0, 4)}
+              items={collectionItems.slice(0, 4)}
             />
           )}
           {activeType === "pages" && (
@@ -324,7 +334,7 @@ function SuggestionsPanel({
     <aside aria-labelledby="desktop-search-suggestions">
       <h2
         id="desktop-search-suggestions"
-        className="flex h-7 items-start border-[#D8D8D8] border-b font-semibold text-[#524B46] text-sm uppercase leading-5"
+        className="flex h-7 items-start border-[#D8D8D8] border-b font-body font-semibold text-[14px] uppercase leading-[160%] tracking-[0.28px] text-[var(--color-text-subtle,#524B46)]"
       >
         {t("search.suggestions")}
       </h2>

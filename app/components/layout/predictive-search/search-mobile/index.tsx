@@ -10,6 +10,7 @@ import Link from "~/components/link";
 import { usePredictiveSearch } from "~/hooks/use-predictive-search";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import { PopularSearch } from "../PopularSearch";
+import { withPinnedCollections } from "../pinned-collections";
 import { PredictiveSearchForm } from "../search-form";
 import { PredictiveSearchResult } from "./predictive-search-result";
 
@@ -188,7 +189,11 @@ export function PredictiveSearchButtonMobile({ setIsSearchOpen }) {
                           </div>
                           <div className="min-h-0 flex-1 overflow-y-auto px-5 pt-6 pb-10">
                             {!hasSearched && !loading ? (
-                              <PopularSearch />
+                              <PopularSearch
+                                className="mx-0 w-full max-w-none"
+                                headingClassName="block w-full border-[#D8D8D8] border-b pb-[11px] font-body font-semibold text-[14px] uppercase leading-[160%] tracking-[0.28px] text-[var(--color-text-subtle,#524B46)]"
+                                itemClassName="font-normal text-sm"
+                              />
                             ) : loading ? (
                               <div
                                 className="flex min-h-48 items-center justify-center gap-2 text-body-subtle"
@@ -223,11 +228,19 @@ function PredictiveSearchResults() {
   const [activeType, setActiveType] = useState<
     "products" | "collections" | "pages"
   >("products");
-  const { results, searchTerm, searchTermValue } = usePredictiveSearch();
+  const { results, searchTermValue } = usePredictiveSearch();
+  const collectionsPath = usePrefixPathWithLocale("/collections");
+  const newArrivalsPath = usePrefixPathWithLocale("/collections/new-arrivals");
   const queries = results?.find(({ type }) => type === "queries");
   const products = results?.find(({ type }) => type === "products");
   const collections = results?.find(({ type }) => type === "collections");
   const pages = results?.find(({ type }) => type === "pages");
+  const collectionItems = withPinnedCollections(collections?.items, {
+    allTitle: t("search.all"),
+    allUrl: collectionsPath,
+    newArrivalsTitle: t("search.newArrivals"),
+    newArrivalsUrl: newArrivalsPath,
+  });
   const hasResourceResults = Boolean(
     products?.items.length || collections?.items.length || pages?.items.length,
   );
@@ -269,12 +282,15 @@ function PredictiveSearchResults() {
         </div>
         <div className="pt-5">
           {activeType === "pages" && (
-            <PredictiveSearchResult type="pages" items={pages?.items} />
+            <PredictiveSearchResult
+              type="pages"
+              items={pages?.items.slice(0, 8)}
+            />
           )}
           {activeType === "collections" && (
             <PredictiveSearchResult
               type="collections"
-              items={collections?.items}
+              items={collectionItems.slice(0, 4)}
             />
           )}
           {activeType === "products" && (
@@ -312,7 +328,7 @@ function NoResults({ searchTerm }: { searchTerm: string }) {
       aria-live="polite"
       aria-atomic="true"
     >
-      <p className="border-[#D8D8D8] border-b pb-[11px] font-semibold uppercase">
+      <p className="border-[#D8D8D8] border-b pb-[11px] font-body font-semibold text-[14px] uppercase leading-[160%] tracking-[0.28px] text-[var(--color-text-subtle,#524B46)]">
         {t("search.suggestions")}
       </p>
       <p className="py-[22px] font-semibold">{searchTerm}</p>

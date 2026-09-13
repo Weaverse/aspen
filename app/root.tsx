@@ -1,15 +1,13 @@
+import { useTranslatedThemeSettings } from "~/hooks/use-translated-theme-settings";
+import { localizedSeoMeta } from "~/utils/seo-translation";
 import "@fontsource/tenor-sans/index.css";
 import "@fontsource-variable/dm-sans/index.css";
 import tenorSansWoff2Url from "@fontsource/tenor-sans/files/tenor-sans-latin-400-normal.woff2?url";
 import dmSansVarWoff2Url from "@fontsource-variable/dm-sans/files/dm-sans-latin-wght-normal.woff2?url";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import type { SeoConfig } from "@shopify/hydrogen";
-import { Analytics, getSeoMeta, useNonce } from "@shopify/hydrogen";
-import {
-  useThemeSettings,
-  useTranslation,
-  withWeaverse,
-} from "@weaverse/hydrogen";
+import type { CartReturn, SeoConfig } from "@shopify/hydrogen";
+import { Analytics, useNonce } from "@shopify/hydrogen";
+import { useTranslation, withWeaverse } from "@weaverse/hydrogen";
 import type { CSSProperties } from "react";
 import {
   isRouteErrorResponse,
@@ -25,6 +23,7 @@ import {
   useRouteLoaderData,
 } from "react-router";
 import { CartStateProvider } from "./components/cart/cart-state-provider";
+import { useCartStore } from "./components/cart/store";
 import { Footer } from "./components/layout/footer";
 import { Header } from "./components/layout/header";
 import { ScrollingAnnouncement } from "./components/layout/scrolling-announcement";
@@ -89,8 +88,8 @@ export async function loader(args: LoaderFunctionArgs) {
   };
 }
 
-export const meta = ({ data }: MetaArgs<typeof loader>) => {
-  return getSeoMeta(data?.seo as SeoConfig);
+export const meta = ({ data, matches }: MetaArgs<typeof loader>) => {
+  return localizedSeoMeta(matches, data?.seo as SeoConfig);
 };
 
 function App() {
@@ -128,10 +127,13 @@ function RootLayout({ children }: { children?: React.ReactNode }) {
   const { t } = useTranslation();
   const data = useRouteLoaderData<RootLoader>("root");
   const locale = data?.selectedLocale ?? DEFAULT_LOCALE;
-  const { designSystemPreset, topbarHeight, topbarText } = useThemeSettings();
+  const { designSystemPreset, topbarHeight, topbarText } =
+    useTranslatedThemeSettings();
   const initialDesktopTopbarHeight =
     designSystemPreset === "custom" ? (topbarHeight ?? 56) : 56;
   const shouldShowNewsletterPopup = useShouldRenderNewsletterPopup();
+  const serverCart = useCartStore((state) => state.serverCart);
+  const cartResolved = useCartStore((state) => state.isResolved);
 
   return (
     <html
@@ -159,7 +161,7 @@ function RootLayout({ children }: { children?: React.ReactNode }) {
       >
         {data ? (
           <Analytics.Provider
-            cart={data.cart}
+            cart={cartResolved ? (serverCart as CartReturn) : data.cart}
             shop={data.shop}
             consent={data.consent}
           >

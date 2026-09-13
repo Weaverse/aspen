@@ -14,7 +14,9 @@ import { Image } from "~/components/image";
 import { Link } from "~/components/link";
 import { layoutInputs, Section, type SectionProps } from "~/components/section";
 import { useLocale } from "~/hooks/use-locale";
+import { useTranslatedText } from "~/hooks/use-translated-text";
 import type { ImageAspectRatio } from "~/types/image";
+import { minWidthQuery, TABLET_MIN_PX } from "~/utils/breakpoints";
 import { calculateAspectRatio, getImageLoadingPriority } from "~/utils/image";
 import { formatDate } from "~/utils/locale";
 
@@ -37,6 +39,8 @@ interface BlogsProps
 }
 
 const Blogs = forwardRef<HTMLElement, BlogsProps>((props, ref) => {
+  const translateText = useTranslatedText();
+
   const {
     layout,
     showExcerpt,
@@ -49,7 +53,7 @@ const Blogs = forwardRef<HTMLElement, BlogsProps>((props, ref) => {
     loadMoreCount = 6,
     // Button props
     buttonVariant = "primary",
-    buttonText = "Load More",
+    buttonText: rawI18nButtonText = "Load More",
     // Articles styling
     accentColor = "#27272A",
     showSeperator = true,
@@ -67,6 +71,10 @@ const Blogs = forwardRef<HTMLElement, BlogsProps>((props, ref) => {
     alignment,
     ...rest
   } = props;
+  const buttonText = translateText(
+    rawI18nButtonText,
+    "themeContent.sectionsBlogs.buttonText",
+  );
   const { blog, articles } = useLoaderData<{
     blog: NonNullable<BlogsIndexQuery["blog"]>;
     articles: ArticleFragment[];
@@ -184,7 +192,7 @@ export function ArticleCard({
                   imageAspectRatio,
                 )}
                 loading={loading}
-                sizes="(min-width: 768px) 50vw, 100vw"
+                sizes={`${minWidthQuery(TABLET_MIN_PX)} 50vw, 100vw`}
                 className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
             </div>

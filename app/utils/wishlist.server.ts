@@ -83,7 +83,7 @@ export async function writeWishlist(
     conflict,
     setupRequired: !conflict,
     message: conflict
-      ? "Wishlist changed in another session. Please try again."
+      ? "errors.wishlistConflict"
       : userError.message,
   };
 }

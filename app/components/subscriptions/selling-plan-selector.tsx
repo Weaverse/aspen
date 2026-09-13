@@ -3,8 +3,10 @@ import * as Select from "@radix-ui/react-select";
 import { useTranslation } from "@weaverse/hydrogen";
 import { useEffect, useId, useState } from "react";
 import { useRouteLoaderData } from "react-router";
+import { useLocale } from "~/hooks/use-locale";
 import type { loader as productRouteLoader } from "~/routes/($locale).products.$productHandle";
 import { cn } from "~/utils/cn";
+import { formatSymbolAmount } from "~/utils/locale";
 
 interface SellingPlanSelectorProps {
   variant: any;
@@ -12,6 +14,34 @@ interface SellingPlanSelectorProps {
   onSellingPlanChange: (sellingPlanId: string | null) => void;
   className?: string;
   product?: any; // Optional product prop for use in QuickShop
+}
+
+function getDeliveryIntervalWeight(sellingPlan: any) {
+  const optionValues = sellingPlan.options
+    ?.map((option: any) => option.value)
+    .filter(Boolean)
+    .join(" ");
+  const text = `${optionValues || ""} ${sellingPlan.name || ""} ${sellingPlan.description || ""}`;
+  const match = text.match(
+    /(\d+)?\s*(day|days|week|weeks|month|months|year|years)\b/i,
+  );
+
+  if (!match) {
+    return 0;
+  }
+
+  const amount = Number.parseInt(match[1] || "1", 10);
+  const unit = match[2].toLowerCase();
+  if (unit.startsWith("day")) {
+    return amount / 7;
+  }
+  if (unit.startsWith("month")) {
+    return amount * 4.345;
+  }
+  if (unit.startsWith("year")) {
+    return amount * 52;
+  }
+  return amount;
 }
 
 export function SellingPlanSelector({
@@ -22,6 +52,7 @@ export function SellingPlanSelector({
   product: productProp,
 }: SellingPlanSelectorProps) {
   const { t } = useTranslation();
+  const locale = useLocale();
   const loaderData = useRouteLoaderData<typeof productRouteLoader>(
     "routes/($locale).products.$productHandle",
   );
@@ -36,19 +67,26 @@ export function SellingPlanSelector({
     group.node.sellingPlans.edges.map((plan) => plan.node),
   );
 
-  const defaultPlanId =
-    sellingPlans.length > 0 ? sellingPlans[0].id : undefined;
+  const defaultPlanId = sellingPlans.reduce(
+    (longestPlan, sellingPlan) =>
+      !longestPlan ||
+      getDeliveryIntervalWeight(sellingPlan) >
+        getDeliveryIntervalWeight(longestPlan)
+        ? sellingPlan
+        : longestPlan,
+    null,
+  )?.id;
   const [dropdownValue, setDropdownValue] = useState<string>(
-    selectedSellingPlanId || defaultPlanId || "",
+    selectedSellingPlanId || "",
   );
 
   useEffect(() => {
     if (selectedSellingPlanId) {
       setDropdownValue(selectedSellingPlanId);
-    } else if (!dropdownValue && defaultPlanId) {
+    } else if (defaultPlanId) {
       setDropdownValue(defaultPlanId);
     }
-  }, [defaultPlanId, dropdownValue, selectedSellingPlanId]);
+  }, [defaultPlanId, selectedSellingPlanId]);
 
   if (sellingPlans.length === 0) {
     return null;
@@ -83,8 +121,10 @@ export function SellingPlanSelector({
     const subscriptionAmount = Number.parseFloat(subscriptionPrice.amount);
     const savings = baseAmount - subscriptionAmount;
 
-    const currencySymbol =
-      variant.price.currencyCode === "USD" ? "$" : variant.price.currencyCode;
+    const savingsLabel =
+      savings > 0
+        ? formatSymbolAmount(savings, variant.price.currencyCode, locale)
+        : null;
 
     const deliveryOption = sellingPlan.options?.find(
       (opt: any) =>
@@ -146,7 +186,7 @@ export function SellingPlanSelector({
 
     return {
       frequency: frequencyText || "",
-      savings: savings > 0 ? `${currencySymbol}${Math.round(savings)}` : null,
+      savings: savingsLabel,
       fallback: (() => {
         const cleanedName = sellingPlan.name
           .replace(/deliver\s+every\s+/gi, "")
@@ -194,7 +234,7 @@ export function SellingPlanSelector({
   );
 
   return (
-    <div className={cn("flex flex-col gap-3", className)}>
+    <div className={cn("flex flex-col gap-3 text-[#343231]", className)}>
       <div className="flex items-center gap-2">
         <input
           type="radio"
@@ -212,7 +252,7 @@ export function SellingPlanSelector({
         />
         <label
           htmlFor={oneTimeId}
-          className="cursor-pointer text-body leading-[1.6] tracking-[0.02em]"
+          className="cursor-pointer font-body text-sm leading-[1.6] tracking-[0.14px]"
         >
           {t("subscription.oneTimePurchase")}
         </label>
@@ -243,12 +283,12 @@ export function SellingPlanSelector({
           <div className="flex items-center gap-2 pt-0.5">
             <label
               htmlFor={subscriptionId}
-              className="cursor-pointer text-body leading-[1.6] tracking-[0.02em]"
+              className="cursor-pointer font-body text-sm leading-[1.6] tracking-[0.14px]"
             >
               {t("subscription.deliverEvery")}
             </label>
             <Select.Root
-              value={dropdownValue || undefined}
+              value={dropdownValue}
               onValueChange={(value) => {
                 setDropdownValue(value);
                 if (isSubscriptionSelected) {
@@ -268,7 +308,7 @@ export function SellingPlanSelector({
               >
                 <Select.Value
                   placeholder={t("subscription.selectPlan")}
-                  className="text-sm leading-[1.6] tracking-[0.02em]"
+                  className="font-body text-sm leading-[1.6] tracking-[0.14px]"
                 >
                   {displaySellingPlan
                     ? renderPlanText(displaySellingPlan)
@@ -285,9 +325,9 @@ export function SellingPlanSelector({
                       <Select.Item
                         key={sellingPlan.id}
                         value={sellingPlan.id}
-                        className="flex h-8 w-full cursor-pointer select-none items-center rounded px-3 py-1 outline-hidden hover:bg-gray-100"
+                        className="flex h-8 w-full cursor-pointer select-none items-center rounded px-3 py-1 font-body text-sm font-normal leading-[1.6] tracking-[0.14px] outline-hidden hover:bg-gray-100 data-[state=checked]:font-semibold data-[state=checked]:tracking-[0.28px]"
                       >
-                        <Select.ItemText className="font-semibold text-sm leading-[1.6] tracking-[0.02em]">
+                        <Select.ItemText>
                           {renderPlanText(sellingPlan)}
                         </Select.ItemText>
                       </Select.Item>

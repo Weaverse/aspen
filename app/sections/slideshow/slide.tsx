@@ -21,6 +21,7 @@ import type { OverlayAndBackgroundProps } from "~/components/overlay-and-backgro
 import Paragraph, { type ParagraphProps } from "~/components/paragraph";
 import { layoutInputs } from "~/components/section";
 import { useAnimation } from "~/hooks/use-animation";
+import { useTranslatedText } from "~/hooks/use-translated-text";
 import { cn } from "~/utils/cn";
 
 const variants = cva("flex h-full w-full items-end", {
@@ -95,6 +96,7 @@ export interface SlideProps
   paragraphWidth?: ParagraphProps["width"];
   // Button/Link props
   buttonContent?: string;
+  buttonAlignment?: "left" | "center" | "right";
   mobileButtonContent?: string;
   mobileButtonVariant?: LinkProps["variant"];
   to?: LinkProps["to"];
@@ -125,6 +127,8 @@ function resolveSlideImage(image?: WeaverseImage | string) {
 }
 
 const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
+  const translateText = useTranslatedText();
+
   const [scope] = useAnimation(ref);
   const {
     width,
@@ -141,7 +145,7 @@ const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
     mobileBackgroundImage,
     mobileBackgroundPosition,
     // Heading props
-    headingContent,
+    headingContent: rawI18nHeadingContent,
     mobileHeadingContent,
     headingTagName,
     color,
@@ -155,14 +159,14 @@ const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
     maxSize,
     animate,
     // Subheading props
-    subheadingContent,
+    subheadingContent: rawI18nSubheadingContent,
     subheadingTag = "p",
     subheadingColor,
     subheadingSize,
     subheadingWeight,
     subheadingAlignment,
     // Paragraph props
-    paragraphContent,
+    paragraphContent: rawI18nParagraphContent,
     mobileParagraphContent,
     paragraphTag = "p",
     paragraphColor,
@@ -170,7 +174,8 @@ const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
     paragraphAlignment,
     paragraphWidth,
     // Button/Link props
-    buttonContent,
+    buttonContent: rawI18nButtonContent,
+    buttonAlignment = "left",
     mobileButtonContent,
     mobileButtonVariant,
     to,
@@ -185,6 +190,22 @@ const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
     textColorDecor = "#FEF4EB",
     ...rest
   } = props;
+  const buttonContent = translateText(
+    rawI18nButtonContent,
+    "themeContent.sectionsSlideshowSlide.buttonContent",
+  );
+  const paragraphContent = translateText(
+    rawI18nParagraphContent,
+    "themeContent.sectionsSlideshowSlide.paragraphContent",
+  );
+  const subheadingContent = translateText(
+    rawI18nSubheadingContent,
+    "themeContent.sectionsSlideshowSlide.subheadingContent",
+  );
+  const headingContent = translateText(
+    rawI18nHeadingContent,
+    "themeContent.sectionsSlideshowSlide.headingContent",
+  );
 
   // Generate dynamic classes for subheading text
   const subheadingClasses = [
@@ -192,6 +213,11 @@ const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
     subheadingSize === "large" ? "text-lg" : "text-base",
     subheadingWeight === "medium" ? "font-medium" : "font-normal",
   ].join(" ");
+  const buttonAlignmentClass = {
+    left: "justify-start",
+    center: "justify-center",
+    right: "justify-end",
+  }[buttonAlignment];
 
   // Create the subheading element based on the selected tag
   const SubheadingTag = subheadingTag;
@@ -202,13 +228,15 @@ const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
   const mobileImage = resolveSlideImage(mobileBackgroundImage);
   const desktopDisplayImage = desktopImage || mobileImage;
   const mobileDisplayImage = mobileImage || desktopImage;
-  const defaultHeadingClassName =
+  const headingTrackingClassName =
+    (!letterSpacing || letterSpacing === "normal") && "tracking-[-0.03em]";
+  const tabletHeadingClassName =
     size === "default"
-      ? cn(
-          "text-[53px] leading-[1.1]",
-          (!letterSpacing || letterSpacing === "normal") &&
-            "tracking-[-0.03em]",
-        )
+      ? cn("text-[40px] leading-[1.1] lg:text-[53px]", headingTrackingClassName)
+      : undefined;
+  const mobileHeadingClassName =
+    size === "default"
+      ? cn("text-[36px] leading-[1.1]", headingTrackingClassName)
       : undefined;
 
   return (
@@ -259,7 +287,7 @@ const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
                 minSize={minSize}
                 maxSize={maxSize}
                 animate={animate}
-                className={defaultHeadingClassName}
+                className={tabletHeadingClassName}
               />
             </div>
           )}
@@ -278,7 +306,7 @@ const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
                 minSize={minSize}
                 maxSize={maxSize}
                 animate={animate}
-                className={defaultHeadingClassName}
+                className={mobileHeadingClassName}
               />
             </div>
           )}
@@ -301,7 +329,7 @@ const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
                 width={paragraphWidth}
                 className={cn(
                   (!paragraphSize || paragraphSize === "base") &&
-                    "text-[16px] leading-[1.6] tracking-[0.01em]",
+                    "text-[14px] leading-[1.6] tracking-[0.01em] lg:text-[16px]",
                 )}
               />
             </div>
@@ -323,7 +351,7 @@ const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
             </div>
           )}
           {buttonContent && (
-            <div className="hidden md:block">
+            <div className={cn("hidden w-full md:flex", buttonAlignmentClass)}>
               <Link
                 variant="custom"
                 textColor={textColor || "#FEF4EB"}
@@ -335,14 +363,14 @@ const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
                 textColorDecor={textColorDecor}
                 openInNewTab={openInNewTab}
                 to={to}
-                className="min-w-[175px] w-fit py-[19px] tracking-[0.033em]"
+                className="w-fit min-w-[148px] gap-2 px-5 py-3.5 text-sm tracking-[0.033em] lg:min-w-[175px] lg:px-6 lg:py-5"
               >
                 {buttonContent}
               </Link>
             </div>
           )}
           {mobileButton && (
-            <div className="md:hidden">
+            <div className={cn("flex w-full md:hidden", buttonAlignmentClass)}>
               <Link
                 variant={mobileButtonVariant || "custom"}
                 textColor={
@@ -586,6 +614,23 @@ export const schema = createSchema({
           defaultValue: "Shop all",
           placeholder: "Enter button text",
         },
+        {
+          type: "toggle-group",
+          name: "buttonAlignment",
+          label: "Alignment",
+          configs: {
+            options: [
+              { value: "left", label: "Left", icon: "align-start-vertical" },
+              {
+                value: "center",
+                label: "Center",
+                icon: "align-center-vertical",
+              },
+              { value: "right", label: "Right", icon: "align-end-vertical" },
+            ],
+          },
+          defaultValue: "left",
+        },
         ...linkInputs
           .map((input) => {
             if (input.name === "text") {
@@ -686,7 +731,7 @@ export const schema = createSchema({
     paragraphSize: "base",
     paragraphAlignment: "left",
     paragraphWidth: "full",
-    buttonContent: "EXPLORE MORE",
+    buttonContent: "Browse Collection",
     mobileButtonContent: "EXPLORE NOW",
     mobileButtonVariant: "decor",
     to: "/collections",

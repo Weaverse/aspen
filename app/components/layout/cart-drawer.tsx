@@ -2,37 +2,23 @@ import { ShoppingBagIcon, XIcon } from "@phosphor-icons/react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { type CartReturn, useAnalytics } from "@shopify/hydrogen";
 import { useTranslation } from "@weaverse/hydrogen";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense } from "react";
 import { Await, useRouteLoaderData } from "react-router";
 import { Cart } from "~/components/cart/cart";
 import { useCartState } from "~/components/cart/cart-state-provider";
+import { useCartStore } from "~/components/cart/store";
 import Link from "~/components/link";
 import type { RootLoader } from "~/root";
 import { AnimatedDrawer } from "../animate-drawer";
 
 // Event-based cart drawer state management
-const CART_DRAWER_EVENT = "cart-drawer-toggle";
 
 export function toggleCartDrawer(open: boolean) {
-  if (typeof window !== "undefined") {
-    window.dispatchEvent(
-      new CustomEvent(CART_DRAWER_EVENT, { detail: { open } }),
-    );
-  }
+  useCartStore.getState().toggle(open);
 }
 
 export function useCartDrawerState() {
-  const [isOpen, setIsOpen] = useState(false);
-
-  useEffect(() => {
-    const handler = (e: Event) => {
-      const customEvent = e as CustomEvent<{ open: boolean }>;
-      setIsOpen(customEvent.detail.open);
-    };
-
-    window.addEventListener(CART_DRAWER_EVENT, handler);
-    return () => window.removeEventListener(CART_DRAWER_EVENT, handler);
-  }, []);
+  const isOpen = useCartStore((state) => state.isOpen);
 
   return {
     isOpen,
@@ -83,9 +69,11 @@ export function CartDrawer() {
                 </span>
               )}
             </Dialog.Trigger>
-            <AnimatedDrawer open={isOpen}>
-              <div className="flex h-full min-h-0 flex-col">
-                <div className="flex items-center justify-between gap-2 px-5 pb-5">
+            <AnimatedDrawer open={isOpen} flush>
+              {/* Figma 512:13474 — the panel is the padded flex column:
+                  padding 12px 20px 24px, align-items flex-start, gap 16px. */}
+              <div className="flex h-full min-h-0 flex-col items-start gap-4 px-5 pt-3 pb-6 max-xl:pb-[max(24px,env(safe-area-inset-bottom))]">
+                <div className="flex h-[42px] w-full shrink-0 items-center justify-between gap-2">
                   <Dialog.Title asChild className="text-sm">
                     <span className="font-semibold uppercase tracking-[0.02em]">
                       {t("cart.title")}

@@ -15,9 +15,11 @@
 
   --breakpoint-sm: 32em;
   --breakpoint-md: 48em;
-  --breakpoint-lg: 64em;
+  /* Desktop starts after 1024px so tablet includes iPad landscape. */
+  --breakpoint-lg: 1025px;
   --breakpoint-xl: 80em;
   --breakpoint-2xl: 96em;
+  --breakpoint-desktop: 1025px;
 
   --shadow-header: 0 2px 5px #0000000f;
 }
@@ -249,8 +251,357 @@
   }
 
   mark {
-    background-color: none !important;
-    font-weight: 500;
+    background-color: transparent !important;
+    color: inherit;
+    font-weight: 600;
+  }
+}
+
+/* Featured Product (single-product): fill the row on tablet, no leftover right gap. */
+@media (max-width: 1024px) {
+  .featured-product-media,
+  div[class*="778px"].aspect-square {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin-inline: auto !important;
+  }
+}
+
+/* Instagram content card — same stack on mobile / tablet / desktop */
+.instagram-content,
+section:has(.instagram-tile) > div > div > div:first-child {
+  display: flex !important;
+  width: 320px !important;
+  max-width: 100% !important;
+  padding: var(--p-24, 24px) !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 24px !important;
+  border-radius: var(--Radius-border-radius-md, 12px) !important;
+  background: #fff !important;
+}
+
+.instagram-content :is(h1, h2, h3, h4, h5, h6, p, .paragraph, .heading) {
+  text-align: left !important;
+}
+
+.instagram-tile img,
+.instagram-tile picture,
+.instagram-tile > span {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
+.instagram-tile-overlay,
+.instagram-tile-logo {
+  opacity: 0;
+  transition: opacity 300ms;
+}
+
+.instagram-tile:hover .instagram-tile-overlay,
+.instagram-tile:focus-visible .instagram-tile-overlay,
+.instagram-tile:hover .instagram-tile-logo,
+.instagram-tile:focus-visible .instagram-tile-logo,
+.group:hover .instagram-tile-overlay,
+.group:focus-visible .instagram-tile-overlay,
+.group:hover .instagram-tile-logo,
+.group:focus-visible .instagram-tile-logo {
+  opacity: 1;
+}
+
+/* Tablet reference uses a 320:426 content/grid ratio. */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .instagram-section > div,
+  section:has(.instagram-tile) > div {
+    padding-block: 80px !important;
+    padding-inline: 0 !important;
+  }
+
+  .instagram-row,
+  section:has(.instagram-tile) > div > div {
+    display: grid !important;
+    grid-template-columns: minmax(0, 320fr) minmax(0, 426fr) !important;
+    align-items: stretch !important;
+    gap: 24px !important;
+    padding-inline: 32px !important;
+    max-width: none !important;
+  }
+
+  .instagram-content,
+  section:has(.instagram-tile) > div > div > div:first-child {
+    margin-inline: 0 !important;
+    width: auto !important;
+    min-width: 0 !important;
+    flex: 320 1 0 !important;
+    align-self: stretch !important;
+  }
+
+  .instagram-content > div:first-child > div:first-child > svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+  .instagram-content .heading {
+    text-transform: uppercase;
+  }
+
+  section:has(.instagram-tile) > div > div > div:last-child,
+  .instagram-slider-wrap {
+    flex: 426 1 0 !important;
+    min-width: 0 !important;
+  }
+
+  .instagram-grid,
+  section:has(.instagram-tile) .instagram-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .instagram-grid-cell,
+  .instagram-grid > * {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: auto !important;
+    aspect-ratio: 1 / 1 !important;
+    border-radius: var(--Radius-border-radius-md, 12px) !important;
+    background: #fff !important;
+    overflow: hidden;
+  }
+
+  .instagram-carousel,
+  section:has(.instagram-tile) .instagram-carousel,
+  section:has(.instagram-tile) .swiper {
+    display: none !important;
+  }
+
+  .instagram-tile {
+    display: flex !important;
+    height: 100% !important;
+    width: 100% !important;
+    max-width: none !important;
+    align-items: flex-start !important;
+    aspect-ratio: 1 / 1 !important;
+    border-radius: var(--Radius-border-radius-md, 12px) !important;
+    background: #fff !important;
+  }
+}
+
+/* Desktop: a content-height card beside four columns of square images. */
+@media (min-width: 1025px) {
+  .instagram-section > div {
+    padding: 80px 0 !important;
+  }
+
+  .instagram-row {
+    display: grid;
+    grid-template-columns: 320px minmax(0, 1fr);
+    align-items: start;
+    gap: 24px;
+    max-width: 1504px;
+    padding-inline: 32px;
+  }
+
+  .instagram-content {
+    align-self: start;
+    margin-inline: 0;
+  }
+
+  .instagram-content .heading {
+    text-transform: uppercase;
+  }
+
+  .instagram-grid-cell {
+    min-width: 0;
+  }
+}
+
+/* Mobile Instagram tiles stay square; utilities like rounded-(--radius-md) otherwise win. */
+@media (max-width: 767px) {
+  .instagram-tile {
+    border-radius: 0 !important;
+  }
+
+  /* Image with text — scenario 2 */
+  section:has([data-content-layout="split"]) > div,
+  .iwt-split-row {
+    height: auto !important;
+    padding-block: 0 !important;
+  }
+
+  section:has([data-content-layout="split"]) > div > :not([data-content-layout]),
+  .iwt-split-media {
+    aspect-ratio: 1 / 1 !important;
+    height: auto !important;
+    width: 100% !important;
+    padding-block: 0 !important;
+  }
+
+  section:has([data-content-layout="split"]) > div > :not([data-content-layout]) > *,
+  .iwt-split-media > * {
+    height: 100% !important;
+    width: 100% !important;
+  }
+
+  [data-content-layout="split"] {
+    height: auto !important;
+    width: 100% !important;
+    gap: var(--iwt-content-gap, 40px) !important;
+    padding: 40px !important;
+  }
+}
+
+/* Image with text — scenario 2 tablet (768–1024): 2-col, 40/32/40 */
+@media (min-width: 768px) and (max-width: 1024px) {
+  section:has([data-content-layout="split"]) > div,
+  .iwt-split-row {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: stretch !important;
+    height: auto !important;
+    padding-block: 40px !important;
+    padding-inline: 0 !important;
+  }
+
+  section[data-media-position="left"]:has([data-content-layout="split"]) > div,
+  section[data-media-position="left"] .iwt-split-row {
+    flex-direction: row-reverse !important;
+  }
+
+  section:has([data-content-layout="split"]) > div > :not([data-content-layout]),
+  .iwt-split-media {
+    aspect-ratio: 1 / 1 !important;
+    height: auto !important;
+    width: 50% !important;
+    flex: 1 1 50% !important;
+    padding-block: 0 !important;
+    align-self: stretch !important;
+  }
+
+  section:has([data-content-layout="split"]) > div > :not([data-content-layout]) > *,
+  .iwt-split-media > * {
+    height: 100% !important;
+    width: 100% !important;
+    object-fit: cover !important;
+  }
+
+  [data-content-layout="split"] {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: var(--iwt-content-align, flex-start) !important;
+    justify-content: var(--iwt-content-justify, flex-start) !important;
+    align-self: stretch !important;
+    height: auto !important;
+    width: 50% !important;
+    flex: 1 1 50% !important;
+    gap: var(--iwt-content-gap, 20px) !important;
+    padding: 0 32px !important;
+    text-align: var(--iwt-content-text-align, left) !important;
+  }
+}
+
+/* Split content — tablet: top-left stack */
+@media (min-width: 768px) and (max-width: 1024px) {
+  [data-content-layout="split"] :is(h1, h2, h3, h4, h5, h6, .heading) {
+    margin: 0 !important;
+    width: 100% !important;
+    text-align: var(--iwt-content-text-align, left) !important;
+    font-size: var(--h1-base-size) !important;
+    line-height: 1 !important;
+    letter-spacing: -0.03em !important;
+  }
+
+  [data-content-layout="split"] :is(p, .paragraph) {
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    text-align: var(--iwt-content-text-align, left) !important;
+  }
+
+  [data-content-layout="split"] :is(a.button, button.button, .button) {
+    align-self: var(--iwt-content-align, flex-start) !important;
+    justify-content: var(--iwt-content-align, flex-start) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    color: inherit !important;
+  }
+}
+
+/* Image with text — scenario 2 desktop (1728×944): 50/50, 40px inset, centered copy */
+@media (min-width: 1025px) {
+  section:has([data-content-layout="split"]) > div,
+  .iwt-split-row {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: stretch !important;
+    height: 944px !important;
+    padding-block: 40px !important;
+    padding-inline: 0 !important;
+  }
+
+  section[data-media-position="left"]:has([data-content-layout="split"]) > div,
+  section[data-media-position="left"] .iwt-split-row {
+    flex-direction: row-reverse !important;
+  }
+
+  section:has([data-content-layout="split"]) > div > :not([data-content-layout]),
+  .iwt-split-media {
+    height: 100% !important;
+    width: 50% !important;
+    flex: 1 1 50% !important;
+    aspect-ratio: auto !important;
+    padding: 0 !important;
+  }
+
+  section:has([data-content-layout="split"]) > div > :not([data-content-layout]) > *,
+  .iwt-split-media > * {
+    height: 100% !important;
+    width: 100% !important;
+    object-fit: cover !important;
+    object-position: center !important;
+  }
+
+  [data-content-layout="split"] {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: var(--iwt-content-align, center) !important;
+    justify-content: var(--iwt-content-justify, center) !important;
+    height: 100% !important;
+    width: 50% !important;
+    flex: 1 1 50% !important;
+    gap: var(--iwt-content-gap, 20px) !important;
+    padding: 0 64px !important;
+    text-align: var(--iwt-content-text-align, center) !important;
+  }
+
+  [data-content-layout="split"] :is(h1, h2, h3, h4, h5, h6, .heading) {
+    margin: 0 !important;
+    width: 100% !important;
+    text-align: var(--iwt-content-text-align, center) !important;
+    font-size: var(--h1-base-size) !important;
+    line-height: 1.1 !important;
+    letter-spacing: -0.03em !important;
+  }
+
+  [data-content-layout="split"] :is(p, .paragraph) {
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    text-align: var(--iwt-content-text-align, center) !important;
+  }
+
+  [data-content-layout="split"] :is(a.button, button.button, .button) {
+    align-self: var(--iwt-content-align, center) !important;
+    justify-content: var(--iwt-content-align, center) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    color: inherit !important;
   }
 }
 
@@ -286,7 +637,7 @@
       width: calc(100% + 4rem);
       max-width: 100vw;
     }
-    @media (min-width: 64em) {
+    @media (min-width: 1025px) {
       width: calc(100% + 8rem);
     }
   }
@@ -360,16 +711,6 @@
   h6 {
     letter-spacing: var(--heading-base-spacing);
     line-height: var(--heading-base-line-height);
-  }
-
-  /* Figma text styles: H1-H3 track -3%, H4-H6 track -2% */
-  h4,
-  h5,
-  h6,
-  .h4,
-  .h5,
-  .h6 {
-    letter-spacing: -0.02em;
   }
 
   /* Mobile sizes */
@@ -557,9 +898,11 @@
   opacity: 0;
 } */
 
-/* Remove mark highlight in predictive search */
-.predictive-search-result mark {
-  background: none !important;
+/* Matching search terms: bold, no yellow highlight */
+.predictive-search-result mark,
+.search-suggestion-highlight mark {
+  background: transparent !important;
+  color: inherit;
   font-weight: 600 !important;
 }
 
@@ -666,4 +1009,35 @@
 
 .animate-fade-out {
   animation: fade-out 0.25s ease-in;
+}
+
+/*
+  iPad / responsive-mode dialog lock: react-remove-scroll injects
+  `body[data-scroll-locked] { margin-right: <gap> !important }` after our
+  stylesheet. On 1024px iPad Pro it misreads visualViewport scale as a
+  ~350px scrollbar and leaves a blank strip on the right.
+*/
+html {
+  overflow-x: clip;
+}
+
+html body[data-scroll-locked] {
+  --removed-body-scroll-bar-size: 0px !important;
+  margin-right: 0 !important;
+  padding-right: 0 !important;
+  width: 100% !important;
+  max-width: none !important;
+}
+
+html body.with-scroll-bars-hidden,
+html .with-scroll-bars-hidden {
+  padding-right: 0 !important;
+}
+
+html .right-scroll-bar-position {
+  right: 0 !important;
+}
+
+html .width-before-scroll-bar {
+  margin-right: 0 !important;
 }

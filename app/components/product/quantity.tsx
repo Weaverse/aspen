@@ -1,4 +1,4 @@
-import { CaretDownIcon, MinusIcon, PlusIcon } from "@phosphor-icons/react";
+import { CaretDownIcon, MinusIcon } from "@phosphor-icons/react";
 import * as Select from "@radix-ui/react-select";
 import { useTranslation } from "@weaverse/hydrogen";
 import { cn } from "~/utils/cn";
@@ -33,7 +33,7 @@ export function Quantity(props: QuantityProps) {
         <legend className="sr-only">{t("product.quantity")}</legend>
         <button
           type="button"
-          className="flex items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-body disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex w-11 shrink-0 flex-col items-center justify-center self-stretch focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-body disabled:cursor-not-allowed disabled:opacity-40"
           onClick={() => onChange(Math.max(1, value - 1))}
           disabled={value <= 1}
           aria-label={t("product.decreaseQuantity")}
@@ -41,7 +41,7 @@ export function Quantity(props: QuantityProps) {
           <MinusIcon aria-hidden="true" className="h-4 w-4" />
         </button>
         <output
-          className="flex items-center justify-center border-line-subtle border-x"
+          className="flex w-11 shrink-0 flex-col items-center justify-center self-stretch border-line-subtle border-x"
           aria-live="polite"
           aria-label={t(
             value === 1 ? "product.itemCount" : "product.itemCount_other",
@@ -52,12 +52,17 @@ export function Quantity(props: QuantityProps) {
         </output>
         <button
           type="button"
-          className="flex items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-body disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex w-11 shrink-0 flex-col items-center justify-center self-stretch focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-body disabled:cursor-not-allowed disabled:opacity-40"
           onClick={() => onChange(Math.min(maxQuantity, value + 1))}
           disabled={value >= maxQuantity}
           aria-label={t("product.increaseQuantity")}
         >
-          <PlusIcon aria-hidden="true" className="h-4 w-4" />
+          <span
+            aria-hidden="true"
+            className="font-body font-semibold text-xl leading-normal text-[#343231]"
+          >
+            +
+          </span>
         </button>
       </fieldset>
     );

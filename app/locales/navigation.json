@@ -1,0 +1,98 @@
+{
+  "FR": {
+    "navigation": {
+      "menu": "Menu",
+      "home": "Accueil",
+      "shopHome": "Accueil de {{shop}}",
+      "article": "Article",
+      "readMore": "En savoir plus",
+      "newArrival": "Nouveautés",
+      "sale": "Promotions",
+      "allSale": "Toutes les promotions",
+      "categories": {
+        "bed-frames": "Cadres de lit",
+        "storage-beds": "Lits avec rangement",
+        "upholstered-beds": "Lits rembourrés",
+        "lounge-chairs": "Fauteuils de salon",
+        "dining-chairs": "Chaises de salle à manger",
+        "office-chairs": "Chaises de bureau",
+        "sectional-sofas": "Canapés d’angle",
+        "sofa-beds": "Canapés-lits",
+        "modular-sofas": "Canapés modulables"
+      },
+      "account": "Compte"
+    },
+    "locale": {
+      "selectCountry": "Choisir le pays",
+      "selectCurrency": "Choisir la devise",
+      "selectLanguage": "Choisir la langue",
+      "selectOption": "Choisir {{option}}"
+    },
+    "accessibility": {
+      "skipToContent": "Aller au contenu",
+      "openMenu": "Ouvrir le menu",
+      "closeMenu": "Fermer le menu",
+      "backToMainMenu": "Retour au menu principal",
+      "openSubmenu": "Ouvrir le sous-menu {{item}}",
+      "openCart": "Ouvrir le panier",
+      "closeCart": "Fermer le panier",
+      "openSearch": "Ouvrir la recherche",
+      "closeSearch": "Fermer la recherche",
+      "clearSearch": "Effacer la recherche",
+      "viewSearchResults": "Voir tous les résultats de recherche",
+      "close": "Fermer"
+    },
+    "announcement": {
+      "previous": "Annonce précédente",
+      "next": "Annonce suivante"
+    }
+  },
+  "ES": {
+    "navigation": {
+      "menu": "Menú",
+      "home": "Inicio",
+      "shopHome": "Inicio de {{shop}}",
+      "article": "Artículo",
+      "readMore": "Leer más",
+      "newArrival": "Novedades",
+      "sale": "Ofertas",
+      "allSale": "Todas las ofertas",
+      "categories": {
+        "bed-frames": "Estructuras de cama",
+        "storage-beds": "Camas con almacenaje",
+        "upholstered-beds": "Camas tapizadas",
+        "lounge-chairs": "Sillones de descanso",
+        "dining-chairs": "Sillas de comedor",
+        "office-chairs": "Sillas de oficina",
+        "sectional-sofas": "Sofás seccionales",
+        "sofa-beds": "Sofás cama",
+        "modular-sofas": "Sofás modulares"
+      },
+      "account": "Cuenta"
+    },
+    "locale": {
+      "selectCountry": "Seleccionar país",
+      "selectCurrency": "Seleccionar moneda",
+      "selectLanguage": "Seleccionar idioma",
+      "selectOption": "Seleccionar {{option}}"
+    },
+    "accessibility": {
+      "skipToContent": "Ir al contenido",
+      "openMenu": "Abrir menú",
+      "closeMenu": "Cerrar menú",
+      "backToMainMenu": "Volver al menú principal",
+      "openSubmenu": "Abrir submenú de {{item}}",
+      "openCart": "Abrir carrito",
+      "closeCart": "Cerrar carrito",
+      "openSearch": "Abrir búsqueda",
+      "closeSearch": "Cerrar búsqueda",
+      "clearSearch": "Borrar búsqueda",
+      "viewSearchResults": "Ver todos los resultados",
+      "close": "Cerrar"
+    },
+    "announcement": {
+      "previous": "Anuncio anterior",
+      "next": "Anuncio siguiente"
+    }
+  }
+}

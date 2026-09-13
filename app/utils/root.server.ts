@@ -64,7 +64,9 @@ export async function loadCriticalData({
     },
     selectedLocale: localization.selectedLocale,
     availableLocales: localization.availableLocales,
+    availableCurrencies: localization.availableCurrencies,
     defaultLocale: localization.defaultLocale,
+    selectedMarketCountry: localization.selectedMarketCountry,
     weaverseTheme,
     googleGtmID: env.PUBLIC_GOOGLE_GTM_ID,
     swatchesConfigs,
@@ -118,7 +120,7 @@ async function loadCustomerWishlist(
       error:
         error instanceof Error
           ? error.message
-          : "Wishlist is temporarily unavailable.",
+          : "errors.wishlistUnavailable",
     };
   }
 }
@@ -126,6 +128,7 @@ async function loadCustomerWishlist(
 async function getLayoutData({ storefront, env }: AppLoadContext) {
   const data = await storefront
     .query<LayoutQuery>(LAYOUT_QUERY, {
+      cache: storefront.CacheLong(),
       variables: {
         headerMenuHandle: "main-menu",
         footerMenuHandle: "footer",
@@ -167,6 +170,11 @@ async function getLayoutData({ storefront, env }: AppLoadContext) {
   return {
     shop: data.shop,
     headerMenu,
+    desktopMenuContent: {
+      featuredCollection: data.featuredCollection,
+      collections: data.desktopCollections.nodes,
+      articles: data.desktopArticles.nodes,
+    },
     footerMenu,
     paymentSettings: data.paymentSettings,
   };
@@ -185,7 +193,7 @@ async function getSwatchesConfigs(context: AppLoadContext) {
   }
   const { metaobjects } = await context.storefront.query<SwatchesQuery>(
     SWATCHES_QUERY,
-    { variables: { type } },
+    { variables: { type }, cache: context.storefront.CacheLong() },
   );
   const colors: Swatch[] = [];
   const images: Swatch[] = [];
@@ -367,10 +375,32 @@ const LAYOUT_QUERY = `#graphql
     footerMenu: menu(handle: $footerMenuHandle) {
       ...Menu
     }
+    featuredCollection: collection(handle: "best-selling") {
+      ...DesktopMenuCollection
+    }
+    desktopCollections: collections(first: 250, sortKey: TITLE) {
+      nodes { ...DesktopMenuCollection }
+    }
+    desktopArticles: articles(first: 8, sortKey: PUBLISHED_AT, reverse: true) {
+      nodes {
+        id
+        title
+        handle
+        tags
+        blog { handle }
+        image { id url altText width height }
+      }
+    }
     paymentSettings {
       acceptedCardBrands
       supportedDigitalWallets
     }
+  }
+  fragment DesktopMenuCollection on Collection {
+    id
+    title
+    handle
+    image { id url altText width height }
   }
   fragment Shop on Shop {
     id
@@ -394,6 +424,10 @@ const LAYOUT_QUERY = `#graphql
       __typename
       ... on Article {
         articleTags: tags
+        publishedAt
+        authorV2 {
+          name
+        }
         image {
           altText
           height

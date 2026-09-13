@@ -59,7 +59,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       {
         authenticated: await isWishlistAuthenticated(request, context),
         productIds: [],
-        error: "Method not allowed.",
+        error: "errors.methodNotAllowed",
       },
       405,
     );
@@ -77,7 +77,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       {
         authenticated: await isWishlistAuthenticated(request, context),
         productIds: [],
-        error: "Invalid wishlist request.",
+        error: "errors.wishlistInvalidRequest",
       },
       400,
     );
@@ -92,7 +92,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         {
           authenticated: true,
           productIds,
-          error: `Wishlist supports up to ${MAX_WISHLIST_SIZE} products.`,
+          error: "errors.wishlistLimit",
         },
         400,
       );
@@ -123,7 +123,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
           {
             authenticated: true,
             productIds: wishlist.productIds,
-            error: `Wishlist supports up to ${MAX_WISHLIST_SIZE} products.`,
+            error: "errors.wishlistLimit",
           },
           400,
         );
@@ -166,7 +166,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     {
       authenticated: true,
       productIds: [],
-      error: "Wishlist could not be updated. Please try again.",
+      error: "errors.wishlistUpdate",
     },
     409,
   );
@@ -196,7 +196,5 @@ function wishlistResponse(
 }
 
 function getErrorMessage(error: unknown) {
-  return error instanceof Error
-    ? error.message
-    : "Wishlist is temporarily unavailable.";
+  return error instanceof Error ? error.message : "errors.wishlistUnavailable";
 }

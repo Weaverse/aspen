@@ -1,5 +1,5 @@
 import { UserIcon } from "@phosphor-icons/react";
-import { useThemeSettings } from "@weaverse/hydrogen";
+import { useThemeSettings, useTranslation } from "@weaverse/hydrogen";
 import { cva } from "class-variance-authority";
 import clsx from "clsx";
 import { Suspense, useState } from "react";
@@ -46,18 +46,13 @@ function useIsHomeCheck() {
 
 export function Header() {
   let [isSearchOpen, setIsSearchOpen] = useState(false);
-  const {
-    designSystemPreset,
-    enableTransparentHeader,
-    headerLayout = "inline",
-    headerWidth,
-  } = useThemeSettings();
+  const { designSystemPreset, enableTransparentHeader, headerWidth } =
+    useThemeSettings();
   const isHome = useIsHomeCheck();
   const { y } = useWindowScroll();
   const routeError = useRouteError();
 
   const scrolled = y >= 50;
-  const isCompactDesktop = headerLayout === "compact";
   const enableTransparent =
     designSystemPreset === "custom" &&
     enableTransparentHeader &&
@@ -77,7 +72,7 @@ export function Header() {
         scrolled ? "shadow-none" : "shadow-none",
         enableTransparent
           ? [
-              "group/header fixed w-screen",
+              "group/header fixed inset-x-0 w-full",
               "top-(--topbar-height,var(--initial-topbar-height))",
             ]
           : "sticky top-0",
@@ -109,35 +104,28 @@ export function Header() {
         <div
           className={cn(
             "col-start-1 row-start-1 flex items-center gap-4 justify-self-start",
-            !isCompactDesktop && "xl:hidden",
+            "xl:hidden",
           )}
         >
-          <MobileMenu showOnDesktop={isCompactDesktop} />
+          <MobileMenu />
           <PredictiveSearchButtonMobile setIsSearchOpen={setIsSearchOpen} />
-          {isCompactDesktop ? (
-            <PredictiveSearchButtonDesktop setIsSearchOpen={setIsSearchOpen} />
-          ) : null}
         </div>
 
         <div
           className={cn(
             "col-start-2 row-start-1 justify-self-center",
-            !isCompactDesktop && "xl:col-start-1 xl:justify-self-start",
+            "xl:col-start-1 xl:justify-self-start",
           )}
         >
           <Logo />
         </div>
 
-        {!isCompactDesktop ? (
-          <div className="col-start-2 row-start-1 hidden h-full justify-self-center xl:block">
-            <DesktopMenu />
-          </div>
-        ) : null}
+        <div className="col-start-2 row-start-1 hidden h-full justify-self-center xl:block">
+          <DesktopMenu />
+        </div>
 
         <div className="z-1 col-start-3 row-start-1 flex items-center gap-4 justify-self-end">
-          {!isCompactDesktop ? (
-            <PredictiveSearchButtonDesktop setIsSearchOpen={setIsSearchOpen} />
-          ) : null}
+          <PredictiveSearchButtonDesktop setIsSearchOpen={setIsSearchOpen} />
           <AccountLink className="relative flex size-5 items-center justify-center before:absolute before:-inset-2" />
           <CartDrawer />
         </div>
@@ -147,11 +135,16 @@ export function Header() {
 }
 
 function AccountLink({ className }: { className?: string }) {
+  const { t } = useTranslation();
   const rootData = useRouteLoaderData<RootLoader>("root");
   const isLoggedIn = rootData?.isLoggedIn;
 
   return (
-    <Link to="/account" className={clsx("transition-none", className)}>
+    <Link
+      to="/account"
+      aria-label={t("navigation.account")}
+      className={clsx("transition-none", className)}
+    >
       <Suspense fallback={<UserIcon className="size-5" />}>
         <Await
           resolve={isLoggedIn}

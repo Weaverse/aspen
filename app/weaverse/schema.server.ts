@@ -1,5 +1,6 @@
 import type { HydrogenThemeSchema } from "@weaverse/hydrogen";
 import enUS from "~/locales/en-us.json";
+import navigationLocales from "~/locales/navigation.json";
 import type { StoreLocalization } from "~/types/locale";
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from "~/utils/const";
 import pkg from "../../package.json";
@@ -168,18 +169,6 @@ export const themeSchema: HydrogenThemeSchema = {
             ],
           },
           defaultValue: "fixed",
-        },
-        {
-          type: "select",
-          name: "headerLayout",
-          label: "Desktop layout",
-          configs: {
-            options: [
-              { value: "inline", label: "Inline menu" },
-              { value: "compact", label: "Compact menu" },
-            ],
-          },
-          defaultValue: "inline",
         },
         {
           type: "switch",
@@ -410,7 +399,7 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "Text color",
           name: "buttonSecondaryColor",
-          defaultValue: "#24211E",
+          defaultValue: "#343231",
         },
         {
           type: "color",
@@ -422,7 +411,7 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "Text color (hover)",
           name: "buttonSecondaryColorHover",
-          defaultValue: "#24211E",
+          defaultValue: "#343231",
         },
         {
           type: "heading",
@@ -438,7 +427,7 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "Background color",
           name: "buttonOutlineBackground",
-          defaultValue: "#FFFFFF",
+          defaultValue: "transparent",
         },
         {
           type: "color",
@@ -450,7 +439,7 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "Text color (hover)",
           name: "buttonOutlineTextHover",
-          defaultValue: "#524B46",
+          defaultValue: "#343231",
         },
         {
           type: "color",
@@ -462,7 +451,7 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "Border color (hover)",
           name: "buttonOutlineBorderHover",
-          defaultValue: "#B0ACA9",
+          defaultValue: "#B1B0AF",
         },
         {
           type: "heading",
@@ -478,7 +467,7 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "New",
           name: "newBadgeColor",
-          defaultValue: "#EBE8E5",
+          defaultValue: "#E3DAD4",
         },
         {
           type: "color",
@@ -807,18 +796,6 @@ export const themeSchema: HydrogenThemeSchema = {
           label: "Content",
         },
         {
-          type: "select",
-          label: "Title & prices alignment",
-          name: "pcardTitlePricesAlignment",
-          configs: {
-            options: [
-              { value: "horizontal", label: "Horizontal" },
-              { value: "vertical", label: "Vertical" },
-            ],
-          },
-          defaultValue: "vertical",
-        },
-        {
           type: "toggle-group",
           name: "pcardAlignment",
           label: "Content alignment",
@@ -834,7 +811,6 @@ export const themeSchema: HydrogenThemeSchema = {
             ],
           },
           defaultValue: "left",
-          condition: (data) => data.pcardTitlePricesAlignment === "vertical",
         },
         {
           type: "switch",
@@ -844,16 +820,9 @@ export const themeSchema: HydrogenThemeSchema = {
         },
         {
           type: "switch",
-          label: "Show lowest price",
-          name: "pcardShowLowestPrice",
-          defaultValue: false,
-        },
-        {
-          type: "switch",
           label: "Show sale price",
           name: "pcardShowSalePrice",
           defaultValue: true,
-          condition: (data) => data.pcardShowLowestPrice !== true,
         },
         {
           type: "switch",
@@ -1102,7 +1071,7 @@ export const themeSchema: HydrogenThemeSchema = {
           label: "Enable zoom",
           name: "enableZoom",
           type: "switch",
-          defaultValue: true,
+          defaultValue: false,
         },
         {
           type: "switch",
@@ -1299,20 +1268,169 @@ export const themeSchema: HydrogenThemeSchema = {
       ],
     },
     {
+      group: "Collection",
+      inputs: [
+        {
+          type: "image",
+          name: "collectionEditorialImage",
+          label: "Promo image",
+          helpText:
+            "Shown below collection products on tablet and desktop. Falls back to the search editorial image if empty. Hidden on mobile.",
+        },
+        {
+          type: "text",
+          name: "collectionEditorialHeading",
+          label: "Promo heading",
+          defaultValue: "Decorate for holidays and beyond",
+        },
+        {
+          type: "text",
+          name: "collectionEditorialLinkText",
+          label: "Promo link text",
+          defaultValue: "Explore now",
+        },
+        {
+          type: "url",
+          name: "collectionEditorialLink",
+          label: "Promo link",
+          defaultValue: "/collections",
+        },
+      ],
+    },
+    {
       group: "Footer",
       inputs: [
         {
+          type: "heading",
+          label: "Layout",
+        },
+        {
+          type: "range",
+          name: "footerPaddingMobile",
+          label: "Horizontal padding (mobile)",
+          configs: { min: 0, max: 64, step: 2, unit: "px" },
+          defaultValue: 20,
+        },
+        {
+          type: "range",
+          name: "footerPaddingTablet",
+          label: "Horizontal padding (tablet)",
+          configs: { min: 0, max: 96, step: 2, unit: "px" },
+          defaultValue: 32,
+        },
+        {
+          type: "range",
+          name: "footerPaddingDesktop",
+          label: "Horizontal padding (desktop)",
+          configs: { min: 0, max: 120, step: 2, unit: "px" },
+          defaultValue: 40,
+        },
+        {
+          type: "range",
+          name: "footerSectionSpacing",
+          label: "Section spacing",
+          configs: { min: 24, max: 120, step: 4, unit: "px" },
+          defaultValue: 56,
+        },
+        {
+          type: "range",
+          name: "footerColumnGap",
+          label: "Column gap",
+          configs: { min: 16, max: 120, step: 4, unit: "px" },
+          defaultValue: 80,
+        },
+        {
+          type: "range",
+          name: "footerBrandColumnWidth",
+          label: "Brand column width",
+          configs: { min: 280, max: 600, step: 10, unit: "px" },
+          defaultValue: 460,
+        },
+        {
+          type: "range",
+          name: "footerNewsletterWidth",
+          label: "Newsletter width",
+          configs: { min: 280, max: 600, step: 10, unit: "px" },
+          defaultValue: 400,
+        },
+        {
+          type: "range",
+          name: "footerNewsletterHeight",
+          label: "Newsletter field height",
+          configs: { min: 44, max: 72, step: 2, unit: "px" },
+          defaultValue: 54,
+        },
+        {
           type: "select",
-          name: "footerWidth",
-          label: "Footer width",
+          name: "footerMenuColumns",
+          label: "Menu columns",
           configs: {
             options: [
-              { value: "full", label: "Full page" },
-              { value: "stretch", label: "Stretch" },
-              { value: "fixed", label: "Fixed" },
+              { value: "2", label: "2 columns" },
+              { value: "3", label: "3 columns" },
+              { value: "4", label: "4 columns" },
             ],
           },
-          defaultValue: "full",
+          defaultValue: "4",
+        },
+        {
+          type: "heading",
+          label: "Appearance",
+        },
+        {
+          type: "range",
+          name: "footerFontSize",
+          label: "Text size",
+          configs: { min: 12, max: 22, step: 1, unit: "px" },
+          defaultValue: 14,
+        },
+        {
+          type: "range",
+          name: "footerLineHeight",
+          label: "Text line height",
+          configs: { min: 1, max: 2, step: 0.05 },
+          defaultValue: 1.55,
+        },
+        {
+          type: "color",
+          name: "footerDividerColor",
+          label: "Divider color",
+          defaultValue: "#3E3E3E",
+        },
+        {
+          type: "color",
+          name: "footerInputBackground",
+          label: "Input background",
+          defaultValue: "#FFFFFF",
+        },
+        {
+          type: "color",
+          name: "footerInputTextColor",
+          label: "Input text",
+          defaultValue: "#343231",
+        },
+        {
+          type: "color",
+          name: "footerInputBorderColor",
+          label: "Input border",
+          defaultValue: "#9D9D9D",
+        },
+        {
+          type: "color",
+          name: "footerInputPlaceholderColor",
+          label: "Input placeholder",
+          defaultValue: "#918379",
+        },
+        {
+          type: "range",
+          name: "footerSocialIconSize",
+          label: "Social icon size",
+          configs: { min: 14, max: 40, step: 1, unit: "px" },
+          defaultValue: 20,
+        },
+        {
+          type: "heading",
+          label: "Brand",
         },
         {
           type: "image",
@@ -1366,25 +1484,25 @@ export const themeSchema: HydrogenThemeSchema = {
           label: "Social links",
         },
         {
-          type: "text",
+          type: "url",
           name: "socialInstagram",
           label: "Instagram",
           defaultValue: "https://www.instagram.com/",
         },
         {
-          type: "text",
+          type: "url",
           name: "socialX",
           label: "X (formerly Twitter)",
           defaultValue: "https://x.com/i/communities/1636383560197373952",
         },
         {
-          type: "text",
+          type: "url",
           name: "socialLinkedIn",
           label: "LinkedIn",
           defaultValue: "https://www.linkedin.com/company/weaverseio",
         },
         {
-          type: "text",
+          type: "url",
           name: "socialFacebook",
           label: "Facebook",
           defaultValue: "https://www.facebook.com/weaverse",
@@ -1459,7 +1577,7 @@ export const themeSchema: HydrogenThemeSchema = {
           name: "copyright",
           label: "Copyright text",
           defaultValue:
-            '<p>© 2025 Aspen Theme. <a href="https://www.shopify.com/?utm_campaign=poweredby&utm_medium=shopify&utm_source=onlinestore">Powered by Shopify</a></p>',
+            '<p>© 2026 Aspen Theme. <a href="https://www.shopify.com/?utm_campaign=poweredby&utm_medium=shopify&utm_source=onlinestore" target="_blank" rel="noopener noreferrer">Powered by Shopify</a></p>',
         },
         {
           type: "heading",
@@ -1535,7 +1653,12 @@ export const themeSchema: HydrogenThemeSchema = {
 export function getThemeSchema({
   availableLocales,
   defaultLocale,
+  selectedLocale,
 }: StoreLocalization): HydrogenThemeSchema {
+  const localizedNavigation =
+    navigationLocales[
+      selectedLocale.language as keyof typeof navigationLocales
+    ];
   return {
     ...themeSchema,
     i18n: {
@@ -1546,6 +1669,14 @@ export function getThemeSchema({
       }),
       defaultLocale,
       shopLocales: availableLocales,
+      staticContent: {
+        ...enUS,
+        ...localizedNavigation,
+        accessibility: {
+          ...enUS.accessibility,
+          ...localizedNavigation?.accessibility,
+        },
+      },
     },
   };
 }

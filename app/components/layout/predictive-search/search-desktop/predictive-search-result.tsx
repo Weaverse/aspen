@@ -12,6 +12,7 @@ import type {
 } from "~/types/predictive-search";
 import { isValidColor } from "~/utils/misc";
 import { isDiscounted } from "~/utils/product";
+import { SuggestionTitle } from "../suggestion-title";
 
 type SearchResultType = NormalizedPredictiveSearchResults[number]["type"];
 
@@ -55,7 +56,7 @@ export function PredictiveSearchResult({
 
   if (type === "collections") {
     return (
-      <ul className="grid grid-cols-4 gap-4">
+      <ul className="flex items-start gap-4 self-stretch">
         {items.map((item) => (
           <CollectionResultItem item={item} key={item.id} />
         ))}
@@ -91,18 +92,12 @@ function QueryResults({
         <li key={item.id}>
           <Link
             to={item.url || `/search?q=${encodeURIComponent(item.id)}`}
-            className="block w-fit"
+            className="block w-fit font-normal"
           >
-            {item.styledTitle ? (
-              <span
-                className="[&_b]:font-semibold"
-                // Shopify returns only emphasis markup. The local fallback is
-                // escaped before being assigned to styledTitle.
-                dangerouslySetInnerHTML={{ __html: item.styledTitle }}
-              />
-            ) : (
-              item.title
-            )}
+            <SuggestionTitle
+              title={item.title}
+              styledTitle={item.styledTitle}
+            />
           </Link>
         </li>
       ))}
@@ -119,7 +114,7 @@ function ProductResultItem({
 
   return (
     <li className="min-w-0">
-      <Link to={item.url} className="block">
+      <Link to={item.url} className="block font-normal">
         <div className="aspect-square overflow-hidden rounded-xl bg-[#F0EFED]">
           {item.image?.url && (
             <Image
@@ -148,11 +143,11 @@ function ProductResultItem({
             ratingCountValue={item.ratingCountValue}
             className="!text-sm text-[#524B46]"
           />
-          <p className="mt-3 line-clamp-1 text-[#343231] text-sm uppercase leading-5">
+          <p className="mt-3 line-clamp-1 font-normal text-[#343231] text-sm uppercase leading-5">
             {item.title}
           </p>
           {item.price && (
-            <div className="mt-1 flex gap-2 text-[#343231] text-sm leading-5">
+            <div className="mt-1 flex gap-2 font-normal text-[#343231] text-sm leading-5">
               <Money withoutTrailingZeros data={item.price as MoneyV2} />
               {isDiscounted(
                 item.price as MoneyV2,
@@ -208,8 +203,11 @@ function CollectionResultItem({
   item: NormalizedPredictiveSearchResultItem;
 }) {
   return (
-    <li className="min-w-0">
-      <Link to={item.url} className="block text-[#343231] text-sm uppercase">
+    <li className="min-w-0 flex-1">
+      <Link
+        to={item.url}
+        className="block font-normal text-[#343231] text-sm uppercase leading-5 tracking-[0.02em]"
+      >
         {item.image?.url && (
           <div className="aspect-[258/194] overflow-hidden rounded-xl bg-[#F0EFED]">
             <Image
@@ -222,7 +220,11 @@ function CollectionResultItem({
             />
           </div>
         )}
-        <span className={item.image?.url ? "mt-4 block" : "block"}>
+        <span
+          className={
+            item.image?.url ? "mt-4 block font-normal" : "block font-normal"
+          }
+        >
           {item.title}
         </span>
       </Link>

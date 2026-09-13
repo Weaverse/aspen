@@ -7,6 +7,7 @@ import Heading, {
 } from "~/components/heading";
 import Link, { type LinkProps, linkInputs } from "~/components/link";
 import Paragraph, { type ParagraphProps } from "~/components/paragraph";
+import { useTranslatedText } from "~/hooks/use-translated-text";
 
 interface InstagramContentProps
   extends HydrogenComponentProps,
@@ -44,9 +45,11 @@ interface InstagramContentProps
 
 let InstagramContent = forwardRef<HTMLDivElement, InstagramContentProps>(
   (props, ref) => {
+    const translateText = useTranslatedText();
+
     let {
       // Heading props
-      headingContent,
+      headingContent: rawI18nHeadingContent,
       headingTagName,
       color,
       size,
@@ -59,21 +62,21 @@ let InstagramContent = forwardRef<HTMLDivElement, InstagramContentProps>(
       maxSize,
       animate,
       // Subheading props
-      subheadingContent,
+      subheadingContent: rawI18nSubheadingContent,
       subheadingTag = "p",
       subheadingColor,
       subheadingSize,
       subheadingWeight,
       subheadingAlignment,
       // Paragraph props
-      paragraphContent,
+      paragraphContent: rawI18nParagraphContent,
       paragraphTag = "p",
       paragraphColor,
       paragraphSize,
       paragraphAlignment,
       paragraphWidth,
       // Button/Link props
-      buttonContent,
+      buttonContent: rawI18nButtonContent,
       to,
       variant,
       openInNewTab,
@@ -86,6 +89,22 @@ let InstagramContent = forwardRef<HTMLDivElement, InstagramContentProps>(
       textColorDecor,
       ...rest
     } = props;
+    const buttonContent = translateText(
+      rawI18nButtonContent,
+      "themeContent.sectionsInstagramContent.buttonContent",
+    );
+    const paragraphContent = translateText(
+      rawI18nParagraphContent,
+      "themeContent.sectionsInstagramContent.paragraphContent",
+    );
+    const subheadingContent = translateText(
+      rawI18nSubheadingContent,
+      "themeContent.sectionsInstagramContent.subheadingContent",
+    );
+    const headingContent = translateText(
+      rawI18nHeadingContent,
+      "themeContent.sectionsInstagramContent.headingContent",
+    );
 
     const subheadingClasses = [
       subheadingAlignment === "center"
@@ -105,9 +124,9 @@ let InstagramContent = forwardRef<HTMLDivElement, InstagramContentProps>(
       <div
         ref={ref}
         {...rest}
-        className="flex w-full flex-col rounded-(--radius-md) bg-white p-6 lg:w-[320px] lg:flex-none"
+        className="instagram-content mx-auto flex w-[320px] max-w-full flex-col items-start gap-6 rounded-[var(--Radius-border-radius-md,12px)] bg-white p-6 md:mx-0 md:flex-none md:self-stretch"
       >
-        <div className="flex flex-col gap-2.5">
+        <div className="flex w-full flex-col items-start gap-2.5">
           {headingContent && (
             <div className="flex items-center gap-2">
               <InstagramLogo size={14} weight="regular" />
@@ -124,32 +143,30 @@ let InstagramContent = forwardRef<HTMLDivElement, InstagramContentProps>(
                 minSize={minSize}
                 maxSize={maxSize}
                 animate={animate}
-                className="text-xs leading-none tracking-[0.1em]"
+                className="text-left text-xs leading-none tracking-[0.1em]"
               />
             </div>
           )}
           {subheadingContent && (
             <SubheadingTag
-              className={subheadingClasses}
+              className={`${subheadingClasses} text-left`}
               style={{ color: subheadingColor }}
             >
               {subheadingContent}
             </SubheadingTag>
           )}
         </div>
-        <div className="mt-5">
-          {paragraphContent && (
-            <Paragraph
-              content={paragraphContent}
-              as={paragraphTag}
-              color={paragraphColor}
-              textSize={paragraphSize}
-              alignment={paragraphAlignment}
-              width={paragraphWidth}
-              className="text-sm leading-[1.6]"
-            />
-          )}
-        </div>
+        {paragraphContent && (
+          <Paragraph
+            content={paragraphContent}
+            as={paragraphTag}
+            color={paragraphColor}
+            textSize={paragraphSize}
+            alignment={paragraphAlignment}
+            width={paragraphWidth}
+            className="w-full text-left text-sm leading-[1.6]"
+          />
+        )}
         {buttonContent && (
           <Link
             variant={variant}
@@ -162,7 +179,7 @@ let InstagramContent = forwardRef<HTMLDivElement, InstagramContentProps>(
             textColorDecor={textColorDecor}
             openInNewTab={openInNewTab}
             to={to}
-            className="mt-6 w-fit bg-transparent p-0 font-semibold text-sm tracking-[0.02em]"
+            className="w-fit self-start bg-transparent p-0 font-semibold text-sm tracking-[0.02em]"
           >
             <span className="inline-flex items-center gap-2">
               {buttonContent}

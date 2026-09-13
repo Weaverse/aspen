@@ -15,6 +15,8 @@ import {
   useNavigation,
   useOutletContext,
 } from "react-router";
+import { getMetaTranslator } from "~/utils/seo-translation";
+import { translateError } from "~/utils/translated-error";
 import {
   CREATE_ADDRESS_MUTATION,
   DELETE_ADDRESS_MUTATION,
@@ -30,8 +32,8 @@ export type ActionResponse = {
   updatedAddress?: AddressPartialFragment;
 };
 
-export const meta: MetaFunction = () => {
-  return [{ title: "Addresses" }];
+export const meta: MetaFunction = ({ matches }) => {
+  return [{ title: getMetaTranslator(matches)("seo.addresses") }];
 };
 
 export async function loader({ context }: LoaderFunctionArgs) {
@@ -50,14 +52,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
       ? String(form.get("addressId"))
       : null;
     if (!addressId) {
-      throw new Error("You must provide an address id.");
+      throw new Error("errors.addressRequired");
     }
 
     // this will ensure redirecting to login never happen for mutation
     const isLoggedIn = await customerAccount.isLoggedIn();
     if (!isLoggedIn) {
       return data(
-        { error: { [addressId]: "Unauthorized" } },
+        { error: { [addressId]: "errors.unauthorized" } },
         {
           status: 401,
         },
@@ -110,7 +112,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
           }
 
           if (!createData?.customerAddressCreate?.customerAddress) {
-            throw new Error("Customer address create failed.");
+            throw new Error("errors.addressCreate");
           }
 
           return {
@@ -161,7 +163,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
           }
 
           if (!updateData?.customerAddressUpdate?.userErrors?.length) {
-            throw new Error("Customer address update failed.");
+            throw new Error("errors.addressUpdate");
           }
 
           return {
@@ -208,7 +210,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
           }
 
           if (!delateData?.customerAddressDelete?.deletedAddressId) {
-            throw new Error("Customer address delete failed.");
+            throw new Error("errors.addressDelete");
           }
 
           return { error: null, deletedAddress: addressId };
@@ -232,7 +234,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
       default: {
         return data(
-          { error: { [addressId]: "Method not allowed" } },
+          { error: { [addressId]: "errors.methodNotAllowed" } },
           {
             status: 405,
           },
@@ -516,7 +518,7 @@ export function AddressForm({
         {error ? (
           <p>
             <mark>
-              <small>{error}</small>
+              <small>{translateError(t, error)}</small>
             </mark>
           </p>
         ) : (

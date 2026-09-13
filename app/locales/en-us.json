@@ -13,22 +13,43 @@
     "viewSearchResults": "View all search results",
     "close": "Close",
     "beforeAfterComparison": "Before and after image comparison",
-    "customIcon": "Custom icon"
+    "customIcon": "Custom icon",
+    "beforeImage": "Before",
+    "afterImage": "After",
+    "hotspotsImage": "Hotspots image",
+    "imagePlaceholder": "Image placeholder"
   },
   "actions": {
     "cancel": "Cancel"
   },
   "locale": {
     "selectCountry": "Select country",
+    "selectCurrency": "Select currency",
     "selectLanguage": "Select language",
-    "selectOption": "Select {{option}}"
+    "selectOption": "Select {{option}}",
+    "english": "English"
   },
   "navigation": {
     "menu": "Menu",
     "home": "Homepage",
     "shopHome": "{{shop}} home",
     "article": "Article",
-    "readMore": "Read more"
+    "readMore": "Read more",
+    "newArrival": "New Arrival",
+    "sale": "Sale",
+    "allSale": "All Sale",
+    "categories": {
+      "bed-frames": "Bed Frames",
+      "storage-beds": "Storage Beds",
+      "upholstered-beds": "Upholstered Beds",
+      "lounge-chairs": "Lounge Chairs",
+      "dining-chairs": "Dining Chairs",
+      "office-chairs": "Office Chairs",
+      "sectional-sofas": "Sectional Sofas",
+      "sofa-beds": "Sofa Beds",
+      "modular-sofas": "Modular Sofas"
+    },
+    "account": "Account"
   },
   "search": {
     "title": "Search",
@@ -39,12 +60,15 @@
     "suggestions": "Suggestions",
     "products": "Products",
     "collections": "Collections",
+    "all": "All",
+    "newArrivals": "New Arrivals",
     "pages": "Pages",
     "page": "Page",
     "viewAllProducts": "View all products",
     "noResults": "No results for “{{term}}”",
     "unavailable": "Search unavailable",
     "resultsFor": "Results for “{{term}}”",
+    "resultsForLabel": "Results for",
     "loadPrevious": "Load previous products",
     "loadMore": "Load more",
     "noFilterMatches": "No products match your filters",
@@ -59,7 +83,14 @@
     "noProductsAvailable": "No products available.",
     "noCollectionsAvailable": "No collections available.",
     "noPagesAvailable": "No pages available.",
-    "noArticlesAvailable": "No articles available."
+    "noArticlesAvailable": "No articles available.",
+    "popularTerms": {
+      "chair": "chair",
+      "barrelChair": "barrel chair",
+      "accentChair": "accent chair",
+      "swivelChair": "swivel chair",
+      "diningChair": "dining chair"
+    }
   },
   "cart": {
     "title": "Cart",
@@ -73,23 +104,24 @@
     "removing": "Removing…",
     "loading": "Loading…",
     "empty": "Your cart is empty",
-    "noteTitle": "Add a note",
-    "discountTitle": "Apply a discount code",
-    "giftCardTitle": "Redeem a gift card",
-    "shippingTaxesCheckout": "Shipping and taxes will be calculated at checkout",
+    "noteTitle": "Order note",
+    "discountTitle": "Discount code",
+    "giftCardTitle": "Giftcard",
+    "shippingTaxesCheckout": "Shipping and taxes will be calculated at checkout.",
     "shippingTaxesCalculated": "Shipping & taxes calculated at checkout",
     "removeItem": "Remove {{product}} from cart",
     "viewCart": "View cart",
     "orderSummary": "Order summary",
     "close": "Close",
     "orderNote": "Order note",
-    "notePlaceholder": "Add any special instructions or notes for your order…",
+    "notePlaceholder": "Order special instructions",
     "noteSaved": "Cart note saved successfully 🎉",
     "addNote": "Add note",
     "discountCode": "Discount code",
     "discountApplied": "Discount applied successfully 🎉",
     "invalidDiscount": "Invalid discount code.",
     "giftCardCode": "Gift card code",
+    "remainingToPay": "Remaining to pay",
     "giftCardApplied": "Gift card applied successfully 🎉",
     "invalidGiftCard": "Invalid gift card code.",
     "apply": "Apply",
@@ -104,7 +136,8 @@
     "errors": {
       "selectAvailableOption": "Please select an available product option before adding it to your bag.",
       "noLineSelected": "No cart line was selected for removal."
-    }
+    },
+    "shopBestSellers": "Shop Best Sellers"
   },
   "product": {
     "addToCart": "Add to cart",
@@ -141,7 +174,7 @@
     "zoomMedia": "Zoom product media",
     "zoomImage": "Zoom product image",
     "selectOptions": "Select options",
-    "quickShop": "Quick shop",
+    "quickShop": "Product",
     "closeQuickShop": "Close quick shop",
     "backInStockTitle": "Notify me when back in stock",
     "backInStockDescription": "Enter your email and we'll let you know when this option is available.",
@@ -168,7 +201,10 @@
     "previousProduct": "Previous product",
     "nextProduct": "Next product",
     "seeMoreProducts": "See more products",
-    "pictureOf": "Picture of {{product}}"
+    "pictureOf": "Picture of {{product}}",
+    "estimatedDelivery": "Estimated delivery within 3-5 business days",
+    "lowStock": "Hurry up! Only {{count}} items in stock.",
+    "featuredProducts": "FEATURED PRODUCTS"
   },
   "loyalty": {
     "earnHint": "You'll earn {{points}} {{program}} points with this purchase.",
@@ -182,6 +218,8 @@
     "filterProductsActive": "Filter products, {{count}} active",
     "closeFilters": "Close filter drawer",
     "clearAllFilters": "Clear all filters",
+    "saleOnly": "Sale products",
+    "clearSaleFilter": "Show all products",
     "noMatches": "No products matched your filters.",
     "sort": "Sort",
     "sortBy": "Sort by",
@@ -260,6 +298,7 @@
     "phone": "Phone",
     "setDefaultAddress": "Set as default address",
     "addAddress": "Add new address",
+    "add": "Add",
     "editAddress": "Edit address",
     "modal": "Account modal",
     "closeModal": "Close account modal"
@@ -316,7 +355,6 @@
     "starCount_other": "{{count}} stars",
     "yourName": "Your name",
     "yourEmail": "Your email",
-    "reviewTitle": "Review title",
     "yourReview": "Your review",
     "submitReview": "Submit review",
     "thankYou": "Thanks for leaving your review.",
@@ -325,7 +363,9 @@
     "previousPage": "Previous review page",
     "nextPage": "Next review page",
     "media": "Review media",
-    "mediaPreview": "Review media preview"
+    "mediaPreview": "Review media preview",
+    "ratingWithCount": "{{rating}} out of 5 from {{count}} rating",
+    "ratingWithCount_other": "{{rating}} out of 5 from {{count}} ratings"
   },
   "blog": {
     "copyLink": "Copy link",
@@ -334,7 +374,23 @@
     "share": "Share",
     "tags": "Tags",
     "journal": "Journal",
-    "byAuthor": "By {{author}}"
+    "byAuthor": "By {{author}}",
+    "samples": {
+      "article1Title": "Summer Florals in the Modern Home",
+      "article1Excerpt": "A considered guide to warm materials, balanced proportions, and rooms designed around daily life.",
+      "article1AltText": "A calm, naturally styled living room",
+      "article2Title": "The Art of Minimalist Layering",
+      "article2Excerpt": "Why solid wood, linen, and tactile finishes only grow more beautiful with time.",
+      "article2AltText": "Natural furniture materials and textures",
+      "article3Title": "Curating a Calm Morning Routine",
+      "article3Excerpt": "Simple ways to make the everyday moments around your home feel more intentional.",
+      "article3AltText": "A thoughtfully arranged home interior"
+    },
+    "categories": {
+      "design": "DESIGN",
+      "inspiration": "INSPIRATION",
+      "interiors": "INTERIORS"
+    }
   },
   "countdown": {
     "days": "Days",
@@ -347,7 +403,15 @@
     "oneTimePurchase": "One time purchase",
     "deliverEvery": "Deliver every",
     "selectDeliveryFrequency": "Select delivery frequency",
-    "selectPlan": "Select plan"
+    "selectPlan": "Select plan",
+    "recurring": "Recurring delivery",
+    "deliveryPlan": "Deliver every {{plan}}",
+    "week": "Deliver every {{count}} week",
+    "week_other": "Deliver every {{count}} weeks",
+    "month": "Deliver every {{count}} month",
+    "month_other": "Deliver every {{count}} months",
+    "year": "Deliver every {{count}} year",
+    "year_other": "Deliver every {{count}} years"
   },
   "wishlist": {
     "add": "Add {{product}} to wishlist",
@@ -357,7 +421,8 @@
   "carousel": {
     "goToSlide": "Go to slide {{index}}",
     "previousSlide": "Previous slide",
-    "nextSlide": "Next slide"
+    "nextSlide": "Next slide",
+    "tab": "Tab"
   },
   "social": {
     "instagramPost": "Instagram post {{index}}",
@@ -373,7 +438,8 @@
   },
   "video": {
     "youtubePlayer": "YouTube video player",
-    "none": "No video"
+    "none": "No video",
+    "poster": "Hero video poster"
   },
   "system": {
     "somethingWentWrong": "Something went wrong",
@@ -385,5 +451,530 @@
     "orderRedirectError": "Error redirecting to the order status URL",
     "noIcon": "No icon",
     "error": "Error"
+  },
+  "themeContent": {
+    "componentsBreadcrumb": {
+      "homeLabel": "Home"
+    },
+    "componentsCartCartBestSellers": {
+      "heading": "Shop Best Sellers"
+    },
+    "componentsCustomerAccountDetails": {
+      "heading": "ACCOUNT",
+      "editText": "EDIT"
+    },
+    "componentsCustomerAddressBook": {
+      "heading": "ADDRESS BOOK",
+      "addAddressText": "ADD NEW ADDRESS",
+      "defaultText": "DEFAULT",
+      "editText": "EDIT",
+      "removeText": "REMOVE"
+    },
+    "componentsLayoutFooter": {
+      "copyright": "© 2026 Aspen Theme. <a href=\"https://www.shopify.com/?utm_campaign=poweredby&utm_medium=shopify&utm_source=onlinestore\" target=\"_blank\" rel=\"noopener noreferrer\">Powered by Shopify</a>",
+      "addressTitle": "CONTACT",
+      "storeAddress": "123 Main Street, Suite 200\nLos Angeles, CA, USA, 90015",
+      "businessHoursTitle": "BUSINESS HOURS",
+      "businessHoursWeekdays": "Monday to Friday, 9:00 AM – 6:00 PM",
+      "businessHoursWeekend": "Saturday to Sunday, 10:00 AM – 2:00 PM",
+      "newsletterTitle": "STAY IN TOUCH",
+      "newsletterDescription": "News and inspiration in your inbox, every week.",
+      "newsletterPlaceholder": "Enter your email",
+      "newsletterButtonText": "SEND"
+    },
+    "componentsLoyaltyLoyaltyPointsHint": {
+      "loyaltyProgramName": "Rewards"
+    },
+    "componentsProductBadges": {
+      "saleBadgeText": "Sale"
+    },
+    "routesLocaleSearch": {
+      "searchEditorialHeading": "Decorate for holidays and beyond",
+      "searchEditorialLinkText": "Explore now"
+    },
+    "sectionsAccountAddressBook": {
+      "heading": "ADDRESS BOOK",
+      "addAddressText": "ADD NEW ADDRESS",
+      "editText": "EDIT",
+      "removeText": "REMOVE",
+      "defaultText": "DEFAULT"
+    },
+    "sectionsAccountDetails": {
+      "heading": "ACCOUNT",
+      "editText": "EDIT"
+    },
+    "sectionsAccountIndex": {
+      "heading": "ACCOUNT"
+    },
+    "sectionsAccountOrders": {
+      "heading": "ORDERS"
+    },
+    "sectionsArticlesIndex": {
+      "viewAllText": "VIEW ALL",
+      "readMoreText": "Read More",
+      "buttonText": "Load More",
+      "headingContent": "ARTICLES"
+    },
+    "sectionsBlogs": {
+      "buttonText": "Load More"
+    },
+    "sectionsContactFormIndex": {
+      "headingContent": "Contact Us",
+      "description": "Let us know if you have any question",
+      "namePlaceholder": "Your name",
+      "emailPlaceholder": "Your email",
+      "messagePlaceholder": "Message",
+      "buttonText": "Send message",
+      "successText": "Thank you! We will get back to you soon."
+    },
+    "sectionsContactStoresIndex": {
+      "heading": "Our Stores",
+      "formHeading": "Hear More From Us",
+      "namePlaceholder": "Your name",
+      "emailPlaceholder": "Your email",
+      "messagePlaceholder": "Message",
+      "buttonText": "Send",
+      "successText": "Thank you! Your message has been received."
+    },
+    "sectionsFeaturedProductsIndex": {
+      "productPromoHeading": "DECORATE FOR HOLIDAYS AND BEYOND",
+      "productPromoLinkText": "EXPLORE NOW"
+    },
+    "sectionsJournal": {
+      "heading": "FROM THE BLOG",
+      "description": "Stories, inspiration, and design notes from the Aspen studio.",
+      "loadMoreText": "LOAD MORE",
+      "readMoreText": "Read More"
+    },
+    "sectionsJudgemeReviewsReviewIndex": {
+      "title": "Customer Reviews",
+      "description": "Read what our customers are saying about this product."
+    },
+    "sectionsMainProductIndex": {
+      "lowInventoryText": "Hurry up! Only [quantity] items in stock.",
+      "descriptionTitle": "Dimensions",
+      "storyFirstHeading": "WHETHER A LAVISH VELVET SOFA, A BOLD-HUED BROCADE CHAISE.",
+      "storySecondHeading": "TACTILE FABRIC TRENDS HAVE ALSO EXPANDED TO A BROADER UNIVERSE.",
+      "reviewsTitle": "Customer Reviews",
+      "reviewsDescription": "Read what our customers are saying about this product.",
+      "addToCartText": "Add to bag",
+      "addBundleToCartText": "Add bundle to cart",
+      "soldOutText": "Sold out"
+    },
+    "sectionsMainProductProductDetails": {
+      "descriptionTitle": "Dimensions"
+    },
+    "sectionsMainProductProductStory": {
+      "firstHeading": "WHETHER A LAVISH VELVET SOFA, A BOLD-HUED BROCADE CHAISE.",
+      "secondHeading": "TACTILE FABRIC TRENDS HAVE ALSO EXPANDED TO A BROADER UNIVERSE."
+    },
+    "sectionsNewsletterNewsletterForm": {
+      "placeholder": "Please enter your email",
+      "buttonText": "Send",
+      "successText": "Thank you for subscribing!"
+    },
+    "sectionsOrderDetailsIndex": {
+      "shippingNote": "Shipping & taxes calculated at checkout",
+      "heading": "ORDER",
+      "backLabel": "BACK TO ACCOUNT",
+      "orderNumberLabel": "ORDER NO.",
+      "placedOnLabel": "PLACED ON",
+      "statusHeading": "ORDER STATUS",
+      "shippingAddressHeading": "SHIPPING ADDRESS",
+      "statusCardHeading": "ORDER STATUS",
+      "detailsHeading": "ORDER DETAILS",
+      "itemPriceLabel": "Item price:",
+      "quantityLabel": "QTY",
+      "summaryHeading": "ORDER SUMMARY",
+      "subtotalLabel": "Subtotal",
+      "discountLabel": "Discount",
+      "totalLabel": "Total",
+      "unfulfilledLabel": "UNFULFILLED",
+      "firstVariantLabel": "Color",
+      "secondVariantLabel": "Size"
+    },
+    "sectionsPromotionGridGridItems": {
+      "sliderHeading": "EXPLORE MORE",
+      "sliderDescription": "If you're looking for products that bring ease through form and function, we offer no-fuss furniture built to last."
+    },
+    "sectionsTestimonialsContent": {
+      "content": "TESTIMONIALS",
+      "description": "Beautiful dining set, the color is natural and the chairs very comfortable!",
+      "author": "Stephanie L."
+    },
+    "sectionsVideosVideo": {
+      "addToCartText": "Add to Cart"
+    },
+    "sectionsAccordionAccordionItem": {
+      "title": "Accordion Item Title",
+      "content": "Accordion item content goes here."
+    },
+    "sectionsAliReviewsReviewList": {
+      "verifiedBadgeText": "Verified purchase"
+    },
+    "sectionsAllProducts": {
+      "heading": "All Products",
+      "prevPageText": "↑ Load previous",
+      "nextPageText": "Load more ↓"
+    },
+    "sectionsCollectionFiltersIndex": {
+      "expandedFiltersByDefault": "Price, Size, Color",
+      "displayAsButtonFor": "Size, More filters",
+      "loadPrevText": "Load previous",
+      "loadMoreText": "Load more products"
+    },
+    "sectionsCollectionListDynamicContent": {
+      "headingContent": "EXPLORE COLLECTIONS",
+      "sliderHeadingContent": "COLLECTIONS",
+      "paragraphContent": "If you're looking for products that bring ease through form and function, we offer no-fuss furniture built to last.",
+      "buttonContent": "EXPLORE NOW",
+      "sliderButtonContent": "VIEW ALL"
+    },
+    "sectionsCollectionListPageCollectionsItems": {
+      "prevButtonText": "Previous collections",
+      "nextButtonText": "Next collections"
+    },
+    "sectionsColumnsWithImagesColumn": {
+      "heading": "Example heading",
+      "content": "Use this section to promote content throughout every page of your site. Add images for further impact."
+    },
+    "sectionsCountdownIndex": {
+      "style2Heading": "Limited Sale Offers",
+      "style2Description": "Up to 50% including Best Sellers"
+    },
+    "sectionsCountdownButton": {
+      "text": "Shop now",
+      "style2Text": "Shop Now"
+    },
+    "sectionsCountdownSubheading": {
+      "content": "Section subheading"
+    },
+    "sectionsFeaturedProductsContent": {
+      "headingContent": "Featured products",
+      "carouselHeadingContent": "FEATURED PRODUCTS",
+      "paragraphContent": "Discover nomad, our best-selling and most-awarded modular seating.",
+      "buttonContent": "EXPLORE NOW",
+      "carouselButtonContent": "VIEW ALL"
+    },
+    "sectionsHighlightsBadge": {
+      "headingContent": "Quality furniture made to last through moves and milestones.",
+      "description": "Built with durable materials for years of daily use.",
+      "linkText": "Explore More"
+    },
+    "sectionsHotspotsItem": {
+      "viewDetailsLinkText": "View details"
+    },
+    "sectionsInstagramContent": {
+      "headingContent": "Instagram",
+      "subheadingContent": "@instagram",
+      "paragraphContent": "Meet the room edits: real life shots of our furniture in action. (We like to think we style our furniture well, but we can't help but show off how you do it.)",
+      "buttonContent": "Follow us"
+    },
+    "sectionsMapAddress": {
+      "address": "81 Greene Street, New York, NY 10012",
+      "nameStore": "WEST STORE",
+      "openingHours": "Mon - Fri: 10:00AM - 7:00PM",
+      "openingHoursSat": "Sat - Sun: 11:00AM - 6:00PM"
+    },
+    "sectionsMapMap": {
+      "heading": "OUR STORES"
+    },
+    "sectionsMap": {
+      "heading": "Our store address",
+      "description": "<p>Mon - Fri, 8:30am - 10:30pm</p><p>Saturday, 8:30am - 10:30pm</p><p>Sunday, 8:30am - 10:30pm</p>",
+      "address": "301 Front St W, Toronto, ON M5V 2T6, Canada",
+      "buttonText": "Get directions"
+    },
+    "sectionsRelatedArticles": {
+      "heading": "Related articles",
+      "viewAllText": "VIEW ALL"
+    },
+    "sectionsScrollingTextIndex": {
+      "content": "Lorem Ipsum is simply dummy text of the printing and typesetting industry."
+    },
+    "sectionsSingleProductIndex": {
+      "heading": "FEATURED PRODUCT",
+      "addToCartText": "Add to bag",
+      "soldOutText": "Sold out",
+      "estimatedDeliveryText": "Estimated delivery within 3-5 business days"
+    },
+    "sectionsSlideshowSlide": {
+      "headingContent": "Slide with text overlay",
+      "subheadingContent": "Subheading",
+      "paragraphContent": "Use this text to share information about your brand with your customers. Describe a product, share announcements, or welcome customers to your store.",
+      "buttonContent": "Shop all"
+    },
+    "sectionsVideoEmbedContent": {
+      "headingContent": "Video embed",
+      "paragraphContent": "A picture is worth a thousand words, and a video is worth even more. Utilize this space to engage, inform, and convince your customers."
+    },
+    "componentsHeading": {
+      "content": "Section heading"
+    },
+    "componentsLink": {
+      "text": "Shop now"
+    },
+    "componentsParagraph": {
+      "content": "Pair large text with an image or full-width video to showcase your brand's lifestyle to describe and showcase an important detail of your products that you can tag on your image."
+    },
+    "componentsSubheading": {
+      "content": "Section subheading"
+    }
+  },
+  "themePresets": {
+    "footer": {
+      "storeAddress": "123 Main Street, Suite 200 Los Angeles, CA, USA, 90015"
+    },
+    "accordionAccordionGroup": {
+      "title": "How long furniture delivery takes?",
+      "content": "Products are imported automatically from your Shopify admin. We estimate 2-3 hours for set-up. If you want to change the design of Honey, we estimate 3-5 hours for set-up.",
+      "title2": "How long customizable are the products?",
+      "content2": "Every product can be adjusted with the available materials, finishes, and size options shown on its product page.",
+      "title3": "Do shopping fees change according to sizes?",
+      "content3": "Shipping fees may vary for oversized products and delivery destinations. The final cost is shown at checkout.",
+      "title4": "What is the product return policy?",
+      "content4": "We offer a 30-day return policy for unused items in their original packaging. Contact customer service to begin a return."
+    },
+    "accordionContentInformation": {
+      "content": "CUSTOMER SERVICE",
+      "content2": "We offer support via email.",
+      "content3": "<p>Email</p><p>support@archercommerce.com</p>",
+      "content4": "<p>Hours</p><p>Monday - Friday, 9AM - 5PM ET</p>",
+      "content5": "<p>Average response time</p><p>1 Business day</p>"
+    },
+    "accordionInformationItem": {
+      "content": "Email"
+    },
+    "accountAddressBook": {
+      "heading": "ADDRESS BOOK"
+    },
+    "accountDetails": {
+      "heading": "ACCOUNT"
+    },
+    "accountOrders": {
+      "heading": "ORDERS"
+    },
+    "aliReviewsIndex": {
+      "content": "Reviews",
+      "content2": "This section demonstrates how to integrate with third-party apps using their public APIs. Reviews are fetched from Ali Reviews API on the server side."
+    },
+    "articlesIndex": {
+      "headingContent": "ARTICLES"
+    },
+    "collectionListDynamicContent": {
+      "headingContent": "EXPLORE COLLECTIONS",
+      "paragraphContent": "If you're looking for products that bring ease through form and function, we offer no-fuss furniture built to last.",
+      "buttonContent": "EXPLORE NOW"
+    },
+    "collectionListPageIndex": {
+      "content": "Collections"
+    },
+    "columnsWithImagesIndex": {
+      "content": "Columns with images"
+    },
+    "contactFormIndex": {
+      "headingContent": "Contact Us",
+      "description": "Let us know if you have any question"
+    },
+    "countdownIndex": {
+      "content": "Seasonal Sale",
+      "content2": "Wide inventory of furniture with plenty of essentials that no home would be complete without.",
+      "text": "DISCOVER NOW"
+    },
+    "featuredProductsContent": {
+      "headingContent": "EXPLORE QUALITY PRODUCTS",
+      "paragraphContent": "Considered materials, enduring construction, and comfort designed for everyday life."
+    },
+    "heroImage": {
+      "content": "THE KITCHEN THAT INSPIRES",
+      "content2": "Thoughtful furniture and warm materials for the rooms where life happens.",
+      "text": "SHOP NOW"
+    },
+    "heroVideo": {
+      "content": "A laidback, sophisticated lounge piece",
+      "content2": "CLOUD-LIKE SOFAS THAT SUPPORT RELAXING ANY TIME",
+      "content3": "A thoughtfully designed, curated furniture collection—made for real life."
+    },
+    "highlightsBadge": {
+      "headingContent": "Quality furniture made to last through moves and milestones.",
+      "description": "Built with durable materials for years of daily use."
+    },
+    "highlightsIndex": {
+      "headingContent": "The best of every modern style from minimalist to mid century.",
+      "description": "Curated looks that feel timeless and effortless.",
+      "headingContent2": "Delivery for free in days — not weeks.",
+      "description2": "Fast, reliable shipping that fits your schedule."
+    },
+    "hotspotsContent": {
+      "content": "SHOP THE LOOK",
+      "content2": "Discover nomad, our best-selling and most-awarded modular seating."
+    },
+    "hotspotsHotpotsImage": {
+      "content": "Shop the look"
+    },
+    "imageGalleryIndex": {
+      "content": "Image Gallery",
+      "content2": "Showcase your chosen images. This visual focus will enhance user engagement and understanding of your offerings."
+    },
+    "imageWithTextContent": {
+      "content": "MAKE YOURSELF AT HOME"
+    },
+    "instagramContent": {
+      "headingContent": "INSTAGRAM",
+      "paragraphContent": "Meet the room edits: real life shots of our furniture in action."
+    },
+    "journal": {
+      "heading": "FROM THE BLOG",
+      "description": "Stories, inspiration, and design notes from the Aspen studio."
+    },
+    "mapMap": {
+      "heading": "OUR STORES"
+    },
+    "newsletterIndex": {
+      "content": "Subscribe to our Newsletter",
+      "content2": "Subscribe and save more"
+    },
+    "orderDetailsIndex": {
+      "heading": "ORDER"
+    },
+    "promotionGridContent": {
+      "content": "EXPLORE MORE"
+    },
+    "promotionGridGridItems": {
+      "tabLabel": "Best Selling",
+      "tabParagraphContent": "From mid-century modern to contemporary, our design language is intentionally universal; we design so you can settle in, comfortably, for the long haul.",
+      "tabLabel2": "Sofa Beds",
+      "tabParagraphContent2": "Generous comfort by day, a welcoming place to stay by night. Designed to transform with ease.",
+      "headingContent": "Finishing touches for a home that feels like yours.",
+      "tabLabel3": "Decorations",
+      "tabParagraphContent3": "The finishing touches that bring warmth, texture, and personality to every room."
+    },
+    "relatedProducts": {
+      "content": "You may also like"
+    },
+    "slideshowIndex": {
+      "headingContent": "THE CRAFTED COMFORT",
+      "paragraphContent": "Handcrafted pieces designed to bring warmth, character, and lasting quality to every room.",
+      "buttonContent": "Browse Collection",
+      "headingContent2": "THE TAILORED ELEGANCE",
+      "headingContent3": "TIMELESS BY DESIGN",
+      "paragraphContent2": "Enduring silhouettes and honest materials, thoughtfully made for everyday living."
+    },
+    "testimonialsContent": {
+      "content": "TESTIMONIALS",
+      "description": "Beautiful dining set, the color is natural and the chairs very comfortable!"
+    },
+    "videoEmbedContent": {
+      "headingContent": "Video embed",
+      "paragraphContent": "A picture is worth a thousand words, and a video is worth even more. Utilize this space to engage, inform, and convince your customers."
+    },
+    "videosIndex": {
+      "content": "VIDEOS"
+    }
+  },
+  "errors": {
+    "generic": "Something went wrong! Please try again.",
+    "invalidEmail": "Please enter a valid email address.",
+    "emailRequired": "Email is required",
+    "messageRequired": "Message is required",
+    "messageTooLong": "Message must be 5000 characters or fewer",
+    "nameTooLong": "Name must be 200 characters or fewer",
+    "methodNotAllowed": "Method not allowed",
+    "variantRequired": "A product variant is required",
+    "restockUnavailable": "This product isn't available for restock alerts yet. Please try again later.",
+    "addressRequired": "You must provide an address id.",
+    "addressNotFound": "Address not found.",
+    "unauthorized": "Unauthorized",
+    "addressCreate": "Customer address create failed.",
+    "addressUpdate": "Customer address update failed.",
+    "addressDelete": "Customer address delete failed.",
+    "profileUpdate": "Customer profile update failed.",
+    "reviewCreate": "Failed to create review!",
+    "wishlistUnavailable": "Wishlist is temporarily unavailable.",
+    "wishlistConflict": "Wishlist changed in another session. Please try again.",
+    "wishlistInvalidRequest": "Invalid wishlist request.",
+    "wishlistLimit": "Your wishlist is full. Remove a product before adding another.",
+    "wishlistUpdate": "Wishlist could not be updated. Please try again.",
+    "searchUnavailable": "Search is temporarily unavailable. Please try again.",
+    "unexpected": "An unexpected error occurred"
+  },
+  "themeSettings": {
+    "newsletterPopupHeading": "Subscribe to our Newsletter",
+    "newsletterPopupDescription": "Subscribe and save more",
+    "newsletterPopupButtonText": "Subscribe",
+    "collectionEditorialHeading": "Decorate for holidays and beyond",
+    "collectionEditorialLinkText": "Explore now",
+    "topbarText": "<p>FREE SHIPPING FOR ORDERS OVER $200USD</p>",
+    "bestSellerBadgeText": "Best Seller",
+    "newBadgeText": "New Arrival",
+    "soldOutBadgeText": "Sold out",
+    "bundleBadgeText": "Bundle",
+    "saleBadgeText": "[percentage]% Off",
+    "cartTitleEmpty": "Looks like you haven't added anything yet, let's get you started!",
+    "buttonStartShopping": "Start Shopping",
+    "cartNoteButtonText": "Add a note",
+    "discountCodeButtonText": "Discount code",
+    "giftCardButtonText": "Giftcard",
+    "checkoutButtonText": "Continue to Checkout",
+    "loyaltyProgramName": "Rewards",
+    "quickShopButtonTextOpen": "Select options",
+    "addToCartText": "Add to cart",
+    "soldOutText": "Sold out",
+    "searchEditorialHeading": "Decorate for holidays and beyond",
+    "searchEditorialLinkText": "Explore now",
+    "bio": "<p>Modern furniture designed for living. Built for longevity, crafted with care.</p>",
+    "businessHoursTitle": "BUSINESS HOURS",
+    "businessHoursWeekdays": "Monday to Friday, 9:00 AM – 6:00 PM",
+    "businessHoursWeekend": "Saturday to Sunday, 10:00 AM – 2:00 PM",
+    "addressTitle": "CONTACT",
+    "storeAddress": "123 Main Street, Suite 200\nLos Angeles, CA, USA, 90015",
+    "storeEmail": "hello@aspen.com",
+    "newsletterTitle": "STAY IN TOUCH",
+    "newsletterDescription": "News and inspiration in your inbox, every week.",
+    "newsletterPlaceholder": "Enter your email",
+    "newsletterButtonText": "SEND",
+    "copyright": "<p>© 2026 Aspen Theme. <a href=\"https://www.shopify.com/?utm_campaign=poweredby&utm_medium=shopify&utm_source=onlinestore\" target=\"_blank\" rel=\"noopener noreferrer\">Powered by Shopify</a></p>"
+  },
+  "seo": {
+    "home": "Home",
+    "homePage": "Home page",
+    "titleTemplate": "%s | Weaverse Hydrogen Demo Store",
+    "homeDescription": "The best Shopify Hydrogen Theme Customizer",
+    "collections": "Collections",
+    "collectionsTemplate": "%s | Collections",
+    "collectionsDescription": "All hydrogen collections",
+    "allCollections": "All collections",
+    "policies": "Policies",
+    "policiesTemplate": "%s | Policies",
+    "policiesDescription": "Weaverse Hydrogen store policies",
+    "allProducts": "All Products",
+    "allProductsDescription": "All the store products",
+    "search": "Search",
+    "searchResults": "Search Results",
+    "searchDescription": "Search results",
+    "searchStore": "Search our store",
+    "order": "Order {{number}}",
+    "orders": "Orders",
+    "profile": "Profile",
+    "addresses": "Addresses",
+    "searchResultsFor": "Showing search results for \"{{term}}\"",
+    "searchNoResultsFor": "No results found for \"{{term}}\"",
+    "collectionTemplate": "%s | Collection",
+    "journalTemplate": "%s | Journal",
+    "blogTemplate": "%s | Blog",
+    "pageTemplate": "%s | Page",
+    "policyTemplate": "%s | Policy",
+    "products": "Products"
+  },
+  "preview": {
+    "livingRoom": "Living Room",
+    "bedroom": "Bedroom",
+    "diningRoom": "Dining Room",
+    "outdoor": "Outdoor",
+    "workspace": "Workspace",
+    "lighting": "Lighting",
+    "vendor": "Vendor",
+    "collectionThumbnail": "{{title}} collection thumbnail",
+    "collectionDescription": "{{title}} collection"
   }
 }

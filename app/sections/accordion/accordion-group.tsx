@@ -62,24 +62,24 @@ const AccordionGroup = forwardRef<HTMLDivElement, AccordionGroupProps>(
             <RadixAccordion.Root
               type="multiple"
               defaultValue={defaultValue}
-              className="accordion--group flex w-full flex-col gap-3 md:hidden"
+              className="accordion--group flex w-full flex-col gap-2 md:hidden"
             >
               {children}
             </RadixAccordion.Root>
             <div
               key="row-layout"
-              className="hidden w-full grid-cols-2 gap-5 md:grid"
+              className="hidden w-full grid-cols-2 gap-10 md:grid"
             >
               <RadixAccordion.Root
                 type="multiple"
                 defaultValue={defaultValue}
-                className="accordion--group flex w-full flex-col gap-3"
+                className="accordion--group flex w-full flex-col gap-2"
               >
                 {leftColumn}
               </RadixAccordion.Root>
               <RadixAccordion.Root
                 type="multiple"
-                className="accordion--group flex w-full flex-col gap-3"
+                className="accordion--group flex w-full flex-col gap-2"
               >
                 {rightColumn}
               </RadixAccordion.Root>
@@ -90,7 +90,7 @@ const AccordionGroup = forwardRef<HTMLDivElement, AccordionGroupProps>(
             key="column-layout"
             type="multiple"
             defaultValue={defaultValue}
-            className="accordion--group flex w-full flex-col gap-3"
+            className="accordion--group flex w-full flex-col gap-2"
           >
             {children}
           </RadixAccordion.Root>
