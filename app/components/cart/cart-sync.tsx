@@ -271,3 +271,8 @@ function CartLineQuantityMutation({ lineId }: { lineId: string }) {
 
   return null;
 }
+
+export function CartResponseSync({ fetcher }: { fetcher: Fetcher<unknown> }) {
+  useCartFetcherSync(fetcher);
+  return null;
+}

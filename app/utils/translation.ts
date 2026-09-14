@@ -31,8 +31,9 @@ export function defaultTranslation(key: string): string | undefined {
   return typeof value === "string" ? value : undefined;
 }
 
-// Pilot precedence: live/published translations outrank legacy copy (including
-// deliberate empty strings). Unpublished custom copy survives the migration.
+// Section content belongs to each instance. A shared field translation must
+// never replace a different preset or content entered in the page editor.
+// Global theme settings retain their explicit translation overrides.
 export function translateThemeText<T>(
   t: Translate,
   value: T,
@@ -48,6 +49,11 @@ export function translateThemeText<T>(
   // An absent optional prop or a React node is not a translatable text field.
   if (typeof value !== "string") {
     return value;
+  }
+  if (key.startsWith("themeContent.")) {
+    return value === defaultTranslation(key)
+      ? t(key)
+      : translatePresetText(t, value);
   }
   let published: unknown = merchantOverrides;
   for (const part of key.split(".")) {

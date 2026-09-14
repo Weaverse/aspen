@@ -22,7 +22,7 @@ import {
   useRouteError,
   useRouteLoaderData,
 } from "react-router";
-import { CartStateProvider } from "./components/cart/cart-state-provider";
+import { CartStoreSync } from "./components/cart/cart-sync";
 import { useCartStore } from "./components/cart/store";
 import { Footer } from "./components/layout/footer";
 import { Header } from "./components/layout/header";
@@ -165,30 +165,29 @@ function RootLayout({ children }: { children?: React.ReactNode }) {
             shop={data.shop}
             consent={data.consent}
           >
-            <CartStateProvider initialCart={data.cart}>
-              <WishlistProvider initialWishlist={data.wishlist}>
-                <TooltipProvider disableHoverableContent>
-                  <div
-                    className="flex min-h-screen flex-col"
-                    key={`${locale.language}-${locale.country}`}
-                  >
-                    <div className="">
-                      <a href="#mainContent" className="sr-only">
-                        {t("accessibility.skipToContent")}
-                      </a>
-                    </div>
-                    <ScrollingAnnouncement />
-                    <Header />
-                    <main id="mainContent" className="grow">
-                      {children}
-                    </main>
-                    <Footer />
+            <CartStoreSync initialCart={data.cart} />
+            <WishlistProvider initialWishlist={data.wishlist}>
+              <TooltipProvider disableHoverableContent>
+                <div
+                  className="flex min-h-screen flex-col"
+                  key={`${locale.language}-${locale.country}`}
+                >
+                  <div className="">
+                    <a href="#mainContent" className="sr-only">
+                      {t("accessibility.skipToContent")}
+                    </a>
                   </div>
-                  {shouldShowNewsletterPopup && <NewsletterPopup />}
-                  <CustomAnalytics />
-                </TooltipProvider>
-              </WishlistProvider>
-            </CartStateProvider>
+                  <ScrollingAnnouncement />
+                  <Header />
+                  <main id="mainContent" className="grow">
+                    {children}
+                  </main>
+                  <Footer />
+                </div>
+                {shouldShowNewsletterPopup && <NewsletterPopup />}
+                <CustomAnalytics />
+              </TooltipProvider>
+            </WishlistProvider>
           </Analytics.Provider>
         ) : (
           children

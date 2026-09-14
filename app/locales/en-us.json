@@ -786,7 +786,8 @@
     },
     "featuredProductsContent": {
       "headingContent": "EXPLORE QUALITY PRODUCTS",
-      "paragraphContent": "Considered materials, enduring construction, and comfort designed for everyday life."
+      "paragraphContent": "Considered materials, enduring construction, and comfort designed for everyday life.",
+      "carouselHeadingContent": "FEATURED PRODUCTS"
     },
     "heroImage": {
       "content": "THE KITCHEN THAT INSPIRES",

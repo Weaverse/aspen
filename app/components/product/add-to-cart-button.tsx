@@ -14,12 +14,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { FetcherWithComponents } from "react-router";
 import { useMatches } from "react-router";
 import { Button } from "~/components/button";
-import {
-  syncCartState,
-  useCartState,
-} from "~/components/cart/cart-state-provider";
 import { useCartFetcherSync } from "~/components/cart/cart-sync";
-import { useCartStore } from "~/components/cart/store";
+import { useCart, useCartStore } from "~/components/cart/store";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import { getCartMutationError } from "~/utils/cart-error";
 import { exceedsAvailableInventory } from "~/utils/cart-inventory";
@@ -49,7 +45,8 @@ export function AddToCartButton({
 }) {
   const { t } = useTranslation();
   const cartRoute = usePrefixPathWithLocale("/cart");
-  const { cart, isResolved } = useCartState();
+  const cart = useCart();
+  const isResolved = useCartStore((state) => state.isResolved);
   const pendingToken = useRef<string | null>(null);
   const submitted = useRef(false);
   const inventoryLimitReached = exceedsAvailableInventory(
@@ -264,10 +261,7 @@ function AddToCartAnalytics({
         !fetcherData.userErrors?.length &&
         !fetcherData.errors?.length
       ) {
-        window.setTimeout(() => {
-          syncCartState(fetcherData.cart);
-          onAdded?.();
-        }, 0);
+        onAdded?.();
       }
 
       // Send analytics if we have cart data

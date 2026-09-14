@@ -11,7 +11,7 @@ import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import { getCartMutationError } from "~/utils/cart-error";
 import { isGiftCardApplied, normalizeGiftCardCode } from "~/utils/gift-card";
 import { AnimatedBottomSheet } from "./animate-bottom-sheet";
-import { useSyncCartResponse } from "./cart-state-provider";
+import { useCartFetcherSync } from "./cart-sync";
 
 type DialogLayout = "page" | "drawer";
 
@@ -104,7 +104,7 @@ export function NoteDialog({
   const [note, setNote] = useState(currentNote);
   const [submitted, setSubmitted] = useState(false);
   const fetcher = useFetcher<CartMutationResponse>();
-  useSyncCartResponse(fetcher);
+  useCartFetcherSync(fetcher);
   const cartRoute = usePrefixPathWithLocale("/cart");
   const mutationError = getCartMutationError(fetcher.data, t);
 
@@ -197,7 +197,7 @@ export function DiscountDialog({
   const [code, setCode] = useState("");
   const [submittedCode, setSubmittedCode] = useState("");
   const fetcher = useFetcher<CartMutationResponse>();
-  useSyncCartResponse(fetcher);
+  useCartFetcherSync(fetcher);
   const cartRoute = usePrefixPathWithLocale("/cart");
   const submitted = Boolean(
     submittedCode && fetcher.state === "idle" && fetcher.data,
@@ -305,7 +305,7 @@ export function GiftCardDialog({
     }
   }, [open]);
   const fetcher = useFetcher<CartMutationResponse>();
-  useSyncCartResponse(fetcher);
+  useCartFetcherSync(fetcher);
   const cartRoute = usePrefixPathWithLocale("/cart");
   const submitted = Boolean(
     submittedCode && fetcher.state === "idle" && fetcher.data,
