@@ -9,6 +9,7 @@ import {
 import clsx from "clsx";
 import type { CSSProperties, KeyboardEvent, PointerEvent } from "react";
 import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
+import { MEDIA_FROM_TABLET } from "~/utils/breakpoints";
 
 type HeightMode = "aspen" | "custom";
 
@@ -60,8 +61,11 @@ const BeforeAndAfter = forwardRef<HTMLDivElement, BeforeAndAfterProps>(
     const containerRef = useRef<HTMLDivElement>(null);
     const dragCleanupRef = useRef<(() => void) | null>(null);
     const [position, setPosition] = useState<number | null>(null);
-    const beforeImage = getImageData(beforeImage1, "Before");
-    const afterImage = getImageData(afterImage2, "After");
+    const beforeImage = getImageData(
+      beforeImage1,
+      t("accessibility.beforeImage"),
+    );
+    const afterImage = getImageData(afterImage2, t("accessibility.afterImage"));
 
     const setRefs = useCallback(
       (node: HTMLDivElement | null) => {
@@ -76,7 +80,7 @@ const BeforeAndAfter = forwardRef<HTMLDivElement, BeforeAndAfterProps>(
     );
 
     useEffect(() => {
-      const mediaQuery = window.matchMedia("(min-width: 768px)");
+      const mediaQuery = window.matchMedia(MEDIA_FROM_TABLET);
       const syncPosition = (isDesktop: boolean) => {
         setPosition(
           clampPosition(

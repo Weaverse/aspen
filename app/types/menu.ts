@@ -26,16 +26,21 @@ export interface SingleMenuItem {
   title: string;
   items: SingleMenuItem[];
   to: string;
+  isExternal?: boolean;
+  type?: string;
+  url?: string;
   tags?: string[];
   resource?: {
     __typename?: string;
     articleTags?: string[];
+    publishedAt?: string | null;
+    authorV2?: { name?: string | null } | null;
     image?: {
       altText?: string | null;
-      height: number;
-      id: string;
+      height?: number | null;
+      id?: string | null;
       url: string;
-      width: number;
+      width?: number | null;
     } | null;
   } | null;
 }

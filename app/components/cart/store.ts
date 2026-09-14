@@ -18,6 +18,8 @@ import {
 } from "./optimistic-cart";
 
 type CartStore = {
+  isResolved: boolean;
+  lastAddError: string | null;
   isOpen: boolean;
   serverCart: CartApiQueryFragment | null;
   pendingAdds: Map<string, PendingAdd>;
@@ -45,6 +47,8 @@ type CartStore = {
 let pendingAddSequence = 0;
 
 export const useCartStore = create<CartStore>()((set) => ({
+  isResolved: false,
+  lastAddError: null,
   isOpen: false,
   serverCart: null,
   pendingAdds: new Map(),
@@ -175,7 +179,16 @@ export function useCart(): CartWithOptimistic | null {
     serverCart,
     fetchers,
   );
-  const stagedLines = getActiveStagedLines(pendingAdds, updatedAt);
+  const activeAdds = new Map(pendingAdds);
+  for (const fetcher of fetchers) {
+    if (fetcher.state !== "submitting" && fetcher.data) {
+      const token = fetcher.formData?.get("cartStageToken");
+      if (typeof token === "string") {
+        activeAdds.delete(token);
+      }
+    }
+  }
+  const stagedLines = getActiveStagedLines(activeAdds, updatedAt);
 
   if (!resolved) {
     return stagedLines.length ? buildOptimisticAddCart(stagedLines) : null;

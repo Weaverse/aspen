@@ -1,7 +1,7 @@
 import { useTranslation } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSwiper } from "swiper/react";
 import { cn } from "~/utils/cn";
 
@@ -45,7 +45,7 @@ const trackVariants = cva(
 );
 
 const dotVariants = cva(
-  "dot flex-1 cursor-pointer border-0 p-0 outline-none transition-colors duration-300",
+  "dot flex-1 cursor-pointer border-0 p-0 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white transition-colors duration-300",
   {
     variants: {
       dotsColor: {
@@ -87,22 +87,47 @@ export function Dots(props: SlideshowDotsProps) {
     slidesCount = 0,
   } = props;
   const swiper = useSwiper();
+  const containerRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
-    if (!swiper) {
+    const wrapper = containerRef.current
+      ?.closest(".swiper")
+      ?.querySelector(".swiper-wrapper");
+    if (!swiper || !wrapper) {
       return;
     }
 
     const handleSlideChange = () => {
-      setActiveIndex(swiper.realIndex || swiper.activeIndex);
+      const activeSlide = wrapper.querySelector(".swiper-slide-active");
+      const slideIndex = activeSlide?.getAttribute("data-swiper-slide-index");
+      setActiveIndex(
+        slideIndex !== null && slideIndex !== undefined
+          ? Number(slideIndex)
+          : (swiper.realIndex ?? swiper.activeIndex),
+      );
     };
 
     swiper.on("slideChange", handleSlideChange);
+    swiper.on("realIndexChange", handleSlideChange);
+    swiper.on("loopFix", handleSlideChange);
+    swiper.on("transitionEnd", handleSlideChange);
     handleSlideChange();
+    // Loop mode reorders slide elements after some index events have fired.
+    const observer = new MutationObserver(handleSlideChange);
+    observer.observe(wrapper, {
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["class", "data-swiper-slide-index"],
+      childList: true,
+    });
 
     return () => {
+      observer.disconnect();
       swiper.off("slideChange", handleSlideChange);
+      swiper.off("realIndexChange", handleSlideChange);
+      swiper.off("loopFix", handleSlideChange);
+      swiper.off("transitionEnd", handleSlideChange);
     };
   }, [swiper]);
 
@@ -119,7 +144,10 @@ export function Dots(props: SlideshowDotsProps) {
   }
 
   return (
-    <div className={cn(variants({ dotsPosition }), className)}>
+    <div
+      ref={containerRef}
+      className={cn(variants({ dotsPosition }), className)}
+    >
       <div className={trackVariants({ dotsPosition })}>
         {Array.from({ length: slidesCount }, (_, index) => (
           <button
@@ -131,6 +159,7 @@ export function Dots(props: SlideshowDotsProps) {
             })}
             onClick={() => handleDotClick(index)}
             aria-label={t("carousel.goToSlide", { index: index + 1 })}
+            aria-current={index === activeIndex ? "true" : undefined}
           />
         ))}
       </div>

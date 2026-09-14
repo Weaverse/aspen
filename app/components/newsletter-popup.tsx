@@ -6,10 +6,13 @@ import { useEffect, useState } from "react";
 import { useFetcher, useLocation, useRouteLoaderData } from "react-router";
 import { Button } from "~/components/button";
 import { Image } from "~/components/image";
+import { useTranslatedThemeSettings } from "~/hooks/use-translated-theme-settings";
 import { useWeaverseStudioCheck } from "~/hooks/use-weaverse-studio-check";
 import type { RootLoader } from "~/root";
+import { MEDIA_MOBILE } from "~/utils/breakpoints";
 import { cn } from "~/utils/cn";
 import { DEFAULT_LOCALE } from "~/utils/const";
+import { translateError } from "~/utils/translated-error";
 
 const POPUP_DISMISSED_KEY = "newsletter-popup-dismissed";
 
@@ -39,7 +42,7 @@ export function NewsletterPopup() {
     newsletterPopupDescription,
     newsletterPopupButtonText,
     newsletterPopupPosition = "center",
-  } = useThemeSettings();
+  } = useTranslatedThemeSettings();
 
   const [open, setOpen] = useState(false);
   const fetcher = useFetcher<{ ok: boolean; error: string }>();
@@ -161,7 +164,7 @@ export function NewsletterPopup() {
                 >
                   <Image
                     data={newsletterPopupImage}
-                    sizes="(max-width: 768px) 100vw, 50vw"
+                    sizes={`${MEDIA_MOBILE} 100vw, 50vw`}
                   />
                 </div>
               )}
@@ -206,7 +209,7 @@ export function NewsletterPopup() {
 
                 {error && (
                   <div className="mt-4 bg-red-200 px-3 py-2 text-center text-red-700 text-sm">
-                    {error}
+                    {translateError(t, error)}
                   </div>
                 )}
                 {message && (

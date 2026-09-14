@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import { type Fetcher, useFetcher, useFetchers } from "react-router";
 import type { CartApiQueryFragment } from "storefront-api.generated";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
+import { CART_ERROR_KEYS } from "~/utils/cart-error";
 import {
   canApplyNullCart,
   clearFreshestFetcherCart,
@@ -29,12 +30,16 @@ function getFormInput(fetcher: Fetcher<unknown>) {
 
 function syncFetcherResponse(fetcher: Fetcher<unknown>) {
   const response = fetcher.data as CartMutationResponse | undefined;
+  const token = fetcher.formData?.get("cartStageToken");
+  if (typeof token === "string" && response) {
+    useCartStore.getState().clearPendingAdd(token);
+  }
   const cart = response?.cart;
   if (!hasCartResponseErrors(response) && cart?.id && cart.lines) {
     recordCartMutation(cart);
     const current = useCartStore.getState().serverCart;
     if (getTimestampMs(cart.updatedAt) >= getTimestampMs(current?.updatedAt)) {
-      useCartStore.setState({ serverCart: cart });
+      useCartStore.setState({ serverCart: cart, isResolved: true });
     }
   }
 
@@ -118,6 +123,7 @@ export function CartStoreSync({
         if (!active) {
           return;
         }
+        useCartStore.setState({ isResolved: true });
         if (!resolved) {
           if (canApplyNullCart(epochAtStart)) {
             clearFreshestFetcherCart();
@@ -190,7 +196,7 @@ function CartLineRemovalMutation({ lineId }: { lineId: string }) {
     submit(formData, { action: cartRoute, method: "post" }).catch(() => {
       submitted.current = false;
       useCartStore.getState().settleLineRemoval(lineId, {
-        errors: [{ message: "Unable to remove cart item" }],
+        errors: [{ message: CART_ERROR_KEYS.removeLine }],
       });
     });
   }, [cartRoute, fetcher.state, lineId, submit]);
@@ -204,6 +210,7 @@ function CartLineQuantityMutation({ lineId }: { lineId: string }) {
     key: `${QUANTITY_FETCHER_PREFIX}${lineId}`,
   });
   const submit = fetcher.submit;
+  const handledResponse = useRef<unknown>(undefined);
   const pendingQuantity = useCartStore((state) =>
     state.pendingLineUpdates.get(lineId),
   );
@@ -216,8 +223,10 @@ function CartLineQuantityMutation({ lineId }: { lineId: string }) {
     if (
       fetcher.state === "idle" &&
       fetcher.data &&
+      handledResponse.current !== fetcher.data &&
       submittedQuantity !== undefined
     ) {
+      handledResponse.current = fetcher.data;
       useCartStore
         .getState()
         .settleLineUpdate(lineId, submittedQuantity, fetcher.data);
@@ -236,6 +245,7 @@ function CartLineQuantityMutation({ lineId }: { lineId: string }) {
     if (quantity === null) {
       return;
     }
+    handledResponse.current = fetcher.data;
     const formData = new FormData();
     formData.set(
       CartForm.INPUT_NAME,
@@ -246,11 +256,12 @@ function CartLineQuantityMutation({ lineId }: { lineId: string }) {
     );
     submit(formData, { action: cartRoute, method: "post" }).catch(() => {
       useCartStore.getState().settleLineUpdate(lineId, quantity, {
-        errors: [{ message: "Unable to update cart quantity" }],
+        errors: [{ message: CART_ERROR_KEYS.updateQuantity }],
       });
     });
   }, [
     cartRoute,
+    fetcher.data,
     fetcher.state,
     lineId,
     pendingQuantity,
@@ -258,5 +269,10 @@ function CartLineQuantityMutation({ lineId }: { lineId: string }) {
     submittedQuantity,
   ]);
 
+  return null;
+}
+
+export function CartResponseSync({ fetcher }: { fetcher: Fetcher<unknown> }) {
+  useCartFetcherSync(fetcher);
   return null;
 }

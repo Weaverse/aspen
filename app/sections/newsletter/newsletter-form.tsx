@@ -8,6 +8,7 @@ import type { CSSProperties } from "react";
 import { forwardRef } from "react";
 import { useFetcher } from "react-router";
 import { Button } from "~/components/button";
+import { useTranslatedText } from "~/hooks/use-translated-text";
 import { cn } from "~/utils/cn";
 
 // Newsletter signups go to Klaviyo; see docs/integrations.md.
@@ -34,13 +35,15 @@ interface NewsletterFormProps extends HydrogenComponentProps {
 
 const NewsletterForm = forwardRef<HTMLDivElement, NewsletterFormProps>(
   (props, ref) => {
+    const translateText = useTranslatedText();
+
     const { t } = useTranslation();
     const {
       width = 372,
-      placeholder = "Please enter your email",
-      buttonText = "Send",
+      placeholder: rawI18nPlaceholder = "Please enter your email",
+      buttonText: rawI18nButtonText = "Send",
       helpText = "",
-      successText = "Thank you for subscribing!",
+      successText: rawI18nSuccessText = "Thank you for subscribing!",
       inputBackgroundColor = "#FFFFFF",
       inputTextColor = "#343231",
       inputBorderColor = "#9D9D9D",
@@ -55,6 +58,18 @@ const NewsletterForm = forwardRef<HTMLDivElement, NewsletterFormProps>(
       style,
       ...rest
     } = props;
+    const successText = translateText(
+      rawI18nSuccessText,
+      "themeContent.sectionsNewsletterNewsletterForm.successText",
+    );
+    const buttonText = translateText(
+      rawI18nButtonText,
+      "themeContent.sectionsNewsletterNewsletterForm.buttonText",
+    );
+    const placeholder = translateText(
+      rawI18nPlaceholder,
+      "themeContent.sectionsNewsletterNewsletterForm.placeholder",
+    );
     const fetcher = useFetcher();
     const { state, Form } = fetcher;
     const data = fetcher.data as KlaviyoApiPayload | undefined;

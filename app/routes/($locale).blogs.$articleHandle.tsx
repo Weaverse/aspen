@@ -1,5 +1,4 @@
 import type { SeoConfig } from "@shopify/hydrogen";
-import { getSeoMeta } from "@shopify/hydrogen";
 import type { RouteLoaderArgs } from "@weaverse/hydrogen";
 import type { MetaFunction } from "react-router";
 import { redirect } from "react-router";
@@ -10,6 +9,7 @@ import { DEFAULT_BLOG_HANDLE } from "~/utils/const";
 import { redirectIfHandleIsLocalized } from "~/utils/redirect";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 import { seoPayload } from "~/utils/seo.server";
+import { localizedSeoMeta } from "~/utils/seo-translation";
 import { WeaverseContent } from "~/weaverse";
 
 export const headers = routeHeaders;
@@ -76,8 +76,8 @@ export async function loader(args: RouteLoaderArgs) {
   };
 }
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  return getSeoMeta(data?.seo as SeoConfig);
+export const meta: MetaFunction<typeof loader> = ({ data, matches }) => {
+  return localizedSeoMeta(matches, data?.seo as SeoConfig);
 };
 
 export default function Article() {
@@ -122,6 +122,7 @@ const ARTICLE_QUERY = `#graphql
     }
   }
   fragment Article on Article {
+    tags
     author: authorV2 {
       name
     }

@@ -1,12 +1,16 @@
 import { createContext, useContext } from "react";
 
+export interface InstagramMedia {
+  id: string;
+  media_url: string;
+  permalink?: string;
+  thumbnail_url?: string;
+  username?: string;
+}
+
 interface InstagramContextType {
   loaderData?: {
-    data?: {
-      id: string;
-      media_url: string;
-      username?: string;
-    }[];
+    data?: InstagramMedia[];
   } | null;
 }
 

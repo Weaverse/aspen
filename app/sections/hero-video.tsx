@@ -2,6 +2,7 @@ import {
   createSchema,
   type HydrogenComponentProps,
   IMAGES_PLACEHOLDERS,
+  useTranslation,
   type WeaverseImage,
 } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
@@ -135,19 +136,21 @@ function getPlayerSize(
   };
 }
 
-function getImageData(image?: string | WeaverseImage) {
+function getImageData(
+  image: string | WeaverseImage | undefined,
+  altText: string,
+) {
   if (!image) {
     return undefined;
   }
-  return typeof image === "string"
-    ? { url: image, altText: "Hero video poster" }
-    : image;
+  return typeof image === "string" ? { url: image, altText } : image;
 }
 
 // react-player v3 is ESM-only and lazy-loads individual players internally.
 const ReactPlayer = lazy(() => import("react-player"));
 
 const HeroVideo = forwardRef<HTMLElement, HeroVideoProps>((props, ref) => {
+  const { t } = useTranslation();
   const {
     videoURL,
     videoAspectRatio = "16/9",
@@ -213,8 +216,8 @@ const HeroVideo = forwardRef<HTMLElement, HeroVideoProps>((props, ref) => {
   }, [videoAspectRatio]);
 
   const [scope] = useAnimation();
-  const desktopPoster = getImageData(posterImage);
-  const mobilePoster = getImageData(mobilePosterImage);
+  const desktopPoster = getImageData(posterImage, t("video.poster"));
+  const mobilePoster = getImageData(mobilePosterImage, t("video.poster"));
 
   return (
     <section
@@ -388,12 +391,12 @@ export const schema = createSchema({
           defaultValue: "aspen",
           configs: {
             options: [
-              { value: "aspen", label: "Aspen design" },
-              { value: "stacked", label: "Centered stack" },
+              { value: "aspen", label: "Scenario 1" },
+              { value: "stacked", label: "Scenario 2" },
             ],
           },
           helpText:
-            "Aspen design follows the approved desktop/mobile positions. Centered stack uses an adjustable gap.",
+            "Scenario 1 follows the approved desktop/mobile positions. Scenario 2 uses an adjustable gap.",
         },
         {
           type: "range",

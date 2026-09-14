@@ -7,6 +7,7 @@ import Heading, {
 } from "~/components/heading";
 import Link, { type LinkProps, linkInputs } from "~/components/link";
 import Paragraph, { type ParagraphProps } from "~/components/paragraph";
+import { useTranslatedText } from "~/hooks/use-translated-text";
 
 interface VideoEmbedContentProps
   extends HydrogenComponentProps,
@@ -72,12 +73,14 @@ let variants = cva("flex flex-col [&_.paragraph]:mx-[unset]", {
 
 let VideoEmbedContent = forwardRef<HTMLDivElement, VideoEmbedContentProps>(
   (props, ref) => {
+    const translateText = useTranslatedText();
+
     const {
       gap,
       contentPosition,
       displayMode = "vertical",
       // Heading props
-      headingContent,
+      headingContent: rawI18nHeadingContent,
       headingTagName,
       color,
       size,
@@ -90,7 +93,7 @@ let VideoEmbedContent = forwardRef<HTMLDivElement, VideoEmbedContentProps>(
       maxSize,
       animate,
       // Paragraph props
-      paragraphContent,
+      paragraphContent: rawI18nParagraphContent,
       paragraphTag = "p",
       paragraphColor,
       paragraphSize,
@@ -110,6 +113,14 @@ let VideoEmbedContent = forwardRef<HTMLDivElement, VideoEmbedContentProps>(
       textColorDecor,
       ...rest
     } = props;
+    const paragraphContent = translateText(
+      rawI18nParagraphContent,
+      "themeContent.sectionsVideoEmbedContent.paragraphContent",
+    );
+    const headingContent = translateText(
+      rawI18nHeadingContent,
+      "themeContent.sectionsVideoEmbedContent.headingContent",
+    );
 
     if (displayMode === "horizontal") {
       return (

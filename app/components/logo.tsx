@@ -67,11 +67,11 @@ export function Logo() {
   );
 }
 
-function AspenWordmark() {
+export function AspenWordmark({ className }: { className?: string }) {
   return (
     <svg
       aria-hidden="true"
-      className="h-8 w-36"
+      className={clsx("h-8 w-36", className)}
       fill="none"
       viewBox="200 96 144 32"
     >

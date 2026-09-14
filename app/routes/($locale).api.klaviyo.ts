@@ -6,8 +6,8 @@ import {
 
 const KLAVIYO_API = "https://a.klaviyo.com/api/profiles";
 
-const GENERIC_ERROR = "Something went wrong! Please try again.";
-const INVALID_EMAIL_ERROR = "Please enter a valid email address.";
+const GENERIC_ERROR = "errors.generic";
+const INVALID_EMAIL_ERROR = "errors.invalidEmail";
 
 type KlaviyoErrorPayload = {
   errors?: {
@@ -44,7 +44,7 @@ export const action: ActionFunction = async ({
   const formData = await request.formData();
   const email = formData.get("email");
   if (typeof email !== "string" || !email) {
-    return data({ ok: false, error: "Email is required" }, 400);
+    return data({ ok: false, error: "errors.emailRequired" }, 400);
   }
 
   try {

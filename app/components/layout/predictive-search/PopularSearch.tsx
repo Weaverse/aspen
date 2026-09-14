@@ -3,26 +3,30 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "~/components/link";
 import { cn } from "~/utils/cn";
 
-const DEFAULT_POPULAR_SEARCHES = [
-  "chair",
-  "barrel chair",
-  "accent chair",
-  "swivel chair",
-  "dining chair",
-];
-
 type PopularSearchProps = {
   className?: string;
+  headingClassName?: string;
   itemClassName?: string;
   useSearchHistory?: boolean;
 };
 
 export function PopularSearch({
   className,
+  headingClassName,
   itemClassName,
   useSearchHistory = false,
 }: PopularSearchProps) {
   const { t } = useTranslation();
+  const defaultSearches = useMemo(
+    () => [
+      t("search.popularTerms.chair"),
+      t("search.popularTerms.barrelChair"),
+      t("search.popularTerms.accentChair"),
+      t("search.popularTerms.swivelChair"),
+      t("search.popularTerms.diningChair"),
+    ],
+    [t],
+  );
   const [topSearches, setTopSearches] = useState<string[]>([]);
 
   useEffect(() => {
@@ -57,8 +61,8 @@ export function PopularSearch({
     if (useSearchHistory && topSearches.length > 0) {
       return topSearches;
     }
-    return DEFAULT_POPULAR_SEARCHES;
-  }, [topSearches, useSearchHistory]);
+    return defaultSearches;
+  }, [topSearches, useSearchHistory, defaultSearches]);
 
   return (
     <div
@@ -67,7 +71,12 @@ export function PopularSearch({
         className,
       )}
     >
-      <span className="font-semibold text-xs uppercase tracking-[0.02em]">
+      <span
+        className={cn(
+          "font-semibold text-xs uppercase tracking-[0.02em]",
+          headingClassName,
+        )}
+      >
         {t("search.popular")}
       </span>
       <ul className="flex flex-col gap-2">
@@ -75,9 +84,9 @@ export function PopularSearch({
           <li key={search}>
             <Link
               to={`/search?q=${encodeURIComponent(search)}`}
-              className="hover:-translate-y-1 block w-fit transition-transform duration-200"
+              className="hover:-translate-y-1 block w-fit font-normal transition-transform duration-200"
             >
-              <span className={itemClassName}>{search}</span>
+              <span className={cn("font-normal", itemClassName)}>{search}</span>
             </Link>
           </li>
         ))}

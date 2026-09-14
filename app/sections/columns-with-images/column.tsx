@@ -10,6 +10,7 @@ import type { CSSProperties } from "react";
 import { forwardRef } from "react";
 import { Image } from "~/components/image";
 import Link, { type LinkProps, linkContentInputs } from "~/components/link";
+import { useTranslatedText } from "~/hooks/use-translated-text";
 
 const variants = cva("", {
   variants: {
@@ -38,11 +39,13 @@ const ColumnWithImageItem = forwardRef<
   HTMLDivElement,
   ColumnWithImageItemProps
 >((props, ref) => {
+  const translateText = useTranslatedText();
+
   const {
     imageSrc,
     imageBorderRadius,
-    heading,
-    content,
+    heading: rawI18nHeading,
+    content: rawI18nContent,
     text,
     to,
     variant,
@@ -51,6 +54,14 @@ const ColumnWithImageItem = forwardRef<
     size,
     ...rest
   } = props;
+  const content = translateText(
+    rawI18nContent,
+    "themeContent.sectionsColumnsWithImagesColumn.content",
+  );
+  const heading = translateText(
+    rawI18nHeading,
+    "themeContent.sectionsColumnsWithImagesColumn.heading",
+  );
 
   return (
     <div

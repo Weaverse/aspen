@@ -1,4 +1,4 @@
-import { Money, mapSelectedProductOptionToObject } from "@shopify/hydrogen";
+import { mapSelectedProductOptionToObject } from "@shopify/hydrogen";
 import { useThemeSettings, useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { useState } from "react";
@@ -10,13 +10,18 @@ import { Image } from "~/components/image";
 import { Link } from "~/components/link";
 import { NavLink } from "~/components/nav-link";
 import { ProductCardWishlistButton } from "~/components/wishlist/product-card-wishlist-button";
+import {
+  DESKTOP_MIN_PX,
+  minWidthQuery,
+  TABLET_MIN_PX,
+} from "~/utils/breakpoints";
 import { isCombinedListing } from "~/utils/combined-listings";
 import { calculateAspectRatio } from "~/utils/image";
 import { ProductCardBadges } from "./badges";
 import { ProductCardOptions } from "./product-card-options";
 import { ProductCardRating } from "./product-card-rating";
 import { QuickShopTrigger } from "./quick-shop";
-import { VariantPrices } from "./variant-prices";
+import { SpacedMoney, VariantPrices } from "./variant-prices";
 
 const CONTENT_ALIGNMENT_CLASSES = {
   left: "items-start text-left",
@@ -24,7 +29,7 @@ const CONTENT_ALIGNMENT_CLASSES = {
   right: "items-end text-right",
 } as const;
 
-const OPTION_ALIGNMENT_CLASSES = {
+const CONTENT_JUSTIFY_CLASSES = {
   left: "justify-start",
   center: "justify-center",
   right: "justify-end",
@@ -39,35 +44,37 @@ const BADGE_POSITION_CLASSES = {
 type ProductCardProps = {
   product: ProductCardFragment;
   className?: string;
+  contentAlignment?: keyof typeof CONTENT_ALIGNMENT_CLASSES;
+  quickShopIconOnly?: boolean;
+  quickShopIconOnlyOnTablet?: boolean;
+  stretchImageOnTablet?: boolean;
+  mobileLayout?: boolean;
 };
 
-type ProductCardImage = ProductCardFragment["images"]["nodes"][number];
-
-function getCardImages(
-  images: ProductCardImage[],
-  selectedImage?: ProductVariantFragment["image"],
-) {
-  const primaryImage = selectedImage || images[0];
-  const secondaryImage = images.find(
-    (image) => image.id !== primaryImage?.id && image.url !== primaryImage?.url,
-  );
-
-  return { primaryImage, secondaryImage };
-}
-
-export function ProductCard({ product, className }: ProductCardProps) {
+export function ProductCard({
+  product,
+  className,
+  contentAlignment,
+  quickShopIconOnly = false,
+  quickShopIconOnlyOnTablet = false,
+  stretchImageOnTablet = false,
+  mobileLayout = false,
+}: ProductCardProps) {
   const { t } = useTranslation();
   const {
-    pcardBorderRadius,
+    pcardLayoutPreset = "design",
+    pcardTabletRatingLayout = "stacked",
     pcardBackgroundColor,
     pcardHoverBackgroundColor,
-    pcardShowImageOnHover,
     pcardImageRatio,
-    pcardTitlePricesAlignment,
+    pcardBorderRadius = 12,
+    pcardHoverPadding = 20,
+    pcardImageZoom = true,
+    pcardFontSize = 14,
+    pcardContentGap = 12,
+    pcardImageContentGap = 20,
     pcardAlignment,
     pcardShowVendor,
-    pcardShowLowestPrice,
-    pcardShowSalePrice,
     pcardEnableQuickShop,
     pcardEnableWishlist,
     pcardBadgesPosition,
@@ -79,13 +86,13 @@ export function ProductCard({ product, className }: ProductCardProps) {
     pcardShowBundleBadge,
     pcardShowBadgesOnMobile,
     pcardShowRating,
-    designSystemPreset,
+    pcardShowSalePrice = true,
   } = useThemeSettings();
 
   const [selectedVariant, setSelectedVariant] =
     useState<ProductVariantFragment | null>(null);
   const { images, priceRange } = product;
-  const { minVariantPrice, maxVariantPrice } = priceRange;
+  const { minVariantPrice } = priceRange;
 
   const firstVariant = product.selectedOrFirstAvailableVariant;
   const activeVariant = selectedVariant || firstVariant;
@@ -95,73 +102,93 @@ export function ProductCard({ product, className }: ProductCardProps) {
   const query = params.toString();
   const productPath = `/products/${product.handle}${query ? `?${query}` : ""}`;
 
-  const isVertical = pcardTitlePricesAlignment === "vertical";
-  const alignment = pcardAlignment || "left";
+  const useTabletCoverImage = stretchImageOnTablet || quickShopIconOnlyOnTablet;
+
+  // Older stores may still have centered alignment and zero radius saved.
+  // Apply the approved defaults until custom layout is explicitly selected.
+  const customLayout = pcardLayoutPreset === "custom";
+  const alignment =
+    contentAlignment || (customLayout ? pcardAlignment : "left") || "left";
+  const tabletRatingLayout = customLayout
+    ? pcardTabletRatingLayout || "stacked"
+    : "stacked";
+  const tabletRow = {
+    split:
+      "min-[896px]:flex-row min-[896px]:items-baseline min-[896px]:justify-between",
+    inline: "md:flex-row md:items-baseline md:justify-between",
+    stacked: "",
+  }[tabletRatingLayout as "split" | "inline" | "stacked"];
+  const tabletRating = {
+    split: "min-[896px]:order-none min-[896px]:ml-auto",
+    inline: "md:order-none md:ml-auto",
+    stacked: "",
+  }[tabletRatingLayout as "split" | "inline" | "stacked"];
   const badgePosition = pcardBadgesPosition || "top-left";
-  const { primaryImage, secondaryImage } = getCardImages(
-    images.nodes,
-    selectedVariant?.image,
-  );
+  const primaryImage = selectedVariant?.image || images.nodes[0];
+  const activeImage = primaryImage;
+  const productCardBorderRadius = "var(--pcard-radius) var(--pcard-radius) 0 0";
 
   return (
     <article
       className={clsx(
-        "group/product-card @container/product-card overflow-hidden rounded-(--pcard-radius) bg-(--pcard-background) transition-[padding,background-color] duration-300",
-        "lg:hover:bg-(--pcard-hover-background) lg:hover:p-4 lg:focus-within:bg-(--pcard-hover-background) lg:focus-within:p-4",
+        "group/product-card @container/product-card overflow-hidden bg-(--pcard-background) transition-[padding,background-color] duration-300",
+        !mobileLayout &&
+          "desktop:hover:bg-(--pcard-hover-background) desktop:hover:p-(--pcard-hover-padding) desktop:focus-within:bg-(--pcard-hover-background) desktop:focus-within:p-(--pcard-hover-padding)",
         className,
       )}
       style={
         {
           "--pcard-background": pcardBackgroundColor || "transparent",
-          "--pcard-hover-background": pcardHoverBackgroundColor || "#F1F1F1",
-          "--pcard-radius":
-            designSystemPreset === "custom"
-              ? `${pcardBorderRadius}px`
-              : "var(--radius-md)",
+          "--pcard-hover-background":
+            pcardHoverBackgroundColor || "var(--color-background-subtle)",
+          "--pcard-hover-padding": `${pcardHoverPadding}px`,
+          "--pcard-font-size": `${pcardFontSize}px`,
+          "--pcard-content-gap": `${pcardContentGap}px`,
+          "--pcard-image-content-gap": `${pcardImageContentGap}px`,
+          "--pcard-radius": `${customLayout ? pcardBorderRadius : 12}px`,
           "--pcard-image-ratio": calculateAspectRatio(
             primaryImage,
             pcardImageRatio,
           ),
+          borderRadius: productCardBorderRadius,
         } as React.CSSProperties
       }
     >
-      <div className="group relative">
+      <div
+        className={clsx(
+          "group relative",
+          useTabletCoverImage && "md:w-full md:self-stretch lg:self-auto",
+        )}
+      >
         <Link
           to={productPath}
           prefetch="intent"
           aria-label={t("product.viewProduct", { product: product.title })}
-          className="group relative block aspect-(--pcard-image-ratio) overflow-hidden rounded-(--pcard-radius) bg-gray-100"
+          style={{ borderRadius: productCardBorderRadius }}
+          className={clsx(
+            "group relative block aspect-(--pcard-image-ratio) overflow-hidden bg-gray-100",
+            useTabletCoverImage &&
+              "md:w-full md:self-stretch md:bg-[lightgray] lg:bg-gray-100",
+          )}
         >
-          {primaryImage ? (
-            <>
-              <Image
-                className={clsx(
-                  "absolute inset-0",
-                  pcardShowImageOnHover &&
-                    secondaryImage &&
-                    "transition-opacity duration-300 group-hover:opacity-0",
-                )}
-                sizes="(min-width: 64em) 25vw, (min-width: 48em) 30vw, 45vw"
-                data={primaryImage}
-                width={700}
-                alt={
-                  primaryImage.altText ||
-                  t("product.pictureOf", { product: product.title })
-                }
-                loading="lazy"
-              />
-              {pcardShowImageOnHover && secondaryImage && (
-                <Image
-                  aria-hidden="true"
-                  className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                  sizes="(min-width: 64em) 25vw, (min-width: 48em) 30vw, 45vw"
-                  width={700}
-                  data={secondaryImage}
-                  alt=""
-                  loading="lazy"
-                />
+          {activeImage ? (
+            <Image
+              key={activeImage.id}
+              className={clsx(
+                "absolute inset-0 h-full w-full object-cover object-[50%_50%] transition-transform duration-300",
+                pcardImageZoom &&
+                  !mobileLayout &&
+                  "desktop:group-hover/product-card:scale-105",
               )}
-            </>
+              sizes={`${minWidthQuery(DESKTOP_MIN_PX)} 25vw, ${minWidthQuery(TABLET_MIN_PX)} 30vw, 45vw`}
+              data={activeImage}
+              width={700}
+              alt={
+                activeImage.altText ||
+                t("product.pictureOf", { product: product.title })
+              }
+              loading="lazy"
+            />
           ) : (
             <span
               role="img"
@@ -203,17 +230,18 @@ export function ProductCard({ product, className }: ProductCardProps) {
           <QuickShopTrigger
             productHandle={product.handle}
             selectedOptions={activeVariant?.selectedOptions}
-            showOnHover={pcardShowQuickShopOnHover}
+            iconOnly={mobileLayout || quickShopIconOnly}
+            showOnHover={quickShopIconOnly ? false : pcardShowQuickShopOnHover}
           />
         )}
       </div>
       <div
         className={clsx(
-          "flex flex-col gap-2 py-3",
-          isVertical &&
-            CONTENT_ALIGNMENT_CLASSES[
-              alignment as keyof typeof CONTENT_ALIGNMENT_CLASSES
-            ],
+          "flex flex-col gap-(--pcard-content-gap) pt-(--pcard-image-content-gap) pb-0",
+          quickShopIconOnlyOnTablet && "self-stretch text-left",
+          CONTENT_ALIGNMENT_CLASSES[
+            alignment as keyof typeof CONTENT_ALIGNMENT_CLASSES
+          ],
         )}
       >
         {pcardShowVendor && (
@@ -226,97 +254,77 @@ export function ProductCard({ product, className }: ProductCardProps) {
           selectedVariant={activeVariant}
           setSelectedVariant={setSelectedVariant}
           className={
-            isVertical
-              ? OPTION_ALIGNMENT_CLASSES[
-                  alignment as keyof typeof OPTION_ALIGNMENT_CLASSES
-                ]
-              : undefined
+            CONTENT_JUSTIFY_CLASSES[
+              alignment as keyof typeof CONTENT_JUSTIFY_CLASSES
+            ]
           }
         />
-        {isVertical ? (
-          <div className="flex w-full flex-col gap-1">
-            <div className="flex flex-col gap-1 @min-[18rem]/product-card:flex-row @min-[18rem]/product-card:items-start @min-[18rem]/product-card:justify-between">
-              <NavLink
-                to={productPath}
-                prefetch="intent"
-                className={({ isTransitioning }) =>
-                  clsx(
-                    "order-2 line-clamp-2 text-sm uppercase leading-tight @min-[18rem]/product-card:order-1",
-                    isTransitioning && "[view-transition-name:product-image]",
-                  )
-                }
-              >
-                {product.title}
-              </NavLink>
-              {pcardShowRating && (
-                <ProductCardRating
-                  ratingValue={product.reviewRating?.value}
-                  ratingCountValue={product.reviewRatingCount?.value}
-                  className="order-1 @min-[18rem]/product-card:order-2"
-                />
-              )}
-            </div>
-            {pcardShowLowestPrice || isCombinedListing(product) ? (
-              <div className="flex flex-wrap items-center gap-x-1 text-sm">
-                <span>{t("product.from")}</span>
-                <Money withoutTrailingZeros data={minVariantPrice} />
-                {isCombinedListing(product) && (
-                  <>
-                    <span>–</span>
-                    <Money withoutTrailingZeros data={maxVariantPrice} />
-                  </>
-                )}
-              </div>
-            ) : (
-              <VariantPrices
-                variant={activeVariant}
-                showCompareAtPrice={pcardShowSalePrice}
-                className="flex-wrap text-sm"
-              />
+        <div
+          className={clsx(
+            "flex w-full flex-col gap-(--pcard-content-gap)",
+            CONTENT_ALIGNMENT_CLASSES[
+              alignment as keyof typeof CONTENT_ALIGNMENT_CLASSES
+            ],
+          )}
+        >
+          <div
+            className={clsx(
+              "flex w-full flex-col gap-(--pcard-content-gap)",
+              !mobileLayout &&
+                "desktop:flex-row desktop:items-baseline desktop:justify-between",
+              !mobileLayout && tabletRow,
+              CONTENT_ALIGNMENT_CLASSES[
+                alignment as keyof typeof CONTENT_ALIGNMENT_CLASSES
+              ],
             )}
-          </div>
-        ) : (
-          <>
+          >
+            <NavLink
+              to={productPath}
+              prefetch="intent"
+              className={({ isTransitioning }) =>
+                clsx(
+                  "line-clamp-2 font-body font-normal text-(--color-text) text-sm uppercase text-(length:--pcard-font-size) leading-none tracking-[0.02em]",
+                  !mobileLayout && "desktop:min-w-0 desktop:flex-1",
+                  isTransitioning && "[view-transition-name:product-image]",
+                )
+              }
+            >
+              {product.title}
+            </NavLink>
             {pcardShowRating && (
               <ProductCardRating
+                useDotDecimal
+                className={clsx(
+                  "order-first font-body text-(--color-text) text-(length:--pcard-font-size)",
+                  !mobileLayout && "desktop:order-none desktop:ml-auto",
+                  !mobileLayout && tabletRating,
+                )}
                 ratingValue={product.reviewRating?.value}
                 ratingCountValue={product.reviewRatingCount?.value}
               />
             )}
-            <div className="flex w-full flex-col items-start gap-1 text-left lg:flex-row lg:justify-between lg:gap-4">
-              <NavLink
-                to={productPath}
-                prefetch="intent"
-                className={({ isTransitioning }) =>
-                  clsx(
-                    "line-clamp-2 text-sm uppercase leading-tight",
-                    isTransitioning && "[view-transition-name:product-image]",
-                  )
-                }
-              >
-                {product.title}
-              </NavLink>
-              {pcardShowLowestPrice || isCombinedListing(product) ? (
-                <div className="flex flex-wrap items-center gap-x-1 text-sm">
-                  <span>{t("product.from")}</span>
-                  <Money withoutTrailingZeros data={minVariantPrice} />
-                  {isCombinedListing(product) && (
-                    <>
-                      <span>–</span>
-                      <Money withoutTrailingZeros data={maxVariantPrice} />
-                    </>
-                  )}
-                </div>
-              ) : (
-                <VariantPrices
-                  variant={activeVariant}
-                  showCompareAtPrice={pcardShowSalePrice}
-                  className="flex-wrap text-sm lg:justify-end"
-                />
-              )}
+          </div>
+          {isCombinedListing(product) || !activeVariant ? (
+            <div className="font-body font-normal text-(--color-text) text-sm text-(length:--pcard-font-size) leading-none tracking-[0.02em]">
+              <SpacedMoney data={minVariantPrice} />
             </div>
-          </>
-        )}
+          ) : (
+            <VariantPrices
+              compareAtFirst
+              spacedCurrency
+              variant={activeVariant}
+              showCompareAtPrice={pcardShowSalePrice}
+              className={clsx(
+                "flex-wrap gap-1 font-body font-normal text-sm text-(length:--pcard-font-size) leading-none tracking-[0.02em]",
+                CONTENT_JUSTIFY_CLASSES[
+                  alignment as keyof typeof CONTENT_JUSTIFY_CLASSES
+                ],
+              )}
+              compareAtPriceClassName="text-(--color-compare-price-text) line-through"
+              priceClassName="text-(--color-text)"
+            />
+          )}
+        </div>
       </div>
     </article>
   );

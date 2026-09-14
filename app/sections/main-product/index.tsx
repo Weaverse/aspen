@@ -1,3 +1,4 @@
+import { PackageIcon } from "@phosphor-icons/react";
 import {
   getAdjacentAndFirstAvailableVariants,
   getProductOptions,
@@ -28,13 +29,11 @@ import {
   type ProductMediaProps,
 } from "~/components/product/product-media";
 import { Quantity } from "~/components/product/quantity";
-import {
-  CompareAtPrice,
-  VariantPrices,
-} from "~/components/product/variant-prices";
+import { VariantPrices } from "~/components/product/variant-prices";
 import { layoutInputs, Section, type SectionProps } from "~/components/section";
 import { SellingPlanSelector } from "~/components/subscriptions/selling-plan-selector";
 import { ProductWishlistButton } from "~/components/wishlist/product-wishlist-button";
+import { useTranslatedText } from "~/hooks/use-translated-text";
 import type { loader as productRouteLoader } from "~/routes/($locale).products.$productHandle";
 import ReviewIndex from "~/sections/judgeme-reviews/review-index";
 import { isCombinedListing } from "~/utils/combined-listings";
@@ -80,6 +79,8 @@ const ProductInformation = forwardRef<
   HTMLDivElement,
   ProductInformationData & SectionProps
 >((props, ref) => {
+  const translateText = useTranslatedText();
+
   const { t } = useTranslation();
   const { product, storeDomain } = useLoaderData<typeof productRouteLoader>();
 
@@ -96,9 +97,9 @@ const ProductInformation = forwardRef<
   });
 
   const {
-    addToCartText,
-    addBundleToCartText,
-    soldOutText,
+    addToCartText: rawI18nAddToCartText,
+    addBundleToCartText: rawI18nAddBundleToCartText,
+    soldOutText: rawI18nSoldOutText,
     showVendor,
     showSalePrice,
     showShortDescription,
@@ -108,24 +109,28 @@ const ProductInformation = forwardRef<
     showWishlist = true,
     showBackInStockForm = true,
     lowInventoryThreshold = 10,
-    lowInventoryText = "Hurry up! Only [quantity] items in stock.",
-    descriptionTitle = "Dimensions",
+    lowInventoryText:
+      rawI18nLowInventoryText = "Hurry up! Only [quantity] items in stock.",
+    descriptionTitle: rawI18nDescriptionTitle = "Dimensions",
     openDescriptionByDefault = true,
     showProductStory = true,
     storyHeroImage,
     storyHeroImageMobile,
     storyFirstImage,
-    storyFirstHeading = "WHETHER A LAVISH VELVET SOFA, A BOLD-HUED BROCADE CHAISE.",
+    storyFirstHeading:
+      rawI18nStoryFirstHeading = "WHETHER A LAVISH VELVET SOFA, A BOLD-HUED BROCADE CHAISE.",
     storySecondImage,
-    storySecondHeading = "TACTILE FABRIC TRENDS HAVE ALSO EXPANDED TO A BROADER UNIVERSE.",
+    storySecondHeading:
+      rawI18nStorySecondHeading = "TACTILE FABRIC TRENDS HAVE ALSO EXPANDED TO A BROADER UNIVERSE.",
     showProductRating = true,
     showProductReviews = true,
-    reviewsTitle = "Customer Reviews",
-    reviewsDescription = "Read what our customers are saying about this product.",
+    reviewsTitle: rawI18nReviewsTitle = "Customer Reviews",
+    reviewsDescription:
+      rawI18nReviewsDescription = "Read what our customers are saying about this product.",
     mediaLayout,
     gridSize,
     imageAspectRatio,
-    showThumbnails,
+    showThumbnails: _showThumbnails,
     // The star rating used to be a `judgeme` child; it is a section element now,
     // so any child saved on existing pages is intentionally dropped.
     children: _children,
@@ -142,6 +147,42 @@ const ProductInformation = forwardRef<
     width,
     ...rest
   } = props;
+  const soldOutText = translateText(
+    rawI18nSoldOutText,
+    "themeContent.sectionsMainProductIndex.soldOutText",
+  );
+  const addBundleToCartText = translateText(
+    rawI18nAddBundleToCartText,
+    "themeContent.sectionsMainProductIndex.addBundleToCartText",
+  );
+  const addToCartText = translateText(
+    rawI18nAddToCartText,
+    "themeContent.sectionsMainProductIndex.addToCartText",
+  );
+  const reviewsDescription = translateText(
+    rawI18nReviewsDescription,
+    "themeContent.sectionsMainProductIndex.reviewsDescription",
+  );
+  const reviewsTitle = translateText(
+    rawI18nReviewsTitle,
+    "themeContent.sectionsMainProductIndex.reviewsTitle",
+  );
+  const storySecondHeading = translateText(
+    rawI18nStorySecondHeading,
+    "themeContent.sectionsMainProductIndex.storySecondHeading",
+  );
+  const storyFirstHeading = translateText(
+    rawI18nStoryFirstHeading,
+    "themeContent.sectionsMainProductIndex.storyFirstHeading",
+  );
+  const descriptionTitle = translateText(
+    rawI18nDescriptionTitle,
+    "themeContent.sectionsMainProductIndex.descriptionTitle",
+  );
+  const lowInventoryText = translateText(
+    rawI18nLowInventoryText,
+    "themeContent.sectionsMainProductIndex.lowInventoryText",
+  );
   const [quantity, setQuantity] = useState<number>(1);
   const [selectedSellingPlanId, setSelectedSellingPlanId] = useState<
     string | null
@@ -176,7 +217,7 @@ const ProductInformation = forwardRef<
         quantityAvailable <= inventoryThreshold,
     );
     const maxQuantity = quantityLimit;
-    let atcButtonText = "Add to cart";
+    let atcButtonText = t("product.addToCart");
     if (selectedVariant.availableForSale) {
       atcButtonText = isBundle ? addBundleToCartText : addToCartText;
     } else {
@@ -193,16 +234,23 @@ const ProductInformation = forwardRef<
       >
         <div
           className={clsx(
-            "space-y-0 lg:grid lg:gap-10 lg:space-y-0",
-            "lg:grid-cols-[minmax(0,1fr)_clamp(360px,40vw,543px)]",
+            "space-y-0 lg:flex lg:items-start lg:justify-center lg:gap-[39px] lg:pt-10",
           )}
         >
           <div
             className={clsx(
+              "relative h-[430px] min-w-0 flex-[1_0_0] overflow-hidden rounded-[4px] bg-[#d3d3d3] [&_.product-media-slider]:h-full [&_.swiper]:h-full [&_.swiper-slide]:h-full [&_.swiper-wrapper]:h-full [&_img]:object-cover md:aspect-square md:h-auto md:flex-[1_0_0] md:self-stretch md:rounded-[4px] md:bg-[#d3d3d3] lg:aspect-square lg:h-auto lg:w-[778px] lg:max-w-[calc(100%-399px)] lg:flex-none lg:rounded-[var(--Radius-border-radius-md,12px)] lg:bg-transparent",
               width !== "full" &&
-                "-mx-(--page-padding) w-[calc(100%+2*var(--page-padding))] lg:mx-0 lg:w-auto",
+                "-mx-(--page-padding) w-[calc(100%+2*var(--page-padding))] lg:mx-0 lg:w-[778px]",
             )}
           >
+            {showWishlist && (
+              <ProductWishlistButton
+                productId={product.id}
+                productTitle={title}
+                className="absolute top-3 right-3 z-10 hidden size-11 border-0 bg-transparent lg:inline-flex"
+              />
+            )}
             <ProductMedia
               key={handle}
               mediaLayout={mediaLayout}
@@ -224,10 +272,14 @@ const ProductInformation = forwardRef<
                   : product?.media?.nodes || []
               }
               selectedVariant={selectedVariant}
-              showThumbnails={showThumbnails}
+              showThumbnails={false}
               enableZoom={enableZoom}
+              zoomButtonClassName={
+                showWishlist ? "lg:top-auto lg:bottom-6" : undefined
+              }
               showDots={showDots}
               navigationStyle={navigationStyle}
+              navigationVariant="product-page"
               arrowsColor={arrowsColor}
               arrowsShape={arrowsShape}
               zoomColor={zoomColor}
@@ -247,73 +299,78 @@ const ProductInformation = forwardRef<
           </div>
           <div
             className={clsx(
-              "pt-10 md:pt-12 lg:pt-0",
+              "min-w-0 pt-10 md:flex-[1_0_0] md:pt-10 lg:flex-1 lg:pt-0",
               width === "full" && "px-8 lg:pr-(--page-padding) lg:pl-0",
-              width !== "full" && "px-2 lg:px-0",
+              width !== "full" && "px-3 md:px-0 lg:px-0",
             )}
           >
             <div
-              className="flex flex-col justify-start gap-7 lg:sticky"
+              className="flex flex-col justify-start gap-0 md:flex-[1_0_0] md:items-start md:justify-center md:gap-8 lg:sticky lg:flex-none lg:items-stretch lg:justify-start lg:gap-0"
+              data-product-detail-content
               style={{ top: "calc(var(--height-nav) + 24px)" }}
             >
-              <div className="flex flex-col gap-2">
-                {showVendor && vendor && (
-                  <span className="text-body-subtle">{vendor}</span>
+              <div className="w-full space-y-8 md:space-y-4">
+                <div className="flex flex-col gap-2">
+                  {showVendor && vendor && (
+                    <span className="text-body-subtle">{vendor}</span>
+                  )}
+                  <h1 className="flex-[1_0_0] font-heading font-normal text-[44px] text-[#343231] uppercase leading-[1.1] tracking-[-1.32px]">
+                    {title}
+                  </h1>
+                </div>
+
+                {combinedListing ? (
+                  <VariantPrices
+                    variant={{ price: product.priceRange.minVariantPrice }}
+                    showCompareAtPrice={false}
+                    className="font-heading font-normal text-2xl/none"
+                  />
+                ) : (
+                  <div className="flex items-center gap-2 font-heading font-normal text-2xl leading-[normal]">
+                    {isDiscounted(
+                      selectedVariant.price as MoneyV2,
+                      selectedVariant.compareAtPrice as MoneyV2,
+                    ) &&
+                      showSalePrice && (
+                        <Money
+                          withoutTrailingZeros
+                          data={selectedVariant.compareAtPrice as MoneyV2}
+                          as="span"
+                          className="text-[#999] line-through lg:text-2xl lg:leading-[normal]"
+                        />
+                      )}
+                    <Money
+                      withoutTrailingZeros
+                      data={selectedVariant.price}
+                      as="span"
+                      className="text-[#1A1A1A] lg:text-2xl lg:leading-[normal]"
+                    />
+                  </div>
                 )}
-                <h1 className="font-heading font-normal text-[clamp(2rem,5vw,3rem)] uppercase leading-[1.1] tracking-[-0.03em] lg:text-[44px]">
-                  {title}
-                </h1>
               </div>
 
-              {combinedListing ? (
-                <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-2xl/none">
-                  <span className="flex gap-1">
-                    {t("collection.from")}
-                    <VariantPrices
-                      variant={{ price: product.priceRange.minVariantPrice }}
-                      showCompareAtPrice={false}
-                      className="font-heading font-normal"
-                    />
-                  </span>
-                  <span className="flex gap-1">
-                    {t("collection.to")}
-                    <VariantPrices
-                      variant={{ price: product.priceRange.maxVariantPrice }}
-                      showCompareAtPrice={false}
-                      className="font-heading font-normal"
-                    />
-                  </span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-3 font-heading font-normal text-2xl">
-                  {isDiscounted(
-                    selectedVariant.price as MoneyV2,
-                    selectedVariant.compareAtPrice as MoneyV2,
-                  ) &&
-                    showSalePrice && (
-                      <CompareAtPrice
-                        data={selectedVariant.compareAtPrice as MoneyV2}
-                        className="text-body-subtle"
-                      />
-                    )}
-                  <Money
-                    withoutTrailingZeros
-                    data={selectedVariant.price}
-                    as="span"
-                  />
-                </div>
+              {showProductRating && (
+                <ProductRating
+                  linkToReviews
+                  productDetailsLayout
+                  className="mt-4 md:mt-0 lg:mt-4"
+                />
               )}
 
               {showLowInventory && (
-                <div className="space-y-2" role="status" aria-live="polite">
-                  <p className="text-sm">
+                <div
+                  className="mt-8 w-full space-y-2 md:mt-0 lg:mt-8"
+                  role="status"
+                  aria-live="polite"
+                >
+                  <p className="font-body text-sm leading-[1.6] tracking-[0.14px] text-[#282123]">
                     {lowInventoryText.replace(
                       "[quantity]",
                       String(quantityAvailable),
                     )}
                   </p>
                   <div
-                    className="h-1 overflow-hidden rounded-full bg-line-subtle"
+                    className="flex h-1 overflow-hidden rounded-[var(--border-radius-sm,4px)] bg-line-subtle"
                     aria-hidden="true"
                   >
                     <span
@@ -333,9 +390,7 @@ const ProductInformation = forwardRef<
                 </div>
               )}
 
-              <div className="space-y-7">
-                {showProductRating && <ProductRating linkToReviews />}
-
+              <div className="mt-8 w-full space-y-7 md:mt-0 lg:mt-7">
                 {isBundle && (
                   <div className="space-y-3">
                     <h4 className="text-2xl">{t("product.bundledProducts")}</h4>
@@ -346,6 +401,7 @@ const ProductInformation = forwardRef<
                 )}
 
                 <ProductVariants
+                  productDetailSwatches
                   productOptions={productOptions}
                   selectedVariant={selectedVariant}
                   combinedListing={combinedListing}
@@ -362,20 +418,20 @@ const ProductInformation = forwardRef<
 
               {!combinedListing && (
                 <div
-                  className="sp-button space-y-3"
+                  className="sp-button mt-8 w-full space-y-3 md:mt-0 lg:mt-8"
                   style={
                     {
                       "--shop-pay-button-height": "54px",
                     } as React.CSSProperties
                   }
                 >
-                  <div className="flex gap-3">
+                  <div className="flex items-center gap-[var(--p-12,12px)]">
                     <Quantity
                       value={quantity}
                       onChange={setQuantity}
                       maxQuantity={maxQuantity}
                       variant="stepper"
-                      className="w-[34%] shrink-0"
+                      className="w-[132px] min-w-[132px] shrink-0 grid-cols-[44px_44px_44px] md:flex! md:h-[54px] md:w-[256.667px] md:min-w-[256.667px] md:items-start md:[&>*]:w-auto md:[&>*]:flex-1 lg:grid! lg:w-[132px] lg:min-w-[132px] lg:grid-cols-[44px_44px_44px] lg:[&>*]:w-11 lg:[&>*]:flex-none"
                     />
                     <AddToCartButton
                       width="auto"
@@ -392,7 +448,7 @@ const ProductInformation = forwardRef<
                         },
                       ]}
                       data-test="add-to-cart"
-                      className="h-[54px] w-full rounded-lg uppercase"
+                      className="h-[54px] w-full rounded-[var(--Radius-border-radius-sm,8px)] bg-[var(--Primary-Background,#4D4946)] px-6 py-5 uppercase"
                       onClick={() => {
                         if (
                           selectedSellingPlanId &&
@@ -416,12 +472,6 @@ const ProductInformation = forwardRef<
                     >
                       {atcButtonText}
                     </AddToCartButton>
-                    {showWishlist && (
-                      <ProductWishlistButton
-                        productId={product.id}
-                        productTitle={title}
-                      />
-                    )}
                   </div>
                   {selectedVariant?.availableForSale && (
                     <ShopPayButton
@@ -434,6 +484,15 @@ const ProductInformation = forwardRef<
                       ]}
                       storeDomain={storeDomain}
                     />
+                  )}
+                  {selectedVariant?.availableForSale && (
+                    <div className="!mt-8 flex items-center gap-2.5 text-body-subtle text-sm">
+                      <PackageIcon
+                        aria-hidden="true"
+                        className="size-5 shrink-0"
+                      />
+                      <span>{t("product.estimatedDelivery")}</span>
+                    </div>
                   )}
                   {selectedVariant?.availableForSale && (
                     <LoyaltyPointsHint
@@ -453,6 +512,7 @@ const ProductInformation = forwardRef<
               )}
 
               <ProductDetails
+                className="mt-[27px] w-full md:mt-0 lg:mt-[27px]"
                 showShippingPolicy={showShippingPolicy}
                 showRefundPolicy={showRefundPolicy}
                 showShortDescription={showShortDescription}
@@ -477,7 +537,7 @@ const ProductInformation = forwardRef<
         )}
 
         {showProductReviews && (
-          <div className="hidden px-0 py-20 md:block md:px-2 md:py-24 lg:px-0">
+          <div className="hidden px-0 pt-16 md:block md:px-0 md:py-20 lg:flex lg:flex-col lg:items-center lg:self-stretch lg:px-20 lg:py-20">
             <ReviewIndex
               title={reviewsTitle}
               description={reviewsDescription}
@@ -532,12 +592,12 @@ export const schema = createSchema({
           configs: {
             options: [
               {
-                label: "Grid",
+                label: "Scenario 1",
                 value: "grid",
                 icon: "grid-2x2",
               },
               {
-                label: "Slider",
+                label: "Scenario 2",
                 value: "slider",
                 icon: "slideshow-outline",
               },
@@ -548,7 +608,7 @@ export const schema = createSchema({
         {
           type: "select",
           name: "gridSize",
-          label: "Grid size",
+          label: "Scenario 1 grid size",
           defaultValue: "2x2",
           configs: {
             options: [
@@ -559,14 +619,6 @@ export const schema = createSchema({
           },
           condition: (data: ProductInformationData) =>
             data.mediaLayout === "grid",
-        },
-        {
-          label: "Show thumbnails",
-          name: "showThumbnails",
-          type: "switch",
-          defaultValue: false,
-          condition: (data: ProductInformationData) =>
-            data.mediaLayout === "slider",
         },
         {
           label: "Show dots",

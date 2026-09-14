@@ -7,13 +7,14 @@ import { StarRating } from "~/components/star-rating";
 import type { loader as productRouteLoader } from "~/routes/($locale).products.$productHandle";
 import { cn } from "~/utils/cn";
 import type { JudgemeReviewsData } from "~/utils/judgeme";
+import { translateError } from "~/utils/translated-error";
 
 function RatingBreakdown({ reviews }: { reviews: JudgemeReviewsData }) {
   const { t } = useTranslation();
   const total = reviews.reviews.length;
 
   return (
-    <div className="w-full space-y-2 md:max-w-sm">
+    <div className="w-full space-y-2 md:max-w-sm lg:min-w-0 lg:max-w-[568px]">
       {[5, 4, 3, 2, 1].map((rating) => {
         const count = reviews.reviews.filter(
           (review) => review.rating === rating,
@@ -23,7 +24,7 @@ function RatingBreakdown({ reviews }: { reviews: JudgemeReviewsData }) {
         return (
           <div
             key={rating}
-            className="grid grid-cols-[2.25rem_minmax(0,1fr)_4.75rem] items-center gap-2 text-sm"
+            className="grid grid-cols-[2.25rem_minmax(0,1fr)_4.75rem] items-center gap-2 text-sm lg:leading-[18px]"
           >
             <span className="flex items-center gap-1">
               {rating}
@@ -88,15 +89,15 @@ export function ReviewForm({ reviews }: { reviews: JudgemeReviewsData }) {
 
   return (
     <div className="w-full space-y-10">
-      <div className="grid items-center gap-10 py-4 md:grid-cols-[12rem_minmax(18rem,1fr)_auto] md:gap-8">
-        <div className="flex flex-col items-center gap-2 md:items-start">
-          <StarRating rating={displayRating} starClassName="size-7 md:size-6" />
-          <p className="font-heading text-3xl">
+      <div className="grid items-center gap-10 py-4 md:grid-cols-[10.5rem_minmax(0,1fr)_auto] md:gap-8 lg:flex lg:self-stretch lg:justify-between lg:py-16">
+        <div className="flex flex-col items-center gap-2 md:items-start lg:shrink-0">
+          <StarRating rating={displayRating} starClassName="size-8" />
+          <p className="font-heading text-[26px] leading-[1.1] tracking-[-0.52px] lg:font-normal lg:text-[26px] lg:text-[#343231] lg:leading-[1.1] lg:tracking-[-0.52px]">
             {t("reviews.ratingOutOfFive", {
               rating: displayRating.toFixed(1),
             })}
           </p>
-          <p className="text-body-subtle text-sm">
+          <p className="text-body-subtle text-sm lg:font-body lg:font-normal lg:text-[14px] lg:text-[#979797] lg:leading-none lg:tracking-[0.28px]">
             {t(
               reviews.reviewNumber === 1
                 ? "reviews.basedOn"
@@ -110,7 +111,7 @@ export function ReviewForm({ reviews }: { reviews: JudgemeReviewsData }) {
 
         <Button
           variant="primary"
-          className="mx-auto min-h-14 rounded-lg px-8 md:mx-0"
+          className="mx-auto min-h-14 rounded-lg px-8 md:mx-0 md:px-6 lg:h-[54px] lg:min-h-[54px] lg:shrink-0 lg:px-6"
           onClick={() => {
             setIsSuccessVisible(false);
             setIsFormVisible((visible) => !visible);
@@ -185,16 +186,6 @@ export function ReviewForm({ reviews }: { reviews: JudgemeReviewsData }) {
           </div>
 
           <label className="block space-y-2 font-semibold text-sm">
-            <span>{t("reviews.reviewTitle")}</span>
-            <input
-              required
-              type="text"
-              name="title"
-              className="min-h-12 w-full border border-line-subtle px-3 font-normal outline-hidden focus-visible:border-body"
-            />
-          </label>
-
-          <label className="block space-y-2 font-semibold text-sm">
             <span>{t("reviews.yourReview")}</span>
             <textarea
               required
@@ -206,7 +197,7 @@ export function ReviewForm({ reviews }: { reviews: JudgemeReviewsData }) {
 
           {fetcher.data?.error && (
             <p role="alert" className="text-red-700 text-sm">
-              {fetcher.data.error}
+              {translateError(t, fetcher.data.error)}
             </p>
           )}
 

@@ -107,7 +107,7 @@ export async function writeWishlist(
     conflict,
     setupRequired: WISHLIST_SETUP_USER_ERROR_CODES.has(userError.code ?? ""),
     message: conflict
-      ? "Wishlist changed in another session. Please try again."
+      ? "errors.wishlistConflict"
       : userError.message,
   };
 }

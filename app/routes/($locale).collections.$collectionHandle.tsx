@@ -2,7 +2,6 @@ import {
   Analytics,
   flattenConnection,
   getPaginationVariables,
-  getSeoMeta,
 } from "@shopify/hydrogen";
 import type {
   ProductCollectionSortKeys,
@@ -19,11 +18,20 @@ import invariant from "tiny-invariant";
 import { PRODUCT_CARD_FRAGMENT } from "~/graphql/fragments";
 import type { I18nLocale } from "~/types/locale";
 import { routeHeaders } from "~/utils/cache";
+import {
+  getCollectionCategory,
+  matchesCollectionCategory,
+} from "~/utils/collection-categories";
 import { PAGINATION_SIZE } from "~/utils/const";
 import { FILTER_URL_PREFIX, type SortParam } from "~/utils/filter";
 import { redirectIfHandleIsLocalized } from "~/utils/redirect";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
+import {
+  isSaleProduct,
+  paginateMatchingProducts,
+} from "~/utils/sale-pagination.server";
 import { seoPayload } from "~/utils/seo.server";
+import { localizedSeoMeta } from "~/utils/seo-translation";
 import { WeaverseContent } from "~/weaverse";
 
 export const headers = routeHeaders;
@@ -98,6 +106,40 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     data: collection,
   });
 
+  const category = getCollectionCategory(
+    collectionHandle,
+    searchParams.get("category"),
+  );
+  const saleOnly = searchParams.get("sale") === "true";
+  if (saleOnly || category) {
+    collection.products = await paginateMatchingProducts(
+      collection.products,
+      paginationVariables,
+      async (page) => {
+        const next = await storefront.query<CollectionQuery>(COLLECTION_QUERY, {
+          variables: {
+            ...page,
+            handle: collectionHandle,
+            filters,
+            sortKey,
+            reverse,
+            country: storefront.i18n.country,
+            language: storefront.i18n.language,
+            customBannerNamespace: bannerNamespace,
+            customBannerKey: bannerKey,
+          },
+        });
+        if (!next.collection) {
+          throw new Response("collection", { status: 404 });
+        }
+        return next.collection.products;
+      },
+      (product) =>
+        (!saleOnly || isSaleProduct(product)) &&
+        (!category || matchesCollectionCategory(product, category)),
+    );
+  }
+
   const seo = seoPayload.collection({
     collection: {
       id: collection.id,
@@ -168,7 +210,8 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
 }
 
 export const meta = ({ matches }: MetaArgs<typeof loader>) => {
-  return getSeoMeta(
+  return localizedSeoMeta(
+    matches,
     ...matches.map((match) => (match.data as any)?.seo).filter(Boolean),
   );
 };
@@ -308,6 +351,7 @@ const COLLECTION_QUERY = `#graphql
             input
           }
         }
+        edges { cursor }
         nodes {
           ...ProductCard
         }

@@ -49,7 +49,34 @@ let VideoItems = forwardRef<HTMLElement, VideoItemsProps>((props, ref) => {
         {items}
       </div>
 
-      <div className="relative lg:hidden" style={style}>
+      <div className="relative hidden md:block lg:hidden" style={style}>
+        <Swiper spaceBetween={16} slidesPerView={2} className="w-full">
+          {Children.map(items, (child, index) => {
+            if (isValidElement(child)) {
+              return (
+                <SwiperSlide
+                  key={index}
+                  className="flex h-auto flex-col items-start"
+                >
+                  {cloneElement(child, {
+                    style,
+                  } as any)}
+                </SwiperSlide>
+              );
+            }
+            return (
+              <SwiperSlide
+                key={index}
+                className="flex h-auto flex-col items-start"
+              >
+                {child}
+              </SwiperSlide>
+            );
+          })}
+        </Swiper>
+      </div>
+
+      <div className="relative md:hidden" style={style}>
         <Swiper
           spaceBetween={gap}
           slidesPerView="auto"

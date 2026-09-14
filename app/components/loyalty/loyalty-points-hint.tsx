@@ -1,7 +1,9 @@
-import { useThemeSettings, useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen";
 import { Suspense } from "react";
 import { Await, useRouteLoaderData } from "react-router";
 import { Link } from "~/components/link";
+import { useTranslatedText } from "~/hooks/use-translated-text";
+import { useTranslatedThemeSettings } from "~/hooks/use-translated-theme-settings";
 import type { RootLoader } from "~/root";
 import type { LoyaltyBalance } from "~/types/loyalty";
 import { estimateLoyaltyPoints } from "~/utils/loyalty";
@@ -70,13 +72,19 @@ function LoyaltyHintBody({
   vendorConfigured: boolean;
   className: string;
 }) {
+  const translateText = useTranslatedText();
+
   const { t } = useTranslation();
   const {
     enableLoyaltyHint,
     loyaltyPointsPerCurrency = 1,
-    loyaltyProgramName = "Rewards",
+    loyaltyProgramName: rawI18nLoyaltyProgramName = "Rewards",
     loyaltyLearnMoreUrl,
-  } = useThemeSettings();
+  } = useTranslatedThemeSettings();
+  const loyaltyProgramName = translateText(
+    rawI18nLoyaltyProgramName,
+    "themeContent.componentsLoyaltyLoyaltyPointsHint.loyaltyProgramName",
+  );
 
   if (!enableLoyaltyHint && !vendorConfigured) {
     return null;

@@ -13,6 +13,7 @@ import {
   getRequestI18n,
   loadStoreLocalization,
 } from "~/utils/localization.server";
+import { defaultTranslation } from "~/utils/translation";
 import { components } from "~/weaverse/components";
 import { getThemeSchema } from "~/weaverse/schema.server";
 
@@ -123,7 +124,9 @@ export default {
       return response;
     } catch (error) {
       console.error(error);
-      return new Response("An unexpected error occurred", { status: 500 });
+      return new Response(defaultTranslation("errors.unexpected"), {
+        status: 500,
+      });
     }
   },
 };
@@ -145,6 +148,13 @@ export async function createAppLoadContext(
     caches.open("hydrogen"),
     AppSession.init(request, [env.SESSION_SECRET]),
   ]);
+  const selectedMarketCountry = session.get("marketCountry");
+  const i18n = getRequestI18n(
+    request,
+    typeof selectedMarketCountry === "string"
+      ? selectedMarketCountry
+      : undefined,
+  );
 
   const hydrogenContext = createHydrogenContext(
     {
@@ -153,7 +163,8 @@ export async function createAppLoadContext(
       cache,
       waitUntil,
       session,
-      i18n: getRequestI18n(request),
+      i18n,
+      buyerIdentity: { countryCode: i18n.country },
       cart: {
         queryFragment: CART_QUERY_FRAGMENT,
         mutateFragment: CART_MUTATE_FRAGMENT,

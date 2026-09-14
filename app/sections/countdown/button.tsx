@@ -12,6 +12,7 @@ import {
   type LinkProps as RemixLinkProps,
   useRouteLoaderData,
 } from "react-router";
+import { useTranslatedText } from "~/hooks/use-translated-text";
 import type { RootLoader } from "~/root";
 import { cn } from "~/utils/cn";
 
@@ -122,10 +123,12 @@ export function useHrefWithLocale(href: LinkProps["to"]) {
  */
 export const Link = forwardRef(
   (props: LinkProps, ref: React.Ref<HTMLAnchorElement>) => {
+    const translateText = useTranslatedText();
+
     let {
       to,
-      text,
-      style2Text,
+      text: rawI18nText,
+      style2Text: rawI18nStyle2Text,
       variant,
       openInNewTab,
       alignment = "center",
@@ -141,6 +144,14 @@ export const Link = forwardRef(
       children,
       ...rest
     } = props;
+    const style2Text = translateText(
+      rawI18nStyle2Text,
+      "themeContent.sectionsCountdownButton.style2Text",
+    );
+    const text = translateText(
+      rawI18nText,
+      "themeContent.sectionsCountdownButton.text",
+    );
     const { enableViewTransition } = useThemeSettings();
     const parent = useParentInstance();
     const isStyle2 = parent?.data?.scenario === "scenario2";
@@ -242,7 +253,7 @@ export const linkContentInputs: InspectorGroup["inputs"] = [
   {
     type: "text",
     name: "style2Text",
-    label: "Style 2 text",
+    label: "Scenario 2 text",
     defaultValue: "Shop Now",
   },
   {

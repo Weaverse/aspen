@@ -1,7 +1,7 @@
 import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
-import { forwardRef } from "react";
+import { type CSSProperties, forwardRef } from "react";
 import { cn } from "~/utils/cn";
 import { useImageWithTextContext } from "./context";
 
@@ -38,7 +38,7 @@ const variants = cva(
     },
     defaultVariants: {
       gap: "5",
-      contentPosition: "center center",
+      contentPosition: "top left",
     },
   },
 );
@@ -51,7 +51,14 @@ const ImageWithTextContent = forwardRef<
   HTMLDivElement,
   ImageWithTextContentProps
 >((props, ref) => {
-  const { gap, contentPosition, children, ...rest } = props;
+  const { gap = "5", contentPosition = "top left", children, ...rest } = props;
+  const [vertical, horizontal] = (contentPosition || "top left").split(" ");
+  const contentStyle = {
+    "--iwt-content-gap": `${Number(gap ?? 5) * 4}px`,
+    "--iwt-content-align": horizontal === "left" ? "flex-start" : horizontal === "right" ? "flex-end" : "center",
+    "--iwt-content-justify": vertical === "top" ? "flex-start" : vertical === "bottom" ? "flex-end" : "center",
+    "--iwt-content-text-align": horizontal,
+  } as CSSProperties;
   const { imageCount, layout, isLegacyLayout } = useImageWithTextContext();
   const resolvedLayout = isLegacyLayout
     ? imageCount > 1
@@ -64,12 +71,14 @@ const ImageWithTextContent = forwardRef<
     <div
       ref={ref}
       {...rest}
+      style={contentStyle}
       className={cn(
         variants({ gap, contentPosition }),
         isOverlay &&
-          "absolute inset-0 z-1 flex w-full items-center justify-end px-5 pb-10 text-[#FEF4EB] [&_.button]:text-[#FEF4EB] md:px-16 md:pb-12 md:[&_h2]:text-[44px]",
+          "absolute inset-0 z-1 flex w-full px-5 pb-10 text-[#FEF4EB] [&_.button]:text-[#FEF4EB] md:px-16 md:pb-12 md:[&_h2]:text-[44px]",
         !isOverlay &&
-          "h-[430px] w-full items-center justify-center px-5 py-10 md:h-full md:w-1/2 md:px-16 md:py-20",
+          "h-auto w-full px-10 py-10 md:w-1/2 md:px-8 md:py-0 lg:h-full lg:px-16",
+        "[&_.heading]:[text-align:var(--iwt-content-text-align)] [&_.paragraph]:[text-align:var(--iwt-content-text-align)]",
       )}
       data-content-layout={resolvedLayout}
     >
@@ -92,6 +101,7 @@ export const schema = createSchema({
           type: "select",
           name: "gap",
           label: "Gap",
+          defaultValue: "5",
           configs: {
             options: [
               { value: "0", label: "None" },
@@ -114,7 +124,7 @@ export const schema = createSchema({
           type: "position",
           name: "contentPosition",
           label: "Content position",
-          defaultValue: "center center",
+          defaultValue: "top left",
         },
       ],
     },
@@ -122,7 +132,7 @@ export const schema = createSchema({
   childTypes: ["subheading", "heading", "paragraph", "button"],
   presets: {
     gap: "5",
-    contentPosition: "center center",
+    contentPosition: "top left",
     children: [
       {
         type: "heading",
@@ -130,14 +140,14 @@ export const schema = createSchema({
         as: "h2",
         weight: "400",
         letterSpacing: "tight",
-        alignment: "center",
+        alignment: "left",
       },
       {
         type: "paragraph",
         content:
           "Discover nomad, our best-selling and most-awarded modular seating.",
         width: "full",
-        alignment: "center",
+        alignment: "left",
       },
       {
         type: "button",

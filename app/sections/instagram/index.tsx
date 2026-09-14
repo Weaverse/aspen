@@ -17,6 +17,8 @@ type InstagramData = {
     data?: {
       id: string;
       media_url: string;
+      permalink?: string;
+      thumbnail_url?: string;
       username?: string;
     }[];
   } | null;
@@ -28,13 +30,29 @@ type InstagramProps = HydrogenComponentProps<
   InstagramData &
   SectionProps;
 
+const instagramSectionSettings = sectionSettings.map((group) =>
+  group.group === "Layout"
+    ? {
+        ...group,
+        inputs: group.inputs.filter(
+          (input) => input.name !== "width" && input.name !== "gap",
+        ),
+      }
+    : group,
+);
+
 const Instagram = forwardRef<HTMLElement, InstagramProps>((props, ref) => {
   let { instagramToken, loaderData, children, ...rest } = props;
 
   return (
-    <Section ref={ref} {...rest} width="full" className="bg-[#EDEDED]">
+    <Section
+      ref={ref}
+      {...rest}
+      width="full"
+      className="instagram-section bg-[#EDEDED]"
+    >
       <InstagramProvider value={{ loaderData }}>
-        <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-10 px-5 lg:flex-row lg:items-start lg:gap-6 lg:px-0">
+        <div className="instagram-row mx-auto flex w-full max-w-[1440px] flex-col gap-5 px-5 md:flex-row md:items-stretch md:gap-6 md:px-8 lg:px-0">
           {children}
         </div>
       </InstagramProvider>
@@ -48,7 +66,7 @@ export let loader = async (args: ComponentLoaderArgs<InstagramData>) => {
   let { weaverse, data } = args;
   if (data.instagramToken) {
     try {
-      let API = `https://graph.instagram.com/me/media?fields=id,media_url,username&access_token=${data.instagramToken}`;
+      let API = `https://graph.instagram.com/me/media?fields=id,media_url,permalink,thumbnail_url,username&access_token=${data.instagramToken}`;
       let res = await weaverse.fetchWithCache(API);
       return res;
     } catch (error) {
@@ -76,7 +94,7 @@ export const schema: HydrogenComponentSchema = {
         },
       ],
     },
-    ...sectionSettings,
+    ...instagramSectionSettings,
   ],
   childTypes: ["instagram--content", "instagram--slider"],
   presets: {
@@ -97,13 +115,7 @@ export const schema: HydrogenComponentSchema = {
         alignment: "left",
         paragraphAlignment: "left",
       },
-      {
-        type: "instagram--slider",
-        slidesPerView: 4,
-        spaceBetween: 20,
-        showNavigation: true,
-        arrowsIcon: "arrow",
-      },
+      { type: "instagram--slider" },
     ],
   },
 };

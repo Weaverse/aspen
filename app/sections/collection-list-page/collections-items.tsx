@@ -5,10 +5,12 @@ import clsx from "clsx";
 import { forwardRef, useEffect, useState } from "react";
 import { useLoaderData } from "react-router";
 import { Swiper, SwiperSlide } from "swiper/react";
+import { useTranslatedText } from "~/hooks/use-translated-text";
 import "swiper/css";
 import type { CollectionsQuery } from "storefront-api.generated";
 import { variants } from "~/components/link";
 import { useAnimation } from "~/hooks/use-animation";
+import { DESKTOP_MIN_PX, TABLET_MIN_PX } from "~/utils/breakpoints";
 import { cn } from "~/utils/cn";
 import { getImageLoadingPriority } from "~/utils/image";
 import { CollectionCard, type CollectionCardLayout } from "./collection-card";
@@ -30,12 +32,14 @@ interface CollectionsItemsProps {
 
 const CollectionsItems = forwardRef<HTMLDivElement, CollectionsItemsProps>(
   (props, ref) => {
+    const translateText = useTranslatedText();
+
     const { t } = useTranslation();
     const [scope] = useAnimation(ref);
     const { collections } = useLoaderData<CollectionsQuery>();
     const {
-      prevButtonText,
-      nextButtonText,
+      prevButtonText: rawI18nPrevButtonText,
+      nextButtonText: rawI18nNextButtonText,
       layout = "grid",
       collectionNameColor = "#FEF4EB",
       collectionBackgroundColor = "#7F7866",
@@ -47,6 +51,14 @@ const CollectionsItems = forwardRef<HTMLDivElement, CollectionsItemsProps>(
       overlayOpacity: _overlayOpacity,
       ...rest
     } = props;
+    const nextButtonText = translateText(
+      rawI18nNextButtonText,
+      "themeContent.sectionsCollectionListPageCollectionsItems.nextButtonText",
+    );
+    const prevButtonText = translateText(
+      rawI18nPrevButtonText,
+      "themeContent.sectionsCollectionListPageCollectionsItems.prevButtonText",
+    );
     const [activeLayout, setActiveLayout] =
       useState<CollectionCardLayout>(layout);
     const [isSwiperInitialized, setIsSwiperInitialized] = useState(false);
@@ -102,11 +114,11 @@ const CollectionsItems = forwardRef<HTMLDivElement, CollectionsItemsProps>(
                     spaceBetween={gap}
                     slidesPerView={1.104}
                     breakpoints={{
-                      768: {
+                      [TABLET_MIN_PX]: {
                         slidesPerView: 2.2,
                         spaceBetween: desktopGap,
                       },
-                      1024: {
+                      [DESKTOP_MIN_PX]: {
                         slidesPerView: 2.7,
                         spaceBetween: desktopGap,
                       },
@@ -229,12 +241,12 @@ export const schema = createSchema({
           name: "layout",
           label: "Layout",
           helpText:
-            "Grid shows up to 6 cards. Editorial showcase shows up to 3 cards.",
+            "Scenario 1 shows up to 6 cards. Scenario 3 shows up to 3 cards.",
           configs: {
             options: [
-              { value: "grid", label: "Grid — 6 cards" },
-              { value: "slider", label: "Card slider" },
-              { value: "showcase", label: "Editorial showcase" },
+              { value: "grid", label: "Scenario 1" },
+              { value: "slider", label: "Scenario 2" },
+              { value: "showcase", label: "Scenario 3" },
             ],
           },
           defaultValue: "grid",

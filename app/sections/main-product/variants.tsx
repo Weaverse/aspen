@@ -12,10 +12,14 @@ export function ProductVariants({
   productOptions,
   selectedVariant,
   combinedListing,
+  onVariantChange,
+  productDetailSwatches = false,
 }: {
   productOptions: MappedProductOptions[];
   selectedVariant: ProductVariantFragment;
   combinedListing?: boolean;
+  onVariantChange?: (variant: ProductVariantFragment) => void;
+  productDetailSwatches?: boolean;
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -36,6 +40,11 @@ export function ProductVariants({
 
           function selectOption(value: (typeof option.optionValues)[number]) {
             if (!value.firstSelectableVariant) {
+              return;
+            }
+
+            if (onVariantChange && !value.isDifferentProduct) {
+              onVariantChange(value.firstSelectableVariant);
               return;
             }
 
@@ -75,6 +84,14 @@ export function ProductVariants({
                           isSelected
                             ? "border-body"
                             : "border-line-subtle hover:border-line",
+                          productDetailSwatches &&
+                            "size-auto items-start justify-start gap-[10px] rounded-[var(--Radius-border-radius-xs,4px)] bg-[var(--Background-Background,#FFF)] p-[var(--p-4,4px)]",
+                          productDetailSwatches &&
+                            isSelected &&
+                            "border-[var(--Border-Border,#9D9D9D)]",
+                          productDetailSwatches &&
+                            !isSelected &&
+                            "border-[0.5px] border-[var(--Border-Subtle,#D8D8D8)] lg:border-[1px]",
                           !isAvailable && "cursor-not-allowed opacity-40",
                         )}
                         onClick={() => selectOption(value)}
@@ -91,12 +108,12 @@ export function ProductVariants({
                             width={28}
                             height={28}
                             sizes="28px"
-                            className="size-7 rounded-[4px] object-cover"
+                            className="size-5 aspect-square rounded-[var(--Radius-border-radius-xs,4px)] object-cover lg:size-7"
                           />
                         ) : (
                           <span
                             className={cn(
-                              "size-7 rounded-[4px]",
+                              "size-5 aspect-square rounded-[var(--Radius-border-radius-xs,4px)] lg:size-7",
                               (!isValidColor(swatchColor) ||
                                 isLightColor(swatchColor)) &&
                                 "border border-line-subtle",

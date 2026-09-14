@@ -3,6 +3,7 @@ import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import { clsx } from "clsx";
 import { forwardRef } from "react";
+import { useTranslatedText } from "~/hooks/use-translated-text";
 
 export interface ParagraphProps
   extends VariantProps<typeof variants>,
@@ -49,16 +50,22 @@ const Paragraph = forwardRef<
   HTMLParagraphElement | HTMLDivElement,
   ParagraphProps
 >((props, ref) => {
+  const translateText = useTranslatedText();
+
   const {
     as: Tag = "p",
     width,
-    content,
+    content: rawI18nContent,
     textSize,
     color,
     alignment,
     className,
     ...rest
   } = props;
+  const content = translateText(
+    rawI18nContent,
+    "themeContent.componentsParagraph.content",
+  );
   const containsBlockContent = /<(?:p|div|ul|ol|li|blockquote|h[1-6])\b/i.test(
     content,
   );
