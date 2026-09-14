@@ -192,6 +192,7 @@ function CartBestSellersContent({
       >
         <ProductCard
           product={product as unknown as ProductCardFragment}
+          contentAlignment="left"
           quickShopIconOnly={layout === "drawer"}
         />
       </div>

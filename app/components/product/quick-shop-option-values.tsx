@@ -34,7 +34,7 @@ export function QuickShopOptionValues({
 
   if (layout === "buttons") {
     return (
-      <div className="flex max-w-full flex-wrap items-center gap-3 md:gap-2.5">
+      <div className="flex max-w-full flex-wrap items-center gap-3">
         {optionValues.map(
           ({
             name: value,

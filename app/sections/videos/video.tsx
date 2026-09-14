@@ -176,7 +176,21 @@ let VideoItem = forwardRef<HTMLDivElement, VideoItemProps>((props, ref) => {
                       },
                     ]}
                     containerClassName="min-w-0 flex-1"
-                    className="flex! h-auto! w-full! min-w-0! items-center! justify-center! gap-2! rounded-[var(--Radius-border-radius-sm,8px)]! bg-[var(--Primary-Background,#4D4946)]! px-3! py-2! font-dm-sans! font-normal! text-[12px]! text-[var(--Primary-Text,#F1EEEA)]! leading-none! tracking-[0.24px]!"
+                    className="flex! h-auto! w-full! min-w-0! items-center! justify-center!"
+                    style={{
+                      padding:
+                        "var(--videos-atc-padding-vertical, 8px) var(--videos-atc-padding-horizontal, 12px)",
+                      gap: "var(--videos-atc-gap, 8px)",
+                      borderRadius: "var(--videos-atc-radius, 8px)",
+                      background: "var(--videos-atc-background, #4D4946)",
+                      color: "var(--videos-atc-text, #F1EEEA)",
+                      fontFamily: "var(--videos-atc-font-family, 'DM Sans')",
+                      fontSize: "var(--videos-atc-font-size, 12px)",
+                      fontStyle: "var(--videos-atc-font-style, normal)",
+                      fontWeight: "var(--videos-atc-font-weight, 400)",
+                      lineHeight: "var(--videos-atc-line-height, 100%)",
+                      letterSpacing: "var(--videos-atc-letter-spacing, 0.24px)",
+                    }}
                     width="auto"
                     animate={false}
                   >

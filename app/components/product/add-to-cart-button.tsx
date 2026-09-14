@@ -116,7 +116,7 @@ export function AddToCartButton({
                 <Button
                   type="submit"
                   variant="primary"
-                  className={cn("!border-none", className)}
+                  className={cn(className, "!border-none px-6 py-5")}
                   disabled={Boolean(
                     disabled ||
                       inventoryLimitReached ||

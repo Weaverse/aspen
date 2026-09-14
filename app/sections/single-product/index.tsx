@@ -279,7 +279,7 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
                         currentVariant.compareAtPrice as MoneyV2,
                       ) &&
                         showSalePrice && (
-                          <span className="text-body-subtle line-through">
+                          <span className="font-heading font-normal text-[24px] text-[#999] not-italic leading-[normal] line-through">
                             <SpacedMoney
                               data={currentVariant.compareAtPrice as MoneyV2}
                             />

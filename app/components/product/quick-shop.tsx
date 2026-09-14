@@ -108,14 +108,8 @@ export function QuickShop({
     showCompareAtPrice,
     enableQuickShopBackInStock = true,
     showBadgesOnProductMedia,
-    enableZoom = false,
-    quickShopNavigationStyle = "corner",
     quickShopArrowsColor = "primary",
     quickShopArrowsShape = "circle",
-    quickShopArrowsZoomColor = "primary",
-    quickShopArrowsZoomShape = "circle",
-    quickShopZoomColor = "primary",
-    quickShopZoomShape = "circle",
   } = themeSettings;
 
   const { title } = product;
@@ -139,15 +133,9 @@ export function QuickShop({
             showThumbnails={false}
             showDots={false}
             imageAspectRatio="1/1"
-            enableZoom={enableZoom}
-            zoomButtonClassName="quick-shop-zoom-button !top-auto !right-auto !bottom-5 !left-5 z-[6]"
-            navigationStyle={quickShopNavigationStyle}
+            navigationStyle="sides"
             arrowsColor={quickShopArrowsColor}
             arrowsShape={quickShopArrowsShape}
-            arrowsZoomColor={quickShopArrowsZoomColor}
-            arrowsZoomShape={quickShopArrowsZoomShape}
-            zoomColor={quickShopZoomColor}
-            zoomShape={quickShopZoomShape}
             navigationVariant="quick-shop"
             showBadges={showBadgesOnProductMedia}
             badges={
@@ -329,14 +317,8 @@ function QuickShopDesktop({
     unavailableText,
     showCompareAtPrice,
     showBadgesOnProductMedia,
-    enableZoom = false,
-    quickShopNavigationStyle = "corner",
     quickShopArrowsColor = "primary",
     quickShopArrowsShape = "circle",
-    quickShopArrowsZoomColor = "primary",
-    quickShopArrowsZoomShape = "circle",
-    quickShopZoomColor = "primary",
-    quickShopZoomShape = "circle",
   } = themeSettings;
 
   const { title } = product;
@@ -359,15 +341,9 @@ function QuickShopDesktop({
             showThumbnails={false}
             showDots
             imageAspectRatio="1/1"
-            enableZoom={enableZoom}
-            zoomButtonClassName="quick-shop-zoom-button !top-auto !right-auto !bottom-5 !left-5 z-[6]"
-            navigationStyle={quickShopNavigationStyle}
+            navigationStyle="sides"
             arrowsColor={quickShopArrowsColor}
             arrowsShape={quickShopArrowsShape}
-            arrowsZoomColor={quickShopArrowsZoomColor}
-            arrowsZoomShape={quickShopArrowsZoomShape}
-            zoomColor={quickShopZoomColor}
-            zoomShape={quickShopZoomShape}
             navigationVariant="quick-shop"
             showBadges={showBadgesOnProductMedia}
             badges={
@@ -523,7 +499,12 @@ export function QuickShopTrigger({
   iconOnly?: boolean;
 }) {
   const { t } = useTranslation();
-  const { quickShopButtonTextOpen } = useTranslatedThemeSettings();
+  const {
+    quickShopButtonTextOpen,
+    pcardQuickShopHoverBackground = "#F1EEEA",
+    pcardQuickShopHoverText = "#000000",
+    pcardCompactShopOnHover = true,
+  } = useTranslatedThemeSettings();
   const triggerLabel = quickShopButtonTextOpen || t("product.selectOptions");
   const [open, setOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -564,17 +545,25 @@ export function QuickShopTrigger({
         <button
           type="button"
           aria-label={triggerLabel}
+          style={
+            {
+              "--pcard-button-hover-bg": pcardQuickShopHoverBackground,
+              "--pcard-button-hover-text": pcardQuickShopHoverText,
+            } as React.CSSProperties
+          }
           className={clsx(
             "absolute right-3 bottom-3 z-10 flex size-12 items-center justify-center gap-2 rounded-xl bg-white p-3",
             "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body",
+            pcardCompactShopOnHover &&
+              "max-desktop:[@media(hover:hover)_and_(pointer:fine)]:pointer-events-none max-desktop:[@media(hover:hover)_and_(pointer:fine)]:opacity-0 max-desktop:group-hover/product-card:pointer-events-auto max-desktop:group-hover/product-card:opacity-100 max-desktop:group-focus-within/product-card:pointer-events-auto max-desktop:group-focus-within/product-card:opacity-100",
             !iconOnly &&
               "desktop:inset-x-[3.6556%] desktop:bottom-4 desktop:h-auto desktop:w-auto desktop:rounded-(--radius-sm) desktop:bg-(--btn-primary-bg) desktop:px-6 desktop:py-5 desktop:text-(--btn-primary-text)",
             !iconOnly &&
-              "desktop:hover:bg-(--btn-primary-bg-hover) desktop:hover:text-(--btn-primary-text-hover)",
+              "desktop:hover:bg-(--pcard-button-hover-bg) desktop:hover:text-(--pcard-button-hover-text)",
             showOnHover &&
               !iconOnly &&
               "desktop:[@media(hover:hover)_and_(pointer:fine)]:pointer-events-none desktop:[@media(hover:hover)_and_(pointer:fine)]:translate-y-2 desktop:[@media(hover:hover)_and_(pointer:fine)]:opacity-0 desktop:group-hover/product-card:pointer-events-auto desktop:group-hover/product-card:translate-y-0 desktop:group-hover/product-card:opacity-100 desktop:group-focus-within/product-card:pointer-events-auto desktop:group-focus-within/product-card:translate-y-0 desktop:group-focus-within/product-card:opacity-100",
-            "transition-[opacity,transform,background-color,color] duration-300 desktop:font-semibold desktop:leading-none",
+            "transition-[opacity,transform,background-color,color] duration-300 desktop:font-body desktop:text-sm desktop:font-semibold desktop:leading-none desktop:tracking-[0.02em]",
           )}
         >
           {/* Shopping bag icon for mobile and tablet */}

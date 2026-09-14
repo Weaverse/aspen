@@ -411,8 +411,8 @@ export function ProductMedia(props: ProductMediaProps) {
                     ],
                   navigationStyle === "sides" &&
                     navigationVariant === "quick-shop" &&
-                    "ml-[12.5px] size-12 rounded-xl border-transparent bg-white/80 p-3 text-body",
-                  shapeClass(arrowsShape),
+                    "ml-[12.5px] size-12 !rounded-xl !border-transparent !bg-white/80 p-3 !text-body",
+                  navigationVariant !== "quick-shop" && shapeClass(arrowsShape),
                 )}
                 aria-label={t("product.previousMedia")}
               >
@@ -444,8 +444,8 @@ export function ProductMedia(props: ProductMediaProps) {
                     ],
                   navigationStyle === "sides" &&
                     navigationVariant === "quick-shop" &&
-                    "mr-[12.5px] size-12 rounded-xl border-transparent bg-white/80 p-3 text-body",
-                  shapeClass(arrowsShape),
+                    "mr-[12.5px] size-12 !rounded-xl !border-transparent !bg-white/80 p-3 !text-body",
+                  navigationVariant !== "quick-shop" && shapeClass(arrowsShape),
                 )}
                 aria-label={t("product.nextMedia")}
               >

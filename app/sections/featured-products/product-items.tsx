@@ -108,6 +108,7 @@ interface ProductItemsProps
   arrowsColor?: "primary" | "secondary";
   arrowsShape?: "rounded-sm" | "circle" | "square";
   arrowsIcon?: "caret" | "arrow";
+  relatedProductCardLayout?: "mobile" | "responsive";
 }
 
 const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
@@ -124,6 +125,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
       arrowsColor = "primary",
       arrowsShape = "rounded-sm",
       arrowsIcon = "arrow",
+      relatedProductCardLayout = "mobile",
       ...rest
     } = props;
     const [isSwiperInitialized, setIsSwiperInitialized] = useState(false);
@@ -135,6 +137,8 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
     const activeLayout = isLegacyLayout ? layout : sectionLayout;
     const designGap = isLegacyLayout ? gap : 16;
     const resolvedSlidesPerView = isProductPage ? 3 : slidesPerView;
+    const useMobileCardLayout =
+      isProductPage && relatedProductCardLayout === "mobile";
 
     // biome-ignore lint/correctness/useExhaustiveDependencies: Swiper must reset whenever its responsive layout inputs change.
     useEffect(() => {
@@ -395,6 +399,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
                   <ProductCard
                     product={product}
                     className="h-full w-full"
+                    mobileLayout={useMobileCardLayout}
                     quickShopIconOnlyOnTablet={isProductPage}
                   />
                 </SwiperSlide>
@@ -425,6 +430,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
                 <ProductCard
                   product={product}
                   className={clsx(tabletCardClassName, "md:w-full")}
+                  mobileLayout={useMobileCardLayout}
                   quickShopIconOnlyOnTablet={isProductPage}
                   stretchImageOnTablet
                 />
@@ -459,6 +465,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
                 <ProductCard
                   product={product}
                   className="h-full w-full"
+                  mobileLayout={useMobileCardLayout}
                   quickShopIconOnlyOnTablet={isProductPage}
                 />
               </SwiperSlide>
@@ -637,6 +644,20 @@ export const schema = createSchema({
           helpText:
             "Maximum number of products to display. If more products are available, a 'See More Products' button will appear.",
         },
+        {
+          type: "select",
+          name: "relatedProductCardLayout",
+          label: "You may also like card layout",
+          configs: {
+            options: [
+              { value: "mobile", label: "Mobile" },
+              { value: "responsive", label: "Responsive" },
+            ],
+          },
+          defaultValue: "mobile",
+          helpText:
+            "Applies on product pages. Mobile keeps the compact card layout at every screen size.",
+        },
       ],
     },
     {
@@ -692,5 +713,6 @@ export const schema = createSchema({
     arrowsColor: "secondary",
     arrowsShape: "rounded-sm",
     arrowsIcon: "arrow",
+    relatedProductCardLayout: "mobile",
   },
 });

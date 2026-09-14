@@ -741,6 +741,42 @@ export const themeSchema: HydrogenThemeSchema = {
       group: "Product cards",
       inputs: [
         {
+          type: "select",
+          name: "pcardTabletRatingLayout",
+          label: "Tablet rating layout",
+          defaultValue: "stacked",
+          configs: {
+            options: [
+              { value: "split", label: "Adaptive (same row from 896px)" },
+              { value: "inline", label: "Same row as title" },
+              { value: "stacked", label: "Above title" },
+            ],
+          },
+          condition: (data) => data.pcardLayoutPreset === "custom",
+        },
+        {
+          type: "switch",
+          name: "pcardCompactShopOnHover",
+          label: "Mobile / tablet shop icon on hover",
+          defaultValue: true,
+          helpText:
+            "On touch screens the icon stays visible so shoppers can tap it.",
+        },
+        {
+          type: "select",
+          name: "pcardLayoutPreset",
+          label: "Card layout",
+          defaultValue: "design",
+          configs: {
+            options: [
+              { value: "design", label: "Design default" },
+              { value: "custom", label: "Custom" },
+            ],
+          },
+          helpText:
+            "Design default uses left-aligned content and 12px corners. Choose Custom to change content alignment and border radius.",
+        },
+        {
           type: "color",
           name: "pcardBackgroundColor",
           label: "Background color",
@@ -750,7 +786,7 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "color",
           name: "pcardHoverBackgroundColor",
           label: "Hover background color",
-          defaultValue: "#F1F1F1",
+          defaultValue: "#EDEDED",
         },
         {
           type: "range",
@@ -762,7 +798,53 @@ export const themeSchema: HydrogenThemeSchema = {
             step: 2,
             unit: "px",
           },
-          defaultValue: 8,
+          defaultValue: 12,
+        },
+        {
+          type: "range",
+          name: "pcardHoverPadding",
+          label: "Desktop hover padding",
+          defaultValue: 20,
+          configs: { min: 0, max: 40, step: 1, unit: "px" },
+        },
+        {
+          type: "range",
+          name: "pcardFontSize",
+          label: "Product info text size",
+          defaultValue: 14,
+          configs: { min: 0, max: 24, step: 1, unit: "px" },
+        },
+        {
+          type: "range",
+          name: "pcardContentGap",
+          label: "Product info spacing",
+          defaultValue: 12,
+          configs: { min: 0, max: 32, step: 1, unit: "px" },
+        },
+        {
+          type: "range",
+          name: "pcardImageContentGap",
+          label: "Image to product info spacing",
+          defaultValue: 20,
+          configs: { min: 0, max: 40, step: 1, unit: "px" },
+        },
+        {
+          type: "switch",
+          name: "pcardImageZoom",
+          label: "Zoom image on desktop hover",
+          defaultValue: true,
+        },
+        {
+          type: "color",
+          name: "pcardQuickShopHoverBackground",
+          label: "Quick shop button hover background",
+          defaultValue: "#F1EEEA",
+        },
+        {
+          type: "color",
+          name: "pcardQuickShopHoverText",
+          label: "Quick shop button hover text",
+          defaultValue: "#000000",
         },
         {
           type: "heading",
@@ -1068,12 +1150,6 @@ export const themeSchema: HydrogenThemeSchema = {
           label: "Product Media",
         },
         {
-          label: "Enable zoom",
-          name: "enableZoom",
-          type: "switch",
-          defaultValue: false,
-        },
-        {
           type: "switch",
           label: "Show badges on product media",
           name: "showBadgesOnProductMedia",
@@ -1125,18 +1201,6 @@ export const themeSchema: HydrogenThemeSchema = {
         },
         {
           type: "select",
-          label: "Navigation style",
-          name: "quickShopNavigationStyle",
-          configs: {
-            options: [
-              { value: "corner", label: "Corner" },
-              { value: "sides", label: "Sides" },
-            ],
-          },
-          defaultValue: "corner",
-        },
-        {
-          type: "select",
           label: "Arrows color",
           name: "quickShopArrowsColor",
           configs: {
@@ -1159,62 +1223,6 @@ export const themeSchema: HydrogenThemeSchema = {
             ],
           },
           defaultValue: "circle",
-        },
-        {
-          type: "heading",
-          label: "Zoom",
-        },
-        {
-          type: "select",
-          label: "Arrows zoom button color",
-          name: "quickShopArrowsZoomColor",
-          configs: {
-            options: [
-              { value: "primary", label: "Primary" },
-              { value: "secondary", label: "Secondary" },
-            ],
-          },
-          defaultValue: "primary",
-        },
-        {
-          type: "toggle-group",
-          label: "Arrows zoom button shape",
-          name: "quickShopArrowsZoomShape",
-          configs: {
-            options: [
-              { value: "rounded-sm", label: "Rounded", icon: "squircle" },
-              { value: "circle", label: "Circle", icon: "circle" },
-              { value: "square", label: "Square", icon: "square" },
-            ],
-          },
-          defaultValue: "circle",
-        },
-        {
-          type: "select",
-          label: "Zoom button color",
-          name: "quickShopZoomColor",
-          configs: {
-            options: [
-              { value: "primary", label: "Primary" },
-              { value: "secondary", label: "Secondary" },
-            ],
-          },
-          defaultValue: "primary",
-          condition: (data) => data.enableZoom === true,
-        },
-        {
-          type: "toggle-group",
-          label: "Zoom button shape",
-          name: "quickShopZoomShape",
-          configs: {
-            options: [
-              { value: "rounded-sm", label: "Rounded", icon: "squircle" },
-              { value: "circle", label: "Circle", icon: "circle" },
-              { value: "square", label: "Square", icon: "square" },
-            ],
-          },
-          defaultValue: "circle",
-          condition: (data) => data.enableZoom === true,
         },
       ],
     },

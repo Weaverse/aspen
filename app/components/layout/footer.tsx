@@ -495,6 +495,7 @@ function SocialLinks({
     Icon: React.ComponentType<{ className?: string }>;
   }>;
 }) {
+  const { t } = useTranslation();
   const visibleLinks = links.filter(
     (link): link is typeof link & { url: string } => Boolean(link.url?.trim()),
   );
@@ -504,7 +505,10 @@ function SocialLinks({
   }
 
   return (
-    <nav className="flex items-center gap-4" aria-label="Social media">
+    <nav
+      className="flex items-center gap-4"
+      aria-label={t("accessibility.socialMedia")}
+    >
       {visibleLinks.map(({ name, url, Icon }) => (
         <a
           key={name}
@@ -577,7 +581,7 @@ function NewsletterSignup({
         <button
           type="submit"
           disabled={fetcher.state === "submitting"}
-          className="w-[86px] shrink-0 rounded-(--radius-sm) bg-(--btn-primary-bg) font-semibold text-(--btn-primary-text) [font-size:inherit] uppercase transition-colors disabled:cursor-wait disabled:opacity-60 hover:bg-(--btn-primary-bg-hover) hover:text-(--btn-primary-text-hover) md:w-[98px]"
+          className="w-[86px] shrink-0 rounded-(--radius-sm) bg-(--btn-primary-bg) font-semibold text-(--btn-primary-text) [font-size:inherit] uppercase transition-colors disabled:cursor-wait disabled:opacity-60 hover:bg-(--btn-secondary-bg) hover:text-(--btn-secondary-text) md:w-[98px]"
         >
           {buttonText}
         </button>

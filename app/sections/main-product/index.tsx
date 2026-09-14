@@ -217,7 +217,7 @@ const ProductInformation = forwardRef<
         quantityAvailable <= inventoryThreshold,
     );
     const maxQuantity = quantityLimit;
-    let atcButtonText = "Add to cart";
+    let atcButtonText = t("product.addToCart");
     if (selectedVariant.availableForSale) {
       atcButtonText = isBundle ? addBundleToCartText : addToCartText;
     } else {

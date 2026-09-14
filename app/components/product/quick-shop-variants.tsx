@@ -25,11 +25,8 @@ export function QuickShopVariants({
     return (
       <div className="flex flex-col gap-6" data-motion="fade-up">
         {productOptions.map((option) => (
-          <fieldset
-            className="product-options flex min-w-0 flex-col items-start gap-3"
-            key={option.name}
-          >
-            <legend className="font-semibold uppercase leading-tight tracking-[0.02em]">
+          <fieldset className="product-options min-w-0" key={option.name}>
+            <legend className="mb-3 font-semibold uppercase leading-tight tracking-[0.02em]">
               {option.name}
             </legend>
             <QuickShopOptionValues

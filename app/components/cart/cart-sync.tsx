@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import { type Fetcher, useFetcher, useFetchers } from "react-router";
 import type { CartApiQueryFragment } from "storefront-api.generated";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
+import { CART_ERROR_KEYS } from "~/utils/cart-error";
 import {
   canApplyNullCart,
   clearFreshestFetcherCart,
@@ -195,7 +196,7 @@ function CartLineRemovalMutation({ lineId }: { lineId: string }) {
     submit(formData, { action: cartRoute, method: "post" }).catch(() => {
       submitted.current = false;
       useCartStore.getState().settleLineRemoval(lineId, {
-        errors: [{ message: "Unable to remove cart item" }],
+        errors: [{ message: CART_ERROR_KEYS.removeLine }],
       });
     });
   }, [cartRoute, fetcher.state, lineId, submit]);
@@ -255,7 +256,7 @@ function CartLineQuantityMutation({ lineId }: { lineId: string }) {
     );
     submit(formData, { action: cartRoute, method: "post" }).catch(() => {
       useCartStore.getState().settleLineUpdate(lineId, quantity, {
-        errors: [{ message: "Unable to update cart quantity" }],
+        errors: [{ message: CART_ERROR_KEYS.updateQuantity }],
       });
     });
   }, [

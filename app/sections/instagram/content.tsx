@@ -1,34 +1,24 @@
 import { InstagramLogo } from "@phosphor-icons/react";
 import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
-import Heading, {
-  type HeadingProps,
-  headingInputs,
-} from "~/components/heading";
+import Heading from "~/components/heading";
 import Link, { type LinkProps, linkInputs } from "~/components/link";
-import Paragraph, { type ParagraphProps } from "~/components/paragraph";
+import Paragraph from "~/components/paragraph";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 
-interface InstagramContentProps
-  extends HydrogenComponentProps,
-    Omit<HeadingProps, "content"> {
+interface InstagramContentProps extends HydrogenComponentProps {
   // Heading props
   headingContent?: string;
   headingTagName?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
+  color?: string;
   // Subheading props
   subheadingContent?: string;
   subheadingTag?: "h4" | "h5" | "h6" | "div" | "p";
   subheadingColor?: string;
-  subheadingSize?: "base" | "large";
-  subheadingWeight?: "normal" | "medium";
-  subheadingAlignment?: "left" | "center" | "right";
   // Paragraph props
   paragraphContent?: string;
   paragraphTag?: "p" | "div";
   paragraphColor?: string;
-  paragraphSize?: ParagraphProps["textSize"];
-  paragraphAlignment?: ParagraphProps["alignment"];
-  paragraphWidth?: ParagraphProps["width"];
   // Button/Link props
   buttonContent?: string;
   to?: LinkProps["to"];
@@ -52,29 +42,14 @@ let InstagramContent = forwardRef<HTMLDivElement, InstagramContentProps>(
       headingContent: rawI18nHeadingContent,
       headingTagName,
       color,
-      size,
-      alignment,
-      mobileSize,
-      desktopSize,
-      weight,
-      letterSpacing,
-      minSize,
-      maxSize,
-      animate,
       // Subheading props
       subheadingContent: rawI18nSubheadingContent,
       subheadingTag = "p",
       subheadingColor,
-      subheadingSize,
-      subheadingWeight,
-      subheadingAlignment,
       // Paragraph props
       paragraphContent: rawI18nParagraphContent,
       paragraphTag = "p",
       paragraphColor,
-      paragraphSize,
-      paragraphAlignment,
-      paragraphWidth,
       // Button/Link props
       buttonContent: rawI18nButtonContent,
       to,
@@ -106,50 +81,30 @@ let InstagramContent = forwardRef<HTMLDivElement, InstagramContentProps>(
       "themeContent.sectionsInstagramContent.headingContent",
     );
 
-    const subheadingClasses = [
-      subheadingAlignment === "center"
-        ? "text-center"
-        : subheadingAlignment === "right"
-          ? "text-right"
-          : "text-left",
-      subheadingSize === "large"
-        ? "text-lg leading-[1.4]"
-        : "text-base leading-[1.4]",
-      subheadingWeight === "medium" ? "font-medium" : "font-normal",
-    ].join(" ");
-
     const SubheadingTag = subheadingTag;
 
     return (
       <div
         ref={ref}
         {...rest}
-        className="instagram-content mx-auto flex w-[320px] max-w-full flex-col items-start gap-6 rounded-[var(--Radius-border-radius-md,12px)] bg-white p-6 md:mx-0 md:flex-none md:self-stretch"
+        className="instagram-content flex w-full flex-col items-start gap-6 rounded-[var(--Radius-border-radius-md,12px)] bg-white p-6 md:w-[320px] md:flex-none md:self-stretch desktop:w-[320px] desktop:self-start"
       >
         <div className="flex w-full flex-col items-start gap-2.5">
           {headingContent && (
             <div className="flex items-center gap-2">
-              <InstagramLogo size={14} weight="regular" />
+              <InstagramLogo className="size-5 shrink-0" weight="regular" />
               <Heading
                 content={headingContent}
                 as={headingTagName}
                 color={color}
-                size={size}
-                mobileSize={mobileSize}
-                desktopSize={desktopSize}
-                weight={weight}
-                letterSpacing={letterSpacing}
-                alignment={alignment}
-                minSize={minSize}
-                maxSize={maxSize}
-                animate={animate}
-                className="text-left text-xs leading-none tracking-[0.1em]"
+                alignment="left"
+                className="text-xs leading-none tracking-[0.1em]"
               />
             </div>
           )}
           {subheadingContent && (
             <SubheadingTag
-              className={`${subheadingClasses} text-left`}
+              className="text-left font-normal text-base leading-[1.4]"
               style={{ color: subheadingColor }}
             >
               {subheadingContent}
@@ -161,9 +116,8 @@ let InstagramContent = forwardRef<HTMLDivElement, InstagramContentProps>(
             content={paragraphContent}
             as={paragraphTag}
             color={paragraphColor}
-            textSize={paragraphSize}
-            alignment={paragraphAlignment}
-            width={paragraphWidth}
+            alignment="left"
+            width="full"
             className="w-full text-left text-sm leading-[1.6]"
           />
         )}
@@ -209,15 +163,26 @@ export let schema = createSchema({
           defaultValue: "Instagram",
           placeholder: "Enter heading text",
         },
-        ...headingInputs.map((input) => {
-          if (input.name === "as") {
-            return {
-              ...input,
-              name: "headingTagName",
-            };
-          }
-          return input;
-        }),
+        {
+          type: "select",
+          name: "headingTagName",
+          label: "HTML tag",
+          configs: {
+            options: [
+              { value: "h2", label: "Heading 2" },
+              { value: "h3", label: "Heading 3" },
+              { value: "h4", label: "Heading 4" },
+              { value: "h5", label: "Heading 5" },
+              { value: "h6", label: "Heading 6" },
+            ],
+          },
+          defaultValue: "h2",
+        },
+        {
+          type: "color",
+          name: "color",
+          label: "Text color",
+        },
       ],
     },
     {
@@ -250,47 +215,6 @@ export let schema = createSchema({
           name: "subheadingColor",
           label: "Text color",
         },
-        {
-          type: "select",
-          name: "subheadingSize",
-          label: "Text size",
-          configs: {
-            options: [
-              { value: "base", label: "Base" },
-              { value: "large", label: "Large" },
-            ],
-          },
-          defaultValue: "base",
-        },
-        {
-          type: "select",
-          name: "subheadingWeight",
-          label: "Weight",
-          configs: {
-            options: [
-              { value: "normal", label: "Normal" },
-              { value: "medium", label: "Medium" },
-            ],
-          },
-          defaultValue: "normal",
-        },
-        {
-          type: "toggle-group",
-          name: "subheadingAlignment",
-          label: "Alignment",
-          configs: {
-            options: [
-              { value: "left", label: "Left", icon: "align-start-vertical" },
-              {
-                value: "center",
-                label: "Center",
-                icon: "align-center-vertical",
-              },
-              { value: "right", label: "Right", icon: "align-end-vertical" },
-            ],
-          },
-          defaultValue: "left",
-        },
       ],
     },
     {
@@ -321,62 +245,6 @@ export let schema = createSchema({
           name: "paragraphColor",
           label: "Text color",
         },
-        {
-          type: "select",
-          name: "paragraphSize",
-          label: "Text size",
-          configs: {
-            options: [
-              { value: "xs", label: "Extra small (text-xs)" },
-              { value: "sm", label: "Small (text-sm)" },
-              { value: "base", label: "Base (text-base)" },
-              { value: "lg", label: "Large (text-lg)" },
-              { value: "xl", label: "Extra large (text-xl)" },
-              { value: "2xl", label: "2x large (text-2xl)" },
-              { value: "3xl", label: "3x large (text-3xl)" },
-              { value: "4xl", label: "4x large (text-4xl)" },
-              { value: "5xl", label: "5x large (text-5xl)" },
-              { value: "6xl", label: "6x large (text-6xl)" },
-              { value: "7xl", label: "7x large (text-7xl)" },
-              { value: "8xl", label: "8x large (text-8xl)" },
-              { value: "9xl", label: "9x large (text-9xl)" },
-            ],
-          },
-          defaultValue: "base",
-        },
-        {
-          type: "toggle-group",
-          name: "paragraphWidth",
-          label: "Width",
-          configs: {
-            options: [
-              { value: "full", label: "Full", icon: "move-horizontal" },
-              {
-                value: "narrow",
-                label: "Narrow",
-                icon: "fold-horizontal",
-              },
-            ],
-          },
-          defaultValue: "full",
-        },
-        {
-          type: "toggle-group",
-          name: "paragraphAlignment",
-          label: "Alignment",
-          configs: {
-            options: [
-              { value: "left", label: "Left", icon: "align-start-vertical" },
-              {
-                value: "center",
-                label: "Center",
-                icon: "align-center-vertical",
-              },
-              { value: "right", label: "Right", icon: "align-end-vertical" },
-            ],
-          },
-          defaultValue: "left",
-        },
       ],
     },
     {
@@ -404,18 +272,11 @@ export let schema = createSchema({
     headingContent: "INSTAGRAM",
     headingTagName: "h2",
     color: "#29231E",
-    alignment: "left",
     subheadingContent: "@aspen_life",
     subheadingColor: "#524B46",
-    subheadingSize: "base",
-    subheadingWeight: "normal",
-    subheadingAlignment: "left",
     paragraphContent:
       "Meet the room edits: real life shots of our furniture in action.",
     paragraphColor: "#524B46",
-    paragraphSize: "xs",
-    paragraphWidth: "full",
-    paragraphAlignment: "left",
     buttonContent: "EXPLORE NOW",
     to: "https://www.instagram.com/",
     variant: "decor",

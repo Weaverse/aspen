@@ -44,24 +44,35 @@ const BADGE_POSITION_CLASSES = {
 type ProductCardProps = {
   product: ProductCardFragment;
   className?: string;
+  contentAlignment?: keyof typeof CONTENT_ALIGNMENT_CLASSES;
   quickShopIconOnly?: boolean;
   quickShopIconOnlyOnTablet?: boolean;
   stretchImageOnTablet?: boolean;
+  mobileLayout?: boolean;
 };
 
 export function ProductCard({
   product,
   className,
+  contentAlignment,
   quickShopIconOnly = false,
   quickShopIconOnlyOnTablet = false,
   stretchImageOnTablet = false,
+  mobileLayout = false,
 }: ProductCardProps) {
   const { t } = useTranslation();
   const {
+    pcardLayoutPreset = "design",
+    pcardTabletRatingLayout = "stacked",
     pcardBackgroundColor,
     pcardHoverBackgroundColor,
     pcardImageRatio,
-    pcardBorderRadius = 8,
+    pcardBorderRadius = 12,
+    pcardHoverPadding = 20,
+    pcardImageZoom = true,
+    pcardFontSize = 14,
+    pcardContentGap = 12,
+    pcardImageContentGap = 20,
     pcardAlignment,
     pcardShowVendor,
     pcardEnableQuickShop,
@@ -93,27 +104,53 @@ export function ProductCard({
 
   const useTabletCoverImage = stretchImageOnTablet || quickShopIconOnlyOnTablet;
 
-  const alignment = pcardAlignment || "left";
+  // Older stores may still have centered alignment and zero radius saved.
+  // Apply the approved defaults until custom layout is explicitly selected.
+  const customLayout = pcardLayoutPreset === "custom";
+  const alignment =
+    contentAlignment || (customLayout ? pcardAlignment : "left") || "left";
+  const tabletRatingLayout = customLayout
+    ? pcardTabletRatingLayout || "stacked"
+    : "stacked";
+  const tabletRow = {
+    split:
+      "min-[896px]:flex-row min-[896px]:items-baseline min-[896px]:justify-between",
+    inline: "md:flex-row md:items-baseline md:justify-between",
+    stacked: "",
+  }[tabletRatingLayout as "split" | "inline" | "stacked"];
+  const tabletRating = {
+    split: "min-[896px]:order-none min-[896px]:ml-auto",
+    inline: "md:order-none md:ml-auto",
+    stacked: "",
+  }[tabletRatingLayout as "split" | "inline" | "stacked"];
   const badgePosition = pcardBadgesPosition || "top-left";
   const primaryImage = selectedVariant?.image || images.nodes[0];
   const activeImage = primaryImage;
+  const productCardBorderRadius = "var(--pcard-radius) var(--pcard-radius) 0 0";
 
   return (
     <article
       className={clsx(
-        "group/product-card @container/product-card overflow-hidden rounded-(--pcard-radius) bg-(--pcard-background) transition-[padding,background-color] duration-300",
-        "desktop:hover:bg-(--pcard-hover-background) desktop:hover:p-4 desktop:focus-within:bg-(--pcard-hover-background) desktop:focus-within:p-4",
+        "group/product-card @container/product-card overflow-hidden bg-(--pcard-background) transition-[padding,background-color] duration-300",
+        !mobileLayout &&
+          "desktop:hover:bg-(--pcard-hover-background) desktop:hover:p-(--pcard-hover-padding) desktop:focus-within:bg-(--pcard-hover-background) desktop:focus-within:p-(--pcard-hover-padding)",
         className,
       )}
       style={
         {
           "--pcard-background": pcardBackgroundColor || "transparent",
-          "--pcard-hover-background": pcardHoverBackgroundColor || "#F1F1F1",
-          "--pcard-radius": `${pcardBorderRadius}px`,
+          "--pcard-hover-background":
+            pcardHoverBackgroundColor || "var(--color-background-subtle)",
+          "--pcard-hover-padding": `${pcardHoverPadding}px`,
+          "--pcard-font-size": `${pcardFontSize}px`,
+          "--pcard-content-gap": `${pcardContentGap}px`,
+          "--pcard-image-content-gap": `${pcardImageContentGap}px`,
+          "--pcard-radius": `${customLayout ? pcardBorderRadius : 12}px`,
           "--pcard-image-ratio": calculateAspectRatio(
             primaryImage,
             pcardImageRatio,
           ),
+          borderRadius: productCardBorderRadius,
         } as React.CSSProperties
       }
     >
@@ -127,8 +164,9 @@ export function ProductCard({
           to={productPath}
           prefetch="intent"
           aria-label={t("product.viewProduct", { product: product.title })}
+          style={{ borderRadius: productCardBorderRadius }}
           className={clsx(
-            "group relative block aspect-(--pcard-image-ratio) overflow-hidden rounded-(--pcard-radius) bg-gray-100",
+            "group relative block aspect-(--pcard-image-ratio) overflow-hidden bg-gray-100",
             useTabletCoverImage &&
               "md:w-full md:self-stretch md:bg-[lightgray] lg:bg-gray-100",
           )}
@@ -137,7 +175,10 @@ export function ProductCard({
             <Image
               key={activeImage.id}
               className={clsx(
-                "absolute inset-0 h-full w-full object-cover object-[50%_50%] transition-transform duration-300 group-hover:scale-105",
+                "absolute inset-0 h-full w-full object-cover object-[50%_50%] transition-transform duration-300",
+                pcardImageZoom &&
+                  !mobileLayout &&
+                  "desktop:group-hover/product-card:scale-105",
               )}
               sizes={`${minWidthQuery(DESKTOP_MIN_PX)} 25vw, ${minWidthQuery(TABLET_MIN_PX)} 30vw, 45vw`}
               data={activeImage}
@@ -189,14 +230,14 @@ export function ProductCard({
           <QuickShopTrigger
             productHandle={product.handle}
             selectedOptions={activeVariant?.selectedOptions}
-            iconOnly={quickShopIconOnly}
+            iconOnly={mobileLayout || quickShopIconOnly}
             showOnHover={quickShopIconOnly ? false : pcardShowQuickShopOnHover}
           />
         )}
       </div>
       <div
         className={clsx(
-          "flex flex-col items-start gap-3 pt-5 pb-3",
+          "flex flex-col gap-(--pcard-content-gap) pt-(--pcard-image-content-gap) pb-0",
           quickShopIconOnlyOnTablet && "self-stretch text-left",
           CONTENT_ALIGNMENT_CLASSES[
             alignment as keyof typeof CONTENT_ALIGNMENT_CLASSES
@@ -220,7 +261,7 @@ export function ProductCard({
         />
         <div
           className={clsx(
-            "flex w-full flex-col gap-3",
+            "flex w-full flex-col gap-(--pcard-content-gap)",
             CONTENT_ALIGNMENT_CLASSES[
               alignment as keyof typeof CONTENT_ALIGNMENT_CLASSES
             ],
@@ -228,7 +269,10 @@ export function ProductCard({
         >
           <div
             className={clsx(
-              "flex w-full flex-col gap-3",
+              "flex w-full flex-col gap-(--pcard-content-gap)",
+              !mobileLayout &&
+                "desktop:flex-row desktop:items-baseline desktop:justify-between",
+              !mobileLayout && tabletRow,
               CONTENT_ALIGNMENT_CLASSES[
                 alignment as keyof typeof CONTENT_ALIGNMENT_CLASSES
               ],
@@ -239,7 +283,8 @@ export function ProductCard({
               prefetch="intent"
               className={({ isTransitioning }) =>
                 clsx(
-                  "line-clamp-2 font-body font-normal text-(--color-text) text-sm uppercase",
+                  "line-clamp-2 font-body font-normal text-(--color-text) text-sm uppercase text-(length:--pcard-font-size) leading-none tracking-[0.02em]",
+                  !mobileLayout && "desktop:min-w-0 desktop:flex-1",
                   isTransitioning && "[view-transition-name:product-image]",
                 )
               }
@@ -248,13 +293,19 @@ export function ProductCard({
             </NavLink>
             {pcardShowRating && (
               <ProductCardRating
+                useDotDecimal
+                className={clsx(
+                  "order-first font-body text-(--color-text) text-(length:--pcard-font-size)",
+                  !mobileLayout && "desktop:order-none desktop:ml-auto",
+                  !mobileLayout && tabletRating,
+                )}
                 ratingValue={product.reviewRating?.value}
                 ratingCountValue={product.reviewRatingCount?.value}
               />
             )}
           </div>
           {isCombinedListing(product) || !activeVariant ? (
-            <div className="font-body font-normal text-(--color-text) text-sm">
+            <div className="font-body font-normal text-(--color-text) text-sm text-(length:--pcard-font-size) leading-none tracking-[0.02em]">
               <SpacedMoney data={minVariantPrice} />
             </div>
           ) : (
@@ -264,7 +315,7 @@ export function ProductCard({
               variant={activeVariant}
               showCompareAtPrice={pcardShowSalePrice}
               className={clsx(
-                "flex-wrap gap-1 font-body font-normal text-sm",
+                "flex-wrap gap-1 font-body font-normal text-sm text-(length:--pcard-font-size) leading-none tracking-[0.02em]",
                 CONTENT_JUSTIFY_CLASSES[
                   alignment as keyof typeof CONTENT_JUSTIFY_CLASSES
                 ],

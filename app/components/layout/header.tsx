@@ -59,6 +59,13 @@ export function Header() {
     isHome &&
     !routeError;
   const isTransparent = enableTransparent && !scrolled && !isSearchOpen;
+  const headerPosition =
+    isSearchOpen || enableTransparent
+      ? [
+          "group/header fixed inset-x-0 w-full",
+          "top-(--topbar-height,var(--initial-topbar-height))",
+        ]
+      : "sticky top-0";
 
   return (
     <header
@@ -70,12 +77,7 @@ export function Header() {
         "border-line-subtle border-b",
         variants({ padding: headerWidth }),
         scrolled ? "shadow-none" : "shadow-none",
-        enableTransparent
-          ? [
-              "group/header fixed inset-x-0 w-full",
-              "top-(--topbar-height,var(--initial-topbar-height))",
-            ]
-          : "sticky top-0",
+        headerPosition,
         isTransparent
           ? [
               "border-transparent bg-transparent",

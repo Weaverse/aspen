@@ -4,7 +4,7 @@ import type { ProductVariantFragment } from "storefront-api.generated";
 import { cn } from "~/utils/cn";
 import { isDiscounted } from "~/utils/product";
 
-/** Preserve locale currency placement while separating it from the amount. */
+/** Preserve locale currency placement with a consistent visual gap. */
 export function SpacedMoney({
   data,
   className,
@@ -12,24 +12,33 @@ export function SpacedMoney({
   data: MoneyV2;
   className?: string;
 }) {
-  const { withoutTrailingZeros, currencySymbol } = useMoney(data);
-  if (!currencySymbol) {
-    return <span className={className}>{withoutTrailingZeros}</span>;
+  const { withoutTrailingZeros, currencySymbol, currencyNarrowSymbol } =
+    useMoney(data);
+  const displaySymbol = [currencySymbol, currencyNarrowSymbol].find(
+    (symbol) => symbol && withoutTrailingZeros.includes(symbol),
+  );
+  if (!displaySymbol) {
+    return (
+      <span className={className}>
+        {withoutTrailingZeros.replace(/[\s\u00a0\u202f]+/g, " ")}
+      </span>
+    );
   }
-  const index = withoutTrailingZeros.indexOf(currencySymbol);
-  if (index < 0) {
-    return <span className={className}>{withoutTrailingZeros}</span>;
-  }
+  const index = withoutTrailingZeros.indexOf(displaySymbol);
   const before = withoutTrailingZeros.slice(0, index).trimEnd();
   const after = withoutTrailingZeros
-    .slice(index + currencySymbol.length)
+    .slice(index + displaySymbol.length)
     .trimStart();
   return (
-    <span className={className}>
+    <span className={cn("whitespace-nowrap", className)}>
       {before}
-      {before ? "\u00a0" : ""}
-      {currencySymbol}
-      {after ? "\u00a0" : ""}
+      {before ? (
+        <span aria-hidden="true" className="inline-block w-0.5" />
+      ) : null}
+      {displaySymbol}
+      {after ? (
+        <span aria-hidden="true" className="inline-block w-0.5" />
+      ) : null}
       {after}
     </span>
   );

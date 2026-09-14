@@ -267,167 +267,20 @@
   }
 }
 
-/* Instagram content card — same stack on mobile / tablet / desktop */
-.instagram-content,
-section:has(.instagram-tile) > div > div > div:first-child {
-  display: flex !important;
-  width: 320px !important;
-  max-width: 100% !important;
-  padding: var(--p-24, 24px) !important;
-  flex-direction: column !important;
-  align-items: flex-start !important;
-  gap: 24px !important;
-  border-radius: var(--Radius-border-radius-md, 12px) !important;
-  background: #fff !important;
+/* Hydrogen images can render through a picture wrapper; keep it tile-sized. */
+.instagram-tile picture {
+  display: block;
+  height: 100%;
+  width: 100%;
 }
 
-.instagram-content :is(h1, h2, h3, h4, h5, h6, p, .paragraph, .heading) {
-  text-align: left !important;
-}
-
-.instagram-tile img,
-.instagram-tile picture,
-.instagram-tile > span {
+.instagram-tile picture > img {
   height: 100%;
   width: 100%;
   object-fit: cover;
 }
 
-.instagram-tile-overlay,
-.instagram-tile-logo {
-  opacity: 0;
-  transition: opacity 300ms;
-}
-
-.instagram-tile:hover .instagram-tile-overlay,
-.instagram-tile:focus-visible .instagram-tile-overlay,
-.instagram-tile:hover .instagram-tile-logo,
-.instagram-tile:focus-visible .instagram-tile-logo,
-.group:hover .instagram-tile-overlay,
-.group:focus-visible .instagram-tile-overlay,
-.group:hover .instagram-tile-logo,
-.group:focus-visible .instagram-tile-logo {
-  opacity: 1;
-}
-
-/* Tablet reference uses a 320:426 content/grid ratio. */
-@media (min-width: 768px) and (max-width: 1024px) {
-  .instagram-section > div,
-  section:has(.instagram-tile) > div {
-    padding-block: 80px !important;
-    padding-inline: 0 !important;
-  }
-
-  .instagram-row,
-  section:has(.instagram-tile) > div > div {
-    display: grid !important;
-    grid-template-columns: minmax(0, 320fr) minmax(0, 426fr) !important;
-    align-items: stretch !important;
-    gap: 24px !important;
-    padding-inline: 32px !important;
-    max-width: none !important;
-  }
-
-  .instagram-content,
-  section:has(.instagram-tile) > div > div > div:first-child {
-    margin-inline: 0 !important;
-    width: auto !important;
-    min-width: 0 !important;
-    flex: 320 1 0 !important;
-    align-self: stretch !important;
-  }
-
-  .instagram-content > div:first-child > div:first-child > svg {
-    width: 20px;
-    height: 20px;
-    flex-shrink: 0;
-  }
-
-  .instagram-content .heading {
-    text-transform: uppercase;
-  }
-
-  section:has(.instagram-tile) > div > div > div:last-child,
-  .instagram-slider-wrap {
-    flex: 426 1 0 !important;
-    min-width: 0 !important;
-  }
-
-  .instagram-grid,
-  section:has(.instagram-tile) .instagram-grid {
-    display: grid !important;
-    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-    gap: 8px !important;
-    width: 100% !important;
-    min-width: 0 !important;
-  }
-
-  .instagram-grid-cell,
-  .instagram-grid > * {
-    display: block !important;
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: none !important;
-    height: auto !important;
-    aspect-ratio: 1 / 1 !important;
-    border-radius: var(--Radius-border-radius-md, 12px) !important;
-    background: #fff !important;
-    overflow: hidden;
-  }
-
-  .instagram-carousel,
-  section:has(.instagram-tile) .instagram-carousel,
-  section:has(.instagram-tile) .swiper {
-    display: none !important;
-  }
-
-  .instagram-tile {
-    display: flex !important;
-    height: 100% !important;
-    width: 100% !important;
-    max-width: none !important;
-    align-items: flex-start !important;
-    aspect-ratio: 1 / 1 !important;
-    border-radius: var(--Radius-border-radius-md, 12px) !important;
-    background: #fff !important;
-  }
-}
-
-/* Desktop: a content-height card beside four columns of square images. */
-@media (min-width: 1025px) {
-  .instagram-section > div {
-    padding: 80px 0 !important;
-  }
-
-  .instagram-row {
-    display: grid;
-    grid-template-columns: 320px minmax(0, 1fr);
-    align-items: start;
-    gap: 24px;
-    max-width: 1504px;
-    padding-inline: 32px;
-  }
-
-  .instagram-content {
-    align-self: start;
-    margin-inline: 0;
-  }
-
-  .instagram-content .heading {
-    text-transform: uppercase;
-  }
-
-  .instagram-grid-cell {
-    min-width: 0;
-  }
-}
-
-/* Mobile Instagram tiles stay square; utilities like rounded-(--radius-md) otherwise win. */
 @media (max-width: 767px) {
-  .instagram-tile {
-    border-radius: 0 !important;
-  }
-
   /* Image with text — scenario 2 */
   section:has([data-content-layout="split"]) > div,
   .iwt-split-row {

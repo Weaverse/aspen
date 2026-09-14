@@ -54,7 +54,9 @@ export function ProductCardOptions({
   );
 
   return (
-    <fieldset className={cn("flex flex-wrap items-center gap-1.5", className)}>
+    <fieldset
+      className={cn("flex w-full flex-wrap items-center gap-1.5", className)}
+    >
       <legend className="sr-only">
         {t("product.optionsFor", {
           option: option.name,
@@ -74,7 +76,7 @@ export function ProductCardOptions({
                   <button
                     type="button"
                     className={cn(
-                      "flex size-4 items-center justify-center rounded-xs border p-px transition-colors",
+                      "flex box-content size-3 items-start justify-center gap-2.5 rounded-xs border p-0.5 transition-colors",
                       "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body",
                       selected
                         ? "border-line"
@@ -96,7 +98,7 @@ export function ProductCardOptions({
                     {swatch?.image?.previewImage ? (
                       <Image
                         data={swatch.image.previewImage}
-                        className="h-full w-full rounded-[1px] object-cover object-center"
+                        className="size-3 shrink-0 rounded-(--radius-xs) object-cover object-center"
                         width={16}
                         height={16}
                         sizes="16px"
@@ -105,7 +107,7 @@ export function ProductCardOptions({
                     ) : (
                       <span
                         className={clsx(
-                          "inline-block h-full w-full rounded-[1px] text-[0px]",
+                          "inline-block size-3 shrink-0 rounded-(--radius-xs) text-[0px]",
                           (!isValidColor(swatchColor) ||
                             isLightColor(swatchColor)) &&
                             "border border-line-subtle",

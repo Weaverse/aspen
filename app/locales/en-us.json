@@ -17,7 +17,8 @@
     "beforeImage": "Before",
     "afterImage": "After",
     "hotspotsImage": "Hotspots image",
-    "imagePlaceholder": "Image placeholder"
+    "imagePlaceholder": "Image placeholder",
+    "socialMedia": "Social media"
   },
   "actions": {
     "cancel": "Cancel"
@@ -135,7 +136,9 @@
     "removeGiftCard": "Remove gift card ending in {{digits}}",
     "errors": {
       "selectAvailableOption": "Please select an available product option before adding it to your bag.",
-      "noLineSelected": "No cart line was selected for removal."
+      "noLineSelected": "No cart line was selected for removal.",
+      "removeLine": "Unable to remove cart item",
+      "updateQuantity": "Unable to update cart quantity"
     },
     "shopBestSellers": "Shop Best Sellers"
   },
