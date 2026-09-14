@@ -22,6 +22,11 @@ import { useTranslatedThemeSettings } from "~/hooks/use-translated-theme-setting
 import { RevealUnderline } from "~/reveal-underline";
 import type { SingleMenuItem } from "~/types/menu";
 import { cn } from "~/utils/cn";
+import {
+  hasRichText,
+  isLegacyFooterCopyright,
+  sanitizeFooterHtml,
+} from "~/utils/footer-rich-text";
 import { translateError } from "~/utils/translated-error";
 import {
   CountrySelector,
@@ -407,7 +412,7 @@ function DesktopBrand({
       />
       <div
         className="max-w-[320px] font-normal [&_p]:m-0"
-        dangerouslySetInnerHTML={{ __html: bioHtml }}
+        dangerouslySetInnerHTML={{ __html: sanitizeFooterHtml(bioHtml) }}
       />
       <div className="font-normal">
         <p className="font-semibold uppercase">{businessHoursTitle}</p>
@@ -661,22 +666,6 @@ function PaymentMethods({
   );
 }
 
-function hasRichText(value?: string) {
-  return Boolean(value?.replace(/<[^>]*>/g, "").trim());
-}
-
-function isLegacyFooterCopyright(html: string) {
-  const plain = html
-    .replace(/<[^>]*>/g, " ")
-    .replace(/&nbsp;/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-  return (
-    /© 20\d{2} Weaverse\.? All rights reserved\.?/i.test(plain) ||
-    /© 20(24|25) Aspen Theme\.? Powered by Shopify/i.test(plain)
-  );
-}
-
 function resolveFooterCopyright(html: string, designCopyright: string) {
   return isLegacyFooterCopyright(html) ? designCopyright : html;
 }
@@ -685,7 +674,7 @@ function Copyright({ html }: { html: string }) {
   return (
     <div
       className="font-normal leading-none xl:whitespace-nowrap [&_a]:font-normal [&_a]:text-inherit [&_a]:underline [&_a]:decoration-solid [&_a]:[text-decoration-skip-ink:none] [&_a]:[text-underline-position:from-font] [&_p]:m-0"
-      dangerouslySetInnerHTML={{ __html: html }}
+      dangerouslySetInnerHTML={{ __html: sanitizeFooterHtml(html) }}
     />
   );
 }
