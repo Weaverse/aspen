@@ -1,5 +1,5 @@
 import { Tag, X } from "@phosphor-icons/react";
-import { CartForm, Money, type OptimisticCart } from "@shopify/hydrogen";
+import { Money } from "@shopify/hydrogen";
 import { useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import type { CartApiQueryFragment } from "storefront-api.generated";
@@ -9,10 +9,9 @@ import { SubscriptionLineItem } from "~/components/subscriptions/subscription-li
 import { calculateAspectRatio } from "~/utils/image";
 import { toggleCartDrawer } from "../layout/cart-drawer";
 import { CartLineQuantityAdjust } from "./cart-line-qty-adjust";
-import { useCartMutation } from "./cart-mutation-context";
+import type { CartLayout, CartLine } from "./cart-types";
+import { useCartStore } from "./store";
 
-type CartLine = OptimisticCart<CartApiQueryFragment>["lines"]["nodes"][0];
-type Layouts = "page" | "drawer";
 const cartCodeBadgeClassName =
   "flex items-center gap-2 bg-[var(--background-subtle-2-ui,#DFDFDF)] px-2 py-1 font-['DM_Sans'] text-[12px] font-normal not-italic leading-none tracking-[0.24px] text-[color:var(--Text-Subtle,#524B46)]";
 
@@ -22,7 +21,7 @@ export function CartLineItem({
   discountCodes,
 }: {
   line: CartLine;
-  layout: Layouts;
+  layout: CartLayout;
   discountCodes: CartApiQueryFragment["discountCodes"];
 }) {
   const { t } = useTranslation();
@@ -298,10 +297,12 @@ export function ItemRemoveButton({
   lineId: CartLine["id"];
   productTitle: string;
   className?: string;
-  layout: Layouts;
+  layout: CartLayout;
 }) {
   const { t } = useTranslation();
-  const { isPending, submitMutation } = useCartMutation();
+  const isPending = useCartStore((state) =>
+    state.pendingLineRemovals.has(lineId),
+  );
 
   return (
     <button
@@ -309,13 +310,7 @@ export function ItemRemoveButton({
       type="button"
       disabled={isPending || lineId.startsWith("optimistic-")}
       aria-label={t("cart.removeItem", { product: productTitle })}
-      onClick={() =>
-        submitMutation(
-          CartForm.ACTIONS.LinesRemove,
-          { lineIds: [lineId] },
-          { id: lineId, data: { action: "remove" } },
-        )
-      }
+      onClick={() => useCartStore.getState().stageLineRemoval(lineId)}
     >
       {layout === "page" && <X className="h-4 w-4" />}
       {layout === "drawer" && (

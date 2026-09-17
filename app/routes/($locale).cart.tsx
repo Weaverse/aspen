@@ -18,11 +18,13 @@ import {
 } from "react-router";
 import invariant from "tiny-invariant";
 import { Cart } from "~/components/cart/cart";
-import { CART_CODE_APPLY_ACTION } from "~/components/cart/cart-actions";
 import { CartBestSellers } from "~/components/cart/cart-best-sellers";
 import { Section } from "~/components/section";
+import {
+  addGiftCardCodes,
+  updateDiscountCodes,
+} from "~/utils/cart-codes.server";
 import { CART_ERROR_KEYS } from "~/utils/cart-error";
-import { isGiftCardApplied, normalizeGiftCardCode } from "~/utils/gift-card";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 
 export const shouldRevalidate = skipPageRevalidationForStorefrontActions;
@@ -36,59 +38,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   const status = 200;
   let result: CartQueryDataReturn;
-  let cartCodeApplied: boolean | undefined;
   let shouldCommitLocalizationSession = false;
 
   switch (cartFormAction) {
-    case CART_CODE_APPLY_ACTION: {
-      const code = String(inputs.discountCode ?? "").trim();
-      invariant(code, "No cart code provided");
-
-      // A rejected gift card leaves discounts intact. Try it first so a valid
-      // gift card (including a reapplication) needs only one mutation.
-      const giftResult = await cart.addGiftCardCodes([
-        normalizeGiftCardCode(code),
-      ]);
-      if (isGiftCardApplied(giftResult, code)) {
-        result = giftResult;
-        cartCodeApplied = true;
-        break;
-      }
-      // Do not run another mutation following a transport/server failure.
-      if (
-        Array.isArray(giftResult.errors)
-          ? giftResult.errors.length > 0
-          : giftResult.errors
-      ) {
-        result = giftResult;
-        cartCodeApplied = false;
-        break;
-      }
-
-      const currentCart = await cart.get();
-      const currentDiscountCodes =
-        currentCart?.discountCodes?.map(
-          ({ code: discountCode }) => discountCode,
-        ) ?? [];
-
-      // Entering a new code replaces the existing discount, rather than
-      // asking Shopify to combine potentially incompatible discounts.
-      const discountResult = await cart.updateDiscountCodes([code]);
-      const discountApplied = discountResult.cart?.discountCodes?.some(
-        (discount) =>
-          discount.code.toLowerCase() === code.toLowerCase() &&
-          discount.applicable,
-      );
-
-      if (discountApplied) {
-        result = discountResult;
-        cartCodeApplied = true;
-      } else {
-        result = await cart.updateDiscountCodes(currentDiscountCodes);
-        cartCodeApplied = false;
-      }
-      break;
-    }
     case CartForm.ACTIONS.LinesAdd: {
       const lines = (inputs.lines as CartLineInput[] | undefined) ?? [];
       const hasInvalidLine =
@@ -111,7 +63,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
               },
             ],
             errors: undefined,
-            cartCodeApplied: undefined,
           },
           { status: 400 },
         );
@@ -138,7 +89,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
             cart: currentCart,
             userErrors: [{ message: CART_ERROR_KEYS.noLineSelected }],
             errors: undefined,
-            cartCodeApplied: undefined,
           },
           { status: 400 },
         );
@@ -158,7 +108,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
           cart: currentCart,
           userErrors: [],
           errors: undefined,
-          cartCodeApplied: undefined,
         });
       }
 
@@ -169,7 +118,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
             cart: (await getCartOrNull(cart)) ?? removeResult.cart,
             userErrors: [],
             errors: undefined,
-            cartCodeApplied: undefined,
           });
         }
         result = removeResult;
@@ -181,7 +129,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
           cart: await getCartOrNull(cart),
           userErrors: [],
           errors: undefined,
-          cartCodeApplied: undefined,
         });
       }
       break;
@@ -195,35 +142,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
         );
         break;
       }
-      const previousCodes =
-        (await cart.get())?.discountCodes?.map((discount) => discount.code) ??
-        [];
-      const attempted = await cart.updateDiscountCodes([code]);
-      const applied = attempted.cart?.discountCodes?.some(
-        (discount) =>
-          discount.code.toLowerCase() === code.toLowerCase() &&
-          discount.applicable,
-      );
-      if (applied) {
-        result = attempted;
-      } else {
-        const restored = await cart.updateDiscountCodes(previousCodes);
-        result = {
-          ...restored,
-          errors: attempted.errors,
-          userErrors: attempted.userErrors,
-        };
-      }
+      result = await updateDiscountCodes(cart, code);
       break;
     }
     case CartForm.ACTIONS.GiftCardCodesAdd: {
-      const codes = (inputs.giftCardCodes as string[]).map(
-        normalizeGiftCardCode,
-      );
-      result = await cart.addGiftCardCodes(codes);
-      cartCodeApplied =
-        codes.length > 0 &&
-        codes.every((code) => isGiftCardApplied(result, code));
+      result = await addGiftCardCodes(cart, inputs.giftCardCodes as string[]);
       break;
     }
     case CartForm.ACTIONS.GiftCardCodesRemove:
@@ -257,7 +180,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
                 cart: null,
                 userErrors: [],
                 errors: undefined,
-                cartCodeApplied: undefined,
               },
               { status, headers },
             );
@@ -292,7 +214,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
       cart: cartResult,
       userErrors,
       errors,
-      cartCodeApplied,
     },
     { status, headers },
   );

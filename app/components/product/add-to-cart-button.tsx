@@ -15,10 +15,9 @@ import type { FetcherWithComponents } from "react-router";
 import { useMatches } from "react-router";
 import { Button } from "~/components/button";
 import { useCartFetcherSync } from "~/components/cart/cart-sync";
-import { useCart, useCartStore } from "~/components/cart/store";
+import { useCartStore } from "~/components/cart/store";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import { getCartMutationError } from "~/utils/cart-error";
-import { exceedsAvailableInventory } from "~/utils/cart-inventory";
 import { cn } from "~/utils/cn";
 import { DEFAULT_LOCALE } from "~/utils/const";
 
@@ -45,14 +44,8 @@ export function AddToCartButton({
 }) {
   const { t } = useTranslation();
   const cartRoute = usePrefixPathWithLocale("/cart");
-  const cart = useCart();
-  const isResolved = useCartStore((state) => state.isResolved);
   const pendingToken = useRef<string | null>(null);
   const submitted = useRef(false);
-  const inventoryLimitReached = exceedsAvailableInventory(
-    lines,
-    cart?.lines.nodes ?? [],
-  );
   const [isHydrated, setIsHydrated] = useState(false);
   const hasValidLines =
     lines.length > 0 &&
@@ -84,7 +77,6 @@ export function AddToCartButton({
         if (tokenInput instanceof HTMLInputElement) {
           tokenInput.value = pendingToken.current ?? "";
         }
-        useCartStore.setState({ lastAddError: null });
         useCartStore.getState().open();
       }}
     >
@@ -115,12 +107,7 @@ export function AddToCartButton({
                   variant="primary"
                   className={cn(className, "!border-none px-6 py-5")}
                   disabled={Boolean(
-                    disabled ||
-                      inventoryLimitReached ||
-                      !isResolved ||
-                      isAdding ||
-                      !hasValidLines ||
-                      !isHydrated,
+                    disabled || isAdding || !hasValidLines || !isHydrated,
                   )}
                   {...props}
                 >
@@ -207,7 +194,6 @@ function AddToCartAnalytics({
   pendingToken: React.MutableRefObject<string | null>;
   submitted: React.MutableRefObject<boolean>;
 }) {
-  const { t } = useTranslation();
   useCartFetcherSync(fetcher);
   useEffect(() => {
     if (!submitted.current || fetcher.state !== "idle") {
@@ -218,10 +204,7 @@ function AddToCartAnalytics({
       useCartStore.getState().clearPendingAdd(pendingToken.current);
       pendingToken.current = null;
     }
-    useCartStore.setState({
-      lastAddError: getCartMutationError(fetcher.data, t),
-    });
-  }, [fetcher.state, fetcher.data, t, pendingToken, submitted]);
+  }, [fetcher.state, pendingToken, submitted]);
   // biome-ignore lint/correctness/useExhaustiveDependencies: Read the latest token only on owner unmount.
   useEffect(
     () => () => {

@@ -1,7 +1,7 @@
 import { CaretDownIcon } from "@phosphor-icons/react";
 import * as Select from "@radix-ui/react-select";
 import { useTranslation } from "@weaverse/hydrogen";
-import { useEffect, useId, useState } from "react";
+import { useId, useState } from "react";
 import { useRouteLoaderData } from "react-router";
 import { useLocale } from "~/hooks/use-locale";
 import type { loader as productRouteLoader } from "~/routes/($locale).products.$productHandle";
@@ -14,34 +14,6 @@ interface SellingPlanSelectorProps {
   onSellingPlanChange: (sellingPlanId: string | null) => void;
   className?: string;
   product?: any; // Optional product prop for use in QuickShop
-}
-
-function getDeliveryIntervalWeight(sellingPlan: any) {
-  const optionValues = sellingPlan.options
-    ?.map((option: any) => option.value)
-    .filter(Boolean)
-    .join(" ");
-  const text = `${optionValues || ""} ${sellingPlan.name || ""} ${sellingPlan.description || ""}`;
-  const match = text.match(
-    /(\d+)?\s*(day|days|week|weeks|month|months|year|years)\b/i,
-  );
-
-  if (!match) {
-    return 0;
-  }
-
-  const amount = Number.parseInt(match[1] || "1", 10);
-  const unit = match[2].toLowerCase();
-  if (unit.startsWith("day")) {
-    return amount / 7;
-  }
-  if (unit.startsWith("month")) {
-    return amount * 4.345;
-  }
-  if (unit.startsWith("year")) {
-    return amount * 52;
-  }
-  return amount;
 }
 
 export function SellingPlanSelector({
@@ -67,26 +39,12 @@ export function SellingPlanSelector({
     group.node.sellingPlans.edges.map((plan) => plan.node),
   );
 
-  const defaultPlanId = sellingPlans.reduce(
-    (longestPlan, sellingPlan) =>
-      !longestPlan ||
-      getDeliveryIntervalWeight(sellingPlan) >
-        getDeliveryIntervalWeight(longestPlan)
-        ? sellingPlan
-        : longestPlan,
-    null,
-  )?.id;
-  const [dropdownValue, setDropdownValue] = useState<string>(
-    selectedSellingPlanId || "",
+  const defaultPlanId = sellingPlans[0]?.id;
+  const [preferredPlanId, setPreferredPlanId] = useState<string | null>(
+    selectedSellingPlanId || null,
   );
-
-  useEffect(() => {
-    if (selectedSellingPlanId) {
-      setDropdownValue(selectedSellingPlanId);
-    } else if (defaultPlanId) {
-      setDropdownValue(defaultPlanId);
-    }
-  }, [defaultPlanId, selectedSellingPlanId]);
+  const dropdownValue =
+    selectedSellingPlanId || preferredPlanId || defaultPlanId || "";
 
   if (sellingPlans.length === 0) {
     return null;
@@ -272,7 +230,7 @@ export function SellingPlanSelector({
                 (sellingPlans.length > 0 ? sellingPlans[0].id : null);
               if (planToSelect) {
                 onSellingPlanChange(planToSelect);
-                setDropdownValue(planToSelect);
+                setPreferredPlanId(planToSelect);
               }
             }}
             className="h-5 w-5 border-line text-body focus:ring-0"
@@ -290,7 +248,7 @@ export function SellingPlanSelector({
             <Select.Root
               value={dropdownValue}
               onValueChange={(value) => {
-                setDropdownValue(value);
+                setPreferredPlanId(value);
                 if (isSubscriptionSelected) {
                   onSellingPlanChange(value);
                 }

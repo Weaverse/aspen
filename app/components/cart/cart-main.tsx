@@ -1,5 +1,5 @@
 import * as Dialog from "@radix-ui/react-dialog";
-import { CartForm, Money, type OptimisticCart } from "@shopify/hydrogen";
+import { Money } from "@shopify/hydrogen";
 import { useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { useRef, useState } from "react";
@@ -11,14 +11,8 @@ import { getCartMutationError } from "~/utils/cart-error";
 import { CartBestSellers } from "./cart-best-sellers";
 import { CartLineItem, PriceLoadingSpinner } from "./cart-line-item";
 import {
-  CartMutationContext,
-  type CartMutationContextValue,
-  useCartMutation,
-} from "./cart-mutation-context";
-import {
   AppliedCartCodes,
   CartCheckoutActions,
-  CartDiscounts,
   CartPageTotals,
   CartProgression,
   CartSummary,
@@ -30,65 +24,41 @@ import {
   GiftCardDialog,
   NoteDialog,
 } from "./cart-summary-actions";
+import type { CartLayout, CartLine, CartWithOptimistic } from "./cart-types";
 import { getCartLineRenderKeys } from "./optimistic-cart";
 import { useCartStore } from "./store";
-
-type CartLine = OptimisticCart<CartApiQueryFragment>["lines"]["nodes"][0];
-type Layouts = "page" | "drawer";
 
 export function CartMain({
   layout,
   onClose,
   cart,
 }: {
-  layout: Layouts;
+  layout: CartLayout;
   onClose?: () => void;
-  cart: import("./cart-types").CartWithOptimistic | null;
+  cart: CartWithOptimistic | null;
 }) {
   const { t } = useTranslation();
-  const lastAddError = useCartStore((state) => state.lastAddError);
   const lineUpdateErrors = useCartStore((state) => state.lineUpdateErrors);
   const lineRemovalErrors = useCartStore((state) => state.lineRemovalErrors);
   const linesCount = Boolean(cart?.lines?.nodes?.length);
   const cartHasItems = Boolean(cart && cart.totalQuantity > 0);
-  const errorMessage =
-    lastAddError ||
-    getCartMutationError(
-      [...lineUpdateErrors.values(), ...lineRemovalErrors.values()][0],
-      t,
-    );
-  const mutationContext: CartMutationContextValue = {
-    errorMessage,
-    isPending: false,
-    pendingIdentifier: null,
-    submitMutation(action, inputs) {
-      if (action === CartForm.ACTIONS.LinesUpdate) {
-        for (const line of inputs.lines as Array<{
-          id: string;
-          quantity: number;
-        }>) {
-          useCartStore.getState().stageLineUpdate(line.id, line.quantity);
-        }
-      } else if (action === CartForm.ACTIONS.LinesRemove) {
-        for (const lineId of inputs.lineIds as string[]) {
-          useCartStore.getState().stageLineRemoval(lineId);
-        }
-      }
-    },
-  };
+  const errorMessage = getCartMutationError(
+    [...lineUpdateErrors.values(), ...lineRemovalErrors.values()][0],
+    t,
+  );
   return (
-    <CartMutationContext.Provider value={mutationContext}>
+    <>
       {!cartHasItems && errorMessage && (
         <p role="alert" className="text-red-700 text-sm">
           {errorMessage}
         </p>
       )}
       {cartHasItems && cart ? (
-        <CartDetails cart={cart} layout={layout} />
+        <CartDetails cart={cart} layout={layout} errorMessage={errorMessage} />
       ) : (
         <CartEmpty hidden={linesCount} onClose={onClose} layout={layout} />
       )}
-    </CartMutationContext.Provider>
+    </>
   );
 }
 
@@ -99,7 +69,7 @@ export function CartNoteDialogWrapper({
 }: {
   cartNote: string;
   cartNoteButtonText: string;
-  layout: Layouts;
+  layout: CartLayout;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -134,7 +104,7 @@ export function DiscountCodeDialogWrapper({
 }: {
   discountCodes: CartApiQueryFragment["discountCodes"];
   discountCodeButtonText: string;
-  layout: Layouts;
+  layout: CartLayout;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -167,7 +137,7 @@ export function GiftCardDialogWrapper({
   layout,
 }: {
   giftCardButtonText: string;
-  layout: Layouts;
+  layout: CartLayout;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -197,9 +167,11 @@ export function GiftCardDialogWrapper({
 export function CartDetails({
   layout,
   cart,
+  errorMessage,
 }: {
-  layout: Layouts;
-  cart: OptimisticCart<CartApiQueryFragment>;
+  layout: CartLayout;
+  cart: CartWithOptimistic;
+  errorMessage: string | null;
 }) {
   const { t } = useTranslation();
   let {
@@ -213,7 +185,6 @@ export function CartDetails({
   } = useTranslatedThemeSettings();
 
   const { note, discountCodes, appliedGiftCards, isOptimistic } = cart;
-  const { errorMessage } = useCartMutation();
   const drawerDiscountTotal = getCartDiscountTotal(cart.lines.nodes);
   const subtotalBeforeDiscounts =
     Number.parseFloat(cart.cost?.subtotalAmount?.amount || "0") +
@@ -338,11 +309,13 @@ export function CartDetails({
           />
         </div>
         <CartSummary layout={layout}>
-          <CartDiscounts
-            lines={cart.lines.nodes}
+          <AppliedCartCodes
+            discountAmounts={getCartCodeDiscountAmounts(cart.lines.nodes)}
             appliedGiftCards={appliedGiftCards}
             discountCodes={discountCodes}
+            layout={layout}
           />
+          {summaryActions}
           <CartPageTotals cart={cart} isOptimistic={isOptimistic} />
           <CartCheckoutActions
             checkoutUrl={cart.checkoutUrl}
@@ -360,7 +333,7 @@ export function CartLines({
   lines: cartLines,
   discountCodes,
 }: {
-  layout: Layouts;
+  layout: CartLayout;
   lines: CartLine[];
   discountCodes: CartApiQueryFragment["discountCodes"];
 }) {
@@ -402,7 +375,7 @@ export function CartEmpty({
   onClose,
 }: {
   hidden: boolean;
-  layout?: Layouts;
+  layout?: CartLayout;
   onClose?: () => void;
 }) {
   const { t } = useTranslation();

@@ -1,11 +1,10 @@
 import { Tag, Truck, X } from "@phosphor-icons/react";
-import { CartForm, Money, type OptimisticCart } from "@shopify/hydrogen";
+import { CartForm, Money } from "@shopify/hydrogen";
 import { useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { useFetcher } from "react-router";
 import type { CartApiQueryFragment } from "storefront-api.generated";
 import { Button } from "~/components/button";
-import { CART_CODE_APPLY_ACTION } from "~/components/cart/cart-actions";
 import { Link } from "~/components/link";
 import { LoyaltyPointsHint } from "~/components/loyalty/loyalty-points-hint";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
@@ -14,17 +13,15 @@ import { getCartMutationError } from "~/utils/cart-error";
 import { toggleCartDrawer } from "../layout/cart-drawer";
 import { PriceLoadingSpinner } from "./cart-line-item";
 import { CartResponseSync, useCartFetcherSync } from "./cart-sync";
+import type {
+  CartLayout,
+  CartLine,
+  CartMutationResponse,
+  CartWithOptimistic,
+} from "./cart-types";
 
-type CartLine = OptimisticCart<CartApiQueryFragment>["lines"]["nodes"][0];
-type Layouts = "page" | "drawer";
 const cartCodeBadgeClassName =
   "flex items-center gap-2 bg-[var(--background-subtle-2-ui,#DFDFDF)] px-2 py-1 font-['DM_Sans'] text-[12px] font-normal not-italic leading-none tracking-[0.24px] text-[color:var(--Text-Subtle,#524B46)]";
-
-type CartMutationResponse = {
-  cart?: CartApiQueryFragment | null;
-  errors?: Array<{ message?: string }>;
-  userErrors?: Array<{ message?: string }>;
-};
 
 export function CartProgression({
   cost,
@@ -84,29 +81,6 @@ export function CartProgression({
   );
 }
 
-export function CartDiscounts({
-  lines,
-  discountCodes,
-  appliedGiftCards,
-}: {
-  lines: CartLine[];
-  discountCodes: CartApiQueryFragment["discountCodes"];
-  appliedGiftCards: CartApiQueryFragment["appliedGiftCards"];
-}) {
-  const discountAmounts = getCartCodeDiscountAmounts(lines);
-  return (
-    <div className="space-y-4">
-      <CartCodeForm />
-      <AppliedCartCodes
-        discountAmounts={discountAmounts}
-        appliedGiftCards={appliedGiftCards}
-        discountCodes={discountCodes}
-        layout="page"
-      />
-    </div>
-  );
-}
-
 export function getCartCodeDiscountAmounts(lines: CartLine[]) {
   const discountAmounts: Record<
     string,
@@ -130,60 +104,6 @@ export function getCartCodeDiscountAmounts(lines: CartLine[]) {
     }
   }
   return discountAmounts;
-}
-
-export function CartCodeForm() {
-  const { t } = useTranslation();
-  const cartRoute = usePrefixPathWithLocale("/cart");
-  const fetcher = useFetcher<{
-    cartCodeApplied?: boolean;
-    errors?: Array<{ message?: string }>;
-    userErrors?: Array<{ message?: string }>;
-  }>({ key: "cart-code-apply" });
-  useCartFetcherSync(fetcher);
-  const errorMessage =
-    getCartMutationError(fetcher.data, t) ||
-    (fetcher.data?.cartCodeApplied === false ? t("cart.invalidCode") : null);
-
-  return (
-    <fetcher.Form method="post" action={cartRoute}>
-      <input
-        type="hidden"
-        name={CartForm.INPUT_NAME}
-        value={JSON.stringify({
-          action: CART_CODE_APPLY_ACTION,
-          inputs: {},
-        })}
-      />
-      <div className="flex items-stretch gap-3">
-        <label htmlFor="cart-page-discount" className="sr-only">
-          {t("cart.code")}
-        </label>
-        <input
-          id="cart-page-discount"
-          className="h-[54px] min-w-0 grow rounded-lg border border-line bg-white px-4 leading-tight! outline-none focus:border-gray-700"
-          type="text"
-          name="discountCode"
-          placeholder={t("cart.code")}
-          required
-        />
-        <Button
-          variant="outline"
-          type="submit"
-          loading={fetcher.state !== "idle"}
-          disabled={fetcher.state !== "idle"}
-          className="!px-6 !py-0 h-[54px] shrink-0 rounded-lg leading-tight!"
-        >
-          {t("cart.apply")}
-        </Button>
-      </div>
-      {errorMessage && (
-        <p className="mt-2 bg-red-50 p-3 text-red-700 text-sm" role="alert">
-          {errorMessage}
-        </p>
-      )}
-    </fetcher.Form>
-  );
 }
 
 export function UpdateDiscountForm({
@@ -222,7 +142,7 @@ export function AppliedCartCodes({
   >;
   discountCodes: CartApiQueryFragment["discountCodes"];
   appliedGiftCards: CartApiQueryFragment["appliedGiftCards"];
-  layout: Layouts;
+  layout: CartLayout;
 }) {
   const { t } = useTranslation();
   const cartRoute = usePrefixPathWithLocale("/cart");
@@ -363,9 +283,7 @@ export function GiftCardRemoveForm({
   );
 }
 
-export function getCartDiscountTotal(
-  lines: OptimisticCart<CartApiQueryFragment>["lines"]["nodes"],
-) {
+export function getCartDiscountTotal(lines: CartLine[]) {
   return lines.reduce(
     (cartTotal, line) =>
       cartTotal +
@@ -382,7 +300,7 @@ export function CartPageTotals({
   cart,
   isOptimistic,
 }: {
-  cart: OptimisticCart<CartApiQueryFragment>;
+  cart: CartWithOptimistic;
   isOptimistic: boolean;
 }) {
   const { t } = useTranslation();
@@ -456,7 +374,7 @@ export function CartCheckoutActions({
   pending = false,
 }: {
   checkoutUrl: string;
-  layout: Layouts;
+  layout: CartLayout;
   pending?: boolean;
 }) {
   const { t } = useTranslation();
@@ -502,7 +420,7 @@ export function CartSummary({
 }: {
   children?: React.ReactNode;
   className?: string;
-  layout: Layouts;
+  layout: CartLayout;
 }) {
   const { t } = useTranslation();
   return (

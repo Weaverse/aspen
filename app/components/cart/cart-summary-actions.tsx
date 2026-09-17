@@ -9,17 +9,10 @@ import type { CartApiQueryFragment } from "storefront-api.generated";
 import { Button } from "~/components/button";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import { getCartMutationError } from "~/utils/cart-error";
-import { isGiftCardApplied, normalizeGiftCardCode } from "~/utils/gift-card";
+import { normalizeGiftCardCode } from "~/utils/gift-card";
 import { AnimatedBottomSheet } from "./animate-bottom-sheet";
 import { useCartFetcherSync } from "./cart-sync";
-
-type DialogLayout = "page" | "drawer";
-
-type CartMutationResponse = {
-  cart?: CartApiQueryFragment | null;
-  errors?: Array<{ message?: string }>;
-  userErrors?: Array<{ message?: string }>;
-};
+import type { CartLayout, CartMutationResponse } from "./cart-types";
 
 function CenteredModal({
   open,
@@ -98,7 +91,7 @@ export function NoteDialog({
   cartNote: string;
   open: boolean;
   onClose: () => void;
-  layout?: DialogLayout;
+  layout?: CartLayout;
 }) {
   const { t } = useTranslation();
   const [note, setNote] = useState(currentNote);
@@ -191,7 +184,7 @@ export function DiscountDialog({
   discountCodes: CartApiQueryFragment["discountCodes"];
   open: boolean;
   onClose: () => void;
-  layout?: DialogLayout;
+  layout?: CartLayout;
 }) {
   const { t } = useTranslation();
   const [code, setCode] = useState("");
@@ -294,7 +287,7 @@ export function GiftCardDialog({
 }: {
   open: boolean;
   onClose: () => void;
-  layout?: DialogLayout;
+  layout?: CartLayout;
 }) {
   const { t } = useTranslation();
   const [code, setCode] = useState("");
@@ -310,11 +303,9 @@ export function GiftCardDialog({
   const submitted = Boolean(
     submittedCode && fetcher.state === "idle" && fetcher.data,
   );
-  const success = Boolean(
-    submitted && isGiftCardApplied(fetcher.data, submittedCode),
-  );
   const mutationError = getCartMutationError(fetcher.data, t);
-  const error = submitted && !success;
+  const success = submitted && !mutationError;
+  const error = submitted && Boolean(mutationError);
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();

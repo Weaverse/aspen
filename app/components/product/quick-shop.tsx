@@ -3,11 +3,9 @@ import * as Dialog from "@radix-ui/react-dialog";
 import {
   getAdjacentAndFirstAvailableVariants,
   getProductOptions,
-  Money,
   mapSelectedProductOptionToObject,
   ShopPayButton,
 } from "@shopify/hydrogen";
-import type { MoneyV2 } from "@shopify/hydrogen/storefront-api-types";
 import { useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { AnimatePresence, motion } from "framer-motion";
@@ -31,8 +29,7 @@ import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import { useTranslatedThemeSettings } from "~/hooks/use-translated-theme-settings";
 import type { ProductData } from "~/routes/($locale).api.product";
 import { MEDIA_MOBILE } from "~/utils/breakpoints";
-import { isDiscounted } from "~/utils/product";
-import { CompareAtPrice, VariantPrices } from "./variant-prices";
+import { VariantPrices } from "./variant-prices";
 
 const LOW_STOCK_THRESHOLD = 10;
 
@@ -73,11 +70,13 @@ function StockIndicator({
 export function QuickShop({
   data,
   onCloseAll,
+  layout = "mobile",
 }: {
   data: ProductData;
   showDescription?: boolean;
   setShowDescription?: (show: boolean) => void;
   onCloseAll?: () => void;
+  layout?: "mobile" | "desktop";
 }) {
   const { t } = useTranslation();
   const themeSettings = useTranslatedThemeSettings();
@@ -118,11 +117,21 @@ export function QuickShop({
     : selectedVariant?.quantityAvailable === -1
       ? unavailableText
       : soldOutText;
+  const isDesktop = layout === "desktop";
 
   return (
     <div
-      className="flex flex-col gap-6 font-body"
-      style={{ "--shop-pay-button-height": "54px" } as React.CSSProperties}
+      className={clsx(
+        "gap-6 font-body",
+        isDesktop
+          ? "grid grid-cols-2 items-start lg:grid-cols-[minmax(0,1.48fr)_minmax(0,1fr)]"
+          : "flex flex-col",
+      )}
+      style={
+        {
+          "--shop-pay-button-height": isDesktop ? "56px" : "54px",
+        } as React.CSSProperties
+      }
     >
       <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-gray-100">
         <div className="[&_.swiper]:!h-full [&_.swiper-slide]:!h-full [&_.swiper-wrapper]:!h-full [&_img]:!h-full [&_img]:!w-full [&_img]:!rounded-xl [&_img]:!object-cover absolute inset-0">
@@ -131,7 +140,7 @@ export function QuickShop({
             media={product?.media.nodes}
             selectedVariant={selectedVariant}
             showThumbnails={false}
-            showDots={false}
+            showDots={isDesktop}
             imageAspectRatio="1/1"
             navigationStyle="sides"
             arrowsColor={quickShopArrowsColor}
@@ -152,13 +161,18 @@ export function QuickShop({
           <ProductCardWishlistButton
             productId={product.id}
             productTitle={title}
-            showOnMobile
+            showOnMobile={!isDesktop}
             showOnTablet
           />
         )}
       </div>
 
-      <div className="flex min-w-0 flex-col gap-6 text-sm">
+      <div
+        className={clsx(
+          "flex min-w-0 flex-col text-sm",
+          isDesktop ? "gap-8" : "gap-6",
+        )}
+      >
         <div className="flex flex-col gap-4">
           <h4 className="break-words font-heading font-normal text-(--color-text) uppercase">
             {title}
@@ -173,20 +187,22 @@ export function QuickShop({
               compareAtPriceClassName="text-body-subtle"
             />
           )}
+          <ProductCardRating
+            ratingValue={product.reviewRating?.value}
+            ratingCountValue={product.reviewRatingCount?.value}
+            className={clsx(
+              "gap-2.5",
+              isDesktop ? "leading-6" : "leading-none",
+            )}
+            useDotDecimal
+          />
         </div>
 
         <StockIndicator
           quantityAvailable={selectedVariant?.quantityAvailable}
         />
 
-        <ProductCardRating
-          ratingValue={product.reviewRating?.value}
-          ratingCountValue={product.reviewRatingCount?.value}
-          className="gap-2.5 leading-none"
-          useDotDecimal
-        />
-
-        <div className="flex flex-col gap-6">
+        <div className={clsx("flex flex-col", isDesktop ? "gap-7" : "gap-6")}>
           {productOptions && productOptions.length > 0 && (
             <QuickShopVariants
               productOptions={productOptions}
@@ -262,212 +278,6 @@ export function QuickShop({
             availableForSale={selectedVariant?.availableForSale}
             enabled={enableQuickShopBackInStock}
           />
-        </div>
-
-        <div className="flex w-fit max-w-full items-center gap-2.5 rounded-lg bg-(--color-background) text-(--color-text-subtle) text-sm">
-          <PackageIcon aria-hidden="true" className="size-5 shrink-0" />
-          <span className="min-w-0">{t("product.estimatedDelivery")}</span>
-        </div>
-
-        <Link
-          to={`/products/${product.handle}`}
-          prefetch="intent"
-          className="w-fit text-(--color-text-subtle) text-sm underline underline-offset-2"
-        >
-          {t("product.viewFullDetails")}
-        </Link>
-      </div>
-    </div>
-  );
-}
-
-// Tablet and desktop share purchase logic with responsive modal layouts.
-// Keep this presentation separate from the mobile drawer.
-function QuickShopDesktop({
-  data,
-  onCloseAll,
-}: {
-  data: ProductData;
-  onCloseAll?: () => void;
-}) {
-  const { t } = useTranslation();
-  const themeSettings = useTranslatedThemeSettings();
-  const { product, storeDomain } = data || {};
-
-  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
-    product?.selectedOrFirstAvailableVariant?.id || null,
-  );
-  const adjacentVariants = getAdjacentAndFirstAvailableVariants(product);
-  const selectedVariant =
-    adjacentVariants.find((variant) => variant.id === selectedVariantId) ||
-    product?.selectedOrFirstAvailableVariant;
-
-  const productOptions = getProductOptions({
-    ...product,
-    selectedOrFirstAvailableVariant: selectedVariant,
-  });
-
-  const [quantity, setQuantity] = useState<number>(1);
-  const [selectedSellingPlanId, setSelectedSellingPlanId] = useState<
-    string | null
-  >(null);
-  const {
-    addToCartText,
-    soldOutText,
-    unavailableText,
-    showCompareAtPrice,
-    showBadgesOnProductMedia,
-    quickShopArrowsColor = "primary",
-    quickShopArrowsShape = "circle",
-  } = themeSettings;
-
-  const { title } = product;
-  const atcText = selectedVariant?.availableForSale
-    ? addToCartText
-    : selectedVariant?.quantityAvailable === -1
-      ? unavailableText
-      : soldOutText;
-  const { price, compareAtPrice } = selectedVariant;
-
-  return (
-    <div className="grid grid-cols-2 items-start gap-6 font-body lg:grid-cols-[minmax(0,1.48fr)_minmax(0,1fr)]">
-      {/* Gallery */}
-      <div className="relative aspect-square w-full overflow-hidden rounded-xl">
-        <div className="[&_.swiper]:!h-full [&_.swiper-slide]:!h-full [&_.swiper-wrapper]:!h-full [&_img]:!h-full [&_img]:!w-full [&_img]:!rounded-xl [&_img]:!object-cover absolute inset-0">
-          <ProductMedia
-            mediaLayout="slider"
-            media={product?.media.nodes}
-            selectedVariant={selectedVariant}
-            showThumbnails={false}
-            showDots
-            imageAspectRatio="1/1"
-            navigationStyle="sides"
-            arrowsColor={quickShopArrowsColor}
-            arrowsShape={quickShopArrowsShape}
-            navigationVariant="quick-shop"
-            showBadges={showBadgesOnProductMedia}
-            badges={
-              selectedVariant && (
-                <ProductBadges
-                  product={product}
-                  selectedVariant={selectedVariant}
-                />
-              )
-            }
-          />
-        </div>
-        {product?.id && (
-          <ProductCardWishlistButton
-            productId={product.id}
-            productTitle={title}
-            showOnTablet
-          />
-        )}
-      </div>
-
-      {/* Info */}
-      <div className="flex min-w-0 flex-col gap-8 text-sm">
-        <div className="flex flex-col gap-4">
-          <h4 className="pr-5 font-heading font-normal text-(--color-text) uppercase">
-            {title}
-          </h4>
-          {selectedVariant && (
-            <div className="flex items-center gap-3 font-heading font-normal text-2xl">
-              {showCompareAtPrice &&
-                isDiscounted(price as MoneyV2, compareAtPrice as MoneyV2) && (
-                  <CompareAtPrice
-                    data={compareAtPrice as MoneyV2}
-                    className="text-body-subtle"
-                  />
-                )}
-              <Money withoutTrailingZeros data={price} as="span" />
-            </div>
-          )}
-          <ProductCardRating
-            ratingValue={product.reviewRating?.value}
-            ratingCountValue={product.reviewRatingCount?.value}
-            className="gap-2.5 leading-6"
-          />
-        </div>
-
-        <StockIndicator
-          quantityAvailable={selectedVariant?.quantityAvailable}
-        />
-
-        <div className="flex flex-col gap-7">
-          {productOptions && productOptions.length > 0 && (
-            <QuickShopVariants
-              productOptions={productOptions}
-              onVariantChange={setSelectedVariantId}
-              layout="buttons"
-            />
-          )}
-          {selectedVariant && (
-            <SellingPlanSelector
-              variant={selectedVariant}
-              selectedSellingPlanId={selectedSellingPlanId}
-              onSellingPlanChange={setSelectedSellingPlanId}
-              product={product}
-            />
-          )}
-        </div>
-
-        <div
-          className="sp-button space-y-3"
-          style={{ "--shop-pay-button-height": "56px" } as React.CSSProperties}
-        >
-          <div className="flex gap-3">
-            <Quantity
-              value={quantity}
-              onChange={setQuantity}
-              variant="stepper"
-              className="w-1/3 min-w-24 shrink-0 bg-[#DFDFDF]"
-            />
-            <AddToCartButton
-              width="auto"
-              containerClassName="min-w-0 flex-1"
-              disabled={!selectedVariant?.availableForSale}
-              onAdded={onCloseAll}
-              lines={[
-                {
-                  merchandiseId: selectedVariant?.id,
-                  quantity,
-                  selectedVariant,
-                  ...(selectedSellingPlanId && {
-                    sellingPlanId: selectedSellingPlanId,
-                  }),
-                },
-              ]}
-              data-test="add-to-cart"
-              variant="primary"
-              className="h-[54px] w-full rounded-lg uppercase"
-            >
-              {atcText}
-            </AddToCartButton>
-          </div>
-          {selectedVariant?.availableForSale && (
-            <ShopPayButton
-              width="100%"
-              variantIdsAndQuantities={[
-                {
-                  id: selectedVariant?.id,
-                  quantity,
-                  ...(selectedSellingPlanId && {
-                    sellingPlanId: selectedSellingPlanId,
-                  }),
-                },
-              ]}
-              storeDomain={storeDomain}
-            />
-          )}
-          {selectedVariant?.availableForSale && (
-            <LoyaltyPointsHint
-              amount={
-                Number.parseFloat(selectedVariant.price?.amount || "0") *
-                quantity
-              }
-            />
-          )}
         </div>
 
         <div className="flex w-fit max-w-full items-center gap-2.5 rounded-lg bg-(--color-background) text-(--color-text-subtle) text-sm">
@@ -608,7 +418,7 @@ export function QuickShopTrigger({
               {isMobile && (
                 <Dialog.Content
                   forceMount
-                  className="fixed inset-0 z-10 h-dvh md:hidden"
+                  className="fixed inset-0 z-10 h-dvh"
                   aria-describedby={undefined}
                 >
                   <motion.div
@@ -660,7 +470,7 @@ export function QuickShopTrigger({
               {!isMobile && (
                 <Dialog.Content
                   forceMount
-                  className="fixed inset-0 z-10 hidden items-center justify-center md:flex"
+                  className="fixed inset-0 z-10 flex items-center justify-center"
                   aria-describedby={undefined}
                 >
                   <motion.div
@@ -684,9 +494,10 @@ export function QuickShopTrigger({
                     {state === "loading" || loadedPath !== apiPath ? (
                       <QuickShopDesktopSkeleton />
                     ) : data ? (
-                      <QuickShopDesktop
+                      <QuickShop
                         data={data as ProductData}
                         onCloseAll={closeAllDrawers}
+                        layout="desktop"
                       />
                     ) : (
                       <QuickShopLoadError onRetry={() => load(apiPath)} />

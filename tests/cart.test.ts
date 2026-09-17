@@ -52,6 +52,12 @@ test.describe("Cart", () => {
     await expect(page.getByRole("button", { name: "Open cart" })).toContainText(
       "3",
     );
+    await expect(
+      page.getByRole("button", { name: "Discount code", exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Giftcard", exact: true }),
+    ).toBeVisible();
 
     await Promise.all([
       page.waitForURL(/checkout|checkouts|\/cart\/c\//i),

@@ -1,24 +1,19 @@
 import { CaretDown } from "@phosphor-icons/react";
 import * as Select from "@radix-ui/react-select";
-import { CartForm, type OptimisticCart } from "@shopify/hydrogen";
 import { useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { useEffect, useId, useState } from "react";
-import type { CartApiQueryFragment } from "storefront-api.generated";
-import { useCartMutation } from "./cart-mutation-context";
-
-type CartLine = OptimisticCart<CartApiQueryFragment>["lines"]["nodes"][0];
-type Layouts = "page" | "drawer";
+import type { CartLayout, CartLine } from "./cart-types";
+import { useCartStore } from "./store";
 
 export function CartLineQuantityAdjust({
   line,
   layout,
 }: {
   line: CartLine;
-  layout: Layouts;
+  layout: CartLayout;
 }) {
   const { t } = useTranslation();
-  const { isPending, submitMutation } = useCartMutation();
   const { id: lineId, isOptimistic } = line || {};
   const quantityId = useId();
 
@@ -43,7 +38,7 @@ export function CartLineQuantityAdjust({
     new Set<number>([...quantities, optimisticQuantity, selectedQty]),
   ).sort((a, b) => a - b);
 
-  const disabled = lineId.startsWith("optimistic-") || isPending;
+  const disabled = lineId.startsWith("optimistic-");
   const desktopStepper = (() => {
     if (layout !== "drawer") {
       return null;
@@ -52,11 +47,7 @@ export function CartLineQuantityAdjust({
       if (!Number.isInteger(nextQuantity) || nextQuantity < 1) {
         return;
       }
-      submitMutation(
-        CartForm.ACTIONS.LinesUpdate,
-        { lines: [{ id: lineId, quantity: nextQuantity }] },
-        { id: lineId, data: { quantity: nextQuantity } },
-      );
+      useCartStore.getState().stageLineUpdate(lineId, nextQuantity);
     };
 
     return (
@@ -126,11 +117,7 @@ export function CartLineQuantityAdjust({
             }
 
             setSelectedQty(nextQuantity);
-            submitMutation(
-              CartForm.ACTIONS.LinesUpdate,
-              { lines: [{ id: lineId, quantity: nextQuantity }] },
-              { id: lineId, data: { quantity: nextQuantity } },
-            );
+            useCartStore.getState().stageLineUpdate(lineId, nextQuantity);
           }}
           disabled={disabled}
         >

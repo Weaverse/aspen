@@ -141,6 +141,9 @@ export function CartStoreSync({
       })
       .catch(() => {
         // Keep the freshest known cart when the deferred loader fails.
+        if (active) {
+          useCartStore.setState({ isResolved: true });
+        }
       });
 
     return () => {
