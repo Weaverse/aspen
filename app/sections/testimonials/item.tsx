@@ -18,9 +18,7 @@ interface TestimonialHotspotsItemProps
 const TestimonialHotspotsItem = forwardRef<
   HTMLDivElement,
   TestimonialHotspotsItemProps
->(({ icon: _legacyIcon, ...props }, ref) => (
-  <HotspotsItem {...props} ref={ref} portalPopup />
-));
+>((props, ref) => <HotspotsItem {...props} ref={ref} portalPopup />);
 
 export default TestimonialHotspotsItem;
 export { loader } from "../hotspots/item";

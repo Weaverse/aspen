@@ -171,6 +171,18 @@ export const themeSchema: HydrogenThemeSchema = {
           defaultValue: "fixed",
         },
         {
+          type: "select",
+          name: "headerLayout",
+          label: "Desktop layout",
+          configs: {
+            options: [
+              { value: "inline", label: "Inline menu" },
+              { value: "compact", label: "Compact menu" },
+            ],
+          },
+          defaultValue: "inline",
+        },
+        {
           type: "switch",
           label: "Enable transparent header",
           name: "enableTransparentHeader",
@@ -752,7 +764,6 @@ export const themeSchema: HydrogenThemeSchema = {
               { value: "stacked", label: "Above title" },
             ],
           },
-          condition: (data) => data.pcardLayoutPreset === "custom",
         },
         {
           type: "switch",
@@ -761,20 +772,6 @@ export const themeSchema: HydrogenThemeSchema = {
           defaultValue: true,
           helpText:
             "On touch screens the icon stays visible so shoppers can tap it.",
-        },
-        {
-          type: "select",
-          name: "pcardLayoutPreset",
-          label: "Card layout",
-          defaultValue: "design",
-          configs: {
-            options: [
-              { value: "design", label: "Design default" },
-              { value: "custom", label: "Custom" },
-            ],
-          },
-          helpText:
-            "Design default uses left-aligned content and 12px corners. Choose Custom to change content alignment and border radius.",
         },
         {
           type: "color",
@@ -902,9 +899,16 @@ export const themeSchema: HydrogenThemeSchema = {
         },
         {
           type: "switch",
+          label: "Show lowest price",
+          name: "pcardShowLowestPrice",
+          defaultValue: false,
+        },
+        {
+          type: "switch",
           label: "Show sale price",
           name: "pcardShowSalePrice",
           defaultValue: true,
+          condition: (data) => data.pcardShowLowestPrice !== true,
         },
         {
           type: "switch",
@@ -1156,6 +1160,12 @@ export const themeSchema: HydrogenThemeSchema = {
           defaultValue: true,
           helpText:
             "Display sale, new, and best seller badges on product images",
+        },
+        {
+          type: "switch",
+          label: "Enable zoom",
+          name: "enableZoom",
+          defaultValue: true,
         },
         {
           type: "heading",

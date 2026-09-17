@@ -51,6 +51,20 @@ type ProductCardProps = {
   mobileLayout?: boolean;
 };
 
+type ProductCardImage = ProductCardFragment["images"]["nodes"][number];
+
+function getCardImages(
+  images: ProductCardImage[],
+  selectedImage?: ProductVariantFragment["image"],
+) {
+  const primaryImage = selectedImage || images[0];
+  const secondaryImage = images.find(
+    (image) => image.id !== primaryImage?.id && image.url !== primaryImage?.url,
+  );
+
+  return { primaryImage, secondaryImage };
+}
+
 export function ProductCard({
   product,
   className,
@@ -62,7 +76,6 @@ export function ProductCard({
 }: ProductCardProps) {
   const { t } = useTranslation();
   const {
-    pcardLayoutPreset = "design",
     pcardTabletRatingLayout = "stacked",
     pcardBackgroundColor,
     pcardHoverBackgroundColor,
@@ -70,6 +83,7 @@ export function ProductCard({
     pcardBorderRadius = 12,
     pcardHoverPadding = 20,
     pcardImageZoom = true,
+    pcardShowImageOnHover,
     pcardFontSize = 14,
     pcardContentGap = 12,
     pcardImageContentGap = 20,
@@ -86,13 +100,14 @@ export function ProductCard({
     pcardShowBundleBadge,
     pcardShowBadgesOnMobile,
     pcardShowRating,
+    pcardShowLowestPrice,
     pcardShowSalePrice = true,
   } = useThemeSettings();
 
   const [selectedVariant, setSelectedVariant] =
     useState<ProductVariantFragment | null>(null);
   const { images, priceRange } = product;
-  const { minVariantPrice } = priceRange;
+  const { minVariantPrice, maxVariantPrice } = priceRange;
 
   const firstVariant = product.selectedOrFirstAvailableVariant;
   const activeVariant = selectedVariant || firstVariant;
@@ -104,14 +119,8 @@ export function ProductCard({
 
   const useTabletCoverImage = stretchImageOnTablet || quickShopIconOnlyOnTablet;
 
-  // Older stores may still have centered alignment and zero radius saved.
-  // Apply the approved defaults until custom layout is explicitly selected.
-  const customLayout = pcardLayoutPreset === "custom";
-  const alignment =
-    contentAlignment || (customLayout ? pcardAlignment : "left") || "left";
-  const tabletRatingLayout = customLayout
-    ? pcardTabletRatingLayout || "stacked"
-    : "stacked";
+  const alignment = contentAlignment || pcardAlignment || "left";
+  const tabletRatingLayout = pcardTabletRatingLayout || "stacked";
   const tabletRow = {
     split:
       "min-[896px]:flex-row min-[896px]:items-baseline min-[896px]:justify-between",
@@ -124,14 +133,16 @@ export function ProductCard({
     stacked: "",
   }[tabletRatingLayout as "split" | "inline" | "stacked"];
   const badgePosition = pcardBadgesPosition || "top-left";
-  const primaryImage = selectedVariant?.image || images.nodes[0];
-  const activeImage = primaryImage;
-  const productCardBorderRadius = "var(--pcard-radius) var(--pcard-radius) 0 0";
+  const { primaryImage, secondaryImage } = getCardImages(
+    images.nodes,
+    selectedVariant?.image,
+  );
+  const productCardBorderRadius = "var(--pcard-radius)";
 
   return (
     <article
       className={clsx(
-        "group/product-card @container/product-card overflow-hidden bg-(--pcard-background) transition-[padding,background-color] duration-300",
+        "group/product-card @container/product-card overflow-hidden p-5 bg-(--pcard-background) transition-[padding,background-color] duration-300",
         !mobileLayout &&
           "desktop:hover:bg-(--pcard-hover-background) desktop:hover:p-(--pcard-hover-padding) desktop:focus-within:bg-(--pcard-hover-background) desktop:focus-within:p-(--pcard-hover-padding)",
         className,
@@ -145,7 +156,7 @@ export function ProductCard({
           "--pcard-font-size": `${pcardFontSize}px`,
           "--pcard-content-gap": `${pcardContentGap}px`,
           "--pcard-image-content-gap": `${pcardImageContentGap}px`,
-          "--pcard-radius": `${customLayout ? pcardBorderRadius : 12}px`,
+          "--pcard-radius": `${pcardBorderRadius}px`,
           "--pcard-image-ratio": calculateAspectRatio(
             primaryImage,
             pcardImageRatio,
@@ -171,24 +182,45 @@ export function ProductCard({
               "md:w-full md:self-stretch md:bg-[lightgray] lg:bg-gray-100",
           )}
         >
-          {activeImage ? (
-            <Image
-              key={activeImage.id}
-              className={clsx(
-                "absolute inset-0 h-full w-full object-cover object-[50%_50%] transition-transform duration-300",
-                pcardImageZoom &&
-                  !mobileLayout &&
-                  "desktop:group-hover/product-card:scale-105",
+          {primaryImage ? (
+            <>
+              <Image
+                key={primaryImage.id}
+                className={clsx(
+                  "absolute inset-0 h-full w-full object-cover object-[50%_50%] transition-[opacity,transform] duration-300",
+                  pcardImageZoom &&
+                    !mobileLayout &&
+                    "desktop:group-hover/product-card:scale-105",
+                  pcardShowImageOnHover &&
+                    secondaryImage &&
+                    "group-hover:opacity-0",
+                )}
+                sizes={`${minWidthQuery(DESKTOP_MIN_PX)} 25vw, ${minWidthQuery(TABLET_MIN_PX)} 30vw, 45vw`}
+                data={primaryImage}
+                width={700}
+                alt={
+                  primaryImage.altText ||
+                  t("product.pictureOf", { product: product.title })
+                }
+                loading="lazy"
+              />
+              {pcardShowImageOnHover && secondaryImage && (
+                <Image
+                  aria-hidden="true"
+                  className={clsx(
+                    "absolute inset-0 h-full w-full object-cover object-[50%_50%] opacity-0 transition-[opacity,transform] duration-300 group-hover:opacity-100",
+                    pcardImageZoom &&
+                      !mobileLayout &&
+                      "desktop:group-hover/product-card:scale-105",
+                  )}
+                  sizes={`${minWidthQuery(DESKTOP_MIN_PX)} 25vw, ${minWidthQuery(TABLET_MIN_PX)} 30vw, 45vw`}
+                  data={secondaryImage}
+                  width={700}
+                  alt=""
+                  loading="lazy"
+                />
               )}
-              sizes={`${minWidthQuery(DESKTOP_MIN_PX)} 25vw, ${minWidthQuery(TABLET_MIN_PX)} 30vw, 45vw`}
-              data={activeImage}
-              width={700}
-              alt={
-                activeImage.altText ||
-                t("product.pictureOf", { product: product.title })
-              }
-              loading="lazy"
-            />
+            </>
           ) : (
             <span
               role="img"
@@ -304,9 +336,18 @@ export function ProductCard({
               />
             )}
           </div>
-          {isCombinedListing(product) || !activeVariant ? (
-            <div className="font-body font-normal text-(--color-text) text-sm text-(length:--pcard-font-size) leading-none tracking-[0.02em]">
+          {pcardShowLowestPrice ||
+          isCombinedListing(product) ||
+          !activeVariant ? (
+            <div className="flex flex-wrap items-center gap-x-1 font-body font-normal text-(--color-text) text-sm text-(length:--pcard-font-size) leading-none tracking-[0.02em]">
+              <span>{t("product.from")}</span>
               <SpacedMoney data={minVariantPrice} />
+              {isCombinedListing(product) && (
+                <>
+                  <span>–</span>
+                  <SpacedMoney data={maxVariantPrice} />
+                </>
+              )}
             </div>
           ) : (
             <VariantPrices

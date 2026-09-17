@@ -155,22 +155,23 @@ const FeaturedContentProducts = forwardRef<
       ? "horizontal"
       : "vertical";
   const resolvedHeadingContent =
-    headingContent ||
-    (resolvedDisplayMode === "horizontal"
+    resolvedDisplayMode === "horizontal"
       ? isProductPage
-        ? carouselHeadingContent || t("cart.recommendations")
+        ? carouselHeadingContent || headingContent || t("cart.recommendations")
         : carouselHeadingContent || t("product.featuredProducts")
-      : undefined);
+      : headingContent;
   const resolvedButtonContent =
-    buttonContent ||
-    (resolvedDisplayMode === "horizontal"
-      ? carouselButtonContent || t("product.viewAll")
-      : undefined);
+    resolvedDisplayMode === "horizontal"
+      ? isProductPage
+        ? carouselButtonContent || buttonContent || t("product.viewAll")
+        : carouselButtonContent || t("product.viewAll")
+      : buttonContent;
   const resolvedTo =
-    to ||
-    (resolvedDisplayMode === "horizontal"
-      ? carouselTo || "/products"
-      : undefined);
+    resolvedDisplayMode === "horizontal"
+      ? isProductPage
+        ? to || carouselTo || "/products"
+        : carouselTo || "/products"
+      : to;
 
   if (resolvedDisplayMode === "horizontal") {
     return (
@@ -301,8 +302,20 @@ export const schema = createSchema({
   limit: 1,
   settings: [
     {
-      group: "Scenario 2 layout",
+      group: "Layout",
       inputs: [
+        {
+          type: "toggle-group",
+          name: "displayMode",
+          label: "Header layout",
+          defaultValue: "vertical",
+          configs: {
+            options: [
+              { value: "vertical", label: "Centered stack" },
+              { value: "horizontal", label: "Title with side link" },
+            ],
+          },
+        },
         {
           type: "toggle-group",
           name: "contentPosition",
@@ -315,6 +328,8 @@ export const schema = createSchema({
               { value: "right", label: "right" },
             ],
           },
+          condition: (data: FeaturedProductsLoaderData) =>
+            data.displayMode === "vertical",
         },
         {
           type: "range",
@@ -327,6 +342,31 @@ export const schema = createSchema({
             step: 4,
             unit: "px",
           },
+          condition: (data: FeaturedProductsLoaderData) =>
+            data.displayMode === "vertical",
+        },
+      ],
+    },
+    {
+      group: "Carousel header",
+      inputs: [
+        {
+          type: "text",
+          name: "carouselHeadingContent",
+          label: "Carousel heading",
+          defaultValue: "FEATURED PRODUCTS",
+        },
+        {
+          type: "text",
+          name: "carouselButtonContent",
+          label: "Carousel link text",
+          defaultValue: "VIEW ALL",
+        },
+        {
+          type: "url",
+          name: "carouselTo",
+          label: "Carousel link",
+          defaultValue: "/products",
         },
       ],
     },
@@ -461,6 +501,7 @@ export const schema = createSchema({
     },
   ],
   presets: {
+    displayMode: "vertical",
     contentPosition: "center",
     gap: 16,
     headingContent: "EXPLORE QUALITY PRODUCTS",
@@ -475,5 +516,8 @@ export const schema = createSchema({
     buttonContent: "EXPLORE NOW",
     to: "/products",
     variant: "decor",
+    carouselHeadingContent: "FEATURED PRODUCTS",
+    carouselButtonContent: "VIEW ALL",
+    carouselTo: "/products",
   },
 });

@@ -1,4 +1,4 @@
-import { XIcon } from "@phosphor-icons/react";
+import { HandbagIcon, PlusIcon, TagIcon, XIcon } from "@phosphor-icons/react";
 import * as Dialog from "@radix-ui/react-dialog";
 import {
   type ComponentLoaderArgs,
@@ -22,6 +22,7 @@ import { FloatingHotspot } from "./floating-hotspot";
 import { ProductPopup } from "./product-popup";
 
 export interface HotspotsItemData {
+  icon?: "circle" | "plus" | "bag" | "tag";
   iconSize: number;
   offsetX: number;
   offsetY: number;
@@ -40,8 +41,35 @@ interface HotspotsItemProps
 // Matches the "Tag" marker component in Figma (node 364:16957): a 34x34
 // circle with a 1px white border and a centered 6x6 white dot, wrapped in
 // an always-on 42x42 pulse ring, with a white/30% fill added on hover.
-function HotspotMarker({ size }: { size: number }) {
+const HOTSPOT_ICONS = {
+  plus: PlusIcon,
+  bag: HandbagIcon,
+  tag: TagIcon,
+};
+
+function HotspotMarker({
+  icon = "circle",
+  size,
+}: {
+  icon?: HotspotsItemData["icon"];
+  size: number;
+}) {
   const ringInset = -(42 - size) / 2;
+  if (icon !== "circle") {
+    const Icon = HOTSPOT_ICONS[icon];
+    return (
+      <span className="relative inline-flex items-center justify-center">
+        <span
+          className="absolute inset-0 animate-ping rounded-full bg-gray-700 opacity-75"
+          style={{ animationDuration: "1500ms" }}
+        />
+        <span className="relative inline-flex rounded-full bg-white p-2 transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg">
+          <Icon aria-hidden="true" style={{ width: size, height: size }} />
+        </span>
+      </span>
+    );
+  }
+
   return (
     <span className="relative inline-flex items-center justify-center">
       <span
@@ -68,6 +96,7 @@ const HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>(
     const { t } = useTranslation();
     const {
       portalPopup = false,
+      icon = "circle",
       iconSize,
       offsetX,
       offsetY,
@@ -126,7 +155,7 @@ const HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>(
                   product: loaderData?.product?.title ?? product?.handle ?? "",
                 })}
               >
-                <HotspotMarker size={iconSize} />
+                <HotspotMarker icon={icon} size={iconSize} />
               </button>
               <div className="hidden lg:block">
                 <FloatingHotspot
@@ -137,7 +166,7 @@ const HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>(
                   showViewDetailsLink={showViewDetailsLink}
                   viewDetailsLinkText={viewDetailsLinkText}
                 >
-                  <HotspotMarker size={iconSize} />
+                  <HotspotMarker icon={icon} size={iconSize} />
                 </FloatingHotspot>
               </div>
             </>
@@ -146,7 +175,7 @@ const HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>(
               className="group relative flex cursor-pointer"
               onClick={handleClick}
             >
-              <HotspotMarker size={iconSize} />
+              <HotspotMarker icon={icon} size={iconSize} />
               {/* Desktop popup - only on actual desktop screens (1024px+) */}
               <div className="hidden lg:block">
                 <ProductPopup
@@ -252,6 +281,20 @@ export const schema = createSchema({
     {
       group: "Icon",
       inputs: [
+        {
+          type: "toggle-group",
+          name: "icon",
+          label: "Icon",
+          configs: {
+            options: [
+              { label: "Circle", value: "circle", icon: "circle" },
+              { label: "Plus", value: "plus", icon: "plus" },
+              { label: "Bag", value: "bag", icon: "shopping-bag" },
+              { label: "Tag", value: "tag", icon: "tag" },
+            ],
+          },
+          defaultValue: "circle",
+        },
         {
           type: "range",
           name: "iconSize",
