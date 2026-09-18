@@ -33,7 +33,7 @@ export function Quantity(props: QuantityProps) {
         <legend className="sr-only">{t("product.quantity")}</legend>
         <button
           type="button"
-          className="flex w-11 shrink-0 flex-col items-center justify-center self-stretch focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-body disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex min-w-0 items-center justify-center self-stretch focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-body disabled:cursor-not-allowed disabled:opacity-40"
           onClick={() => onChange(Math.max(1, value - 1))}
           disabled={value <= 1}
           aria-label={t("product.decreaseQuantity")}
@@ -41,7 +41,7 @@ export function Quantity(props: QuantityProps) {
           <MinusIcon aria-hidden="true" className="h-4 w-4" />
         </button>
         <output
-          className="flex w-11 shrink-0 flex-col items-center justify-center self-stretch border-line-subtle border-x"
+          className="flex min-w-0 items-center justify-center self-stretch border-line-subtle border-x"
           aria-live="polite"
           aria-label={t(
             value === 1 ? "product.itemCount" : "product.itemCount_other",
@@ -52,7 +52,7 @@ export function Quantity(props: QuantityProps) {
         </output>
         <button
           type="button"
-          className="flex w-11 shrink-0 flex-col items-center justify-center self-stretch focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-body disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex min-w-0 items-center justify-center self-stretch focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-body disabled:cursor-not-allowed disabled:opacity-40"
           onClick={() => onChange(Math.min(maxQuantity, value + 1))}
           disabled={value >= maxQuantity}
           aria-label={t("product.increaseQuantity")}

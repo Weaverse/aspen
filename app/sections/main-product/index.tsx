@@ -244,13 +244,6 @@ const ProductInformation = forwardRef<
                 "-mx-(--page-padding) w-[calc(100%+2*var(--page-padding))] lg:mx-0 lg:w-[778px]",
             )}
           >
-            {showWishlist && (
-              <ProductWishlistButton
-                productId={product.id}
-                productTitle={title}
-                className="absolute top-3 right-3 z-10 hidden size-11 border-0 bg-transparent lg:inline-flex"
-              />
-            )}
             <ProductMedia
               key={handle}
               mediaLayout={mediaLayout}
@@ -320,11 +313,14 @@ const ProductInformation = forwardRef<
                 </div>
 
                 {combinedListing ? (
-                  <VariantPrices
-                    variant={{ price: product.priceRange.minVariantPrice }}
-                    showCompareAtPrice={false}
-                    className="font-heading font-normal text-2xl/none"
-                  />
+                  <div className="flex items-center gap-1 font-heading font-normal text-2xl/none">
+                    <span>{t("product.from")}</span>
+                    <VariantPrices
+                      variant={{ price: product.priceRange.minVariantPrice }}
+                      showCompareAtPrice={false}
+                      spacedCurrency
+                    />
+                  </div>
                 ) : (
                   <div className="flex items-center gap-2 font-heading font-normal text-2xl leading-[normal]">
                     {isDiscounted(
@@ -336,7 +332,7 @@ const ProductInformation = forwardRef<
                           withoutTrailingZeros
                           data={selectedVariant.compareAtPrice as MoneyV2}
                           as="span"
-                          className="text-[#999] line-through lg:text-2xl lg:leading-[normal]"
+                          className="text-body-subtle line-through lg:text-2xl lg:leading-[normal]"
                         />
                       )}
                     <Money
@@ -472,6 +468,12 @@ const ProductInformation = forwardRef<
                     >
                       {atcButtonText}
                     </AddToCartButton>
+                    {showWishlist && (
+                      <ProductWishlistButton
+                        productId={product.id}
+                        productTitle={title}
+                      />
+                    )}
                   </div>
                   {selectedVariant?.availableForSale && (
                     <ShopPayButton

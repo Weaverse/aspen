@@ -61,7 +61,7 @@ export function ToolsBar({
                 '[&>button[data-active="true"]]:text-[#8A8A8A]',
                 "[&>button+button]:border-[#D8D8D8] [&>button+button]:border-l",
               )}
-              mobileColumns={[2, 3]}
+              mobileColumns={[1, 2]}
               gridSizeDesktop={gridSizeDesktop}
               gridSizeMobile={gridSizeMobile}
               onGridSizeChange={onGridSizeChange}

@@ -242,7 +242,7 @@ export default function Search() {
                       '[&>button[data-active="true"]]:text-[#8A8A8A]',
                       "[&>button+button]:border-[#D8D8D8] [&>button+button]:border-l",
                     )}
-                    mobileColumns={[2, 3]}
+                    mobileColumns={[2, 1]}
                     gridSizeDesktop={gridSizeDesktop}
                     gridSizeMobile={gridSizeMobile}
                     onGridSizeChange={(value, context) => {
@@ -282,10 +282,10 @@ export default function Search() {
 
         {products.nodes.length > 0 ? (
           <SearchProducts
+            key={getSearchResultsKey(searchTerm, searchParams)}
             products={products}
             gridSizeDesktop={gridSizeDesktop}
             gridSizeMobile={gridSizeMobile}
-            resultsKey={getSearchResultsKey(searchTerm, searchParams)}
           />
         ) : (
           <SearchEmptyState
@@ -332,12 +332,10 @@ function SearchProducts({
   products,
   gridSizeDesktop,
   gridSizeMobile,
-  resultsKey,
 }: {
   products: SearchQuery["products"];
   gridSizeDesktop: number;
   gridSizeMobile: number;
-  resultsKey: string;
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -346,7 +344,7 @@ function SearchProducts({
 
   useEffect(() => {
     setMobileVisible(mobilePageSize);
-  }, [mobilePageSize, resultsKey]);
+  }, [mobilePageSize]);
 
   return (
     <Pagination connection={products}>
@@ -385,7 +383,7 @@ function SearchProducts({
             <div
               className={clsx(
                 "grid w-full gap-x-4 gap-y-8 md:gap-y-12",
-                gridSizeMobile === 3 ? "grid-cols-1" : "grid-cols-2",
+                gridSizeMobile === 1 ? "grid-cols-1" : "grid-cols-2",
                 gridSizeDesktop === 3 ? "md:grid-cols-3" : "md:grid-cols-2",
               )}
             >
@@ -769,7 +767,7 @@ function parseAsCurrency(
 }
 
 function getSearchMobilePageSize(gridSizeMobile: number) {
-  return gridSizeMobile === 3 ? 6 : 8;
+  return gridSizeMobile === 1 ? 6 : 8;
 }
 
 function stripSearchInputQuotes(value: string) {

@@ -155,8 +155,14 @@ let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
       ));
     };
     return (
-      <div ref={ref} {...rest} className={cn("contents", className)}>
-      <div className="order-2 flex min-w-0 w-full flex-col px-5 pt-5 pb-10 md:order-1 md:h-auto md:min-h-0 md:px-0 md:py-0 lg:h-[648px]">
+      <div
+        ref={ref}
+        {...rest}
+        className={cn(
+          "order-2 flex min-w-0 w-full flex-col px-5 pt-5 pb-10 md:order-1 md:h-auto md:min-h-0 md:px-0 md:py-0 lg:h-[648px]",
+          className,
+        )}
+      >
         {content && (
           <Heading
             content={content}
@@ -193,7 +199,6 @@ let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
             </div>
             <div className="flex gap-2">
               <ArrowButton
-                customizable
                 type="button"
                 aria-label={t("testimonial.previous")}
                 onClick={goToPrevious}
@@ -220,7 +225,6 @@ let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
                 />
               </ArrowButton>
               <ArrowButton
-                customizable
                 type="button"
                 aria-label={t("testimonial.next")}
                 onClick={goToNext}
@@ -249,7 +253,6 @@ let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
             </div>
           </div>
         </div>
-      </div>
       </div>
     );
   },

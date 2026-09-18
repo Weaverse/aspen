@@ -89,12 +89,12 @@ const CollectionFilters = forwardRef<HTMLElement, CollectionFiltersProps>(
       Number(productsPerRowDesktop) || 2,
     );
     const [gridSizeMobile, setGridSizeMobile] = useState(
-      Number(productsPerRowMobile) === 3 ? 3 : 2,
+      Number(productsPerRowMobile) === 2 ? 2 : 1,
     );
 
     useEffect(() => {
       setGridSizeDesktop(Number(productsPerRowDesktop) || 2);
-      setGridSizeMobile(Number(productsPerRowMobile) === 3 ? 3 : 2);
+      setGridSizeMobile(Number(productsPerRowMobile) === 2 ? 2 : 1);
     }, [productsPerRowDesktop, productsPerRowMobile]);
 
     if (collection?.products && collections) {
@@ -162,9 +162,7 @@ const CollectionFilters = forwardRef<HTMLElement, CollectionFiltersProps>(
               loadMoreText={loadMoreText}
             />
           </div>
-          {collection.products.nodes.length > 0 && (
-            <CollectionEditorialPromo />
-          )}
+          {collection.products.nodes.length > 0 && <CollectionEditorialPromo />}
         </Section>
       );
     }

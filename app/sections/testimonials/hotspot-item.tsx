@@ -36,19 +36,20 @@ let HotspotsTestimonial = forwardRef<HTMLDivElement, HotspotsTestimonialProps>(
         ref={ref}
         {...rest}
         data-legacy-aspect-ratio={aspectRatio || undefined}
-        className={cn("contents", className)}
+        className={cn(
+          "relative order-1 aspect-[375/416] min-w-0 w-full overflow-hidden rounded-lg md:order-2 md:aspect-[10/9] md:h-auto lg:h-full",
+          className,
+        )}
       >
-        <div className="relative order-1 aspect-[375/416] min-w-0 w-full overflow-hidden rounded-lg md:order-2 md:aspect-[10/9] md:h-auto lg:h-full">
-          {imageData.url && (
-            <Image
-              data={imageData}
-              sizes="(min-width: 768px) 50vw, 100vw"
-              className="z-0 h-full w-full object-cover"
-              data-motion="zoom-in"
-            />
-          )}
-          <div className="absolute inset-0 z-10">{children}</div>
-        </div>
+        {imageData.url && (
+          <Image
+            data={imageData}
+            sizes="(min-width: 768px) 50vw, 100vw"
+            className="z-0 h-full w-full object-cover"
+            data-motion="zoom-in"
+          />
+        )}
+        <div className="absolute inset-0 z-10">{children}</div>
       </div>
     );
   },
@@ -77,18 +78,21 @@ export let schema: HydrogenComponentSchema = {
     children: [
       {
         type: "testimonial-hot--item",
+        icon: "circle",
         iconSize: 34,
         offsetX: 12,
         offsetY: 42,
       },
       {
         type: "testimonial-hot--item",
+        icon: "circle",
         iconSize: 34,
         offsetX: 58,
         offsetY: 24,
       },
       {
         type: "testimonial-hot--item",
+        icon: "circle",
         iconSize: 34,
         offsetX: 67,
         offsetY: 63,

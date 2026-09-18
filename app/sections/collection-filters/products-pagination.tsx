@@ -101,7 +101,7 @@ export function ProductsPagination({
               className="flex w-full flex-col items-center gap-8"
               style={
                 {
-                  "--cols-mobile": `repeat(${mobileCols === 3 ? 1 : 2}, minmax(0, 1fr))`,
+                  "--cols-mobile": `repeat(${mobileCols}, minmax(0, 1fr))`,
                   "--cols-desktop": `repeat(${desktopCols === 3 ? 3 : 2}, minmax(0, 1fr))`,
                 } as React.CSSProperties
               }

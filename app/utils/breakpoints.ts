@@ -12,7 +12,9 @@ export const TABLET_MIN_PX = 768;
 export const TABLET_MAX_PX = 1024;
 export const DESKTOP_MIN_PX = 1025;
 
-export const MEDIA_MOBILE = `(max-width: ${MOBILE_MAX_PX}px)`;
+// Mirrors `--breakpoint-md: 48em` (768px at the default root font size), so JS
+// and CSS can never disagree at fractional viewport widths.
+export const MEDIA_MOBILE = `(width < 48em)`;
 export const MEDIA_FROM_TABLET = `(min-width: ${TABLET_MIN_PX}px)`;
 export const MEDIA_UNTIL_DESKTOP = `(max-width: ${TABLET_MAX_PX}px)`;
 export const MEDIA_DESKTOP = `(min-width: ${DESKTOP_MIN_PX}px)`;

@@ -396,7 +396,6 @@ export function ProductMedia(props: ProductMediaProps) {
               })}
             >
               <ArrowButton
-                customizable
                 type="button"
                 className={clsx(
                   `media_slider__prev--${navigationStyle}`,
@@ -429,7 +428,6 @@ export function ProductMedia(props: ProductMediaProps) {
                 )}
               </ArrowButton>
               <ArrowButton
-                customizable
                 type="button"
                 className={clsx(
                   `media_slider__next--${navigationStyle}`,

@@ -130,7 +130,7 @@ let VideoItem = forwardRef<HTMLDivElement, VideoItemProps>((props, ref) => {
 
       {productData && selectedVariant && (
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[124px] overflow-hidden">
-          <div className="flex h-full translate-y-full flex-col justify-end transition-transform duration-500 ease-out group-hover:pointer-events-auto group-hover:translate-y-0 group-focus-within:pointer-events-auto group-focus-within:translate-y-0">
+          <div className="pointer-events-none flex h-full translate-y-full flex-col justify-end transition-transform duration-500 ease-out group-hover:pointer-events-auto group-hover:translate-y-0 group-focus-within:pointer-events-auto group-focus-within:translate-y-0 max-lg:pointer-events-auto max-lg:translate-y-0">
             <div className="pointer-events-none absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-[#71685F]/85 to-transparent" />
 
             <div className="relative mx-3 mb-3 flex min-h-[100px] rounded-[12px] bg-white text-[#343231]">

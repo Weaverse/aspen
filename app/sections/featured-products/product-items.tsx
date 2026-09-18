@@ -25,6 +25,7 @@ import "swiper/css";
 import "swiper/css/navigation";
 import Link from "~/components/link";
 import { PRODUCT_CARD_FRAGMENT } from "~/graphql/fragments";
+import { DESKTOP_MIN_PX, TABLET_MIN_PX } from "~/utils/breakpoints";
 import { useFeaturedProductsLayout } from ".";
 
 type ItemsPerRowType = "2" | "3" | "4" | "5";
@@ -245,8 +246,6 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
       </div>
     );
 
-    const tabletCardClassName =
-      "flex w-full flex-col items-start gap-5 [&>div:last-child]:pt-0";
     const desktopGridCols = {
       "2": "lg:grid-cols-2",
       "3": "lg:grid-cols-3",
@@ -368,87 +367,28 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
         {...rest}
         className={clsx("relative", isProductPage && "md:!mt-10 lg:!mt-16")}
       >
-        {isSingleProduct ? (
-          renderMobileSingleProduct(displayedProducts[0], isProductPage)
-        ) : (
-          <div className="relative left-1/2 w-screen -translate-x-1/2 md:hidden">
-            <Swiper
-              key={`swiper-carousel-mobile-${displayedProducts.length}`}
-              slidesPerView="auto"
-              centeredSlides
-              centerInsufficientSlides
-              spaceBetween={20}
-              navigation={{
-                nextEl: ".featured-products-carousel-mobile-next",
-                prevEl: ".featured-products-carousel-mobile-prev",
-              }}
-              modules={[Navigation]}
-              className={clsx(
-                "mb-6 w-full py-4 transition-opacity duration-300",
-                isSwiperInitialized ? "opacity-100" : "opacity-0",
-              )}
-              onSwiper={() => {
-                requestAnimationFrame(() => setIsSwiperInitialized(true));
-              }}
-            >
-              {displayedProducts.map((product) => (
-                <SwiperSlide
-                  key={product.id}
-                  style={{ width: "calc(100vw - 40px)" }}
-                >
-                  <ProductCard
-                    product={product}
-                    className="h-full w-full"
-                    mobileLayout={useMobileCardLayout}
-                    quickShopIconOnlyOnTablet={isProductPage}
-                  />
-                </SwiperSlide>
-              ))}
-            </Swiper>
-            {renderArrowControls("featured-products-carousel-mobile")}
-          </div>
-        )}
-
-        <div className="hidden md:block lg:hidden">
+        <div className="relative left-1/2 w-screen -translate-x-1/2 md:left-auto md:w-full md:translate-x-0">
           <Swiper
-            key={`swiper-carousel-tablet-${displayedProducts.length}`}
-            slidesPerView={3}
-            spaceBetween={16}
+            key={`swiper-carousel-${displayedProducts.length}-${resolvedSlidesPerView}-${designGap}`}
+            slidesPerView="auto"
+            centeredSlides
             centerInsufficientSlides
-            navigation={{
-              nextEl: ".featured-products-carousel-tablet-next",
-              prevEl: ".featured-products-carousel-tablet-prev",
+            spaceBetween={20}
+            breakpoints={{
+              [TABLET_MIN_PX]: {
+                centeredSlides: false,
+                slidesPerView: 3,
+                spaceBetween: 16,
+              },
+              [DESKTOP_MIN_PX]: {
+                centeredSlides: false,
+                slidesPerView: resolvedSlidesPerView || 3,
+                spaceBetween: designGap,
+              },
             }}
-            modules={[Navigation]}
-            className={clsx("mb-6 w-full py-4", isProductPage && "md:py-0")}
-            onSwiper={() => {
-              requestAnimationFrame(() => setIsSwiperInitialized(true));
-            }}
-          >
-            {displayedProducts.map((product) => (
-              <SwiperSlide key={product.id} className="!h-auto">
-                <ProductCard
-                  product={product}
-                  className={clsx(tabletCardClassName, "md:w-full")}
-                  mobileLayout={useMobileCardLayout}
-                  quickShopIconOnlyOnTablet={isProductPage}
-                  stretchImageOnTablet
-                />
-              </SwiperSlide>
-            ))}
-          </Swiper>
-          {renderArrowControls("featured-products-carousel-tablet")}
-        </div>
-
-        <div className="hidden lg:block">
-          <Swiper
-            key={`swiper-carousel-desktop-${resolvedSlidesPerView}-${designGap}`}
-            slidesPerView={resolvedSlidesPerView || 3}
-            centerInsufficientSlides
-            spaceBetween={designGap}
             navigation={{
-              nextEl: ".featured-products-carousel-desktop-next",
-              prevEl: ".featured-products-carousel-desktop-prev",
+              nextEl: ".featured-products-carousel-next",
+              prevEl: ".featured-products-carousel-prev",
             }}
             modules={[Navigation]}
             className={clsx(
@@ -461,17 +401,21 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
             }}
           >
             {displayedProducts.map((product) => (
-              <SwiperSlide key={product.id}>
+              <SwiperSlide
+                key={product.id}
+                className="!h-auto !w-[calc(100vw_-_40px)] md:!w-auto"
+              >
                 <ProductCard
                   product={product}
-                  className="h-full w-full"
+                  className="h-full w-full md:flex md:flex-col md:items-start md:gap-5 md:[&>div:last-child]:pt-0 lg:block lg:[&>div:last-child]:pt-5"
                   mobileLayout={useMobileCardLayout}
                   quickShopIconOnlyOnTablet={isProductPage}
+                  stretchImageOnTablet
                 />
               </SwiperSlide>
             ))}
           </Swiper>
-          {renderArrowControls("featured-products-carousel-desktop")}
+          {renderArrowControls("featured-products-carousel")}
         </div>
       </div>
     );
