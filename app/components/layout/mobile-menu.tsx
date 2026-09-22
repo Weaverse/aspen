@@ -14,7 +14,6 @@ import Link from "~/components/link";
 import { useHeaderMenu } from "~/hooks/use-header-menu";
 import type { SingleMenuItem } from "~/types/menu";
 import { cn } from "~/utils/cn";
-import { getNavigationKind } from "~/utils/navigation";
 
 type HeaderMenuItem = ReturnType<typeof useHeaderMenu>[number];
 
@@ -95,10 +94,7 @@ export function MobileMenu({
                         exit={{ opacity: 0, x: 16 }}
                         transition={{ duration: 0.2 }}
                       >
-                        <SubMenu
-                          item={activeSubMenu}
-                          onNavigate={closeMenu}
-                        />
+                        <SubMenu item={activeSubMenu} onNavigate={closeMenu} />
                       </motion.div>
                     ) : (
                       <motion.div
@@ -181,10 +177,12 @@ function TopLevelMenuItem({
   onNavigate: () => void;
 }) {
   const { t } = useTranslation();
-  if (getNavigationKind(item) === "home") {
+  if (!item.items?.length) {
     return (
       <Link
         to={item.to}
+        target={item.target}
+        rel={item.target === "_blank" ? "noopener noreferrer" : undefined}
         prefetch="intent"
         className="flex h-[54px] w-full items-center justify-start text-left font-normal text-sm uppercase leading-5 tracking-[0.01em]"
         onClick={onNavigate}
@@ -214,23 +212,16 @@ function SubMenu({
   item: HeaderMenuItem;
   onNavigate: () => void;
 }) {
-  const items = item.items?.length ? item.items : [{ ...item, items: [] }];
+  const items = item.items ?? [];
   const imageCardLayout =
     items.length > 0 &&
     items.every((subItem) => subItem.resource?.image && !subItem.items?.length);
 
-  if (imageCardLayout || getNavigationKind(item) === "about") {
+  if (imageCardLayout) {
     return <ImageCardMenu items={items} onNavigate={onNavigate} />;
   }
 
-  return (
-    <>
-      <AccordionMenu items={items} onNavigate={onNavigate} />
-      {item.feature && (
-        <ImageCardMenu items={[item.feature]} onNavigate={onNavigate} />
-      )}
-    </>
-  );
+  return <AccordionMenu items={items} onNavigate={onNavigate} />;
 }
 
 function ImageCardMenu({
@@ -247,6 +238,8 @@ function ImageCardMenu({
         return (
           <Link
             to={item.to}
+            target={item.target}
+            rel={item.target === "_blank" ? "noopener noreferrer" : undefined}
             key={item.id}
             className="block font-normal text-sm uppercase leading-5"
             prefetch="intent"
@@ -315,6 +308,8 @@ function AccordionMenuItem({
       <div className="mt-2 border-[#D8D8D8] border-b first:mt-0">
         <Link
           to={item.to}
+          target={item.target}
+          rel={item.target === "_blank" ? "noopener noreferrer" : undefined}
           prefetch="intent"
           className="flex h-[49px] items-center justify-start font-normal text-sm uppercase leading-5"
           onClick={onNavigate}
@@ -354,6 +349,10 @@ function AccordionMenuItem({
           ) : (
             <Link
               to={child.to}
+              target={child.target}
+              rel={
+                child.target === "_blank" ? "noopener noreferrer" : undefined
+              }
               key={child.id}
               prefetch="intent"
               className="flex min-h-[34px] items-center justify-start py-1 font-normal text-sm leading-5 text-[#1E1C1A]"

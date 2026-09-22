@@ -24,7 +24,6 @@ import type { SingleMenuItem } from "~/types/menu";
 import { cn } from "~/utils/cn";
 import {
   hasRichText,
-  isLegacyFooterCopyright,
   sanitizeFooterHtml,
 } from "~/utils/footer-rich-text";
 import { translateError } from "~/utils/translated-error";
@@ -133,12 +132,9 @@ export function Footer() {
     rawI18nAddressTitle,
     "themeContent.componentsLayoutFooter.addressTitle",
   );
-  const copyright = resolveFooterCopyright(
-    translateText(
-      rawI18nCopyright,
-      "themeContent.componentsLayoutFooter.copyright",
-    ),
-    t("themeContent.componentsLayoutFooter.copyright"),
+  const copyright = translateText(
+    rawI18nCopyright,
+    "themeContent.componentsLayoutFooter.copyright",
   );
   const fetcher = useFetcher<NewsletterResponse>();
   const [message, setMessage] = useState("");
@@ -664,10 +660,6 @@ function PaymentMethods({
       ) : null}
     </ul>
   );
-}
-
-function resolveFooterCopyright(html: string, designCopyright: string) {
-  return isLegacyFooterCopyright(html) ? designCopyright : html;
 }
 
 function Copyright({ html }: { html: string }) {

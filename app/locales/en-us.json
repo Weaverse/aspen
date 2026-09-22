@@ -36,20 +36,6 @@
     "shopHome": "{{shop}} home",
     "article": "Article",
     "readMore": "Read more",
-    "newArrival": "New Arrival",
-    "sale": "Sale",
-    "allSale": "All Sale",
-    "categories": {
-      "bed-frames": "Bed Frames",
-      "storage-beds": "Storage Beds",
-      "upholstered-beds": "Upholstered Beds",
-      "lounge-chairs": "Lounge Chairs",
-      "dining-chairs": "Dining Chairs",
-      "office-chairs": "Office Chairs",
-      "sectional-sofas": "Sectional Sofas",
-      "sofa-beds": "Sofa Beds",
-      "modular-sofas": "Modular Sofas"
-    },
     "account": "Account"
   },
   "search": {
@@ -62,7 +48,6 @@
     "products": "Products",
     "collections": "Collections",
     "all": "All",
-    "newArrivals": "New Arrivals",
     "pages": "Pages",
     "page": "Page",
     "viewAllProducts": "View all products",

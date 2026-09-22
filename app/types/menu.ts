@@ -27,6 +27,7 @@ export interface SingleMenuItem {
   items: SingleMenuItem[];
   to: string;
   isExternal?: boolean;
+  target?: string;
   type?: string;
   url?: string;
   tags?: string[];

@@ -44,11 +44,3 @@ function footerText(html: string): string {
 export function hasRichText(value?: string): boolean {
   return Boolean(value && footerText(value));
 }
-
-export function isLegacyFooterCopyright(html: string): boolean {
-  const plain = footerText(html);
-  return (
-    /© 20\d{2} Weaverse\.? All rights reserved\.?/i.test(plain) ||
-    /© 20(24|25) Aspen Theme\.? Powered by Shopify/i.test(plain)
-  );
-}

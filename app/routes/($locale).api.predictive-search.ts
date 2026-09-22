@@ -150,7 +150,6 @@ async function fetchPredictiveSearchResults({
     searchData.predictiveSearch,
     params.locale,
     searchTerm,
-    searchTypes.includes("PAGE") ? searchData.shop : undefined,
   );
 
   return { searchResults, searchTerm, searchTypes };
@@ -163,7 +162,6 @@ function normalizePredictiveSearchResults(
   predictiveSearch: PredictiveSearchQuery["predictiveSearch"],
   locale: LoaderFunctionArgs["params"]["locale"],
   searchTerm: string,
-  shop?: PredictiveSearchQuery["shop"],
 ): NormalizedPredictiveSearch {
   let totalResults = 0;
   if (!predictiveSearch) {
@@ -318,26 +316,6 @@ function normalizePredictiveSearchResults(
     })),
   ];
 
-  const policies = [
-    { policy: shop?.refundPolicy, keywords: "return returns refund exchange" },
-    { policy: shop?.shippingPolicy, keywords: "shipping delivery" },
-    { policy: shop?.privacyPolicy, keywords: "privacy" },
-    { policy: shop?.termsOfService, keywords: "terms conditions" },
-  ];
-  for (const { policy, keywords } of policies) {
-    if (
-      policy &&
-      queryMatchesSearchTerm(`${policy.title} ${keywords}`, searchTerm)
-    ) {
-      pageItems.push({
-        handle: policy.handle,
-        id: policy.id,
-        title: policy.title,
-        url: `${localePrefix}/policies/${policy.handle}`,
-      });
-    }
-  }
-
   if (pageItems.length) {
     results.push({ type: "pages", items: pageItems });
     totalResults += pageItems.length;
@@ -475,12 +453,6 @@ const PREDICTIVE_SEARCH_QUERY = `#graphql
     $searchTerm: String!
     $types: [PredictiveSearchType!]
   ) @inContext(country: $country, language: $language) {
-    shop {
-      refundPolicy { id handle title }
-      shippingPolicy { id handle title }
-      privacyPolicy { id handle title }
-      termsOfService { id handle title }
-    }
     predictiveSearch(
       limit: $limit,
       limitScope: $limitScope,

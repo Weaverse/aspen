@@ -239,7 +239,6 @@ function PredictiveSearchResults() {
   const [activeType, setActiveType] = useState<ResourceType>("products");
   const { results, searchTermValue } = usePredictiveSearch();
   const collectionsPath = usePrefixPathWithLocale("/collections");
-  const newArrivalsPath = usePrefixPathWithLocale("/collections/new-arrivals");
   const queries = results?.find(({ type }) => type === "queries");
   const products = results?.find(({ type }) => type === "products");
   const collections = results?.find(({ type }) => type === "collections");
@@ -247,8 +246,6 @@ function PredictiveSearchResults() {
   const collectionItems = withPinnedCollections(collections?.items, {
     allTitle: t("search.all"),
     allUrl: collectionsPath,
-    newArrivalsTitle: t("search.newArrivals"),
-    newArrivalsUrl: newArrivalsPath,
   });
   const hasResourceResults = Boolean(
     products?.items.length || collections?.items.length || pages?.items.length,

@@ -1,19 +1,37 @@
 import { ArrowRightIcon } from "@phosphor-icons/react";
 import * as NavigationMenu from "@radix-ui/react-navigation-menu";
-import { useTranslation } from "@weaverse/hydrogen";
+import { useThemeSettings, useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { Image } from "~/components/image";
 import Link from "~/components/link";
 import { useHeaderMenu } from "~/hooks/use-header-menu";
+import { useLocale } from "~/hooks/use-locale";
 import type { SingleMenuItem } from "~/types/menu";
 import { cn } from "~/utils/cn";
+import { navigateToMenuItem } from "~/utils/menu-navigation";
 
 export function DesktopMenu() {
   const menuItems = useHeaderMenu();
+  const { openMenuBy } = useThemeSettings();
+  const locale = useLocale();
   const [value, setValue] = useState("");
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const followMenuItem = (menuItem: SingleMenuItem) => {
+    navigateToMenuItem(menuItem, locale, {
+      navigateInternal: navigate,
+      navigateExternal: (to, target) => {
+        if (target === "_blank") {
+          window.open(to, target, "noopener,noreferrer");
+        } else {
+          window.location.assign(to);
+        }
+      },
+    });
+  };
 
   useEffect(() => {
     // Also close when a link navigates without unmounting the header.
@@ -47,66 +65,61 @@ export function DesktopMenu() {
     >
       <NavigationMenu.List className="flex h-full items-center justify-center gap-8 pt-1">
         {menuItems.map((menuItem) => {
-          const { id, title, items, kind, feature } = menuItem;
-          const isCollections = kind === "collections";
-          const isWeaverse = kind === "weaverse";
-          const isBlogs = kind === "blogs";
-          const isAbout = kind === "about";
-          const isHome = kind === "home";
+          const { id, title, items = [] } = menuItem;
+          if (!items.length) {
+            return (
+              <NavigationMenu.Item
+                key={id}
+                value={id}
+                className="flex h-full items-center"
+              >
+                <SingleMenu menuItem={menuItem} />
+              </NavigationMenu.Item>
+            );
+          }
           return (
             <NavigationMenu.Item
               key={id}
               value={id}
               className="flex h-full items-center"
             >
-              {isHome ? (
-                <SingleMenu menuItem={menuItem} />
-              ) : (
-                <>
-                  <NavigationMenu.Trigger
-                    className="group flex h-full cursor-pointer items-center py-2 font-heading font-normal text-sm uppercase tracking-[-0.01em] focus-visible:outline-2 focus-visible:outline-offset-4"
-                    asChild={isAbout || isCollections || isBlogs}
-                  >
-                    {isAbout || isCollections || isBlogs ? (
-                      <Link
-                        to={
-                          isAbout
-                            ? "/contact"
-                            : isCollections
-                              ? "/collections"
-                              : "/blogs"
-                        }
-                        prefetch="intent"
-                      >
-                        <span className="relative after:absolute after:bottom-[-0.5px] after:left-0 after:h-[2px] after:w-full after:bg-[#6A4E4E] after:opacity-0 after:transition-opacity hover:after:opacity-100 group-data-[state=open]:after:opacity-100">
-                          {title}
-                        </span>
-                      </Link>
-                    ) : (
-                      <span className="relative after:absolute after:bottom-[-0.5px] after:left-0 after:h-[2px] after:w-full after:bg-[#6A4E4E] after:opacity-0 after:transition-opacity hover:after:opacity-100 group-data-[state=open]:after:opacity-100">
-                        {title}
-                      </span>
-                    )}
-                  </NavigationMenu.Trigger>
-                  <NavigationMenu.Content className="w-full border-line-subtle border-t bg-[#DFDFDF]">
-                    {isCollections || isWeaverse ? (
-                      <ColumnsWithFeatureMenu
-                        items={items}
-                        feature={feature}
-                        showFeature={!isWeaverse}
-                      />
-                    ) : isBlogs &&
-                      items.some((item) => item.resource?.image) ? (
-                      <ArticleCardsMenu items={items} />
-                    ) : isAbout &&
-                      items.some((item) => item.resource?.image) ? (
-                      <ImageTilesMenu items={items} />
-                    ) : (
-                      <MegaMenu items={items.length ? items : [menuItem]} />
-                    )}
-                  </NavigationMenu.Content>
-                </>
-              )}
+              <NavigationMenu.Trigger
+                className="group flex h-full cursor-pointer items-center py-2 font-heading font-normal text-sm uppercase tracking-[-0.01em] focus-visible:outline-2 focus-visible:outline-offset-4"
+                onMouseEnter={() => {
+                  if (openMenuBy === "hover" && value !== id) {
+                    setValue(id);
+                  }
+                }}
+                onPointerMove={(event) => {
+                  if (openMenuBy === "click") {
+                    event.preventDefault();
+                  }
+                }}
+                onPointerDown={(event) => {
+                  if (
+                    openMenuBy === "hover" &&
+                    event.button === 0 &&
+                    !event.ctrlKey &&
+                    !event.metaKey &&
+                    !event.shiftKey
+                  ) {
+                    followMenuItem(menuItem);
+                  }
+                }}
+                onKeyDown={(event) => {
+                  if (openMenuBy === "hover" && event.key === "Enter") {
+                    event.preventDefault();
+                    followMenuItem(menuItem);
+                  }
+                }}
+              >
+                <span className="relative after:absolute after:bottom-[-0.5px] after:left-0 after:h-[2px] after:w-full after:bg-[#6A4E4E] after:opacity-0 after:transition-opacity hover:after:opacity-100 group-data-[state=open]:after:opacity-100">
+                  {title}
+                </span>
+              </NavigationMenu.Trigger>
+              <NavigationMenu.Content className="w-full border-line-subtle border-t bg-[#DFDFDF]">
+                <MegaMenu items={items} />
+              </NavigationMenu.Content>
             </NavigationMenu.Item>
           );
         })}
@@ -119,11 +132,13 @@ export function DesktopMenu() {
 }
 
 function SingleMenu({ menuItem }: { menuItem: SingleMenuItem }) {
-  const { title, to } = menuItem;
+  const { target, title, to } = menuItem;
   return (
     <div className="flex h-full items-center">
       <Link
         to={to}
+        target={target}
+        rel={target === "_blank" ? "noopener noreferrer" : undefined}
         prefetch="intent"
         className={clsx([
           "flex h-full cursor-pointer items-center py-2",
@@ -225,6 +240,8 @@ function MenuLinkColumn({
       <NavigationMenu.Link asChild>
         <Link
           to={item.to}
+          target={item.target}
+          rel={item.target === "_blank" ? "noopener noreferrer" : undefined}
           prefetch="intent"
           className="inline-block font-semibold text-sm uppercase leading-none tracking-[0.02em] transition-none"
         >
@@ -236,6 +253,10 @@ function MenuLinkColumn({
           <NavigationMenu.Link asChild key={child.id}>
             <Link
               to={child.to}
+              target={child.target}
+              rel={
+                child.target === "_blank" ? "noopener noreferrer" : undefined
+              }
               prefetch="intent"
               className="w-fit font-normal text-sm leading-none tracking-[0.02em] transition-none"
             >
@@ -268,6 +289,8 @@ function EditorialImageCard({
       <NavigationMenu.Link asChild>
         <Link
           to={item.to}
+          target={item.target}
+          rel={item.target === "_blank" ? "noopener noreferrer" : undefined}
           prefetch="intent"
           className="relative block aspect-[4/3] overflow-hidden rounded-xl"
         >
@@ -291,9 +314,9 @@ function EditorialImageCard({
 function ArticleCardsMenu({ items }: { items: SingleMenuItem[] }) {
   const { t } = useTranslation();
   return (
-    <div className="min-h-[448px] bg-[#DFDFDF] py-16 text-[#343231]">
+    <div className="max-h-[calc(100dvh-var(--height-nav)-4rem)] overflow-y-auto overscroll-contain bg-[#DFDFDF] py-16 text-[#343231]">
       <div className="mx-auto grid w-[calc(100%-4rem)] max-w-[1360px] grid-cols-4 gap-8">
-        {items.slice(0, 4).map((item, index) => {
+        {items.map((item, index) => {
           const image = item.resource?.image;
           if (!image) {
             return null;
@@ -302,11 +325,15 @@ function ArticleCardsMenu({ items }: { items: SingleMenuItem[] }) {
             <SlideIn
               key={item.id}
               className="group/article min-w-0"
-              style={{ "--idx": index } as React.CSSProperties}
+              style={{ "--idx": index % 4 } as React.CSSProperties}
             >
               <NavigationMenu.Link asChild>
                 <Link
                   to={item.to}
+                  target={item.target}
+                  rel={
+                    item.target === "_blank" ? "noopener noreferrer" : undefined
+                  }
                   prefetch="intent"
                   className="block font-normal"
                 >
@@ -319,12 +346,12 @@ function ArticleCardsMenu({ items }: { items: SingleMenuItem[] }) {
                       className="h-full w-full object-cover transition-transform duration-500 group-hover/article:scale-[1.02]"
                     />
                   </div>
-                  <p className="mt-4 text-[#979797] text-xs uppercase leading-none tracking-[0.02em]">
+                  <p className="mt-4 wrap-anywhere text-[#979797] text-xs uppercase leading-none tracking-[0.02em]">
                     {item.resource?.articleTags?.[0] ||
                       item.tags?.[0] ||
                       t("navigation.article")}
                   </p>
-                  <p className="mt-3 line-clamp-2 font-heading font-normal text-[26px] leading-[1.1] tracking-[-0.02em]">
+                  <p className="mt-3 line-clamp-2 wrap-anywhere font-heading font-normal text-[26px] leading-[1.1] tracking-[-0.02em]">
                     {item.title}
                   </p>
                   <div className="mt-3 flex items-center justify-between gap-2">
@@ -345,9 +372,9 @@ function ArticleCardsMenu({ items }: { items: SingleMenuItem[] }) {
 
 function ImageTilesMenu({ items }: { items: SingleMenuItem[] }) {
   return (
-    <div className="min-h-[472px] bg-[#DFDFDF] py-16 text-[#FEF4EB]">
+    <div className="max-h-[calc(100dvh-var(--height-nav)-4rem)] overflow-y-auto overscroll-contain bg-[#DFDFDF] py-16 text-[#FEF4EB]">
       <div className="mx-auto grid w-[calc(100%-4rem)] max-w-[1360px] grid-cols-4 gap-4">
-        {items.slice(0, 4).map((item, index) => {
+        {items.map((item, index) => {
           const image = item.resource?.image;
           if (!image) {
             return null;
@@ -362,11 +389,15 @@ function ImageTilesMenu({ items }: { items: SingleMenuItem[] }) {
                 "group/tile min-w-0",
                 spansTwoColumns && "col-span-2",
               )}
-              style={{ "--idx": index } as React.CSSProperties}
+              style={{ "--idx": index % 4 } as React.CSSProperties}
             >
               <NavigationMenu.Link asChild>
                 <Link
                   to={item.to}
+                  target={item.target}
+                  rel={
+                    item.target === "_blank" ? "noopener noreferrer" : undefined
+                  }
                   prefetch="intent"
                   className="relative block h-[328px] overflow-hidden rounded-xl"
                 >
@@ -378,7 +409,7 @@ function ImageTilesMenu({ items }: { items: SingleMenuItem[] }) {
                     className="h-full w-full object-cover transition-transform duration-500 group-hover/tile:scale-[1.02]"
                   />
                   <span className="absolute inset-0 bg-[#171615]/20" />
-                  <span className="absolute inset-0 flex items-center justify-center text-center font-heading font-normal text-[26px] uppercase leading-[1.1] tracking-[-0.02em]">
+                  <span className="absolute inset-0 flex items-center justify-center overflow-y-auto p-4 text-center wrap-anywhere font-heading font-normal text-[26px] uppercase leading-[1.1] tracking-[-0.02em]">
                     {item.title}
                   </span>
                 </Link>
