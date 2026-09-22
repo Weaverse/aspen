@@ -26,18 +26,6 @@ const textKeys: Record<string, string> = {
   searchEditorialLinkText: "themeSettings.searchEditorialLinkText",
   collectionEditorialHeading: "themeSettings.collectionEditorialHeading",
   collectionEditorialLinkText: "themeSettings.collectionEditorialLinkText",
-  bio: "themeSettings.bio",
-  businessHoursTitle: "themeSettings.businessHoursTitle",
-  businessHoursWeekdays: "themeSettings.businessHoursWeekdays",
-  businessHoursWeekend: "themeSettings.businessHoursWeekend",
-  addressTitle: "themeSettings.addressTitle",
-  storeAddress: "themeSettings.storeAddress",
-  storeEmail: "themeSettings.storeEmail",
-  newsletterTitle: "themeSettings.newsletterTitle",
-  newsletterDescription: "themeSettings.newsletterDescription",
-  newsletterPlaceholder: "themeSettings.newsletterPlaceholder",
-  newsletterButtonText: "themeSettings.newsletterButtonText",
-  copyright: "themeSettings.copyright",
 };
 export function useTranslatedThemeSettings() {
   const settings = useThemeSettings() ?? {};

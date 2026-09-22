@@ -459,9 +459,11 @@
       "removeText": "REMOVE"
     },
     "componentsLayoutFooter": {
-      "copyright": "© 2026 Aspen Theme. <a href=\"https://www.shopify.com/?utm_campaign=poweredby&utm_medium=shopify&utm_source=onlinestore\" target=\"_blank\" rel=\"noopener noreferrer\">Powered by Shopify</a>",
+      "bio": "<p>Modern furniture designed for living. Built for longevity, crafted with care.</p>",
+      "copyright": "<p>© 2026 Aspen Theme. <a href=\"https://www.shopify.com/?utm_campaign=poweredby&utm_medium=shopify&utm_source=onlinestore\" target=\"_blank\" rel=\"noopener noreferrer\">Powered by Shopify</a></p>",
       "addressTitle": "CONTACT",
       "storeAddress": "123 Main Street, Suite 200\nLos Angeles, CA, USA, 90015",
+      "storeEmail": "hello@aspen.com",
       "businessHoursTitle": "BUSINESS HOURS",
       "businessHoursWeekdays": "Monday to Friday, 9:00 AM – 6:00 PM",
       "businessHoursWeekend": "Saturday to Sunday, 10:00 AM – 2:00 PM",
@@ -910,19 +912,7 @@
     "addToCartText": "Add to cart",
     "soldOutText": "Sold out",
     "searchEditorialHeading": "Decorate for holidays and beyond",
-    "searchEditorialLinkText": "Explore now",
-    "bio": "<p>Modern furniture designed for living. Built for longevity, crafted with care.</p>",
-    "businessHoursTitle": "BUSINESS HOURS",
-    "businessHoursWeekdays": "Monday to Friday, 9:00 AM – 6:00 PM",
-    "businessHoursWeekend": "Saturday to Sunday, 10:00 AM – 2:00 PM",
-    "addressTitle": "CONTACT",
-    "storeAddress": "123 Main Street, Suite 200\nLos Angeles, CA, USA, 90015",
-    "storeEmail": "hello@aspen.com",
-    "newsletterTitle": "STAY IN TOUCH",
-    "newsletterDescription": "News and inspiration in your inbox, every week.",
-    "newsletterPlaceholder": "Enter your email",
-    "newsletterButtonText": "SEND",
-    "copyright": "<p>© 2026 Aspen Theme. <a href=\"https://www.shopify.com/?utm_campaign=poweredby&utm_medium=shopify&utm_source=onlinestore\" target=\"_blank\" rel=\"noopener noreferrer\">Powered by Shopify</a></p>"
+    "searchEditorialLinkText": "Explore now"
   },
   "seo": {
     "home": "Home",

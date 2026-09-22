@@ -25,7 +25,7 @@
     "i18n:scan": "node scripts/check-hardcoded-translations.mjs",
     "i18n:check": "node scripts/check-translations.mjs && node scripts/check-hardcoded-translations.mjs",
     "locale:check": "node --test tests/locale.unit.test.ts",
-    "i18n:test": "node --test tests/translation.unit.test.ts"
+    "i18n:test": "vite-node tests/translation.unit.test.ts"
   },
   "dependencies": {
     "@fontsource-variable/dm-sans": "^5.3.0",

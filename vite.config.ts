@@ -34,6 +34,9 @@ export default defineConfig(({isSsrBuild}) => ({
     ssrStubClientOnlyModules(),
   ],
   resolve: {
+    alias: {
+      "~": fileURLToPath(new URL("./app", import.meta.url)),
+    },
     tsconfigPaths: true,
   },
   build: {

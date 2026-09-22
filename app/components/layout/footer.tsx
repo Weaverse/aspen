@@ -16,9 +16,8 @@ import type { FetcherWithComponents } from "react-router";
 import { useFetcher } from "react-router";
 import { Link } from "~/components/link";
 import { AspenWordmark } from "~/components/logo";
+import { useGlobalThemeText } from "~/hooks/use-global-theme-text";
 import { useShopMenu } from "~/hooks/use-shop-menu";
-import { useTranslatedText } from "~/hooks/use-translated-text";
-import { useTranslatedThemeSettings } from "~/hooks/use-translated-theme-settings";
 import { RevealUnderline } from "~/reveal-underline";
 import type { SingleMenuItem } from "~/types/menu";
 import { cn } from "~/utils/cn";
@@ -39,7 +38,7 @@ type NewsletterResponse = { ok: boolean; error: string };
 type FooterLogoData = React.ComponentProps<typeof Image>["data"];
 
 export function Footer() {
-  const translateText = useTranslatedText();
+  const translateText = useGlobalThemeText();
 
   const { t } = useTranslation();
   const { shopName, footerMenu, paymentSettings } = useShopMenu();
@@ -63,13 +62,14 @@ export function Footer() {
     footerSocialIconSize = 20,
     footerFontSize = 14,
     footerLineHeight = 1.55,
-    bio,
+    bio:
+      rawI18nBio = "<p>Modern furniture designed for living. Built for longevity, crafted with care.</p>",
     copyright:
-      rawI18nCopyright = '© 2026 Aspen Theme. <a href="https://www.shopify.com/?utm_campaign=poweredby&utm_medium=shopify&utm_source=onlinestore" target="_blank" rel="noopener noreferrer">Powered by Shopify</a>',
+      rawI18nCopyright = '<p>© 2026 Aspen Theme. <a href="https://www.shopify.com/?utm_campaign=poweredby&utm_medium=shopify&utm_source=onlinestore" target="_blank" rel="noopener noreferrer">Powered by Shopify</a></p>',
     addressTitle: rawI18nAddressTitle = "CONTACT",
     storeAddress:
       rawI18nStoreAddress = "123 Main Street, Suite 200\nLos Angeles, CA, USA, 90015",
-    storeEmail = "hello@aspen.com",
+    storeEmail: rawI18nStoreEmail = "hello@aspen.com",
     storePhone = "+1 (555) 123-4567",
     businessHoursTitle: rawI18nBusinessHoursTitle = "BUSINESS HOURS",
     businessHoursWeekdays:
@@ -95,7 +95,15 @@ export function Footer() {
     showUnionpayIcon,
     showApplePayIcon,
     showGooglePayIcon,
-  } = useTranslatedThemeSettings();
+  } = useThemeSettings();
+  const bio = translateText(
+    rawI18nBio,
+    "themeContent.componentsLayoutFooter.bio",
+  );
+  const storeEmail = translateText(
+    rawI18nStoreEmail,
+    "themeContent.componentsLayoutFooter.storeEmail",
+  );
   const newsletterButtonText = translateText(
     rawI18nNewsletterButtonText,
     "themeContent.componentsLayoutFooter.newsletterButtonText",
@@ -396,9 +404,6 @@ function DesktopBrand({
   businessHoursWeekdays: string;
   businessHoursWeekend: string;
 }) {
-  const { t } = useTranslation();
-  const bioHtml = hasRichText(bio) ? bio : t("themeSettings.bio");
-
   return (
     <div className="flex flex-col gap-4">
       <BrandMark
@@ -406,10 +411,12 @@ function DesktopBrand({
         logoData={logoData}
         logoWidth={logoWidth}
       />
-      <div
-        className="max-w-[320px] font-normal [&_p]:m-0"
-        dangerouslySetInnerHTML={{ __html: sanitizeFooterHtml(bioHtml) }}
-      />
+      {hasRichText(bio) ? (
+        <div
+          className="max-w-[320px] font-normal [&_p]:m-0"
+          dangerouslySetInnerHTML={{ __html: sanitizeFooterHtml(bio) }}
+        />
+      ) : null}
       <div className="font-normal">
         <p className="font-semibold uppercase">{businessHoursTitle}</p>
         <p>{businessHoursWeekdays}</p>
