@@ -8,6 +8,7 @@ import type {
 import invariant from "tiny-invariant";
 import type { EnhancedMenu } from "~/types/menu";
 import type { WishlistApiResponse } from "~/types/wishlist";
+import { sanitizeFooterTheme } from "~/utils/footer-rich-text.server";
 import { getLocaleSegment, localeCode } from "~/utils/locale";
 import { loadLoyaltyBalance } from "~/utils/loyalty.server";
 import { isLoyaltyLionConfigured } from "~/utils/loyaltylion.server";
@@ -37,12 +38,13 @@ export async function loadCriticalData({
     throw new Response("Unsupported locale", { status: 404 });
   }
 
-  const [layout, swatchesConfigs, weaverseTheme] = await Promise.all([
+  const [layout, swatchesConfigs, rawWeaverseTheme] = await Promise.all([
     getLayoutData(context),
     getSwatchesConfigs(context),
     // Add other queries here, so that they are loaded in parallel
     context.weaverse.loadThemeSettings(),
   ]);
+  const weaverseTheme = sanitizeFooterTheme(rawWeaverseTheme);
 
   const seo = seoPayload.root({ shop: layout.shop, url: request.url });
 

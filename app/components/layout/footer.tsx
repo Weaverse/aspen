@@ -16,15 +16,13 @@ import type { FetcherWithComponents } from "react-router";
 import { useFetcher } from "react-router";
 import { Link } from "~/components/link";
 import { AspenWordmark } from "~/components/logo";
+import { useFooterRichText } from "~/hooks/use-footer-rich-text";
 import { useGlobalThemeText } from "~/hooks/use-global-theme-text";
 import { useShopMenu } from "~/hooks/use-shop-menu";
 import { RevealUnderline } from "~/reveal-underline";
 import type { SingleMenuItem } from "~/types/menu";
 import { cn } from "~/utils/cn";
-import {
-  hasRichText,
-  sanitizeFooterHtml,
-} from "~/utils/footer-rich-text";
+import { hasRichText } from "~/utils/footer-rich-text";
 import { translateError } from "~/utils/translated-error";
 import {
   CountrySelector,
@@ -96,7 +94,7 @@ export function Footer() {
     showApplePayIcon,
     showGooglePayIcon,
   } = useThemeSettings();
-  const bio = translateText(
+  const bio = useFooterRichText(
     rawI18nBio,
     "themeContent.componentsLayoutFooter.bio",
   );
@@ -140,7 +138,7 @@ export function Footer() {
     rawI18nAddressTitle,
     "themeContent.componentsLayoutFooter.addressTitle",
   );
-  const copyright = translateText(
+  const copyright = useFooterRichText(
     rawI18nCopyright,
     "themeContent.componentsLayoutFooter.copyright",
   );
@@ -414,7 +412,7 @@ function DesktopBrand({
       {hasRichText(bio) ? (
         <div
           className="max-w-[320px] font-normal [&_p]:m-0"
-          dangerouslySetInnerHTML={{ __html: sanitizeFooterHtml(bio) }}
+          dangerouslySetInnerHTML={{ __html: bio }}
         />
       ) : null}
       <div className="font-normal">
@@ -673,7 +671,7 @@ function Copyright({ html }: { html: string }) {
   return (
     <div
       className="font-normal leading-none xl:whitespace-nowrap [&_a]:font-normal [&_a]:text-inherit [&_a]:underline [&_a]:decoration-solid [&_a]:[text-decoration-skip-ink:none] [&_a]:[text-underline-position:from-font] [&_p]:m-0"
-      dangerouslySetInnerHTML={{ __html: sanitizeFooterHtml(html) }}
+      dangerouslySetInnerHTML={{ __html: html }}
     />
   );
 }
