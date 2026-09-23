@@ -1,4 +1,4 @@
-import type { Storefront } from "@shopify/hydrogen";
+import { CacheCustom, type Storefront } from "@shopify/hydrogen";
 import type {
   CountryCode,
   CurrencyCode,
@@ -64,7 +64,7 @@ export async function loadStoreLocalization(
     const { localization } = await storefront.query<LocalizationQueryData>(
       LOCALIZATION_QUERY,
       {
-        cache: storefront.CacheLong(),
+        cache: CacheCustom({ maxAge: 10, staleWhileRevalidate: 0 }),
         variables: {
           country: storefront.i18n.country,
           language: storefront.i18n.language,
