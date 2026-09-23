@@ -9,16 +9,15 @@ import {
 } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { forwardRef, useEffect, useState } from "react";
+import { useInView } from "react-intersection-observer";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { translatePreview } from "~/utils/preview-translation";
 import "swiper/css";
-import type {
-  CollectionByIdsQuery,
-  CollectionProductCountPageQuery,
-} from "storefront-api.generated";
+import type { CollectionByIdsQuery } from "storefront-api.generated";
 import { Image } from "~/components/image";
 import Link from "~/components/link";
 import { useAnimation } from "~/hooks/use-animation";
+import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import {
   DESKTOP_MIN_PX,
   minWidthQuery,
@@ -38,20 +37,6 @@ interface CollectionWithProducts {
     height?: number;
     url: string;
   } | null;
-  productCount?: number;
-  products?: {
-    nodes: Array<{
-      title: string;
-      handle: string;
-      featuredImage?: {
-        id?: string;
-        url: string;
-        altText?: string | null;
-        width?: number;
-        height?: number;
-      } | null;
-    }>;
-  };
 }
 
 interface CollectionItemsData {
@@ -167,36 +152,7 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
       collection: CollectionWithProducts,
       ind: number,
     ) => (
-      <Link
-        key={collection.id + ind}
-        to={`/collections/${collection.handle}`}
-        className="group flex h-[521.667px] w-[442.667px] shrink-0 flex-col items-start gap-5 rounded-[var(--Radius-border-radius-md,12px)] bg-[var(--collection-bg-color,#7F7866)] p-4 lg:h-full lg:w-full"
-      >
-        <div className="relative aspect-square w-full overflow-hidden">
-          {collection.image && (
-            <Image
-              data={collection.image}
-              sizes="(min-width: 1280px) 25vw, (min-width: 640px) 45vw, 90vw"
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-            />
-          )}
-          <div className="absolute inset-0 bg-black/0 transition-colors duration-500 group-hover:bg-black/20" />
-        </div>
-        <div className="flex w-full flex-col text-(--collection-name-color)">
-          <h3 className="flex items-center gap-2 font-heading font-normal text-[26px] leading-[1.1] tracking-[-0.02em]">
-            <span className="line-clamp-1">{collection.title}</span>
-            <ArrowRight
-              weight="thin"
-              className="size-4 shrink-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 md:size-5"
-            />
-          </h3>
-          {collection.productCount !== undefined && (
-            <p className="font-body font-normal text-sm text-[#D9CFC8] leading-[1.6] tracking-[0.01em]">
-              {t("collection.productCount", { count: collection.productCount })}
-            </p>
-          )}
-        </div>
-      </Link>
+      <SliderCollectionCard collection={collection} key={collection.id + ind} />
     );
 
     const renderEditorialCard = (
@@ -341,9 +297,6 @@ const COLLECTION_PLACEHOLDERS: CollectionWithProducts[] = [
       `collection_${index + 1}` as keyof typeof IMAGES_PLACEHOLDERS
     ],
   },
-  products: {
-    nodes: [],
-  },
 }));
 CollectionItems.displayName = "CollectionItems";
 
@@ -365,33 +318,6 @@ let COLLECTIONS_QUERY = `#graphql
           height
           url
         }
-        products(first: 3) {
-          nodes {
-            title
-            handle
-            featuredImage {
-              id
-              url
-              altText
-              width
-              height
-            }
-          }
-        }
-      }
-    }
-  }
-` as const;
-
-// Storefront collections do not expose a total product count. Fetch only IDs,
-// following every page so large collections are not reported as a capped count.
-const COLLECTION_PRODUCT_COUNT_QUERY = `#graphql
-  query collectionProductCountPage($id: ID!, $cursor: String, $country: CountryCode, $language: LanguageCode)
-  @inContext(country: $country, language: $language) {
-    collection(id: $id) {
-      products(first: 250, after: $cursor) {
-        nodes { id }
-        pageInfo { hasNextPage endCursor }
       }
     }
   }
@@ -418,43 +344,79 @@ export let loader = async ({
         },
       },
     );
-    const collections = nodes.filter(Boolean);
-    if (data.layout !== "slider") {
-      return collections;
-    }
-    return Promise.all(
-      collections.map(async (collection) => {
-        let productCount = 0;
-        let cursor: string | null = null;
-        let hasNextPage = true;
-        while (hasNextPage) {
-          const result =
-            await weaverse.storefront.query<CollectionProductCountPageQuery>(
-              COLLECTION_PRODUCT_COUNT_QUERY,
-              {
-                variables: { id: collection.id, cursor, country, language },
-              },
-            );
-          if (!result.collection) {
-            return collection;
-          }
-          productCount += result.collection.products.nodes.length;
-          const pageInfo = result.collection.products.pageInfo;
-          hasNextPage = pageInfo.hasNextPage;
-          if (
-            hasNextPage &&
-            (!pageInfo.endCursor || pageInfo.endCursor === cursor)
-          ) {
-            return collection;
-          }
-          cursor = pageInfo.endCursor;
-        }
-        return { ...collection, productCount };
-      }),
-    );
+    return nodes.filter(Boolean);
   }
   return [];
 };
+
+function SliderCollectionCard({
+  collection,
+}: {
+  collection: CollectionWithProducts;
+}) {
+  const { t } = useTranslation();
+  const [productCount, setProductCount] = useState<number | string | null>(
+    null,
+  );
+  const { ref, inView } = useInView({ rootMargin: "200px", triggerOnce: true });
+  const countPath = usePrefixPathWithLocale(
+    `/api/collection/${collection.handle}/product-count`,
+  );
+
+  useEffect(() => {
+    if (!inView) {
+      return;
+    }
+    const controller = new AbortController();
+    fetch(countPath, { signal: controller.signal })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Unable to load collection product count");
+        }
+        return response.json() as Promise<{ count: number | string }>;
+      })
+      .then(({ count }) => setProductCount(count))
+      .catch((error) => {
+        if (!(error instanceof DOMException && error.name === "AbortError")) {
+          setProductCount(null);
+        }
+      });
+    return () => controller.abort();
+  }, [countPath, inView]);
+
+  return (
+    <Link
+      ref={ref}
+      to={`/collections/${collection.handle}`}
+      className="group flex h-[521.667px] w-[442.667px] shrink-0 flex-col items-start gap-5 rounded-[var(--Radius-border-radius-md,12px)] bg-[var(--collection-bg-color,#7F7866)] p-4 lg:h-full lg:w-full"
+    >
+      <div className="relative aspect-square w-full overflow-hidden">
+        {collection.image && (
+          <Image
+            data={collection.image}
+            sizes="(min-width: 1280px) 25vw, (min-width: 640px) 45vw, 90vw"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+          />
+        )}
+        <div className="absolute inset-0 bg-black/0 transition-colors duration-500 group-hover:bg-black/20" />
+      </div>
+      <div className="flex w-full flex-col text-(--collection-name-color)">
+        <h3 className="flex items-center gap-2 font-heading font-normal text-[26px] leading-[1.1] tracking-[-0.02em]">
+          <span className="line-clamp-1">{collection.title}</span>
+          <ArrowRight
+            weight="thin"
+            className="size-4 shrink-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 md:size-5"
+          />
+        </h3>
+        {productCount !== null && (
+          <p className="font-body font-normal text-sm text-[#D9CFC8] leading-[1.6] tracking-[0.01em]">
+            {t("collection.productCount", { count: productCount })}
+          </p>
+        )}
+      </div>
+    </Link>
+  );
+}
 
 export let schema: HydrogenComponentSchema = {
   type: "collection-list-dynamic-items",

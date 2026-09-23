@@ -170,11 +170,6 @@ async function getLayoutData({ storefront, env }: AppLoadContext) {
   return {
     shop: data.shop,
     headerMenu,
-    desktopMenuContent: {
-      featuredCollection: data.featuredCollection,
-      collections: data.desktopCollections.nodes,
-      articles: data.desktopArticles.nodes,
-    },
     footerMenu,
     paymentSettings: data.paymentSettings,
   };
@@ -375,32 +370,10 @@ const LAYOUT_QUERY = `#graphql
     footerMenu: menu(handle: $footerMenuHandle) {
       ...Menu
     }
-    featuredCollection: collection(handle: "best-selling") {
-      ...DesktopMenuCollection
-    }
-    desktopCollections: collections(first: 250, sortKey: TITLE) {
-      nodes { ...DesktopMenuCollection }
-    }
-    desktopArticles: articles(first: 8, sortKey: PUBLISHED_AT, reverse: true) {
-      nodes {
-        id
-        title
-        handle
-        tags
-        blog { handle }
-        image { id url altText width height }
-      }
-    }
     paymentSettings {
       acceptedCardBrands
       supportedDigitalWallets
     }
-  }
-  fragment DesktopMenuCollection on Collection {
-    id
-    title
-    handle
-    image { id url altText width height }
   }
   fragment Shop on Shop {
     id
