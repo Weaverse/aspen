@@ -115,13 +115,7 @@ export const schema: HydrogenComponentSchema = {
         alignment: "left",
         paragraphAlignment: "left",
       },
-      {
-        type: "instagram--slider",
-        slidesPerView: 4,
-        spaceBetween: 20,
-        showNavigation: true,
-        arrowsIcon: "arrow",
-      },
+      { type: "instagram--slider" },
     ],
   },
 };
