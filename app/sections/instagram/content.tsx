@@ -135,10 +135,7 @@ let InstagramContent = forwardRef<HTMLDivElement, InstagramContentProps>(
             to={to}
             className="w-fit self-start bg-transparent p-0 font-semibold text-sm tracking-[0.02em]"
           >
-            <span className="inline-flex items-center gap-2">
-              {buttonContent}
-              <span aria-hidden="true">→</span>
-            </span>
+            {buttonContent}
           </Link>
         )}
       </div>
