@@ -69,7 +69,7 @@ export function WishlistProvider({
         setError(
           reason instanceof Error
             ? reason.message
-            : "Wishlist is temporarily unavailable.",
+            : "errors.wishlistUnavailable",
         );
         setHasLoaded(true);
       });

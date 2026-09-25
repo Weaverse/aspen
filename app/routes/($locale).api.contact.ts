@@ -9,7 +9,7 @@ import { isSameOriginPost } from "../utils/request-security.server.ts";
 const KLAVIYO_EVENTS_API = "https://a.klaviyo.com/api/events";
 const KLAVIYO_API_REVISION = "2026-07-15";
 
-const GENERIC_ERROR = "Something went wrong! Please try again.";
+const GENERIC_ERROR = "errors.generic";
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_NAME_LENGTH = 200;
 const MAX_EMAIL_LENGTH = 254;
@@ -17,7 +17,7 @@ const MAX_MESSAGE_LENGTH = 5000;
 
 const methodNotAllowed = () =>
   data(
-    { ok: false, error: "Method not allowed" },
+    { ok: false, error: "errors.methodNotAllowed" },
     { status: 405, headers: { Allow: "POST" } },
   );
 
@@ -43,25 +43,19 @@ export const action: ActionFunction = async ({
   const message = typeof rawMessage === "string" ? rawMessage.trim() : "";
 
   if (!email) {
-    return data({ ok: false, error: "Email is required" }, 400);
+    return data({ ok: false, error: "errors.emailRequired" }, 400);
   }
   if (email.length > MAX_EMAIL_LENGTH || !EMAIL_PATTERN.test(email)) {
-    return data({ ok: false, error: "Enter a valid email address" }, 400);
+    return data({ ok: false, error: "errors.invalidEmail" }, 400);
   }
   if (!message) {
-    return data({ ok: false, error: "Message is required" }, 400);
+    return data({ ok: false, error: "errors.messageRequired" }, 400);
   }
   if (message.length > MAX_MESSAGE_LENGTH) {
-    return data(
-      { ok: false, error: "Message must be 5000 characters or fewer" },
-      400,
-    );
+    return data({ ok: false, error: "errors.messageTooLong" }, 400);
   }
   if (name.length > MAX_NAME_LENGTH) {
-    return data(
-      { ok: false, error: "Name must be 200 characters or fewer" },
-      400,
-    );
+    return data({ ok: false, error: "errors.nameTooLong" }, 400);
   }
 
   const apiToken = context.env.KLAVIYO_PRIVATE_API_TOKEN;

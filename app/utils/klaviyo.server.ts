@@ -2,9 +2,8 @@ const KLAVIYO_REVISION = "2024-10-15";
 const KLAVIYO_BACK_IN_STOCK_API =
   "https://a.klaviyo.com/api/back-in-stock-subscriptions";
 
-export const KLAVIYO_GENERIC_ERROR = "Something went wrong! Please try again.";
-export const KLAVIYO_INVALID_EMAIL_ERROR =
-  "Please enter a valid email address.";
+export const KLAVIYO_GENERIC_ERROR = "errors.generic";
+export const KLAVIYO_INVALID_EMAIL_ERROR = "errors.invalidEmail";
 
 type KlaviyoErrorPayload = {
   errors?: {

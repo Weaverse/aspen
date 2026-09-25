@@ -48,9 +48,11 @@ export function CartDrawer() {
           </span>
         )}
       </Dialog.Trigger>
-      <AnimatedDrawer open={isOpen}>
-        <div className="flex h-full min-h-0 flex-col">
-          <div className="flex items-center justify-between gap-2 px-5 pb-5">
+      <AnimatedDrawer open={isOpen} flush>
+        {/* Figma 512:13474 — the panel is the padded flex column:
+                  padding 12px 20px 24px, align-items flex-start, gap 16px. */}
+        <div className="flex h-full min-h-0 flex-col items-start gap-4 px-5 pt-3 pb-6 max-xl:pb-[max(24px,env(safe-area-inset-bottom))]">
+          <div className="flex h-[42px] w-full shrink-0 items-center justify-between gap-2">
             <Dialog.Title asChild className="text-sm">
               <span className="font-semibold uppercase tracking-[0.02em]">
                 {t("cart.title")}
@@ -66,7 +68,7 @@ export function CartDrawer() {
               </button>
             </Dialog.Close>
           </div>
-          <Cart layout="drawer" />
+          <Cart layout="drawer" onClose={closeCartDrawer} />
         </div>
       </AnimatedDrawer>
     </Dialog.Root>

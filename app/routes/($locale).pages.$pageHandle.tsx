@@ -1,14 +1,13 @@
 import type { SeoConfig } from "@shopify/hydrogen";
-import { getSeoMeta } from "@shopify/hydrogen";
 import type { RouteLoaderArgs } from "@weaverse/hydrogen";
 import type { MetaFunction } from "react-router";
 import type { PageDetailsQuery } from "storefront-api.generated";
 import invariant from "tiny-invariant";
-
 import { routeHeaders } from "~/utils/cache";
 import { redirectIfHandleIsLocalized } from "~/utils/redirect";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 import { seoPayload } from "~/utils/seo.server";
+import { localizedSeoMeta } from "~/utils/seo-translation";
 import { WeaverseContent } from "~/weaverse";
 
 export const headers = routeHeaders;
@@ -58,8 +57,8 @@ export async function loader({ request, params, context }: RouteLoaderArgs) {
   };
 }
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  return getSeoMeta(data?.seo as SeoConfig);
+export const meta: MetaFunction<typeof loader> = ({ data, matches }) => {
+  return localizedSeoMeta(matches, data?.seo as SeoConfig);
 };
 
 export default function Page() {

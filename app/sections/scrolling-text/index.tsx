@@ -4,6 +4,7 @@ import type {
 } from "@weaverse/hydrogen";
 import { cva, type VariantProps } from "class-variance-authority";
 import { type CSSProperties, forwardRef } from "react";
+import { useTranslatedText } from "~/hooks/use-translated-text";
 import { cn } from "~/utils/cn";
 
 let variants = cva("", {
@@ -37,8 +38,10 @@ export interface ScrollingProps
 }
 
 const ScrollingText = forwardRef<HTMLElement, ScrollingProps>((props, ref) => {
+  const translateText = useTranslatedText();
+
   let {
-    content,
+    content: rawI18nContent,
     textSize,
     textColor,
     borderColor,
@@ -54,6 +57,10 @@ const ScrollingText = forwardRef<HTMLElement, ScrollingProps>((props, ref) => {
     iconSize = 24,
     ...rest
   } = props;
+  const content = translateText(
+    rawI18nContent,
+    "themeContent.sectionsScrollingTextIndex.content",
+  );
   const parseIcons = (text: string) => {
     const items: Array<{ content: string; isSvg: boolean }> = [];
     const lines = text.split("\n");
@@ -234,8 +241,8 @@ export let schema: HydrogenComponentSchema = {
           defaultValue: "style1",
           configs: {
             options: [
-              { label: "Style 1", value: "style1" },
-              { label: "Style 2", value: "style2" },
+              { label: "Scenario 1", value: "style1" },
+              { label: "Scenario 2", value: "style2" },
             ],
           },
         },

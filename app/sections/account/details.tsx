@@ -1,5 +1,6 @@
 import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
 import { AccountDetails } from "~/components/customer/account-details";
+import { useTranslatedText } from "~/hooks/use-translated-text";
 import { useAccountSectionData } from ".";
 
 interface AccountDetailsBlockProps extends Partial<HydrogenComponentProps> {
@@ -8,11 +9,21 @@ interface AccountDetailsBlockProps extends Partial<HydrogenComponentProps> {
 }
 
 function AccountDetailsBlock({
-  heading = "ACCOUNT",
-  editText = "EDIT",
+  heading: rawI18nHeading = "ACCOUNT",
+  editText: rawI18nEditText = "EDIT",
   children: _children,
   ...rest
 }: AccountDetailsBlockProps) {
+  const translateText = useTranslatedText();
+  const heading = translateText(
+    rawI18nHeading,
+    "themeContent.sectionsAccountDetails.heading",
+  );
+  const editText = translateText(
+    rawI18nEditText,
+    "themeContent.sectionsAccountDetails.editText",
+  );
+
   const { customer } = useAccountSectionData();
   return (
     <AccountDetails

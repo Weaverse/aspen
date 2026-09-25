@@ -41,6 +41,12 @@ export const PRODUCT_QUERY = `#graphql
         namespace
         value
       }
+      reviewRating: metafield(namespace: "reviews", key: "rating") {
+        value
+      }
+      reviewRatingCount: metafield(namespace: "reviews", key: "rating_count") {
+        value
+      }
       options {
         ...ProductOption
       }

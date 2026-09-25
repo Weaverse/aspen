@@ -6,14 +6,15 @@ import { backgroundInputs } from "~/components/background-image";
 import { overlayInputs } from "~/components/overlay";
 import type { SectionProps } from "~/components/section";
 import { Section } from "~/components/section";
+import { useTranslatedText } from "~/hooks/use-translated-text";
 import { cn } from "~/utils/cn";
 
 const variants = cva("flex items-start justify-center lg:items-end", {
   variants: {
     height: {
-      small: "min-h-[360px] lg:h-[620px]",
-      medium: "h-[544px] lg:h-[840px]",
-      large: "h-[544px] lg:h-[840px]",
+      small: "lg:h-[620px]",
+      medium: "lg:h-[840px]",
+      large: "lg:h-[840px]",
       full: "min-h-screen",
     },
     defaultVariants: {
@@ -30,6 +31,7 @@ interface CountdownProps extends VariantProps<typeof variants>, SectionProps {
 }
 
 const Countdown = forwardRef<HTMLElement, CountdownProps>((props, ref) => {
+  const translateText = useTranslatedText();
   const {
     children,
     height,
@@ -57,7 +59,10 @@ const Countdown = forwardRef<HTMLElement, CountdownProps>((props, ref) => {
         className={cn(
           isScenario2
             ? "flex min-h-[456px] items-center justify-center md:min-h-[175px]"
-            : variants({ height }),
+            : cn(
+                variants({ height }),
+                "md:max-lg:min-h-[620px] md:max-lg:items-end",
+              ),
         )}
         style={
           isScenario2
@@ -73,7 +78,9 @@ const Countdown = forwardRef<HTMLElement, CountdownProps>((props, ref) => {
             "grid w-full grid-cols-1",
             isScenario2
               ? "mx-auto max-w-[1360px] items-center gap-y-8 px-5 md:grid-cols-[minmax(0,1fr)_auto_220px] md:gap-x-12 md:gap-y-0 md:px-0"
-              : "countdown-wrapper mx-auto max-w-[1440px] gap-y-6 px-5 pt-10 lg:grid-cols-[repeat(2,minmax(0,684px))] lg:gap-x-[72px] lg:gap-y-8 lg:px-0 lg:pt-0 lg:pb-16",
+              : "countdown-wrapper mx-auto max-w-[1440px] gap-y-6 px-5 py-10 md:max-lg:px-10 md:max-lg:py-12 lg:grid-cols-[repeat(2,minmax(0,684px))] lg:gap-x-[72px] lg:gap-y-8 lg:px-0 lg:pt-0 lg:pb-12",
+            !isScenario2 &&
+              "md:max-lg:[&_.subheading]:justify-start md:max-lg:[&_.subheading]:text-2xl md:max-lg:[&_.paragraph]:max-w-none md:max-lg:[&_.paragraph]:text-left md:max-lg:[&_.paragraph]:text-2xl md:max-lg:[&_.paragraph]:leading-[1.2] md:max-lg:[&_.button-countdown]:mt-0",
             isScenario2
               ? "[&_.button-countdown]:order-3 [&_.button-countdown]:justify-center md:[&_.button-countdown]:col-start-3 md:[&_.button-countdown]:row-start-1 [&_.countdown--timer]:order-2 md:[&_.countdown--timer]:col-start-2 md:[&_.countdown--timer]:row-start-1 [&_.paragraph]:hidden [&_.subheading]:hidden"
               : "[&_.button-countdown]:order-4 [&_.button-countdown]:mt-1 [&_.button-countdown]:h-fit [&_.button-countdown]:justify-start lg:[&_.button-countdown]:col-start-2 lg:[&_.button-countdown]:row-start-2 lg:[&_.button-countdown]:mt-[26px] [&_.countdown--timer]:order-2 lg:[&_.countdown--timer]:col-start-1 lg:[&_.countdown--timer]:row-start-2 [&_.paragraph]:order-3 [&_.paragraph]:max-w-[684px] [&_.paragraph]:text-sm lg:[&_.paragraph]:col-start-2 lg:[&_.paragraph]:row-start-1 [&_.subheading]:order-1 lg:[&_.subheading]:col-start-1 lg:[&_.subheading]:row-start-1",
@@ -82,10 +89,16 @@ const Countdown = forwardRef<HTMLElement, CountdownProps>((props, ref) => {
           {isScenario2 && (
             <div className="order-1 flex flex-col gap-3 md:col-start-1 md:row-start-1">
               <h2 className="max-w-[300px] text-[30px] leading-[1.05] md:text-[36px]">
-                {style2Heading}
+                {translateText(
+                  style2Heading,
+                  "themeContent.sectionsCountdownIndex.style2Heading",
+                )}
               </h2>
               <p className="text-[11px] opacity-70 md:text-xs">
-                {style2Description}
+                {translateText(
+                  style2Description,
+                  "themeContent.sectionsCountdownIndex.style2Description",
+                )}
               </p>
             </div>
           )}
@@ -112,8 +125,8 @@ export const schema = createSchema({
           defaultValue: "scenario1",
           configs: {
             options: [
-              { value: "scenario1", label: "Style 1" },
-              { value: "scenario2", label: "Style 2" },
+              { value: "scenario1", label: "Scenario 1" },
+              { value: "scenario2", label: "Scenario 2" },
             ],
           },
         },
@@ -161,14 +174,14 @@ export const schema = createSchema({
         {
           type: "text",
           name: "style2Heading",
-          label: "Style 2 heading",
+          label: "Scenario 2 heading",
           defaultValue: "Limited Sale Offers",
           condition: "scenario.eq.scenario2",
         },
         {
           type: "text",
           name: "style2Description",
-          label: "Style 2 description",
+          label: "Scenario 2 description",
           defaultValue: "Up to 50% including Best Sellers",
           condition: "scenario.eq.scenario2",
         },

@@ -1,7 +1,6 @@
 import {
   Analytics,
   getAdjacentAndFirstAvailableVariants,
-  getSeoMeta,
   useOptimisticVariant,
 } from "@shopify/hydrogen";
 import { getSelectedProductOptions } from "@weaverse/hydrogen";
@@ -28,6 +27,7 @@ import {
 } from "~/utils/redirect";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 import { seoPayload } from "~/utils/seo.server";
+import { localizedSeoMeta } from "~/utils/seo-translation";
 import { WeaverseContent } from "~/weaverse";
 
 export const headers = routeHeaders;
@@ -95,12 +95,13 @@ export async function action({
     });
     return response;
   } catch (error) {
-    return data({ error: "Failed to create review!" }, { status: 500 });
+    return data({ error: "errors.reviewCreate" }, { status: 500 });
   }
 }
 
 export const meta = ({ matches }: MetaArgs<typeof loader>) => {
-  return getSeoMeta(
+  return localizedSeoMeta(
+    matches,
     ...matches.map((match) => (match.data as any)?.seo).filter(Boolean),
   );
 };

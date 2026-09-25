@@ -32,18 +32,18 @@ export function GlobalStyle() {
     buttonPrimaryBgHover = "#6D6966",
     buttonPrimaryColorHover = "#F1EEEA",
     buttonSecondaryBg = "#F0EFED",
-    buttonSecondaryColor = "#24211E",
+    buttonSecondaryColor = "#343231",
     buttonSecondaryBgHover = "#E9E7E4",
-    buttonSecondaryColorHover = "#24211E",
+    buttonSecondaryColorHover = "#343231",
     buttonOutlineText = "#343231",
-    buttonOutlineBackground = "#FFFFFF",
+    buttonOutlineBackground = "transparent",
     buttonOutlineBorder = "#B1B0AF",
-    buttonOutlineTextHover = "#524B46",
+    buttonOutlineTextHover = "#343231",
     buttonOutlineBackgroundHover = "#E9E7E4",
-    buttonOutlineBorderHover = "#B0ACA9",
+    buttonOutlineBorderHover = "#B1B0AF",
     comparePriceTextColor = "#979797",
     saleBadgeColor = "#573B3B",
-    newBadgeColor = "#EBE8E5",
+    newBadgeColor = "#E3DAD4",
     bestSellerBadgeColor = "#3B3B3B",
     bundleBadgeColor = "#3B3B3B",
     soldOutBadgeColor = "#DFDFDF",
@@ -88,18 +88,18 @@ export function GlobalStyle() {
     buttonPrimaryBgHover = "#6D6966";
     buttonPrimaryColorHover = "#F1EEEA";
     buttonSecondaryBg = "#F0EFED";
-    buttonSecondaryColor = "#24211E";
+    buttonSecondaryColor = "#343231";
     buttonSecondaryBgHover = "#E9E7E4";
-    buttonSecondaryColorHover = "#24211E";
+    buttonSecondaryColorHover = "#343231";
     buttonOutlineText = "#343231";
-    buttonOutlineBackground = "#FFFFFF";
+    buttonOutlineBackground = "transparent";
     buttonOutlineBorder = "#B1B0AF";
-    buttonOutlineTextHover = "#524B46";
+    buttonOutlineTextHover = "#343231";
     buttonOutlineBackgroundHover = "#E9E7E4";
-    buttonOutlineBorderHover = "#B0ACA9";
+    buttonOutlineBorderHover = "#B1B0AF";
     comparePriceTextColor = "#979797";
     saleBadgeColor = "#573B3B";
-    newBadgeColor = "#EBE8E5";
+    newBadgeColor = "#E3DAD4";
     bestSellerBadgeColor = "#3B3B3B";
     bundleBadgeColor = "#3B3B3B";
     soldOutBadgeColor = "#DFDFDF";
@@ -217,7 +217,7 @@ export function GlobalStyle() {
             }
           }
 
-          @media (min-width: 64em) {
+          @media (min-width: 1025px) {
             :root {
               --page-padding: 40px;
             }

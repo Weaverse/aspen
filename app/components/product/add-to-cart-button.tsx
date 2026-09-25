@@ -42,7 +42,10 @@ export function AddToCartButton({
   onAdded?: () => void;
   [key: string]: any;
 }) {
+  const { t } = useTranslation();
   const cartRoute = usePrefixPathWithLocale("/cart");
+  const pendingToken = useRef<string | null>(null);
+  const submitted = useRef(false);
   const [isHydrated, setIsHydrated] = useState(false);
   const hasValidLines =
     lines.length > 0 &&
@@ -61,137 +64,93 @@ export function AddToCartButton({
   return (
     <div
       className={cn(width === "full" ? "w-full" : "w-auto", containerClassName)}
+      onSubmitCapture={(event) => {
+        if (submitted.current) {
+          event.preventDefault();
+          return;
+        }
+        submitted.current = true;
+        pendingToken.current = useCartStore.getState().stagePendingAdd(lines);
+        const tokenInput = (event.target as HTMLFormElement).elements.namedItem(
+          "cartStageToken",
+        );
+        if (tokenInput instanceof HTMLInputElement) {
+          tokenInput.value = pendingToken.current ?? "";
+        }
+        useCartStore.getState().open();
+      }}
     >
       <CartForm
         route={cartRoute}
         inputs={{ lines }}
         action={CartForm.ACTIONS.LinesAdd}
       >
-        {(fetcher: FetcherWithComponents<any>) => (
-          <AddToCartContent
-            analytics={analytics}
-            className={className}
-            disabled={Boolean(disabled)}
-            fetcher={fetcher}
-            hasValidLines={hasValidLines}
-            isHydrated={isHydrated}
-            lines={lines}
-            onAdded={onAdded}
-            props={props}
-          >
-            {children}
-          </AddToCartContent>
-        )}
+        {(fetcher: FetcherWithComponents<any>) => {
+          const isAdding = fetcher.state !== "idle";
+          const errorMessage = getCartMutationError(fetcher.data, t);
+          return (
+            <AddToCartAnalytics
+              fetcher={fetcher}
+              onAdded={onAdded}
+              pendingToken={pendingToken}
+              submitted={submitted}
+            >
+              <input type="hidden" name="cartStageToken" defaultValue="" />
+              <input
+                type="hidden"
+                name="analytics"
+                value={JSON.stringify(analytics)}
+              />
+              <div className="space-y-2">
+                <Button
+                  type="submit"
+                  variant="primary"
+                  className={cn(className, "!border-none px-6 py-5")}
+                  disabled={Boolean(
+                    disabled || isAdding || !hasValidLines || !isHydrated,
+                  )}
+                  {...props}
+                >
+                  {isAdding ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <svg
+                        aria-hidden="true"
+                        className="h-5 w-5 animate-spin"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        />
+                      </svg>
+                      {t("cart.adding")}
+                    </span>
+                  ) : (
+                    children
+                  )}
+                </Button>
+                {errorMessage && (
+                  <p role="alert" className="text-red-700 text-sm">
+                    {errorMessage}
+                  </p>
+                )}
+              </div>
+            </AddToCartAnalytics>
+          );
+        }}
       </CartForm>
     </div>
-  );
-}
-
-function AddToCartContent({
-  analytics,
-  children,
-  className,
-  disabled,
-  fetcher,
-  hasValidLines,
-  isHydrated,
-  lines,
-  onAdded,
-  props,
-}: {
-  analytics?: unknown;
-  children: React.ReactNode;
-  className: string;
-  disabled: boolean;
-  fetcher: FetcherWithComponents<any>;
-  hasValidLines: boolean;
-  isHydrated: boolean;
-  lines: OptimisticCartLineInput[];
-  onAdded?: () => void;
-  props: Record<string, any>;
-}) {
-  const { t } = useTranslation();
-  const pendingToken = useRef<string | null>(null);
-  const isAdding = fetcher.state !== "idle";
-  const errorMessage = getCartMutationError(fetcher.data, t);
-  useCartFetcherSync(fetcher);
-
-  useEffect(() => {
-    if (fetcher.state !== "idle" || !fetcher.data || !pendingToken.current) {
-      return;
-    }
-    useCartStore.getState().clearPendingAdd(pendingToken.current);
-    pendingToken.current = null;
-  }, [fetcher.data, fetcher.state]);
-
-  useEffect(
-    () => () => {
-      if (pendingToken.current) {
-        useCartStore.getState().clearPendingAdd(pendingToken.current);
-      }
-    },
-    [],
-  );
-
-  return (
-    <AddToCartAnalytics fetcher={fetcher} onAdded={onAdded}>
-      <input type="hidden" name="analytics" value={JSON.stringify(analytics)} />
-      <div className="space-y-2">
-        <Button
-          type="submit"
-          variant="primary"
-          className={cn(className, "!border-none px-6 py-5")}
-          disabled={Boolean(
-            disabled || isAdding || !hasValidLines || !isHydrated,
-          )}
-          {...props}
-          onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-            props.onClick?.(event);
-            if (event.defaultPrevented) {
-              return;
-            }
-            pendingToken.current = useCartStore
-              .getState()
-              .stagePendingAdd(lines);
-            useCartStore.getState().open();
-          }}
-        >
-          {isAdding ? (
-            <span className="flex items-center justify-center gap-2">
-              <svg
-                aria-hidden="true"
-                className="h-5 w-5 animate-spin"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                />
-              </svg>
-              {t("cart.adding")}
-            </span>
-          ) : (
-            children
-          )}
-        </Button>
-        {errorMessage && (
-          <p role="alert" className="text-red-700 text-sm">
-            {errorMessage}
-          </p>
-        )}
-      </div>
-    </AddToCartAnalytics>
   );
 }
 
@@ -226,11 +185,35 @@ function AddToCartAnalytics({
   fetcher,
   children,
   onAdded,
+  pendingToken,
+  submitted,
 }: {
   fetcher: FetcherWithComponents<any>;
   children: React.ReactNode;
   onAdded?: () => void;
+  pendingToken: React.MutableRefObject<string | null>;
+  submitted: React.MutableRefObject<boolean>;
 }) {
+  useCartFetcherSync(fetcher);
+  useEffect(() => {
+    if (!submitted.current || fetcher.state !== "idle") {
+      return;
+    }
+    submitted.current = false;
+    if (pendingToken.current) {
+      useCartStore.getState().clearPendingAdd(pendingToken.current);
+      pendingToken.current = null;
+    }
+  }, [fetcher.state, pendingToken, submitted]);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Read the latest token only on owner unmount.
+  useEffect(
+    () => () => {
+      if (pendingToken.current) {
+        useCartStore.getState().clearPendingAdd(pendingToken.current);
+      }
+    },
+    [],
+  );
   const fetcherData = fetcher.data;
   const formData = fetcher.formData;
   const pageAnalytics = usePageAnalytics({ hasUserConsent: true });
@@ -255,9 +238,7 @@ function AddToCartAnalytics({
         }
       }
 
-      // The drawer opens synchronously at click time. A completed request may
-      // call the product-specific success callback, but must never reopen a
-      // drawer the customer already dismissed.
+      // Open cart drawer after successful add to cart (regardless of analytics)
       if (
         fetcherData.cart &&
         !fetcherData.userErrors?.length &&

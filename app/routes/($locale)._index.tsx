@@ -1,11 +1,14 @@
-import type { SeoConfig } from "@shopify/hydrogen";
-import { AnalyticsPageType, getSeoMeta } from "@shopify/hydrogen";
-import type { PageType } from "@weaverse/hydrogen";
-import type { LoaderFunctionArgs, MetaFunction } from "react-router";
+import { AnalyticsPageType } from "@shopify/hydrogen";
+import { getWeaverseSeoMeta, type PageType } from "@weaverse/hydrogen";
+import type { LoaderFunctionArgs, MetaArgs } from "react-router";
 import type { ShopQuery } from "storefront-api.generated";
 import { routeHeaders } from "~/utils/cache";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 import { seoPayload } from "~/utils/seo.server";
+import {
+  localizedSeoMetaFromMatches,
+  withWeaverseSeo,
+} from "~/utils/seo-translation";
 import { validateWeaverseData, WeaverseContent } from "~/weaverse";
 
 export const headers = routeHeaders;
@@ -22,17 +25,20 @@ export async function loader(args: LoaderFunctionArgs) {
     type = "CUSTOM";
   }
 
-  // Calculate seo payload synchronously
-  const seo = seoPayload.home();
-
   // Load async data in parallel for better performance
   const [weaverseData, { shop }] = await Promise.all([
     context.weaverse.loadPage({ type }),
-    context.storefront.query<ShopQuery>(SHOP_QUERY),
+    context.storefront.query<ShopQuery>(SHOP_QUERY, {
+      cache: context.storefront.CacheLong(),
+    }),
   ]);
 
   // Check weaverseData after parallel loading
   validateWeaverseData(weaverseData);
+
+  // Match Pilot: the real homepage uses the connected shop name while a
+  // root-level custom page uses the SEO authored for that Weaverse page.
+  const seo = type === "INDEX" ? seoPayload.home({ shop }) : null;
 
   return {
     shop,
@@ -44,8 +50,11 @@ export async function loader(args: LoaderFunctionArgs) {
   };
 }
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  return getSeoMeta(data?.seo as SeoConfig);
+export const meta = ({ data, matches }: MetaArgs<typeof loader>) => {
+  const routeSeo = localizedSeoMetaFromMatches(matches);
+  return data?.seo
+    ? routeSeo
+    : withWeaverseSeo(routeSeo, getWeaverseSeoMeta(data?.weaverseData));
 };
 export default function Homepage() {
   return <WeaverseContent />;

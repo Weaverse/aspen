@@ -3,6 +3,7 @@ import {
   type HydrogenComponentProps,
   useChildInstances,
   useParentInstance,
+  useTranslation,
 } from "@weaverse/hydrogen";
 import { cva, type VariantProps } from "class-variance-authority";
 import clsx from "clsx";
@@ -13,6 +14,7 @@ import Heading, {
 } from "~/components/heading";
 import Link, { type LinkProps, linkInputs } from "~/components/link";
 import Paragraph, { type ParagraphProps } from "~/components/paragraph";
+import { useTranslatedText } from "~/hooks/use-translated-text";
 
 interface CollectionListDynamicProps
   extends HydrogenComponentProps,
@@ -90,6 +92,10 @@ let CollectionContentDynamic = forwardRef<
   HTMLDivElement,
   CollectionListDynamicProps
 >((props, ref) => {
+  const translateText = useTranslatedText();
+
+  const { t } = useTranslation();
+
   const parentInstance = useParentInstance();
   const serializedCollectionLayout = (
     parentInstance?.data.children as CollectionChildData[] | undefined
@@ -122,9 +128,9 @@ let CollectionContentDynamic = forwardRef<
     contentPosition,
     displayMode = "vertical",
     // Heading props
-    headingContent,
+    headingContent: rawI18nHeadingContent,
     headingTagName,
-    sliderHeadingContent,
+    sliderHeadingContent: rawI18nSliderHeadingContent,
     color,
     size,
     mobileSize,
@@ -136,15 +142,15 @@ let CollectionContentDynamic = forwardRef<
     maxSize,
     animate,
     // Paragraph props
-    paragraphContent,
+    paragraphContent: rawI18nParagraphContent,
     paragraphTag = "p",
     paragraphColor,
     paragraphSize,
     paragraphAlignment,
     paragraphWidth,
     // Button/Link props
-    buttonContent,
-    sliderButtonContent,
+    buttonContent: rawI18nButtonContent,
+    sliderButtonContent: rawI18nSliderButtonContent,
     to,
     sliderTo,
     variant,
@@ -158,6 +164,26 @@ let CollectionContentDynamic = forwardRef<
     textColorDecor,
     ...rest
   } = props;
+  const sliderButtonContent = translateText(
+    rawI18nSliderButtonContent,
+    "themeContent.sectionsCollectionListDynamicContent.sliderButtonContent",
+  );
+  const buttonContent = translateText(
+    rawI18nButtonContent,
+    "themeContent.sectionsCollectionListDynamicContent.buttonContent",
+  );
+  const paragraphContent = translateText(
+    rawI18nParagraphContent,
+    "themeContent.sectionsCollectionListDynamicContent.paragraphContent",
+  );
+  const sliderHeadingContent = translateText(
+    rawI18nSliderHeadingContent,
+    "themeContent.sectionsCollectionListDynamicContent.sliderHeadingContent",
+  );
+  const headingContent = translateText(
+    rawI18nHeadingContent,
+    "themeContent.sectionsCollectionListDynamicContent.headingContent",
+  );
   const effectiveDisplayMode = collectionLayout
     ? collectionLayout === "slider"
       ? "horizontal"
@@ -168,7 +194,7 @@ let CollectionContentDynamic = forwardRef<
     ? (sliderHeadingContent ?? "COLLECTIONS")
     : headingContent;
   const effectiveButtonContent = isSliderLayout
-    ? (sliderButtonContent ?? "VIEW ALL")
+    ? (sliderButtonContent ?? t("product.viewAll"))
     : buttonContent;
   const effectiveTo = isSliderLayout ? (sliderTo ?? to) : to;
   const designHeadingClassName =
@@ -294,9 +320,9 @@ export const schema = createSchema({
         {
           type: "toggle-group",
           name: "contentPosition",
-          label: "Content position (Grid / Editorial)",
+          label: "Content position (Scenario 1 / Scenario 3)",
           helpText:
-            "Card Slider automatically uses a title with a side link instead.",
+            "Scenario 2 automatically uses a title with a side link instead.",
           defaultValue: "center",
           configs: {
             options: [
@@ -309,7 +335,7 @@ export const schema = createSchema({
         {
           type: "range",
           name: "gap",
-          label: "Content gap (Grid / Editorial)",
+          label: "Content gap (Scenario 1 / Scenario 3)",
           defaultValue: 24,
           configs: {
             min: 0,
@@ -321,7 +347,7 @@ export const schema = createSchema({
       ],
     },
     {
-      group: "Grid / editorial heading",
+      group: "Scenario 1 / Scenario 3 heading",
       inputs: [
         {
           type: "text",
@@ -342,7 +368,7 @@ export const schema = createSchema({
       ],
     },
     {
-      group: "Grid / editorial description",
+      group: "Scenario 1 / Scenario 3 description",
       inputs: [
         {
           type: "richtext",
@@ -351,8 +377,7 @@ export const schema = createSchema({
           defaultValue:
             "If you're looking for products that bring ease through form and function, we offer no-fuss furniture built to last.",
           placeholder: "Enter paragraph text",
-          helpText:
-            "Shown in Grid and Editorial layouts; hidden in Card Slider.",
+          helpText: "Shown in Scenario 1 and Scenario 3; hidden in Scenario 2.",
         },
         {
           type: "select",
@@ -430,7 +455,7 @@ export const schema = createSchema({
       ],
     },
     {
-      group: "Grid / editorial link",
+      group: "Scenario 1 / Scenario 3 link",
       inputs: [
         {
           type: "text",
@@ -450,21 +475,21 @@ export const schema = createSchema({
       ],
     },
     {
-      group: "Card slider content",
+      group: "Scenario 2 content",
       inputs: [
         {
           type: "text",
           name: "sliderHeadingContent",
           label: "Heading",
           defaultValue: "COLLECTIONS",
-          placeholder: "Enter slider heading",
+          placeholder: "Enter Scenario 2 heading",
         },
         {
           type: "text",
           name: "sliderButtonContent",
           label: "Link text",
           defaultValue: "VIEW ALL",
-          placeholder: "Enter slider link text",
+          placeholder: "Enter Scenario 2 link text",
         },
         {
           type: "url",

@@ -158,6 +158,32 @@ export function formatCurrency(
   });
 }
 
+export function getCurrencySymbol(currencyCode: string, locale: string) {
+  try {
+    return (
+      new Intl.NumberFormat(locale, {
+        style: "currency",
+        currency: currencyCode,
+        currencyDisplay: "narrowSymbol",
+      })
+        .formatToParts(0)
+        .find((part) => part.type === "currency")?.value || currencyCode
+    );
+  } catch {
+    return currencyCode;
+  }
+}
+
+/** Symbol then amount, e.g. `$ 12` or `€ 12`, matching storefront money spacing. */
+export function formatSymbolAmount(
+  amount: number,
+  currencyCode: string,
+  locale: Pick<I18nLocale, "language" | "country">,
+) {
+  const symbol = getCurrencySymbol(currencyCode, intlLocale(locale));
+  return `${symbol}\u00a0${Math.round(amount)}`;
+}
+
 export function getCanonicalLocaleRedirect(
   request: Request,
   localization: StoreLocalization,

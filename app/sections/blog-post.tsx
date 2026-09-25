@@ -129,7 +129,7 @@ const BlogPost = forwardRef<HTMLElement, BlogPostProps>((props, ref) => {
         </div>
 
         {/* Body: floating share sidebar + 720px article column */}
-        <div className="relative px-5 pb-16 md:px-10 md:pb-24">
+        <div className="relative px-5 md:px-10">
           {showShareButtons && (
             <div className="absolute top-10 left-10 hidden xl:block 2xl:left-[calc(50%-448px)]">
               <div className="sticky top-28 flex w-14 flex-col items-center gap-4 rounded-2xl bg-(--color-background-subtle) px-3 py-4">

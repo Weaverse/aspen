@@ -11,6 +11,8 @@ import {
   useNavigation,
   useOutletContext,
 } from "react-router";
+import { getMetaTranslator } from "~/utils/seo-translation";
+import { translateError } from "~/utils/translated-error";
 
 // https://shopify.dev/docs/api/customer/latest/mutations/customerUpdate
 export const CUSTOMER_UPDATE_MUTATION = `#graphql
@@ -42,8 +44,8 @@ export type ActionResponse = {
   customer: CustomerUpdateMutation["customerUpdate"]["customer"] | null;
 };
 
-export const meta: MetaFunction = () => {
-  return [{ title: "Profile" }];
+export const meta: MetaFunction = ({ matches }) => {
+  return [{ title: getMetaTranslator(matches)("seo.profile") }];
 };
 
 export async function loader({ context }: LoaderFunctionArgs) {
@@ -56,7 +58,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const { customerAccount } = context;
 
   if (request.method !== "PUT") {
-    return data({ error: "Method not allowed" }, { status: 405 });
+    return data({ error: "errors.methodNotAllowed" }, { status: 405 });
   }
 
   const form = await request.formData();
@@ -88,7 +90,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
 
     if (!updateData?.customerUpdate?.customer) {
-      throw new Error("Customer profile update failed.");
+      throw new Error("errors.profileUpdate");
     }
 
     return {
@@ -147,7 +149,7 @@ export default function AccountProfile() {
         {actionData?.error ? (
           <p>
             <mark>
-              <small>{actionData.error}</small>
+              <small>{translateError(t, actionData.error)}</small>
             </mark>
           </p>
         ) : (

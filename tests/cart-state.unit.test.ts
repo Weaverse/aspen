@@ -18,8 +18,11 @@ import {
   applyOptimisticMutations,
   buildOptimisticAddCart,
   filterRemovedCartLines,
+  getActiveStagedLines,
+  type PendingAdd,
   resetOptimisticCartForTests,
 } from "../app/components/cart/optimistic-cart.ts";
+import { pruneCompletedPendingAdds } from "../app/components/cart/store.ts";
 
 const variantId = "gid://shopify/ProductVariant/1";
 
@@ -217,4 +220,40 @@ test("restores an optimistically removed line when Shopify rejects it", () => {
 
   assert.equal(restored.lines.nodes.length, 1);
   assert.equal(restored.totalQuantity, 1);
+});
+
+test("keeps staged adds until their owning fetcher completes", () => {
+  const pending = new Map<string, PendingAdd>([
+    [
+      "add-1",
+      {
+        lines: [createInput(1)],
+        stagedFromUpdatedAt: "2026-08-27T10:00:00.000Z",
+      },
+    ],
+  ]);
+
+  assert.equal(
+    getActiveStagedLines(pending, Date.parse("2026-08-27T10:00:02.000Z"))
+      .length,
+    1,
+  );
+});
+
+test("prunes only staged adds whose fetcher has completed", () => {
+  const pending = new Map<string, PendingAdd>([
+    ["add-1", { lines: [createInput(1)], stagedFromUpdatedAt: "" }],
+    ["add-2", { lines: [createInput(2)], stagedFromUpdatedAt: "" }],
+  ]);
+  const completedFormData = new FormData();
+  completedFormData.set("cartStageToken", "add-1");
+  const activeFormData = new FormData();
+  activeFormData.set("cartStageToken", "add-2");
+
+  const active = pruneCompletedPendingAdds(pending, [
+    { state: "idle", data: { cart: {} }, formData: completedFormData },
+    { state: "submitting", formData: activeFormData },
+  ] as Parameters<typeof pruneCompletedPendingAdds>[1]);
+
+  assert.deepEqual([...active.keys()], ["add-2"]);
 });

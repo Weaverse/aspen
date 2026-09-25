@@ -36,54 +36,63 @@ export function ToolsBar({
     CollectionQuery & { appliedFilters: AppliedFilter[] }
   >();
   const showFilterTrigger = enableFilter;
+  const productCount = collection.products.nodes.length;
+  const hasFilters = Boolean(collection.products.filters?.length);
 
   return (
-    <div className="py-3">
-      <div className="flex items-center justify-between gap-4 md:items-stretch md:gap-8">
-        <div className="hidden flex-col justify-start gap-4 self-stretch md:flex">
-          <h4 className="uppercase tracking-tighter">{collection.title}</h4>
+    <header className="pb-6 md:pb-8">
+      <div className="flex flex-col gap-4 md:grid md:grid-cols-[minmax(0,1fr)_auto] md:items-stretch md:gap-x-8 lg:grid-cols-[50%_minmax(0,1fr)] xl:gap-x-10">
+        <div className="flex min-w-0 w-full flex-col gap-4 md:justify-between">
+          <h1 className="self-stretch text-left font-heading font-normal text-[37px] uppercase leading-[110%] tracking-[-0.74px] text-[var(--color-text,#343231)] md:max-w-full md:break-words">
+            {collection.title}
+          </h1>
           {showProductsCount && (
-            <span className="py-2 uppercase">
-              {t("collection.products")} ({collection.products.nodes.length})
-            </span>
+            <p className="flex h-12 items-center uppercase">
+              {t("collection.products")} ({productCount})
+            </p>
           )}
         </div>
-        <div className="flex w-full items-center justify-between gap-2 md:w-fit md:justify-end">
-          <LayoutSwitcher
-            gridSizeDesktop={gridSizeDesktop}
-            gridSizeMobile={gridSizeMobile}
-            onGridSizeChange={onGridSizeChange}
-          />
-          <div className="flex items-center gap-2">
+        <div className="flex w-full flex-col gap-4 md:w-auto md:items-end md:justify-between">
+          <div className="flex w-full items-center justify-between gap-2 md:w-fit md:justify-end md:gap-3">
+            <LayoutSwitcher
+              className={cn(
+                "flex-row overflow-hidden rounded-xl border border-[#9D9D9D]",
+                "[&>button]:border-0 [&>button]:text-[#C8C8C8]",
+                '[&>button[data-active="true"]]:text-[#8A8A8A]',
+                "[&>button+button]:border-[#D8D8D8] [&>button+button]:border-l",
+              )}
+              mobileColumns={[1, 2]}
+              gridSizeDesktop={gridSizeDesktop}
+              gridSizeMobile={gridSizeMobile}
+              onGridSizeChange={onGridSizeChange}
+            />
             {showFilterTrigger && (
               <FiltersDrawer
                 filtersPosition={filtersPosition}
                 appliedFiltersCount={appliedFilters.length}
+                disabled={!hasFilters}
               />
             )}
-            {enableSort && (
-              <>
-                <div className="md:hidden">
-                  <Sort mode="drawer" />
-                </div>
-                <div className="hidden md:block">
-                  <Sort />
-                </div>
-              </>
-            )}
           </div>
+          {enableSort && (
+            <div className="flex w-full justify-end md:w-fit">
+              <Sort />
+            </div>
+          )}
         </div>
       </div>
-    </div>
+    </header>
   );
 }
 
 function FiltersDrawer({
   filtersPosition,
   appliedFiltersCount,
+  disabled,
 }: {
   filtersPosition: ToolsBarProps["filtersPosition"];
   appliedFiltersCount: number;
+  disabled: boolean;
 }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -94,10 +103,11 @@ function FiltersDrawer({
         <Button
           variant="outline"
           className={cn(
-            "flex h-11 items-center gap-1.5 rounded-sm border px-4 py-2 md:h-12",
+            "flex h-12 min-w-[102px] items-center gap-1.5 rounded-xl !px-5 !py-2",
             filtersPosition === "sidebar" && "lg:hidden",
           )}
           animate={false}
+          disabled={disabled}
           aria-label={
             appliedFiltersCount
               ? t("collection.filterProductsActive", {
@@ -115,20 +125,17 @@ function FiltersDrawer({
       </Dialog.Trigger>
       <AnimatedDrawer open={open}>
         <div className="flex h-full flex-col">
-          <div className="flex min-h-10 shrink-0 items-center justify-between pr-2 pl-[52px]">
-            <Dialog.Title className="-translate-y-0.5 text-sm font-semibold uppercase tracking-[0.02em]">
+          <div className="flex min-h-10 shrink-0 items-center justify-between px-[52px]">
+            <Dialog.Title className="text-sm font-semibold uppercase">
               {t("collection.filter")}
             </Dialog.Title>
             <Dialog.Close asChild>
               <button
                 type="button"
-                className="flex h-10 w-10 items-center justify-center outline-none"
+                className="-mr-2 flex h-10 w-10 items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body"
                 aria-label={t("collection.closeFilters")}
               >
-                <XIcon
-                  aria-hidden="true"
-                  className="h-4 w-4 -translate-y-[3px]"
-                />
+                <XIcon aria-hidden="true" className="h-5 w-5" />
               </button>
             </Dialog.Close>
           </div>

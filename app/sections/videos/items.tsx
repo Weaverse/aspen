@@ -1,17 +1,10 @@
 import type { HydrogenComponent } from "@weaverse/hydrogen";
 import type { ReactNode } from "react";
-import {
-  Children,
-  cloneElement,
-  forwardRef,
-  isValidElement,
-  useState,
-} from "react";
-import { Pagination } from "swiper/modules";
+import { Children, forwardRef, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
-import "swiper/css/pagination";
 import type { ImageAspectRatio } from "~/types/image";
+import { DESKTOP_MIN_PX, TABLET_MIN_PX } from "~/utils/breakpoints";
 
 interface VideoItemsProps {
   gap?: number;
@@ -22,17 +15,7 @@ interface VideoItemsProps {
 let VideoItems = forwardRef<HTMLElement, VideoItemsProps>((props, ref) => {
   let { gap = 20, videoAspectRatio = "9/16", children } = props;
   const [activeIndex, setActiveIndex] = useState(0);
-  const sourceItems = Children.toArray(children).slice(0, 4);
-  // The approved composition is a four-card reel. Older saved projects often
-  // contain only the original three children, so reuse the second reel as the
-  // fourth visual (the Figma scenario intentionally repeats that texture).
-  const items =
-    sourceItems.length === 3 && isValidElement(sourceItems[1])
-      ? [
-          ...sourceItems,
-          cloneElement(sourceItems[1], { key: "video-design-fourth" } as any),
-        ]
-      : sourceItems;
+  const items = Children.toArray(children).slice(0, 4);
   const totalSlides = items.length;
   let style = {
     "--aspect-ratio": videoAspectRatio,
@@ -40,50 +23,42 @@ let VideoItems = forwardRef<HTMLElement, VideoItemsProps>((props, ref) => {
   } as React.CSSProperties;
 
   return (
-    <>
-      <div
-        ref={ref as any}
-        className="hidden w-full grid-cols-4 lg:grid"
-        style={{ gap: "var(--video-items-gap)", ...style }}
+    <div ref={ref as any} className="relative w-full" style={style}>
+      <Swiper
+        spaceBetween={gap}
+        slidesPerView="auto"
+        onSlideChange={(swiper) => setActiveIndex(swiper.realIndex)}
+        breakpoints={{
+          [TABLET_MIN_PX]: {
+            slidesPerView: 2,
+            spaceBetween: 16,
+          },
+          [DESKTOP_MIN_PX]: {
+            slidesPerView: 4,
+            spaceBetween: gap,
+            allowTouchMove: false,
+          },
+        }}
+        className="w-full"
       >
-        {items}
-      </div>
-
-      <div className="relative lg:hidden" style={style}>
-        <Swiper
-          spaceBetween={gap}
-          slidesPerView="auto"
-          modules={[Pagination]}
-          onSlideChange={(swiper) => setActiveIndex(swiper.realIndex)}
-          className="w-full"
-        >
-          {Children.map(items, (child, index) => {
-            if (isValidElement(child)) {
-              return (
-                <SwiperSlide key={index} className="!w-[325px] max-w-full">
-                  {cloneElement(child, {
-                    style,
-                  } as any)}
-                </SwiperSlide>
-              );
-            }
-            return (
-              <SwiperSlide key={index} className="!w-[325px] max-w-full">
-                {child}
-              </SwiperSlide>
-            );
-          })}
-        </Swiper>
-        {totalSlides > 1 && (
-          <div
-            className="mt-10 text-center font-body text-(--color-text) text-xs leading-4"
-            aria-live="polite"
+        {Children.map(items, (child, index) => (
+          <SwiperSlide
+            key={index}
+            className="!w-[325px] flex h-auto max-w-full flex-col items-start md:!w-[calc((100%-16px)/2)] lg:!w-[calc((100%-3*var(--video-items-gap))/4)]"
           >
-            {activeIndex + 1}/{totalSlides}
-          </div>
-        )}
-      </div>
-    </>
+            {child}
+          </SwiperSlide>
+        ))}
+      </Swiper>
+      {totalSlides > 1 && (
+        <div
+          className="mt-10 text-center font-body text-(--color-text) text-xs leading-4 md:hidden"
+          aria-live="polite"
+        >
+          {activeIndex + 1}/{totalSlides}
+        </div>
+      )}
+    </div>
   );
 });
 

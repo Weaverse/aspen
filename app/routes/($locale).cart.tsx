@@ -18,16 +18,19 @@ import {
 } from "react-router";
 import invariant from "tiny-invariant";
 import { Cart } from "~/components/cart/cart";
-import { CART_CODE_APPLY_ACTION } from "~/components/cart/cart-actions";
 import { CartBestSellers } from "~/components/cart/cart-best-sellers";
 import { Section } from "~/components/section";
+import {
+  addGiftCardCodes,
+  updateDiscountCodes,
+} from "~/utils/cart-codes.server";
 import { CART_ERROR_KEYS } from "~/utils/cart-error";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 
 export const shouldRevalidate = skipPageRevalidationForStorefrontActions;
 
 export async function action({ request, context }: ActionFunctionArgs) {
-  const { cart } = context;
+  const { cart, localization, session } = context;
   const formData = await request.formData();
   const { action: parsedAction, inputs } = CartForm.getFormInput(formData);
   const cartFormAction = parsedAction as string;
@@ -35,49 +38,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   const status = 200;
   let result: CartQueryDataReturn;
-  let cartCodeApplied: boolean | undefined;
+  let shouldCommitLocalizationSession = false;
 
   switch (cartFormAction) {
-    case CART_CODE_APPLY_ACTION: {
-      const code = String(inputs.discountCode ?? "").trim();
-      invariant(code, "No cart code provided");
-
-      const currentCart = await cart.get();
-      const currentDiscountCodes =
-        currentCart?.discountCodes?.map(
-          ({ code: discountCode }) => discountCode,
-        ) ?? [];
-      const currentGiftCardIds = new Set(
-        currentCart?.appliedGiftCards?.map((giftCard) => giftCard.id) ?? [],
-      );
-
-      const discountResult = await cart.updateDiscountCodes([
-        ...currentDiscountCodes,
-        code,
-      ]);
-      const discountApplied = discountResult.cart?.discountCodes?.some(
-        (discount) =>
-          discount.code.toLowerCase() === code.toLowerCase() &&
-          discount.applicable,
-      );
-
-      if (discountApplied) {
-        result = discountResult;
-        cartCodeApplied = true;
-      } else {
-        await cart.updateDiscountCodes(currentDiscountCodes);
-        result = await cart.addGiftCardCodes([code]);
-        const normalizedCode = code.replace(/\s/g, "").toLowerCase();
-        cartCodeApplied = Boolean(
-          result.cart?.appliedGiftCards?.some(
-            (giftCard) =>
-              !currentGiftCardIds.has(giftCard.id) &&
-              normalizedCode.endsWith(giftCard.lastCharacters.toLowerCase()),
-          ),
-        );
-      }
-      break;
-    }
     case CartForm.ACTIONS.LinesAdd: {
       const lines = (inputs.lines as CartLineInput[] | undefined) ?? [];
       const hasInvalidLine =
@@ -100,7 +63,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
               },
             ],
             errors: undefined,
-            cartCodeApplied: undefined,
           },
           { status: 400 },
         );
@@ -127,7 +89,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
             cart: currentCart,
             userErrors: [{ message: CART_ERROR_KEYS.noLineSelected }],
             errors: undefined,
-            cartCodeApplied: undefined,
           },
           { status: 400 },
         );
@@ -147,7 +108,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
           cart: currentCart,
           userErrors: [],
           errors: undefined,
-          cartCodeApplied: undefined,
         });
       }
 
@@ -158,7 +118,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
             cart: (await getCartOrNull(cart)) ?? removeResult.cart,
             userErrors: [],
             errors: undefined,
-            cartCodeApplied: undefined,
           });
         }
         result = removeResult;
@@ -170,28 +129,26 @@ export async function action({ request, context }: ActionFunctionArgs) {
           cart: await getCartOrNull(cart),
           userErrors: [],
           errors: undefined,
-          cartCodeApplied: undefined,
         });
       }
       break;
     }
     case CartForm.ACTIONS.DiscountCodesUpdate: {
-      const formDiscountCode = inputs.discountCode;
-
-      // User inputted discount code
-      const discountCodes = (
-        formDiscountCode ? [formDiscountCode] : []
-      ) as string[];
-
-      // Combine discount codes already applied on cart
-      discountCodes.push(...(inputs.discountCodes as string[]));
-
-      result = await cart.updateDiscountCodes(discountCodes);
+      const code = String(inputs.discountCode ?? "").trim();
+      if (!code) {
+        // Removal submits the exact list of codes that should remain.
+        result = await cart.updateDiscountCodes(
+          (inputs.discountCodes ?? []) as string[],
+        );
+        break;
+      }
+      result = await updateDiscountCodes(cart, code);
       break;
     }
-    case CartForm.ACTIONS.GiftCardCodesAdd:
-      result = await cart.addGiftCardCodes(inputs.giftCardCodes as string[]);
+    case CartForm.ACTIONS.GiftCardCodesAdd: {
+      result = await addGiftCardCodes(cart, inputs.giftCardCodes as string[]);
       break;
+    }
     case CartForm.ACTIONS.GiftCardCodesRemove:
       result = await cart.removeGiftCardCodes(
         inputs.appliedGiftCardIds as string[],
@@ -201,6 +158,34 @@ export async function action({ request, context }: ActionFunctionArgs) {
       result = await cart.updateNote(String(inputs.note ?? ""));
       break;
     case CartForm.ACTIONS.BuyerIdentityUpdate:
+      if (formData.get("localizationChange") === "currency") {
+        const marketCountry = formData.get("marketCountry");
+        if (
+          typeof marketCountry === "string" &&
+          localization.availableCurrencies.some(
+            (option) => option.country === marketCountry,
+          )
+        ) {
+          session.set("marketCountry", marketCountry);
+          shouldCommitLocalizationSession = true;
+
+          // Match Pilot's cart baseline: changing market must not create a
+          // cart solely to store buyer identity. The session is enough until
+          // the first cart is created with this request's market context.
+          if (!cart.getCartId()) {
+            const headers = new Headers();
+            headers.append("Set-Cookie", await session.commit());
+            return data(
+              {
+                cart: null,
+                userErrors: [],
+                errors: undefined,
+              },
+              { status, headers },
+            );
+          }
+        }
+      }
       result = await cart.updateBuyerIdentity({
         ...(inputs.buyerIdentity as CartBuyerIdentityInput),
       });
@@ -213,6 +198,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
    * The Cart ID may change after each mutation. We need to update it each time in the session.
    */
   const headers = result.cart ? cart.setCartId(result.cart.id) : new Headers();
+  if (shouldCommitLocalizationSession) {
+    headers.append("Set-Cookie", await session.commit());
+  }
 
   const redirectTo = formData.get("redirectTo") ?? null;
   if (typeof redirectTo === "string" && isLocalPath(redirectTo)) {
@@ -226,7 +214,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
       cart: cartResult,
       userErrors,
       errors,
-      cartCodeApplied,
     },
     { status, headers },
   );

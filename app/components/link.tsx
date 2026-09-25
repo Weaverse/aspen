@@ -11,13 +11,14 @@ import {
   type LinkProps as RemixLinkProps,
   useRouteLoaderData,
 } from "react-router";
+import { useTranslatedText } from "~/hooks/use-translated-text";
 import type { RootLoader } from "~/root";
 import { cn } from "~/utils/cn";
 import { prefixPathWithLocale } from "~/utils/locale";
 
 export const variants = cva(
   [
-    "button inline-flex items-center justify-center rounded-(--radius-sm) leading-none transition-colors",
+    "button inline-flex items-center justify-center gap-2 rounded-(--radius-sm) font-semibold text-sm leading-none tracking-[0.02em] transition-colors",
     "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-text)",
   ],
   {
@@ -49,7 +50,6 @@ export const variants = cva(
         decor: [
           "border-none bg-transparent p-0",
           "group inline-flex items-center gap-1 text-(--btn-text-decor)",
-          "font-semibold tracking-[0.02em]",
         ],
         custom: [
           "border px-6 py-5",
@@ -120,9 +120,11 @@ export function useHrefWithLocale(href: LinkProps["to"]) {
  */
 export const Link = forwardRef(
   (props: LinkProps, ref: React.Ref<HTMLAnchorElement>) => {
+    const translateText = useTranslatedText();
+
     let {
       to,
-      text,
+      text: rawI18nText,
       variant,
       openInNewTab,
       className,
@@ -137,6 +139,7 @@ export const Link = forwardRef(
       children,
       ...rest
     } = props;
+    const text = translateText(rawI18nText, "themeContent.componentsLink.text");
     const { enableViewTransition } = useThemeSettings();
     const href = useHrefWithLocale(to);
 

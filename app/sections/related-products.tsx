@@ -65,6 +65,8 @@ const RelatedProducts = forwardRef<HTMLElement, RelatedProductsProps>(
                       <ProductCard
                         key={product.id}
                         product={product}
+                        mobileLayout
+                        contentAlignment="left"
                         className="w-80 snap-start"
                       />
                     ))}

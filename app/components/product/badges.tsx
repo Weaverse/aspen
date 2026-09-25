@@ -1,12 +1,13 @@
 import { useMoney } from "@shopify/hydrogen";
 import type { MoneyV2 } from "@shopify/hydrogen/storefront-api-types";
-import { useThemeSettings } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import type {
   ProductCardFragment,
   ProductQuery,
   ProductVariantFragment,
 } from "storefront-api.generated";
+import { useTranslatedText } from "~/hooks/use-translated-text";
+import { useTranslatedThemeSettings } from "~/hooks/use-translated-theme-settings";
 import { cn } from "~/utils/cn";
 
 function Badge({
@@ -14,13 +15,15 @@ function Badge({
   backgroundColor,
   textColor,
   className,
+  variant,
 }: {
   text: string;
   backgroundColor: string;
   textColor: string;
   className?: string;
+  variant?: "sale" | "new";
 }) {
-  const { badgeTextTransform } = useThemeSettings();
+  const { badgeTextTransform } = useTranslatedThemeSettings();
   return (
     <span
       style={{
@@ -30,7 +33,10 @@ function Badge({
         textTransform: badgeTextTransform,
       }}
       className={cn(
-        "whitespace-nowrap px-3 py-1 font-bold text-xs leading-[14px]",
+        "whitespace-nowrap px-3 py-1",
+        variant
+          ? "inline-flex items-center gap-2 font-dm-sans font-semibold text-sm not-italic leading-none tracking-[0.28px]"
+          : "font-bold text-xs leading-[14px]",
         className,
       )}
     >
@@ -46,13 +52,14 @@ export function NewBadge({
   publishedAt: string;
   className?: string;
 }) {
-  const { newBadgeText, newBadgeDaysOld } = useThemeSettings();
+  const { newBadgeText, newBadgeDaysOld } = useTranslatedThemeSettings();
   if (isNewArrival(publishedAt, newBadgeDaysOld)) {
     return (
       <Badge
         text={newBadgeText}
-        backgroundColor="var(--color-new-badge)"
-        textColor="var(--color-text)"
+        variant="new"
+        backgroundColor="var(--color-new-badge, #E3DAD4)"
+        textColor="var(--color-text-subtle, #524B46)"
         className={clsx("new-badge", className)}
       />
     );
@@ -61,7 +68,7 @@ export function NewBadge({
 }
 
 export function BestSellerBadge({ className }: { className?: string }) {
-  const { bestSellerBadgeText } = useThemeSettings();
+  const { bestSellerBadgeText } = useTranslatedThemeSettings();
   return (
     <Badge
       text={bestSellerBadgeText}
@@ -73,7 +80,7 @@ export function BestSellerBadge({ className }: { className?: string }) {
 }
 
 export function SoldOutBadge({ className }: { className?: string }) {
-  const { soldOutBadgeText } = useThemeSettings();
+  const { soldOutBadgeText } = useTranslatedThemeSettings();
   return (
     <Badge
       text={soldOutBadgeText}
@@ -85,7 +92,7 @@ export function SoldOutBadge({ className }: { className?: string }) {
 }
 
 export function BundleBadge({ className }: { className?: string }) {
-  const { bundleBadgeText } = useThemeSettings();
+  const { bundleBadgeText } = useTranslatedThemeSettings();
   return (
     <Badge
       text={bundleBadgeText}
@@ -105,7 +112,14 @@ export function SaleBadge({
   compareAtPrice: MoneyV2;
   className?: string;
 }) {
-  const { saleBadgeText = "Sale" } = useThemeSettings();
+  const translateText = useTranslatedText();
+
+  const { saleBadgeText: rawI18nSaleBadgeText = "Sale" } =
+    useTranslatedThemeSettings();
+  const saleBadgeText = translateText(
+    rawI18nSaleBadgeText,
+    "themeContent.componentsProductBadges.saleBadgeText",
+  );
   const { amount, percentage } = calculateDiscount(price, compareAtPrice);
   const discountAmount = useMoney({ amount, currencyCode: price.currencyCode });
   const text = saleBadgeText
@@ -116,8 +130,9 @@ export function SaleBadge({
     return (
       <Badge
         text={text}
-        backgroundColor="var(--color-discount)"
-        textColor="var(--color-text-inverse)"
+        variant="sale"
+        backgroundColor="var(--color-discount, #573B3B)"
+        textColor="var(--color-text-inverse, #FEF4EB)"
         className={clsx("sale-badge", className)}
       />
     );

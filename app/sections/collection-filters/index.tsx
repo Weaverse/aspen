@@ -4,8 +4,10 @@ import { forwardRef, useEffect, useState } from "react";
 import { useLoaderData } from "react-router";
 import type { CollectionQuery } from "storefront-api.generated";
 import { BreadCrumb } from "~/components/breadcrumb";
+import { CollectionEditorialPromo } from "~/components/editorial-promo";
 import { Image } from "~/components/image";
 import { layoutInputs, Section, type SectionProps } from "~/components/section";
+import { useTranslatedText } from "~/hooks/use-translated-text";
 import { Filters } from "./filters";
 import { ProductsPagination } from "./products-pagination";
 import { ToolsBar } from "./tools-bar";
@@ -36,6 +38,8 @@ interface CollectionFiltersProps extends SectionProps, CollectionFiltersData {}
 
 const CollectionFilters = forwardRef<HTMLElement, CollectionFiltersProps>(
   (props, ref) => {
+    const translateText = useTranslatedText();
+
     const { t } = useTranslation();
     const {
       showBreadcrumb,
@@ -49,16 +53,32 @@ const CollectionFilters = forwardRef<HTMLElement, CollectionFiltersProps>(
       enableFilter,
       filtersPosition,
       expandFilters,
-      expandedFiltersByDefault,
+      expandedFiltersByDefault: rawI18nExpandedFiltersByDefault,
       showProductsCount,
       enableSwatches,
-      displayAsButtonFor,
+      displayAsButtonFor: rawI18nDisplayAsButtonFor,
       productsPerRowDesktop,
       productsPerRowMobile,
-      loadPrevText,
-      loadMoreText,
+      loadPrevText: rawI18nLoadPrevText,
+      loadMoreText: rawI18nLoadMoreText,
       ...rest
     } = props;
+    const loadMoreText = translateText(
+      rawI18nLoadMoreText,
+      "themeContent.sectionsCollectionFiltersIndex.loadMoreText",
+    );
+    const loadPrevText = translateText(
+      rawI18nLoadPrevText,
+      "themeContent.sectionsCollectionFiltersIndex.loadPrevText",
+    );
+    const displayAsButtonFor = translateText(
+      rawI18nDisplayAsButtonFor,
+      "themeContent.sectionsCollectionFiltersIndex.displayAsButtonFor",
+    );
+    const expandedFiltersByDefault = translateText(
+      rawI18nExpandedFiltersByDefault,
+      "themeContent.sectionsCollectionFiltersIndex.expandedFiltersByDefault",
+    );
     const { collection, collections } = useLoaderData<
       CollectionQuery & {
         collections: Array<{ handle: string; title: string }>;
@@ -69,12 +89,12 @@ const CollectionFilters = forwardRef<HTMLElement, CollectionFiltersProps>(
       Number(productsPerRowDesktop) || 2,
     );
     const [gridSizeMobile, setGridSizeMobile] = useState(
-      Number(productsPerRowMobile) || 1,
+      Number(productsPerRowMobile) === 2 ? 2 : 1,
     );
 
     useEffect(() => {
       setGridSizeDesktop(Number(productsPerRowDesktop) || 2);
-      setGridSizeMobile(Number(productsPerRowMobile) || 1);
+      setGridSizeMobile(Number(productsPerRowMobile) === 2 ? 2 : 1);
     }, [productsPerRowDesktop, productsPerRowMobile]);
 
     if (collection?.products && collections) {
@@ -87,9 +107,6 @@ const CollectionFilters = forwardRef<HTMLElement, CollectionFiltersProps>(
             {showBreadcrumb && (
               <BreadCrumb page={collection.title} className="mb-2.5" />
             )}
-            <h4 className="block uppercase tracking-tighter md:hidden">
-              {collection.title}
-            </h4>
             {showDescription && collection.description && (
               <p className="mt-2.5 text-body-subtle">
                 {collection.description}
@@ -127,7 +144,7 @@ const CollectionFilters = forwardRef<HTMLElement, CollectionFiltersProps>(
             }}
             {...props}
           />
-          <div className="flex gap-5 pt-3 pb-8 lg:pb-20">
+          <div className="flex gap-5 pt-3 pb-8 md:pb-12 lg:pb-16">
             {enableFilter && filtersPosition === "sidebar" && (
               <div className="hidden w-72 shrink-0 lg:block">
                 <div className="sticky top-[calc(var(--height-nav)+40px)] space-y-4">
@@ -145,6 +162,7 @@ const CollectionFilters = forwardRef<HTMLElement, CollectionFiltersProps>(
               loadMoreText={loadMoreText}
             />
           </div>
+          {collection.products.nodes.length > 0 && <CollectionEditorialPromo />}
         </Section>
       );
     }

@@ -14,6 +14,7 @@ import type {
   NormalizedPredictiveSearchResults,
 } from "~/types/predictive-search";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
+import { normalizeSearchStyledText } from "~/utils/search-highlight";
 
 export const shouldRevalidate = skipPageRevalidationForStorefrontActions;
 
@@ -41,9 +42,15 @@ type PredictiveProductWithOptions = PredictiveProductFragment & {
   }>;
 };
 
-type PredictiveSearchTypes = "COLLECTION" | "PAGE" | "PRODUCT" | "QUERY";
+type PredictiveSearchTypes =
+  | "ARTICLE"
+  | "COLLECTION"
+  | "PAGE"
+  | "PRODUCT"
+  | "QUERY";
 
 const DEFAULT_SEARCH_TYPES: PredictiveSearchTypes[] = [
+  "ARTICLE",
   "COLLECTION",
   "PAGE",
   "PRODUCT",
@@ -62,7 +69,7 @@ export async function action({ request, params, context }: LoaderFunctionArgs) {
           results: NO_PREDICTIVE_SEARCH_RESULTS,
           totalResults: 0,
         },
-        error: "Method not allowed",
+        error: "errors.methodNotAllowed",
       },
       { status: 405 },
     );
@@ -84,7 +91,7 @@ export async function action({ request, params, context }: LoaderFunctionArgs) {
           results: NO_PREDICTIVE_SEARCH_RESULTS,
           totalResults: 0,
         },
-        error: "Search is temporarily unavailable",
+        error: "errors.searchUnavailable",
       },
       { status: 503 },
     );
@@ -206,7 +213,7 @@ function normalizePredictiveSearchResults(
           id: query.text,
           image: undefined,
           title: query.text,
-          styledTitle: query.styledText,
+          styledTitle: normalizeSearchStyledText(query.styledText),
           url: `${localePrefix}/search${createSearchParams(
             query,
             new URLSearchParams({ q: query.text }),
@@ -290,40 +297,28 @@ function normalizePredictiveSearchResults(
     });
   }
 
-  if (predictiveSearch.pages.length) {
-    results.push({
-      type: "pages",
-      items: predictiveSearch.pages.map((page: PredictivePageFragment) => {
-        totalResults += 1;
-        return {
-          __typename: page.__typename,
-          handle: page.handle,
-          id: page.id,
-          image: undefined,
-          title: page.title,
-          url: `${localePrefix}/pages/${page.handle}${createSearchParams(page)}`,
-        };
-      }),
-    });
-  }
+  const pageItems: NormalizedPredictiveSearchResults[number]["items"] = [
+    ...predictiveSearch.articles.map((article) => ({
+      __typename: article.__typename,
+      handle: article.handle,
+      id: article.id,
+      image: article.image,
+      title: article.title,
+      url: `${localePrefix}/blogs/${article.handle}${createSearchParams(article)}`,
+    })),
+    ...predictiveSearch.pages.map((page) => ({
+      __typename: page.__typename,
+      handle: page.handle,
+      id: page.id,
+      image: undefined,
+      title: page.title,
+      url: `${localePrefix}/pages/${page.handle}${createSearchParams(page)}`,
+    })),
+  ];
 
-  if (predictiveSearch.articles.length) {
-    results.push({
-      type: "articles",
-      items: predictiveSearch.articles.map(
-        (article: PredictiveArticleFragment) => {
-          totalResults += 1;
-          return {
-            __typename: article.__typename,
-            handle: article.handle,
-            id: article.id,
-            image: article.image,
-            title: article.title,
-            url: `${localePrefix}/blogs/${article.handle}${createSearchParams(article)}`,
-          };
-        },
-      ),
-    });
+  if (pageItems.length) {
+    results.push({ type: "pages", items: pageItems });
+    totalResults += pageItems.length;
   }
 
   return { results, totalResults };

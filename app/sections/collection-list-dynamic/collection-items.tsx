@@ -9,12 +9,20 @@ import {
 } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { forwardRef, useEffect, useState } from "react";
+import { useInView } from "react-intersection-observer";
 import { Swiper, SwiperSlide } from "swiper/react";
+import { translatePreview } from "~/utils/preview-translation";
 import "swiper/css";
 import type { CollectionByIdsQuery } from "storefront-api.generated";
 import { Image } from "~/components/image";
 import Link from "~/components/link";
 import { useAnimation } from "~/hooks/use-animation";
+import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
+import {
+  DESKTOP_MIN_PX,
+  minWidthQuery,
+  TABLET_MIN_PX,
+} from "~/utils/breakpoints";
 
 interface CollectionWithProducts {
   id: string;
@@ -29,19 +37,6 @@ interface CollectionWithProducts {
     height?: number;
     url: string;
   } | null;
-  products?: {
-    nodes: Array<{
-      title: string;
-      handle: string;
-      featuredImage?: {
-        id?: string;
-        url: string;
-        altText?: string | null;
-        width?: number;
-        height?: number;
-      } | null;
-    }>;
-  };
 }
 
 interface CollectionItemsData {
@@ -95,7 +90,7 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
       activeLayout === "grid" ? 6 : activeLayout === "showcase" ? 3 : 0;
 
     if (!collections?.length) {
-      collections = COLLECTION_PLACEHOLDERS.slice(
+      collections = translatePreview(t, COLLECTION_PLACEHOLDERS).slice(
         0,
         activeLayout === "slider" ? 4 : requiredCollectionCount,
       );
@@ -105,7 +100,7 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
     ) {
       collections = [
         ...collections,
-        ...COLLECTION_PLACEHOLDERS.slice(
+        ...translatePreview(t, COLLECTION_PLACEHOLDERS).slice(
           collections.length,
           requiredCollectionCount,
         ),
@@ -129,19 +124,19 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
       <Link
         key={collection.id + ind}
         to={`/collections/${collection.handle}`}
-        className="group relative block aspect-[159.5/249.333] overflow-hidden rounded-(--radius-md) md:aspect-[440/590.2]"
+        className="group relative flex h-[249.333px] min-w-0 flex-1 flex-col items-start justify-end gap-5 overflow-hidden rounded-[var(--Radius-border-radius-md,12px)] md:h-[391.107px] lg:h-auto lg:aspect-[440/590.2]"
         data-motion="slide-in"
       >
         {collection.image && (
           <Image
             data={collection.image}
-            sizes="(min-width: 768px) 33vw, 50vw"
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+            sizes={`${minWidthQuery(DESKTOP_MIN_PX)} 33vw, ${minWidthQuery(TABLET_MIN_PX)} 33vw, 50vw`}
+            className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
           />
         )}
-        <div className="absolute inset-0 bg-black/10 transition-colors duration-500 group-hover:bg-black/30" />
-        <h3 className="absolute inset-0 flex items-center justify-center gap-2 overflow-hidden px-3 text-center font-heading font-normal text-[26px] text-(--collection-name-color) uppercase leading-[1.1] tracking-[-0.02em] md:px-5">
-          {/* Left padding mirrors the arrow's width so the title stays centered in both states */}
+        <div className="absolute inset-0 bg-black/10 transition-colors duration-500 group-hover:bg-black/50" />
+        <h3 className="absolute inset-0 z-10 flex items-center justify-center gap-2 overflow-hidden px-3 text-center font-heading font-normal text-[26px] text-[var(--collection-name-color,var(--Text-Inverse,#FEF4EB))] uppercase leading-[1.1] tracking-[-0.52px] md:px-5">
+          {/* Balance the arrow width so the collection name stays centered. */}
           <span className="line-clamp-1 whitespace-nowrap pl-7 md:pl-8">
             {collection.title}
           </span>
@@ -157,36 +152,7 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
       collection: CollectionWithProducts,
       ind: number,
     ) => (
-      <Link
-        key={collection.id + ind}
-        to={`/collections/${collection.handle}`}
-        className="group flex h-full w-full flex-col rounded-(--radius-md) bg-(--collection-bg-color) p-4"
-      >
-        <div className="relative aspect-square w-full overflow-hidden">
-          {collection.image && (
-            <Image
-              data={collection.image}
-              sizes="(min-width: 1280px) 25vw, (min-width: 640px) 45vw, 90vw"
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-            />
-          )}
-          <div className="absolute inset-0 bg-black/0 transition-colors duration-500 group-hover:bg-black/20" />
-        </div>
-        <div className="flex w-full flex-col pt-5 text-(--collection-name-color)">
-          <h3 className="flex items-center gap-2 font-heading font-normal text-[26px] leading-[1.1] tracking-[-0.02em]">
-            <span className="line-clamp-1">{collection.title}</span>
-            <ArrowRight
-              weight="thin"
-              className="size-4 shrink-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 md:size-5"
-            />
-          </h3>
-          <p className="font-body text-sm text-[#D9CFC8] leading-[1.6] tracking-[0.01em]">
-            {t("collection.productCount", {
-              count: collection.products?.nodes?.length || 0,
-            })}
-          </p>
-        </div>
-      </Link>
+      <SliderCollectionCard collection={collection} key={collection.id + ind} />
     );
 
     const renderEditorialCard = (
@@ -198,7 +164,7 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
         key={collection.id + ind}
         to={`/collections/${collection.handle}`}
         className={clsx(
-          "group relative block min-h-0 overflow-hidden rounded-(--radius-md)",
+          "group relative block min-h-0 overflow-hidden rounded-[var(--Radius-border-radius-md,12px)] bg-[lightgray] md:flex-[1_0_0] md:self-stretch",
           className,
         )}
         data-motion="slide-in"
@@ -206,16 +172,16 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
         {collection.image && (
           <Image
             data={collection.image}
-            sizes="(min-width: 768px) 50vw, 100vw"
-            className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+            sizes={`${minWidthQuery(TABLET_MIN_PX)} 50vw, 100vw`}
+            className="absolute inset-0 h-full w-full bg-[lightgray] object-cover object-[50%_50%] transition-transform duration-500 group-hover:scale-[1.02]"
           />
         )}
         <div className="absolute inset-0 bg-black/0 transition-colors duration-500 group-hover:bg-black/20" />
-        <h3 className="absolute inset-x-0 bottom-0 flex items-center gap-2 bg-[#CABDB7E5] px-4 py-2.5 text-left font-body font-semibold text-[#FEF4EB] text-sm uppercase leading-[1.6] tracking-[0.02em] md:bg-[#6B6B6BE5] md:px-4 md:py-3 md:font-heading md:font-normal md:text-[32px] md:leading-10 md:tracking-[-0.02em]">
-          <span className="line-clamp-1">{collection.title}</span>
+        <h3 className="absolute inset-x-0 bottom-0 flex h-auto w-full items-center gap-2 bg-[rgba(202,189,183,0.9)] px-4 py-2.5 text-left font-body font-semibold text-[var(--Text-Inverse,#FEF4EB)] text-sm uppercase leading-[1.6] tracking-[0.02em] md:inset-x-auto md:bottom-[-0.25px] md:left-0 md:h-16 md:w-[377px] md:max-w-full md:gap-2.5 md:p-4 md:font-heading md:font-normal md:text-[32px] md:leading-[1.1] md:tracking-[-0.64px] lg:inset-x-0 lg:bottom-0 lg:left-0 lg:h-auto lg:w-full lg:bg-[#6B6B6BE5] lg:px-4 lg:py-3 lg:leading-10 lg:tracking-[-0.02em]">
+          <span className="line-clamp-1 uppercase">{collection.title}</span>
           <ArrowRight
             weight="thin"
-            className="size-4 shrink-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 md:size-7"
+            className="size-4 shrink-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 md:size-6 lg:size-7"
           />
         </h3>
       </Link>
@@ -226,13 +192,13 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
         <div ref={scope} {...rest} style={sliderStyle}>
           <Swiper
             spaceBetween={gap}
-            slidesPerView={1.27}
+            slidesPerView="auto"
             breakpoints={{
-              768: {
-                slidesPerView: 2.2,
+              [TABLET_MIN_PX]: {
+                slidesPerView: "auto",
                 spaceBetween: desktopGap,
               },
-              1024: {
+              [DESKTOP_MIN_PX]: {
                 slidesPerView: 2.7,
                 spaceBetween: desktopGap,
               },
@@ -254,7 +220,7 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
             {collections.map((collection, ind) => (
               <SwiperSlide
                 key={collection.id + ind}
-                className="group relative h-auto"
+                className="group relative h-auto !w-[442.667px] lg:!w-auto"
                 data-motion="slide-in"
                 style={style}
               >
@@ -273,17 +239,22 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
 
       return (
         <div ref={scope} {...rest} className="w-full" style={style}>
-          <div className="grid grid-cols-2 items-stretch gap-[var(--gap-mobile)] md:gap-[var(--gap-desktop)]">
-            <div className="flex min-h-0 flex-col gap-[var(--gap-mobile)] md:gap-[var(--gap-desktop)]">
+          <div className="grid grid-cols-2 items-stretch gap-[var(--gap-mobile)] md:aspect-square lg:aspect-auto lg:gap-[var(--gap-desktop)]">
+            <div className="flex min-h-0 flex-[1_0_0] flex-col gap-[var(--gap-mobile)] self-stretch lg:gap-[var(--gap-desktop)]">
               {firstTwo.map((collection, ind) =>
                 renderEditorialCard(
                   collection,
                   ind,
-                  "aspect-[159.5/140.25] md:aspect-[670/504]",
+                  "aspect-[159.5/140.25] md:aspect-auto md:min-h-0 md:flex-[1_0_0] md:self-stretch lg:aspect-[670/504] lg:flex-none",
                 ),
               )}
             </div>
-            {third && renderEditorialCard(third, 2, "h-full")}
+            {third &&
+              renderEditorialCard(
+                third,
+                2,
+                "h-full min-h-0 flex-[1_0_0] self-stretch",
+              )}
           </div>
         </div>
       );
@@ -326,9 +297,6 @@ const COLLECTION_PLACEHOLDERS: CollectionWithProducts[] = [
       `collection_${index + 1}` as keyof typeof IMAGES_PLACEHOLDERS
     ],
   },
-  products: {
-    nodes: [],
-  },
 }));
 CollectionItems.displayName = "CollectionItems";
 
@@ -350,19 +318,6 @@ let COLLECTIONS_QUERY = `#graphql
           height
           url
         }
-        products(first: 3) {
-          nodes {
-            title
-            handle
-            featuredImage {
-              id
-              url
-              altText
-              width
-              height
-            }
-          }
-        }
       }
     }
   }
@@ -376,7 +331,7 @@ export let loader = async ({
 }: ComponentLoaderArgs<CollectionItemsData>) => {
   let { language, country } = weaverse.storefront.i18n;
   let ids = data.collections
-    ?.slice(0, 6)
+    ?.slice(0, data.layout === "slider" ? 250 : 6)
     .map((collection) => `gid://shopify/Collection/${collection.id}`);
   if (ids?.length) {
     let { nodes } = await weaverse.storefront.query<CollectionByIdsQuery>(
@@ -393,6 +348,75 @@ export let loader = async ({
   }
   return [];
 };
+
+function SliderCollectionCard({
+  collection,
+}: {
+  collection: CollectionWithProducts;
+}) {
+  const { t } = useTranslation();
+  const [productCount, setProductCount] = useState<number | string | null>(
+    null,
+  );
+  const { ref, inView } = useInView({ rootMargin: "200px", triggerOnce: true });
+  const countPath = usePrefixPathWithLocale(
+    `/api/collection/${collection.handle}/product-count`,
+  );
+
+  useEffect(() => {
+    if (!inView) {
+      return;
+    }
+    const controller = new AbortController();
+    fetch(countPath, { signal: controller.signal })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Unable to load collection product count");
+        }
+        return response.json() as Promise<{ count: number | string }>;
+      })
+      .then(({ count }) => setProductCount(count))
+      .catch((error) => {
+        if (!(error instanceof DOMException && error.name === "AbortError")) {
+          setProductCount(null);
+        }
+      });
+    return () => controller.abort();
+  }, [countPath, inView]);
+
+  return (
+    <Link
+      ref={ref}
+      to={`/collections/${collection.handle}`}
+      className="group flex h-[521.667px] w-[442.667px] shrink-0 flex-col items-start gap-5 rounded-[var(--Radius-border-radius-md,12px)] bg-[var(--collection-bg-color,#7F7866)] p-4 lg:h-full lg:w-full"
+    >
+      <div className="relative aspect-square w-full overflow-hidden">
+        {collection.image && (
+          <Image
+            data={collection.image}
+            sizes="(min-width: 1280px) 25vw, (min-width: 640px) 45vw, 90vw"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+          />
+        )}
+        <div className="absolute inset-0 bg-black/0 transition-colors duration-500 group-hover:bg-black/20" />
+      </div>
+      <div className="flex w-full flex-col text-(--collection-name-color)">
+        <h3 className="flex items-center gap-2 font-heading font-normal text-[26px] leading-[1.1] tracking-[-0.02em]">
+          <span className="line-clamp-1">{collection.title}</span>
+          <ArrowRight
+            weight="thin"
+            className="size-4 shrink-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 md:size-5"
+          />
+        </h3>
+        {productCount !== null && (
+          <p className="font-body font-normal text-sm text-[#D9CFC8] leading-[1.6] tracking-[0.01em]">
+            {t("collection.productCount", { count: productCount })}
+          </p>
+        )}
+      </div>
+    </Link>
+  );
+}
 
 export let schema: HydrogenComponentSchema = {
   type: "collection-list-dynamic-items",
@@ -411,13 +435,14 @@ export let schema: HydrogenComponentSchema = {
           type: "select",
           name: "layout",
           label: "Layout",
+          shouldRevalidate: true,
           helpText:
-            "Grid always shows 6 cards. Editorial showcase always shows 3 cards.",
+            "Scenario 1 always shows 6 cards. Scenario 3 always shows 3 cards.",
           configs: {
             options: [
-              { value: "grid", label: "Grid — 6 cards" },
-              { value: "slider", label: "Card slider" },
-              { value: "showcase", label: "Editorial showcase" },
+              { value: "grid", label: "Scenario 1" },
+              { value: "slider", label: "Scenario 2" },
+              { value: "showcase", label: "Scenario 3" },
             ],
           },
           defaultValue: "grid",

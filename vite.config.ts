@@ -34,6 +34,9 @@ export default defineConfig(({ isSsrBuild }) => ({
     ssrStubClientOnlyModules(),
   ],
   resolve: {
+    alias: {
+      "~": fileURLToPath(new URL("./app", import.meta.url)),
+    },
     tsconfigPaths: true,
   },
   build: {
@@ -65,6 +68,7 @@ export default defineConfig(({ isSsrBuild }) => ({
   ssr: {
     optimizeDeps: {
       include: [
+        "sanitize-html",
         "@radix-ui/react-primitive",
         "jsonp",
         "classnames",

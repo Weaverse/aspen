@@ -1,7 +1,13 @@
 import * as Dialog from "@radix-ui/react-dialog";
+import clsx from "clsx";
 import { AnimatePresence, motion } from "framer-motion";
 
-export function AnimatedDrawer({ open, children }) {
+/**
+ * `flush` pins the cart to the top/right edges, with a rounded panel and
+ * full viewport height. Other drawers keep their inset framing,
+ * which the search, sort and filter drawers rely on.
+ */
+export function AnimatedDrawer({ open, children, flush = false }) {
   return (
     <Dialog.Portal forceMount>
       <AnimatePresence>
@@ -18,7 +24,12 @@ export function AnimatedDrawer({ open, children }) {
             <Dialog.Content
               forceMount
               onCloseAutoFocus={(e) => e.preventDefault()}
-              className="fixed inset-y-3 right-5 z-10 max-h-[calc(100vh-36px)]"
+              className={clsx(
+                "fixed z-10",
+                flush
+                  ? "inset-y-0 right-0 h-dvh"
+                  : "inset-y-3 right-5 max-h-[calc(100vh-36px)]",
+              )}
               aria-describedby={undefined}
             >
               <motion.div
@@ -30,7 +41,11 @@ export function AnimatedDrawer({ open, children }) {
                   damping: 25,
                   stiffness: 150,
                 }}
-                className="h-full w-screen max-w-[430px] overflow-hidden rounded-(--radius-md) bg-background pt-3 pb-6"
+                className={clsx(
+                  "h-full w-screen max-w-[430px] overflow-hidden bg-background",
+                  flush && "rounded-xl xl:bg-white",
+                  !flush && "rounded-(--radius-md) pt-3 pb-6",
+                )}
               >
                 {children}
               </motion.div>

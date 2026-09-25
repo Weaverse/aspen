@@ -8,6 +8,7 @@ import type {
 import invariant from "tiny-invariant";
 import type { EnhancedMenu } from "~/types/menu";
 import type { WishlistApiResponse } from "~/types/wishlist";
+import { sanitizeFooterTheme } from "~/utils/footer-rich-text.server";
 import { getLocaleSegment, localeCode } from "~/utils/locale";
 import { loadLoyaltyBalance } from "~/utils/loyalty.server";
 import { isLoyaltyLionConfigured } from "~/utils/loyaltylion.server";
@@ -37,12 +38,13 @@ export async function loadCriticalData({
     throw new Response("Unsupported locale", { status: 404 });
   }
 
-  const [layout, swatchesConfigs, weaverseTheme] = await Promise.all([
+  const [layout, swatchesConfigs, rawWeaverseTheme] = await Promise.all([
     getLayoutData(context),
     getSwatchesConfigs(context),
     // Add other queries here, so that they are loaded in parallel
     context.weaverse.loadThemeSettings(),
   ]);
+  const weaverseTheme = sanitizeFooterTheme(rawWeaverseTheme);
 
   const seo = seoPayload.root({ shop: layout.shop, url: request.url });
 
@@ -64,7 +66,9 @@ export async function loadCriticalData({
     },
     selectedLocale: localization.selectedLocale,
     availableLocales: localization.availableLocales,
+    availableCurrencies: localization.availableCurrencies,
     defaultLocale: localization.defaultLocale,
+    selectedMarketCountry: localization.selectedMarketCountry,
     weaverseTheme,
     googleGtmID: env.PUBLIC_GOOGLE_GTM_ID,
     swatchesConfigs,
@@ -116,9 +120,7 @@ async function loadCustomerWishlist(
       authenticated: true,
       productIds: [],
       error:
-        error instanceof Error
-          ? error.message
-          : "Wishlist is temporarily unavailable.",
+        error instanceof Error ? error.message : "errors.wishlistUnavailable",
     };
   }
 }
@@ -126,6 +128,7 @@ async function loadCustomerWishlist(
 async function getLayoutData({ storefront, env }: AppLoadContext) {
   const data = await storefront
     .query<LayoutQuery>(LAYOUT_QUERY, {
+      cache: storefront.CacheLong(),
       variables: {
         headerMenuHandle: "main-menu",
         footerMenuHandle: "footer",
@@ -185,7 +188,7 @@ async function getSwatchesConfigs(context: AppLoadContext) {
   }
   const { metaobjects } = await context.storefront.query<SwatchesQuery>(
     SWATCHES_QUERY,
-    { variables: { type } },
+    { variables: { type }, cache: context.storefront.CacheLong() },
   );
   const colors: Swatch[] = [];
   const images: Swatch[] = [];
@@ -394,6 +397,10 @@ const LAYOUT_QUERY = `#graphql
       __typename
       ... on Article {
         articleTags: tags
+        publishedAt
+        authorV2 {
+          name
+        }
         image {
           altText
           height

@@ -20,7 +20,7 @@ function root({
 }): SeoConfig {
   return {
     title: shop?.name,
-    titleTemplate: "%s | Weaverse Hydrogen Demo Store",
+    titleTemplate: shop?.name ? `%s | ${shop.name}` : "%s",
     description: truncate(shop?.description ?? ""),
     handle: "@weaverse",
     url,
@@ -49,11 +49,11 @@ function root({
   };
 }
 
-function home(): SeoConfig {
+function home({ shop }: { shop?: Pick<ShopFragment, "name"> }): SeoConfig {
   return {
-    title: "Home",
-    titleTemplate: "%s | Weaverse Hydrogen Demo Store",
-    description: "The best Shopify Hydrogen Theme Customizer",
+    title: "seo.home",
+    titleTemplate: shop?.name ? `%s | ${shop.name}` : "%s",
+    description: "seo.homeDescription",
     robots: {
       noIndex: false,
       noFollow: false,
@@ -61,7 +61,7 @@ function home(): SeoConfig {
     jsonLd: {
       "@context": "https://schema.org",
       "@type": "WebPage",
-      name: "Home page",
+      name: "seo.homePage",
     },
   };
 }
@@ -127,7 +127,7 @@ function productJsonLd({
         {
           "@type": "ListItem",
           position: 1,
-          name: "Products",
+          name: "seo.products",
           item: `${origin}/products`,
         },
         {
@@ -209,7 +209,7 @@ function collectionJsonLd({
         {
           "@type": "ListItem",
           position: 1,
-          name: "Collections",
+          name: "seo.collections",
           item: `${siteUrl.host}/collections`,
         },
         {
@@ -248,7 +248,7 @@ function collection({
     description: truncate(
       collectionData?.seo?.description ?? collectionData?.description ?? "",
     ),
-    titleTemplate: "%s | Collection",
+    titleTemplate: "seo.collectionTemplate",
     url,
     media: {
       type: "image",
@@ -285,8 +285,8 @@ function collectionsJsonLd({
   return {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    name: "Collections",
-    description: "All collections",
+    name: "seo.collections",
+    description: "seo.allCollections",
     url,
     mainEntity: {
       "@type": "ItemList",
@@ -303,9 +303,9 @@ function listCollections({
   url: Request["url"];
 }): SeoConfig {
   return {
-    title: "Collections",
-    titleTemplate: "%s | Collections",
-    description: "All hydrogen collections",
+    title: "seo.collections",
+    titleTemplate: "seo.collectionsTemplate",
+    description: "seo.collectionsDescription",
     url,
     jsonLd: collectionsJsonLd({ collections, url }),
   };
@@ -329,7 +329,7 @@ function article({
   return {
     title: articleData?.seo?.title ?? articleData?.title,
     description: truncate(articleData?.seo?.description ?? ""),
-    titleTemplate: "%s | Journal",
+    titleTemplate: "seo.journalTemplate",
     url,
     media: {
       type: "image",
@@ -364,7 +364,7 @@ function blog({
   return {
     title: blogData?.seo?.title,
     description: truncate(blogData?.seo?.description || ""),
-    titleTemplate: "%s | Blog",
+    titleTemplate: "seo.blogTemplate",
     url,
     jsonLd: {
       "@context": "https://schema.org",
@@ -386,7 +386,7 @@ function page({
   return {
     description: truncate(pageData?.seo?.description || ""),
     title: pageData?.seo?.title ?? pageData?.title,
-    titleTemplate: "%s | Page",
+    titleTemplate: "seo.pageTemplate",
     url,
     jsonLd: {
       "@context": "https://schema.org",
@@ -406,7 +406,7 @@ function policy({
   return {
     description: truncate(policyData?.body ?? ""),
     title: policyData?.title,
-    titleTemplate: "%s | Policy",
+    titleTemplate: "seo.policyTemplate",
     url,
   };
 }
@@ -430,9 +430,9 @@ function policies({
       };
     });
   return {
-    title: "Policies",
-    titleTemplate: "%s | Policies",
-    description: "Weaverse Hydrogen store policies",
+    title: "seo.policies",
+    titleTemplate: "seo.policiesTemplate",
+    description: "seo.policiesDescription",
     jsonLd: [
       {
         "@context": "https://schema.org",
@@ -442,8 +442,8 @@ function policies({
       {
         "@context": "https://schema.org",
         "@type": "WebPage",
-        description: "Weaverse Hydrogen store policies",
-        name: "Policies",
+        description: "seo.policiesDescription",
+        name: "seo.policies",
         url,
       },
     ],
