@@ -78,9 +78,7 @@ export function ProductCard({
   const {
     pcardTabletRatingLayout = "stacked",
     pcardBackgroundColor,
-    pcardHoverBackgroundColor,
     pcardImageRatio,
-    pcardBorderRadius = 12,
     pcardHoverPadding = 20,
     pcardImageZoom = true,
     pcardShowImageOnHover,
@@ -150,13 +148,12 @@ export function ProductCard({
       style={
         {
           "--pcard-background": pcardBackgroundColor || "transparent",
-          "--pcard-hover-background":
-            pcardHoverBackgroundColor || "var(--color-background-subtle)",
+          "--pcard-hover-background": "var(--pcard-hover-background-default)",
           "--pcard-hover-padding": `${pcardHoverPadding}px`,
           "--pcard-font-size": `${pcardFontSize}px`,
           "--pcard-content-gap": `${pcardContentGap}px`,
           "--pcard-image-content-gap": `${pcardImageContentGap}px`,
-          "--pcard-radius": `${pcardBorderRadius}px`,
+          "--pcard-radius": "var(--pcard-border-radius-default)",
           "--pcard-image-ratio": calculateAspectRatio(
             primaryImage,
             pcardImageRatio,

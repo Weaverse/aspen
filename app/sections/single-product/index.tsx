@@ -75,7 +75,7 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
       // Product Media props
       mediaLayout,
       gridSize,
-      imageAspectRatio: _imageAspectRatio,
+      imageAspectRatio,
       showThumbnails: _showThumbnails,
       showDots,
       navigationStyle,
@@ -229,7 +229,7 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
                 mediaLayout={mediaLayout || "slider"}
                 navigationVariant="quick-shop"
                 gridSize={gridSize || "2x2"}
-                imageAspectRatio="1/1"
+                imageAspectRatio={imageAspectRatio || "adapt"}
                 media={product?.media.nodes}
                 selectedVariant={currentVariant}
                 showThumbnails={false}
@@ -279,7 +279,7 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
                         currentVariant.compareAtPrice as MoneyV2,
                       ) &&
                         showSalePrice && (
-                          <span className="font-heading font-normal text-[24px] text-[#999] not-italic leading-[normal] line-through">
+                          <span className="font-heading font-normal text-[24px] text-body-subtle not-italic leading-[normal] line-through">
                             <SpacedMoney
                               data={currentVariant.compareAtPrice as MoneyV2}
                             />
@@ -460,6 +460,20 @@ export const schema = createSchema({
     {
       group: "Product Media",
       inputs: [
+        {
+          type: "select",
+          name: "imageAspectRatio",
+          label: "Aspect ratio",
+          defaultValue: "adapt",
+          configs: {
+            options: [
+              { value: "adapt", label: "Adapt to image" },
+              { value: "1/1", label: "Square (1/1)" },
+              { value: "3/4", label: "Portrait (3/4)" },
+              { value: "4/3", label: "Landscape (4/3)" },
+            ],
+          },
+        },
         {
           type: "toggle-group",
           name: "mediaLayout",
