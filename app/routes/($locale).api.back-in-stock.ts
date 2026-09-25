@@ -88,8 +88,7 @@ export const action: ActionFunction = async ({
       return data(
         {
           ok: false,
-          error:
-            "errors.restockUnavailable",
+          error: "errors.restockUnavailable",
         },
         422,
       );

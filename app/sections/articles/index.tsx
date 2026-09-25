@@ -189,7 +189,10 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
   const handleLoadMore = () => {
     setPagination({
       initialCount,
-      extra: Math.min(extra + loadMoreCount, Math.max(0, res.length - initialCount)),
+      extra: Math.min(
+        extra + loadMoreCount,
+        Math.max(0, res.length - initialCount),
+      ),
     });
   };
 
@@ -507,15 +510,17 @@ export const schema: HydrogenComponentSchema = {
           defaultValue: "ARTICLES",
           placeholder: "Enter heading text",
         },
-        ...headingInputs.filter((input) => input.name !== "content").map((input) => {
-          if (input.name === "as") {
-            return {
-              ...input,
-              name: "headingTagName",
-            };
-          }
-          return input;
-        }),
+        ...headingInputs
+          .filter((input) => input.name !== "content")
+          .map((input) => {
+            if (input.name === "as") {
+              return {
+                ...input,
+                name: "headingTagName",
+              };
+            }
+            return input;
+          }),
       ],
     },
     {

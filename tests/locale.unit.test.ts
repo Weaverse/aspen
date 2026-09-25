@@ -181,7 +181,9 @@ test("canonical locale redirect removes the default locale prefix", () => {
   } as const;
   const localization = {
     availableLocales: [locale],
+    availableCurrencies: [],
     defaultLocale: locale,
+    selectedMarketCountry: "US" as const,
     selectedLocale: locale,
   };
 

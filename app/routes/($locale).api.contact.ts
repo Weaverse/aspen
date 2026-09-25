@@ -52,16 +52,10 @@ export const action: ActionFunction = async ({
     return data({ ok: false, error: "errors.messageRequired" }, 400);
   }
   if (message.length > MAX_MESSAGE_LENGTH) {
-    return data(
-      { ok: false, error: "errors.messageTooLong" },
-      400,
-    );
+    return data({ ok: false, error: "errors.messageTooLong" }, 400);
   }
   if (name.length > MAX_NAME_LENGTH) {
-    return data(
-      { ok: false, error: "errors.nameTooLong" },
-      400,
-    );
+    return data({ ok: false, error: "errors.nameTooLong" }, 400);
   }
 
   const apiToken = context.env.KLAVIYO_PRIVATE_API_TOKEN;

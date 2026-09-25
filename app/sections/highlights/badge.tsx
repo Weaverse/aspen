@@ -263,15 +263,17 @@ export let schema = createSchema({
             "Quality furniture made to last through moves and milestones.",
           placeholder: "Enter heading text",
         },
-        ...headingInputs.filter((input) => input.name !== "content").map((input) => {
-          if (input.name === "as") {
-            return {
-              ...input,
-              name: "headingTagName",
-            };
-          }
-          return input;
-        }),
+        ...headingInputs
+          .filter((input) => input.name !== "content")
+          .map((input) => {
+            if (input.name === "as") {
+              return {
+                ...input,
+                name: "headingTagName",
+              };
+            }
+            return input;
+          }),
       ],
     },
     {

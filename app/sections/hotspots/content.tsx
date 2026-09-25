@@ -81,7 +81,8 @@ export const schema = createSchema({
           type: "range",
           name: "gap",
           label: "Content gap",
-          helpText: "Only applies to Scenario 2. Heading, paragraph and button content is not displayed in Scenario 1.",
+          helpText:
+            "Only applies to Scenario 2. Heading, paragraph and button content is not displayed in Scenario 1.",
           defaultValue: 20,
           configs: {
             min: 0,

@@ -3,8 +3,7 @@ const KLAVIYO_BACK_IN_STOCK_API =
   "https://a.klaviyo.com/api/back-in-stock-subscriptions";
 
 export const KLAVIYO_GENERIC_ERROR = "errors.generic";
-export const KLAVIYO_INVALID_EMAIL_ERROR =
-  "errors.invalidEmail";
+export const KLAVIYO_INVALID_EMAIL_ERROR = "errors.invalidEmail";
 
 type KlaviyoErrorPayload = {
   errors?: {

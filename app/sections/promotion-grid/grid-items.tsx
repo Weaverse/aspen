@@ -422,12 +422,16 @@ let PromotionSlider = forwardRef<HTMLDivElement, GridItemProps>(
     // Child inspector updates do not necessarily re-render their parent.
     // Tabs render child data here, so subscribe to the same item stores.
     useEffect(() => {
-      if (layout !== "tabs") return;
+      if (layout !== "tabs") {
+        return;
+      }
       const unsubscribe = childInstances.map((instance) =>
         instance.subscribe(() => setChildRevision((revision) => revision + 1)),
       );
       return () => {
-        for (const cleanup of unsubscribe) cleanup();
+        for (const cleanup of unsubscribe) {
+          cleanup();
+        }
       };
     }, [layout, childInstances]);
 

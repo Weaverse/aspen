@@ -106,9 +106,7 @@ export async function writeWishlist(
     ok: false as const,
     conflict,
     setupRequired: WISHLIST_SETUP_USER_ERROR_CODES.has(userError.code ?? ""),
-    message: conflict
-      ? "errors.wishlistConflict"
-      : userError.message,
+    message: conflict ? "errors.wishlistConflict" : userError.message,
   };
 }
 

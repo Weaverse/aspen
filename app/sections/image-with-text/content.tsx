@@ -55,8 +55,18 @@ const ImageWithTextContent = forwardRef<
   const [vertical, horizontal] = (contentPosition || "top left").split(" ");
   const contentStyle = {
     "--iwt-content-gap": `${Number(gap ?? 5) * 4}px`,
-    "--iwt-content-align": horizontal === "left" ? "flex-start" : horizontal === "right" ? "flex-end" : "center",
-    "--iwt-content-justify": vertical === "top" ? "flex-start" : vertical === "bottom" ? "flex-end" : "center",
+    "--iwt-content-align":
+      horizontal === "left"
+        ? "flex-start"
+        : horizontal === "right"
+          ? "flex-end"
+          : "center",
+    "--iwt-content-justify":
+      vertical === "top"
+        ? "flex-start"
+        : vertical === "bottom"
+          ? "flex-end"
+          : "center",
     "--iwt-content-text-align": horizontal,
   } as CSSProperties;
   const { imageCount, layout, isLegacyLayout } = useImageWithTextContext();

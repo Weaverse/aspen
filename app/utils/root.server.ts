@@ -120,9 +120,7 @@ async function loadCustomerWishlist(
       authenticated: true,
       productIds: [],
       error:
-        error instanceof Error
-          ? error.message
-          : "errors.wishlistUnavailable",
+        error instanceof Error ? error.message : "errors.wishlistUnavailable",
     };
   }
 }
