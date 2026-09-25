@@ -9,13 +9,12 @@ import {
 test("Aspen 2026 remains the default preset", () => {
   assert.equal(getDesignSystemPreset(undefined), "aspen-2026");
   assert.equal(getDesignSystemPreset("unknown"), "aspen-2026");
+  assert.equal(getDesignSystemPreset("aspen-legacy"), "aspen-2026");
   assert.deepEqual(resolveDesignTokens(), ASPEN_2026_DESIGN_TOKENS);
 });
 
-test("legacy preset restores the previous button and badge colors", () => {
-  const tokens = resolveDesignTokens({
-    designSystemPreset: "aspen-legacy",
-  });
+test("Aspen 2026 restores the previous button and product card visuals", () => {
+  const tokens = resolveDesignTokens({ designSystemPreset: "aspen-2026" });
 
   assert.equal(tokens.buttonSecondaryColor, "#24211E");
   assert.equal(tokens.buttonOutlineBackground, "#FFFFFF");
@@ -26,10 +25,8 @@ test("legacy preset restores the previous button and badge colors", () => {
   assert.equal(tokens.pcardBorderRadius, 8);
 });
 
-test("legacy preset restores responsive footer control colors", () => {
-  const tokens = resolveDesignTokens({
-    designSystemPreset: "aspen-legacy",
-  });
+test("Aspen 2026 restores responsive footer control colors", () => {
+  const tokens = resolveDesignTokens({ designSystemPreset: "aspen-2026" });
 
   assert.equal(tokens.footerDividerColor, "#9D9D9D");
   assert.equal(tokens.footerDividerColorDesktop, "#3E3E3E");

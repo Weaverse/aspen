@@ -1,4 +1,4 @@
-export type DesignSystemPreset = "aspen-2026" | "aspen-legacy" | "custom";
+export type DesignSystemPreset = "aspen-2026" | "custom";
 
 export type DesignTokenSettings = Partial<DesignTokens> & {
   designSystemPreset?: string;
@@ -102,24 +102,24 @@ export const ASPEN_2026_DESIGN_TOKENS: DesignTokens = {
   buttonPrimaryBgHover: "#6D6966",
   buttonPrimaryColorHover: "#F1EEEA",
   buttonSecondaryBg: "#F0EFED",
-  buttonSecondaryColor: "#343231",
+  buttonSecondaryColor: "#24211E",
   buttonSecondaryBgHover: "#E9E7E4",
-  buttonSecondaryColorHover: "#343231",
+  buttonSecondaryColorHover: "#24211E",
   buttonOutlineText: "#343231",
-  buttonOutlineBackground: "transparent",
+  buttonOutlineBackground: "#FFFFFF",
   buttonOutlineBorder: "#B1B0AF",
-  buttonOutlineTextHover: "#343231",
+  buttonOutlineTextHover: "#524B46",
   buttonOutlineBackgroundHover: "#E9E7E4",
-  buttonOutlineBorderHover: "#B1B0AF",
+  buttonOutlineBorderHover: "#B0ACA9",
   comparePriceTextColor: "#979797",
   saleBadgeColor: "#573B3B",
-  newBadgeColor: "#E3DAD4",
+  newBadgeColor: "#EBE8E5",
   bestSellerBadgeColor: "#3B3B3B",
   bundleBadgeColor: "#3B3B3B",
   soldOutBadgeColor: "#DFDFDF",
   starRatingColor: "#343231",
-  pcardHoverBackgroundColor: "#EDEDED",
-  pcardBorderRadius: 12,
+  pcardHoverBackgroundColor: "#F1F1F1",
+  pcardBorderRadius: 8,
   bodyBaseSize: 14,
   bodyBaseSpacing: "0.01em",
   bodyBaseLineHeight: 1.6,
@@ -130,35 +130,14 @@ export const ASPEN_2026_DESIGN_TOKENS: DesignTokens = {
   radiusSm: 8,
   radiusMd: 12,
   badgeBorderRadius: 8,
-  footerDividerColor: "#3E3E3E",
+  footerDividerColor: "#9D9D9D",
   footerDividerColorDesktop: "#3E3E3E",
   footerInputBackground: "#FFFFFF",
-  footerInputBackgroundDesktop: "#FFFFFF",
+  footerInputBackgroundDesktop: "transparent",
   footerInputTextColor: "#343231",
-  footerInputTextColorDesktop: "#343231",
+  footerInputTextColorDesktop: "#EDEDED",
   footerInputBorderColor: "#9D9D9D",
   footerInputPlaceholderColor: "#918379",
-  footerNewsletterButtonBackground: "#4D4946",
-  footerNewsletterButtonTextColor: "#F1EEEA",
-  footerNewsletterButtonBackgroundHover: "#F0EFED",
-  footerNewsletterButtonTextColorHover: "#343231",
-  footerNewsletterButtonBackgroundDesktop: "#4D4946",
-  footerNewsletterButtonTextColorDesktop: "#F1EEEA",
-};
-
-export const ASPEN_LEGACY_DESIGN_TOKENS: DesignTokens = {
-  ...ASPEN_2026_DESIGN_TOKENS,
-  buttonSecondaryColor: "#24211E",
-  buttonSecondaryColorHover: "#24211E",
-  buttonOutlineBackground: "#FFFFFF",
-  buttonOutlineTextHover: "#524B46",
-  buttonOutlineBorderHover: "#B0ACA9",
-  newBadgeColor: "#EBE8E5",
-  pcardHoverBackgroundColor: "#F1F1F1",
-  pcardBorderRadius: 8,
-  footerDividerColor: "#9D9D9D",
-  footerInputBackgroundDesktop: "transparent",
-  footerInputTextColorDesktop: "#EDEDED",
   footerNewsletterButtonBackground: "#524B46",
   footerNewsletterButtonTextColor: "#FFFFFF",
   footerNewsletterButtonBackgroundHover: "#FFFFFF",
@@ -169,14 +148,10 @@ export const ASPEN_LEGACY_DESIGN_TOKENS: DesignTokens = {
 
 const PRESET_TOKENS = {
   "aspen-2026": ASPEN_2026_DESIGN_TOKENS,
-  "aspen-legacy": ASPEN_LEGACY_DESIGN_TOKENS,
 } satisfies Record<Exclude<DesignSystemPreset, "custom">, DesignTokens>;
 
 export function getDesignSystemPreset(value: unknown): DesignSystemPreset {
-  if (value === "custom" || value === "aspen-legacy") {
-    return value;
-  }
-  return "aspen-2026";
+  return value === "custom" ? "custom" : "aspen-2026";
 }
 
 export function resolveDesignTokens(

@@ -33,13 +33,12 @@ export const themeSchema: HydrogenThemeSchema = {
           configs: {
             options: [
               { value: "aspen-2026", label: "Aspen 2026" },
-              { value: "aspen-legacy", label: "Aspen legacy" },
               { value: "custom", label: "Custom" },
             ],
           },
           defaultValue: "aspen-2026",
           helpText:
-            "Aspen 2026 applies the approved Figma tokens. Aspen legacy restores the previous Aspen visual tokens while preserving current functionality. Choose Custom to use the individual settings below.",
+            "Aspen 2026 applies Aspen's default visual tokens. Choose Custom to use the individual settings below.",
         },
         {
           type: "range",
