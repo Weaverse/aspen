@@ -80,22 +80,7 @@ export let loader = async (args: ComponentLoaderArgs<InstagramData>) => {
 export const schema: HydrogenComponentSchema = {
   type: "instagram",
   title: "Instagram",
-  settings: [
-    {
-      group: "Instagram",
-      inputs: [
-        {
-          type: "text",
-          name: "instagramToken",
-          label: "Instagram api token",
-          placeholder: "@instagram",
-          helpText:
-            'Learn more about how to get <a href="https://docs.oceanwp.org/article/487-how-to-get-instagram-access-token" target="_blank">API token for Instagram</a> section.',
-        },
-      ],
-    },
-    ...instagramSectionSettings,
-  ],
+  settings: instagramSectionSettings,
   childTypes: ["instagram--content", "instagram--slider"],
   presets: {
     width: "full",
