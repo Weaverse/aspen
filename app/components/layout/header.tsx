@@ -46,13 +46,18 @@ function useIsHomeCheck() {
 
 export function Header() {
   let [isSearchOpen, setIsSearchOpen] = useState(false);
-  const { designSystemPreset, enableTransparentHeader, headerWidth } =
-    useThemeSettings();
+  const {
+    designSystemPreset,
+    enableTransparentHeader,
+    headerLayout = "inline",
+    headerWidth,
+  } = useThemeSettings();
   const isHome = useIsHomeCheck();
   const { y } = useWindowScroll();
   const routeError = useRouteError();
 
   const scrolled = y >= 50;
+  const isCompactDesktop = headerLayout === "compact";
   const enableTransparent =
     designSystemPreset === "custom" &&
     enableTransparentHeader &&
@@ -106,28 +111,35 @@ export function Header() {
         <div
           className={cn(
             "col-start-1 row-start-1 flex items-center gap-4 justify-self-start",
-            "xl:hidden",
+            !isCompactDesktop && "xl:hidden",
           )}
         >
-          <MobileMenu />
+          <MobileMenu showOnDesktop={isCompactDesktop} />
           <PredictiveSearchButtonMobile setIsSearchOpen={setIsSearchOpen} />
+          {isCompactDesktop ? (
+            <PredictiveSearchButtonDesktop setIsSearchOpen={setIsSearchOpen} />
+          ) : null}
         </div>
 
         <div
           className={cn(
             "col-start-2 row-start-1 justify-self-center",
-            "xl:col-start-1 xl:justify-self-start",
+            !isCompactDesktop && "xl:col-start-1 xl:justify-self-start",
           )}
         >
           <Logo />
         </div>
 
-        <div className="col-start-2 row-start-1 hidden h-full justify-self-center xl:block">
-          <DesktopMenu />
-        </div>
+        {!isCompactDesktop ? (
+          <div className="col-start-2 row-start-1 hidden h-full justify-self-center xl:block">
+            <DesktopMenu />
+          </div>
+        ) : null}
 
         <div className="z-1 col-start-3 row-start-1 flex items-center gap-4 justify-self-end">
-          <PredictiveSearchButtonDesktop setIsSearchOpen={setIsSearchOpen} />
+          {!isCompactDesktop ? (
+            <PredictiveSearchButtonDesktop setIsSearchOpen={setIsSearchOpen} />
+          ) : null}
           <AccountLink className="relative flex size-5 items-center justify-center before:absolute before:-inset-2" />
           <CartDrawer />
         </div>

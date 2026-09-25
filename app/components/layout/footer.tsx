@@ -52,11 +52,6 @@ export function Footer() {
     footerNewsletterWidth = 400,
     footerNewsletterHeight = 54,
     footerMenuColumns = "4",
-    footerDividerColor = "#3E3E3E",
-    footerInputBackground = "#FFFFFF",
-    footerInputTextColor = "#343231",
-    footerInputBorderColor = "#9D9D9D",
-    footerInputPlaceholderColor = "#918379",
     footerSocialIconSize = 20,
     footerFontSize = 14,
     footerLineHeight = 1.55,
@@ -221,11 +216,6 @@ export function Footer() {
           "--footer-brand-column": `${footerBrandColumnWidth}px`,
           "--footer-newsletter-width": `${footerNewsletterWidth}px`,
           "--footer-newsletter-height": `${footerNewsletterHeight}px`,
-          "--footer-divider-color": footerDividerColor,
-          "--footer-input-bg": footerInputBackground,
-          "--footer-input-text": footerInputTextColor,
-          "--footer-input-border": footerInputBorderColor,
-          "--footer-input-placeholder": footerInputPlaceholderColor,
           "--footer-social-size": `${footerSocialIconSize}px`,
           "--footer-font-size": `${footerFontSize}px`,
           "--footer-line-height": footerLineHeight,
@@ -587,7 +577,7 @@ function NewsletterSignup({
         <button
           type="submit"
           disabled={fetcher.state === "submitting"}
-          className="w-[86px] shrink-0 rounded-(--radius-sm) bg-(--btn-primary-bg) font-semibold text-(--btn-primary-text) [font-size:inherit] uppercase transition-colors disabled:cursor-wait disabled:opacity-60 hover:bg-(--btn-secondary-bg) hover:text-(--btn-secondary-text) md:w-[98px]"
+          className="w-[86px] shrink-0 rounded-(--radius-sm) bg-(--footer-newsletter-button-bg) font-semibold text-(--footer-newsletter-button-text) [font-size:inherit] uppercase transition-colors disabled:cursor-wait disabled:opacity-60 hover:bg-(--footer-newsletter-button-bg-hover) hover:text-(--footer-newsletter-button-text-hover) md:w-[98px]"
         >
           {buttonText}
         </button>

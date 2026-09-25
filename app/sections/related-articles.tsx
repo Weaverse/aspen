@@ -9,7 +9,8 @@ import { layoutInputs, Section, type SectionProps } from "~/components/section";
 import { useLocale } from "~/hooks/use-locale";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import { minWidthQuery, TABLET_MIN_PX } from "~/utils/breakpoints";
-import { getImageLoadingPriority } from "~/utils/image";
+import { cn } from "~/utils/cn";
+import { calculateAspectRatio, getImageLoadingPriority } from "~/utils/image";
 import { formatDate } from "~/utils/locale";
 import type { ArticleCardProps } from "./blogs";
 
@@ -37,13 +38,13 @@ const RelatedArticles = forwardRef<HTMLElement, RelatedArticlesProps>(
       heading: rawI18nHeading,
       showViewAll,
       viewAllText: rawI18nViewAllText,
-      showExcerpt = true,
+      showExcerpt = false,
       showCategory = true,
       showCategoryDesktop = false,
-      showAuthor = true,
-      showDate = true,
+      showAuthor = false,
+      showDate = false,
       showReadmore,
-      imageAspectRatio: _imageAspectRatio,
+      imageAspectRatio,
       ...rest
     } = props;
     const viewAllText = translateText(
@@ -95,7 +96,15 @@ const RelatedArticles = forwardRef<HTMLElement, RelatedArticlesProps>(
                     className="flex min-w-0 flex-col items-start justify-start gap-3 self-stretch md:block xl:flex xl:gap-5"
                   >
                     {article.image && (
-                      <div className="w-full aspect-[16/9] overflow-hidden rounded-[var(--Radius-border-radius-md,12px)] bg-gray-200 md:aspect-auto md:h-[132.373px] xl:aspect-square xl:h-auto">
+                      <div
+                        className="w-full overflow-hidden rounded-[var(--Radius-border-radius-md,12px)] bg-gray-200"
+                        style={{
+                          aspectRatio: calculateAspectRatio(
+                            article.image,
+                            imageAspectRatio || "adapt",
+                          ),
+                        }}
+                      >
                         <Image
                           data={article.image}
                           alt={article.image.altText || article.title}
@@ -109,7 +118,11 @@ const RelatedArticles = forwardRef<HTMLElement, RelatedArticlesProps>(
                       {(showCategory || showCategoryDesktop) &&
                         article.tags?.[0] && (
                           <p
-                            className={`font-normal text-[#979797] text-xs uppercase leading-none tracking-[0.24px] md:mt-4 xl:mt-0 ${showCategory ? "block" : "hidden"} ${showCategoryDesktop ? "xl:block" : "xl:hidden"}`}
+                            className={cn(
+                              "font-normal text-[#979797] text-xs uppercase leading-none tracking-[0.24px] md:mt-4 xl:mt-0",
+                              showCategory ? "block" : "hidden",
+                              showCategoryDesktop ? "xl:block" : "xl:hidden",
+                            )}
                           >
                             {article.tags[0]}
                           </p>
@@ -222,10 +235,27 @@ export const schema = createSchema({
           condition: "showViewAll.eq.true",
         },
         {
+          type: "select",
+          name: "imageAspectRatio",
+          label: "Image aspect ratio",
+          defaultValue: "adapt",
+          configs: {
+            options: [
+              { value: "adapt", label: "Adapt to image" },
+              { value: "1/1", label: "Square (1/1)" },
+              { value: "3/4", label: "Portrait (3/4)" },
+              { value: "4/3", label: "Landscape (4/3)" },
+              { value: "16/9", label: "Widescreen (16/9)" },
+            ],
+          },
+          helpText:
+            'Learn more about image <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/aspect-ratio" target="_blank" rel="noopener noreferrer">aspect ratio</a> property.',
+        },
+        {
           type: "switch",
           name: "showExcerpt",
           label: "Show excerpt",
-          defaultValue: true,
+          defaultValue: false,
         },
         {
           type: "switch",
@@ -246,13 +276,13 @@ export const schema = createSchema({
           type: "switch",
           name: "showDate",
           label: "Show date",
-          defaultValue: true,
+          defaultValue: false,
         },
         {
           type: "switch",
           name: "showAuthor",
           label: "Show author",
-          defaultValue: true,
+          defaultValue: false,
         },
         {
           type: "switch",
