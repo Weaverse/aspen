@@ -9,16 +9,10 @@ import type { CartApiQueryFragment } from "storefront-api.generated";
 import { Button } from "~/components/button";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import { getCartMutationError } from "~/utils/cart-error";
+import { normalizeGiftCardCode } from "~/utils/gift-card";
 import { AnimatedBottomSheet } from "./animate-bottom-sheet";
 import { useCartFetcherSync } from "./cart-sync";
-
-type DialogLayout = "page" | "drawer";
-
-type CartMutationResponse = {
-  cart?: CartApiQueryFragment | null;
-  errors?: Array<{ message?: string }>;
-  userErrors?: Array<{ message?: string }>;
-};
+import type { CartLayout, CartMutationResponse } from "./cart-types";
 
 function CenteredModal({
   open,
@@ -43,7 +37,7 @@ function CenteredModal({
             <Dialog.Content
               forceMount
               onCloseAutoFocus={(e) => e.preventDefault()}
-              className="-translate-x-1/2 -translate-y-1/2 fixed top-1/2 left-1/2 z-50 w-[calc(100%-40px)] max-w-md"
+              className="-translate-x-1/2 -translate-y-1/2 fixed top-1/2 left-1/2 z-50 w-[calc(100%-40px)] max-w-[430px]"
               aria-describedby={undefined}
             >
               <motion.div
@@ -51,7 +45,7 @@ function CenteredModal({
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.2 }}
-                className="w-full rounded-lg bg-white px-6 py-6 shadow-2xl"
+                className="max-h-[calc(100dvh-40px)] w-full overflow-y-auto rounded-xl bg-white px-5 py-4 shadow-2xl"
               >
                 {children}
               </motion.div>
@@ -60,6 +54,31 @@ function CenteredModal({
         )}
       </AnimatePresence>
     </Dialog.Portal>
+  );
+}
+
+function CartActionDialogHeader({
+  title,
+  onClose,
+}: {
+  title: string;
+  onClose: () => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <div className="mb-2 flex min-h-5 items-center justify-between gap-4">
+      <Dialog.Title className="font-semibold text-sm uppercase leading-5 tracking-[0.02em]">
+        {title}
+      </Dialog.Title>
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label={t("cart.close")}
+        className="relative flex size-5 shrink-0 items-center justify-center rounded-sm before:absolute before:-inset-2 focus-visible:outline-2 focus-visible:outline-offset-2"
+      >
+        <XIcon size={14} aria-hidden="true" />
+      </button>
+    </div>
   );
 }
 
@@ -72,15 +91,16 @@ export function NoteDialog({
   cartNote: string;
   open: boolean;
   onClose: () => void;
-  layout?: DialogLayout;
+  layout?: CartLayout;
 }) {
   const { t } = useTranslation();
   const [note, setNote] = useState(currentNote);
   const [submitted, setSubmitted] = useState(false);
   const fetcher = useFetcher<CartMutationResponse>();
+  useCartFetcherSync(fetcher);
   const cartRoute = usePrefixPathWithLocale("/cart");
   const mutationError = getCartMutationError(fetcher.data, t);
-  useCartFetcherSync(fetcher);
+
   useEffect(() => {
     if (fetcher.state === "idle" && fetcher.data && !mutationError) {
       setSubmitted(true);
@@ -89,6 +109,9 @@ export function NoteDialog({
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (fetcher.state !== "idle") {
+      return;
+    }
     const formData = new FormData(event.currentTarget);
     const formCartNote = formData.get("cartNote") as string;
     fetcher.submit(
@@ -105,26 +128,15 @@ export function NoteDialog({
 
   const content = (
     <>
-      <button
-        type="button"
-        className="absolute top-4 right-4 z-10 flex items-center justify-center"
-        aria-label={t("cart.close")}
-        onClick={onClose}
-      >
-        <XIcon size={16} />
-      </button>
+      <CartActionDialogHeader title={t("cart.noteTitle")} onClose={onClose} />
 
-      <Dialog.Title asChild>
-        <h2 className="mb-6 font-semibold text-xl">{t("cart.noteTitle")}</h2>
-      </Dialog.Title>
-
-      <form className="space-y-1" onSubmit={handleSubmit}>
+      <form className="flex flex-col gap-2" onSubmit={handleSubmit}>
         <label htmlFor="cart-note" className="sr-only">
           {t("cart.orderNote")}
         </label>
         <textarea
           id="cart-note"
-          className="min-h-32 w-full resize-none border border-line p-3 text-[#918379] focus:border-gray-500 focus:outline-none"
+          className="block h-[120px] min-h-[120px] w-full resize-none rounded-lg border border-[#CCC] bg-white p-4 text-[#343231] text-sm leading-5 placeholder:text-[#979797] focus:border-gray-500 focus:outline-none"
           placeholder={t("cart.notePlaceholder")}
           rows={4}
           name="cartNote"
@@ -148,7 +160,7 @@ export function NoteDialog({
           type="submit"
           loading={fetcher.state !== "idle"}
           disabled={fetcher.state !== "idle"}
-          className="w-full leading-tight! [--spinner-duration:400ms]"
+          className="h-[54px] w-full shrink-0 rounded-lg py-0! text-sm leading-5! [--spinner-duration:400ms]"
         >
           {t("cart.addNote")}
         </Button>
@@ -172,14 +184,14 @@ export function DiscountDialog({
   discountCodes: CartApiQueryFragment["discountCodes"];
   open: boolean;
   onClose: () => void;
-  layout?: DialogLayout;
+  layout?: CartLayout;
 }) {
   const { t } = useTranslation();
   const [code, setCode] = useState("");
   const [submittedCode, setSubmittedCode] = useState("");
   const fetcher = useFetcher<CartMutationResponse>();
-  const cartRoute = usePrefixPathWithLocale("/cart");
   useCartFetcherSync(fetcher);
+  const cartRoute = usePrefixPathWithLocale("/cart");
   const submitted = Boolean(
     submittedCode && fetcher.state === "idle" && fetcher.data,
   );
@@ -196,6 +208,9 @@ export function DiscountDialog({
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (fetcher.state !== "idle") {
+      return;
+    }
     const formData = new FormData(event.currentTarget);
     const discountCode = formData.get("discountCode") as string;
     if (discountCode) {
@@ -217,22 +232,12 @@ export function DiscountDialog({
 
   const content = (
     <>
-      <button
-        type="button"
-        className="absolute top-4 right-4 z-10 flex items-center justify-center"
-        aria-label={t("cart.close")}
-        onClick={onClose}
-      >
-        <XIcon size={16} />
-      </button>
+      <CartActionDialogHeader
+        title={t("cart.discountTitle")}
+        onClose={onClose}
+      />
 
-      <Dialog.Title asChild>
-        <h2 className="mb-6 font-semibold text-xl">
-          {t("cart.discountTitle")}
-        </h2>
-      </Dialog.Title>
-
-      <form onSubmit={handleSubmit} className="space-y-2">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-2">
         <label htmlFor="cart-discount-code" className="sr-only">
           {t("cart.discountCode")}
         </label>
@@ -240,7 +245,7 @@ export function DiscountDialog({
           id="cart-discount-code"
           value={code}
           onChange={(e) => setCode(e.target.value)}
-          className="w-full border border-line p-3 text-[#918379] focus:border-gray-500 focus:outline-none"
+          className="h-[54px] w-full rounded-lg border border-[#CCC] bg-white px-4 text-[#343231] text-sm leading-5 placeholder:text-[#979797] focus:border-gray-500 focus:outline-none"
           type="text"
           name="discountCode"
           placeholder={t("cart.discountCode")}
@@ -258,7 +263,7 @@ export function DiscountDialog({
         )}
         <Button
           type="submit"
-          className="w-full leading-tight! [--spinner-duration:400ms]"
+          className="h-[54px] w-full shrink-0 rounded-lg py-0! text-sm leading-5! [--spinner-duration:400ms]"
           loading={fetcher.state !== "idle"}
           disabled={fetcher.state !== "idle"}
         >
@@ -282,34 +287,35 @@ export function GiftCardDialog({
 }: {
   open: boolean;
   onClose: () => void;
-  layout?: DialogLayout;
+  layout?: CartLayout;
 }) {
   const { t } = useTranslation();
   const [code, setCode] = useState("");
   const [submittedCode, setSubmittedCode] = useState("");
+  useEffect(() => {
+    if (!open) {
+      setSubmittedCode("");
+    }
+  }, [open]);
   const fetcher = useFetcher<CartMutationResponse>();
-  const cartRoute = usePrefixPathWithLocale("/cart");
   useCartFetcherSync(fetcher);
+  const cartRoute = usePrefixPathWithLocale("/cart");
   const submitted = Boolean(
     submittedCode && fetcher.state === "idle" && fetcher.data,
   );
-  const success = Boolean(
-    submitted &&
-      fetcher.data?.cart?.appliedGiftCards?.find((giftCard) =>
-        submittedCode
-          .toLowerCase()
-          .endsWith(giftCard.lastCharacters.toLowerCase()),
-      ),
-  );
   const mutationError = getCartMutationError(fetcher.data, t);
-  const error = submitted && !success;
+  const success = submitted && !mutationError;
+  const error = submitted && Boolean(mutationError);
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (fetcher.state !== "idle") {
+      return;
+    }
     const formData = new FormData(event.currentTarget);
     const giftCardCode = formData.get("giftCardCode") as string;
     if (giftCardCode) {
-      const formattedCode = giftCardCode.replace(/\s/g, "");
+      const formattedCode = normalizeGiftCardCode(giftCardCode);
       setSubmittedCode(formattedCode);
       fetcher.submit(
         {
@@ -327,33 +333,26 @@ export function GiftCardDialog({
 
   const content = (
     <>
-      <button
-        type="button"
-        className="absolute top-4 right-4 z-10 flex items-center justify-center"
-        aria-label={t("cart.close")}
-        onClick={onClose}
-      >
-        <XIcon size={16} />
-      </button>
+      <CartActionDialogHeader
+        title={t("cart.giftCardTitle")}
+        onClose={onClose}
+      />
 
-      <Dialog.Title asChild>
-        <h2 className="mb-6 font-semibold text-xl">
-          {t("cart.giftCardTitle")}
-        </h2>
-      </Dialog.Title>
-
-      <form onSubmit={handleSubmit} className="space-y-2">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-2">
         <label htmlFor="cart-gift-card-code" className="sr-only">
           {t("cart.giftCardCode")}
         </label>
         <input
           id="cart-gift-card-code"
-          className="w-full border border-line p-3 text-[#918379] focus:border-gray-500 focus:outline-none"
+          className="h-[54px] w-full rounded-lg border border-[#CCC] bg-white px-4 text-[#343231] text-sm leading-5 placeholder:text-[#979797] focus:border-gray-500 focus:outline-none"
           type="text"
           name="giftCardCode"
-          placeholder={t("cart.giftCardCode")}
+          placeholder={t("cart.giftCardTitle")}
           value={code}
-          onChange={(e) => setCode(e.target.value)}
+          onChange={(e) => {
+            setCode(e.target.value);
+            setSubmittedCode("");
+          }}
           required
         />
         {success && (
@@ -368,7 +367,7 @@ export function GiftCardDialog({
         )}
         <Button
           type="submit"
-          className="w-full leading-tight! [--spinner-duration:400ms]"
+          className="h-[54px] w-full shrink-0 rounded-lg py-0! text-sm leading-5! [--spinner-duration:400ms]"
           loading={fetcher.state !== "idle"}
           disabled={fetcher.state !== "idle"}
         >

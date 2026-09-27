@@ -1,5 +1,4 @@
 import { EyeIcon } from "@phosphor-icons/react";
-import { Money } from "@shopify/hydrogen";
 import {
   type ComponentLoaderArgs,
   createSchema,
@@ -13,7 +12,9 @@ import type { ProductQuery } from "storefront-api.generated";
 import { Image } from "~/components/image";
 import { Link } from "~/components/link";
 import { AddToCartButton } from "~/components/product/add-to-cart-button";
+import { SpacedMoney } from "~/components/product/variant-prices";
 import { PRODUCT_QUERY } from "~/graphql/queries";
+import { useTranslatedText } from "~/hooks/use-translated-text";
 import { useClientReady } from "~/utils/react-player";
 
 const ReactPlayer = lazy(() => import("react-player"));
@@ -57,14 +58,20 @@ interface VideoItemProps
     VideoItemData {}
 
 let VideoItem = forwardRef<HTMLDivElement, VideoItemProps>((props, ref) => {
+  const translateText = useTranslatedText();
+
   const { t } = useTranslation();
   let {
     video,
     product,
-    addToCartText = "Add to Cart",
+    addToCartText: rawI18nAddToCartText = "Add to Cart",
     loaderData,
     ...rest
   } = props;
+  const addToCartText = translateText(
+    rawI18nAddToCartText,
+    "themeContent.sectionsVideosVideo.addToCartText",
+  );
 
   const hasVideo = Boolean(video?.url?.trim());
   const clientReady = useClientReady();
@@ -80,7 +87,7 @@ let VideoItem = forwardRef<HTMLDivElement, VideoItemProps>((props, ref) => {
     <div
       ref={ref as any}
       {...rest}
-      className="group relative flex aspect-(--aspect-ratio) h-full w-full flex-col overflow-hidden rounded-[12px] bg-[#EDEDED]"
+      className="group relative flex aspect-(--aspect-ratio) h-full w-full flex-[1_0_0] flex-col items-start gap-5 overflow-hidden rounded-[12px] bg-[#EDEDED] md:h-[670.222px] md:aspect-[9/16] lg:h-full lg:aspect-(--aspect-ratio)"
     >
       {hasVideo ? (
         <div className="absolute inset-0 h-full w-full">
@@ -122,70 +129,86 @@ let VideoItem = forwardRef<HTMLDivElement, VideoItemProps>((props, ref) => {
       )}
 
       {productData && selectedVariant && (
-        <div className="pointer-events-none opacity-0 transition-opacity duration-300 [.swiper-slide-active_&]:pointer-events-auto [.swiper-slide-active_&]:opacity-100 lg:[.swiper-slide-active_&]:pointer-events-none lg:[.swiper-slide-active_&]:opacity-0 lg:group-focus-within:pointer-events-auto lg:group-focus-within:opacity-100 lg:group-hover:pointer-events-auto lg:group-hover:opacity-100">
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[124px] bg-gradient-to-t from-[#71685F]/85 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[124px] overflow-hidden">
+          <div className="pointer-events-none flex h-full translate-y-full flex-col justify-end transition-transform duration-500 ease-out group-hover:pointer-events-auto group-hover:translate-y-0 group-focus-within:pointer-events-auto group-focus-within:translate-y-0 max-lg:pointer-events-auto max-lg:translate-y-0">
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-[#71685F]/85 to-transparent" />
 
-          <div className="absolute right-3 bottom-3 left-3 flex h-[100px] overflow-hidden rounded-[12px] bg-white text-[#343231]">
-            {productImage && productUrl && (
-              <Link
-                to={productUrl}
-                className="h-[100px] w-[100px] shrink-0 overflow-hidden rounded-[12px] bg-[#F4F4F5]"
-                aria-label={t("product.viewProduct", {
-                  product: productData.title,
-                })}
-              >
-                <Image
-                  data={productImage}
-                  width={200}
-                  sizes="100px"
-                  className="h-full w-full"
-                  alt={productImage.altText || productData.title}
-                />
-              </Link>
-            )}
-
-            <div className="flex min-w-0 flex-1 flex-col px-4 py-3">
-              <Link
-                to={productUrl || "#"}
-                className="justify-start! truncate font-body text-[12px] leading-[14px]"
-              >
-                {productData.title}
-              </Link>
-
-              <Money
-                withoutTrailingZeros
-                data={selectedVariant.price}
-                className="mt-1 font-body text-[12px] leading-[14px]"
-              />
-
-              <div className="mt-auto flex items-center gap-1.5">
-                <AddToCartButton
-                  disabled={!selectedVariant.availableForSale}
-                  lines={[
-                    {
-                      merchandiseId: selectedVariant.id,
-                      quantity: 1,
-                      selectedVariant,
-                    },
-                  ]}
-                  containerClassName="min-w-0 flex-1"
-                  className="h-7! w-full! min-w-0! truncate! rounded-[8px]! px-3! py-0! font-body! text-[12px]! leading-none!"
-                  width="auto"
+            <div className="relative mx-3 mb-3 flex min-h-[100px] rounded-[12px] bg-white text-[#343231]">
+              {productImage && productUrl && (
+                <Link
+                  to={productUrl}
+                  className="h-[100px] w-[100px] shrink-0 overflow-hidden rounded-[12px] bg-[#F4F4F5]"
+                  aria-label={t("product.viewProduct", {
+                    product: productData.title,
+                  })}
                 >
-                  {addToCartText}
-                </AddToCartButton>
+                  <Image
+                    data={productImage}
+                    width={200}
+                    sizes="100px"
+                    className="h-full w-full"
+                    alt={productImage.altText || productData.title}
+                  />
+                </Link>
+              )}
 
-                {productUrl && (
-                  <Link
-                    to={productUrl}
-                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[8px] border border-[#D8D8D8] bg-white"
-                    aria-label={t("product.viewProduct", {
-                      product: productData.title,
-                    })}
+              <div className="flex min-w-0 flex-1 flex-col px-4 py-3">
+                <Link
+                  to={productUrl || "#"}
+                  className="justify-start! truncate font-dm-sans! font-normal! text-[12px]! leading-none! tracking-[0.24px]!"
+                >
+                  {productData.title}
+                </Link>
+
+                <SpacedMoney
+                  data={selectedVariant.price}
+                  className="mt-2 font-dm-sans font-normal text-[12px] text-[var(--Text-Text,#343231)] leading-none tracking-[0.24px]"
+                />
+
+                <div className="mt-auto flex items-center gap-2">
+                  <AddToCartButton
+                    disabled={!selectedVariant.availableForSale}
+                    lines={[
+                      {
+                        merchandiseId: selectedVariant.id,
+                        quantity: 1,
+                        selectedVariant,
+                      },
+                    ]}
+                    containerClassName="min-w-0 flex-1"
+                    className="flex! h-auto! w-full! min-w-0! items-center! justify-center!"
+                    style={{
+                      padding:
+                        "var(--videos-atc-padding-vertical, 8px) var(--videos-atc-padding-horizontal, 12px)",
+                      gap: "var(--videos-atc-gap, 8px)",
+                      borderRadius: "var(--videos-atc-radius, 8px)",
+                      background: "var(--videos-atc-background, #4D4946)",
+                      color: "var(--videos-atc-text, #F1EEEA)",
+                      fontFamily: "var(--videos-atc-font-family, 'DM Sans')",
+                      fontSize: "var(--videos-atc-font-size, 12px)",
+                      fontStyle: "var(--videos-atc-font-style, normal)",
+                      fontWeight: "var(--videos-atc-font-weight, 400)",
+                      lineHeight: "var(--videos-atc-line-height, 100%)",
+                      letterSpacing: "var(--videos-atc-letter-spacing, 0.24px)",
+                    }}
+                    width="auto"
+                    animate={false}
                   >
-                    <EyeIcon size={15} weight="regular" />
-                  </Link>
-                )}
+                    {addToCartText}
+                  </AddToCartButton>
+
+                  {productUrl && (
+                    <Link
+                      to={productUrl}
+                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[8px] border border-[#D8D8D8] bg-white"
+                      aria-label={t("product.viewProduct", {
+                        product: productData.title,
+                      })}
+                    >
+                      <EyeIcon size={16} weight="regular" />
+                    </Link>
+                  )}
+                </div>
               </div>
             </div>
           </div>

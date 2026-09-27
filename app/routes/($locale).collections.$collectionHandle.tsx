@@ -2,7 +2,6 @@ import {
   Analytics,
   flattenConnection,
   getPaginationVariables,
-  getSeoMeta,
 } from "@shopify/hydrogen";
 import type {
   ProductCollectionSortKeys,
@@ -14,7 +13,11 @@ import {
   redirect,
   useLoaderData,
 } from "react-router";
-import type { CollectionQuery } from "storefront-api.generated";
+import type {
+  CollectionQuery,
+  CollectionSaleProductScanQuery,
+  SaleProductCardsQuery,
+} from "storefront-api.generated";
 import invariant from "tiny-invariant";
 import { PRODUCT_CARD_FRAGMENT } from "~/graphql/fragments";
 import type { I18nLocale } from "~/types/locale";
@@ -23,7 +26,12 @@ import { PAGINATION_SIZE } from "~/utils/const";
 import { FILTER_URL_PREFIX, type SortParam } from "~/utils/filter";
 import { redirectIfHandleIsLocalized } from "~/utils/redirect";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
+import {
+  paginateSaleProducts,
+  SALE_PRODUCT_CARDS_QUERY,
+} from "~/utils/sale-pagination.server";
 import { seoPayload } from "~/utils/seo.server";
+import { localizedSeoMeta } from "~/utils/seo-translation";
 import { WeaverseContent } from "~/weaverse";
 
 export const headers = routeHeaders;
@@ -98,6 +106,47 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     data: collection,
   });
 
+  const saleOnly = searchParams.get("sale") === "true";
+  if (saleOnly) {
+    collection.products = await paginateSaleProducts(
+      collection.products,
+      paginationVariables,
+      async (page) => {
+        const next = await storefront.query<CollectionSaleProductScanQuery>(
+          COLLECTION_SALE_PRODUCT_SCAN_QUERY,
+          {
+            variables: {
+              ...page,
+              handle: collectionHandle,
+              filters,
+              sortKey,
+              reverse,
+              country: storefront.i18n.country,
+              language: storefront.i18n.language,
+            },
+          },
+        );
+        if (!next.collection) {
+          throw new Response("collection", { status: 404 });
+        }
+        return next.collection.products;
+      },
+      async (ids) => {
+        const { nodes } = await storefront.query<SaleProductCardsQuery>(
+          SALE_PRODUCT_CARDS_QUERY,
+          {
+            variables: {
+              ids,
+              country: storefront.i18n.country,
+              language: storefront.i18n.language,
+            },
+          },
+        );
+        return nodes.filter((node) => node && "id" in node);
+      },
+    );
+  }
+
   const seo = seoPayload.collection({
     collection: {
       id: collection.id,
@@ -168,7 +217,8 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
 }
 
 export const meta = ({ matches }: MetaArgs<typeof loader>) => {
-  return getSeoMeta(
+  return localizedSeoMeta(
+    matches,
     ...matches.map((match) => (match.data as any)?.seo).filter(Boolean),
   );
 };
@@ -308,6 +358,7 @@ const COLLECTION_QUERY = `#graphql
             input
           }
         }
+        edges { cursor }
         nodes {
           ...ProductCard
         }
@@ -363,4 +414,50 @@ const COLLECTION_QUERY = `#graphql
     }
   }
   ${PRODUCT_CARD_FRAGMENT}
+` as const;
+
+const COLLECTION_SALE_PRODUCT_SCAN_QUERY = `#graphql
+  query collectionSaleProductScan(
+    $handle: String!
+    $country: CountryCode
+    $language: LanguageCode
+    $filters: [ProductFilter!]
+    $sortKey: ProductCollectionSortKeys!
+    $reverse: Boolean
+    $first: Int
+    $last: Int
+    $startCursor: String
+    $endCursor: String
+  ) @inContext(country: $country, language: $language) {
+    collection(handle: $handle) {
+      products(
+        first: $first
+        last: $last
+        before: $startCursor
+        after: $endCursor
+        filters: $filters
+        sortKey: $sortKey
+        reverse: $reverse
+      ) {
+        edges { cursor }
+        nodes {
+          id
+          selectedOrFirstAvailableVariant(
+            selectedOptions: []
+            ignoreUnknownOptions: true
+            caseInsensitiveMatch: true
+          ) {
+            price { amount }
+            compareAtPrice { amount }
+          }
+        }
+        pageInfo {
+          hasPreviousPage
+          hasNextPage
+          startCursor
+          endCursor
+        }
+      }
+    }
+  }
 ` as const;

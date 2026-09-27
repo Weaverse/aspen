@@ -16,6 +16,7 @@ import type {
 } from "storefront-api.generated";
 import Link, { variants } from "~/components/link";
 import { ProductCard } from "~/components/product/product-card";
+import { SaleFilterStatus } from "~/components/sale-filter-status";
 import { cn } from "~/utils/cn";
 import {
   COMBINED_LISTINGS_CONFIGS,
@@ -48,6 +49,7 @@ export function ProductsPagination({
 
   return (
     <div className="grow space-y-6">
+      <SaleFilterStatus />
       {appliedFilters.length > 0 ? (
         <div className="flex flex-wrap items-center gap-6">
           <div className="flex items-center gap-2">
@@ -61,7 +63,11 @@ export function ProductsPagination({
                   variant="custom"
                   preventScrollReset
                 >
-                  <span>{label}</span>
+                  <span>
+                    {filter.filter.price && label === "Price"
+                      ? t("product.price")
+                      : label}
+                  </span>
                   <XIcon className="h-4 w-4" />
                 </Link>
               );
@@ -96,7 +102,7 @@ export function ProductsPagination({
               style={
                 {
                   "--cols-mobile": `repeat(${mobileCols}, minmax(0, 1fr))`,
-                  "--cols-desktop": `repeat(${desktopCols}, minmax(0, 1fr))`,
+                  "--cols-desktop": `repeat(${desktopCols === 3 ? 3 : 2}, minmax(0, 1fr))`,
                 } as React.CSSProperties
               }
             >

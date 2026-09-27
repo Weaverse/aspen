@@ -4,6 +4,7 @@ import { useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { Image } from "~/components/image";
 import { Link } from "~/components/link";
+import { minWidthQuery, TABLET_MIN_PX } from "~/utils/breakpoints";
 
 export type CollectionCardLayout = "grid" | "slider" | "showcase";
 
@@ -83,7 +84,7 @@ export function CollectionCard({
         {collectionImage ? (
           <Image
             data={collectionImage}
-            sizes="(min-width: 768px) 50vw, 100vw"
+            sizes={`${minWidthQuery(TABLET_MIN_PX)} 50vw, 100vw`}
             loading={loading}
             className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
           />
@@ -112,7 +113,7 @@ export function CollectionCard({
       {collectionImage ? (
         <Image
           data={collectionImage}
-          sizes="(min-width: 768px) 33vw, 50vw"
+          sizes={`${minWidthQuery(TABLET_MIN_PX)} 33vw, 50vw`}
           loading={loading}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
         />

@@ -4,7 +4,7 @@ import { forwardRef } from "react";
 import { cn } from "~/utils/cn";
 import { useAccordionContext } from "./index";
 
-let variants = cva("", {
+const variants = cva("", {
   variants: {
     gap: {
       0: "",
@@ -25,9 +25,7 @@ let variants = cva("", {
       60: "space-y-7 lg:space-y-[60px]",
     },
   },
-  defaultVariants: {
-    gap: 28,
-  },
+  defaultVariants: { gap: 28 },
 });
 
 interface ContentInformationProps
@@ -44,9 +42,19 @@ const ContentInformation = forwardRef<HTMLDivElement, ContentInformationProps>(
         ref={ref}
         {...rest}
         className={cn(
+          "flex flex-col",
           variants({ gap }),
-          "[&_.heading]:text-[30px] [&_.heading]:leading-[1.05] [&_.paragraph]:text-[11px] [&_.paragraph]:leading-relaxed [&_.subheading]:text-sm lg:[&_.heading]:text-[36px]",
-          layout === "row" && "[&>*:nth-child(n+3)]:hidden",
+          "[&_.heading]:mb-0 [&_.heading]:text-[30px] [&_.heading]:leading-[1.05] lg:[&_.heading]:text-[36px]",
+          "[&_.subheading]:mt-0 [&_.subheading]:font-heading [&_.subheading]:text-[24px] [&_.subheading]:font-normal [&_.subheading]:leading-none",
+          "[&_.heading+.subheading]:mt-0",
+          layout === "column"
+            ? [
+                "[&_.subheading+.paragraph]:mt-10",
+                "[&_.paragraph+.paragraph]:mt-6",
+                "[&_.paragraph]:font-body [&_.paragraph]:text-[16px] [&_.paragraph]:font-normal [&_.paragraph]:leading-[1.4] [&_.paragraph]:tracking-[0.32px] [&_.paragraph]:text-(--color-text-subtle)",
+                "[&_.paragraph_p]:m-0 [&_.paragraph_p]:font-body [&_.paragraph_p]:text-[16px] [&_.paragraph_p]:font-normal [&_.paragraph_p]:leading-[1.4] [&_.paragraph_p]:tracking-[0.32px] [&_.paragraph_p]:text-(--color-text-subtle)",
+              ]
+            : "[&>*:nth-child(n+3)]:hidden",
         )}
       >
         {children}
@@ -68,12 +76,7 @@ export const schema = createSchema({
           type: "range",
           name: "gap",
           label: "Items spacing",
-          configs: {
-            min: 0,
-            max: 60,
-            step: 4,
-            unit: "px",
-          },
+          configs: { min: 0, max: 60, step: 4, unit: "px" },
           defaultValue: 20,
         },
       ],

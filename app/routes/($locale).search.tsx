@@ -8,18 +8,19 @@ import * as Dialog from "@radix-ui/react-dialog";
 import {
   Analytics,
   getPaginationVariables,
-  getSeoMeta,
   Pagination,
+  type SeoConfig,
 } from "@shopify/hydrogen";
 import type { ProductFilter } from "@shopify/hydrogen/storefront-api-types";
-import { useThemeSettings, useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
-import { useState } from "react";
+import { useEffect, useId, useState } from "react";
 import type { LoaderFunctionArgs, MetaArgs } from "react-router";
 import {
   Form,
   useLoaderData,
   useLocation,
+  useNavigate,
   useSearchParams,
 } from "react-router";
 import type {
@@ -35,6 +36,8 @@ import { StorefrontError } from "~/components/root/storefront-error";
 import { ScrollArea } from "~/components/scroll-area";
 import { Section } from "~/components/section";
 import { PRODUCT_CARD_FRAGMENT } from "~/graphql/fragments";
+import { useTranslatedText } from "~/hooks/use-translated-text";
+import { useTranslatedThemeSettings } from "~/hooks/use-translated-theme-settings";
 import { Filters } from "~/sections/collection-filters/filters";
 import { LayoutSwitcher } from "~/sections/collection-filters/layout-switcher";
 import { Sort } from "~/sections/collection-filters/sort";
@@ -42,8 +45,8 @@ import { cn } from "~/utils/cn";
 import {
   COMBINED_LISTINGS_CONFIGS,
   isCombinedListing,
+  maybeFilterOutCombinedListingsQuery,
 } from "~/utils/combined-listings";
-import { PAGINATION_SIZE } from "~/utils/const";
 import {
   type AppliedFilter,
   FILTER_URL_PREFIX,
@@ -52,6 +55,7 @@ import {
 } from "~/utils/filter";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 import { seoPayload } from "~/utils/seo.server";
+import { getMetaTranslator, localizedSeoMeta } from "~/utils/seo-translation";
 
 export const shouldRevalidate = skipPageRevalidationForStorefrontActions;
 
@@ -64,8 +68,9 @@ export async function loader({
   const sortParam = searchParams.get("sort") as SortParam | null;
   const { sortKey, reverse } = getSortValuesFromParam(sortParam);
   const filters = getFiltersFromParams(searchParams);
+  const gridSizeDesktop = searchParams.get("grid") === "3" ? 3 : 2;
   const paginationVariables = getPaginationVariables(request, {
-    pageBy: PAGINATION_SIZE,
+    pageBy: gridSizeDesktop === 3 ? 9 : 8,
   });
 
   let products = {
@@ -91,7 +96,9 @@ export async function loader({
     try {
       const searchData = await storefront.query<SearchQuery>(SEARCH_QUERY, {
         variables: {
-          searchTerm,
+          searchTerm: maybeFilterOutCombinedListingsQuery
+            ? `(${searchTerm}) AND ${maybeFilterOutCombinedListingsQuery}`
+            : searchTerm,
           filters,
           sortKey,
           reverse,
@@ -115,7 +122,7 @@ export async function loader({
         ).lowestPriceProduct || lowestPriceProduct;
     } catch (error) {
       console.error("Search request failed", error);
-      searchError = "Search is temporarily unavailable. Please try again.";
+      searchError = "errors.searchUnavailable";
     }
   }
 
@@ -124,19 +131,13 @@ export async function loader({
     products.filters,
     storefront.i18n,
   );
-  const hasResults = products.nodes.length > 0;
-  const seoDescription = hasResults
-    ? `Showing search results for "${searchTerm}"`
-    : searchTerm
-      ? `No results found for "${searchTerm}"`
-      : "Search our store";
   const mockCollection = {
     id: `search:${searchTerm}`,
-    title: "Search Results",
+    title: "seo.searchResults",
     handle: "search",
-    description: "Search results",
-    descriptionHtml: "Search results",
-    seo: { title: "Search", description: seoDescription },
+    description: "seo.searchDescription",
+    descriptionHtml: "seo.searchDescription",
+    seo: { title: "seo.search", description: "seo.searchDescription" },
     metafields: [],
     products,
     updatedAt: new Date().toISOString(),
@@ -154,21 +155,47 @@ export async function loader({
     appliedFilters,
     collection: mockCollection,
     searchError,
+    gridSizeDesktop,
   };
 }
 
 export const meta = ({ matches }: MetaArgs<typeof loader>) => {
-  return getSeoMeta(
-    ...matches.map((match) => (match.data as any)?.seo).filter(Boolean),
+  return localizedSeoMeta(
+    matches,
+    ...matches
+      .map((match) => {
+        const page = match.data as {
+          seo?: SeoConfig;
+          searchTerm?: string;
+          products?: { nodes: unknown[] };
+        };
+        if (!page?.seo || page.searchTerm === undefined) {
+          return page?.seo;
+        }
+        const t = getMetaTranslator(matches);
+        return {
+          ...page.seo,
+          title: t("seo.search"),
+          description: t(
+            page.products?.nodes.length
+              ? "seo.searchResultsFor"
+              : page.searchTerm
+                ? "seo.searchNoResultsFor"
+                : "seo.searchStore",
+            { term: page.searchTerm },
+          ),
+        };
+      })
+      .filter(Boolean),
   );
 };
 
 export default function Search() {
   const { t } = useTranslation();
-  const { searchTerm, products, appliedFilters, searchError } =
+  const { searchTerm, products, appliedFilters, searchError, gridSizeDesktop } =
     useLoaderData<typeof loader>();
-  const [gridSizeDesktop, setGridSizeDesktop] = useState(2);
   const [gridSizeMobile, setGridSizeMobile] = useState(2);
+  const [searchParams, setSearchParams] = useSearchParams();
   const resultCount =
     "totalCount" in products && typeof products.totalCount === "number"
       ? products.totalCount
@@ -187,27 +214,52 @@ export default function Search() {
     <>
       <Section width="fixed" verticalPadding="small" overflow="unset">
         <header className="pb-6 md:pb-8">
-          <div className="flex items-stretch justify-between gap-4 md:gap-10">
-            <div className="hidden flex-col gap-4 md:flex">
-              <SearchHeading searchTerm={searchTerm} />
-              {searchTerm && (
-                <span className="py-2 uppercase">
-                  {t("search.products")} ({resultCount})
-                </span>
-              )}
-            </div>
-            <div className="flex w-full flex-col gap-4 md:w-fit md:items-end">
+          <div className="flex flex-col gap-4 md:grid md:grid-cols-[minmax(0,1fr)_auto] md:items-stretch md:gap-x-8 lg:grid-cols-[50%_minmax(0,1fr)] xl:gap-x-10">
+            <div className="flex min-w-0 w-full flex-col gap-4 md:justify-between">
               <div className="md:hidden">
+                <SearchHeading searchTerm={searchTerm} stacked />
+              </div>
+              <div className="hidden md:block xl:hidden">
                 <SearchHeading searchTerm={searchTerm} />
               </div>
+              <div className="hidden xl:block">
+                <SearchHeading
+                  searchTerm={searchTerm}
+                  resultCount={resultCount}
+                />
+              </div>
               {searchTerm && (
-                <div className="flex w-full items-center justify-between gap-2 md:w-fit md:justify-end">
+                <SearchPageForm key={searchTerm} defaultValue={searchTerm} />
+              )}
+            </div>
+            {searchTerm && (
+              <div className="flex w-full flex-col gap-4 md:w-auto md:items-end md:justify-between">
+                <div className="flex w-full items-center justify-between gap-2 md:w-fit md:justify-end md:gap-3">
                   <LayoutSwitcher
+                    className={cn(
+                      "flex-row overflow-hidden rounded-xl border border-[#9D9D9D]",
+                      "[&>button]:border-0 [&>button]:text-[#C8C8C8]",
+                      '[&>button[data-active="true"]]:text-[#8A8A8A]',
+                      "[&>button+button]:border-[#D8D8D8] [&>button+button]:border-l",
+                    )}
+                    mobileColumns={[2, 1]}
                     gridSizeDesktop={gridSizeDesktop}
                     gridSizeMobile={gridSizeMobile}
                     onGridSizeChange={(value, context) => {
                       if (context === "desktop") {
-                        setGridSizeDesktop(value);
+                        const nextSearchParams = new URLSearchParams(
+                          searchParams,
+                        );
+                        if (value === 3) {
+                          nextSearchParams.set("grid", "3");
+                        } else {
+                          nextSearchParams.delete("grid");
+                        }
+                        nextSearchParams.delete("cursor");
+                        nextSearchParams.delete("direction");
+                        setSearchParams(nextSearchParams, {
+                          preventScrollReset: true,
+                        });
                       } else {
                         setGridSizeMobile(value);
                       }
@@ -218,25 +270,11 @@ export default function Search() {
                     disabled={!products.filters.length}
                   />
                 </div>
-              )}
-              {searchTerm && (
-                <div className="flex w-full justify-end">
-                  <div className="md:hidden">
-                    <Sort
-                      mode="drawer"
-                      defaultSort="relevance"
-                      options={SEARCH_SORT_OPTIONS}
-                    />
-                  </div>
-                  <div className="hidden md:block">
-                    <Sort
-                      defaultSort="relevance"
-                      options={SEARCH_SORT_OPTIONS}
-                    />
-                  </div>
+                <div className="flex w-full justify-end md:w-fit">
+                  <Sort defaultSort="relevance" options={SEARCH_SORT_OPTIONS} />
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </header>
 
@@ -244,6 +282,7 @@ export default function Search() {
 
         {products.nodes.length > 0 ? (
           <SearchProducts
+            key={getSearchResultsKey(searchTerm, searchParams)}
             products={products}
             gridSizeDesktop={gridSizeDesktop}
             gridSizeMobile={gridSizeMobile}
@@ -262,13 +301,29 @@ export default function Search() {
   );
 }
 
-function SearchHeading({ searchTerm }: { searchTerm: string }) {
+function SearchHeading({
+  searchTerm,
+  resultCount,
+  stacked = false,
+}: {
+  searchTerm: string;
+  resultCount?: number;
+  stacked?: boolean;
+}) {
   const { t } = useTranslation();
   return (
-    <h1 className="font-heading font-normal text-xl uppercase leading-tight tracking-[-0.03em] md:text-2xl">
-      {searchTerm
-        ? t("search.resultsFor", { term: searchTerm })
-        : t("search.title")}
+    <h1 className="self-stretch text-left font-heading font-normal text-[37px] uppercase leading-[110%] tracking-[-0.74px] text-[var(--color-text,#343231)] md:max-w-full md:break-words">
+      {typeof resultCount === "number" && `${resultCount} `}
+      {searchTerm && stacked ? (
+        <>
+          {t("search.resultsForLabel")}
+          <span className="block">“{searchTerm}”</span>
+        </>
+      ) : searchTerm ? (
+        t("search.resultsFor", { term: searchTerm })
+      ) : (
+        t("search.title")
+      )}
     </h1>
   );
 }
@@ -283,6 +338,14 @@ function SearchProducts({
   gridSizeMobile: number;
 }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const mobilePageSize = getSearchMobilePageSize(gridSizeMobile);
+  const [mobileVisible, setMobileVisible] = useState(mobilePageSize);
+
+  useEffect(() => {
+    setMobileVisible(mobilePageSize);
+  }, [mobilePageSize]);
+
   return (
     <Pagination connection={products}>
       {({
@@ -292,52 +355,84 @@ function SearchProducts({
         hasPreviousPage,
         PreviousLink,
         NextLink,
-      }) => (
-        <div
-          className="flex w-full flex-col items-center gap-8 md:gap-12"
-          style={
-            {
-              "--cols-mobile": `repeat(${gridSizeMobile}, minmax(0, 1fr))`,
-              "--cols-desktop": `repeat(${gridSizeDesktop}, minmax(0, 1fr))`,
-            } as React.CSSProperties
-          }
-        >
-          {hasPreviousPage && (
-            <PreviousLink
-              className={cn("mx-auto", variants({ variant: "outline" }))}
-            >
-              {isLoading ? t("system.loading") : t("search.loadPrevious")}
-            </PreviousLink>
-          )}
-          <div
-            className={clsx(
-              "grid w-full grid-cols-(--cols-mobile) gap-x-4 gap-y-8 md:grid-cols-(--cols-desktop) md:gap-y-12",
+        nextPageUrl,
+        state,
+      }) => {
+        const visibleProducts = nodes.filter(
+          (product: ProductCardFragment) =>
+            !(
+              COMBINED_LISTINGS_CONFIGS.hideCombinedListingsFromProductList &&
+              isCombinedListing(product)
+            ),
+        );
+        const hasHiddenMobileProducts = visibleProducts.length > mobileVisible;
+        const showMobileLoadMore = hasNextPage || hasHiddenMobileProducts;
+
+        return (
+          <div className="flex w-full flex-col items-center gap-8 md:gap-12">
+            {hasPreviousPage && (
+              <PreviousLink
+                className={cn(
+                  variants({ variant: "outline" }),
+                  "mx-auto hidden md:flex",
+                )}
+              >
+                {isLoading ? t("system.loading") : t("search.loadPrevious")}
+              </PreviousLink>
             )}
-          >
-            {nodes
-              .filter(
-                (product: ProductCardFragment) =>
-                  !(
-                    COMBINED_LISTINGS_CONFIGS.hideCombinedListingsFromProductList &&
-                    isCombinedListing(product)
-                  ),
-              )
-              .map((product: ProductCardFragment) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-          </div>
-          {hasNextPage && (
-            <NextLink
-              className={cn(
-                "mx-auto min-w-48 uppercase",
-                variants({ variant: "outline" }),
+            <div
+              className={clsx(
+                "grid w-full gap-x-4 gap-y-8 md:gap-y-12",
+                gridSizeMobile === 1 ? "grid-cols-1" : "grid-cols-2",
+                gridSizeDesktop === 3 ? "md:grid-cols-3" : "md:grid-cols-2",
               )}
             >
-              {isLoading ? t("system.loading") : t("search.loadMore")}
-            </NextLink>
-          )}
-        </div>
-      )}
+              {visibleProducts.map(
+                (product: ProductCardFragment, index: number) => (
+                  <div
+                    key={product.id}
+                    className={cn(index >= mobileVisible && "max-md:hidden")}
+                  >
+                    <ProductCard product={product} />
+                  </div>
+                ),
+              )}
+            </div>
+            {showMobileLoadMore && (
+              <button
+                type="button"
+                className={cn(
+                  variants({ variant: "outline" }),
+                  "mx-auto min-w-48 uppercase md:hidden",
+                )}
+                onClick={() => {
+                  const nextVisible = mobileVisible + mobilePageSize;
+                  setMobileVisible(nextVisible);
+                  if (hasNextPage && visibleProducts.length <= nextVisible) {
+                    navigate(nextPageUrl, {
+                      replace: true,
+                      preventScrollReset: true,
+                      state,
+                    });
+                  }
+                }}
+              >
+                {isLoading ? t("system.loading") : t("search.loadMore")}
+              </button>
+            )}
+            {hasNextPage && (
+              <NextLink
+                className={cn(
+                  variants({ variant: "outline" }),
+                  "mx-auto hidden min-w-48 uppercase md:flex",
+                )}
+              >
+                {isLoading ? t("system.loading") : t("search.loadMore")}
+              </NextLink>
+            )}
+          </div>
+        );
+      }}
     </Pagination>
   );
 }
@@ -368,7 +463,9 @@ function AppliedFilters({ filters }: { filters: AppliedFilter[] }) {
           variant="custom"
           preventScrollReset
         >
-          <span>{filter.label}</span>
+          <span>
+            {filter.label === "Price" ? t("product.price") : filter.label}
+          </span>
           <XIcon aria-hidden="true" className="h-4 w-4" />
         </Link>
       ))}
@@ -427,35 +524,59 @@ function SearchEmptyState({
         >
           {t("search.clearFilters")}
         </Link>
-      ) : (
-        <SearchPageForm defaultValue={searchTerm} />
-      )}
+      ) : null}
     </div>
   );
 }
 
 function SearchPageForm({ defaultValue = "" }: { defaultValue?: string }) {
   const { t } = useTranslation();
+  const inputId = useId();
+  const [query, setQuery] = useState(() =>
+    stripSearchInputQuotes(defaultValue),
+  );
   return (
-    <Form method="get" className="flex w-full max-w-md border-b border-line">
-      <label htmlFor="search-page-query" className="sr-only">
+    <Form
+      method="get"
+      className="flex h-12 w-full items-center gap-3 self-stretch rounded-[var(--Radius-border-radius-md,12px)] border border-[var(--Border-Subtle,#D8D8D8)] bg-[var(--Background-Background,#FFF)] px-4 md:max-w-[calc(50vw-var(--page-padding))] lg:max-w-full"
+    >
+      <label htmlFor={inputId} className="sr-only">
         {t("search.searchProducts")}
       </label>
-      <input
-        id="search-page-query"
-        name="q"
-        type="search"
-        defaultValue={defaultValue}
-        placeholder={t("search.searchProducts")}
-        className="h-12 min-w-0 flex-1 bg-transparent px-1 outline-none"
-      />
       <button
         type="submit"
         aria-label={t("search.submit")}
-        className="flex h-12 w-12 items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body"
+        className="flex h-10 w-7 shrink-0 items-center justify-start focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body"
       >
-        <MagnifyingGlassIcon aria-hidden="true" className="h-5 w-5" />
+        <MagnifyingGlassIcon
+          aria-hidden="true"
+          className="h-5 w-5 text-[#9D9D9D]"
+        />
       </button>
+      <input
+        id={inputId}
+        name="q"
+        type="text"
+        value={query}
+        onChange={(event) =>
+          setQuery(stripSearchInputQuotes(event.currentTarget.value))
+        }
+        placeholder={t("search.searchProducts")}
+        autoComplete="off"
+        autoCorrect="off"
+        spellCheck={false}
+        className="h-full min-w-0 flex-1 appearance-none rounded-none border-0 bg-transparent p-0 font-semibold uppercase tracking-[0.04em] shadow-none outline-none ring-0 focus:border-0 focus:shadow-none focus:outline-none focus-visible:border-0 focus-visible:shadow-none focus-visible:outline-none"
+      />
+      {query && (
+        <button
+          type="button"
+          aria-label={t("search.clearFilters")}
+          onClick={() => setQuery("")}
+          className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#F2F2F2] text-[#9D9D9D] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body"
+        >
+          <XIcon aria-hidden="true" className="h-5 w-5" />
+        </button>
+      )}
     </Form>
   );
 }
@@ -475,7 +596,7 @@ function FiltersDrawer({
       <Dialog.Trigger asChild>
         <Button
           variant="outline"
-          className="flex h-11 items-center gap-1.5 rounded-sm border px-4 py-2 md:h-12"
+          className="flex h-12 min-w-[102px] items-center gap-1.5 rounded-xl !px-5 !py-2"
           animate={false}
           disabled={disabled}
           aria-label={
@@ -523,19 +644,30 @@ function FiltersDrawer({
 }
 
 function SearchEditorial() {
+  const translateText = useTranslatedText();
+
   const {
     searchEditorialImage,
-    searchEditorialHeading = "Decorate for holidays and beyond",
-    searchEditorialLinkText = "Explore now",
+    searchEditorialHeading:
+      rawI18nSearchEditorialHeading = "Decorate for holidays and beyond",
+    searchEditorialLinkText: rawI18nSearchEditorialLinkText = "Explore now",
     searchEditorialLink = "/collections",
-  } = useThemeSettings();
+  } = useTranslatedThemeSettings();
+  const searchEditorialLinkText = translateText(
+    rawI18nSearchEditorialLinkText,
+    "themeContent.routesLocaleSearch.searchEditorialLinkText",
+  );
+  const searchEditorialHeading = translateText(
+    rawI18nSearchEditorialHeading,
+    "themeContent.routesLocaleSearch.searchEditorialHeading",
+  );
 
   if (!searchEditorialImage?.url) {
     return null;
   }
 
   return (
-    <section className="mx-auto mb-16 w-[calc(100%-2*var(--page-padding))] max-w-(--page-width) overflow-hidden rounded-xl border border-line-subtle md:mb-24">
+    <section className="mx-auto mb-16 hidden w-[calc(100%-2*var(--page-padding))] max-w-(--page-width) overflow-hidden rounded-xl border border-line-subtle md:mb-24 md:block">
       <div className="relative h-[320px] md:h-[520px]">
         <Image
           data={searchEditorialImage}
@@ -632,6 +764,24 @@ function parseAsCurrency(
     style: "currency",
     currency: locale.currency,
   }).format(value);
+}
+
+function getSearchMobilePageSize(gridSizeMobile: number) {
+  return gridSizeMobile === 1 ? 6 : 8;
+}
+
+function stripSearchInputQuotes(value: string) {
+  return value.replace(/^[“”"«»]+|[“”"«»]+$/g, "");
+}
+
+function getSearchResultsKey(
+  searchTerm: string,
+  searchParams: URLSearchParams,
+) {
+  const params = new URLSearchParams(searchParams);
+  params.delete("cursor");
+  params.delete("direction");
+  return `${searchTerm}:${params.toString()}`;
 }
 
 const SEARCH_SORT_OPTIONS: SortParam[] = [

@@ -4,20 +4,26 @@ import {
   TwitterLogo,
   YoutubeLogo,
 } from "@phosphor-icons/react";
-import { useThemeSettings, useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen";
 import { cva } from "class-variance-authority";
 import { type CSSProperties, useEffect, useRef } from "react";
 import type { Swiper as SwiperClass } from "swiper";
 import { Swiper, SwiperSlide } from "swiper/react";
+import { useTranslatedThemeSettings } from "~/hooks/use-translated-theme-settings";
 import { cn } from "~/utils/cn";
-import { CountrySelector } from "./country-selector";
+import {
+  CountrySelector,
+  currencySelectorWrapperClassName,
+  languageSelectorWrapperClassName,
+  localeSelectorGroupClassName,
+} from "./country-selector";
 
 const announcementWidthVariants = cva("relative h-full w-full", {
   variants: {
     width: {
       full: "",
       stretch: "px-5 md:px-8 xl:px-12",
-      fixed: "mx-auto max-w-[1360px]",
+      fixed: "mx-auto max-w-[1360px] xl:px-10",
     },
   },
   defaultVariants: {
@@ -50,9 +56,10 @@ function AnnouncementArrow({ direction }: { direction: "left" | "right" }) {
 
 export function ScrollingAnnouncement() {
   const { t } = useTranslation();
-  const themeSettings = useThemeSettings();
+  const themeSettings = useTranslatedThemeSettings();
   const {
     announcementWidth,
+    headerWidth,
     designSystemPreset,
     socialFacebookAnnouncement,
     socialInstagramAnnouncement,
@@ -122,15 +129,26 @@ export function ScrollingAnnouncement() {
     <div
       id="announcement-bar"
       ref={barRef}
-      className="z-10 h-11 w-full overflow-hidden bg-(--color-topbar-bg) text-(--color-topbar-text) xl:h-(--announcement-height)"
+      className="z-10 min-h-11 w-full bg-(--color-topbar-bg) text-(--color-topbar-text) xl:min-h-(--announcement-height)"
       style={
         {
           "--announcement-height": `${desktopHeight}px`,
         } as CSSProperties
       }
     >
-      <div className={announcementWidthVariants({ width: announcementWidth })}>
-        <div className="absolute inset-y-0 left-0 hidden items-center gap-3 xl:flex">
+      <div
+        className={cn(
+          announcementWidthVariants({ width: announcementWidth }),
+          // Align the selector group's right edge with the navigation actions.
+          headerWidth === "fixed"
+            ? "xl:mx-auto xl:w-[calc(100%-80px)] xl:max-w-[1360px] xl:px-0"
+            : headerWidth === "stretch"
+              ? "xl:mx-0 xl:w-full xl:max-w-none xl:px-10"
+              : "xl:mx-0 xl:w-full xl:max-w-none xl:px-0",
+          "xl:grid xl:min-h-(--announcement-height) xl:grid-cols-[minmax(0,1fr)_minmax(0,560px)_minmax(0,1fr)] xl:items-center xl:gap-6 xl:py-2",
+        )}
+      >
+        <div className="hidden items-center gap-3 xl:flex">
           {socialItems.map(({ name, to, Icon }) =>
             to ? (
               <a
@@ -147,7 +165,7 @@ export function ScrollingAnnouncement() {
           )}
         </div>
 
-        <div className="relative h-full w-full xl:absolute xl:left-1/2 xl:w-[600px] xl:-translate-x-1/2">
+        <div className="relative h-11 min-w-0 w-full xl:h-10">
           <Swiper
             allowTouchMove={slides.length > 1}
             className="h-full w-full [&_.swiper-slide]:h-full [&_.swiper-wrapper]:h-full"
@@ -186,17 +204,22 @@ export function ScrollingAnnouncement() {
           </button>
         </div>
 
-        <div className="absolute inset-y-0 right-0 hidden items-center gap-1.5 text-sm xl:flex">
+        <div
+          className={cn(
+            localeSelectorGroupClassName,
+            "hidden justify-self-end text-sm xl:flex",
+          )}
+        >
           <CountrySelector
             enableFlag={false}
-            inputClassName="h-8 rounded-lg border-[#9D9D9D] px-4 tracking-[0.02em]"
-            wrapperClassName="w-[191px]"
+            inputClassName="min-h-8 rounded-lg border-[#9D9D9D] px-3 py-1 tracking-[0.02em]"
+            wrapperClassName={currencySelectorWrapperClassName}
           />
           <CountrySelector
             enableFlag={false}
-            inputClassName="h-8 whitespace-nowrap rounded-lg border-[#9D9D9D] px-4 tracking-[0.02em]"
+            inputClassName="min-h-8 rounded-lg border-[#9D9D9D] px-3 py-1 tracking-[0.02em]"
             mode="language"
-            wrapperClassName="w-[140px]"
+            wrapperClassName={languageSelectorWrapperClassName}
           />
         </div>
       </div>

@@ -4,9 +4,11 @@ import { QuickShopOptionValues } from "./quick-shop-option-values";
 export function QuickShopVariants({
   productOptions,
   onVariantChange,
+  layout = "select",
 }: {
   productOptions: MappedProductOptions[];
   onVariantChange: (variantId: string) => void;
+  layout?: "select" | "buttons";
 }) {
   // Check if this is a default variant only product
   if (productOptions.length === 1) {
@@ -17,6 +19,25 @@ export function QuickShopVariants({
         return null;
       }
     }
+  }
+
+  if (layout === "buttons") {
+    return (
+      <div className="flex flex-col gap-6" data-motion="fade-up">
+        {productOptions.map((option) => (
+          <fieldset className="product-options min-w-0" key={option.name}>
+            <legend className="mb-3 font-semibold uppercase leading-tight tracking-[0.02em]">
+              {option.name}
+            </legend>
+            <QuickShopOptionValues
+              option={option}
+              onVariantChange={onVariantChange}
+              layout="buttons"
+            />
+          </fieldset>
+        ))}
+      </div>
+    );
   }
 
   return (
@@ -33,6 +54,7 @@ export function QuickShopVariants({
             <QuickShopOptionValues
               option={option}
               onVariantChange={onVariantChange}
+              layout="select"
             />
           </div>
         ))}

@@ -1,5 +1,6 @@
 import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
 import { AccountOrderHistory } from "~/components/customer/orders";
+import { useTranslatedText } from "~/hooks/use-translated-text";
 import { useAccountSectionData } from ".";
 
 interface AccountOrdersProps extends Partial<HydrogenComponentProps> {
@@ -8,11 +9,17 @@ interface AccountOrdersProps extends Partial<HydrogenComponentProps> {
 }
 
 function AccountOrders({
-  heading = "ORDERS",
+  heading: rawI18nHeading = "ORDERS",
   maxOrders = 2,
   children: _children,
   ...rest
 }: AccountOrdersProps) {
+  const translateText = useTranslatedText();
+  const heading = translateText(
+    rawI18nHeading,
+    "themeContent.sectionsAccountOrders.heading",
+  );
+
   const { orders } = useAccountSectionData();
   return (
     <AccountOrderHistory

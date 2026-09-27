@@ -12,6 +12,7 @@ export type LayoutSwitcherProps = {
   gridSizeDesktop: number;
   gridSizeMobile: number;
   onGridSizeChange: (number: number, context: "mobile" | "desktop") => void;
+  mobileColumns?: Array<1 | 2 | 3>;
 };
 
 export function LayoutSwitcher({
@@ -19,6 +20,7 @@ export function LayoutSwitcher({
   gridSizeMobile,
   onGridSizeChange,
   className,
+  mobileColumns = [1, 2],
 }: LayoutSwitcherProps & { className?: string }) {
   const { t } = useTranslation();
   return (
@@ -31,8 +33,8 @@ export function LayoutSwitcher({
         className,
       )}
     >
-      {/* Mobile layout options: 1 and 2 columns */}
-      {[1, 2].map((col) => {
+      {/* Mobile layout options */}
+      {mobileColumns.map((col) => {
         const Icon = LAYOUT_ICONS[col];
         return (
           <button

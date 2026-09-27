@@ -16,8 +16,8 @@ export function AnimatedBottomSheet({ open, children }) {
               />
             </Dialog.Overlay>
             <Dialog.Content
+              onEscapeKeyDown={(event) => event.stopPropagation()}
               forceMount
-              onCloseAutoFocus={(e) => e.preventDefault()}
               className="fixed right-0 bottom-0 z-[60] w-screen max-w-[430px]"
               aria-describedby={undefined}
             >
@@ -26,11 +26,10 @@ export function AnimatedBottomSheet({ open, children }) {
                 animate={{ y: 0 }}
                 exit={{ y: "100%" }}
                 transition={{
-                  type: "spring",
-                  damping: 25,
-                  stiffness: 150,
+                  duration: 0.25,
+                  ease: [0.22, 1, 0.36, 1],
                 }}
-                className="w-full bg-white px-6 py-4 shadow-2xl"
+                className="max-h-[calc(100dvh-24px)] w-full overflow-y-auto rounded-xl bg-white px-5 py-4 pb-[max(16px,env(safe-area-inset-bottom))] shadow-2xl"
               >
                 {children}
               </motion.div>

@@ -1,4 +1,8 @@
-import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
+import {
+  createSchema,
+  type HydrogenComponentProps,
+  useTranslation,
+} from "@weaverse/hydrogen";
 import { cva, type VariantProps } from "class-variance-authority";
 import { forwardRef } from "react";
 import Heading, {
@@ -7,6 +11,7 @@ import Heading, {
 } from "~/components/heading";
 import Link, { type LinkProps, linkInputs } from "~/components/link";
 import Paragraph, { type ParagraphProps } from "~/components/paragraph";
+import { useTranslatedText } from "~/hooks/use-translated-text";
 import { useFeaturedProductsLayout } from ".";
 
 interface FeaturedProductsLoaderData
@@ -78,14 +83,18 @@ const FeaturedContentProducts = forwardRef<
   HTMLDivElement,
   FeaturedProductsLoaderData
 >((props, ref) => {
+  const translateText = useTranslatedText();
+
+  const { t } = useTranslation();
+
   const {
     gap,
     contentPosition,
     displayMode = "vertical",
     // Heading props
-    headingContent,
+    headingContent: rawI18nHeadingContent,
     headingTagName,
-    carouselHeadingContent,
+    carouselHeadingContent: rawI18nCarouselHeadingContent,
     color,
     size,
     mobileSize,
@@ -97,15 +106,15 @@ const FeaturedContentProducts = forwardRef<
     maxSize,
     animate,
     // Paragraph props
-    paragraphContent,
+    paragraphContent: rawI18nParagraphContent,
     paragraphTag = "p",
     paragraphColor,
     paragraphSize,
     paragraphAlignment,
     paragraphWidth,
     // Button/Link props
-    buttonContent,
-    carouselButtonContent,
+    buttonContent: rawI18nButtonContent,
+    carouselButtonContent: rawI18nCarouselButtonContent,
     to,
     carouselTo,
     variant,
@@ -119,6 +128,26 @@ const FeaturedContentProducts = forwardRef<
     textColorDecor,
     ...rest
   } = props;
+  const carouselButtonContent = translateText(
+    rawI18nCarouselButtonContent,
+    "themeContent.sectionsFeaturedProductsContent.carouselButtonContent",
+  );
+  const buttonContent = translateText(
+    rawI18nButtonContent,
+    "themeContent.sectionsFeaturedProductsContent.buttonContent",
+  );
+  const paragraphContent = translateText(
+    rawI18nParagraphContent,
+    "themeContent.sectionsFeaturedProductsContent.paragraphContent",
+  );
+  const carouselHeadingContent = translateText(
+    rawI18nCarouselHeadingContent,
+    "themeContent.sectionsFeaturedProductsContent.carouselHeadingContent",
+  );
+  const headingContent = translateText(
+    rawI18nHeadingContent,
+    "themeContent.sectionsFeaturedProductsContent.headingContent",
+  );
   const { layout, isLegacyLayout, isProductPage } = useFeaturedProductsLayout();
   const resolvedDisplayMode = isLegacyLayout
     ? displayMode
@@ -128,14 +157,14 @@ const FeaturedContentProducts = forwardRef<
   const resolvedHeadingContent =
     resolvedDisplayMode === "horizontal"
       ? isProductPage
-        ? headingContent || carouselHeadingContent || "YOU MAY ALSO LIKE"
-        : carouselHeadingContent || "FEATURED PRODUCTS"
+        ? carouselHeadingContent || headingContent || t("cart.recommendations")
+        : carouselHeadingContent || t("product.featuredProducts")
       : headingContent;
   const resolvedButtonContent =
     resolvedDisplayMode === "horizontal"
       ? isProductPage
-        ? buttonContent || carouselButtonContent || "VIEW ALL"
-        : carouselButtonContent || "VIEW ALL"
+        ? carouselButtonContent || buttonContent || t("product.viewAll")
+        : carouselButtonContent || t("product.viewAll")
       : buttonContent;
   const resolvedTo =
     resolvedDisplayMode === "horizontal"
@@ -149,25 +178,45 @@ const FeaturedContentProducts = forwardRef<
       <div
         ref={ref}
         {...rest}
-        className="flex w-full flex-col items-start gap-4 md:flex-row md:items-center md:justify-between"
+        className={
+          isProductPage
+            ? "flex w-full items-center justify-between gap-4"
+            : "flex w-full flex-col items-start gap-4 md:flex-row md:items-center md:justify-between"
+        }
       >
-        {resolvedHeadingContent && (
-          <Heading
-            content={resolvedHeadingContent}
-            as={headingTagName}
-            color={color}
-            size={size}
-            mobileSize={mobileSize}
-            desktopSize={desktopSize}
-            weight={weight}
-            letterSpacing={letterSpacing}
-            alignment="left"
-            minSize={minSize}
-            maxSize={maxSize}
-            animate={animate}
-            className="flex-1 text-left md:text-[44px]"
-          />
-        )}
+        <div className="flex min-w-0 flex-1 flex-col gap-4">
+          {resolvedHeadingContent && (
+            <Heading
+              content={resolvedHeadingContent}
+              as={headingTagName}
+              color={color}
+              size={size}
+              mobileSize={mobileSize}
+              desktopSize={desktopSize}
+              weight={weight}
+              letterSpacing={letterSpacing}
+              alignment="left"
+              minSize={minSize}
+              maxSize={maxSize}
+              animate={animate}
+              className={
+                isProductPage
+                  ? "text-left md:text-[24px] lg:text-[26px] lg:leading-[1.1]"
+                  : "text-left md:text-[44px]"
+              }
+            />
+          )}
+          {paragraphContent && (
+            <Paragraph
+              content={paragraphContent}
+              as={paragraphTag}
+              color={paragraphColor}
+              textSize={paragraphSize}
+              alignment={paragraphAlignment}
+              width={paragraphWidth}
+            />
+          )}
+        </div>
         {resolvedButtonContent && (
           <Link
             variant={variant}
@@ -299,27 +348,6 @@ export const schema = createSchema({
       ],
     },
     {
-      group: "Heading (optional)",
-      inputs: [
-        {
-          type: "text",
-          name: "headingContent",
-          label: "Heading content",
-          defaultValue: "Featured products",
-          placeholder: "Enter heading text",
-        },
-        ...headingInputs.map((input) => {
-          if (input.name === "as") {
-            return {
-              ...input,
-              name: "headingTagName",
-            };
-          }
-          return input;
-        }),
-      ],
-    },
-    {
       group: "Carousel header",
       inputs: [
         {
@@ -343,6 +371,29 @@ export const schema = createSchema({
       ],
     },
     {
+      group: "Heading (optional)",
+      inputs: [
+        {
+          type: "text",
+          name: "headingContent",
+          label: "Heading content",
+          defaultValue: "Featured products",
+          placeholder: "Enter heading text",
+        },
+        ...headingInputs
+          .filter((input) => input.name !== "content")
+          .map((input) => {
+            if (input.name === "as") {
+              return {
+                ...input,
+                name: "headingTagName",
+              };
+            }
+            return input;
+          }),
+      ],
+    },
+    {
       group: "Paragraph (optional)",
       inputs: [
         {
@@ -352,8 +403,6 @@ export const schema = createSchema({
           defaultValue:
             "Discover nomad, our best-selling and most-awarded modular seating.",
           placeholder: "Enter paragraph text",
-          condition: (data: FeaturedProductsLoaderData) =>
-            data.displayMode === "vertical",
         },
         {
           type: "select",
@@ -366,15 +415,11 @@ export const schema = createSchema({
             ],
           },
           defaultValue: "p",
-          condition: (data: FeaturedProductsLoaderData) =>
-            data.displayMode === "vertical",
         },
         {
           type: "color",
           name: "paragraphColor",
           label: "Text color",
-          condition: (data: FeaturedProductsLoaderData) =>
-            data.displayMode === "vertical",
         },
         {
           type: "select",
@@ -398,8 +443,6 @@ export const schema = createSchema({
             ],
           },
           defaultValue: "base",
-          condition: (data: FeaturedProductsLoaderData) =>
-            data.displayMode === "vertical",
         },
         {
           type: "toggle-group",
@@ -416,8 +459,6 @@ export const schema = createSchema({
             ],
           },
           defaultValue: "full",
-          condition: (data: FeaturedProductsLoaderData) =>
-            data.displayMode === "vertical",
         },
         {
           type: "toggle-group",
@@ -435,8 +476,6 @@ export const schema = createSchema({
             ],
           },
           defaultValue: "left",
-          condition: (data: FeaturedProductsLoaderData) =>
-            data.displayMode === "vertical",
         },
       ],
     },

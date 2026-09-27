@@ -17,10 +17,17 @@ import {
   accountPreviewOrderDetails,
   isAccountPreviewRequest,
 } from "~/utils/account-preview.server";
+import { getMetaTranslator } from "~/utils/seo-translation";
 import { WeaverseContent } from "~/weaverse";
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  return [{ title: `Order ${data?.order?.name}` }];
+export const meta: MetaFunction<typeof loader> = ({ data, matches }) => {
+  return [
+    {
+      title: getMetaTranslator(matches)("seo.order", {
+        number: data?.order?.name ?? "",
+      }),
+    },
+  ];
 };
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {

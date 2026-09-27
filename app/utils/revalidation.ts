@@ -17,9 +17,14 @@ export function skipPageRevalidationForStorefrontActions({
   nextUrl,
   defaultShouldRevalidate,
   formAction,
+  formData,
   formMethod,
 }: ShouldRevalidateFunctionArgs) {
   if (hasLocalePathChange(currentUrl, nextUrl)) {
+    return true;
+  }
+
+  if (formData?.get("localizationChange") === "currency") {
     return true;
   }
 
@@ -44,9 +49,14 @@ export function skipRootRevalidationForStorefrontActions({
   nextUrl,
   defaultShouldRevalidate,
   formAction,
+  formData,
   formMethod,
 }: ShouldRevalidateFunctionArgs) {
   if (hasLocalePathChange(currentUrl, nextUrl)) {
+    return true;
+  }
+
+  if (formData?.get("localizationChange") === "currency") {
     return true;
   }
 

@@ -1,6 +1,7 @@
 import { HeartIcon } from "@phosphor-icons/react";
 import { useTranslation } from "@weaverse/hydrogen";
-import clsx from "clsx";
+import { cn } from "~/utils/cn";
+import { translateError } from "~/utils/translated-error";
 import { useWishlist } from "./wishlist-provider";
 
 export function ProductWishlistButton({
@@ -27,7 +28,7 @@ export function ProductWishlistButton({
       aria-busy={updating}
       aria-label={label}
       aria-pressed={saved}
-      className={clsx(
+      className={cn(
         "inline-flex size-[54px] shrink-0 items-center justify-center rounded-lg border border-line-subtle bg-background text-body transition-[background-color,border-color,color,opacity,transform]",
         "hover:border-line hover:scale-[1.02] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body",
         "disabled:cursor-wait disabled:opacity-50",
@@ -36,11 +37,17 @@ export function ProductWishlistButton({
       )}
       disabled={isLoading || updating}
       onClick={() => toggle(productId)}
-      title={setupRequired ? t("wishlist.setupRequired") : error || label}
+      title={
+        setupRequired
+          ? t("wishlist.setupRequired")
+          : error
+            ? translateError(t, error)
+            : label
+      }
     >
       <HeartIcon
         aria-hidden="true"
-        className={clsx("size-6", updating && "animate-pulse")}
+        className={cn("size-6", updating && "animate-pulse")}
         weight={saved ? "fill" : "regular"}
       />
     </button>

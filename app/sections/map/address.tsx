@@ -18,6 +18,7 @@ import {
   useContext,
   useEffect,
 } from "react";
+import { useTranslatedText } from "~/hooks/use-translated-text";
 import { cn } from "~/utils/cn";
 import { MapContext } from "./map";
 
@@ -31,17 +32,35 @@ interface AddressProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const Address = forwardRef<HTMLDivElement, AddressProps>((props, ref) => {
+  const translateText = useTranslatedText();
+
   const { t } = useTranslation();
   const {
-    address,
-    nameStore,
+    address: rawI18nAddress,
+    nameStore: rawI18nNameStore,
     phoneNumber,
-    openingHours,
-    openingHoursSat,
+    openingHours: rawI18nOpeningHours,
+    openingHoursSat: rawI18nOpeningHoursSat,
     itemIndex = 0,
     className,
     ...rest
   } = props;
+  const openingHoursSat = translateText(
+    rawI18nOpeningHoursSat,
+    "themeContent.sectionsMapAddress.openingHoursSat",
+  );
+  const openingHours = translateText(
+    rawI18nOpeningHours,
+    "themeContent.sectionsMapAddress.openingHours",
+  );
+  const nameStore = translateText(
+    rawI18nNameStore,
+    "themeContent.sectionsMapAddress.nameStore",
+  );
+  const address = translateText(
+    rawI18nAddress,
+    "themeContent.sectionsMapAddress.address",
+  );
   const {
     layoutMap,
     activeItem,
@@ -107,10 +126,7 @@ const Address = forwardRef<HTMLDivElement, AddressProps>((props, ref) => {
     <Accordion.Item
       ref={ref}
       value={`item-${resolvedItemIndex}`}
-      className={cn(
-        "w-full border-(--color-line-subtle) border-b last:border-b-0",
-        className,
-      )}
+      className={cn("flex w-full flex-col data-[state=open]:gap-1", className)}
       {...rest}
     >
       <Accordion.Trigger
@@ -129,7 +145,7 @@ const Address = forwardRef<HTMLDivElement, AddressProps>((props, ref) => {
             aria-hidden
           />
           <span
-            className="truncate font-medium text-xs uppercase leading-4 tracking-wide"
+            className="truncate font-medium text-xs uppercase leading-4 tracking-wide md:max-lg:text-base md:max-lg:leading-6"
             style={{ color: addressFontColor }}
           >
             {nameStore}
@@ -165,16 +181,16 @@ const Address = forwardRef<HTMLDivElement, AddressProps>((props, ref) => {
         className="overflow-hidden data-[state=closed]:animate-collapse data-[state=open]:animate-expand"
       >
         <div
-          className="grid grid-cols-2 gap-6 bg-white px-4 py-4 text-[11px] leading-[1.55]"
+          className="flex w-full self-stretch items-start gap-2.5 bg-[#F3F3F3] p-4 text-[11px] leading-[1.55] md:max-lg:text-sm md:max-lg:leading-[1.6]"
           style={{ color: addressFontColor }}
         >
-          <div className="flex min-w-0 flex-col gap-1">
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
             <span>{address}</span>
             {phoneNumber && <span>{phoneNumber}</span>}
           </div>
 
           {(openingHours || openingHoursSat) && (
-            <div className="flex min-w-0 flex-col gap-1">
+            <div className="flex min-w-0 flex-1 flex-col gap-1">
               <span className="font-medium">{t("map.openingHours")}:</span>
               {openingHours && <span>{openingHours}</span>}
               {openingHoursSat && <span>{openingHoursSat}</span>}

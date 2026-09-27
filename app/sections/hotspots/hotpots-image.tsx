@@ -1,5 +1,9 @@
 import type { HydrogenComponentProps, WeaverseImage } from "@weaverse/hydrogen";
-import { createSchema, IMAGES_PLACEHOLDERS } from "@weaverse/hydrogen";
+import {
+  createSchema,
+  IMAGES_PLACEHOLDERS,
+  useTranslation,
+} from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { forwardRef } from "react";
 import { Image } from "~/components/image";
@@ -13,6 +17,8 @@ interface HotspotsProps extends HydrogenComponentProps {
 }
 
 let HotspotsImage = forwardRef<HTMLDivElement, HotspotsProps>((props, ref) => {
+  const { t } = useTranslation();
+
   let { image, aspectRatio: localAspectRatio, children, ...rest } = props;
 
   const { aspectRatio: parentAspectRatio, layout } = useHotspotsContext();
@@ -21,7 +27,7 @@ let HotspotsImage = forwardRef<HTMLDivElement, HotspotsProps>((props, ref) => {
 
   let imageData: Partial<WeaverseImage> =
     typeof image === "string"
-      ? { url: image, altText: "Hotspots image" }
+      ? { url: image, altText: t("accessibility.hotspotsImage") }
       : image;
 
   return (
@@ -82,15 +88,13 @@ export let schema = createSchema({
     children: [
       {
         type: "hotspots--item",
-        icon: "circle",
-        iconSize: 33,
+        iconSize: 34,
         offsetX: 25,
         offsetY: 30,
       },
       {
         type: "hotspots--item",
-        icon: "circle",
-        iconSize: 33,
+        iconSize: 34,
         offsetX: 55,
         offsetY: 65,
       },

@@ -4,6 +4,7 @@ import { useFetcher, useRouteLoaderData } from "react-router";
 import { Button } from "~/components/button";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import type { RootLoader } from "~/root";
+import { translateError } from "~/utils/translated-error";
 
 type BackInStockResponse = { ok: boolean; error?: string };
 
@@ -40,7 +41,11 @@ export function BackInStockForm({
       return;
     }
     setMessage("");
-    setError(fetcher.data.error || t("product.backInStockError"));
+    setError(
+      fetcher.data.error
+        ? translateError(t, fetcher.data.error)
+        : t("product.backInStockError"),
+    );
   }, [fetcher.data, t]);
 
   if (!showForm) {

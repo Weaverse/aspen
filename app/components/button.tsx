@@ -7,8 +7,8 @@ import { cn } from "~/utils/cn";
 
 export const variants = cva(
   [
-    "button relative inline-flex items-center justify-center rounded-(--radius-sm)",
-    "whitespace-nowrap font-normal leading-tight",
+    "button relative inline-flex items-center justify-center gap-2 px-6 py-5 rounded-[var(--Radius-border-radius-sm,var(--radius-sm,8px))]",
+    "whitespace-nowrap font-dm-sans font-semibold text-sm leading-none tracking-[0.02em]",
     "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-text) disabled:cursor-not-allowed disabled:opacity-50!",
     "transition-colors",
   ],
@@ -16,23 +16,21 @@ export const variants = cva(
     variants: {
       variant: {
         primary: [
-          "border px-6 py-5",
+          "border-0",
           "text-(--btn-primary-text)",
           "bg-(--btn-primary-bg)",
-          "border-(--btn-primary-bg)",
           "hover:text-(--btn-primary-text-hover)",
           "hover:bg-(--btn-primary-bg-hover)",
         ],
         secondary: [
-          "border px-6 py-5",
+          "border-0",
           "text-(--btn-secondary-text)",
           "bg-(--btn-secondary-bg)",
-          "border-(--btn-secondary-bg)",
           "hover:text-(--btn-secondary-text-hover)",
           "hover:bg-(--btn-secondary-bg-hover)",
         ],
         outline: [
-          "border px-6 py-5",
+          "border",
           "text-(--btn-outline-text)",
           "bg-(--btn-outline-background)",
           "border-(--btn-outline-border)",
@@ -40,12 +38,9 @@ export const variants = cva(
           "hover:bg-(--btn-outline-background-hover)",
           "hover:border-(--btn-outline-border-hover)",
         ],
-        decor: [
-          "border-none bg-transparent p-0",
-          "group inline-flex items-center gap-1 text-[--btn-text-decor]",
-        ],
+        decor: ["border-none bg-transparent", "group text-[--btn-text-decor]"],
         custom: [
-          "border px-6 py-5",
+          "border",
           "text-(--btn-text)",
           "bg-(--btn-bg)",
           "border-(--btn-border)",
@@ -54,7 +49,7 @@ export const variants = cva(
           "hover:border-(--btn-border-hover)",
         ],
         underline: [
-          "bg-transparent pb-1 text-body",
+          "bg-transparent text-body",
           "after:absolute after:bottom-0.5 after:left-0 after:h-px after:w-full after:bg-body",
           "after:origin-right after:scale-x-100 after:transition-transform",
           "hover:after:origin-left hover:after:animate-underline-toggle",
@@ -143,7 +138,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       >
         {loading && <Spinner />}
         {variant === "decor" ? (
-          <span className="inline-flex items-center gap-1">
+          <span className="inline-flex items-center gap-2">
             {content}
             <ArrowRight
               size={20}

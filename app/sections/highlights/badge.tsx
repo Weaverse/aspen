@@ -9,6 +9,7 @@ import Heading, {
   headingInputs,
 } from "~/components/heading";
 import Link from "~/components/link";
+import { useTranslatedText } from "~/hooks/use-translated-text";
 
 export interface HighlightsBadgeProps
   extends HydrogenComponentProps,
@@ -27,6 +28,8 @@ export interface HighlightsBadgeProps
 
 let HighlightsBadge = forwardRef<HTMLDivElement, HighlightsBadgeProps>(
   (props, ref) => {
+    const translateText = useTranslatedText();
+
     const { t } = useTranslation();
     let {
       children,
@@ -35,10 +38,10 @@ let HighlightsBadge = forwardRef<HTMLDivElement, HighlightsBadgeProps>(
       customIcon = "",
       badgeTextColor = "#29231E",
       // Heading props
-      headingContent,
+      headingContent: rawI18nHeadingContent,
       headingTagName,
-      description,
-      linkText,
+      description: rawI18nDescription,
+      linkText: rawI18nLinkText,
       linkTo,
       color,
       size,
@@ -52,6 +55,18 @@ let HighlightsBadge = forwardRef<HTMLDivElement, HighlightsBadgeProps>(
       animate,
       ...rest
     } = props;
+    const linkText = translateText(
+      rawI18nLinkText,
+      "themeContent.sectionsHighlightsBadge.linkText",
+    );
+    const description = translateText(
+      rawI18nDescription,
+      "themeContent.sectionsHighlightsBadge.description",
+    );
+    const headingContent = translateText(
+      rawI18nHeadingContent,
+      "themeContent.sectionsHighlightsBadge.headingContent",
+    );
     const [imageError, setImageError] = useState(false);
     useEffect(() => {
       setImageError(false);
@@ -248,15 +263,17 @@ export let schema = createSchema({
             "Quality furniture made to last through moves and milestones.",
           placeholder: "Enter heading text",
         },
-        ...headingInputs.map((input) => {
-          if (input.name === "as") {
-            return {
-              ...input,
-              name: "headingTagName",
-            };
-          }
-          return input;
-        }),
+        ...headingInputs
+          .filter((input) => input.name !== "content")
+          .map((input) => {
+            if (input.name === "as") {
+              return {
+                ...input,
+                name: "headingTagName",
+              };
+            }
+            return input;
+          }),
       ],
     },
     {

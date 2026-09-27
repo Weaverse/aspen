@@ -1,5 +1,5 @@
 import type { SeoConfig } from "@shopify/hydrogen";
-import { flattenConnection, getSeoMeta } from "@shopify/hydrogen";
+import { flattenConnection } from "@shopify/hydrogen";
 import type { MetaFunction } from "react-router";
 import { data, type LoaderFunctionArgs } from "react-router";
 import type { BlogsIndexQuery } from "storefront-api.generated";
@@ -7,6 +7,7 @@ import { routeHeaders } from "~/utils/cache";
 import { DEFAULT_BLOG_HANDLE, PAGINATION_SIZE } from "~/utils/const";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 import { seoPayload } from "~/utils/seo.server";
+import { localizedSeoMeta } from "~/utils/seo-translation";
 import { WeaverseContent } from "~/weaverse";
 
 export const headers = routeHeaders;
@@ -48,8 +49,11 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   return data({ blog, articles, seo, weaverseData });
 };
 
-export const meta: MetaFunction<typeof loader> = ({ data: loaderData }) => {
-  return getSeoMeta(loaderData?.seo as SeoConfig);
+export const meta: MetaFunction<typeof loader> = ({
+  data: loaderData,
+  matches,
+}) => {
+  return localizedSeoMeta(matches, loaderData?.seo as SeoConfig);
 };
 
 export default function BlogsIndex() {

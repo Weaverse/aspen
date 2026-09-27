@@ -51,16 +51,17 @@ const AccordionSection = forwardRef<HTMLElement, AccordionSectionProps>(
         ref={ref}
         {...rest}
         width="full"
+        verticalPadding="none"
         backgroundColor={backgroundColor}
         backgroundFor={backgroundFor}
       >
         <AccordionProvider value={contextValue}>
           <div
             className={clsx(
-              "mx-auto grid h-full w-full max-w-[1360px] items-start gap-10 px-5 lg:gap-16 lg:px-0",
+              "mx-auto grid h-full w-full max-w-[1440px] items-start px-5 py-10 md:px-10 md:py-20",
               accordionLayout === "row"
-                ? "grid-cols-1 justify-start lg:gap-12"
-                : "grid-cols-1 lg:grid-cols-[minmax(0,1fr)_648px]",
+                ? "grid-cols-1 gap-10 md:gap-16"
+                : "grid-cols-1 gap-10 md:grid-cols-2",
             )}
           >
             {children}
@@ -80,7 +81,9 @@ export const schema: HydrogenComponentSchema = {
     {
       group: "Accordion settings",
       inputs: [
-        ...layoutInputs.filter((input) => input.name !== "gap"),
+        ...layoutInputs.filter(
+          (input) => input.name !== "gap" && input.name !== "verticalPadding",
+        ),
         ...backgroundInputs,
         ...overlayInputs,
       ],
@@ -95,8 +98,8 @@ export const schema: HydrogenComponentSchema = {
           defaultValue: "column",
           configs: {
             options: [
-              { value: "column", label: "Contact + FAQ" },
-              { value: "row", label: "Two-column FAQ" },
+              { value: "column", label: "Scenario 1" },
+              { value: "row", label: "Scenario 2" },
             ],
           },
         },
@@ -106,7 +109,6 @@ export const schema: HydrogenComponentSchema = {
   childTypes: ["content-information", "accordion-group"],
   presets: {
     width: "full",
-    verticalPadding: "medium",
     backgroundColor: "#F7F7F7",
     backgroundFor: "section",
     accordionLayout: "column",

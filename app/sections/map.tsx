@@ -11,6 +11,7 @@ import Link, {
 import Paragraph from "~/components/paragraph";
 import type { SectionProps } from "~/components/section";
 import { Section } from "~/components/section";
+import { useTranslatedText } from "~/hooks/use-translated-text";
 
 const variants = cva("", {
   variants: {
@@ -43,17 +44,19 @@ interface MapSectionProps
 }
 
 const MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
+  const translateText = useTranslatedText();
+
   const { t } = useTranslation();
   const {
     height,
     alignment,
-    heading,
-    description,
-    address,
+    heading: rawI18nHeading,
+    description: rawI18nDescription,
+    address: rawI18nAddress,
     boxBgColor,
     boxTextColor,
     boxBorderRadius,
-    buttonText,
+    buttonText: rawI18nButtonText,
     buttonVariant,
     backgroundColor,
     textColor,
@@ -63,6 +66,22 @@ const MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
     borderColorHover,
     ...rest
   } = props;
+  const buttonText = translateText(
+    rawI18nButtonText,
+    "themeContent.sectionsMap.buttonText",
+  );
+  const address = translateText(
+    rawI18nAddress,
+    "themeContent.sectionsMap.address",
+  );
+  const description = translateText(
+    rawI18nDescription,
+    "themeContent.sectionsMap.description",
+  );
+  const heading = translateText(
+    rawI18nHeading,
+    "themeContent.sectionsMap.heading",
+  );
 
   return (
     <Section

@@ -7,6 +7,7 @@ import type {
 } from "@weaverse/hydrogen";
 import type React from "react";
 import { forwardRef } from "react";
+import { useTranslatedText } from "~/hooks/use-translated-text";
 import { cn } from "~/utils/cn";
 
 interface AccordionItemProps extends HydrogenComponentProps {
@@ -20,7 +21,23 @@ const isSvgString = (icon: string) =>
 
 const AccordionItem = forwardRef<HTMLDivElement, AccordionItemProps>(
   (props, ref) => {
-    const { title, content, icon, ...rest } = props;
+    const translateText = useTranslatedText();
+
+    const {
+      title: rawI18nTitle,
+      content: rawI18nContent,
+      icon,
+      className,
+      ...rest
+    } = props;
+    const content = translateText(
+      rawI18nContent,
+      "themeContent.sectionsAccordionAccordionItem.content",
+    );
+    const title = translateText(
+      rawI18nTitle,
+      "themeContent.sectionsAccordionAccordionItem.title",
+    );
 
     const renderIcon = () => {
       if (!icon) {
@@ -50,10 +67,11 @@ const AccordionItem = forwardRef<HTMLDivElement, AccordionItemProps>(
     return (
       <Accordion.Item
         ref={ref}
-        value={title}
+        value={rawI18nTitle}
         className={cn(
-          "w-full overflow-hidden rounded",
+          "flex w-full flex-col",
           "focus-within:relative focus-within:z-10",
+          className,
         )}
         {...rest}
       >
@@ -65,7 +83,7 @@ const AccordionItem = forwardRef<HTMLDivElement, AccordionItemProps>(
                 color: "var(--accordion-text-color)",
               } as React.CSSProperties
             }
-            className="group flex min-h-14 w-full items-center gap-3 px-4 py-3 text-left"
+            className="group flex min-h-14 w-full items-center gap-3 rounded px-4 py-3 text-left"
           >
             {renderIcon()}
             <span className="flex-1 font-body font-normal text-base leading-[1.4] tracking-[0.02em]">
@@ -99,13 +117,13 @@ const AccordionItem = forwardRef<HTMLDivElement, AccordionItemProps>(
             } as React.CSSProperties
           }
           className={cn(
-            "overflow-hidden",
+            "overflow-hidden rounded",
             "data-[state=closed]:animate-collapse",
-            "data-[state=open]:animate-expand",
+            "data-[state=open]:mt-1 data-[state=open]:animate-expand",
           )}
         >
-          <div className="px-4 pt-1 pb-4 text-sm leading-[1.6] opacity-75">
-            {content}
+          <div className="flex w-full self-stretch items-start gap-2.5 p-4 text-sm leading-[1.6] opacity-75">
+            <span className="min-w-0 flex-1">{content}</span>
           </div>
         </Accordion.Content>
       </Accordion.Item>

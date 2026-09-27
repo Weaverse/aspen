@@ -1,5 +1,5 @@
 import type { OptimisticCartLineInput } from "@shopify/hydrogen";
-import { useFetchers } from "react-router";
+import { type Fetcher, useFetchers } from "react-router";
 import type { CartApiQueryFragment } from "storefront-api.generated";
 import { create } from "zustand";
 import { resolveBaselineCart } from "./cart-baseline";
@@ -18,6 +18,7 @@ import {
 } from "./optimistic-cart";
 
 type CartStore = {
+  isResolved: boolean;
   isOpen: boolean;
   serverCart: CartApiQueryFragment | null;
   pendingAdds: Map<string, PendingAdd>;
@@ -45,6 +46,7 @@ type CartStore = {
 let pendingAddSequence = 0;
 
 export const useCartStore = create<CartStore>()((set) => ({
+  isResolved: false,
   isOpen: false,
   serverCart: null,
   pendingAdds: new Map(),
@@ -154,12 +156,14 @@ export const useCartStore = create<CartStore>()((set) => ({
       const pendingLineRemovals = new Set(state.pendingLineRemovals);
       pendingLineRemovals.delete(lineId);
       const lineRemovalErrors = new Map(state.lineRemovalErrors);
+      const lineUpdateErrors = new Map(state.lineUpdateErrors);
       if (response?.errors?.length || response?.userErrors?.length) {
         lineRemovalErrors.set(lineId, response);
       } else {
         lineRemovalErrors.delete(lineId);
+        lineUpdateErrors.delete(lineId);
       }
-      return { pendingLineRemovals, lineRemovalErrors };
+      return { pendingLineRemovals, lineRemovalErrors, lineUpdateErrors };
     }),
 }));
 
@@ -175,7 +179,8 @@ export function useCart(): CartWithOptimistic | null {
     serverCart,
     fetchers,
   );
-  const stagedLines = getActiveStagedLines(pendingAdds, updatedAt);
+  const activeAdds = pruneCompletedPendingAdds(pendingAdds, fetchers);
+  const stagedLines = getActiveStagedLines(activeAdds, updatedAt);
 
   if (!resolved) {
     return stagedLines.length ? buildOptimisticAddCart(stagedLines) : null;
@@ -190,4 +195,20 @@ export function useCart(): CartWithOptimistic | null {
       pendingLineUpdates,
     ) ?? baseline
   );
+}
+
+export function pruneCompletedPendingAdds(
+  pendingAdds: Map<string, PendingAdd>,
+  fetchers: Fetcher<unknown>[],
+) {
+  const activeAdds = new Map(pendingAdds);
+  for (const fetcher of fetchers) {
+    if (fetcher.state !== "submitting" && fetcher.data) {
+      const token = fetcher.formData?.get("cartStageToken");
+      if (typeof token === "string") {
+        activeAdds.delete(token);
+      }
+    }
+  }
+  return activeAdds;
 }

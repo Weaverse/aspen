@@ -6,6 +6,7 @@ import { Image } from "~/components/image";
 import { Link } from "~/components/link";
 import type { SectionProps } from "~/components/section";
 import { Section } from "~/components/section";
+import { useTranslatedText } from "~/hooks/use-translated-text";
 import type { loader as productRouteLoader } from "~/routes/($locale).products.$productHandle";
 import ReviewIndex from "~/sections/judgeme-reviews/review-index";
 import { cn } from "~/utils/cn";
@@ -39,17 +40,28 @@ export const useFeaturedProductsLayout = () =>
 
 const FeaturedProducts = forwardRef<HTMLElement, FeaturedProductsProps>(
   (props, ref) => {
+    const translateText = useTranslatedText();
+
     const {
       children,
       className,
       layout,
       showProductPromo = true,
       productPromoImage,
-      productPromoHeading = "DECORATE FOR HOLIDAYS AND BEYOND",
-      productPromoLinkText = "EXPLORE NOW",
+      productPromoHeading:
+        rawI18nProductPromoHeading = "DECORATE FOR HOLIDAYS AND BEYOND",
+      productPromoLinkText: rawI18nProductPromoLinkText = "EXPLORE NOW",
       productPromoLink = "/collections",
       ...rest
     } = props;
+    const productPromoLinkText = translateText(
+      rawI18nProductPromoLinkText,
+      "themeContent.sectionsFeaturedProductsIndex.productPromoLinkText",
+    );
+    const productPromoHeading = translateText(
+      rawI18nProductPromoHeading,
+      "themeContent.sectionsFeaturedProductsIndex.productPromoHeading",
+    );
     const productRouteData = useRouteLoaderData<typeof productRouteLoader>(
       "routes/($locale).products.$productHandle",
     );
@@ -80,6 +92,7 @@ const FeaturedProducts = forwardRef<HTMLElement, FeaturedProductsProps>(
           containerClassName={cn(
             "flex flex-col",
             isGrid ? "space-y-16 py-20" : "space-y-16 py-20",
+            isProductPage && "md:space-y-0",
           )}
           gap={0}
           overflow="unset"
@@ -88,21 +101,21 @@ const FeaturedProducts = forwardRef<HTMLElement, FeaturedProductsProps>(
         >
           {children}
           {isProductPage && showProductPromo && promoImage?.url && (
-            <article className="hidden overflow-hidden rounded-xl border border-line-subtle md:block">
-              <div className="relative aspect-[1.55/1] overflow-hidden">
+            <article className="hidden overflow-hidden rounded-xl border border-line-subtle md:!mt-20 md:block">
+              <div className="relative aspect-[1.45/1] overflow-hidden lg:aspect-[2.75/1]">
                 <Image
                   data={promoImage}
                   width={1600}
                   sizes="(min-width: 1280px) 1200px, 92vw"
                   className="h-full w-full object-cover"
                 />
-                <h2 className="absolute top-16 left-16 max-w-[12ch] font-heading text-[clamp(2.75rem,6vw,4.5rem)] uppercase leading-[1.05] tracking-[-0.035em]">
+                <h2 className="absolute top-8 left-6 max-w-[12ch] font-heading text-[clamp(1.75rem,4vw,3.5rem)] md:top-16 md:left-16 md:max-w-[440px] md:text-[53px] uppercase leading-[1.05] tracking-[-0.035em] lg:max-w-[440px] lg:text-[53px] lg:leading-[1.1] lg:tracking-[-1.59px]">
                   {productPromoHeading}
                 </h2>
               </div>
               <Link
                 to={productPromoLink}
-                className="flex min-h-16 items-center gap-4 px-5 font-semibold text-sm uppercase"
+                className="flex min-h-16 items-center gap-4 px-5 lg:justify-start font-semibold text-sm uppercase"
               >
                 {productPromoLinkText}
                 <ArrowRightIcon aria-hidden="true" className="size-5" />
@@ -110,7 +123,7 @@ const FeaturedProducts = forwardRef<HTMLElement, FeaturedProductsProps>(
             </article>
           )}
           {isProductPage && (
-            <div className="pt-8 md:hidden">
+            <div className="pt-8 md:!mt-0 md:hidden">
               <ReviewIndex />
             </div>
           )}
@@ -138,9 +151,9 @@ export const schema = createSchema({
             options: [
               {
                 value: "carousel",
-                label: "Scenario 1 — Product carousel",
+                label: "Scenario 1",
               },
-              { value: "grid", label: "Scenario 2 — Product grid" },
+              { value: "grid", label: "Scenario 2" },
             ],
           },
           defaultValue: "grid",
@@ -153,7 +166,7 @@ export const schema = createSchema({
         {
           type: "switch",
           name: "showProductPromo",
-          label: "Show desktop product promo",
+          label: "Show product promo",
           defaultValue: true,
         },
         {
@@ -200,7 +213,6 @@ export const schema = createSchema({
     children: [
       {
         type: "featured-content-products",
-        displayMode: "vertical",
         contentPosition: "center",
         gap: 16,
         headingContent: "EXPLORE QUALITY PRODUCTS",
@@ -215,16 +227,12 @@ export const schema = createSchema({
         buttonContent: "EXPLORE NOW",
         to: "/products",
         variant: "decor",
-        carouselHeadingContent: "FEATURED PRODUCTS",
-        carouselButtonContent: "VIEW ALL",
-        carouselTo: "/products",
       },
       {
         type: "featured-products-items",
         layout: "grid",
         slidesPerView: 3,
         itemsPerRow: "2",
-        gap: 16,
         productsToShow: 4,
         arrowsColor: "secondary",
         arrowsShape: "rounded-sm",

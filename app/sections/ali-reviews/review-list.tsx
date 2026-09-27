@@ -6,6 +6,7 @@ import {
 } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
 import { StarRating } from "~/components/star-rating";
+import { useTranslatedText } from "~/hooks/use-translated-text";
 import type { AliReviewsLoaderData } from ".";
 import { ReviewBar } from "./review-bar";
 import type { AliReview, ReviewItemData } from "./review-item";
@@ -23,6 +24,8 @@ const ReviewList = forwardRef<
   HTMLDivElement,
   AliReviewsData & HydrogenComponentProps
 >((props, ref) => {
+  const translateText = useTranslatedText();
+
   const { t } = useTranslation();
   const {
     children,
@@ -34,10 +37,14 @@ const ReviewList = forwardRef<
     showCountry,
     showDate,
     showVerifiedBadge,
-    verifiedBadgeText,
+    verifiedBadgeText: rawI18nVerifiedBadgeText,
     showStar,
     ...rest
   } = props;
+  const verifiedBadgeText = translateText(
+    rawI18nVerifiedBadgeText,
+    "themeContent.sectionsAliReviewsReviewList.verifiedBadgeText",
+  );
   const parent = useParentInstance();
   const allReviews: AliReviewsLoaderData = parent.data?.loaderData;
   if (allReviews?.length) {

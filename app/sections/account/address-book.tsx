@@ -1,5 +1,6 @@
 import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
 import { AccountAddressBook } from "~/components/customer/address-book";
+import { useTranslatedText } from "~/hooks/use-translated-text";
 import { useAccountSectionData } from ".";
 
 interface AccountAddressBookBlockProps extends Partial<HydrogenComponentProps> {
@@ -11,14 +12,36 @@ interface AccountAddressBookBlockProps extends Partial<HydrogenComponentProps> {
 }
 
 function AccountAddressBookBlock({
-  heading = "ADDRESS BOOK",
-  addAddressText = "ADD NEW ADDRESS",
-  editText = "EDIT",
-  removeText = "REMOVE",
-  defaultText = "DEFAULT",
+  heading: rawI18nHeading = "ADDRESS BOOK",
+  addAddressText: rawI18nAddAddressText = "ADD NEW ADDRESS",
+  editText: rawI18nEditText = "EDIT",
+  removeText: rawI18nRemoveText = "REMOVE",
+  defaultText: rawI18nDefaultText = "DEFAULT",
   children: _children,
   ...rest
 }: AccountAddressBookBlockProps) {
+  const translateText = useTranslatedText();
+  const heading = translateText(
+    rawI18nHeading,
+    "themeContent.sectionsAccountAddressBook.heading",
+  );
+  const addAddressText = translateText(
+    rawI18nAddAddressText,
+    "themeContent.sectionsAccountAddressBook.addAddressText",
+  );
+  const editText = translateText(
+    rawI18nEditText,
+    "themeContent.sectionsAccountAddressBook.editText",
+  );
+  const removeText = translateText(
+    rawI18nRemoveText,
+    "themeContent.sectionsAccountAddressBook.removeText",
+  );
+  const defaultText = translateText(
+    rawI18nDefaultText,
+    "themeContent.sectionsAccountAddressBook.defaultText",
+  );
+
   const { addresses, customer } = useAccountSectionData();
   return (
     <AccountAddressBook

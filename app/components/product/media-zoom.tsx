@@ -16,6 +16,7 @@ import type {
   Media_Video_Fragment,
   MediaFragment,
 } from "storefront-api.generated";
+import { ArrowButton } from "~/components/arrow-button";
 import { Image } from "~/components/image";
 import { ScrollArea } from "~/components/scroll-area";
 import { Spinner } from "~/components/spinner";
@@ -185,7 +186,7 @@ export function ZoomModal({
               <XIcon className="h-6 w-6" />
             </Dialog.Close>
             <div className="absolute right-10 bottom-10 left-10 flex items-center justify-center gap-2 md:left-auto">
-              <button
+              <ArrowButton
                 type="button"
                 className={clsx(
                   "border p-2 text-center transition-all duration-200",
@@ -228,8 +229,8 @@ export function ZoomModal({
                 aria-label={t("product.previousMedia")}
               >
                 <ArrowLeftIcon className="h-4.5 w-4.5" />
-              </button>
-              <button
+              </ArrowButton>
+              <ArrowButton
                 type="button"
                 className={clsx(
                   "border p-2 text-center transition-all duration-200",
@@ -272,7 +273,7 @@ export function ZoomModal({
                 aria-label={t("product.nextMedia")}
               >
                 <ArrowRightIcon className="h-4.5 w-4.5" />
-              </button>
+              </ArrowButton>
             </div>
           </div>
         </Dialog.Content>

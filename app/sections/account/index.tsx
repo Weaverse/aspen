@@ -13,6 +13,7 @@ import {
   useContext,
 } from "react";
 import { useLoaderData } from "react-router";
+import { useTranslatedText } from "~/hooks/use-translated-text";
 import { cn } from "~/utils/cn";
 
 interface AccountSectionData {
@@ -43,13 +44,19 @@ interface AccountSectionProps
 
 function AccountSection({
   customer: customerProp,
-  heading = "ACCOUNT",
+  heading: rawI18nHeading = "ACCOUNT",
   backgroundColor = "#EDEDED",
   children,
   className,
   ref,
   ...rest
 }: AccountSectionProps) {
+  const translateText = useTranslatedText();
+  const heading = translateText(
+    rawI18nHeading,
+    "themeContent.sectionsAccountIndex.heading",
+  );
+
   const routeData = useLoaderData() as {
     customer?: CustomerDetailsFragment;
   };

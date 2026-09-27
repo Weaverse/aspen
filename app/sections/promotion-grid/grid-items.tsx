@@ -2,6 +2,7 @@ import {
   createSchema,
   IMAGES_PLACEHOLDERS,
   useChildInstances,
+  useTranslation,
 } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
@@ -19,7 +20,10 @@ import Link from "~/components/link";
 import { Overlay } from "~/components/overlay";
 import Paragraph from "~/components/paragraph";
 import type { SectionProps } from "~/components/section";
+import { useTranslatedText } from "~/hooks/use-translated-text";
+import { translatePresetText } from "~/utils/translation";
 import "swiper/css";
+import { TABLET_MIN_PX } from "~/utils/breakpoints";
 import { cn } from "~/utils/cn";
 import type { PromotionArrowsProps } from "./arrows";
 import { Arrows } from "./arrows";
@@ -43,7 +47,7 @@ type GridItemProps = VariantProps<typeof variants> &
   };
 
 let variants = cva(
-  "promotion-slider group relative mx-auto w-full max-w-[1376px] px-5 md:px-0",
+  "promotion-slider group relative mx-auto w-full min-w-0 max-w-[1376px] px-5 md:px-0",
   {
     variants: {
       slidesToShow: {
@@ -79,6 +83,8 @@ let variants = cva(
 );
 
 const TabsLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
+  const { t } = useTranslation();
+
   const {
     tabsData,
     activeTab,
@@ -113,7 +119,7 @@ const TabsLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
     <div
       ref={ref}
       {...rest}
-      className="promotion-tabs relative isolate h-[var(--promotion-tabs-mobile-height)] overflow-hidden md:h-[var(--promotion-tabs-height)]"
+      className="promotion-tabs relative isolate h-[var(--promotion-tabs-mobile-height)] min-w-0 overflow-hidden md:h-[var(--promotion-tabs-height)]"
       style={
         {
           "--promotion-tabs-height": `${tabsHeight}px`,
@@ -145,7 +151,7 @@ const TabsLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
 
       <div
         className={cn(
-          "absolute inset-x-0 top-12 z-2 mx-auto flex max-w-[335px] flex-col items-center text-center transition-opacity duration-500 md:top-[420px] md:max-w-[680px]",
+          "absolute inset-x-0 top-12 z-2 mx-auto flex max-w-[335px] min-w-0 flex-col items-center px-5 text-center transition-opacity duration-500 md:top-[360px] md:max-w-[560px] md:px-0 lg:top-[420px] lg:max-w-[680px]",
           isTransitioning ? "opacity-80" : "opacity-100",
         )}
       >
@@ -159,7 +165,7 @@ const TabsLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
         )}
         {displayedTabData.paragraphContent && (
           <Paragraph
-            className="ff-heading !mx-auto w-full text-[24px] leading-[1.15] md:text-[26px]"
+            className="ff-heading !mx-auto w-full min-w-0 break-words text-[24px] leading-[1.15] md:text-[24px] lg:text-[26px]"
             content={displayedTabData.paragraphContent}
             as={displayedTabData.paragraphTag}
             color={displayedTabData.paragraphColor}
@@ -190,7 +196,7 @@ const TabsLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
         )}
       </div>
 
-      <div className="absolute top-[373px] right-8 left-8 z-3 flex flex-col md:top-40 md:right-0 md:left-0 md:mx-auto md:grid md:w-[calc(100%-288px)] md:max-w-[1440px] md:grid-cols-3 md:gap-5">
+      <div className="absolute top-[373px] right-8 left-8 z-3 flex min-w-0 flex-col md:top-40 md:right-0 md:left-0 md:mx-auto md:grid md:w-[calc(100%-64px)] md:max-w-[1440px] md:grid-cols-3 md:gap-5 lg:w-[calc(100%-288px)]">
         {tabsData.map((tab: any, index: number) => {
           const isActive = activeTab === index;
           return (
@@ -200,14 +206,16 @@ const TabsLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
               onClick={() => setActiveTab(index)}
               onMouseEnter={() => setActiveTab(index)}
               className={cn(
-                "group flex h-[49px] w-full items-start justify-center border-t-4 pt-3 transition-colors duration-300 md:h-auto md:pt-4",
+                "group flex h-[49px] min-w-0 w-full items-start justify-center border-t-4 pt-3 transition-colors duration-300 md:h-auto md:pt-4",
                 isActive
                   ? "border-[#D8D8D8] text-(--color-text-inverse)"
                   : "border-transparent text-[#979797] hover:text-(--color-text-inverse)",
               )}
             >
-              <span className="font-heading text-[26px] leading-none tracking-[-0.025em] md:text-[44px]">
-                {tab.headingContent}
+              <span className="min-w-0 break-words text-center font-heading text-[26px] leading-[1.1] tracking-[-0.025em] md:text-[28px] lg:text-[44px] lg:leading-none">
+                {tab.headingContent === "Tab"
+                  ? t("carousel.tab")
+                  : tab.headingContent}
               </span>
             </button>
           );
@@ -264,15 +272,7 @@ let SliderLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
             slidesPerView: 1,
             spaceBetween: gap / 2,
           },
-          640: {
-            slidesPerView: Math.min(2, slidesToShow),
-            spaceBetween: gap,
-          },
-          768: {
-            slidesPerView: Math.min(3, slidesToShow),
-            spaceBetween: gap,
-          },
-          1024: {
+          [TABLET_MIN_PX]: {
             slidesPerView: slidesToShow,
             spaceBetween: gap,
           },
@@ -381,6 +381,9 @@ const extractTabsData = (childrenData: any[]) => {
 
 let PromotionSlider = forwardRef<HTMLDivElement, GridItemProps>(
   (props, ref) => {
+    const { t } = useTranslation();
+    const translateText = useTranslatedText();
+
     let {
       children,
       layout = "slider",
@@ -398,14 +401,39 @@ let PromotionSlider = forwardRef<HTMLDivElement, GridItemProps>(
       dotsColor = "light",
       tabsHeight = 840,
       mobileTabsHeight = 562,
-      sliderHeading = "EXPLORE MORE",
-      sliderDescription = "If you're looking for products that bring ease through form and function, we offer no-fuss furniture built to last.",
+      sliderHeading: rawI18nSliderHeading = "EXPLORE MORE",
+      sliderDescription:
+        rawI18nSliderDescription = "If you're looking for products that bring ease through form and function, we offer no-fuss furniture built to last.",
       ...rest
     } = props;
+    const sliderDescription = translateText(
+      rawI18nSliderDescription,
+      "themeContent.sectionsPromotionGridGridItems.sliderDescription",
+    );
+    const sliderHeading = translateText(
+      rawI18nSliderHeading,
+      "themeContent.sectionsPromotionGridGridItems.sliderHeading",
+    );
 
     let [swiperKey, setSwiperKey] = useState(0);
     let [activeTab, setActiveTab] = useState(0);
     const childInstances = useChildInstances();
+    const [, setChildRevision] = useState(0);
+    // Child inspector updates do not necessarily re-render their parent.
+    // Tabs render child data here, so subscribe to the same item stores.
+    useEffect(() => {
+      if (layout !== "tabs") {
+        return;
+      }
+      const unsubscribe = childInstances.map((instance) =>
+        instance.subscribe(() => setChildRevision((revision) => revision + 1)),
+      );
+      return () => {
+        for (const cleanup of unsubscribe) {
+          cleanup();
+        }
+      };
+    }, [layout, childInstances]);
 
     let childrenArray = Array.isArray(children)
       ? (children as ReactNode[])
@@ -425,7 +453,15 @@ let PromotionSlider = forwardRef<HTMLDivElement, GridItemProps>(
     });
     let tabsData =
       layout === "tabs"
-        ? extractTabsData(tabSources.length ? tabSources : childrenArray)
+        ? extractTabsData(tabSources.length ? tabSources : childrenArray).map(
+            (tab) => ({
+              ...tab,
+              headingContent: translatePresetText(t, tab.headingContent),
+              subheadingContent: translatePresetText(t, tab.subheadingContent),
+              paragraphContent: translatePresetText(t, tab.paragraphContent),
+              buttonContent: translatePresetText(t, tab.buttonContent),
+            }),
+          )
         : [];
 
     useEffect(() => {
@@ -511,8 +547,8 @@ export let schema = createSchema({
           label: "Layout type",
           configs: {
             options: [
-              { value: "slider", label: "Slider" },
-              { value: "tabs", label: "Tabs" },
+              { value: "slider", label: "Scenario 1" },
+              { value: "tabs", label: "Scenario 2" },
             ],
           },
           defaultValue: "slider",
@@ -520,7 +556,7 @@ export let schema = createSchema({
         {
           type: "range",
           name: "tabsHeight",
-          label: "Tabs height (desktop)",
+          label: "Scenario 2 height (desktop)",
           configs: {
             min: 400,
             max: 1000,
@@ -533,7 +569,7 @@ export let schema = createSchema({
         {
           type: "range",
           name: "mobileTabsHeight",
-          label: "Tabs height (mobile)",
+          label: "Scenario 2 height (mobile)",
           configs: {
             min: 480,
             max: 800,
@@ -546,7 +582,7 @@ export let schema = createSchema({
       ],
     },
     {
-      group: "Slider heading",
+      group: "Scenario 1 heading",
       inputs: [
         {
           type: "text",
@@ -566,7 +602,7 @@ export let schema = createSchema({
       ],
     },
     {
-      group: "Slider",
+      group: "Scenario 1 settings",
       inputs: [
         {
           type: "range",

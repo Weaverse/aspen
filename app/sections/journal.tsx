@@ -10,6 +10,13 @@ import { Image } from "~/components/image";
 import Link from "~/components/link";
 import { Section, type SectionProps } from "~/components/section";
 import { useLocale } from "~/hooks/use-locale";
+import { useTranslatedText } from "~/hooks/use-translated-text";
+import {
+  DESKTOP_MIN_PX,
+  minWidthQuery,
+  TABLET_MIN_PX,
+} from "~/utils/breakpoints";
+import { cn } from "~/utils/cn";
 import { getImageLoadingPriority } from "~/utils/image";
 import { formatDate } from "~/utils/locale";
 
@@ -37,13 +44,16 @@ interface JournalProps extends SectionProps {
 }
 
 const Journal = forwardRef<HTMLElement, JournalProps>((props, ref) => {
+  const translateText = useTranslatedText();
+
   const {
-    heading = "FROM THE BLOG",
-    description = "Stories, inspiration, and design notes from the Aspen studio.",
+    heading: rawI18nHeading = "FROM THE BLOG",
+    description:
+      rawI18nDescription = "Stories, inspiration, and design notes from the Aspen studio.",
     initialCount = 7,
     loadMoreCount = 3,
-    loadMoreText = "LOAD MORE",
-    readMoreText = "Read More",
+    loadMoreText: rawI18nLoadMoreText = "LOAD MORE",
+    readMoreText: rawI18nReadMoreText = "Read More",
     showCategory = true,
     showDate = true,
     showAuthor = true,
@@ -58,6 +68,22 @@ const Journal = forwardRef<HTMLElement, JournalProps>((props, ref) => {
     children: _children,
     ...rest
   } = props;
+  const readMoreText = translateText(
+    rawI18nReadMoreText,
+    "themeContent.sectionsJournal.readMoreText",
+  );
+  const loadMoreText = translateText(
+    rawI18nLoadMoreText,
+    "themeContent.sectionsJournal.loadMoreText",
+  );
+  const description = translateText(
+    rawI18nDescription,
+    "themeContent.sectionsJournal.description",
+  );
+  const heading = translateText(
+    rawI18nHeading,
+    "themeContent.sectionsJournal.heading",
+  );
   const { articles = [] } = useLoaderData<{
     blog: NonNullable<BlogsIndexQuery["blog"]>;
     articles: JournalArticle[];
@@ -90,14 +116,15 @@ const Journal = forwardRef<HTMLElement, JournalProps>((props, ref) => {
     <Section
       ref={ref}
       {...rest}
-      className={className}
+      className={cn("px-5 md:px-8 lg:px-10", className)}
+      containerClassName="lg:max-w-[1360px]"
       overflow="unset"
       style={sectionStyle}
       verticalPadding="none"
       width="fixed"
     >
-      <div className="pt-20 pb-[120px] md:pt-10 md:pb-24 lg:pt-20 lg:pb-[120px]">
-        <header className="mb-16 md:mb-10 lg:mb-16">
+      <div className="pt-10 pb-20 lg:pt-20 lg:pb-[120px]">
+        <header className="mb-10 lg:mb-16">
           {heading && (
             <h1 className="font-heading font-normal text-[44px] text-(--journal-accent) uppercase leading-[1.1] tracking-[-0.03em]">
               {heading}
@@ -124,7 +151,7 @@ const Journal = forwardRef<HTMLElement, JournalProps>((props, ref) => {
         ) : null}
 
         {gridArticles.length > 0 ? (
-          <div className="mt-16 grid grid-cols-1 gap-y-10 md:mt-10 md:grid-cols-3 md:gap-x-8 lg:mt-16 lg:gap-x-5">
+          <div className="mt-10 grid grid-cols-1 gap-y-8 max-md:[&>article:nth-child(3n+4)]:mt-2 md:grid-cols-3 md:gap-x-8 md:gap-y-10 lg:mt-16 lg:gap-x-5">
             {gridArticles.map((article, index) => (
               <JournalCard
                 key={article.id}
@@ -141,7 +168,7 @@ const Journal = forwardRef<HTMLElement, JournalProps>((props, ref) => {
         ) : null}
 
         {hasMoreArticles && (
-          <div className="mt-24 flex justify-center md:mt-20 lg:mt-[104px]">
+          <div className="mt-10 flex justify-center pt-10 lg:mt-16">
             <button
               type="button"
               onClick={handleLoadMore}
@@ -183,14 +210,15 @@ function FeaturedArticle({
   showReadMore,
 }: FeaturedArticleProps) {
   return (
-    <article className="group grid grid-cols-1 md:grid-cols-2 md:gap-12 xl:grid-cols-[720px_minmax(0,1fr)] xl:gap-12">
+    <article className="group grid grid-cols-1 md:grid-cols-2 md:gap-12 xl:grid-cols-[minmax(0,720fr)_minmax(0,592fr)] xl:gap-12">
       <ArticleImage article={article} loading={loading} featured />
-      <div className="flex flex-col items-start pt-5 md:justify-start md:pt-0 xl:justify-center">
+      <div className="flex min-w-0 flex-col items-start pt-6 md:justify-start md:pt-0 xl:justify-center">
         <ArticleCategory article={article} visible={showCategory} />
-        <h2 className="mt-2 font-heading font-normal text-[26px] text-(--journal-accent) leading-[1.1] tracking-[-0.03em] md:mt-3 md:text-[34px] xl:text-[53px] xl:leading-[1.1]">
+        <h2 className="mt-3 font-heading font-normal text-[32px] text-(--journal-accent) leading-[1.1] tracking-[-0.02em] xl:text-[53px] xl:tracking-[-0.03em] xl:leading-[1.1]">
           <Link
             to={`/blogs/${article.handle}`}
-            className="line-clamp-3 transition-opacity hover:opacity-70"
+            style={{ font: "inherit", letterSpacing: "inherit" }}
+            className="line-clamp-3 rounded-none transition-opacity hover:opacity-70"
           >
             {article.title}
           </Link>
@@ -210,7 +238,7 @@ function FeaturedArticle({
           article={article}
           text={readMoreText}
           visible={showReadMore}
-          className="mt-5 md:mt-6 xl:mt-6"
+          className="mt-6"
         />
       </div>
     </article>
@@ -229,12 +257,13 @@ function JournalCard({
   return (
     <article className="group flex min-w-0 flex-col">
       <ArticleImage article={article} loading={loading} />
-      <div className="flex flex-col items-start pt-4">
+      <div className="flex flex-col items-start gap-3 pt-4 [&>*]:mt-0">
         <ArticleCategory article={article} visible={showCategory} />
-        <h3 className="mt-2 font-heading font-normal text-[24px] text-(--journal-accent) leading-[1.1] tracking-[-0.02em] md:text-[26px]">
+        <h3 className="mt-2 font-heading font-normal text-[24px] text-(--journal-accent) leading-[1.1] tracking-[-0.02em] md:text-[26px] lg:mt-3">
           <Link
             to={`/blogs/${article.handle}`}
-            className="line-clamp-2 transition-opacity hover:opacity-70 md:line-clamp-3 lg:line-clamp-2"
+            style={{ font: "inherit", letterSpacing: "inherit" }}
+            className="line-clamp-2 rounded-none transition-opacity hover:opacity-70 md:line-clamp-3 lg:line-clamp-2"
           >
             {article.title}
           </Link>
@@ -269,7 +298,12 @@ function ArticleImage({
   return (
     <Link
       to={`/blogs/${article.handle}`}
-      className="block aspect-video w-full overflow-hidden rounded-(--journal-radius) bg-(--color-background-subtle)"
+      className={cn(
+        "block aspect-video w-full overflow-hidden rounded-(--journal-radius) bg-(--color-background-subtle)",
+        featured
+          ? "md:max-lg:aspect-auto md:max-lg:h-[203.063px] xl:aspect-auto xl:h-[405px]"
+          : "md:aspect-auto md:h-[132.373px] lg:h-[259px]",
+      )}
       data-motion="slide-in"
     >
       {article.image ? (
@@ -279,8 +313,8 @@ function ArticleImage({
           loading={loading}
           sizes={
             featured
-              ? "(min-width: 1280px) 720px, (min-width: 768px) 50vw, calc(100vw - 40px)"
-              : "(min-width: 1024px) 440px, (min-width: 768px) 30vw, calc(100vw - 40px)"
+              ? `(min-width: 1280px) 720px, ${minWidthQuery(TABLET_MIN_PX)} 50vw, calc(100vw - 40px)`
+              : `${minWidthQuery(DESKTOP_MIN_PX)} 440px, ${minWidthQuery(TABLET_MIN_PX)} 30vw, calc(100vw - 40px)`
           }
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
         />
@@ -327,11 +361,18 @@ function ArticleMeta({
   const author = article.author?.name;
 
   return (
-    <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 font-body text-(--journal-muted) text-xs leading-none tracking-[0.02em]">
+    <div
+      className={cn(
+        "mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 font-body text-(--journal-muted) text-xs leading-none tracking-[0.02em]",
+        featured
+          ? "max-md:flex-col max-md:items-start max-md:gap-3 max-md:self-stretch md:max-lg:gap-x-1.5"
+          : "md:max-lg:flex-col md:max-lg:items-start md:max-lg:gap-3 md:max-lg:self-stretch",
+      )}
+    >
       {showDate && date ? <time>{date}</time> : null}
       {showDate && showAuthor && date && author && featured ? (
         <span
-          className="h-2 w-2 rounded-full bg-(--journal-button-border)"
+          className="hidden h-2 w-2 rounded-full bg-(--journal-button-border) md:block"
           aria-hidden="true"
         />
       ) : null}

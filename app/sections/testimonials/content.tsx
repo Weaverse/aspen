@@ -12,10 +12,12 @@ import {
   useTranslation,
 } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
+import { ArrowButton } from "~/components/arrow-button";
 import Heading, {
   type HeadingProps,
   headingInputs,
 } from "~/components/heading";
+import { useTranslatedText } from "~/hooks/use-translated-text";
 import { cn } from "~/utils/cn";
 import { useTestimonialNavigation } from "./context";
 
@@ -64,6 +66,8 @@ function getSafeRichTextElement(
 
 let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
   (props, ref) => {
+    const translateText = useTranslatedText();
+
     const { t } = useTranslation();
     let {
       alignment,
@@ -76,10 +80,10 @@ let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
       maxSize,
       weight,
       letterSpacing,
-      content = "TESTIMONIALS",
-      description,
+      content: rawI18nContent = "TESTIMONIALS",
+      description: rawI18nDescription,
       ratting = 5,
-      author,
+      author: rawI18nAuthor,
       // Description styling props
       subHeadingTag = "h4",
       subHeadingSize = "large",
@@ -87,8 +91,22 @@ let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
       subHeadingColor = "var(--color-text-subtle)",
       subHeadingAlignment = "left",
       children,
+      className,
       ...rest
     } = props;
+    const author = translateText(
+      rawI18nAuthor,
+      "themeContent.sectionsTestimonialsContent.author",
+    );
+    const description = translateText(
+      rawI18nDescription,
+      "themeContent.sectionsTestimonialsContent.description",
+    );
+
+    const content = translateText(
+      rawI18nContent,
+      "themeContent.sectionsTestimonialsContent.content",
+    );
 
     const descriptionClasses = [
       subHeadingAlignment === "center"
@@ -123,7 +141,7 @@ let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
         ? "rounded-full"
         : navigationShape === "square"
           ? "rounded-none"
-          : "rounded-lg";
+          : "rounded-[var(--Radius-border-radius-md,12px)]";
 
     const renderStars = () => {
       return Array.from({ length: Math.max(0, ratting ?? 0) }, (_, index) => (
@@ -140,7 +158,10 @@ let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
       <div
         ref={ref}
         {...rest}
-        className="order-2 flex min-w-0 flex-col px-5 pt-5 pb-10 lg:order-1 lg:h-[648px] lg:px-0 lg:py-0"
+        className={cn(
+          "order-2 flex min-w-0 w-full flex-col px-5 pt-5 pb-10 md:order-1 md:h-auto md:min-h-0 md:px-0 md:py-0 lg:h-[648px]",
+          className,
+        )}
       >
         {content && (
           <Heading
@@ -155,21 +176,21 @@ let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
             weight={weight}
             letterSpacing={letterSpacing}
             alignment={alignment}
-            className="text-[37px] leading-[1.1] tracking-[-0.03em] lg:text-[53px]"
+            className="break-words text-[37px] leading-[1.1] tracking-[-0.03em] md:text-[36px] lg:text-[53px]"
           />
         )}
-        <div className="mt-16 flex flex-1 flex-col justify-end lg:mt-0 lg:pb-0">
-          <div className="flex max-w-[430px] flex-col gap-4 lg:gap-5">
+        <div className="mt-16 flex flex-1 flex-col justify-end md:mt-0 md:pb-0">
+          <div className="flex w-full min-w-0 max-w-none flex-col gap-4 md:gap-5 lg:max-w-[430px]">
             <Quotes size={28} className="rotate-180 lg:size-8" />
             {descriptionHtml && (
               <DescriptionTag
-                className={`testimonial-description ${descriptionClasses}`}
+                className={`testimonial-description min-w-0 break-words ${descriptionClasses}`}
                 style={{ color: subHeadingColor }}
                 dangerouslySetInnerHTML={{ __html: descriptionHtml }}
               />
             )}
           </div>
-          <div className="mt-7 flex items-end justify-between lg:mt-8">
+          <div className="mt-7 flex items-end justify-between md:mt-8">
             <div className="flex flex-col gap-2">
               <span className="flex gap-0.5">{renderStars()}</span>
               <p className="font-semibold text-sm leading-none tracking-[0.02em]">
@@ -177,7 +198,7 @@ let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
               </p>
             </div>
             <div className="flex gap-2">
-              <button
+              <ArrowButton
                 type="button"
                 aria-label={t("testimonial.previous")}
                 onClick={goToPrevious}
@@ -202,8 +223,8 @@ let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
                   weight="regular"
                   className="transition-opacity hover:opacity-70"
                 />
-              </button>
-              <button
+              </ArrowButton>
+              <ArrowButton
                 type="button"
                 aria-label={t("testimonial.next")}
                 onClick={goToNext}
@@ -228,7 +249,7 @@ let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
                   weight="regular"
                   className="transition-opacity hover:opacity-70"
                 />
-              </button>
+              </ArrowButton>
             </div>
           </div>
         </div>

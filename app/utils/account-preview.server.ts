@@ -2,7 +2,17 @@ import type {
   CustomerDetailsFragment,
   OrderFragment,
 } from "customer-account-api.generated";
-import { createCookie } from "react-router";
+import { createCookie, data, redirect } from "react-router";
+
+export function accountFormSuccess(
+  request: Request,
+  locale?: string,
+  init?: ResponseInit,
+) {
+  return new URL(request.url).searchParams.get("modal") === "1"
+    ? data({ success: true }, init)
+    : redirect(accountPath(locale), init);
+}
 
 export type AccountPreviewAddress =
   CustomerDetailsFragment["addresses"]["edges"][number]["node"];

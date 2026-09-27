@@ -8,6 +8,7 @@ import { createContext, forwardRef, useEffect, useMemo, useState } from "react";
 import Heading from "~/components/heading";
 import type { SectionProps } from "~/components/section";
 import { Section, sectionSettings } from "~/components/section";
+import { useTranslatedText } from "~/hooks/use-translated-text";
 import { cn } from "~/utils/cn";
 
 interface MapSectionProps extends SectionProps {
@@ -41,12 +42,19 @@ export const MapContext = createContext<MapContextValue>({
   addressFontColor: "#524B46",
 });
 
-const MapFrame = ({
+const mapDesktopFrameClassName = {
+  md: "md:aspect-[16/10] md:rounded-(--radius-md)",
+  xl: "xl:aspect-[16/10] xl:rounded-(--radius-md)",
+} as const;
+
+export const MapFrame = ({
   address,
   className,
+  desktopFrom = "xl",
 }: {
   address: string;
   className?: string;
+  desktopFrom?: keyof typeof mapDesktopFrameClassName;
 }) => {
   const { t } = useTranslation();
 
@@ -54,7 +62,8 @@ const MapFrame = ({
     <div
       className={cn(
         "relative w-full overflow-hidden bg-(--color-bg-subtle)",
-        "aspect-[375/469.125] lg:aspect-[16/10] lg:rounded-(--radius-md)",
+        "aspect-[375/469.125]",
+        mapDesktopFrameClassName[desktopFrom],
         className,
       )}
     >
@@ -72,8 +81,10 @@ const MapFrame = ({
 };
 
 const MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
+  const translateText = useTranslatedText();
+
   const {
-    heading,
+    heading: rawI18nHeading,
     children,
     layoutMap = "list",
     defaultAddress,
@@ -82,6 +93,10 @@ const MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
     addressFontColor = "#524B46",
     ...rest
   } = props;
+  const heading = translateText(
+    rawI18nHeading,
+    "themeContent.sectionsMapMap.heading",
+  );
 
   const childInstances = useChildInstances();
   const firstAddress =
@@ -127,7 +142,12 @@ const MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
           alignment="left"
           weight="400"
           letterSpacing="tight"
-          className="text-[28px] leading-[1.1] tracking-[-0.03em] lg:text-[44px]"
+          className={cn(
+            "text-[28px] leading-[1.1] tracking-[-0.03em]",
+            layoutMap === "list"
+              ? "md:text-[44px]"
+              : "md:max-lg:text-[44px] xl:text-[44px]",
+          )}
         />
       )}
 
@@ -137,7 +157,7 @@ const MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
         <AccordionPrimitive.Root
           type="single"
           defaultValue="item-0"
-          className="w-full overflow-hidden rounded-(--radius-sm)"
+          className="flex w-full flex-col gap-2 overflow-hidden rounded-(--radius-sm)"
           onValueChange={(value) => {
             if (value) {
               setActiveItem(Number.parseInt(value.replace("item-", ""), 10));
@@ -154,19 +174,28 @@ const MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
     <MapContext.Provider value={contextValue}>
       <Section ref={ref} {...rest} width="full" verticalPadding="none">
         {layoutMap === "list" ? (
-          <div className="mx-auto grid w-full lg:max-w-(--page-width) lg:grid-cols-[280px_minmax(0,1fr)] lg:gap-12 lg:px-(--page-padding) lg:py-(--section-padding-y) xl:gap-16">
-            <div className="order-2 flex flex-col gap-8 px-6 py-12 lg:order-1 lg:gap-10 lg:px-0 lg:py-0">
+          <div className="mx-auto grid w-full md:max-w-(--page-width) md:grid-cols-[280px_minmax(0,1fr)] md:gap-12 md:px-(--page-padding) md:py-(--section-padding-y) xl:gap-16">
+            <div className="order-2 flex flex-col gap-8 px-6 py-12 md:order-1 md:gap-10 md:px-0 md:py-0">
               {content}
             </div>
-            <MapFrame address={activeAddress} className="order-1 lg:order-2" />
+            <MapFrame
+              address={activeAddress}
+              desktopFrom="md"
+              className="order-1 md:order-2"
+            />
           </div>
         ) : (
-          <div className="relative mx-auto w-full lg:max-w-(--page-width) lg:px-(--page-padding) lg:py-(--section-padding-y)">
-            <MapFrame address={activeAddress} className="lg:ml-auto lg:w-3/4" />
+          <div className="relative mx-auto w-full md:max-lg:flow-root xl:max-w-(--page-width) xl:px-(--page-padding) xl:py-(--section-padding-y)">
+            <MapFrame
+              address={activeAddress}
+              desktopFrom="xl"
+              className="md:max-lg:absolute md:max-lg:inset-0 md:max-lg:h-full md:max-lg:aspect-auto xl:ml-auto xl:w-3/4"
+            />
             <div
               className={cn(
                 "relative z-1 flex flex-col gap-8 px-6 py-12",
-                "lg:absolute lg:top-1/2 lg:left-(--page-padding) lg:w-[52%] lg:-translate-y-1/2 lg:gap-10 lg:p-10",
+                "md:max-lg:mx-8 md:max-lg:my-[108px] md:max-lg:w-[487px] md:max-lg:max-w-[calc(100%-64px)] md:max-lg:p-10",
+                "xl:absolute xl:top-1/2 xl:left-(--page-padding) xl:w-[52%] xl:-translate-y-1/2 xl:gap-10 xl:p-10",
               )}
               style={{ backgroundColor: panelBackgroundColor }}
             >
@@ -202,12 +231,12 @@ export const schema: HydrogenComponentSchema = {
           defaultValue: "list",
           configs: {
             options: [
-              { value: "list", label: "Scenario 1 — Store list" },
-              { value: "accordion", label: "Scenario 2 — Accordion" },
+              { value: "list", label: "Scenario 1" },
+              { value: "accordion", label: "Scenario 2" },
             ],
           },
           helpText:
-            "Scenario 1 places the store list beside the map. Scenario 2 overlays an accordion panel on desktop.",
+            "Scenario 1: store list beside the map from tablet up. Scenario 2: overlay panel on tablet (768–1024px) and large desktop (1280px+); stacked accordion at other widths.",
         },
       ],
     },
@@ -223,7 +252,7 @@ export const schema: HydrogenComponentSchema = {
         {
           type: "color",
           name: "panelBackgroundColor",
-          label: "Accordion panel background",
+          label: "Scenario 2 panel background",
           defaultValue: "#FFFFFF",
           condition: (data: MapSectionProps) => data.layoutMap === "accordion",
         },

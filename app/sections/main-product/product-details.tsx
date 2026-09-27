@@ -4,9 +4,11 @@ import { useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { useRouteLoaderData } from "react-router";
 import { Link } from "~/components/link";
+import { useTranslatedText } from "~/hooks/use-translated-text";
 import type { loader as productLoader } from "~/routes/($locale).products.$productHandle";
 
 interface ProductDetailsProps {
+  className?: string;
   showShippingPolicy: boolean;
   showRefundPolicy: boolean;
   showShortDescription?: boolean;
@@ -17,14 +19,21 @@ interface ProductDetailsProps {
 }
 
 export function ProductDetails({
+  className,
   showShippingPolicy,
   showRefundPolicy,
   showShortDescription = true,
-  descriptionTitle = "Dimensions",
+  descriptionTitle: rawI18nDescriptionTitle = "Dimensions",
   openDescriptionByDefault = true,
   product: propProduct,
   shop: propShop,
 }: ProductDetailsProps) {
+  const translateText = useTranslatedText();
+  const descriptionTitle = translateText(
+    rawI18nDescriptionTitle,
+    "themeContent.sectionsMainProductProductDetails.descriptionTitle",
+  );
+
   const { t } = useTranslation();
   const loaderData = useRouteLoaderData<typeof productLoader>(
     "routes/($locale).products.$productHandle",
@@ -69,6 +78,7 @@ export function ProductDetails({
 
   return (
     <Accordion.Root
+      className={className}
       type="multiple"
       defaultValue={details
         .filter((detail) => detail.openByDefault)
@@ -80,12 +90,12 @@ export function ProductDetails({
           value={title}
           className={clsx(
             index === details.length - 1 && "border-line-subtle border-b",
-            "data-[state=open]:pb-6",
+            "flex w-full self-stretch flex-col items-start data-[state=open]:gap-6 data-[state=open]:pb-6",
           )}
         >
           <Accordion.Trigger
             className={clsx([
-              "flex w-full justify-between py-6",
+              "flex w-full justify-between py-6 data-[state=open]:pb-0",
               "border-line-subtle border-t",
               "data-[state=open]:[&>.minus]:inline-block",
               "data-[state=open]:[&>.plus]:hidden",
@@ -105,7 +115,7 @@ export function ProductDetails({
               } as React.CSSProperties
             }
             className={clsx([
-              "overflow-hidden",
+              "w-full self-stretch overflow-hidden",
               "data-[state=closed]:animate-collapse",
               "data-[state=open]:animate-expand",
             ])}

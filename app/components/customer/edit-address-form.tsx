@@ -14,6 +14,7 @@ import {
 import { Button } from "~/components/button";
 import Link from "~/components/link";
 import type { AccountOutletContext } from "~/routes/($locale).account.edit";
+import { translateError } from "~/utils/translated-error";
 
 export function AccountEditAddressForm() {
   const { t } = useTranslation();
@@ -36,7 +37,7 @@ export function AccountEditAddressForm() {
 
   return (
     <div className="space-y-2">
-      <div className="py-2.5 text-xl">
+      <div className="py-2.5 font-heading text-[26px] uppercase">
         {isNewAddress ? t("account.addAddress") : t("account.editAddress")}
       </div>
       <Form method="post" className="space-y-3">
@@ -47,7 +48,7 @@ export function AccountEditAddressForm() {
         />
         {actionData?.formError && (
           <div className="flex items-center justify-center bg-red-100 p-3 text-red-900">
-            {actionData.formError}
+            {translateError(t, actionData.formError)}
           </div>
         )}
         <input

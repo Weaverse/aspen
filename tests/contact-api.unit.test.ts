@@ -42,7 +42,10 @@ test("GET requests return a controlled 405 response", async () => {
 
   assert.equal(result.init?.status, 405);
   assert.equal(new Headers(result.init?.headers).get("Allow"), "POST");
-  assert.deepEqual(result.data, { ok: false, error: "Method not allowed" });
+  assert.deepEqual(result.data, {
+    ok: false,
+    error: "errors.methodNotAllowed",
+  });
 });
 
 test("rejects missing and invalid fields before contacting Klaviyo", async () => {
@@ -64,7 +67,7 @@ test("rejects missing and invalid fields before contacting Klaviyo", async () =>
 
   assert.equal(missingEmail.init?.status, 400);
   assert.equal(invalidEmail.init?.status, 400);
-  assert.equal(invalidEmail.data.error, "Enter a valid email address");
+  assert.equal(invalidEmail.data.error, "errors.invalidEmail");
   assert.equal(missingMessage.init?.status, 400);
   assert.equal(fetchCalls, 0);
 });
@@ -104,7 +107,7 @@ test("returns a safe fallback when Klaviyo is unconfigured", async () => {
   assert.equal(result.init?.status, 503);
   assert.deepEqual(result.data, {
     ok: false,
-    error: "Something went wrong! Please try again.",
+    error: "errors.generic",
   });
 });
 
@@ -176,9 +179,6 @@ test("maps Klaviyo and network failures to a safe gateway error", async () => {
 
   assert.equal(rejected.init?.status, 502);
   assert.equal(networkFailure.init?.status, 502);
-  assert.equal(rejected.data.error, "Something went wrong! Please try again.");
-  assert.equal(
-    networkFailure.data.error,
-    "Something went wrong! Please try again.",
-  );
+  assert.equal(rejected.data.error, "errors.generic");
+  assert.equal(networkFailure.data.error, "errors.generic");
 });

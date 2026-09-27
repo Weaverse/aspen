@@ -2,6 +2,7 @@ import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import clsx from "clsx";
+import { ArrowButton } from "~/components/arrow-button";
 
 let variants = cva(
   [
@@ -91,7 +92,7 @@ export function Arrows(props: PromotionArrowsProps) {
 
   return (
     <>
-      <button
+      <ArrowButton
         type="button"
         className={clsx(
           "promotion-arrow-prev",
@@ -116,8 +117,8 @@ export function Arrows(props: PromotionArrowsProps) {
             <path d="M4.75397 12.207L5.46106 11.4999L2.46116 8.50003L15.5 8.50003V7.5L2.46125 7.5L5.46106 4.50019L4.75397 3.7931L0.546938 8.00006L4.75397 12.207Z" />
           </svg>
         )}
-      </button>
-      <button
+      </ArrowButton>
+      <ArrowButton
         type="button"
         className={clsx(
           "promotion-arrow-next",
@@ -145,7 +146,7 @@ export function Arrows(props: PromotionArrowsProps) {
             />
           </svg>
         )}
-      </button>
+      </ArrowButton>
     </>
   );
 }

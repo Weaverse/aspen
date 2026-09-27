@@ -7,6 +7,7 @@ import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import type { CSSProperties } from "react";
 import { forwardRef } from "react";
+import { useTranslatedText } from "~/hooks/use-translated-text";
 import { cn } from "~/utils/cn";
 
 const fontSizeVariants = cva("", {
@@ -100,9 +101,11 @@ const Heading = forwardRef<
   HTMLHeadingElement,
   HeadingProps & Partial<HydrogenComponentProps>
 >((props, ref) => {
+  const translateText = useTranslatedText();
+
   const {
     as: Tag = "h4",
-    content,
+    content: rawI18nContent,
     size,
     mobileSize,
     desktopSize,
@@ -117,6 +120,10 @@ const Heading = forwardRef<
     animate = true,
     ...rest
   } = props;
+  const content = translateText(
+    rawI18nContent,
+    "themeContent.componentsHeading.content",
+  );
   let style: CSSProperties = { color, backgroundColor };
   if (size === "scale") {
     style = {

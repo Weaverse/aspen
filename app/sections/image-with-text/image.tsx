@@ -2,6 +2,7 @@ import {
   createSchema,
   type HydrogenComponentProps,
   IMAGES_PLACEHOLDERS,
+  useTranslation,
   type WeaverseImage,
 } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
@@ -53,6 +54,8 @@ interface ImageWithTextImageProps
 
 const ImageWithTextImage = forwardRef<HTMLDivElement, ImageWithTextImageProps>(
   (props, ref) => {
+    const { t } = useTranslation();
+
     const {
       image = IMAGES_PLACEHOLDERS.image,
       borderRadius,
@@ -68,7 +71,7 @@ const ImageWithTextImage = forwardRef<HTMLDivElement, ImageWithTextImageProps>(
     const finalAspectRatio = propAspectRatio || contextAspectRatio;
     const imageData: Partial<WeaverseImage> =
       typeof image === "string"
-        ? { url: image, altText: "Placeholder" }
+        ? { url: image, altText: t("accessibility.imagePlaceholder") }
         : image;
 
     let aspRt: string | undefined;

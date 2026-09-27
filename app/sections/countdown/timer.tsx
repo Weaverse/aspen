@@ -129,6 +129,7 @@ const CountdownTimer = forwardRef<
   const numberClass = cn(
     "ff-heading shrink-0 font-normal !leading-[0.8] [font-size:var(--timer-number-mobile)] md:[font-size:var(--timer-number-desktop)]",
     numberPaddingClass,
+    parentScenario !== "scenario2" && "md:max-lg:px-0",
   );
   const labelClass =
     "min-w-0 whitespace-nowrap capitalize leading-none [font-size:var(--timer-label-mobile)] md:[font-size:var(--timer-label-desktop)]";
@@ -141,7 +142,7 @@ const CountdownTimer = forwardRef<
         "countdown--timer inline-grid gap-x-1 text-(--timer-color) sm:gap-x-2 md:gap-x-4",
         parentScenario === "scenario2"
           ? "w-full grid-cols-4"
-          : "w-full grid-cols-2 gap-y-10 py-3 lg:grid-cols-4 lg:gap-y-0 lg:py-0",
+          : "w-full grid-cols-2 gap-y-10 py-3 md:grid-cols-4 md:gap-y-0 lg:py-0",
       )}
       data-motion="fade-up"
       style={timerStyle}
@@ -200,28 +201,28 @@ export const schema = createSchema({
         {
           type: "range",
           name: "scenario1MobileNumberSize",
-          label: "Style 1 number size (mobile)",
+          label: "Scenario 1 number size (mobile)",
           configs: { min: 24, max: 80, step: 2, unit: "px" },
           defaultValue: 48,
         },
         {
           type: "range",
           name: "scenario1DesktopNumberSize",
-          label: "Style 1 number size (desktop)",
+          label: "Scenario 1 number size (desktop)",
           configs: { min: 40, max: 120, step: 2, unit: "px" },
           defaultValue: 80,
         },
         {
           type: "range",
           name: "scenario2MobileNumberSize",
-          label: "Style 2 number size (mobile)",
+          label: "Scenario 2 number size (mobile)",
           configs: { min: 20, max: 64, step: 2, unit: "px" },
           defaultValue: 36,
         },
         {
           type: "range",
           name: "scenario2DesktopNumberSize",
-          label: "Style 2 number size (desktop)",
+          label: "Scenario 2 number size (desktop)",
           configs: { min: 28, max: 80, step: 2, unit: "px" },
           defaultValue: 48,
         },

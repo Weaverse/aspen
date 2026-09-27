@@ -1,5 +1,6 @@
 import { Image } from "@shopify/hydrogen";
 import type { InspectorGroup, WeaverseImage } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 
@@ -33,11 +34,13 @@ export type BackgroundImageProps = VariantProps<typeof variants> & {
 };
 
 export function BackgroundImage(props: BackgroundImageProps) {
+  const { t } = useTranslation();
+
   const { backgroundImage, backgroundFit, backgroundPosition } = props;
   if (backgroundImage) {
     const data =
       typeof backgroundImage === "string"
-        ? { url: backgroundImage, altText: "Section background" }
+        ? { url: backgroundImage, altText: "" }
         : backgroundImage;
     return (
       <Image

@@ -7,7 +7,7 @@ import { cn } from "~/utils/cn";
 import type { JudgemeReviewsData } from "~/utils/judgeme";
 import { formatDate } from "~/utils/locale";
 
-const REVIEWS_PER_PAGE = 4;
+const REVIEWS_PER_PAGE = 5;
 
 function formatReviewDate(
   dateString: string,
@@ -70,21 +70,26 @@ export function ReviewList({
 
   return (
     <div className="w-full">
-      <div>
-        {reviews.map(({ id, rating, reviewer, title, created_at, body }) => (
+      <div className="border-line-subtle border-b">
+        {reviews.map(({ id, rating, reviewer, created_at, body }) => (
           <Fragment key={id}>
-            <article className="grid gap-5 border-line-subtle border-t py-9 md:grid-cols-[34%_1fr] md:gap-10">
-              <div className="space-y-3">
+            <article className="grid gap-8 border-line-subtle border-t py-12 md:grid-cols-[240px_minmax(0,1fr)] md:gap-16 lg:flex lg:self-stretch lg:items-start lg:gap-16 lg:py-12">
+              <div className="space-y-3 lg:flex lg:w-60 lg:flex-none lg:flex-col lg:items-start lg:gap-3 lg:space-y-0">
                 <StarRating rating={rating} starClassName="size-4" />
                 <div>
-                  <p className="font-semibold">{reviewer.name}</p>
-                  <p className="text-body-subtle text-sm">{reviewer.email}</p>
+                  <p className="font-semibold leading-none tracking-[0.28px] lg:font-body lg:text-[14px] lg:text-[#343231] lg:leading-none lg:tracking-[0.28px]">
+                    {reviewer.name}
+                  </p>
+                  <p className="break-words text-body-subtle text-sm leading-none tracking-[0.28px] lg:font-body lg:font-normal lg:text-[14px] lg:text-[#979797] lg:leading-none lg:tracking-[0.28px]">
+                    {reviewer.email}
+                  </p>
                 </div>
               </div>
-              <div className="space-y-3">
-                {title && <p className="font-semibold">{title}</p>}
-                <p className="leading-7">{body}</p>
-                <time className="block text-body-subtle text-sm">
+              <div className="space-y-3 lg:flex lg:min-w-0 lg:flex-1 lg:flex-col lg:items-start lg:gap-3 lg:space-y-0">
+                <p className="break-words leading-[1.6] tracking-[0.14px] lg:self-stretch lg:font-body lg:font-normal lg:text-[14px] lg:text-[#343231] lg:leading-[1.6] lg:tracking-[0.14px]">
+                  {body}
+                </p>
+                <time className="block text-body-subtle text-sm lg:self-stretch lg:font-body lg:font-normal lg:text-[14px] lg:text-[#979797] lg:leading-none lg:tracking-[0.28px]">
                   {formatReviewDate(created_at, locale)}
                 </time>
               </div>
@@ -95,7 +100,7 @@ export function ReviewList({
 
       {pageCount > 1 && (
         <nav
-          className="flex items-center justify-center gap-2 pt-8"
+          className="flex w-full self-stretch items-center justify-center gap-2 pt-10"
           aria-label={t("reviews.pages")}
         >
           <button
@@ -103,7 +108,7 @@ export function ReviewList({
             onClick={() => setPage((current) => Math.max(0, current - 1))}
             disabled={page === 0}
             aria-label={t("reviews.previousPage")}
-            className="flex size-11 items-center justify-center rounded-lg border border-line-subtle disabled:opacity-40"
+            className="flex size-10 flex-col items-center justify-center rounded-lg border border-[#D8D8D8] bg-white text-[#524B46] disabled:cursor-not-allowed disabled:opacity-40 [&>svg]:size-6"
           >
             <CaretLeftIcon aria-hidden="true" />
           </button>
@@ -122,10 +127,10 @@ export function ReviewList({
                   onClick={() => setPage(pageIndex)}
                   aria-current={pageIndex === page ? "page" : undefined}
                   className={cn(
-                    "flex size-11 items-center justify-center rounded-lg border",
+                    "flex size-10 flex-col items-center justify-center rounded-lg border font-body text-sm leading-[100%] tracking-[0.28px]",
                     pageIndex === page
-                      ? "border-body bg-body text-background"
-                      : "border-line-subtle",
+                      ? "border-[#D8D8D8] bg-[#4D4946] font-semibold text-[#F1EEEA]"
+                      : "border-[#D8D8D8] bg-white text-[#343231]",
                   )}
                 >
                   {pageIndex + 1}
@@ -141,7 +146,7 @@ export function ReviewList({
             }
             disabled={page === pageCount - 1}
             aria-label={t("reviews.nextPage")}
-            className="flex size-11 items-center justify-center rounded-lg border border-line-subtle disabled:opacity-40"
+            className="flex size-10 flex-col items-center justify-center rounded-lg border border-[#D8D8D8] bg-white text-[#524B46] disabled:cursor-not-allowed disabled:opacity-40 [&>svg]:size-6"
           >
             <CaretRightIcon aria-hidden="true" />
           </button>

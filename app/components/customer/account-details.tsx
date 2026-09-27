@@ -1,13 +1,14 @@
 import { useTranslation } from "@weaverse/hydrogen";
 import type { CustomerDetailsFragment } from "customer-account-api.generated";
 import type { HTMLAttributes } from "react";
-import { Link } from "~/components/link";
+import { useTranslatedText } from "~/hooks/use-translated-text";
 import { cn } from "~/utils/cn";
+import { AccountPopup } from "./account-popup";
 
 export function AccountDetails({
   customer,
-  heading = "ACCOUNT",
-  editText = "EDIT",
+  heading: rawI18nHeading = "ACCOUNT",
+  editText: rawI18nEditText = "EDIT",
   className,
   ...rest
 }: {
@@ -15,6 +16,16 @@ export function AccountDetails({
   heading?: string;
   editText?: string;
 } & HTMLAttributes<HTMLDivElement>) {
+  const translateText = useTranslatedText();
+  const heading = translateText(
+    rawI18nHeading,
+    "themeContent.componentsCustomerAccountDetails.heading",
+  );
+  const editText = translateText(
+    rawI18nEditText,
+    "themeContent.componentsCustomerAccountDetails.editText",
+  );
+
   const { t } = useTranslation();
   const { firstName, lastName, emailAddress } = customer;
   return (
@@ -44,13 +55,14 @@ export function AccountDetails({
           </div>
         </div>
         <div className="mt-3">
-          <Link
-            prefetch="intent"
-            className="text-[#979797] text-xs uppercase leading-5 transition-opacity hover:opacity-70"
-            to="/account/edit"
-          >
-            {editText}
-          </Link>
+          <AccountPopup customer={customer} mode="account">
+            <button
+              type="button"
+              className="text-[#979797] text-xs uppercase leading-5 transition-opacity hover:opacity-70"
+            >
+              {editText}
+            </button>
+          </AccountPopup>
         </div>
       </div>
     </div>

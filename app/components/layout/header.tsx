@@ -1,5 +1,5 @@
 import { UserIcon } from "@phosphor-icons/react";
-import { useThemeSettings } from "@weaverse/hydrogen";
+import { useThemeSettings, useTranslation } from "@weaverse/hydrogen";
 import { cva } from "class-variance-authority";
 import clsx from "clsx";
 import { Suspense, useState } from "react";
@@ -64,6 +64,13 @@ export function Header() {
     isHome &&
     !routeError;
   const isTransparent = enableTransparent && !scrolled && !isSearchOpen;
+  const headerPosition =
+    isSearchOpen || enableTransparent
+      ? [
+          "group/header fixed inset-x-0 w-full",
+          "top-(--topbar-height,var(--initial-topbar-height))",
+        ]
+      : "sticky top-0";
 
   return (
     <header
@@ -75,12 +82,7 @@ export function Header() {
         "border-line-subtle border-b",
         variants({ padding: headerWidth }),
         scrolled ? "shadow-none" : "shadow-none",
-        enableTransparent
-          ? [
-              "group/header fixed w-screen",
-              "top-(--topbar-height,var(--initial-topbar-height))",
-            ]
-          : "sticky top-0",
+        headerPosition,
         isTransparent
           ? [
               "border-transparent bg-transparent",
@@ -147,11 +149,16 @@ export function Header() {
 }
 
 function AccountLink({ className }: { className?: string }) {
+  const { t } = useTranslation();
   const rootData = useRouteLoaderData<RootLoader>("root");
   const isLoggedIn = rootData?.isLoggedIn;
 
   return (
-    <Link to="/account" className={clsx("transition-none", className)}>
+    <Link
+      to="/account"
+      aria-label={t("navigation.account")}
+      className={clsx("transition-none", className)}
+    >
       <Suspense fallback={<UserIcon className="size-5" />}>
         <Await
           resolve={isLoggedIn}

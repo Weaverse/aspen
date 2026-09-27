@@ -4,13 +4,13 @@ import type {
   CustomerAddressDeleteMutation,
   CustomerAddressUpdateMutation,
 } from "customer-account-api.generated";
-import { type ActionFunction, data, redirect } from "react-router";
+import { type ActionFunction, data } from "react-router";
 import invariant from "tiny-invariant";
 // biome-ignore lint/style/noExportedImports: <explanation> --- IGNORE ---
 import { AccountEditAddressForm } from "~/components/customer/edit-address-form";
 import {
   type AccountPreviewAddress,
-  accountPath,
+  accountFormSuccess,
   commitAccountPreviewState,
   isAccountPreviewRequest,
   readAccountPreviewState,
@@ -36,7 +36,7 @@ export const action: ActionFunction = async ({ request, context, params }) => {
   }
 
   const addressId = formData.get("addressId");
-  invariant(typeof addressId === "string", "You must provide an address id.");
+  invariant(typeof addressId === "string", "errors.addressRequired");
 
   if (request.method === "DELETE") {
     try {
@@ -58,7 +58,7 @@ export const action: ActionFunction = async ({ request, context, params }) => {
         "Expected customer address to be deleted",
       );
 
-      return redirect(accountPath(params.locale));
+      return accountFormSuccess(request, params.locale);
     } catch (error: any) {
       return data(
         { formError: error.message },
@@ -115,7 +115,7 @@ export const action: ActionFunction = async ({ request, context, params }) => {
         "Expected customer address to be created",
       );
 
-      return redirect(accountPath(params.locale));
+      return accountFormSuccess(request, params.locale);
     } catch (error: any) {
       return data(
         { formError: error.message },
@@ -145,7 +145,7 @@ export const action: ActionFunction = async ({ request, context, params }) => {
         updateData?.customerAddressUpdate?.userErrors?.[0]?.message,
       );
 
-      return redirect(accountPath(params.locale));
+      return accountFormSuccess(request, params.locale);
     } catch (error: any) {
       return data(
         { formError: error.message },
@@ -166,10 +166,7 @@ async function handlePreviewAddressAction(
   const addressId = formData.get("addressId");
 
   if (typeof addressId !== "string") {
-    return data(
-      { formError: "You must provide an address id." },
-      { status: 400 },
-    );
+    return data({ formError: "errors.addressRequired" }, { status: 400 });
   }
 
   if (request.method === "DELETE") {
@@ -191,7 +188,7 @@ async function handlePreviewAddressAction(
       (address) => address.id === addressId,
     );
     if (addressIndex < 0) {
-      return data({ formError: "Address not found." }, { status: 404 });
+      return data({ formError: "errors.addressNotFound" }, { status: 404 });
     }
     previewState.addresses[addressIndex] = previewAddressFromForm(
       formData,
@@ -202,7 +199,7 @@ async function handlePreviewAddressAction(
     }
   }
 
-  return redirect(accountPath(locale), {
+  return accountFormSuccess(request, locale, {
     headers: {
       "Set-Cookie": await commitAccountPreviewState(previewState),
     },

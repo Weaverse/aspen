@@ -12,7 +12,9 @@ import { getOrderStatusLabel } from "~/components/customer/orders";
 import { Image } from "~/components/image";
 import Link from "~/components/link";
 import { useLocale } from "~/hooks/use-locale";
+import { useTranslatedText } from "~/hooks/use-translated-text";
 import type { I18nLocale } from "~/types/locale";
+import { minWidthQuery, TABLET_MIN_PX } from "~/utils/breakpoints";
 import { cn } from "~/utils/cn";
 import { formatDate, formatNumber } from "~/utils/locale";
 
@@ -60,24 +62,24 @@ interface OrderDetailsSectionProps
 }
 
 function OrderDetailsSection({
-  heading = "ORDER",
-  backLabel = "BACK TO ACCOUNT",
-  orderNumberLabel = "ORDER NO.",
-  placedOnLabel = "PLACED ON",
-  statusHeading = "ORDER STATUS",
-  shippingAddressHeading = "SHIPPING ADDRESS",
-  statusCardHeading = "ORDER STATUS",
-  detailsHeading = "ORDER DETAILS",
-  itemPriceLabel = "Item price:",
-  quantityLabel = "QTY",
-  summaryHeading = "ORDER SUMMARY",
-  subtotalLabel = "Subtotal",
-  discountLabel = "Discount",
+  heading: rawI18nHeading = "ORDER",
+  backLabel: rawI18nBackLabel = "BACK TO ACCOUNT",
+  orderNumberLabel: rawI18nOrderNumberLabel = "ORDER NO.",
+  placedOnLabel: rawI18nPlacedOnLabel = "PLACED ON",
+  statusHeading: rawI18nStatusHeading = "ORDER STATUS",
+  shippingAddressHeading: rawI18nShippingAddressHeading = "SHIPPING ADDRESS",
+  statusCardHeading: rawI18nStatusCardHeading = "ORDER STATUS",
+  detailsHeading: rawI18nDetailsHeading = "ORDER DETAILS",
+  itemPriceLabel: rawI18nItemPriceLabel = "Item price:",
+  quantityLabel: rawI18nQuantityLabel = "QTY",
+  summaryHeading: rawI18nSummaryHeading = "ORDER SUMMARY",
+  subtotalLabel: rawI18nSubtotalLabel = "Subtotal",
+  discountLabel: rawI18nDiscountLabel = "Discount",
   shippingNote = "Shipping & taxes calculated at checkout",
-  totalLabel = "Total",
-  unfulfilledLabel = "UNFULFILLED",
-  firstVariantLabel = "Color",
-  secondVariantLabel = "Size",
+  totalLabel: rawI18nTotalLabel = "Total",
+  unfulfilledLabel: rawI18nUnfulfilledLabel = "UNFULFILLED",
+  firstVariantLabel: rawI18nFirstVariantLabel = "Color",
+  secondVariantLabel: rawI18nSecondVariantLabel = "Size",
   backgroundColor = "#EDEDED",
   cardColor = "#FFFFFF",
   textColor = "#343231",
@@ -91,6 +93,76 @@ function OrderDetailsSection({
   style,
   ...rest
 }: OrderDetailsSectionProps) {
+  const translateText = useTranslatedText();
+  const heading = translateText(
+    rawI18nHeading,
+    "themeContent.sectionsOrderDetailsIndex.heading",
+  );
+  const backLabel = translateText(
+    rawI18nBackLabel,
+    "themeContent.sectionsOrderDetailsIndex.backLabel",
+  );
+  const orderNumberLabel = translateText(
+    rawI18nOrderNumberLabel,
+    "themeContent.sectionsOrderDetailsIndex.orderNumberLabel",
+  );
+  const placedOnLabel = translateText(
+    rawI18nPlacedOnLabel,
+    "themeContent.sectionsOrderDetailsIndex.placedOnLabel",
+  );
+  const statusHeading = translateText(
+    rawI18nStatusHeading,
+    "themeContent.sectionsOrderDetailsIndex.statusHeading",
+  );
+  const shippingAddressHeading = translateText(
+    rawI18nShippingAddressHeading,
+    "themeContent.sectionsOrderDetailsIndex.shippingAddressHeading",
+  );
+  const statusCardHeading = translateText(
+    rawI18nStatusCardHeading,
+    "themeContent.sectionsOrderDetailsIndex.statusCardHeading",
+  );
+  const detailsHeading = translateText(
+    rawI18nDetailsHeading,
+    "themeContent.sectionsOrderDetailsIndex.detailsHeading",
+  );
+  const itemPriceLabel = translateText(
+    rawI18nItemPriceLabel,
+    "themeContent.sectionsOrderDetailsIndex.itemPriceLabel",
+  );
+  const quantityLabel = translateText(
+    rawI18nQuantityLabel,
+    "themeContent.sectionsOrderDetailsIndex.quantityLabel",
+  );
+  const summaryHeading = translateText(
+    rawI18nSummaryHeading,
+    "themeContent.sectionsOrderDetailsIndex.summaryHeading",
+  );
+  const subtotalLabel = translateText(
+    rawI18nSubtotalLabel,
+    "themeContent.sectionsOrderDetailsIndex.subtotalLabel",
+  );
+  const discountLabel = translateText(
+    rawI18nDiscountLabel,
+    "themeContent.sectionsOrderDetailsIndex.discountLabel",
+  );
+  const totalLabel = translateText(
+    rawI18nTotalLabel,
+    "themeContent.sectionsOrderDetailsIndex.totalLabel",
+  );
+  const unfulfilledLabel = translateText(
+    rawI18nUnfulfilledLabel,
+    "themeContent.sectionsOrderDetailsIndex.unfulfilledLabel",
+  );
+  const firstVariantLabel = translateText(
+    rawI18nFirstVariantLabel,
+    "themeContent.sectionsOrderDetailsIndex.firstVariantLabel",
+  );
+  const secondVariantLabel = translateText(
+    rawI18nSecondVariantLabel,
+    "themeContent.sectionsOrderDetailsIndex.secondVariantLabel",
+  );
+
   const { t } = useTranslation();
   const locale = useLocale();
   const routeData = useLoaderData() as OrderDetailsRouteData;
@@ -261,7 +333,12 @@ function OrderDetailsSection({
               <span>-</span>
               <Money data={totalDiscountMoney} />
             </SummaryRow>
-            <p className="mt-5 text-(--order-muted)">{shippingNote}</p>
+            <p className="mt-5 text-(--order-muted)">
+              {translateText(
+                shippingNote,
+                "themeContent.sectionsOrderDetailsIndex.shippingNote",
+              )}
+            </p>
             <div className="mt-6 border-(--order-line) border-t pt-6">
               <SummaryRow className="font-semibold" label={totalLabel}>
                 <Money data={order.totalPrice} />
@@ -305,7 +382,7 @@ function OrderLineItemCard({
             data={lineItem.image}
             width={800}
             height={800}
-            sizes="(min-width: 768px) 320px, calc(100vw - 32px)"
+            sizes={`${minWidthQuery(TABLET_MIN_PX)} 320px, calc(100vw - 32px)`}
             alt={lineItem.image.altText ?? lineItem.title}
             className="bg-white"
           />

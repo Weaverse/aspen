@@ -50,10 +50,12 @@ function useProductReviews() {
 interface ProductRatingProps extends ComponentProps<"div"> {
   /** Render the stars as a button that scrolls to the reviews block. */
   linkToReviews?: boolean;
+  productDetailsLayout?: boolean;
 }
 
 export function ProductRating({
   linkToReviews = false,
+  productDetailsLayout = false,
   className,
   ...rest
 }: ProductRatingProps) {
@@ -66,10 +68,27 @@ export function ProductRating({
 
   const rating = Math.round((data.rating || 0) * 100) / 100;
   const reviewNumber = data.reviewNumber || 0;
+
+  if (productDetailsLayout && reviewNumber === 0) {
+    return null;
+  }
+
   const stars = (
     <>
       <StarRating rating={rating} />
       <span className="align-top">({reviewNumber})</span>
+    </>
+  );
+  const productDetailsStars = (
+    <>
+      <span className="font-body text-sm leading-none tracking-[0.28px] text-[#343231]">
+        {rating.toFixed(1)}
+      </span>
+      <StarRating
+        rating={rating}
+        className="gap-0"
+        starClassName="size-4 text-[#524B46]"
+      />
     </>
   );
 
@@ -88,11 +107,14 @@ export function ProductRating({
         onClick={scrollToReviews}
         aria-label={t("reviews.readCustomerReviews", { count: reviewNumber })}
         className={cn(
-          "space-x-2 transition-opacity hover:opacity-70",
+          "transition-opacity hover:opacity-70",
+          productDetailsLayout
+            ? "inline-flex items-center gap-[10px] space-x-0"
+            : "space-x-2",
           "focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-(--color-text)",
         )}
       >
-        {stars}
+        {productDetailsLayout ? productDetailsStars : stars}
       </button>
     </div>
   );

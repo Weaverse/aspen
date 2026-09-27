@@ -5,7 +5,6 @@ export function getWeaverseCsp(request: Request, context: AppLoadContext) {
   // Get weaverse host from query params
   const weaverseHost =
     url.searchParams.get("weaverseHost") || context.env.WEAVERSE_HOST;
-  const isDesignMode = url.searchParams.get("weaverseHost");
   const weaverseHosts = ["*.weaverse.io", "*.shopify.com", "*.myshopify.com"];
   if (weaverseHost) {
     weaverseHosts.push(weaverseHost);
@@ -28,9 +27,8 @@ export function getWeaverseCsp(request: Request, context: AppLoadContext) {
     ],
     connectSrc: ["vimeo.com", "*.google-analytics.com", ...weaverseHosts],
     styleSrc: weaverseHosts,
+    // Studio navigation can omit weaverseHost; keep trusted embedding hosts allowed.
+    frameAncestors: ["'self'", "https://weaverse.io", ...weaverseHosts],
   };
-  if (isDesignMode) {
-    updatedCsp.frameAncestors = ["*"];
-  }
   return updatedCsp;
 }

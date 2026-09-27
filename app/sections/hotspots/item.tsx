@@ -16,10 +16,13 @@ import { QuickShop } from "~/components/product/quick-shop";
 import { ScrollArea } from "~/components/scroll-area";
 import { PRODUCT_QUERY } from "~/graphql/queries";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
+import { useTranslatedText } from "~/hooks/use-translated-text";
+import { isDesktopWidth } from "~/utils/breakpoints";
+import { FloatingHotspot } from "./floating-hotspot";
 import { ProductPopup } from "./product-popup";
 
 export interface HotspotsItemData {
-  icon: "circle" | "plus" | "bag" | "tag";
+  icon?: "circle" | "plus" | "bag" | "tag";
   iconSize: number;
   offsetX: number;
   offsetY: number;
@@ -31,44 +34,84 @@ export interface HotspotsItemData {
 
 interface HotspotsItemProps
   extends HydrogenComponentProps<Awaited<ReturnType<typeof loader>>>,
-    HotspotsItemData {}
+    HotspotsItemData {
+  portalPopup?: boolean;
+}
 
-const ICONS = {
-  circle: CircleDotIcon,
+// Matches the "Tag" marker component in Figma (node 364:16957): a 34x34
+// circle with a 1px white border and a centered 6x6 white dot, wrapped in
+// an always-on 42x42 pulse ring, with a white/30% fill added on hover.
+const HOTSPOT_ICONS = {
   plus: PlusIcon,
   bag: HandbagIcon,
   tag: TagIcon,
 };
 
-function CircleDotIcon(props: any) {
-  let { width, height, ...rest } = props;
+function HotspotMarker({
+  icon = "circle",
+  size,
+}: {
+  icon?: HotspotsItemData["icon"];
+  size: number;
+}) {
+  const ringInset = -(42 - size) / 2;
+  if (icon !== "circle") {
+    const Icon = HOTSPOT_ICONS[icon];
+    return (
+      <span className="relative inline-flex items-center justify-center">
+        <span
+          className="absolute inset-0 animate-ping rounded-full bg-gray-700 opacity-75"
+          style={{ animationDuration: "1500ms" }}
+        />
+        <span className="relative inline-flex rounded-full bg-white p-2 transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg">
+          <Icon aria-hidden="true" style={{ width: size, height: size }} />
+        </span>
+      </span>
+    );
+  }
+
   return (
-    <div
-      style={{ width, height }}
-      className="flex items-center justify-center rounded-full border border-white p-3.5"
-    >
-      <span className="h-1.5 w-1.5 rounded-full bg-white" />
-    </div>
+    <span className="relative inline-flex items-center justify-center">
+      <span
+        className="absolute animate-ping rounded-full bg-white/30"
+        style={{
+          inset: ringInset,
+          animationDuration: "1500ms",
+        }}
+      />
+      <span
+        className="relative flex items-center justify-center rounded-full border border-white bg-transparent transition-colors duration-300 group-hover:bg-white/30"
+        style={{ width: size, height: size }}
+      >
+        <span className="h-1.5 w-1.5 rounded-full bg-white" />
+      </span>
+    </span>
   );
 }
 
 const HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>(
   (props, ref) => {
+    const translateText = useTranslatedText();
+
     const { t } = useTranslation();
     const {
-      icon,
+      portalPopup = false,
+      icon = "circle",
       iconSize,
       offsetX,
       offsetY,
       product,
       showPrice,
       showViewDetailsLink,
-      viewDetailsLinkText,
+      viewDetailsLinkText: rawI18nViewDetailsLinkText,
       children,
       loaderData,
       ...rest
     } = props;
-    const Icon = ICONS[icon];
+    const viewDetailsLinkText = translateText(
+      rawI18nViewDetailsLinkText,
+      "themeContent.sectionsHotspotsItem.viewDetailsLinkText",
+    );
     const [showQuickShop, setShowQuickShop] = useState(false);
     const { load, data: quickShopData, state } = useFetcher();
     const apiPath = usePrefixPathWithLocale(
@@ -77,9 +120,8 @@ const HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>(
 
     // Handle click - open quick shop on mobile and tablet, popup on desktop
     const handleClick = () => {
-      if (window.innerWidth < 1024) {
-        // Mobile and tablet breakpoint
-        // On mobile and tablet, open QuickShop
+      if (!isDesktopWidth(window.innerWidth)) {
+        // Mobile and tablet: open QuickShop. Desktop uses the hover popup.
         if (!quickShopData && state !== "loading") {
           load(apiPath);
         }
@@ -103,25 +145,37 @@ const HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>(
             } as CSSProperties
           }
         >
-          <div className="group relative flex cursor-pointer">
-            {icon !== "circle" && (
-              <span
-                className="absolute inline-flex h-full w-full animate-ping rounded-full bg-gray-700 opacity-75"
-                style={{ animationDuration: "1500ms" }}
-              />
-            )}
-            <span
-              className={clsx(
-                "group relative inline-flex rounded-full transition-all duration-300",
-                {
-                  "bg-white p-2 hover:scale-110 hover:shadow-lg":
-                    icon !== "circle",
-                  "bg-transparent hover:drop-shadow-lg": icon === "circle",
-                },
-              )}
+          {portalPopup ? (
+            <>
+              <button
+                type="button"
+                className="group flex lg:hidden"
+                onClick={handleClick}
+                aria-label={t("product.viewProduct", {
+                  product: loaderData?.product?.title ?? product?.handle ?? "",
+                })}
+              >
+                <HotspotMarker icon={icon} size={iconSize} />
+              </button>
+              <div className="hidden lg:block">
+                <FloatingHotspot
+                  product={loaderData?.product}
+                  offsetX={offsetX}
+                  offsetY={offsetY}
+                  showPrice={showPrice}
+                  showViewDetailsLink={showViewDetailsLink}
+                  viewDetailsLinkText={viewDetailsLinkText}
+                >
+                  <HotspotMarker icon={icon} size={iconSize} />
+                </FloatingHotspot>
+              </div>
+            </>
+          ) : (
+            <div
+              className="group relative flex cursor-pointer"
               onClick={handleClick}
             >
-              <Icon style={{ width: iconSize, height: iconSize }} />
+              <HotspotMarker icon={icon} size={iconSize} />
               {/* Desktop popup - only on actual desktop screens (1024px+) */}
               <div className="hidden lg:block">
                 <ProductPopup
@@ -133,8 +187,8 @@ const HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>(
                   viewDetailsLinkText={viewDetailsLinkText}
                 />
               </div>
-            </span>
-          </div>
+            </div>
+          )}
         </div>
 
         {/* Mobile Quick Shop */}
@@ -155,33 +209,24 @@ const HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>(
               )}
               aria-describedby={undefined}
             >
-              <div className="flex h-full flex-col">
-                {/* Header */}
-                <div className="flex flex-shrink-0 items-center justify-between px-5 py-3">
-                  <Dialog.Title asChild>
-                    <span className="font-semibold uppercase">
-                      {t("product.quickShop")}
-                    </span>
-                  </Dialog.Title>
-                  <button
-                    type="button"
-                    onClick={() => setShowQuickShop(false)}
-                    className="rounded p-1 transition-colors hover:bg-gray-100"
-                  >
-                    <XIcon className="h-5 w-5" />
-                  </button>
-                </div>
+              <div className="relative flex h-full flex-col">
+                <Dialog.Title asChild>
+                  <span className="sr-only">{t("product.quickShop")}</span>
+                </Dialog.Title>
+                <button
+                  type="button"
+                  onClick={() => setShowQuickShop(false)}
+                  aria-label={t("product.closeQuickShop")}
+                  className="absolute top-4 right-4 z-30 flex size-5 items-center justify-center"
+                >
+                  <XIcon className="size-5" />
+                </button>
 
-                {/* Content */}
                 <ScrollArea className="flex-1" size="sm">
-                  <div className="px-5 py-4">
+                  <div className="px-5 pt-12 pb-8">
                     {quickShopData ? (
                       <QuickShop
                         data={quickShopData as any}
-                        showDescription={false}
-                        setShowDescription={() => {
-                          // Description is intentionally disabled in this compact view.
-                        }}
                         onCloseAll={() => setShowQuickShop(false)}
                       />
                     ) : (
@@ -242,26 +287,10 @@ export const schema = createSchema({
           label: "Icon",
           configs: {
             options: [
-              {
-                label: "Circle",
-                value: "circle",
-                icon: "circle",
-              },
-              {
-                label: "Plus",
-                value: "plus",
-                icon: "plus",
-              },
-              {
-                label: "Bag",
-                value: "bag",
-                icon: "shopping-bag",
-              },
-              {
-                label: "Tag",
-                value: "tag",
-                icon: "tag",
-              },
+              { label: "Circle", value: "circle", icon: "circle" },
+              { label: "Plus", value: "plus", icon: "plus" },
+              { label: "Bag", value: "bag", icon: "shopping-bag" },
+              { label: "Tag", value: "tag", icon: "tag" },
             ],
           },
           defaultValue: "circle",
@@ -276,7 +305,7 @@ export const schema = createSchema({
             step: 1,
             unit: "px",
           },
-          defaultValue: 33,
+          defaultValue: 34,
         },
         {
           type: "range",

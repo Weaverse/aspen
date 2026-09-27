@@ -2,6 +2,7 @@ import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import { forwardRef } from "react";
+import { useTranslatedText } from "~/hooks/use-translated-text";
 import { cn } from "~/utils/cn";
 
 const variants = cva("subheading", {
@@ -41,9 +42,11 @@ const SubHeading = forwardRef<
   HTMLHeadingElement | HTMLParagraphElement | HTMLDivElement,
   SubHeadingProps
 >((props, ref) => {
+  const translateText = useTranslatedText();
+
   const {
     as: Tag = "p",
-    content,
+    content: rawI18nContent,
     color,
     backgroundColor,
     backgroundBorderRadius = 0,
@@ -53,6 +56,10 @@ const SubHeading = forwardRef<
     className,
     ...rest
   } = props;
+  const content = translateText(
+    rawI18nContent,
+    "themeContent.sectionsCountdownSubheading.content",
+  );
   return (
     <div
       ref={ref}

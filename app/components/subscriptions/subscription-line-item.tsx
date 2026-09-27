@@ -1,4 +1,5 @@
 import { ArrowsClockwise } from "@phosphor-icons/react";
+import { useTranslation } from "@weaverse/hydrogen";
 import { cn } from "~/utils/cn";
 
 interface SubscriptionLineItemProps {
@@ -10,6 +11,8 @@ export function SubscriptionLineItem({
   line,
   className,
 }: SubscriptionLineItemProps) {
+  const { t } = useTranslation();
+
   const sellingPlanAllocation = line.sellingPlanAllocation;
 
   if (!sellingPlanAllocation) {
@@ -82,18 +85,24 @@ export function SubscriptionLineItem({
 
     // Format the text
     if (extractedNumber && extractedUnit) {
-      const normalizedUnit = extractedUnit.endsWith("s")
-        ? extractedUnit
-        : `${extractedUnit}s`;
-      return `Deliver every ${extractedNumber} ${normalizedUnit}`;
+      const singularUnit = extractedUnit.replace(/s$/, "");
+      const unitKey =
+        singularUnit === "week"
+          ? "subscription.week"
+          : singularUnit === "month"
+            ? "subscription.month"
+            : "subscription.year";
+      return t(extractedNumber === "1" ? unitKey : `${unitKey}_other`, {
+        count: extractedNumber,
+      });
     }
 
     // Fallback
     if (sellingPlan.name) {
-      return `Deliver every ${sellingPlan.name}`;
+      return sellingPlan.name;
     }
 
-    return sellingPlan.recurringDeliveries ? "Recurring delivery" : "";
+    return sellingPlan.recurringDeliveries ? t("subscription.recurring") : "";
   };
 
   const deliveryText = formatDeliveryFrequency();
@@ -115,9 +124,9 @@ export function SubscriptionLineItem({
         paddingRight: "8px",
       }}
     >
-      <ArrowsClockwise size={12} style={{ color: "#918379" }} />
+      <ArrowsClockwise size={12} style={{ color: "#979797" }} />
       <span
-        className="text-[#918379] leading-none"
+        className="text-[#979797] leading-none"
         style={{
           fontFamily: '"DM Sans Variable", sans-serif',
           fontWeight: 400,

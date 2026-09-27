@@ -3,17 +3,18 @@ import { useTranslation } from "@weaverse/hydrogen";
 import type { CustomerDetailsFragment } from "customer-account-api.generated";
 import type { HTMLAttributes } from "react";
 import { Form } from "react-router";
-import { Link } from "~/components/link";
+import { useTranslatedText } from "~/hooks/use-translated-text";
 import { cn } from "~/utils/cn";
+import { AccountPopup } from "./account-popup";
 
 export function AccountAddressBook({
   customer,
   addresses,
-  heading = "ADDRESS BOOK",
-  addAddressText = "ADD NEW ADDRESS",
-  defaultText = "DEFAULT",
-  editText = "EDIT",
-  removeText = "REMOVE",
+  heading: rawI18nHeading = "ADDRESS BOOK",
+  addAddressText: rawI18nAddAddressText = "ADD NEW ADDRESS",
+  defaultText: rawI18nDefaultText = "DEFAULT",
+  editText: rawI18nEditText = "EDIT",
+  removeText: rawI18nRemoveText = "REMOVE",
   className,
   ...rest
 }: {
@@ -25,6 +26,28 @@ export function AccountAddressBook({
   editText?: string;
   removeText?: string;
 } & HTMLAttributes<HTMLDivElement>) {
+  const translateText = useTranslatedText();
+  const heading = translateText(
+    rawI18nHeading,
+    "themeContent.componentsCustomerAddressBook.heading",
+  );
+  const addAddressText = translateText(
+    rawI18nAddAddressText,
+    "themeContent.componentsCustomerAddressBook.addAddressText",
+  );
+  const defaultText = translateText(
+    rawI18nDefaultText,
+    "themeContent.componentsCustomerAddressBook.defaultText",
+  );
+  const editText = translateText(
+    rawI18nEditText,
+    "themeContent.componentsCustomerAddressBook.editText",
+  );
+  const removeText = translateText(
+    rawI18nRemoveText,
+    "themeContent.componentsCustomerAddressBook.removeText",
+  );
+
   const { t } = useTranslation();
   return (
     <div {...rest} className={cn(className)}>
@@ -38,17 +61,20 @@ export function AccountAddressBook({
           </div>
         )}
         <div>
-          <Link
-            to="address/add"
-            className="inline-flex h-[54px] min-w-[181px] items-center justify-center bg-white px-6 font-body text-[#343231] text-sm uppercase transition-opacity hover:opacity-70"
-          >
-            {addAddressText}
-          </Link>
+          <AccountPopup customer={customer} mode="add">
+            <button
+              type="button"
+              className="inline-flex h-[54px] min-w-[181px] items-center justify-center bg-white px-6 font-body text-[#343231] text-sm uppercase transition-opacity hover:opacity-70"
+            >
+              {addAddressText}
+            </button>
+          </AccountPopup>
         </div>
         {addresses?.length > 0 ? (
           <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5">
             {customer.defaultAddress && (
               <Address
+                customer={customer}
                 address={customer.defaultAddress}
                 defaultAddress
                 defaultText={defaultText}
@@ -60,6 +86,7 @@ export function AccountAddressBook({
               .filter((address) => address.id !== customer.defaultAddress?.id)
               .map((address) => (
                 <Address
+                  customer={customer}
                   key={address.id}
                   address={address}
                   defaultText={defaultText}
@@ -75,12 +102,14 @@ export function AccountAddressBook({
 }
 
 function Address({
+  customer,
   address,
   defaultAddress,
   defaultText,
   editText,
   removeText,
 }: {
+  customer: CustomerDetailsFragment;
   address: CustomerAddress;
   defaultAddress?: boolean;
   defaultText: string;
@@ -112,13 +141,11 @@ function Address({
       </ul>
 
       <div className="mt-auto flex flex-row items-center gap-4 text-[#979797] text-xs uppercase leading-5">
-        <Link
-          to={`/account/address/${encodeURIComponent(address.id)}`}
-          className="transition-opacity hover:opacity-70"
-          prefetch="intent"
-        >
-          {editText}
-        </Link>
+        <AccountPopup customer={customer} address={address} mode="address">
+          <button type="button" className="transition-opacity hover:opacity-70">
+            {editText}
+          </button>
+        </AccountPopup>
         <Form action="address/delete" method="delete">
           <input type="hidden" name="addressId" value={address.id} />
           <button

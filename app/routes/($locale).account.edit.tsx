@@ -8,7 +8,6 @@ import {
   type ActionFunction,
   data,
   Form,
-  redirect,
   useActionData,
   useNavigation,
   useOutletContext,
@@ -17,11 +16,12 @@ import invariant from "tiny-invariant";
 import { Button } from "~/components/button";
 import Link from "~/components/link";
 import {
-  accountPath,
+  accountFormSuccess,
   commitAccountPreviewState,
   isAccountPreviewRequest,
   readAccountPreviewState,
 } from "~/utils/account-preview.server";
+import { translateError } from "~/utils/translated-error";
 import { CUSTOMER_UPDATE_MUTATION } from "./($locale).account.profile";
 import { doLogout } from "./($locale).account_.logout";
 
@@ -71,7 +71,7 @@ export const action: ActionFunction = async ({ request, context, params }) => {
       previewState.lastName = lastName;
     }
 
-    return redirect(accountPath(params.locale), {
+    return accountFormSuccess(request, params.locale, {
       headers: {
         "Set-Cookie": await commitAccountPreviewState(previewState),
       },
@@ -111,7 +111,7 @@ export const action: ActionFunction = async ({ request, context, params }) => {
       updateData?.customerUpdate?.userErrors?.[0]?.message,
     );
 
-    return redirect(accountPath(params.locale));
+    return accountFormSuccess(request, params.locale);
   } catch (error: any) {
     return data(
       { formError: error?.message },
@@ -140,11 +140,13 @@ export default function AccountDetailsEdit() {
 
   return (
     <div className="space-y-2">
-      <div className="py-2.5 text-xl">{t("account.editAccount")}</div>
+      <div className="py-2.5 font-heading text-[26px] uppercase">
+        {t("account.editAccount")}
+      </div>
       <Form method="post" className="space-y-3">
         {actionData?.formError && (
           <div className="flex items-center justify-center bg-red-100 p-3 text-red-900">
-            {actionData.formError}
+            {translateError(t, actionData.formError)}
           </div>
         )}
         <input

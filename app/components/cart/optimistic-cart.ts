@@ -22,6 +22,24 @@ function hasCartResponseErrors(value: unknown) {
   return Boolean(response?.errors?.length || response?.userErrors?.length);
 }
 
+export function cartLineIdentity(line: {
+  merchandiseId?: string;
+  merchandise?: { id: string };
+  sellingPlanId?: string;
+  sellingPlanAllocation?: { sellingPlan: { id: string } } | null;
+  attributes?: Array<{ key: string; value?: string | null }>;
+}) {
+  return JSON.stringify([
+    line.merchandiseId ?? line.merchandise?.id,
+    line.sellingPlanId ?? line.sellingPlanAllocation?.sellingPlan.id ?? "",
+    [...(line.attributes ?? [])].sort(
+      (a, b) =>
+        a.key.localeCompare(b.key) ||
+        (a.value ?? "").localeCompare(b.value ?? ""),
+    ),
+  ]);
+}
+
 function applyAddLines(nodes: CartLine[], lines: OptimisticCartLineInput[]) {
   const handled = new Set<string>();
   let mutated = false;
@@ -31,10 +49,11 @@ function applyAddLines(nodes: CartLine[], lines: OptimisticCartLineInput[]) {
     if (!selectedVariant?.id) {
       continue;
     }
-    handled.add(selectedVariant.id);
+    const identity = cartLineIdentity(line);
+    handled.add(identity);
     mutated = true;
     const existingIndex = nodes.findIndex(
-      (node) => node.merchandise?.id === selectedVariant.id,
+      (node) => cartLineIdentity(node) === identity,
     );
     if (existingIndex >= 0) {
       nodes[existingIndex] = {
@@ -50,7 +69,12 @@ function applyAddLines(nodes: CartLine[], lines: OptimisticCartLineInput[]) {
         ?.currencyCode ?? "USD";
     const zeroMoney = { amount: "0.0", currencyCode };
     nodes.unshift({
-      id: `optimistic-${selectedVariant.id}`,
+      id: `optimistic-${identity}`,
+      attributes: line.attributes ?? [],
+      discountAllocations: [],
+      sellingPlanAllocation: line.sellingPlanId
+        ? { sellingPlan: { id: line.sellingPlanId, name: "" } }
+        : null,
       merchandise: selectedVariant,
       quantity: line.quantity || 1,
       isOptimistic: true,
@@ -69,9 +93,9 @@ function getTimestampMs(dateString: string | undefined) {
   return dateString ? new Date(dateString).getTime() : 0;
 }
 
-function cartLineQuantity(cart: CartApiQueryFragment, merchandiseId: string) {
+function cartLineQuantity(cart: CartApiQueryFragment, identity: string) {
   return (
-    cart.lines.nodes.find((line) => line.merchandise?.id === merchandiseId)
+    cart.lines.nodes.find((line) => cartLineIdentity(line) === identity)
       ?.quantity ?? 0
   );
 }
@@ -93,9 +117,7 @@ function baselineIncludesFetcherAdd(
     return false;
   }
   return lines.every((line) => {
-    const merchandiseId =
-      (line.selectedVariant as { id?: string } | undefined)?.id ??
-      line.merchandiseId;
+    const merchandiseId = cartLineIdentity(line);
     return (
       cartLineQuantity(baseline, merchandiseId) >=
       cartLineQuantity(fetcherCart, merchandiseId)
@@ -105,16 +127,12 @@ function baselineIncludesFetcherAdd(
 
 export function getActiveStagedLines(
   pendingAdds: Map<string, PendingAdd>,
-  baselineTime: number,
+  _baselineTime: number,
 ) {
   const lines: OptimisticCartLineInput[] = [];
   for (const pending of pendingAdds.values()) {
-    const stagedAt = pending.stagedFromUpdatedAt
-      ? new Date(pending.stagedFromUpdatedAt).getTime()
-      : 0;
-    if (stagedAt >= baselineTime) {
-      lines.push(...pending.lines);
-    }
+    // Completion belongs to the submitting fetcher, not to another mutation's timestamp.
+    lines.push(...pending.lines);
   }
   return lines;
 }
@@ -158,7 +176,7 @@ export function buildOptimisticAddCart(
 export function filterRemovedCartLines(
   baseline: CartApiQueryFragment,
   pendingLineRemovals: Set<string>,
-): CartApiQueryFragment {
+): CartWithOptimistic {
   if (pendingLineRemovals.size === 0) {
     return baseline;
   }
@@ -170,6 +188,7 @@ export function filterRemovedCartLines(
     ...baseline,
     lines: { ...baseline.lines, nodes },
     totalQuantity: nodes.reduce((sum, line) => sum + line.quantity, 0),
+    isOptimistic: true,
   };
 }
 
@@ -220,13 +239,13 @@ export function applyOptimisticMutations(
       continue;
     }
     const { action, inputs } = formInput;
+    if (fetcher.state === "loading" && hasCartResponseErrors(fetcher.data)) {
+      continue;
+    }
 
     if (action === CartForm.ACTIONS.LinesAdd) {
       const lines = ((inputs.lines ?? []) as OptimisticCartLineInput[]).filter(
-        (line) =>
-          !staged.handled.has(
-            (line.selectedVariant as { id?: string } | undefined)?.id ?? "",
-          ),
+        (line) => !staged.handled.has(cartLineIdentity(line)),
       );
       const fetcherCart = (fetcher.data as CartMutationResponse | undefined)
         ?.cart;

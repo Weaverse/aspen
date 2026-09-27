@@ -31,6 +31,8 @@ import * as ColumnsWithImages from "~/sections/columns-with-images";
 import * as ColumnWithImageItem from "~/sections/columns-with-images/column";
 import * as ColumnsWithImagesItems from "~/sections/columns-with-images/items";
 import * as ContactFormSection from "~/sections/contact-form";
+import * as ContactStoresSection from "~/sections/contact-stores";
+import * as ContactStore from "~/sections/contact-stores/store";
 import * as Countdown from "~/sections/countdown";
 import * as ButtonCountDown from "~/sections/countdown/button";
 import * as CountdownSubHeading from "~/sections/countdown/subheading";
@@ -56,6 +58,7 @@ import * as ImageWithTextImage from "~/sections/image-with-text/image";
 import * as ImageWithTextImages from "~/sections/image-with-text/images";
 import * as Instagram from "~/sections/instagram";
 import * as InstagramContent from "~/sections/instagram/content";
+import * as InstagramImage from "~/sections/instagram/image";
 import * as InstagramSlider from "~/sections/instagram/slider";
 import * as Journal from "~/sections/journal";
 import * as JudgemeReview from "~/sections/judgeme-reviews";
@@ -128,6 +131,7 @@ export const components: HydrogenComponent[] = [
   ImageWithTextImages,
   Instagram,
   InstagramContent,
+  InstagramImage,
   InstagramSlider,
   Journal,
   ColumnsWithImages,
@@ -146,6 +150,8 @@ export const components: HydrogenComponent[] = [
   HotspotsContainer,
   HotspotsImage,
   ContactFormSection,
+  ContactStoresSection,
+  ContactStore,
   Countdown,
   CountdownSubHeading,
   ButtonCountDown,
