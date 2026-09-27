@@ -53,10 +53,17 @@ export function CartMain({
           {errorMessage}
         </p>
       )}
-      {cartHasItems && cart ? (
+      {cartHasItems && cart && (
         <CartDetails cart={cart} layout={layout} errorMessage={errorMessage} />
-      ) : (
-        <CartEmpty hidden={linesCount} onClose={onClose} layout={layout} />
+      )}
+      {/* Keep the best-seller Quick Shop form mounted until its optimistic add
+          settles; unmounting during submit capture prevents the POST. */}
+      {(!cartHasItems || cart?.isOptimistic) && (
+        <CartEmpty
+          hidden={cartHasItems || linesCount}
+          onClose={onClose}
+          layout={layout}
+        />
       )}
     </>
   );
