@@ -64,6 +64,7 @@ export interface ProductMediaProps extends VariantProps<typeof variants> {
   showBadges?: boolean;
   badges?: React.ReactNode;
   navigationVariant?: "default" | "quick-shop" | "product-page";
+  fillContainer?: boolean;
 }
 
 export function ProductMedia(props: ProductMediaProps) {
@@ -88,6 +89,7 @@ export function ProductMedia(props: ProductMediaProps) {
     showBadges = false,
     badges,
     navigationVariant = "default",
+    fillContainer = false,
   } = props;
 
   // Base navigation button styling + dynamic color/shape helpers
@@ -220,6 +222,7 @@ export function ProductMedia(props: ProductMediaProps) {
       className={cn(
         "product-media-slider overflow-hidden bg-[#f7f7f7]",
         navigationVariant === "product-page" && "md:h-full lg:h-auto",
+        fillContainer && "h-full",
       )}
     >
       <div
@@ -227,6 +230,7 @@ export function ProductMedia(props: ProductMediaProps) {
           "flex items-start gap-4 overflow-hidden [--thumbs-width:0px]",
           showThumbnails && "lg:[--thumbs-width:8rem]",
           navigationVariant === "product-page" && "md:h-full lg:h-auto",
+          fillContainer && "h-full",
         )}
       >
         {showThumbnails && (
@@ -287,6 +291,7 @@ export function ProductMedia(props: ProductMediaProps) {
           className={cn(
             "relative w-[calc(100%-var(--thumbs-width,0px))]",
             navigationVariant === "product-page" && "md:h-full lg:h-auto",
+            fillContainer && "h-full",
           )}
         >
           <Swiper
@@ -307,7 +312,8 @@ export function ProductMedia(props: ProductMediaProps) {
             thumbs={{ swiper: thumbsSwiper }}
             slidesPerView={1}
             spaceBetween={4}
-            autoHeight
+            autoHeight={!fillContainer}
+            wrapperClass={clsx("swiper-wrapper", fillContainer && "h-full")}
             loop={media.length > 1}
             navigation={
               mediaLayout === "slider"
@@ -325,7 +331,7 @@ export function ProductMedia(props: ProductMediaProps) {
             }
             // pagination={{ type: "fraction" }}
             modules={[Pagination, Navigation, Thumbs]}
-            className="overflow-hidden"
+            className={clsx("overflow-hidden", fillContainer && "h-full")}
             onSlideChange={(instance) =>
               setActiveSlide(instance.realIndex || instance.activeIndex)
             }
@@ -356,12 +362,16 @@ export function ProductMedia(props: ProductMediaProps) {
             {media.map((item, idx) => (
               <SwiperSlide
                 key={item.id}
-                className="aspect-square bg-[#f7f7f7] lg:aspect-auto"
+                className={clsx(
+                  "bg-[#f7f7f7]",
+                  fillContainer ? "h-full" : "aspect-square lg:aspect-auto",
+                )}
               >
                 <Media
                   media={item}
                   imageAspectRatio={imageAspectRatio}
                   index={idx}
+                  fillContainer={fillContainer}
                 />
                 {enableZoom && (
                   <button
@@ -506,10 +516,12 @@ function Media({
   media,
   imageAspectRatio,
   index,
+  fillContainer,
 }: {
   media: MediaFragment;
   imageAspectRatio: ImageAspectRatio;
   index: number;
+  fillContainer: boolean;
 }) {
   const { t } = useTranslation();
 
@@ -519,7 +531,10 @@ function Media({
       <Image
         data={{ ...image, altText: alt || t("product.imageAlt") }}
         loading={index === 0 ? "eager" : "lazy"}
-        className="aspect-square h-full w-full object-cover object-center lg:aspect-auto lg:h-auto"
+        className={clsx(
+          "h-full w-full object-cover object-center",
+          !fillContainer && "aspect-square lg:aspect-auto lg:h-auto",
+        )}
         width={2048}
         aspectRatio={calculateAspectRatio(image, imageAspectRatio)}
         sizes="auto"
@@ -532,8 +547,11 @@ function Media({
       <video
         controls
         aria-label={mediaVideo.alt || t("product.video")}
-        className="aspect-square h-full w-full object-cover object-center lg:aspect-auto lg:h-auto"
-        style={{ aspectRatio: imageAspectRatio }}
+        className={clsx(
+          "h-full w-full object-cover object-center",
+          !fillContainer && "aspect-square lg:aspect-auto lg:h-auto",
+        )}
+        style={{ aspectRatio: fillContainer ? "auto" : imageAspectRatio }}
         onError={console.error}
       >
         <track
