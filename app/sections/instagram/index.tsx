@@ -1,5 +1,4 @@
 import type {
-  ComponentLoaderArgs,
   HydrogenComponentProps,
   HydrogenComponentSchema,
 } from "@weaverse/hydrogen";
@@ -9,26 +8,8 @@ import {
   type SectionProps,
   sectionSettings,
 } from "~/components/section";
-import { InstagramProvider } from "./context";
 
-type InstagramData = {
-  instagramToken: string;
-  loaderData?: {
-    data?: {
-      id: string;
-      media_url: string;
-      permalink?: string;
-      thumbnail_url?: string;
-      username?: string;
-    }[];
-  } | null;
-};
-
-type InstagramProps = HydrogenComponentProps<
-  Awaited<ReturnType<typeof loader>>
-> &
-  InstagramData &
-  SectionProps;
+type InstagramProps = HydrogenComponentProps & SectionProps;
 
 const instagramSectionSettings = sectionSettings.map((group) =>
   group.group === "Layout"
@@ -42,7 +23,7 @@ const instagramSectionSettings = sectionSettings.map((group) =>
 );
 
 const Instagram = forwardRef<HTMLElement, InstagramProps>((props, ref) => {
-  let { instagramToken, loaderData, children, ...rest } = props;
+  const { children, ...rest } = props;
 
   return (
     <Section
@@ -51,51 +32,19 @@ const Instagram = forwardRef<HTMLElement, InstagramProps>((props, ref) => {
       width="full"
       className="instagram-section bg-[#EDEDED]"
     >
-      <InstagramProvider value={{ loaderData }}>
-        <div className="instagram-row mx-auto flex w-full max-w-[1440px] flex-col gap-5 px-5 md:flex-row md:items-stretch md:gap-6 md:px-8 lg:px-0">
-          {children}
-        </div>
-      </InstagramProvider>
+      <div className="instagram-row mx-auto flex w-full max-w-[1440px] flex-col gap-5 px-5 md:flex-row md:items-stretch md:gap-6 md:px-8 lg:px-0">
+        {children}
+      </div>
     </Section>
   );
 });
 
 export default Instagram;
 
-export let loader = async (args: ComponentLoaderArgs<InstagramData>) => {
-  let { weaverse, data } = args;
-  if (data.instagramToken) {
-    try {
-      let API = `https://graph.instagram.com/me/media?fields=id,media_url,permalink,thumbnail_url,username&access_token=${data.instagramToken}`;
-      let res = await weaverse.fetchWithCache(API);
-      return res;
-    } catch (error) {
-      console.error("Error fetching Instagram data:", error);
-      return null;
-    }
-  }
-  return null;
-};
-
 export const schema: HydrogenComponentSchema = {
   type: "instagram",
   title: "Instagram",
-  settings: [
-    {
-      group: "Instagram",
-      inputs: [
-        {
-          type: "text",
-          name: "instagramToken",
-          label: "Instagram api token",
-          placeholder: "@instagram",
-          helpText:
-            'Learn more about how to get <a href="https://docs.oceanwp.org/article/487-how-to-get-instagram-access-token" target="_blank">API token for Instagram</a> section.',
-        },
-      ],
-    },
-    ...instagramSectionSettings,
-  ],
+  settings: instagramSectionSettings,
   childTypes: ["instagram--content", "instagram--slider"],
   presets: {
     width: "full",
