@@ -1,4 +1,9 @@
 import { useThemeSettings } from "@weaverse/hydrogen";
+import {
+  type DesignTokenSettings,
+  getDesignSystemPreset,
+  resolveDesignTokens,
+} from "~/weaverse/design-presets";
 
 /**
  * Converts the merchant-facing theme settings into the CSS design tokens used
@@ -6,114 +11,78 @@ import { useThemeSettings } from "@weaverse/hydrogen";
  * newly introduced setting has not been saved to the project yet.
  */
 export function GlobalStyle() {
-  const settings = useThemeSettings() ?? {};
-
-  let {
-    designSystemPreset = "aspen-2026",
-    colorBackground = "#FFFFFF",
-    colorBackgroundSubtle = "#EDEDED",
-    colorBackgroundSubtle2 = "#DFDFDF",
-    colorText = "#343231",
-    colorTextSubtle = "#524B46",
-    colorTextLight = "#979797",
-    colorTextInverse = "#FEF4EB",
-    colorLine = "#9D9D9D",
-    colorLineSubtle = "#D8D8D8",
-    topbarTextColor = "#EDEDED",
-    topbarBgColor = "#565656",
-    headerBgColor = "#FFFFFF",
-    headerBgColorHover = "#DFDFDF",
-    headerText = "#343231",
-    transparentHeaderText = "#FEF4EB",
-    footerBgColor = "#1B1B19",
-    footerText = "#EDEDED",
-    buttonPrimaryBg = "#4D4946",
-    buttonPrimaryColor = "#F1EEEA",
-    buttonPrimaryBgHover = "#6D6966",
-    buttonPrimaryColorHover = "#F1EEEA",
-    buttonSecondaryBg = "#F0EFED",
-    buttonSecondaryColor = "#343231",
-    buttonSecondaryBgHover = "#E9E7E4",
-    buttonSecondaryColorHover = "#343231",
-    buttonOutlineText = "#343231",
-    buttonOutlineBackground = "transparent",
-    buttonOutlineBorder = "#B1B0AF",
-    buttonOutlineTextHover = "#343231",
-    buttonOutlineBackgroundHover = "#E9E7E4",
-    buttonOutlineBorderHover = "#B1B0AF",
-    comparePriceTextColor = "#979797",
-    saleBadgeColor = "#573B3B",
-    newBadgeColor = "#E3DAD4",
-    bestSellerBadgeColor = "#3B3B3B",
-    bundleBadgeColor = "#3B3B3B",
-    soldOutBadgeColor = "#DFDFDF",
-    starRatingColor = "#343231",
-    bodyBaseSize = 14,
-    bodyBaseSpacing = "0.01em",
-    bodyBaseLineHeight = 1.6,
-    h1BaseSize = 64,
-    headingBaseSpacing = "-0.03em",
-    headingBaseLineHeight = 1.1,
-    navHeightMobile = 3,
-    navHeightTablet = 4,
-    navHeightDesktop = 6,
-    pageWidth = 1440,
-    radiusXs = 4,
-    radiusSm = 8,
-    radiusMd = 12,
-    badgeBorderRadius = 8,
-  } = settings;
-
-  if (designSystemPreset !== "custom") {
-    pageWidth = 1440;
-    colorBackground = "#FFFFFF";
-    colorBackgroundSubtle = "#EDEDED";
-    colorBackgroundSubtle2 = "#DFDFDF";
-    colorText = "#343231";
-    colorTextSubtle = "#524B46";
-    colorTextLight = "#979797";
-    colorTextInverse = "#FEF4EB";
-    colorLine = "#9D9D9D";
-    colorLineSubtle = "#D8D8D8";
-    topbarTextColor = "#EDEDED";
-    topbarBgColor = "#565656";
-    headerBgColor = "#FFFFFF";
-    headerBgColorHover = "#DFDFDF";
-    headerText = "#343231";
-    transparentHeaderText = "#FEF4EB";
-    footerBgColor = "#1B1B19";
-    footerText = "#EDEDED";
-    buttonPrimaryBg = "#4D4946";
-    buttonPrimaryColor = "#F1EEEA";
-    buttonPrimaryBgHover = "#6D6966";
-    buttonPrimaryColorHover = "#F1EEEA";
-    buttonSecondaryBg = "#F0EFED";
-    buttonSecondaryColor = "#343231";
-    buttonSecondaryBgHover = "#E9E7E4";
-    buttonSecondaryColorHover = "#343231";
-    buttonOutlineText = "#343231";
-    buttonOutlineBackground = "transparent";
-    buttonOutlineBorder = "#B1B0AF";
-    buttonOutlineTextHover = "#343231";
-    buttonOutlineBackgroundHover = "#E9E7E4";
-    buttonOutlineBorderHover = "#B1B0AF";
-    comparePriceTextColor = "#979797";
-    saleBadgeColor = "#573B3B";
-    newBadgeColor = "#E3DAD4";
-    bestSellerBadgeColor = "#3B3B3B";
-    bundleBadgeColor = "#3B3B3B";
-    soldOutBadgeColor = "#DFDFDF";
-    badgeBorderRadius = 8;
-    bodyBaseSize = 14;
-    bodyBaseSpacing = "0.01em";
-    bodyBaseLineHeight = 1.6;
-    h1BaseSize = 64;
-    headingBaseSpacing = "-0.03em";
-    headingBaseLineHeight = 1.1;
-    radiusXs = 4;
-    radiusSm = 8;
-    radiusMd = 12;
-  }
+  const settings = (useThemeSettings() ?? {}) as DesignTokenSettings;
+  const designSystemPreset = getDesignSystemPreset(settings.designSystemPreset);
+  const {
+    pageWidth,
+    navHeightMobile,
+    navHeightTablet,
+    navHeightDesktop,
+    colorBackground,
+    colorBackgroundSubtle,
+    colorBackgroundSubtle2,
+    colorText,
+    colorTextSubtle,
+    colorTextLight,
+    colorTextInverse,
+    colorLine,
+    colorLineSubtle,
+    topbarTextColor,
+    topbarBgColor,
+    headerBgColor,
+    headerBgColorHover,
+    headerText,
+    transparentHeaderText,
+    footerBgColor,
+    footerText,
+    buttonPrimaryBg,
+    buttonPrimaryColor,
+    buttonPrimaryBgHover,
+    buttonPrimaryColorHover,
+    buttonSecondaryBg,
+    buttonSecondaryColor,
+    buttonSecondaryBgHover,
+    buttonSecondaryColorHover,
+    buttonOutlineText,
+    buttonOutlineBackground,
+    buttonOutlineBorder,
+    buttonOutlineTextHover,
+    buttonOutlineBackgroundHover,
+    buttonOutlineBorderHover,
+    comparePriceTextColor,
+    saleBadgeColor,
+    newBadgeColor,
+    bestSellerBadgeColor,
+    bundleBadgeColor,
+    soldOutBadgeColor,
+    starRatingColor,
+    pcardHoverBackgroundColor,
+    pcardBorderRadius,
+    bodyBaseSize,
+    bodyBaseSpacing,
+    bodyBaseLineHeight,
+    h1BaseSize,
+    headingBaseSpacing,
+    headingBaseLineHeight,
+    radiusXs,
+    radiusSm,
+    radiusMd,
+    badgeBorderRadius,
+    footerDividerColor,
+    footerDividerColorDesktop,
+    footerInputBackground,
+    footerInputBackgroundDesktop,
+    footerInputTextColor,
+    footerInputTextColorDesktop,
+    footerInputBorderColor,
+    footerInputPlaceholderColor,
+    footerNewsletterButtonBackground,
+    footerNewsletterButtonTextColor,
+    footerNewsletterButtonBackgroundHover,
+    footerNewsletterButtonTextColorHover,
+    footerNewsletterButtonBackgroundDesktop,
+    footerNewsletterButtonTextColorDesktop,
+  } = resolveDesignTokens(settings);
 
   return (
     <style
@@ -156,6 +125,17 @@ export function GlobalStyle() {
             --color-footer-bg: ${footerBgColor};
             --color-footer-text: ${footerText};
 
+            /* Colors (footer controls) */
+            --footer-divider-color: ${footerDividerColor};
+            --footer-input-bg: ${footerInputBackground};
+            --footer-input-text: ${footerInputTextColor};
+            --footer-input-border: ${footerInputBorderColor};
+            --footer-input-placeholder: ${footerInputPlaceholderColor};
+            --footer-newsletter-button-bg: ${footerNewsletterButtonBackground};
+            --footer-newsletter-button-text: ${footerNewsletterButtonTextColor};
+            --footer-newsletter-button-bg-hover: ${footerNewsletterButtonBackgroundHover};
+            --footer-newsletter-button-text-hover: ${footerNewsletterButtonTextColorHover};
+
             /* Colors (buttons & links) */
             --btn-primary-bg: ${buttonPrimaryBg};
             --btn-primary-text: ${buttonPrimaryColor};
@@ -180,6 +160,8 @@ export function GlobalStyle() {
             --color-bundle-badge: ${bundleBadgeColor};
             --color-sold-out-and-unavailable: ${soldOutBadgeColor};
             --color-star-rating: ${starRatingColor};
+            --pcard-hover-background-default: ${pcardHoverBackgroundColor};
+            --pcard-border-radius-default: ${pcardBorderRadius}px;
 
             /* Typography */
             --body-base-size: ${bodyBaseSize}px;
@@ -226,6 +208,11 @@ export function GlobalStyle() {
           @media (min-width: 80em) {
             :root {
               --height-nav: ${designSystemPreset === "custom" ? `${navHeightDesktop}rem` : "81px"};
+              --footer-divider-color: ${footerDividerColorDesktop};
+              --footer-input-bg: ${footerInputBackgroundDesktop};
+              --footer-input-text: ${footerInputTextColorDesktop};
+              --footer-newsletter-button-bg: ${footerNewsletterButtonBackgroundDesktop};
+              --footer-newsletter-button-text: ${footerNewsletterButtonTextColorDesktop};
             }
 
             body {

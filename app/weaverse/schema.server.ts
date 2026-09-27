@@ -38,7 +38,7 @@ export const themeSchema: HydrogenThemeSchema = {
           },
           defaultValue: "aspen-2026",
           helpText:
-            "Aspen 2026 applies the approved Figma tokens. Choose Custom to use the individual layout, color, typography, and radius settings below.",
+            "Aspen 2026 applies Aspen's default visual tokens. Choose Custom to use the individual settings below.",
         },
         {
           type: "range",
@@ -411,7 +411,7 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "Text color",
           name: "buttonSecondaryColor",
-          defaultValue: "#343231",
+          defaultValue: "#24211E",
         },
         {
           type: "color",
@@ -423,7 +423,7 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "Text color (hover)",
           name: "buttonSecondaryColorHover",
-          defaultValue: "#343231",
+          defaultValue: "#24211E",
         },
         {
           type: "heading",
@@ -439,7 +439,7 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "Background color",
           name: "buttonOutlineBackground",
-          defaultValue: "transparent",
+          defaultValue: "#FFFFFF",
         },
         {
           type: "color",
@@ -451,7 +451,7 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "Text color (hover)",
           name: "buttonOutlineTextHover",
-          defaultValue: "#343231",
+          defaultValue: "#524B46",
         },
         {
           type: "color",
@@ -463,7 +463,7 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "Border color (hover)",
           name: "buttonOutlineBorderHover",
-          defaultValue: "#B1B0AF",
+          defaultValue: "#B0ACA9",
         },
         {
           type: "heading",
@@ -479,7 +479,7 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "color",
           label: "New",
           name: "newBadgeColor",
-          defaultValue: "#E3DAD4",
+          defaultValue: "#EBE8E5",
         },
         {
           type: "color",
@@ -783,7 +783,7 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "color",
           name: "pcardHoverBackgroundColor",
           label: "Hover background color",
-          defaultValue: "#EDEDED",
+          defaultValue: "#F1F1F1",
         },
         {
           type: "range",
@@ -795,7 +795,7 @@ export const themeSchema: HydrogenThemeSchema = {
             step: 2,
             unit: "px",
           },
-          defaultValue: 12,
+          defaultValue: 8,
         },
         {
           type: "range",
@@ -1412,20 +1412,38 @@ export const themeSchema: HydrogenThemeSchema = {
         {
           type: "color",
           name: "footerDividerColor",
-          label: "Divider color",
+          label: "Divider color (mobile/tablet)",
           defaultValue: "#3E3E3E",
         },
         {
           type: "color",
+          name: "footerDividerColorDesktop",
+          label: "Divider color (desktop)",
+          defaultValue: "",
+        },
+        {
+          type: "color",
           name: "footerInputBackground",
-          label: "Input background",
+          label: "Input background (mobile/tablet)",
           defaultValue: "#FFFFFF",
         },
         {
           type: "color",
+          name: "footerInputBackgroundDesktop",
+          label: "Input background (desktop)",
+          defaultValue: "",
+        },
+        {
+          type: "color",
           name: "footerInputTextColor",
-          label: "Input text",
+          label: "Input text (mobile/tablet)",
           defaultValue: "#343231",
+        },
+        {
+          type: "color",
+          name: "footerInputTextColorDesktop",
+          label: "Input text (desktop)",
+          defaultValue: "",
         },
         {
           type: "color",
@@ -1438,6 +1456,42 @@ export const themeSchema: HydrogenThemeSchema = {
           name: "footerInputPlaceholderColor",
           label: "Input placeholder",
           defaultValue: "#918379",
+        },
+        {
+          type: "color",
+          name: "footerNewsletterButtonBackground",
+          label: "Newsletter button background (mobile/tablet)",
+          defaultValue: "",
+        },
+        {
+          type: "color",
+          name: "footerNewsletterButtonTextColor",
+          label: "Newsletter button text (mobile/tablet)",
+          defaultValue: "",
+        },
+        {
+          type: "color",
+          name: "footerNewsletterButtonBackgroundDesktop",
+          label: "Newsletter button background (desktop)",
+          defaultValue: "",
+        },
+        {
+          type: "color",
+          name: "footerNewsletterButtonTextColorDesktop",
+          label: "Newsletter button text (desktop)",
+          defaultValue: "",
+        },
+        {
+          type: "color",
+          name: "footerNewsletterButtonBackgroundHover",
+          label: "Newsletter button hover background",
+          defaultValue: "",
+        },
+        {
+          type: "color",
+          name: "footerNewsletterButtonTextColorHover",
+          label: "Newsletter button hover text",
+          defaultValue: "",
         },
         {
           type: "range",
