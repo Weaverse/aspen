@@ -403,7 +403,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
             {displayedProducts.map((product) => (
               <SwiperSlide
                 key={product.id}
-                className="!h-auto !w-[calc(100vw_-_40px)] md:!w-auto"
+                className="!h-auto max-md:!w-[calc(100vw_-_40px)]"
               >
                 <ProductCard
                   product={product}
