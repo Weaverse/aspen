@@ -123,7 +123,7 @@ function FiltersDrawer({
           </span>
         </Button>
       </Dialog.Trigger>
-      <AnimatedDrawer open={open}>
+      <AnimatedDrawer open={open} filter>
         <div className="flex h-full flex-col">
           <div className="flex min-h-10 shrink-0 items-center justify-between px-[52px]">
             <Dialog.Title className="text-sm font-semibold uppercase">

@@ -3,11 +3,16 @@ import clsx from "clsx";
 import { AnimatePresence, motion } from "framer-motion";
 
 /**
- * `flush` pins the cart to the top/right edges, with a rounded panel and
- * full viewport height. Other drawers keep their inset framing,
- * which the search, sort and filter drawers rely on.
+ * `flush` pins the cart to the top/right edges. `filter` uses the same full
+ * height framing, opening from the left on mobile and right on larger screens.
+ * Other drawers retain their inset framing.
  */
-export function AnimatedDrawer({ open, children, flush = false }) {
+export function AnimatedDrawer({
+  open,
+  children,
+  flush = false,
+  filter = false,
+}) {
   return (
     <Dialog.Portal forceMount>
       <AnimatePresence>
@@ -26,16 +31,18 @@ export function AnimatedDrawer({ open, children, flush = false }) {
               onCloseAutoFocus={(e) => e.preventDefault()}
               className={clsx(
                 "fixed z-10",
-                flush
-                  ? "inset-y-0 right-0 h-dvh"
-                  : "inset-y-3 right-5 max-h-[calc(100vh-36px)]",
+                filter
+                  ? "inset-y-0 left-0 h-dvh md:right-0 md:left-auto"
+                  : flush
+                    ? "inset-y-0 right-0 h-dvh"
+                    : "inset-y-3 right-5 max-h-[calc(100vh-36px)]",
               )}
               aria-describedby={undefined}
             >
               <motion.div
-                initial={{ x: "100%" }}
+                initial={{ x: filter ? "var(--drawer-slide-offset)" : "100%" }}
                 animate={{ x: 0 }}
-                exit={{ x: "100%" }}
+                exit={{ x: filter ? "var(--drawer-slide-offset)" : "100%" }}
                 transition={{
                   type: "spring",
                   damping: 25,
@@ -44,7 +51,9 @@ export function AnimatedDrawer({ open, children, flush = false }) {
                 className={clsx(
                   "h-full w-screen max-w-[430px] overflow-hidden bg-background",
                   flush && "rounded-xl xl:bg-white",
-                  !flush && "rounded-(--radius-md) pt-3 pb-6",
+                  filter &&
+                    "[--drawer-slide-offset:-100%] rounded-r-xl pt-3 pb-6 md:[--drawer-slide-offset:100%] md:rounded-r-none md:rounded-l-xl xl:bg-white",
+                  !flush && !filter && "rounded-(--radius-md) pt-3 pb-6",
                 )}
               >
                 {children}
