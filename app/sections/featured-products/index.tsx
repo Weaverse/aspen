@@ -91,7 +91,7 @@ const FeaturedProducts = forwardRef<HTMLElement, FeaturedProductsProps>(
           )}
           containerClassName={cn(
             "flex flex-col",
-            isGrid ? "space-y-16 py-20" : "space-y-16 py-20",
+            "space-y-10 py-20",
             isProductPage && "md:space-y-0",
           )}
           gap={0}
