@@ -239,7 +239,7 @@ const ProductInformation = forwardRef<
         >
           <div
             className={clsx(
-              "relative h-[430px] min-w-0 flex-[1_0_0] overflow-hidden rounded-[4px] bg-[#d3d3d3] [&_.product-media-slider]:h-full [&_.swiper]:h-full [&_.swiper-slide]:h-full [&_.swiper-wrapper]:h-full [&_img]:object-cover md:aspect-square md:h-auto md:flex-[1_0_0] md:self-stretch md:rounded-[4px] md:bg-[#d3d3d3] lg:aspect-square lg:h-auto lg:w-[778px] lg:max-w-[calc(100%-399px)] lg:flex-none lg:rounded-[var(--Radius-border-radius-md,12px)] lg:bg-transparent",
+              "relative h-[430px] min-w-0 flex-[1_0_0] overflow-hidden rounded-[4px] bg-[#d3d3d3] [&_.product-media-slider]:h-full [&_.swiper]:h-full [&_.swiper-slide]:h-full [&_.swiper-wrapper]:h-full [&_img]:object-cover md:aspect-square md:h-auto md:flex-[1_0_0] md:rounded-[4px] md:bg-[#d3d3d3] lg:aspect-square lg:h-auto lg:w-[778px] lg:max-w-[calc(100%-399px)] lg:flex-none lg:rounded-[var(--Radius-border-radius-md,12px)] lg:bg-transparent",
               width !== "full" &&
                 "-mx-(--page-padding) w-[calc(100%+2*var(--page-padding))] lg:mx-0 lg:w-[778px]",
             )}
