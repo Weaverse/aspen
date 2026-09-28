@@ -56,7 +56,7 @@ export function PredictiveSearchResult({
 
   if (type === "collections") {
     return (
-      <ul className="flex items-start gap-4 self-stretch">
+      <ul className="grid grid-cols-4 items-start gap-4">
         {items.map((item) => (
           <CollectionResultItem item={item} key={item.id} />
         ))}
@@ -65,10 +65,10 @@ export function PredictiveSearchResult({
   }
 
   return (
-    <ul className="space-y-[10px] text-[#343231] text-sm leading-5">
+    <ul className="space-y-4 text-[#343231] text-sm leading-5">
       {items.map((item) => (
         <li key={item.id}>
-          <Link to={item.url} className="block w-fit">
+          <Link to={item.url} className="block w-fit font-normal leading-5">
             {item.title}
           </Link>
         </li>
@@ -203,7 +203,7 @@ function CollectionResultItem({
   item: NormalizedPredictiveSearchResultItem;
 }) {
   return (
-    <li className="min-w-0 flex-1">
+    <li className="min-w-0">
       <Link
         to={item.url}
         className="block font-normal text-[#343231] text-sm uppercase leading-5 tracking-[0.02em]"

@@ -1,6 +1,71 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("Cart", () => {
+  test("adds from empty-cart best sellers without losing the submitting form", async ({
+    page,
+  }) => {
+    test.slow();
+    await page.goto("/");
+    await page.getByRole("button", { name: "Open cart", exact: true }).click();
+    const cart = page.getByRole("dialog", { name: "Cart", exact: true });
+    await expect(
+      cart.getByText("Shop Best Sellers", { exact: true }),
+    ).toBeVisible();
+    await cart
+      .locator("article")
+      .first()
+      .getByRole("button", {
+        name: /quick shop|select options/i,
+      })
+      .click();
+    const quickShop = page.getByRole("dialog", {
+      name: "Product",
+      exact: true,
+    });
+    const addButton = quickShop.locator('[data-test="add-to-cart"]');
+    await expect(addButton).toBeEnabled();
+    const productTitle = (await quickShop.locator("h4").innerText()).trim();
+    const requests: string[] = [];
+    page.on("request", (request) => {
+      if (
+        request.method() === "POST" &&
+        /\/cart(?:\.data)?$/.test(new URL(request.url()).pathname)
+      ) {
+        requests.push(request.url());
+      }
+    });
+    await addButton.click();
+    await expect.poll(() => requests.length).toBe(1);
+    await expect(quickShop).not.toBeVisible();
+    await expect(
+      cart.getByRole("link", { name: productTitle }).first(),
+    ).toBeVisible();
+    await expect(
+      cart
+        .getByRole("group", { name: /quantity, 1/i })
+        .or(
+          cart
+            .getByRole("combobox", { name: "Select quantity" })
+            .filter({ hasText: /^QTY\s*1$/i }),
+        ),
+    ).toBeVisible();
+    await page.reload();
+    await page.getByRole("button", { name: "Open cart", exact: true }).click();
+    await expect(
+      cart.getByRole("link", { name: productTitle }).first(),
+    ).toBeVisible();
+    await expect(
+      cart
+        .getByRole("group", { name: /quantity, 1/i })
+        .or(
+          cart
+            .getByRole("combobox", { name: "Select quantity" })
+            .filter({ hasText: /^QTY\s*1$/i }),
+        ),
+    ).toBeVisible();
+    expect(requests).toHaveLength(1);
+  });
+
   test("adds a product and completes the cart flow", async ({ page }) => {
     test.slow();
     await page.goto("/products/philippe-accent-chair");

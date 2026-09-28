@@ -50,7 +50,7 @@ export function AnimatedDrawer({
                 }}
                 className={clsx(
                   "h-full w-screen max-w-[430px] overflow-hidden bg-background",
-                  flush && "rounded-xl xl:bg-white",
+                  flush && "rounded-xl md:rounded-r-none xl:bg-white",
                   filter &&
                     "[--drawer-slide-offset:-100%] rounded-r-xl pt-3 pb-6 md:[--drawer-slide-offset:100%] md:rounded-r-none md:rounded-l-xl xl:bg-white",
                   !flush && !filter && "rounded-(--radius-md) pt-3 pb-6",
