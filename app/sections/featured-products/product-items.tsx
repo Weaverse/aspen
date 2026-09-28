@@ -109,6 +109,7 @@ interface ProductItemsProps
   arrowsColor?: "primary" | "secondary";
   arrowsShape?: "rounded-sm" | "circle" | "square";
   arrowsIcon?: "caret" | "arrow";
+  /** Legacy Studio value; product cards now use the responsive layout everywhere. */
   relatedProductCardLayout?: "mobile" | "responsive";
 }
 
@@ -126,7 +127,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
       arrowsColor = "primary",
       arrowsShape = "rounded-sm",
       arrowsIcon = "arrow",
-      relatedProductCardLayout = "mobile",
+      relatedProductCardLayout: _legacyRelatedProductCardLayout,
       ...rest
     } = props;
     const [isSwiperInitialized, setIsSwiperInitialized] = useState(false);
@@ -138,8 +139,6 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
     const activeLayout = isLegacyLayout ? layout : sectionLayout;
     const designGap = isLegacyLayout ? gap : 16;
     const resolvedSlidesPerView = isProductPage ? 3 : slidesPerView;
-    const useMobileCardLayout =
-      isProductPage && relatedProductCardLayout === "mobile";
 
     // biome-ignore lint/correctness/useExhaustiveDependencies: Swiper must reset whenever its responsive layout inputs change.
     useEffect(() => {
@@ -270,7 +269,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
         <div className="w-full">
           <ProductCard
             product={product}
-            className="h-full w-full"
+            className="h-full w-full !pt-0"
             quickShopIconOnlyOnTablet={quickShopIconOnlyOnTablet}
           />
         </div>
@@ -315,7 +314,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
                     <div className="relative h-full">
                       <ProductCard
                         product={product}
-                        className="h-full w-full"
+                        className="h-full w-full !pt-0"
                       />
                     </div>
                   </SwiperSlide>
@@ -326,7 +325,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
             </div>
           )}
 
-          <div className="hidden md:block">
+          <div className="hidden md:-mx-5 md:block md:w-[calc(100%+40px)]">
             <div
               className={clsx(
                 "grid grid-cols-2 gap-x-5 gap-y-16",
@@ -339,7 +338,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
                 <ProductCard
                   key={product.id}
                   product={product}
-                  className="w-full md:flex md:flex-col md:items-start md:gap-5 md:[&>div:last-child]:pt-0 lg:block lg:[&>div:last-child]:pt-5"
+                  className="w-full !pt-0 md:flex md:flex-col md:items-start md:gap-5 md:[&>div:last-child]:pt-0 lg:block lg:[&>div:last-child]:pt-5"
                   stretchImageOnTablet
                 />
               ))}
@@ -365,9 +364,9 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
       <div
         ref={ref}
         {...rest}
-        className={clsx("relative", isProductPage && "md:!mt-10 lg:!mt-16")}
+        className={clsx("relative", isProductPage && "md:!mt-10")}
       >
-        <div className="relative left-1/2 w-screen -translate-x-1/2 md:left-auto md:w-full md:translate-x-0">
+        <div className="relative left-1/2 w-screen -translate-x-1/2 md:-mx-5 md:left-auto md:w-[calc(100%+40px)] md:translate-x-0">
           <Swiper
             key={`swiper-carousel-${displayedProducts.length}-${resolvedSlidesPerView}-${designGap}`}
             slidesPerView="auto"
@@ -407,8 +406,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
               >
                 <ProductCard
                   product={product}
-                  className="h-full w-full md:flex md:flex-col md:items-start md:gap-5 md:[&>div:last-child]:pt-0 lg:block lg:[&>div:last-child]:pt-5"
-                  mobileLayout={useMobileCardLayout}
+                  className="h-full w-full !pt-0 md:flex md:flex-col md:items-start md:gap-5 md:[&>div:last-child]:pt-0 lg:block lg:[&>div:last-child]:pt-5"
                   quickShopIconOnlyOnTablet={isProductPage}
                   stretchImageOnTablet
                 />
@@ -588,20 +586,6 @@ export const schema = createSchema({
           helpText:
             "Maximum number of products to display. If more products are available, a 'See More Products' button will appear.",
         },
-        {
-          type: "select",
-          name: "relatedProductCardLayout",
-          label: "You may also like card layout",
-          configs: {
-            options: [
-              { value: "mobile", label: "Mobile" },
-              { value: "responsive", label: "Responsive" },
-            ],
-          },
-          defaultValue: "mobile",
-          helpText:
-            "Applies on product pages. Mobile keeps the compact card layout at every screen size.",
-        },
       ],
     },
     {
@@ -657,6 +641,5 @@ export const schema = createSchema({
     arrowsColor: "secondary",
     arrowsShape: "rounded-sm",
     arrowsIcon: "arrow",
-    relatedProductCardLayout: "mobile",
   },
 });
