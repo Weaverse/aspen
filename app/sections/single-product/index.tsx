@@ -228,6 +228,7 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
               <ProductMedia
                 mediaLayout={mediaLayout || "slider"}
                 navigationVariant="quick-shop"
+                fillContainer
                 gridSize={gridSize || "2x2"}
                 imageAspectRatio={imageAspectRatio || "adapt"}
                 media={product?.media.nodes}
