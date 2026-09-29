@@ -34,6 +34,7 @@ export default hydrogenRoutes([
         "routes/($locale).api.collection.$collectionHandle.product-count.ts",
       ),
       route("countries", "routes/($locale).api.countries.ts"),
+      route("combined-prices", "routes/($locale).api.combined-prices.ts"),
       route("featured-items", "routes/($locale).api.featured-items.ts"),
       route("klaviyo", "routes/($locale).api.klaviyo.ts"),
       route("back-in-stock", "routes/($locale).api.back-in-stock.ts"),

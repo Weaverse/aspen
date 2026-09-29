@@ -905,6 +905,13 @@ export const themeSchema: HydrogenThemeSchema = {
         },
         {
           type: "switch",
+          label: "Show combined price range",
+          name: "pcardShowCombinedPriceRange",
+          defaultValue: true,
+          condition: (data) => data.pcardShowLowestPrice === true,
+        },
+        {
+          type: "switch",
           label: "Show sale price",
           name: "pcardShowSalePrice",
           defaultValue: true,

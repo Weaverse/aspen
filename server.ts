@@ -188,7 +188,7 @@ export async function createAppLoadContext(
 
   // `createHydrogenContext` returns React Router's context provider. Keep that
   // instance intact: spreading it creates a plain object that middleware rejects.
-  return Object.assign(hydrogenContext, { weaverse, localization });
+  return Object.assign(hydrogenContext, { cache, weaverse, localization });
 }
 
 class AppSession implements HydrogenSession {

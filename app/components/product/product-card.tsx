@@ -19,8 +19,10 @@ import { isCombinedListing } from "~/utils/combined-listings";
 import { calculateAspectRatio } from "~/utils/image";
 import { ProductCardBadges } from "./badges";
 import { ProductCardOptions } from "./product-card-options";
+import { getProductCardPriceDisplay } from "./product-card-price";
 import { ProductCardRating } from "./product-card-rating";
 import { QuickShopTrigger } from "./quick-shop";
+import { useCombinedPriceRange } from "./use-combined-price-range";
 import { SpacedMoney, VariantPrices } from "./variant-prices";
 
 const CONTENT_ALIGNMENT_CLASSES = {
@@ -99,16 +101,33 @@ export function ProductCard({
     pcardShowBadgesOnMobile,
     pcardShowRating,
     pcardShowLowestPrice,
+    pcardShowCombinedPriceRange = true,
     pcardShowSalePrice = true,
   } = useThemeSettings();
 
   const [selectedVariant, setSelectedVariant] =
     useState<ProductVariantFragment | null>(null);
-  const { images, priceRange } = product;
+  const { images } = product;
+  const combined = isCombinedListing(product);
+  const shouldLoadCombinedRange =
+    combined &&
+    pcardShowLowestPrice === true &&
+    pcardShowCombinedPriceRange === true;
+  const { range: combinedPriceRange, isLoading: isCombinedPriceLoading } =
+    useCombinedPriceRange(product.id, shouldLoadCombinedRange);
+  const priceRange = combinedPriceRange ?? product.priceRange;
   const { minVariantPrice, maxVariantPrice } = priceRange;
 
   const firstVariant = product.selectedOrFirstAvailableVariant;
   const activeVariant = selectedVariant || firstVariant;
+  const priceDisplay = getProductCardPriceDisplay({
+    priceRange,
+    combined,
+    showLowestPrice: pcardShowLowestPrice === true,
+    showCombinedPriceRange: pcardShowCombinedPriceRange === true,
+    hasActiveVariant: Boolean(activeVariant),
+    waitingForCombinedPrice: isCombinedPriceLoading,
+  });
   const params = new URLSearchParams(
     mapSelectedProductOptionToObject(activeVariant?.selectedOptions || []),
   );
@@ -333,13 +352,16 @@ export function ProductCard({
               />
             )}
           </div>
-          {pcardShowLowestPrice ||
-          isCombinedListing(product) ||
-          !activeVariant ? (
+          {priceDisplay === "loading" ? (
+            <div
+              aria-hidden="true"
+              className="h-[1em] text-(length:--pcard-font-size)"
+            />
+          ) : priceDisplay !== "variant" ? (
             <div className="flex flex-wrap items-center gap-x-1 font-body font-normal text-(--color-text) text-sm text-(length:--pcard-font-size) leading-none tracking-[0.02em]">
-              <span>{t("product.from")}</span>
+              {priceDisplay !== "single" && <span>{t("product.from")}</span>}
               <SpacedMoney data={minVariantPrice} />
-              {isCombinedListing(product) && (
+              {priceDisplay === "range" && (
                 <>
                   <span>–</span>
                   <SpacedMoney data={maxVariantPrice} />
