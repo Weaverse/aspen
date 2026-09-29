@@ -1,3 +1,4 @@
+import { CacheLong, createWithCache } from "@shopify/hydrogen";
 import type { MoneyV2 } from "@shopify/hydrogen/storefront-api-types";
 import { data, type LoaderFunctionArgs } from "react-router";
 
@@ -14,11 +15,19 @@ type StorefrontProduct = { id: string; priceRange: PriceRange };
 
 const PRODUCT_ID = /^gid:\/\/shopify\/Product\/\d+$/;
 const MAX_PRODUCTS = 20;
-const GROUP_CACHE_MS = 5 * 60 * 1000;
-const groupCache = new Map<
-  string,
-  { childIds: string[] | null; expiresAt: number }
->();
+const ADMIN_GRAPHQL_URL = "https://studio.weaverse.io/api/admin-graphql";
+const COMBINED_LISTING_CHILDREN_QUERY = `query CombinedPriceGroup($id: ID!) {
+  node(id: $id) {
+    ... on Product {
+      id
+      combinedListing {
+        combinedListingChildren(first: 60) {
+          nodes { product { id } }
+        }
+      }
+    }
+  }
+}`;
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const ids = [...new Set(new URL(request.url).searchParams.getAll("id"))];
@@ -37,70 +46,62 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   try {
     const groups = new Map<string, string[]>();
-    const uncachedIds: string[] = [];
-    for (const id of ids) {
-      const cached = groupCache.get(id);
-      if (!cached || cached.expiresAt <= Date.now()) {
-        uncachedIds.push(id);
-      } else if (cached.childIds) {
-        groups.set(id, cached.childIds);
-      }
-    }
-
-    if (uncachedIds.length) {
-      const adminResponse = await fetch(
-        "https://studio.weaverse.io/api/admin-graphql",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${apiKey}`,
+    const withCache = createWithCache({
+      cache: context.cache,
+      waitUntil: context.waitUntil,
+      request,
+    });
+    const groupEntries = await Promise.all(
+      ids.map(async (id) => {
+        const childIds = await withCache.run<string[] | null>(
+          {
+            cacheKey: ["combined-listing-children", id],
+            cacheStrategy: CacheLong(),
+            shouldCacheResult: () => true,
           },
-          body: JSON.stringify({
-            query: `query CombinedPriceGroups($ids: [ID!]!) {
-            nodes(ids: $ids) {
-              ... on Product {
-                id
-                combinedListing {
-                  combinedListingChildren(first: 60) {
-                    nodes { product { id } }
-                  }
-                }
-              }
+          async ({ addDebugData }) => {
+            const adminResponse = await fetch(ADMIN_GRAPHQL_URL, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${apiKey}`,
+              },
+              body: JSON.stringify({
+                query: COMBINED_LISTING_CHILDREN_QUERY,
+                variables: { id },
+              }),
+              signal: AbortSignal.timeout(8000),
+            });
+            addDebugData({
+              displayName: "Combined listing children",
+              response: adminResponse,
+            });
+            if (!adminResponse.ok) {
+              throw new Error("Combined listing children unavailable");
             }
-          }`,
-            variables: { ids: uncachedIds },
-          }),
-          signal: AbortSignal.timeout(8000),
-        },
-      );
-      if (!adminResponse.ok) {
-        return data({ error: "Price ranges unavailable" }, { status: 502 });
-      }
 
-      const adminData = (await adminResponse.json()) as {
-        nodes?: Array<AdminProduct | null>;
-        errors?: unknown[];
-      };
-      if (adminData.errors?.length || !adminData.nodes) {
-        return data({ error: "Price ranges unavailable" }, { status: 502 });
-      }
+            const adminData = (await adminResponse.json()) as {
+              node?: AdminProduct | null;
+              errors?: unknown[];
+            };
+            if (adminData.errors?.length || !adminData.node) {
+              throw new Error("Combined listing children unavailable");
+            }
 
-      for (const product of adminData.nodes) {
-        if (!product || !uncachedIds.includes(product.id)) {
-          continue;
-        }
-        const childIds =
-          product.combinedListing?.combinedListingChildren.nodes.map(
-            (node) => node.product.id,
-          );
-        groupCache.set(product.id, {
-          childIds: childIds?.length ? childIds : null,
-          expiresAt: Date.now() + GROUP_CACHE_MS,
-        });
-        if (childIds?.length) {
-          groups.set(product.id, childIds);
-        }
+            const children =
+              adminData.node.combinedListing?.combinedListingChildren.nodes.map(
+                (node) => node.product.id,
+              );
+            return children?.length ? children : null;
+          },
+        );
+        return [id, childIds] as const;
+      }),
+    );
+
+    for (const [id, childIds] of groupEntries) {
+      if (childIds) {
+        groups.set(id, childIds);
       }
     }
 

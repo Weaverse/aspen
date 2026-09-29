@@ -8,14 +8,7 @@ type Pending = {
   resolve: (range: PriceRange | null) => void;
 };
 
-type CacheEntry = {
-  expiresAt: number;
-  promise: Promise<PriceRange | null>;
-};
-
-export const COMBINED_PRICE_CACHE_TTL_MS = 5 * 60 * 1000;
-
-const pricePromises = new Map<string, CacheEntry>();
+const pricePromises = new Map<string, Promise<PriceRange | null>>();
 const pendingByPath = new Map<string, Pending[]>();
 
 async function flush(path: string) {
@@ -47,19 +40,11 @@ async function flush(path: string) {
   }
 }
 
-export function clearCombinedPriceRangeCache() {
-  pricePromises.clear();
-  pendingByPath.clear();
-}
-
 export function loadCombinedPriceRange(path: string, id: string) {
   const key = `${path}:${id}`;
   const cached = pricePromises.get(key);
-  if (cached && cached.expiresAt > Date.now()) {
-    return cached.promise;
-  }
   if (cached) {
-    pricePromises.delete(key);
+    return cached;
   }
 
   const promise = new Promise<PriceRange | null>((resolve) => {
@@ -72,10 +57,7 @@ export function loadCombinedPriceRange(path: string, id: string) {
     }
     pendingByPath.set(path, pending);
   });
-  pricePromises.set(key, {
-    expiresAt: Date.now() + COMBINED_PRICE_CACHE_TTL_MS,
-    promise,
-  });
+  pricePromises.set(key, promise);
   return promise;
 }
 
@@ -97,28 +79,13 @@ export function useCombinedPriceRange(id: string, enabled: boolean) {
       return;
     }
     let active = true;
-    let refreshTimer: ReturnType<typeof setTimeout> | undefined;
-
-    const refresh = () => {
-      const request = loadCombinedPriceRange(path, id);
-      const expiresAt =
-        pricePromises.get(key)?.expiresAt ??
-        Date.now() + COMBINED_PRICE_CACHE_TTL_MS;
-      request.then((value) => {
-        if (!active) {
-          return;
-        }
+    loadCombinedPriceRange(path, id).then((value) => {
+      if (active) {
         setState({ key, range: value });
-        refreshTimer = setTimeout(refresh, Math.max(0, expiresAt - Date.now()));
-      });
-    };
-
-    refresh();
+      }
+    });
     return () => {
       active = false;
-      if (refreshTimer) {
-        clearTimeout(refreshTimer);
-      }
     };
   }, [path, id, enabled, key]);
 
