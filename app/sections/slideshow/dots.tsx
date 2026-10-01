@@ -8,41 +8,23 @@ import { cn } from "~/utils/cn";
 const variants = cva(
   [
     "slideshow-dots pointer-events-none absolute z-2",
-    "flex w-full max-w-(--page-width)",
+    "bottom-[73px] flex lg:bottom-[71px]",
   ],
   {
     variants: {
       dotsPosition: {
-        top: "inset-x-0 top-[72px] mx-auto justify-start px-8 md:px-(--page-padding) 2xl:px-0",
-        bottom:
-          "inset-x-0 bottom-[73px] mx-auto justify-start px-8 md:bottom-[71px] md:px-(--page-padding) 2xl:px-0",
-        left: "inset-y-0 left-8 items-center md:left-(--page-padding)",
-        right:
-          "inset-y-0 right-8 items-center justify-end md:right-(--page-padding)",
+        left: "left-8 justify-start lg:left-[144px]",
+        middle: "inset-x-0 mx-auto w-full justify-center",
       },
     },
     defaultVariants: {
-      dotsPosition: "bottom",
+      dotsPosition: "left",
     },
   },
 );
 
-const trackVariants = cva(
-  "pointer-events-auto flex overflow-hidden rounded-(--radius-sm)",
-  {
-    variants: {
-      dotsPosition: {
-        top: "h-1 w-40",
-        bottom: "h-1 w-40",
-        left: "h-40 w-1 flex-col",
-        right: "h-40 w-1 flex-col",
-      },
-    },
-    defaultVariants: {
-      dotsPosition: "bottom",
-    },
-  },
-);
+const trackClassName =
+  "pointer-events-auto flex h-1 w-40 overflow-hidden rounded-(--radius-sm)";
 
 const dotVariants = cva(
   "dot flex-1 cursor-pointer border-0 p-0 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white transition-colors duration-300",
@@ -82,7 +64,7 @@ export function Dots(props: SlideshowDotsProps) {
   const { t } = useTranslation();
   const {
     className,
-    dotsPosition = "bottom",
+    dotsPosition = "left",
     dotsColor = "light",
     slidesCount = 0,
   } = props;
@@ -146,9 +128,14 @@ export function Dots(props: SlideshowDotsProps) {
   return (
     <div
       ref={containerRef}
-      className={cn(variants({ dotsPosition }), className)}
+      className={cn(
+        variants({
+          dotsPosition: dotsPosition === "middle" ? "middle" : "left",
+        }),
+        className,
+      )}
     >
-      <div className={trackVariants({ dotsPosition })}>
+      <div className={trackClassName}>
         {Array.from({ length: slidesCount }, (_, index) => (
           <button
             key={index}

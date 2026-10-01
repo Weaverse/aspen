@@ -6,6 +6,7 @@ import {
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import { forwardRef } from "react";
+import { useSwiperSlide } from "swiper/react";
 import {
   BackgroundImage,
   type BackgroundImageProps,
@@ -129,7 +130,8 @@ function resolveSlideImage(image?: WeaverseImage | string) {
 const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
   const translateText = useTranslatedText();
 
-  const [scope] = useAnimation(ref);
+  const swiperSlide = useSwiperSlide();
+  const [scope] = useAnimation(ref, swiperSlide?.isActive);
   const {
     width,
     gap,
