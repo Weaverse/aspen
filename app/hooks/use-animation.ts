@@ -1,6 +1,6 @@
 import { useThemeSettings } from "@weaverse/hydrogen";
 import { animate, inView, useAnimate } from "framer-motion";
-import { type ForwardedRef, useEffect } from "react";
+import { type ForwardedRef, useEffect, useRef } from "react";
 
 export type MotionType = "fade-up" | "zoom-in" | "slide-in";
 
@@ -10,9 +10,10 @@ const ANIMATIONS: Record<MotionType, any> = {
   "slide-in": { opacity: [0, 1], x: [20, 0] },
 };
 
-export function useAnimation(ref?: ForwardedRef<any>) {
+export function useAnimation(ref?: ForwardedRef<any>, isActive?: boolean) {
   const { revealElementsOnScroll } = useThemeSettings();
   const [scope] = useAnimate();
+  const hasBeenActive = useRef(false);
 
   useEffect(() => {
     if (!(scope.current && ref)) {
@@ -26,53 +27,80 @@ export function useAnimation(ref?: ForwardedRef<any>) {
       return;
     }
 
-    const currentScope = scope.current;
-    if (currentScope) {
-      // Thêm lớp phủ opacity-0 cho tất cả elements có data-motion
-      const elems = currentScope.querySelectorAll(
-        "[data-motion]",
-      ) as NodeListOf<HTMLElement>;
+    const currentScope: HTMLElement = scope.current;
+    if (!currentScope) {
+      return;
+    }
+    const hadAnimatedScope = currentScope.classList.contains("animated-scope");
+    currentScope.classList.add("animated-scope");
+    // Nested hooks own their descendants. Otherwise an ancestor can capture
+    // their temporary opacity: 0 and restore it after the child has revealed.
+    const elems = Array.from(
+      currentScope.querySelectorAll<HTMLElement>("[data-motion]"),
+    ).filter(
+      (elem) => elem.parentElement?.closest(".animated-scope") === currentScope,
+    );
+    const originalStyles = elems.map((elem) => ({
+      opacity: elem.style.opacity,
+      transform: elem.style.transform,
+    }));
+    const observers: (() => void)[] = [];
+    const animations: ReturnType<typeof animate>[] = [];
+    let cancelled = false;
 
-      // Ẩn tất cả elements ban đầu
+    // Prepare unseen slides and reset incoming content for its next reveal.
+    // Once shown, outgoing content stays visible and transitions with Swiper.
+    if (isActive !== false || !hasBeenActive.current) {
       for (const elem of elems) {
         elem.style.opacity = "0";
       }
+    }
 
-      // Thêm class để track trạng thái
-      currentScope.classList.add("animated-scope");
-
-      for (const [idx, elem] of Array.from(elems).entries()) {
-        inView(
-          elem,
-          (element: Element) => {
-            const { motion, delay } = elem.dataset;
-            const animationType = motion || "fade-up";
-
-            // Reset về trạng thái ban đầu trước khi animate
-            const htmlElement = element as HTMLElement;
-
-            // Chạy animation
-            animate(element, ANIMATIONS[animationType], {
-              delay: Number(delay) || idx * 0.15,
-              duration: 0.5,
-            });
-
-            // Xóa inline styles sau khi animation hoàn thành
-            setTimeout(
-              () => {
-                htmlElement.style.transform = "";
-                htmlElement.style.opacity = "";
-              },
-              500 + (Number(delay) || idx * 0.15) * 1000,
-            );
-          },
-          {
-            amount: 0.3,
-          },
+    // Fade slides overlap in the viewport, so visibility alone cannot tell
+    // which slide should reveal its content. Other sections omit isActive.
+    if (isActive !== false) {
+      hasBeenActive.current = true;
+      for (const [idx, elem] of elems.entries()) {
+        observers.push(
+          inView(
+            elem,
+            () => {
+              const { motion, delay } = elem.dataset;
+              const animation = animate(elem, ANIMATIONS[motion || "fade-up"], {
+                delay: Number(delay) || idx * 0.15,
+                duration: 0.5,
+              });
+              animations.push(animation);
+              animation.then(() => {
+                if (!cancelled) {
+                  elem.style.transform = originalStyles[idx].transform;
+                  elem.style.opacity = originalStyles[idx].opacity;
+                }
+              });
+            },
+            { amount: 0.3 },
+          ),
         );
       }
     }
-  }, [revealElementsOnScroll, scope]);
+
+    return () => {
+      cancelled = true;
+      for (const stopObserving of observers) {
+        stopObserving();
+      }
+      for (const animation of animations) {
+        animation.stop();
+      }
+      for (const [idx, elem] of elems.entries()) {
+        elem.style.opacity = originalStyles[idx].opacity;
+        elem.style.transform = originalStyles[idx].transform;
+      }
+      if (!hadAnimatedScope) {
+        currentScope.classList.remove("animated-scope");
+      }
+    };
+  }, [revealElementsOnScroll, scope, isActive]);
 
   return [scope] as const;
 }
