@@ -551,7 +551,7 @@ export const schema = createSchema({
         {
           type: "range",
           name: "slidesPerView",
-          label: "Scenario 1: products per view (desktop)",
+          label: "Style 1: products per view (desktop)",
           configs: {
             min: 1,
             max: 6,
@@ -562,7 +562,7 @@ export const schema = createSchema({
         {
           type: "select",
           name: "itemsPerRow",
-          label: "Scenario 2: products per row (desktop)",
+          label: "Style 2: products per row (desktop)",
           configs: {
             options: [
               { value: "2", label: "2" },
@@ -596,7 +596,7 @@ export const schema = createSchema({
           label: "Arrow icon",
           name: "arrowsIcon",
           helpText:
-            "In Scenario 2, arrow settings apply to the mobile product slider only.",
+            "In Style 2, arrow settings apply to the mobile product slider only.",
           configs: {
             options: [
               { value: "caret", label: "Caret" },

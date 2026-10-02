@@ -125,8 +125,8 @@ export const schema = createSchema({
           defaultValue: "scenario1",
           configs: {
             options: [
-              { value: "scenario1", label: "Scenario 1" },
-              { value: "scenario2", label: "Scenario 2" },
+              { value: "scenario1", label: "Style 1" },
+              { value: "scenario2", label: "Style 2" },
             ],
           },
         },
@@ -174,14 +174,14 @@ export const schema = createSchema({
         {
           type: "text",
           name: "style2Heading",
-          label: "Scenario 2 heading",
+          label: "Style 2 heading",
           defaultValue: "Limited Sale Offers",
           condition: "scenario.eq.scenario2",
         },
         {
           type: "text",
           name: "style2Description",
-          label: "Scenario 2 description",
+          label: "Style 2 description",
           defaultValue: "Up to 50% including Best Sellers",
           condition: "scenario.eq.scenario2",
         },

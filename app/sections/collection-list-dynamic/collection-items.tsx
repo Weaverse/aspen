@@ -23,6 +23,11 @@ import {
   minWidthQuery,
   TABLET_MIN_PX,
 } from "~/utils/breakpoints";
+import {
+  type CollectionListLayout,
+  resolveCollectionListLayout,
+  useCollectionListLayout,
+} from ".";
 
 interface CollectionWithProducts {
   id: string;
@@ -41,10 +46,12 @@ interface CollectionWithProducts {
 
 interface CollectionItemsData {
   collections: WeaverseCollection[];
-  layout: "grid" | "slider" | "showcase";
+  layout?: CollectionListLayout;
   gap: number;
   desktopGap?: number;
 }
+
+const MAX_COLLECTIONS = 250;
 
 interface CollectionItemsProps
   extends HydrogenComponentProps<CollectionItemsLoaderData>,
@@ -66,17 +73,21 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
       loaderData,
       ...rest
     } = props;
-    const [activeLayout, setActiveLayout] = useState<
-      "grid" | "slider" | "showcase"
-    >(layout);
+    const { layout: sectionLayout, isLegacyLayout } = useCollectionListLayout();
+    const resolvedLayout = resolveCollectionListLayout(
+      isLegacyLayout ? undefined : sectionLayout,
+      layout,
+    );
+    const [activeLayout, setActiveLayout] =
+      useState<CollectionListLayout>(resolvedLayout);
     const [isSwiperInitialized, setIsSwiperInitialized] = useState(false);
 
     let collections: CollectionWithProducts[] = loaderData || [];
 
     useEffect(() => {
-      setActiveLayout(layout);
+      setActiveLayout(resolvedLayout);
       setIsSwiperInitialized(false);
-    }, [layout]);
+    }, [resolvedLayout]);
     useEffect(() => {
       if (activeLayout === "slider" && !isSwiperInitialized) {
         const fallbackTimer = setTimeout(() => {
@@ -85,7 +96,6 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
         return () => clearTimeout(fallbackTimer);
       }
     }, [activeLayout, isSwiperInitialized]);
-
     const requiredCollectionCount =
       activeLayout === "grid" ? 6 : activeLayout === "showcase" ? 3 : 0;
 
@@ -331,7 +341,7 @@ export let loader = async ({
 }: ComponentLoaderArgs<CollectionItemsData>) => {
   let { language, country } = weaverse.storefront.i18n;
   let ids = data.collections
-    ?.slice(0, data.layout === "slider" ? 250 : 6)
+    ?.slice(0, MAX_COLLECTIONS)
     .map((collection) => `gid://shopify/Collection/${collection.id}`);
   if (ids?.length) {
     let { nodes } = await weaverse.storefront.query<CollectionByIdsQuery>(
@@ -432,22 +442,6 @@ export let schema: HydrogenComponentSchema = {
           shouldRevalidate: true,
         },
         {
-          type: "select",
-          name: "layout",
-          label: "Layout",
-          shouldRevalidate: true,
-          helpText:
-            "Scenario 1 always shows 6 cards. Scenario 3 always shows 3 cards.",
-          configs: {
-            options: [
-              { value: "grid", label: "Scenario 1" },
-              { value: "slider", label: "Scenario 2" },
-              { value: "showcase", label: "Scenario 3" },
-            ],
-          },
-          defaultValue: "grid",
-        },
-        {
           type: "range",
           name: "gap",
           label: "Mobile gap",
@@ -492,7 +486,6 @@ export let schema: HydrogenComponentSchema = {
     },
   ],
   presets: {
-    layout: "grid",
     gap: 16,
     desktopGap: 20,
     collectionNameColor: "#FEF4EB",

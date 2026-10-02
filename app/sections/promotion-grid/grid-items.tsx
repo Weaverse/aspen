@@ -448,7 +448,7 @@ let PromotionSlider = forwardRef<HTMLDivElement, GridItemProps>(
         ? child.props
         : {};
       // Studio updates child instance data before rendered child props refresh.
-      // Prefer it so Scenario 2 copy changes immediately in the preview.
+      // Prefer it so Style 2 copy changes immediately in the preview.
       return { ...renderedProps, ...instanceData };
     });
     let tabsData =
@@ -547,8 +547,8 @@ export let schema = createSchema({
           label: "Layout type",
           configs: {
             options: [
-              { value: "slider", label: "Scenario 1" },
-              { value: "tabs", label: "Scenario 2" },
+              { value: "slider", label: "Style 1" },
+              { value: "tabs", label: "Style 2" },
             ],
           },
           defaultValue: "slider",
@@ -556,7 +556,7 @@ export let schema = createSchema({
         {
           type: "range",
           name: "tabsHeight",
-          label: "Scenario 2 height (desktop)",
+          label: "Style 2 height (desktop)",
           configs: {
             min: 400,
             max: 1000,
@@ -569,7 +569,7 @@ export let schema = createSchema({
         {
           type: "range",
           name: "mobileTabsHeight",
-          label: "Scenario 2 height (mobile)",
+          label: "Style 2 height (mobile)",
           configs: {
             min: 480,
             max: 800,
@@ -582,7 +582,7 @@ export let schema = createSchema({
       ],
     },
     {
-      group: "Scenario 1 heading",
+      group: "Style 1 heading",
       inputs: [
         {
           type: "text",
@@ -602,7 +602,7 @@ export let schema = createSchema({
       ],
     },
     {
-      group: "Scenario 1 settings",
+      group: "Style 1 settings",
       inputs: [
         {
           type: "range",

@@ -75,14 +75,14 @@ export const schema = createSchema({
   childTypes: ["heading", "subheading", "paragraph", "button"],
   settings: [
     {
-      group: "Layout (Scenario 2 only)",
+      group: "Layout (Style 2 only)",
       inputs: [
         {
           type: "range",
           name: "gap",
           label: "Content gap",
           helpText:
-            "Only applies to Scenario 2. Heading, paragraph and button content is not displayed in Scenario 1.",
+            "Only applies to Style 2. Heading, paragraph and button content is not displayed in Style 1.",
           defaultValue: 20,
           configs: {
             min: 0,
@@ -95,7 +95,7 @@ export const schema = createSchema({
           type: "toggle-group",
           name: "contentPosition",
           label: "Content position",
-          helpText: "Only applies to Scenario 2.",
+          helpText: "Only applies to Style 2.",
           defaultValue: "center",
           configs: {
             options: [

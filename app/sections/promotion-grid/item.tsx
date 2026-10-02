@@ -549,14 +549,14 @@ export const schema = createSchema({
       ],
     },
     {
-      group: "Scenario 2 content",
+      group: "Style 2 content",
       inputs: [
         {
           type: "text",
           name: "tabLabel",
           label: "Heading / tab label",
           defaultValue: "Best Selling",
-          helpText: "Used as the navigation label in Scenario 2.",
+          helpText: "Used as the navigation label in Style 2.",
         },
         {
           type: "richtext",
