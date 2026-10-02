@@ -50,7 +50,7 @@ export interface SlideshowData
   effect?: "fade" | "slide";
   showArrows: boolean;
   showDots: boolean;
-  dotsPosition: "top" | "bottom" | "left" | "right";
+  dotsPosition: "left" | "middle";
   dotsColor: "light" | "dark";
   loop: boolean;
   autoRotate: boolean;
@@ -265,13 +265,11 @@ export const schema = createSchema({
           name: "dotsPosition",
           configs: {
             options: [
-              { value: "top", label: "Top" },
-              { value: "bottom", label: "Bottom" },
               { value: "left", label: "Left" },
-              { value: "right", label: "Right" },
+              { value: "middle", label: "Middle" },
             ],
           },
-          defaultValue: "bottom",
+          defaultValue: "left",
           condition: (data: SlideshowData) => data.showDots,
         },
         {
@@ -303,7 +301,7 @@ export const schema = createSchema({
     arrowsColor: "secondary",
     arrowsShape: "rounded-sm",
     showDots: true,
-    dotsPosition: "bottom",
+    dotsPosition: "left",
     dotsColor: "light",
     children: [
       {
