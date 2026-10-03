@@ -15,6 +15,11 @@ import Heading, {
 import Link, { type LinkProps, linkInputs } from "~/components/link";
 import Paragraph, { type ParagraphProps } from "~/components/paragraph";
 import { useTranslatedText } from "~/hooks/use-translated-text";
+import {
+  type CollectionListLayout,
+  resolveCollectionListLayout,
+  useCollectionListLayout,
+} from ".";
 
 interface CollectionListDynamicProps
   extends HydrogenComponentProps,
@@ -49,10 +54,9 @@ interface CollectionListDynamicProps
   textColorDecor?: string;
 }
 
-type CollectionLayout = "grid" | "slider" | "showcase";
 type CollectionChildData = {
   type?: string;
-  layout?: CollectionLayout;
+  layout?: CollectionListLayout;
 };
 const noopUnsubscribe = () => undefined;
 
@@ -95,6 +99,7 @@ let CollectionContentDynamic = forwardRef<
   const translateText = useTranslatedText();
 
   const { t } = useTranslation();
+  const { layout: sectionLayout, isLegacyLayout } = useCollectionListLayout();
 
   const parentInstance = useParentInstance();
   const serializedCollectionLayout = (
@@ -110,17 +115,22 @@ let CollectionContentDynamic = forwardRef<
     [collectionItemsInstance],
   );
   const getCollectionLayout = useCallback(
-    () => collectionItemsInstance?.data.layout as CollectionLayout | undefined,
+    () =>
+      collectionItemsInstance?.data.layout as CollectionListLayout | undefined,
     [collectionItemsInstance],
   );
   const getServerCollectionLayout = useCallback(
     () => serializedCollectionLayout,
     [serializedCollectionLayout],
   );
-  const collectionLayout = useSyncExternalStore(
+  const legacyCollectionLayout = useSyncExternalStore(
     subscribeToCollectionLayout,
     getCollectionLayout,
     getServerCollectionLayout,
+  );
+  const collectionLayout = resolveCollectionListLayout(
+    isLegacyLayout ? undefined : sectionLayout,
+    legacyCollectionLayout,
   );
 
   const {
@@ -320,9 +330,9 @@ export const schema = createSchema({
         {
           type: "toggle-group",
           name: "contentPosition",
-          label: "Content position (Scenario 1 / Scenario 3)",
+          label: "Content position (Style 1 / Style 3)",
           helpText:
-            "Scenario 2 automatically uses a title with a side link instead.",
+            "Style 2 automatically uses a title with a side link instead.",
           defaultValue: "center",
           configs: {
             options: [
@@ -335,7 +345,7 @@ export const schema = createSchema({
         {
           type: "range",
           name: "gap",
-          label: "Content gap (Scenario 1 / Scenario 3)",
+          label: "Content gap (Style 1 / Style 3)",
           defaultValue: 24,
           configs: {
             min: 0,
@@ -347,7 +357,7 @@ export const schema = createSchema({
       ],
     },
     {
-      group: "Scenario 1 / Scenario 3 heading",
+      group: "Style 1 / Style 3 heading",
       inputs: [
         {
           type: "text",
@@ -368,7 +378,7 @@ export const schema = createSchema({
       ],
     },
     {
-      group: "Scenario 1 / Scenario 3 description",
+      group: "Style 1 / Style 3 description",
       inputs: [
         {
           type: "richtext",
@@ -377,7 +387,7 @@ export const schema = createSchema({
           defaultValue:
             "If you're looking for products that bring ease through form and function, we offer no-fuss furniture built to last.",
           placeholder: "Enter paragraph text",
-          helpText: "Shown in Scenario 1 and Scenario 3; hidden in Scenario 2.",
+          helpText: "Shown in Style 1 and Style 3; hidden in Style 2.",
         },
         {
           type: "select",
@@ -455,7 +465,7 @@ export const schema = createSchema({
       ],
     },
     {
-      group: "Scenario 1 / Scenario 3 link",
+      group: "Style 1 / Style 3 link",
       inputs: [
         {
           type: "text",
@@ -475,21 +485,21 @@ export const schema = createSchema({
       ],
     },
     {
-      group: "Scenario 2 content",
+      group: "Style 2 content",
       inputs: [
         {
           type: "text",
           name: "sliderHeadingContent",
           label: "Heading",
           defaultValue: "COLLECTIONS",
-          placeholder: "Enter Scenario 2 heading",
+          placeholder: "Enter Style 2 heading",
         },
         {
           type: "text",
           name: "sliderButtonContent",
           label: "Link text",
           defaultValue: "VIEW ALL",
-          placeholder: "Enter Scenario 2 link text",
+          placeholder: "Enter Style 2 link text",
         },
         {
           type: "url",

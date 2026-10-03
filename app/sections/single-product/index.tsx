@@ -433,7 +433,32 @@ export const schema = createSchema({
   type: "single-product",
   title: "Featured Product",
   settings: [
-    { group: "Layout", inputs: layoutInputs },
+    {
+      group: "Layout",
+      inputs: [
+        {
+          type: "toggle-group",
+          name: "mediaLayout",
+          label: "Layout",
+          configs: {
+            options: [
+              {
+                label: "Style 1",
+                value: "grid",
+                icon: "grid-2x2",
+              },
+              {
+                label: "Style 2",
+                value: "slider",
+                icon: "slideshow-outline",
+              },
+            ],
+          },
+          defaultValue: "slider",
+        },
+        ...layoutInputs,
+      ],
+    },
     {
       group: "Content",
       inputs: [
@@ -476,29 +501,9 @@ export const schema = createSchema({
           },
         },
         {
-          type: "toggle-group",
-          name: "mediaLayout",
-          label: "Layout",
-          configs: {
-            options: [
-              {
-                label: "Scenario 1",
-                value: "grid",
-                icon: "grid-2x2",
-              },
-              {
-                label: "Scenario 2",
-                value: "slider",
-                icon: "slideshow-outline",
-              },
-            ],
-          },
-          defaultValue: "slider",
-        },
-        {
           type: "select",
           name: "gridSize",
-          label: "Scenario 1 grid size",
+          label: "Style 1 grid size",
           defaultValue: "2x2",
           configs: {
             options: [

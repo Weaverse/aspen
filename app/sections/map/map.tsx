@@ -216,14 +216,8 @@ export const schema: HydrogenComponentSchema = {
   childTypes: ["address-item"],
   settings: [
     {
-      group: "Content",
+      group: "Layout",
       inputs: [
-        {
-          type: "text",
-          name: "heading",
-          label: "Heading",
-          defaultValue: "OUR STORES",
-        },
         {
           type: "toggle-group",
           name: "layoutMap",
@@ -231,12 +225,23 @@ export const schema: HydrogenComponentSchema = {
           defaultValue: "list",
           configs: {
             options: [
-              { value: "list", label: "Scenario 1" },
-              { value: "accordion", label: "Scenario 2" },
+              { value: "list", label: "Style 1" },
+              { value: "accordion", label: "Style 2" },
             ],
           },
           helpText:
-            "Scenario 1: store list beside the map from tablet up. Scenario 2: overlay panel on tablet (768–1024px) and large desktop (1280px+); stacked accordion at other widths.",
+            "Style 1: store list beside the map from tablet up. Style 2: overlay panel on tablet (768–1024px) and large desktop (1280px+); stacked accordion at other widths.",
+        },
+      ],
+    },
+    {
+      group: "Content",
+      inputs: [
+        {
+          type: "text",
+          name: "heading",
+          label: "Heading",
+          defaultValue: "OUR STORES",
         },
       ],
     },
@@ -252,7 +257,7 @@ export const schema: HydrogenComponentSchema = {
         {
           type: "color",
           name: "panelBackgroundColor",
-          label: "Scenario 2 panel background",
+          label: "Style 2 panel background",
           defaultValue: "#FFFFFF",
           condition: (data: MapSectionProps) => data.layoutMap === "accordion",
         },

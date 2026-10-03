@@ -89,9 +89,9 @@ export const schema = createSchema({
             options: [
               {
                 value: "overlay",
-                label: "Scenario 1",
+                label: "Style 1",
               },
-              { value: "split", label: "Scenario 2" },
+              { value: "split", label: "Style 2" },
             ],
           },
           defaultValue: "overlay",

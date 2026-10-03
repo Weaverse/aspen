@@ -241,8 +241,8 @@ export let schema: HydrogenComponentSchema = {
           defaultValue: "style1",
           configs: {
             options: [
-              { label: "Scenario 1", value: "style1" },
-              { label: "Scenario 2", value: "style2" },
+              { label: "Style 1", value: "style1" },
+              { label: "Style 2", value: "style2" },
             ],
           },
         },

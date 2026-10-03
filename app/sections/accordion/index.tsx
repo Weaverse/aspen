@@ -79,16 +79,6 @@ export const schema: HydrogenComponentSchema = {
   title: "Accordion",
   settings: [
     {
-      group: "Accordion settings",
-      inputs: [
-        ...layoutInputs.filter(
-          (input) => input.name !== "gap" && input.name !== "verticalPadding",
-        ),
-        ...backgroundInputs,
-        ...overlayInputs,
-      ],
-    },
-    {
       group: "Accordion layout",
       inputs: [
         {
@@ -98,11 +88,21 @@ export const schema: HydrogenComponentSchema = {
           defaultValue: "column",
           configs: {
             options: [
-              { value: "column", label: "Scenario 1" },
-              { value: "row", label: "Scenario 2" },
+              { value: "column", label: "Style 1" },
+              { value: "row", label: "Style 2" },
             ],
           },
         },
+      ],
+    },
+    {
+      group: "Accordion settings",
+      inputs: [
+        ...layoutInputs.filter(
+          (input) => input.name !== "gap" && input.name !== "verticalPadding",
+        ),
+        ...backgroundInputs,
+        ...overlayInputs,
       ],
     },
   ],

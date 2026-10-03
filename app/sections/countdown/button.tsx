@@ -253,7 +253,7 @@ export const linkContentInputs: InspectorGroup["inputs"] = [
   {
     type: "text",
     name: "style2Text",
-    label: "Scenario 2 text",
+    label: "Style 2 text",
     defaultValue: "Shop Now",
   },
   {

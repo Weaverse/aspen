@@ -151,9 +151,9 @@ export const schema = createSchema({
             options: [
               {
                 value: "carousel",
-                label: "Scenario 1",
+                label: "Style 1",
               },
-              { value: "grid", label: "Scenario 2" },
+              { value: "grid", label: "Style 2" },
             ],
           },
           defaultValue: "grid",

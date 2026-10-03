@@ -76,8 +76,8 @@ export const schema = createSchema({
           label: "Image layout",
           configs: {
             options: [
-              { value: "single", label: "Scenario 1" },
-              { value: "split", label: "Scenario 2" },
+              { value: "single", label: "Style 1" },
+              { value: "split", label: "Style 2" },
             ],
           },
           defaultValue: "split",
