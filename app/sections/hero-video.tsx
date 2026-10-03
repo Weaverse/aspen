@@ -299,50 +299,22 @@ export const schema = createSchema({
   title: "Hero video",
   settings: [
     {
-      group: "Video",
+      group: "Layout",
       inputs: [
         {
-          type: "text",
-          name: "videoURL",
-          label: "Video URL",
-          defaultValue: "https://www.youtube.com/watch?v=gbLmku5QACM",
-          placeholder: "https://www.youtube.com/watch?v=gbLmku5QACM",
-          helpText: "Supports YouTube, Vimeo, MP4, WebM, and HLS streams.",
-        },
-        {
           type: "select",
-          name: "videoAspectRatio",
-          label: "Source video aspect ratio",
-          defaultValue: "16/9",
+          name: "contentLayout",
+          label: "Content layout",
+          defaultValue: "aspen",
           configs: {
             options: [
-              { value: "16/9", label: "Landscape (16:9)" },
-              { value: "1/1", label: "Square (1:1)" },
-              { value: "4/3", label: "Landscape (4:3)" },
-              { value: "9/16", label: "Portrait (9:16)" },
+              { value: "aspen", label: "Style 1" },
+              { value: "stacked", label: "Style 2" },
             ],
           },
           helpText:
-            "Choose the uploaded video's real ratio so it can crop like a cover image without distortion.",
+            "Style 1 follows the approved desktop/mobile positions. Style 2 uses an adjustable gap.",
         },
-        {
-          type: "image",
-          name: "posterImage",
-          label: "Poster image",
-          helpText:
-            "Shown while the video loads and used as its visual fallback.",
-        },
-        {
-          type: "image",
-          name: "mobilePosterImage",
-          label: "Mobile poster image",
-          helpText: "Optional. Leave blank to reuse the desktop poster.",
-        },
-      ],
-    },
-    {
-      group: "Layout",
-      inputs: [
         {
           type: "select",
           name: "height",
@@ -385,20 +357,6 @@ export const schema = createSchema({
           condition: (data: HeroVideoData) => data.height === "custom",
         },
         {
-          type: "select",
-          name: "contentLayout",
-          label: "Content layout",
-          defaultValue: "aspen",
-          configs: {
-            options: [
-              { value: "aspen", label: "Scenario 1" },
-              { value: "stacked", label: "Scenario 2" },
-            ],
-          },
-          helpText:
-            "Scenario 1 follows the approved desktop/mobile positions. Scenario 2 uses an adjustable gap.",
-        },
-        {
           type: "range",
           name: "gap",
           label: "Items spacing",
@@ -410,6 +368,48 @@ export const schema = createSchema({
           },
           defaultValue: 20,
           condition: (data: HeroVideoData) => data.contentLayout === "stacked",
+        },
+      ],
+    },
+    {
+      group: "Video",
+      inputs: [
+        {
+          type: "text",
+          name: "videoURL",
+          label: "Video URL",
+          defaultValue: "https://www.youtube.com/watch?v=gbLmku5QACM",
+          placeholder: "https://www.youtube.com/watch?v=gbLmku5QACM",
+          helpText: "Supports YouTube, Vimeo, MP4, WebM, and HLS streams.",
+        },
+        {
+          type: "select",
+          name: "videoAspectRatio",
+          label: "Source video aspect ratio",
+          defaultValue: "16/9",
+          configs: {
+            options: [
+              { value: "16/9", label: "Landscape (16:9)" },
+              { value: "1/1", label: "Square (1:1)" },
+              { value: "4/3", label: "Landscape (4:3)" },
+              { value: "9/16", label: "Portrait (9:16)" },
+            ],
+          },
+          helpText:
+            "Choose the uploaded video's real ratio so it can crop like a cover image without distortion.",
+        },
+        {
+          type: "image",
+          name: "posterImage",
+          label: "Poster image",
+          helpText:
+            "Shown while the video loads and used as its visual fallback.",
+        },
+        {
+          type: "image",
+          name: "mobilePosterImage",
+          label: "Mobile poster image",
+          helpText: "Optional. Leave blank to reuse the desktop poster.",
         },
       ],
     },

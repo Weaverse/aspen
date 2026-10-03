@@ -1,40 +1,94 @@
 import type { HydrogenComponentSchema } from "@weaverse/hydrogen";
-import { forwardRef } from "react";
+import { createContext, forwardRef, useContext } from "react";
 import type { SectionProps } from "~/components/section";
 import { layoutInputs, Section } from "~/components/section";
 import { cn } from "~/utils/cn";
 
-interface CollectionListDynamicProps extends SectionProps {}
+export type CollectionListLayout = "grid" | "slider" | "showcase";
+
+interface CollectionListDynamicProps extends SectionProps {
+  layout?: CollectionListLayout;
+}
+
+interface CollectionListLayoutContextValue {
+  layout: CollectionListLayout;
+  isLegacyLayout: boolean;
+}
+
+const CollectionListLayoutContext =
+  createContext<CollectionListLayoutContextValue>({
+    layout: "grid",
+    isLegacyLayout: true,
+  });
+
+export const useCollectionListLayout = () =>
+  useContext(CollectionListLayoutContext);
+
+export function resolveCollectionListLayout(
+  layout?: CollectionListLayout,
+  legacyLayout?: CollectionListLayout,
+) {
+  return layout ?? legacyLayout ?? "grid";
+}
 
 let CollectionListDynamic = forwardRef<HTMLElement, CollectionListDynamicProps>(
   (props, ref) => {
-    let { children, className, verticalPadding = "medium", ...rest } = props;
+    let {
+      children,
+      className,
+      layout,
+      verticalPadding = "medium",
+      ...rest
+    } = props;
     const usesDesignPadding = verticalPadding === "medium";
+    const resolvedLayout = resolveCollectionListLayout(layout);
 
     return (
-      <Section
-        ref={ref}
-        {...rest}
-        className={cn("overflow-x-clip", className)}
-        containerClassName={cn("flex flex-col", usesDesignPadding && "py-20")}
-        overflow="unset"
-        verticalPadding={usesDesignPadding ? "none" : verticalPadding}
+      <CollectionListLayoutContext.Provider
+        value={{ layout: resolvedLayout, isLegacyLayout: layout === undefined }}
       >
-        {children}
-      </Section>
+        <Section
+          ref={ref}
+          {...rest}
+          className={cn("overflow-x-clip", className)}
+          containerClassName={cn("flex flex-col", usesDesignPadding && "py-20")}
+          overflow="unset"
+          verticalPadding={usesDesignPadding ? "none" : verticalPadding}
+        >
+          {children}
+        </Section>
+      </CollectionListLayoutContext.Provider>
     );
   },
 );
 
 export default CollectionListDynamic;
 
-// Remove the COLLECTIONS_QUERY and loader since they'll be moved to collection-items
-
 export let schema: HydrogenComponentSchema = {
   type: "feature-collection",
   title: "Featured collections",
   childTypes: ["collection-content-dynamic", "collection-list-dynamic-items"],
   settings: [
+    {
+      group: "Layout",
+      inputs: [
+        {
+          type: "select",
+          name: "layout",
+          label: "Layout",
+          shouldRevalidate: true,
+          helpText:
+            "Style 1 always shows 6 cards. Style 3 always shows 3 cards.",
+          configs: {
+            options: [
+              { value: "grid", label: "Style 1" },
+              { value: "slider", label: "Style 2" },
+              { value: "showcase", label: "Style 3" },
+            ],
+          },
+        },
+      ],
+    },
     {
       group: "Collection List",
       inputs: [
@@ -45,6 +99,7 @@ export let schema: HydrogenComponentSchema = {
     },
   ],
   presets: {
+    layout: "grid",
     gap: 64,
     width: "fixed",
     verticalPadding: "medium",
@@ -72,7 +127,6 @@ export let schema: HydrogenComponentSchema = {
       },
       {
         type: "collection-list-dynamic-items",
-        layout: "grid",
         gap: 16,
         desktopGap: 20,
         collectionNameColor: "#FEF4EB",

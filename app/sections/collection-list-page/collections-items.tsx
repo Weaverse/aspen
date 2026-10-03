@@ -215,38 +215,18 @@ export const schema = createSchema({
   title: "Collection items",
   settings: [
     {
-      group: "Pagination",
-      inputs: [
-        {
-          type: "text",
-          name: "prevButtonText",
-          label: "Previous button text",
-          defaultValue: "Previous collections",
-          placeholder: "Previous collections",
-        },
-        {
-          type: "text",
-          name: "nextButtonText",
-          label: "Next button text",
-          defaultValue: "Next collections",
-          placeholder: "Next collections",
-        },
-      ],
-    },
-    {
       group: "Collection layout",
       inputs: [
         {
           type: "select",
           name: "layout",
           label: "Layout",
-          helpText:
-            "Scenario 1 shows up to 6 cards. Scenario 3 shows up to 3 cards.",
+          helpText: "Style 1 shows up to 6 cards. Style 3 shows up to 3 cards.",
           configs: {
             options: [
-              { value: "grid", label: "Scenario 1" },
-              { value: "slider", label: "Scenario 2" },
-              { value: "showcase", label: "Scenario 3" },
+              { value: "grid", label: "Style 1" },
+              { value: "slider", label: "Style 2" },
+              { value: "showcase", label: "Style 3" },
             ],
           },
           defaultValue: "grid",
@@ -274,6 +254,25 @@ export const schema = createSchema({
             step: 4,
             unit: "px",
           },
+        },
+      ],
+    },
+    {
+      group: "Pagination",
+      inputs: [
+        {
+          type: "text",
+          name: "prevButtonText",
+          label: "Previous button text",
+          defaultValue: "Previous collections",
+          placeholder: "Previous collections",
+        },
+        {
+          type: "text",
+          name: "nextButtonText",
+          label: "Next button text",
+          defaultValue: "Next collections",
+          placeholder: "Next collections",
         },
       ],
     },
