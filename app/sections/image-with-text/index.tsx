@@ -13,6 +13,7 @@ import {
 interface ImageWithTextProps extends SectionProps {
   layout?: ImageWithTextLayout;
   mediaPosition?: "left" | "right";
+  showVerticalSpacing?: boolean;
 }
 
 const ImageWithText = forwardRef<HTMLElement, ImageWithTextProps>(
@@ -22,6 +23,7 @@ const ImageWithText = forwardRef<HTMLElement, ImageWithTextProps>(
       className,
       layout,
       mediaPosition = "right",
+      showVerticalSpacing = true,
       backgroundColor = "#F0F0EF",
       ...rest
     } = props;
@@ -47,7 +49,19 @@ const ImageWithText = forwardRef<HTMLElement, ImageWithTextProps>(
         <Section
           ref={ref}
           {...rest}
-          className={cn("overflow-x-clip bg-[#F0F0EF]", className)}
+          className={cn(
+            "overflow-x-clip bg-[#F0F0EF]",
+            !isOverlay &&
+              mediaPosition === "right" &&
+              "md:[&_.iwt-split-media>*]:rounded-r-none",
+            className,
+          )}
+          style={
+            {
+              ...props.style,
+              "--iwt-vertical-spacing": showVerticalSpacing ? "40px" : "0px",
+            } as React.CSSProperties
+          }
           containerClassName={cn(
             "px-0 sm:px-0",
             isOverlay
@@ -97,6 +111,13 @@ export const schema = createSchema({
           defaultValue: "overlay",
         },
         {
+          type: "switch",
+          name: "showVerticalSpacing",
+          label: "Show top and bottom spacing",
+          defaultValue: true,
+          condition: (data: ImageWithTextProps) => data.layout === "split",
+        },
+        {
           type: "toggle-group",
           name: "mediaPosition",
           label: "Image position on desktop",
@@ -124,6 +145,7 @@ export const schema = createSchema({
     width: "full",
     verticalPadding: "none",
     mediaPosition: "right",
+    showVerticalSpacing: true,
     backgroundColor: "#F0F0EF",
     backgroundFor: "section",
     children: [
