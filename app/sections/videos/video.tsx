@@ -7,14 +7,16 @@ import {
   type WeaverseProduct,
   type WeaverseVideo,
 } from "@weaverse/hydrogen";
-import { forwardRef, lazy, Suspense } from "react";
+import { forwardRef, lazy, Suspense, useRef, useState } from "react";
 import type { ProductQuery } from "storefront-api.generated";
 import { Image } from "~/components/image";
 import { Link } from "~/components/link";
 import { AddToCartButton } from "~/components/product/add-to-cart-button";
+import { QuickShopTrigger } from "~/components/product/quick-shop";
 import { SpacedMoney } from "~/components/product/variant-prices";
 import { PRODUCT_QUERY } from "~/graphql/queries";
 import { useTranslatedText } from "~/hooks/use-translated-text";
+import { cn } from "~/utils/cn";
 import { useClientReady } from "~/utils/react-player";
 
 const ReactPlayer = lazy(() => import("react-player"));
@@ -58,6 +60,12 @@ interface VideoItemProps
     VideoItemData {}
 
 let VideoItem = forwardRef<HTMLDivElement, VideoItemProps>((props, ref) => {
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const [cartMutation, setCartMutation] = useState({
+    pending: false,
+    hasError: false,
+  });
+  const quickAddButtonRef = useRef<HTMLButtonElement>(null);
   const translateText = useTranslatedText();
 
   const { t } = useTranslation();
@@ -78,6 +86,9 @@ let VideoItem = forwardRef<HTMLDivElement, VideoItemProps>((props, ref) => {
 
   const productData = loaderData?.product;
   const selectedVariant = productData?.selectedOrFirstAvailableVariant;
+  const cartButtonText = selectedVariant?.availableForSale
+    ? addToCartText
+    : t("video.soldOut");
   const productImage = selectedVariant?.image || productData?.featuredImage;
   const productUrl = productData?.handle
     ? `/products/${productData.handle}`
@@ -129,8 +140,14 @@ let VideoItem = forwardRef<HTMLDivElement, VideoItemProps>((props, ref) => {
       )}
 
       {productData && selectedVariant && (
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[124px] overflow-hidden">
-          <div className="pointer-events-none flex h-full translate-y-full flex-col justify-end transition-transform duration-500 ease-out group-hover:pointer-events-auto group-hover:translate-y-0 group-focus-within:pointer-events-auto group-focus-within:translate-y-0 max-lg:pointer-events-auto max-lg:translate-y-0">
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-auto min-h-[124px] overflow-hidden">
+          <div
+            className={cn(
+              "pointer-events-none flex h-full min-h-[124px] translate-y-full flex-col justify-end transition-transform duration-500 ease-out group-hover:pointer-events-auto group-hover:translate-y-0 group-focus-within:pointer-events-auto group-focus-within:translate-y-0 max-lg:pointer-events-auto max-lg:translate-y-0",
+              (cartMutation.pending || cartMutation.hasError) &&
+                "pointer-events-auto translate-y-0",
+            )}
+          >
             <div className="pointer-events-none absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-[#71685F]/85 to-transparent" />
 
             <div className="relative mx-3 mb-3 flex min-h-[100px] rounded-[12px] bg-white text-[#343231]">
@@ -167,6 +184,10 @@ let VideoItem = forwardRef<HTMLDivElement, VideoItemProps>((props, ref) => {
 
                 <div className="mt-auto flex items-center gap-2">
                   <AddToCartButton
+                    loadingStyle="overlay"
+                    cartOpenTiming="success"
+                    onMutationStateChange={setCartMutation}
+                    aria-label={cartButtonText}
                     disabled={!selectedVariant.availableForSale}
                     lines={[
                       {
@@ -175,8 +196,8 @@ let VideoItem = forwardRef<HTMLDivElement, VideoItemProps>((props, ref) => {
                         selectedVariant,
                       },
                     ]}
-                    containerClassName="min-w-0 flex-1"
-                    className="flex! h-auto! w-full! min-w-0! items-center! justify-center!"
+                    containerClassName="min-w-0 max-w-full"
+                    className="flex! h-auto! min-h-7 max-w-full min-w-0! items-center! justify-center! whitespace-normal [overflow-wrap:anywhere]"
                     style={{
                       padding:
                         "var(--videos-atc-padding-vertical, 8px) var(--videos-atc-padding-horizontal, 12px)",
@@ -194,25 +215,39 @@ let VideoItem = forwardRef<HTMLDivElement, VideoItemProps>((props, ref) => {
                     width="auto"
                     animate={false}
                   >
-                    {addToCartText}
+                    {cartButtonText}
                   </AddToCartButton>
 
                   {productUrl && (
-                    <Link
-                      to={productUrl}
+                    <button
+                      ref={quickAddButtonRef}
+                      type="button"
+                      onClick={() => setQuickAddOpen(true)}
                       className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[8px] border border-[#D8D8D8] bg-white"
                       aria-label={t("product.viewProduct", {
                         product: productData.title,
                       })}
+                      aria-haspopup="dialog"
+                      aria-expanded={quickAddOpen}
                     >
                       <EyeIcon size={16} weight="regular" />
-                    </Link>
+                    </button>
                   )}
                 </div>
               </div>
             </div>
           </div>
         </div>
+      )}
+      {productData?.handle && selectedVariant && (
+        <QuickShopTrigger
+          productHandle={productData.handle}
+          selectedOptions={selectedVariant.selectedOptions}
+          hideTrigger
+          open={quickAddOpen}
+          onOpenChange={setQuickAddOpen}
+          onCloseFocus={() => quickAddButtonRef.current?.focus()}
+        />
       )}
     </div>
   );
