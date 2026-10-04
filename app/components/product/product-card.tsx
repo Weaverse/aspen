@@ -53,20 +53,6 @@ type ProductCardProps = {
   mobileLayout?: boolean;
 };
 
-type ProductCardImage = ProductCardFragment["images"]["nodes"][number];
-
-function getCardImages(
-  images: ProductCardImage[],
-  selectedImage?: ProductVariantFragment["image"],
-) {
-  const primaryImage = selectedImage || images[0];
-  const secondaryImage = images.find(
-    (image) => image.id !== primaryImage?.id && image.url !== primaryImage?.url,
-  );
-
-  return { primaryImage, secondaryImage };
-}
-
 export function ProductCard({
   product,
   className,
@@ -83,7 +69,7 @@ export function ProductCard({
     pcardImageRatio,
     pcardHoverPadding = 20,
     pcardImageZoom = true,
-    pcardShowImageOnHover,
+    pcardHoverZoom = 105,
     pcardFontSize = 14,
     pcardContentGap = 12,
     pcardImageContentGap = 20,
@@ -150,18 +136,14 @@ export function ProductCard({
     stacked: "",
   }[tabletRatingLayout as "split" | "inline" | "stacked"];
   const badgePosition = pcardBadgesPosition || "top-left";
-  const { primaryImage, secondaryImage } = getCardImages(
-    images.nodes,
-    selectedVariant?.image,
-  );
+  const primaryImage = selectedVariant?.image || images.nodes[0];
+  const hoverZoom = Number(pcardHoverZoom);
   const productCardBorderRadius = "var(--pcard-radius)";
 
   return (
     <article
       className={clsx(
-        "group/product-card @container/product-card overflow-hidden p-5 bg-(--pcard-background) transition-[padding,background-color] duration-300",
-        !mobileLayout &&
-          "desktop:hover:bg-(--pcard-hover-background) desktop:hover:p-(--pcard-hover-padding) desktop:focus-within:bg-(--pcard-hover-background) desktop:focus-within:p-(--pcard-hover-padding)",
+        "group/product-card @container/product-card overflow-hidden p-5 desktop:px-0 desktop:pt-0 desktop:gap-0 bg-(--pcard-background) transition-colors duration-300 desktop:hover:bg-(--pcard-hover-background) desktop:focus-within:bg-(--pcard-hover-background)",
         className,
       )}
       style={
@@ -169,9 +151,17 @@ export function ProductCard({
           "--pcard-background": pcardBackgroundColor || "transparent",
           "--pcard-hover-background": "var(--pcard-hover-background-default)",
           "--pcard-hover-padding": `${pcardHoverPadding}px`,
+          "--pcard-hover-zoom": Number.isFinite(hoverZoom)
+            ? Math.min(150, Math.max(100, hoverZoom)) / 100
+            : 1.05,
           "--pcard-font-size": `${pcardFontSize}px`,
           "--pcard-content-gap": `${pcardContentGap}px`,
           "--pcard-image-content-gap": `${pcardImageContentGap}px`,
+          // Transfer image spacing below the info so hover cannot resize the card.
+          "--pcard-hover-info-top":
+            "max(0px, calc(var(--pcard-image-content-gap) - var(--pcard-hover-padding)))",
+          "--pcard-hover-info-bottom":
+            "min(var(--pcard-image-content-gap), var(--pcard-hover-padding))",
           "--pcard-radius": "var(--pcard-border-radius-default)",
           "--pcard-image-ratio": calculateAspectRatio(
             primaryImage,
@@ -183,109 +173,98 @@ export function ProductCard({
     >
       <div
         className={clsx(
-          "group relative",
+          "group relative aspect-(--pcard-image-ratio)",
           useTabletCoverImage && "md:w-full md:self-stretch lg:self-auto",
         )}
       >
-        <Link
-          to={productPath}
-          prefetch="intent"
-          aria-label={t("product.viewProduct", { product: product.title })}
+        <div
+          data-product-card-image-frame
           style={{ borderRadius: productCardBorderRadius }}
-          className={clsx(
-            "group relative block aspect-(--pcard-image-ratio) overflow-hidden bg-gray-100",
-            useTabletCoverImage &&
-              "md:w-full md:self-stretch md:bg-[lightgray] lg:bg-gray-100",
-          )}
+          className="absolute inset-0 transition-[inset] duration-300 desktop:group-hover/product-card:inset-(--pcard-hover-padding) desktop:group-focus-within/product-card:inset-(--pcard-hover-padding)"
         >
-          {primaryImage ? (
-            <>
-              <Image
-                key={primaryImage.id}
-                className={clsx(
-                  "absolute inset-0 h-full w-full object-cover object-[50%_50%] transition-[opacity,transform] duration-300",
-                  pcardImageZoom &&
-                    !mobileLayout &&
-                    "desktop:group-hover/product-card:scale-105",
-                  pcardShowImageOnHover &&
-                    secondaryImage &&
-                    "group-hover:opacity-0",
-                )}
-                sizes={`${minWidthQuery(DESKTOP_MIN_PX)} 25vw, ${minWidthQuery(TABLET_MIN_PX)} 30vw, 45vw`}
-                data={primaryImage}
-                width={700}
-                alt={
-                  primaryImage.altText ||
-                  t("product.pictureOf", { product: product.title })
-                }
-                loading="lazy"
-              />
-              {pcardShowImageOnHover && secondaryImage && (
+          <Link
+            to={productPath}
+            prefetch="intent"
+            aria-label={t("product.viewProduct", { product: product.title })}
+            style={{ borderRadius: productCardBorderRadius }}
+            className={clsx(
+              "group relative block h-full w-full overflow-hidden bg-gray-100",
+              useTabletCoverImage &&
+                "md:w-full md:self-stretch md:bg-[lightgray] lg:bg-gray-100",
+            )}
+          >
+            {primaryImage ? (
+              <div className="absolute inset-0 overflow-hidden rounded-[inherit]">
                 <Image
-                  aria-hidden="true"
+                  key={primaryImage.id}
                   className={clsx(
-                    "absolute inset-0 h-full w-full object-cover object-[50%_50%] opacity-0 transition-[opacity,transform] duration-300 group-hover:opacity-100",
+                    "h-full w-full [&>img]:transition-transform [&>img]:duration-300",
                     pcardImageZoom &&
-                      !mobileLayout &&
-                      "desktop:group-hover/product-card:scale-105",
+                      "desktop:group-hover/product-card:[&>img]:scale-(--pcard-hover-zoom) desktop:group-focus-within/product-card:[&>img]:scale-(--pcard-hover-zoom)",
                   )}
                   sizes={`${minWidthQuery(DESKTOP_MIN_PX)} 25vw, ${minWidthQuery(TABLET_MIN_PX)} 30vw, 45vw`}
-                  data={secondaryImage}
+                  data={primaryImage}
                   width={700}
-                  alt=""
+                  alt={
+                    primaryImage.altText ||
+                    t("product.pictureOf", { product: product.title })
+                  }
                   loading="lazy"
                 />
-              )}
-            </>
-          ) : (
-            <span
-              role="img"
-              aria-label={t("product.imageUnavailableFor", {
-                product: product.title,
-              })}
-              className="absolute inset-0 flex items-center justify-center px-4 text-body-subtle text-sm"
-            >
-              {t("product.imageUnavailable")}
-            </span>
+              </div>
+            ) : (
+              <span
+                role="img"
+                aria-label={t("product.imageUnavailableFor", {
+                  product: product.title,
+                })}
+                className="absolute inset-0 flex items-center justify-center px-4 text-body-subtle text-sm"
+              >
+                {t("product.imageUnavailable")}
+              </span>
+            )}
+          </Link>
+          {pcardEnableWishlist && (
+            <ProductCardWishlistButton
+              productId={product.id}
+              productTitle={product.title}
+            />
           )}
-        </Link>
-        {pcardEnableWishlist && (
-          <ProductCardWishlistButton
-            productId={product.id}
-            productTitle={product.title}
-          />
-        )}
-        <div
-          className={clsx(
-            "pointer-events-none absolute top-5 z-10 max-w-[calc(100%_-_2.5rem)] flex-wrap gap-1",
-            pcardShowBadgesOnMobile ? "flex" : "hidden lg:flex",
-            BADGE_POSITION_CLASSES[
-              badgePosition as keyof typeof BADGE_POSITION_CLASSES
-            ],
+          <div
+            className={clsx(
+              "pointer-events-none absolute top-5 z-10 max-w-[calc(100%_-_2.5rem)] flex-wrap gap-1",
+              pcardShowBadgesOnMobile ? "flex" : "hidden lg:flex",
+              BADGE_POSITION_CLASSES[
+                badgePosition as keyof typeof BADGE_POSITION_CLASSES
+              ],
+            )}
+          >
+            <ProductCardBadges
+              product={product}
+              selectedVariant={selectedVariant}
+              showBundle={pcardShowBundleBadge}
+              showSale={pcardShowSaleBadges}
+              showBestSeller={pcardShowBestSellerBadges}
+              showNew={pcardShowNewBadges}
+              showSoldOut={pcardShowOutOfStockBadges}
+            />
+          </div>
+          {pcardEnableQuickShop && (
+            <QuickShopTrigger
+              productHandle={product.handle}
+              selectedOptions={activeVariant?.selectedOptions}
+              iconOnly={mobileLayout || quickShopIconOnly}
+              showOnHover={
+                quickShopIconOnly ? false : pcardShowQuickShopOnHover
+              }
+            />
           )}
-        >
-          <ProductCardBadges
-            product={product}
-            selectedVariant={selectedVariant}
-            showBundle={pcardShowBundleBadge}
-            showSale={pcardShowSaleBadges}
-            showBestSeller={pcardShowBestSellerBadges}
-            showNew={pcardShowNewBadges}
-            showSoldOut={pcardShowOutOfStockBadges}
-          />
         </div>
-        {pcardEnableQuickShop && (
-          <QuickShopTrigger
-            productHandle={product.handle}
-            selectedOptions={activeVariant?.selectedOptions}
-            iconOnly={mobileLayout || quickShopIconOnly}
-            showOnHover={quickShopIconOnly ? false : pcardShowQuickShopOnHover}
-          />
-        )}
       </div>
       <div
         className={clsx(
           "flex flex-col gap-(--pcard-content-gap) pt-(--pcard-image-content-gap) pb-0",
+          "desktop:px-5 transition-[padding] duration-300 desktop:group-hover/product-card:pt-(--pcard-hover-info-top) desktop:group-hover/product-card:pb-(--pcard-hover-info-bottom) desktop:group-focus-within/product-card:pt-(--pcard-hover-info-top) desktop:group-focus-within/product-card:pb-(--pcard-hover-info-bottom)",
           quickShopIconOnlyOnTablet && "self-stretch text-left",
           CONTENT_ALIGNMENT_CLASSES[
             alignment as keyof typeof CONTENT_ALIGNMENT_CLASSES
