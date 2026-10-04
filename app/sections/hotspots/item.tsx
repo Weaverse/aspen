@@ -9,17 +9,19 @@ import {
 } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import type { CSSProperties } from "react";
-import { forwardRef, useState } from "react";
+import { forwardRef, useRef, useState } from "react";
 import { useFetcher } from "react-router";
-import type { ProductQuery } from "storefront-api.generated";
-import { QuickShop } from "~/components/product/quick-shop";
+import type {
+  ProductQuery,
+  ProductVariantFragment,
+} from "storefront-api.generated";
+import { QuickShop, QuickShopTrigger } from "~/components/product/quick-shop";
 import { ScrollArea } from "~/components/scroll-area";
 import { PRODUCT_QUERY } from "~/graphql/queries";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import { isDesktopWidth } from "~/utils/breakpoints";
 import { FloatingHotspot } from "./floating-hotspot";
-import { ProductPopup } from "./product-popup";
 
 export interface HotspotsItemData {
   icon?: "circle" | "plus" | "bag" | "tag";
@@ -113,19 +115,31 @@ const HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>(
       "themeContent.sectionsHotspotsItem.viewDetailsLinkText",
     );
     const [showQuickShop, setShowQuickShop] = useState(false);
+    const [quickAddOptions, setQuickAddOptions] = useState<
+      ProductVariantFragment["selectedOptions"]
+    >([]);
+    const markerRef = useRef<HTMLButtonElement>(null);
+    const desktopMarkerRef = useRef<HTMLButtonElement>(null);
     const { load, data: quickShopData, state } = useFetcher();
     const apiPath = usePrefixPathWithLocale(
       `/api/product?handle=${product?.handle}`,
     );
 
+    const openQuickAdd = (
+      selectedOptions: ProductVariantFragment["selectedOptions"] = [],
+    ) => {
+      setQuickAddOptions(selectedOptions);
+      if (portalPopup && !quickShopData && state !== "loading") {
+        load(apiPath);
+      }
+      setShowQuickShop(true);
+    };
+
     // Handle click - open quick shop on mobile and tablet, popup on desktop
     const handleClick = () => {
       if (!isDesktopWidth(window.innerWidth)) {
         // Mobile and tablet: open QuickShop. Desktop uses the hover popup.
-        if (!quickShopData && state !== "loading") {
-          load(apiPath);
-        }
-        setShowQuickShop(true);
+        openQuickAdd();
       }
     };
 
@@ -171,77 +185,103 @@ const HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>(
               </div>
             </>
           ) : (
-            <div
-              className="group relative flex cursor-pointer"
-              onClick={handleClick}
-            >
-              <HotspotMarker icon={icon} size={iconSize} />
-              {/* Desktop popup - only on actual desktop screens (1024px+) */}
+            <>
+              <button
+                ref={markerRef}
+                type="button"
+                className="group flex lg:hidden"
+                onClick={handleClick}
+                aria-label={t("product.viewProduct", {
+                  product: loaderData?.product?.title ?? product?.handle ?? "",
+                })}
+              >
+                <HotspotMarker icon={icon} size={iconSize} />
+              </button>
               <div className="hidden lg:block">
-                <ProductPopup
+                <FloatingHotspot
+                  markerRef={desktopMarkerRef}
+                  onQuickAdd={openQuickAdd}
                   product={loaderData?.product}
                   offsetX={offsetX}
                   offsetY={offsetY}
                   showPrice={showPrice}
                   showViewDetailsLink={showViewDetailsLink}
                   viewDetailsLinkText={viewDetailsLinkText}
-                />
+                >
+                  <HotspotMarker icon={icon} size={iconSize} />
+                </FloatingHotspot>
               </div>
-            </div>
+            </>
           )}
         </div>
 
-        {/* Mobile Quick Shop */}
-        <Dialog.Root open={showQuickShop} onOpenChange={setShowQuickShop}>
-          <Dialog.Portal>
-            <Dialog.Overlay
-              className={clsx(
-                "fixed inset-0 z-10 bg-black/50",
-                showQuickShop ? "animate-fade-in" : "animate-fade-out",
-              )}
-            />
-            <Dialog.Content
-              className={clsx(
-                "fixed inset-y-0 right-0 z-10 w-full bg-background py-2.5 shadow-2xl md:max-w-[430px] lg:hidden",
-                showQuickShop
-                  ? "animate-slide-in-right"
-                  : "animate-slide-out-right",
-              )}
-              aria-describedby={undefined}
-            >
-              <div className="relative flex h-full flex-col">
-                <Dialog.Title asChild>
-                  <span className="sr-only">{t("product.quickShop")}</span>
-                </Dialog.Title>
-                <button
-                  type="button"
-                  onClick={() => setShowQuickShop(false)}
-                  aria-label={t("product.closeQuickShop")}
-                  className="absolute top-4 right-4 z-30 flex size-5 items-center justify-center"
-                >
-                  <XIcon className="size-5" />
-                </button>
+        {/* Quick Shop opened by the marker or the desktop card action. */}
+        {!portalPopup ? (
+          <QuickShopTrigger
+            productHandle={product?.handle ?? loaderData?.product?.handle ?? ""}
+            open={showQuickShop}
+            onOpenChange={setShowQuickShop}
+            hideTrigger
+            selectedOptions={quickAddOptions}
+            onCloseFocus={() => {
+              const marker = isDesktopWidth(window.innerWidth)
+                ? desktopMarkerRef.current
+                : markerRef.current;
+              marker?.focus();
+            }}
+          />
+        ) : (
+          <Dialog.Root open={showQuickShop} onOpenChange={setShowQuickShop}>
+            <Dialog.Portal>
+              <Dialog.Overlay
+                className={clsx(
+                  "fixed inset-0 z-50 bg-black/50",
+                  showQuickShop ? "animate-fade-in" : "animate-fade-out",
+                )}
+              />
+              <Dialog.Content
+                className={clsx(
+                  "fixed inset-y-0 right-0 z-50 w-full bg-background py-2.5 shadow-2xl md:max-w-[430px]",
+                  showQuickShop
+                    ? "animate-slide-in-right"
+                    : "animate-slide-out-right",
+                )}
+                aria-describedby={undefined}
+              >
+                <div className="relative flex h-full flex-col">
+                  <Dialog.Title asChild>
+                    <span className="sr-only">{t("product.quickShop")}</span>
+                  </Dialog.Title>
+                  <button
+                    type="button"
+                    onClick={() => setShowQuickShop(false)}
+                    aria-label={t("product.closeQuickShop")}
+                    className="absolute top-4 right-4 z-30 flex size-5 items-center justify-center"
+                  >
+                    <XIcon className="size-5" />
+                  </button>
 
-                <ScrollArea className="flex-1" size="sm">
-                  <div className="px-5 pt-12 pb-8">
-                    {quickShopData ? (
-                      <QuickShop
-                        data={quickShopData as any}
-                        onCloseAll={() => setShowQuickShop(false)}
-                      />
-                    ) : (
-                      <div className="py-8 text-center">
-                        <p className="text-body-subtle">
-                          {t("product.loadingData")}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </ScrollArea>
-              </div>
-            </Dialog.Content>
-          </Dialog.Portal>
-        </Dialog.Root>
+                  <ScrollArea className="flex-1" size="sm">
+                    <div className="px-5 pt-12 pb-8">
+                      {quickShopData ? (
+                        <QuickShop
+                          data={quickShopData as any}
+                          onCloseAll={() => setShowQuickShop(false)}
+                        />
+                      ) : (
+                        <div className="py-8 text-center">
+                          <p className="text-body-subtle">
+                            {t("product.loadingData")}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </ScrollArea>
+                </div>
+              </Dialog.Content>
+            </Dialog.Portal>
+          </Dialog.Root>
+        )}
       </>
     );
   },

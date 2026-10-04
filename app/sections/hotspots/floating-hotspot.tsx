@@ -3,6 +3,7 @@ import { useTranslation } from "@weaverse/hydrogen";
 import {
   type ComponentProps,
   type ReactNode,
+  type Ref,
   useEffect,
   useRef,
   useState,
@@ -11,8 +12,12 @@ import { ProductPopup } from "./product-popup";
 
 export function FloatingHotspot({
   children,
+  markerRef,
   ...props
-}: ComponentProps<typeof ProductPopup> & { children: ReactNode }) {
+}: ComponentProps<typeof ProductPopup> & {
+  children: ReactNode;
+  markerRef?: Ref<HTMLButtonElement>;
+}) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -37,6 +42,7 @@ export function FloatingHotspot({
     <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Trigger asChild>
         <button
+          ref={markerRef}
           type="button"
           className="group flex"
           aria-label={t("product.viewProduct", {
@@ -62,7 +68,19 @@ export function FloatingHotspot({
           onMouseEnter={cancelClose}
           onMouseLeave={scheduleClose}
         >
-          <ProductPopup {...props} floating />
+          <ProductPopup
+            {...props}
+            floating
+            onQuickAdd={
+              props.onQuickAdd
+                ? (selectedOptions) => {
+                    cancelClose();
+                    setOpen(false);
+                    props.onQuickAdd?.(selectedOptions);
+                  }
+                : undefined
+            }
+          />
         </Popover.Content>
       </Popover.Portal>
     </Popover.Root>

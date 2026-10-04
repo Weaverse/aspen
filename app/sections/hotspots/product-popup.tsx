@@ -8,6 +8,7 @@ import type {
   ProductQuery,
   ProductVariantFragment,
 } from "storefront-api.generated";
+import { Button } from "~/components/button";
 import { Image } from "~/components/image";
 import { Link } from "~/components/link";
 import { AddToCartButton } from "~/components/product/add-to-cart-button";
@@ -23,6 +24,9 @@ interface ProductPopupProps
   extends Omit<HotspotsItemData, "icon" | "iconSize" | "product"> {
   product: ProductQuery["product"];
   floating?: boolean;
+  onQuickAdd?: (
+    selectedOptions: ProductVariantFragment["selectedOptions"],
+  ) => void;
 }
 
 const PRODUCT_PLACEHOLDER: Partial<ProductQuery["product"]> = {
@@ -75,10 +79,12 @@ function ProductColorOptions({
   product,
   selectedVariant,
   setSelectedVariant,
+  updatedStyle = false,
 }: {
   product: ProductQuery["product"];
   selectedVariant: ProductVariantFragment | null;
   setSelectedVariant: (variant: ProductVariantFragment) => void;
+  updatedStyle?: boolean;
 }) {
   const colorOption = product.options?.find(({ name }) =>
     OPTIONS_AS_SWATCH.includes(name),
@@ -105,11 +111,22 @@ function ProductColorOptions({
               <TooltipTrigger>
                 <button
                   type="button"
+                  aria-pressed={isSelected}
                   className={clsx(
-                    "flex size-4 items-center justify-center rounded-[4px] border p-px transition-colors",
-                    isSelected
-                      ? "border-[#A79D95]"
-                      : "border-[#9D9D9D] hover:border-[#A79D95]",
+                    "flex transition-colors",
+                    updatedStyle
+                      ? clsx(
+                          "items-start gap-2.5 rounded-[var(--Radius-border-radius-xs,4px)] bg-[var(--Background-Background,#FFF)] p-[var(--p-2,2px)]",
+                          isSelected
+                            ? "border border-[var(--Border-Border,#9D9D9D)]"
+                            : "border-[0.5px] border-[var(--Border-Subtle,#D8D8D8)]",
+                        )
+                      : clsx(
+                          "size-4 items-center justify-center rounded-[4px] border p-px",
+                          isSelected
+                            ? "border-[#A79D95]"
+                            : "border-[#9D9D9D] hover:border-[#A79D95]",
+                        ),
                   )}
                   onClick={() => {
                     if (firstSelectableVariant) {
@@ -120,7 +137,12 @@ function ProductColorOptions({
                   {swatch?.image?.previewImage ? (
                     <Image
                       data={swatch.image.previewImage}
-                      className="h-full w-full rounded-[1px] object-cover object-center"
+                      className={clsx(
+                        "object-cover object-center",
+                        updatedStyle
+                          ? "size-3 shrink-0 rounded-[var(--Radius-border-radius-xs,4px)]"
+                          : "h-full w-full rounded-[1px]",
+                      )}
                       width={12}
                       height={12}
                       sizes="12px"
@@ -128,7 +150,10 @@ function ProductColorOptions({
                   ) : (
                     <span
                       className={clsx(
-                        "inline-block h-full w-full rounded-[1px] text-[0px]",
+                        "inline-block text-[0px]",
+                        updatedStyle
+                          ? "size-3 shrink-0 rounded-[var(--Radius-border-radius-xs,4px)]"
+                          : "h-full w-full rounded-[1px]",
                         (!isValidColor(swatchColor) ||
                           isLightColor(swatchColor)) &&
                           "border border-line-subtle",
@@ -162,6 +187,7 @@ export function ProductPopup({
   showViewDetailsLink,
   viewDetailsLinkText,
   floating = false,
+  onQuickAdd,
 }: ProductPopupProps) {
   const { t } = useTranslation();
 
@@ -231,6 +257,7 @@ export function ProductPopup({
             product={product}
             selectedVariant={selectedVariant}
             setSelectedVariant={setSelectedVariant}
+            updatedStyle={Boolean(onQuickAdd)}
           />
           <ProductCardRating
             ratingValue={product.reviewRating?.value}
@@ -252,29 +279,45 @@ export function ProductPopup({
             <Link
               to={`/products/${product.handle}`}
               variant="secondary"
-              className="flex flex-1 items-center justify-center gap-2 px-6 py-5 font-semibold text-[#343231] text-sm uppercase leading-none tracking-[0.02em]"
+              className={clsx(
+                "flex flex-1 items-center justify-center gap-2 px-6 py-5 font-semibold text-[#343231] text-sm leading-none tracking-[0.02em]",
+                onQuickAdd ? "normal-case" : "uppercase",
+              )}
             >
               {viewDetailsLinkText}
             </Link>
           )}
-          <AddToCartButton
-            width="auto"
-            disabled={!selectedVariant?.availableForSale}
-            lines={
-              selectedVariant
-                ? [
-                    {
-                      merchandiseId: selectedVariant.id,
-                      quantity: 1,
-                      selectedVariant,
-                    },
-                  ]
-                : []
-            }
-            className="!h-[54px] !w-[54px] !p-0 flex shrink-0 items-center justify-center bg-(--btn-primary-bg) text-(--btn-primary-text) hover:bg-(--btn-primary-bg-hover)"
-          >
-            <ShoppingBagIcon size={20} />
-          </AddToCartButton>
+          {onQuickAdd ? (
+            <Button
+              onClick={(event) => {
+                event.stopPropagation();
+                onQuickAdd(selectedVariant?.selectedOptions ?? []);
+              }}
+              aria-label={t("product.selectOptions")}
+              className="h-[54px] w-[54px] shrink-0 p-0"
+            >
+              <ShoppingBagIcon size={20} />
+            </Button>
+          ) : (
+            <AddToCartButton
+              width="auto"
+              disabled={!selectedVariant?.availableForSale}
+              lines={
+                selectedVariant
+                  ? [
+                      {
+                        merchandiseId: selectedVariant.id,
+                        quantity: 1,
+                        selectedVariant,
+                      },
+                    ]
+                  : []
+              }
+              className="!h-[54px] !w-[54px] !p-0 flex shrink-0 items-center justify-center bg-(--btn-primary-bg) text-(--btn-primary-text) hover:bg-(--btn-primary-bg-hover)"
+            >
+              <ShoppingBagIcon size={20} />
+            </AddToCartButton>
+          )}
         </div>
       </div>
     </div>

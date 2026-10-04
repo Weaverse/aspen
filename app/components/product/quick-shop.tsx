@@ -302,11 +302,19 @@ export function QuickShopTrigger({
   selectedOptions = [],
   showOnHover = true,
   iconOnly = false,
+  open: controlledOpen,
+  onOpenChange,
+  hideTrigger = false,
+  onCloseFocus,
 }: {
   productHandle: string;
   selectedOptions?: ProductVariantFragment["selectedOptions"];
   showOnHover?: boolean;
   iconOnly?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  hideTrigger?: boolean;
+  onCloseFocus?: () => void;
 }) {
   const { t } = useTranslation();
   const {
@@ -316,7 +324,9 @@ export function QuickShopTrigger({
     pcardCompactShopOnHover = true,
   } = useTranslatedThemeSettings();
   const triggerLabel = quickShopButtonTextOpen || t("product.selectOptions");
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -351,57 +361,59 @@ export function QuickShopTrigger({
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
-      <Dialog.Trigger asChild>
-        <button
-          type="button"
-          aria-label={triggerLabel}
-          style={
-            {
-              "--pcard-button-hover-bg": pcardQuickShopHoverBackground,
-              "--pcard-button-hover-text": pcardQuickShopHoverText,
-            } as React.CSSProperties
-          }
-          className={clsx(
-            "absolute right-3 bottom-3 z-10 flex size-12 items-center justify-center gap-2 rounded-xl bg-white p-3",
-            "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body",
-            pcardCompactShopOnHover &&
-              "max-desktop:[@media(hover:hover)_and_(pointer:fine)]:pointer-events-none max-desktop:[@media(hover:hover)_and_(pointer:fine)]:opacity-0 max-desktop:group-hover/product-card:pointer-events-auto max-desktop:group-hover/product-card:opacity-100 max-desktop:group-focus-within/product-card:pointer-events-auto max-desktop:group-focus-within/product-card:opacity-100",
-            !iconOnly &&
-              "desktop:inset-x-[3.6556%] desktop:bottom-4 desktop:h-auto desktop:w-auto desktop:rounded-(--radius-sm) desktop:bg-(--btn-primary-bg) desktop:px-6 desktop:py-5 desktop:text-(--btn-primary-text)",
-            !iconOnly &&
-              "desktop:hover:bg-(--pcard-button-hover-bg) desktop:hover:text-(--pcard-button-hover-text)",
-            showOnHover &&
-              !iconOnly &&
-              "desktop:[@media(hover:hover)_and_(pointer:fine)]:pointer-events-none desktop:[@media(hover:hover)_and_(pointer:fine)]:translate-y-2 desktop:[@media(hover:hover)_and_(pointer:fine)]:opacity-0 desktop:group-hover/product-card:pointer-events-auto desktop:group-hover/product-card:translate-y-0 desktop:group-hover/product-card:opacity-100 desktop:group-focus-within/product-card:pointer-events-auto desktop:group-focus-within/product-card:translate-y-0 desktop:group-focus-within/product-card:opacity-100",
-            "transition-[opacity,transform,background-color,color] duration-300 desktop:font-body desktop:text-sm desktop:font-semibold desktop:leading-none desktop:tracking-[0.02em]",
-          )}
-        >
-          {/* Shopping bag icon for mobile and tablet */}
-          <svg
+      {!hideTrigger && (
+        <Dialog.Trigger asChild>
+          <button
+            type="button"
+            aria-label={triggerLabel}
+            style={
+              {
+                "--pcard-button-hover-bg": pcardQuickShopHoverBackground,
+                "--pcard-button-hover-text": pcardQuickShopHoverText,
+              } as React.CSSProperties
+            }
             className={clsx(
-              "h-5 w-5 text-[#29231E]",
-              !iconOnly && "desktop:hidden",
+              "absolute right-3 bottom-3 z-10 flex size-12 items-center justify-center gap-2 rounded-xl bg-white p-3",
+              "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body",
+              pcardCompactShopOnHover &&
+                "max-desktop:[@media(hover:hover)_and_(pointer:fine)]:pointer-events-none max-desktop:[@media(hover:hover)_and_(pointer:fine)]:opacity-0 max-desktop:group-hover/product-card:pointer-events-auto max-desktop:group-hover/product-card:opacity-100 max-desktop:group-focus-within/product-card:pointer-events-auto max-desktop:group-focus-within/product-card:opacity-100",
+              !iconOnly &&
+                "desktop:inset-x-[3.6556%] desktop:bottom-4 desktop:h-auto desktop:w-auto desktop:rounded-(--radius-sm) desktop:bg-(--btn-primary-bg) desktop:px-6 desktop:py-5 desktop:text-(--btn-primary-text)",
+              !iconOnly &&
+                "desktop:hover:bg-(--pcard-button-hover-bg) desktop:hover:text-(--pcard-button-hover-text)",
+              showOnHover &&
+                !iconOnly &&
+                "desktop:[@media(hover:hover)_and_(pointer:fine)]:pointer-events-none desktop:[@media(hover:hover)_and_(pointer:fine)]:translate-y-2 desktop:[@media(hover:hover)_and_(pointer:fine)]:opacity-0 desktop:group-hover/product-card:pointer-events-auto desktop:group-hover/product-card:translate-y-0 desktop:group-hover/product-card:opacity-100 desktop:group-focus-within/product-card:pointer-events-auto desktop:group-focus-within/product-card:translate-y-0 desktop:group-focus-within/product-card:opacity-100",
+              "transition-[opacity,transform,background-color,color] duration-300 desktop:font-body desktop:text-sm desktop:font-semibold desktop:leading-none desktop:tracking-[0.02em]",
             )}
-            aria-hidden="true"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
-            />
-          </svg>
-          {/* Text for desktop */}
-          {!iconOnly && (
-            <span className="hidden uppercase desktop:inline">
-              {triggerLabel}
-            </span>
-          )}
-        </button>
-      </Dialog.Trigger>
+            {/* Shopping bag icon for mobile and tablet */}
+            <svg
+              className={clsx(
+                "h-5 w-5 text-[#29231E]",
+                !iconOnly && "desktop:hidden",
+              )}
+              aria-hidden="true"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
+              />
+            </svg>
+            {/* Text for desktop */}
+            {!iconOnly && (
+              <span className="hidden uppercase desktop:inline">
+                {triggerLabel}
+              </span>
+            )}
+          </button>
+        </Dialog.Trigger>
+      )}
       <Dialog.Portal forceMount>
         <AnimatePresence>
           {open && (
@@ -418,6 +430,14 @@ export function QuickShopTrigger({
               {isMobile && (
                 <Dialog.Content
                   forceMount
+                  onCloseAutoFocus={
+                    onCloseFocus
+                      ? (event) => {
+                          event.preventDefault();
+                          onCloseFocus();
+                        }
+                      : undefined
+                  }
                   className="fixed inset-0 z-10 h-dvh"
                   aria-describedby={undefined}
                 >
@@ -470,6 +490,14 @@ export function QuickShopTrigger({
               {!isMobile && (
                 <Dialog.Content
                   forceMount
+                  onCloseAutoFocus={
+                    onCloseFocus
+                      ? (event) => {
+                          event.preventDefault();
+                          onCloseFocus();
+                        }
+                      : undefined
+                  }
                   className="fixed inset-0 z-10 flex items-center justify-center"
                   aria-describedby={undefined}
                 >
