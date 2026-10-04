@@ -94,14 +94,12 @@ const TabsLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
     rest,
   } = props;
   const [displayedTab, setDisplayedTab] = useState(activeTab);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const isTransitioning = activeTab !== displayedTab;
 
   useEffect(() => {
     if (activeTab !== displayedTab) {
-      setIsTransitioning(true);
       const timer = setTimeout(() => {
         setDisplayedTab(activeTab);
-        setIsTransitioning(false);
       }, 500);
       return () => clearTimeout(timer);
     }
@@ -109,7 +107,7 @@ const TabsLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
 
   const activeTabData = tabsData[activeTab];
   const displayedTabData = tabsData[displayedTab];
-  const SubheadingTag = displayedTabData?.subheadingTag || "p";
+  const SubheadingTag = activeTabData?.subheadingTag || "p";
 
   if (!(activeTabData && displayedTabData)) {
     return null;
@@ -149,54 +147,49 @@ const TabsLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
         </div>
       )}
 
-      <div
-        className={cn(
-          "absolute inset-x-0 top-12 z-2 mx-auto flex max-w-[335px] min-w-0 flex-col items-center px-5 text-center transition-opacity duration-500 md:top-[360px] md:max-w-[560px] md:px-0 lg:top-[420px] lg:max-w-[680px]",
-          isTransitioning ? "opacity-80" : "opacity-100",
-        )}
-      >
-        {displayedTabData.subheadingContent && (
+      <div className="absolute inset-x-0 top-12 z-2 mx-auto flex max-w-[335px] min-w-0 flex-col items-center px-5 text-center md:top-[360px] md:max-w-[560px] md:px-0 lg:top-[420px] lg:max-w-[680px]">
+        {activeTabData.subheadingContent && (
           <SubheadingTag
             className="mb-4 font-body text-sm"
-            style={{ color: displayedTabData.subheadingColor }}
+            style={{ color: activeTabData.subheadingColor }}
           >
-            {displayedTabData.subheadingContent}
+            {activeTabData.subheadingContent}
           </SubheadingTag>
         )}
-        {displayedTabData.paragraphContent && (
+        {activeTabData.paragraphContent && (
           <Paragraph
             className="ff-heading !mx-auto w-full min-w-0 break-words text-[24px] leading-[1.15] md:text-[24px] lg:text-[26px]"
-            content={displayedTabData.paragraphContent}
-            as={displayedTabData.paragraphTag}
-            color={displayedTabData.paragraphColor}
+            content={activeTabData.paragraphContent}
+            as={activeTabData.paragraphTag}
+            color={activeTabData.paragraphColor}
             alignment="center"
             width="full"
           />
         )}
-        {displayedTabData.buttonContent && (
+        {activeTabData.buttonContent && (
           <Link
-            variant={displayedTabData.variant}
-            textColor={displayedTabData.textColor}
-            backgroundColor={displayedTabData.backgroundColor}
-            borderColor={displayedTabData.borderColor}
-            textColorHover={displayedTabData.textColorHover}
-            backgroundColorHover={displayedTabData.backgroundColorHover}
-            borderColorHover={displayedTabData.borderColorHover}
-            textColorDecor={displayedTabData.textColorDecor}
-            openInNewTab={displayedTabData.openInNewTab}
-            to={displayedTabData.to}
+            variant={activeTabData.variant}
+            textColor={activeTabData.textColor}
+            backgroundColor={activeTabData.backgroundColor}
+            borderColor={activeTabData.borderColor}
+            textColorHover={activeTabData.textColorHover}
+            backgroundColorHover={activeTabData.backgroundColorHover}
+            borderColorHover={activeTabData.borderColorHover}
+            textColorDecor={activeTabData.textColorDecor}
+            openInNewTab={activeTabData.openInNewTab}
+            to={activeTabData.to}
             className="mt-12 w-fit"
             style={{
-              color: displayedTabData.buttonTextColor,
-              fontSize: `${displayedTabData.buttonTextSize}px`,
+              color: activeTabData.buttonTextColor,
+              fontSize: `${activeTabData.buttonTextSize}px`,
             }}
           >
-            {displayedTabData.buttonContent}
+            {activeTabData.buttonContent}
           </Link>
         )}
       </div>
 
-      <div className="absolute top-[373px] right-8 left-8 z-3 flex min-w-0 flex-col md:top-40 md:right-0 md:left-0 md:mx-auto md:grid md:w-[calc(100%-64px)] md:max-w-[1440px] md:grid-cols-3 md:gap-5 lg:w-[calc(100%-288px)]">
+      <div className="absolute top-[373px] right-8 left-8 z-3 flex min-w-0 flex-col md:top-10 md:right-0 md:left-0 md:mx-auto md:grid md:w-[calc(100%-64px)] md:max-w-[1440px] md:grid-cols-3 md:gap-5 lg:top-[120px] lg:w-[calc(100%-288px)]">
         {tabsData.map((tab: any, index: number) => {
           const isActive = activeTab === index;
           return (
