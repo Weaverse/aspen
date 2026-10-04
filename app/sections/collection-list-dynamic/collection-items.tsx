@@ -65,8 +65,6 @@ interface CollectionItemsProps
     CollectionItemsData {
   collectionNameColor: string;
   collectionBackgroundColor: string;
-  overlayColor?: string;
-  overlayOpacity?: number;
 }
 
 let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
@@ -76,8 +74,6 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
     let {
       collectionNameColor,
       collectionBackgroundColor,
-      overlayColor: legacyOverlayColor,
-      overlayOpacity: legacyOverlayOpacity,
       layout = "grid",
       gap = 16,
       desktopGap = 20,
@@ -93,20 +89,10 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
       showcaseMobileEffectColor,
       showcaseMobileEffectOpacity,
     } = useCollectionListLayout();
-    const overlayColor = isLegacyLayout
-      ? (legacyOverlayColor ??
-        sectionOverlayColor ??
-        DEFAULT_COLLECTION_CARD_OVERLAY_COLOR)
-      : (sectionOverlayColor ??
-        legacyOverlayColor ??
-        DEFAULT_COLLECTION_CARD_OVERLAY_COLOR);
-    const overlayOpacity = isLegacyLayout
-      ? (legacyOverlayOpacity ??
-        sectionOverlayOpacity ??
-        DEFAULT_COLLECTION_CARD_OVERLAY_OPACITY)
-      : (sectionOverlayOpacity ??
-        legacyOverlayOpacity ??
-        DEFAULT_COLLECTION_CARD_OVERLAY_OPACITY);
+    const overlayColor =
+      sectionOverlayColor ?? DEFAULT_COLLECTION_CARD_OVERLAY_COLOR;
+    const overlayOpacity =
+      sectionOverlayOpacity ?? DEFAULT_COLLECTION_CARD_OVERLAY_OPACITY;
     const resolvedLayout = resolveCollectionListLayout(
       isLegacyLayout ? undefined : sectionLayout,
       layout,
