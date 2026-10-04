@@ -13,7 +13,7 @@ const variants = cva(
   {
     variants: {
       dotsPosition: {
-        left: "left-8 justify-start lg:left-[144px]",
+        left: "left-8 justify-start lg:left-(--page-padding)",
         middle: "inset-x-0 mx-auto w-full justify-center",
       },
     },
