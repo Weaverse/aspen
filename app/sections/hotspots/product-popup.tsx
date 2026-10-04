@@ -116,10 +116,10 @@ function ProductColorOptions({
                     "flex transition-colors",
                     updatedStyle
                       ? clsx(
-                          "items-start gap-2.5 rounded-[var(--Radius-border-radius-xs,4px)] bg-[var(--Background-Background,#FFF)] p-[var(--p-2,2px)]",
+                          "items-start gap-2.5 rounded-(--radius-xs) bg-background p-0.5",
                           isSelected
-                            ? "border border-[var(--Border-Border,#9D9D9D)]"
-                            : "border-[0.5px] border-[var(--Border-Subtle,#D8D8D8)]",
+                            ? "border border-line"
+                            : "border-[0.5px] border-line-subtle",
                         )
                       : clsx(
                           "size-4 items-center justify-center rounded-[4px] border p-px",
@@ -140,7 +140,7 @@ function ProductColorOptions({
                       className={clsx(
                         "object-cover object-center",
                         updatedStyle
-                          ? "size-3 shrink-0 rounded-[var(--Radius-border-radius-xs,4px)]"
+                          ? "size-3 shrink-0 rounded-(--radius-xs)"
                           : "h-full w-full rounded-[1px]",
                       )}
                       width={12}
@@ -152,7 +152,7 @@ function ProductColorOptions({
                       className={clsx(
                         "inline-block text-[0px]",
                         updatedStyle
-                          ? "size-3 shrink-0 rounded-[var(--Radius-border-radius-xs,4px)]"
+                          ? "size-3 shrink-0 rounded-(--radius-xs)"
                           : "h-full w-full rounded-[1px]",
                         (!isValidColor(swatchColor) ||
                           isLightColor(swatchColor)) &&
