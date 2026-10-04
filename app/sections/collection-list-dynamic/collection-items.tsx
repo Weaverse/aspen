@@ -90,6 +90,8 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
       overlayColor: sectionOverlayColor,
       overlayOpacity: sectionOverlayOpacity,
       showcaseHoverZoom,
+      showcaseMobileEffectColor,
+      showcaseMobileEffectOpacity,
     } = useCollectionListLayout();
     const overlayColor = isLegacyLayout
       ? (legacyOverlayColor ??
@@ -224,10 +226,12 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
             className="absolute inset-0 h-full w-full bg-[lightgray] object-cover object-[50%_50%] transition-transform duration-500 group-hover:scale-[var(--showcase-hover-scale)]"
           />
         )}
-        <h3 className="absolute inset-x-0 bottom-0 flex h-auto w-full items-center gap-2 px-4 py-2.5 text-left font-body font-semibold text-[var(--Text-Inverse,#FEF4EB)] text-sm uppercase leading-[1.6] tracking-[0.02em] md:inset-x-auto md:bottom-[-0.25px] md:left-0 md:h-16 md:w-[377px] md:max-w-full md:gap-2.5 md:p-4 md:font-heading md:font-normal md:text-[32px] md:leading-[1.1] md:tracking-[-0.64px] lg:inset-x-0 lg:bottom-0 lg:left-0 lg:h-auto lg:w-full lg:px-4 lg:py-3 lg:leading-10 lg:tracking-[-0.02em]">
+        <h3 className="absolute inset-x-0 bottom-0 flex h-auto w-full items-center gap-2 px-4 py-2.5 text-left font-body font-semibold text-[var(--Text-Inverse,#FEF4EB)] text-sm uppercase leading-[1.6] tracking-[0.02em] md:inset-x-auto md:bottom-[-0.25px] md:left-0 md:h-16 md:w-full md:max-w-full md:gap-2.5 md:p-4 md:font-heading md:font-normal md:text-[32px] md:leading-[1.1] md:tracking-[-0.64px] lg:inset-x-0 lg:bottom-0 lg:left-0 lg:h-auto lg:w-full lg:px-4 lg:py-3 lg:leading-10 lg:tracking-[-0.02em]">
           <CollectionNameBackground
             color={overlayColor}
             opacity={overlayOpacity}
+            mobileColor={showcaseMobileEffectColor}
+            mobileOpacity={showcaseMobileEffectOpacity}
           />
           <span className="relative z-10 line-clamp-1 uppercase">
             {collection.title}

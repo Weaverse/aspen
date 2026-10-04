@@ -6,6 +6,8 @@ import { cn } from "~/utils/cn";
 import {
   DEFAULT_COLLECTION_CARD_OVERLAY_COLOR,
   DEFAULT_COLLECTION_CARD_OVERLAY_OPACITY,
+  DEFAULT_SHOWCASE_MOBILE_EFFECT_COLOR,
+  DEFAULT_SHOWCASE_MOBILE_EFFECT_OPACITY,
 } from "./collection-card-overlay";
 
 export type CollectionListLayout = "grid" | "slider" | "showcase";
@@ -16,6 +18,8 @@ interface CollectionListDynamicProps extends SectionProps {
   overlayColor?: string;
   overlayOpacity?: number;
   showcaseHoverZoom?: number;
+  showcaseMobileEffectColor?: string;
+  showcaseMobileEffectOpacity?: number;
 }
 
 interface CollectionListLayoutContextValue {
@@ -24,6 +28,8 @@ interface CollectionListLayoutContextValue {
   overlayColor?: string;
   overlayOpacity?: number;
   showcaseHoverZoom?: number;
+  showcaseMobileEffectColor?: string;
+  showcaseMobileEffectOpacity?: number;
 }
 
 interface CollectionListSettingsData {
@@ -79,6 +85,8 @@ let CollectionListDynamic = forwardRef<HTMLElement, CollectionListDynamicProps>(
       overlayColor,
       overlayOpacity,
       showcaseHoverZoom,
+      showcaseMobileEffectColor,
+      showcaseMobileEffectOpacity,
       verticalPadding = "medium",
       ...rest
     } = props;
@@ -93,6 +101,8 @@ let CollectionListDynamic = forwardRef<HTMLElement, CollectionListDynamicProps>(
           overlayColor,
           overlayOpacity,
           showcaseHoverZoom,
+          showcaseMobileEffectColor,
+          showcaseMobileEffectOpacity,
         }}
       >
         <Section
@@ -144,6 +154,7 @@ export let schema: HydrogenComponentSchema = {
           type: "color",
           name: "overlayColor",
           label: "Effect color",
+          helpText: "Style 3: desktop only. Style 1: all screen sizes.",
           condition: supportsCustomOverlay,
           defaultValue: DEFAULT_COLLECTION_CARD_OVERLAY_COLOR,
         },
@@ -151,6 +162,7 @@ export let schema: HydrogenComponentSchema = {
           type: "range",
           name: "overlayOpacity",
           label: "Effect opacity",
+          helpText: "Style 3: desktop only. Style 1: all screen sizes.",
           condition: supportsCustomOverlay,
           configs: {
             min: 0,
@@ -159,6 +171,21 @@ export let schema: HydrogenComponentSchema = {
             unit: "%",
           },
           defaultValue: DEFAULT_COLLECTION_CARD_OVERLAY_OPACITY,
+        },
+        {
+          type: "color",
+          name: "showcaseMobileEffectColor",
+          label: "Effect color — tablet & mobile",
+          condition: isShowcaseLayout,
+          defaultValue: DEFAULT_SHOWCASE_MOBILE_EFFECT_COLOR,
+        },
+        {
+          type: "range",
+          name: "showcaseMobileEffectOpacity",
+          label: "Effect opacity — tablet & mobile",
+          condition: isShowcaseLayout,
+          configs: { min: 0, max: 100, step: 1, unit: "%" },
+          defaultValue: DEFAULT_SHOWCASE_MOBILE_EFFECT_OPACITY,
         },
         {
           type: "range",
