@@ -39,11 +39,11 @@ const bundle = await build({
         );
       }
       window.startNested = () => createRoot(document.getElementById("root")).render(React.createElement(NestedSection));
-      window.start = (effect, dotsPosition) => createRoot(document.getElementById("root")).render(
+      window.start = (effect, dotsPosition, arrowsShape) => createRoot(document.getElementById("root")).render(
         React.createElement(Slideshow, {
           effect, loop: true, showDots: true, showArrows: true,
           dotsPosition,
-          arrowsIcon: "caret", iconSize: 24,
+          arrowsIcon: "caret", iconSize: 24, arrowsShape,
           autoRotate: false, changeSlidesEvery: 5,
           children: ["First", "Second", "Third"].map((headingContent) =>
             React.createElement(Slide, { key: headingContent, headingContent, animate: true })
@@ -93,6 +93,51 @@ const css = stylesheet.build(
     sources: [{ base: `${root}app`, pattern: "**/*.{ts,tsx}", negated: false }],
   }).scan(),
 );
+
+test("slideshow arrow shapes override the shared button radius", async () => {
+  const browser = await chromium.launch();
+  try {
+    for (const width of [390, 768, 1440]) {
+      for (const [shape, radius] of [
+        ["square", "0px"],
+        ["rounded-sm", "12px"],
+        ["circle", "9999px"],
+      ]) {
+        const page = await browser.newPage({
+          viewport: { width, height: 900 },
+        });
+        await page.setContent(`<style>${css}
+          :root { --radius-md: 12px; }
+          .swiper { width: 100%; height: 300px; }
+        </style><div id="root"></div>`);
+        await page.addScriptTag({ content: bundle.outputFiles[0].text });
+        await page.evaluate(
+          (value) => window.start("fade", "left", value),
+          shape,
+        );
+        await page.waitForSelector(".swiper-initialized");
+        for (const name of ["carousel.previousSlide", "carousel.nextSlide"]) {
+          const actual = await page
+            .getByRole("button", { name })
+            .evaluate(
+              (element) => getComputedStyle(element).borderTopLeftRadius,
+            );
+          if (shape === "circle") {
+            assert.ok(
+              Number.parseFloat(actual) >= 20,
+              `${shape} at ${width}: ${actual}`,
+            );
+          } else {
+            assert.equal(actual, radius, `${shape} at ${width}`);
+          }
+        }
+        await page.close();
+      }
+    }
+  } finally {
+    await browser.close();
+  }
+});
 
 for (const effect of ["fade", "slide"]) {
   test(`${effect}: animate only the active slide, including subsequent visits`, async () => {
@@ -285,6 +330,7 @@ test("dots use exact responsive offsets with Left, Middle and legacy positions",
         const page = await browser.newPage();
         await page.setViewportSize({ width: viewportWidth, height: 1000 });
         await page.setContent(`<style>${css}
+        :root { --page-padding: 40px; }
         .swiper { width: 800px; height: 300px; }
       </style><div id="root"></div>`);
         await page.addScriptTag({ content: bundle.outputFiles[0].text });
@@ -309,7 +355,7 @@ test("dots use exact responsive offsets with Left, Middle and legacy positions",
         if (position === "middle") {
           assert.ok(Math.abs(layout.center) < 1);
         } else {
-          assert.equal(layout.left, viewportWidth >= 1025 ? 144 : 32);
+          assert.equal(layout.left, viewportWidth >= 1025 ? 40 : 32);
         }
         await page.close();
       }
