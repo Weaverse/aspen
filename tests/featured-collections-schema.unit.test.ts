@@ -9,7 +9,10 @@ import {
   resolveCollectionListLayout,
   schema,
 } from "~/sections/collection-list-dynamic";
-import { loader as collectionItemsLoader } from "~/sections/collection-list-dynamic/collection-items";
+import {
+  loader as collectionItemsLoader,
+  schema as collectionItemsSchema,
+} from "~/sections/collection-list-dynamic/collection-items";
 import { schema as collectionListPageSchema } from "~/sections/collection-list-page/collections-items";
 import { schema as countdownSchema } from "~/sections/countdown";
 import { schema as featuredProductsSchema } from "~/sections/featured-products";
@@ -29,6 +32,103 @@ test("Featured collections exposes Layout first on the parent", () => {
   assert.equal(firstGroup?.group, "Layout");
   assert.equal(firstInput?.name, "layout");
   assert.equal(firstInput?.label, "Layout");
+});
+
+test("Featured collection overlay settings are shown for Styles 1 and 3", () => {
+  const parentInputs = schema.settings?.flatMap((group) => group.inputs) ?? [];
+  const childInputs =
+    collectionItemsSchema.settings?.flatMap((group) => group.inputs) ?? [];
+  const overlayInputs = parentInputs.filter(
+    (input) => input.name === "overlayColor" || input.name === "overlayOpacity",
+  );
+
+  assert.equal(overlayInputs.length, 2);
+  assert.equal(
+    overlayInputs.find((input) => input.name === "overlayColor")?.label,
+    "Effect color",
+  );
+  assert.equal(
+    overlayInputs.find((input) => input.name === "overlayOpacity")?.label,
+    "Effect opacity",
+  );
+  assert.equal(
+    overlayInputs.find((input) => input.name === "overlayColor")?.defaultValue,
+    "#000000",
+  );
+  assert.equal(
+    overlayInputs.find((input) => input.name === "overlayOpacity")
+      ?.defaultValue,
+    50,
+  );
+  assert.equal(
+    childInputs.some(
+      (input) =>
+        input.name === "overlayColor" || input.name === "overlayOpacity",
+    ),
+    false,
+  );
+
+  for (const input of overlayInputs) {
+    assert.equal(typeof input.condition, "function");
+    const condition = input.condition as (data: {
+      layout?: string;
+      children?: Array<{ type: string; layout: string }>;
+    }) => boolean;
+    assert.equal(condition({ layout: "grid" }), true);
+    assert.equal(condition({ layout: "slider" }), false);
+    assert.equal(condition({ layout: "showcase" }), true);
+    assert.equal(
+      condition({
+        children: [{ type: "collection-list-dynamic-items", layout: "grid" }],
+      }),
+      true,
+    );
+    assert.equal(
+      condition({
+        children: [{ type: "collection-list-dynamic-items", layout: "slider" }],
+      }),
+      false,
+    );
+    assert.equal(
+      condition({
+        children: [
+          { type: "collection-list-dynamic-items", layout: "showcase" },
+        ],
+      }),
+      true,
+    );
+  }
+});
+
+test("Style 3 exposes a configurable hover image zoom", () => {
+  const parentInputs = schema.settings?.flatMap((group) => group.inputs) ?? [];
+  const zoomInput = parentInputs.find(
+    (input) => input.name === "showcaseHoverZoom",
+  );
+
+  assert.equal(zoomInput?.label, "Hover image zoom");
+  assert.equal(zoomInput?.defaultValue, 102);
+  assert.deepEqual(zoomInput?.configs, {
+    min: 100,
+    max: 120,
+    step: 1,
+    unit: "%",
+  });
+  assert.equal(typeof zoomInput?.condition, "function");
+
+  const condition = zoomInput?.condition as (data: {
+    layout?: string;
+    children?: Array<{ type: string; layout: string }>;
+  }) => boolean;
+  assert.equal(condition({ layout: "grid" }), false);
+  assert.equal(condition({ layout: "slider" }), false);
+  assert.equal(condition({ layout: "showcase" }), true);
+  assert.equal(
+    condition({
+      children: [{ type: "collection-list-dynamic-items", layout: "showcase" }],
+    }),
+    true,
+  );
 });
 
 test("legacy child layout remains authoritative when parent layout is absent", () => {

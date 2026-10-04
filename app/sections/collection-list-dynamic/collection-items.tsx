@@ -25,9 +25,16 @@ import {
 } from "~/utils/breakpoints";
 import {
   type CollectionListLayout,
+  DEFAULT_SHOWCASE_HOVER_ZOOM,
   resolveCollectionListLayout,
   useCollectionListLayout,
 } from ".";
+import {
+  CollectionCardOverlay,
+  CollectionNameBackground,
+  DEFAULT_COLLECTION_CARD_OVERLAY_COLOR,
+  DEFAULT_COLLECTION_CARD_OVERLAY_OPACITY,
+} from "./collection-card-overlay";
 
 interface CollectionWithProducts {
   id: string;
@@ -73,11 +80,25 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
       loaderData,
       ...rest
     } = props;
-    const { layout: sectionLayout, isLegacyLayout } = useCollectionListLayout();
+    const {
+      layout: sectionLayout,
+      isLegacyLayout,
+      overlayColor: sectionOverlayColor,
+      overlayOpacity: sectionOverlayOpacity,
+      showcaseHoverZoom,
+      showcaseMobileEffectColor,
+      showcaseMobileEffectOpacity,
+    } = useCollectionListLayout();
+    const overlayColor =
+      sectionOverlayColor ?? DEFAULT_COLLECTION_CARD_OVERLAY_COLOR;
+    const overlayOpacity =
+      sectionOverlayOpacity ?? DEFAULT_COLLECTION_CARD_OVERLAY_OPACITY;
     const resolvedLayout = resolveCollectionListLayout(
       isLegacyLayout ? undefined : sectionLayout,
       layout,
     );
+    const showcaseHoverScale =
+      (showcaseHoverZoom ?? DEFAULT_SHOWCASE_HOVER_ZOOM) / 100;
     const [activeLayout, setActiveLayout] =
       useState<CollectionListLayout>(resolvedLayout);
     const [isSwiperInitialized, setIsSwiperInitialized] = useState(false);
@@ -144,7 +165,7 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
             className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
           />
         )}
-        <div className="absolute inset-0 bg-black/10 transition-colors duration-500 group-hover:bg-black/50" />
+        <CollectionCardOverlay color={overlayColor} opacity={overlayOpacity} />
         <h3 className="absolute inset-0 z-10 flex items-center justify-center gap-2 overflow-hidden px-3 text-center font-heading font-normal text-[26px] text-[var(--collection-name-color,var(--Text-Inverse,#FEF4EB))] uppercase leading-[1.1] tracking-[-0.52px] md:px-5">
           {/* Balance the arrow width so the collection name stays centered. */}
           <span className="line-clamp-1 whitespace-nowrap pl-7 md:pl-8">
@@ -178,21 +199,29 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
           className,
         )}
         data-motion="slide-in"
+        style={
+          {
+            "--showcase-hover-scale": showcaseHoverScale,
+          } as React.CSSProperties
+        }
       >
         {collection.image && (
           <Image
             data={collection.image}
             sizes={`${minWidthQuery(TABLET_MIN_PX)} 50vw, 100vw`}
-            className="absolute inset-0 h-full w-full bg-[lightgray] object-cover object-[50%_50%] transition-transform duration-500 group-hover:scale-[1.02]"
+            className="absolute inset-0 h-full w-full bg-[lightgray] object-cover object-[50%_50%] transition-transform duration-500 group-hover:scale-[var(--showcase-hover-scale)]"
           />
         )}
-        <div className="absolute inset-0 bg-black/0 transition-colors duration-500 group-hover:bg-black/20" />
-        <h3 className="absolute inset-x-0 bottom-0 flex h-auto w-full items-center gap-2 bg-[rgba(202,189,183,0.9)] px-4 py-2.5 text-left font-body font-semibold text-[var(--Text-Inverse,#FEF4EB)] text-sm uppercase leading-[1.6] tracking-[0.02em] md:inset-x-auto md:bottom-[-0.25px] md:left-0 md:h-16 md:w-[377px] md:max-w-full md:gap-2.5 md:p-4 md:font-heading md:font-normal md:text-[32px] md:leading-[1.1] md:tracking-[-0.64px] lg:inset-x-0 lg:bottom-0 lg:left-0 lg:h-auto lg:w-full lg:bg-[#6B6B6BE5] lg:px-4 lg:py-3 lg:leading-10 lg:tracking-[-0.02em]">
-          <span className="line-clamp-1 uppercase">{collection.title}</span>
-          <ArrowRight
-            weight="thin"
-            className="size-4 shrink-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 md:size-6 lg:size-7"
+        <h3 className="absolute inset-x-0 bottom-0 flex h-auto w-full items-center gap-2 px-4 py-2.5 text-left font-body font-semibold text-[var(--Text-Inverse,#FEF4EB)] text-sm uppercase leading-[1.6] tracking-[0.02em] md:inset-x-auto md:bottom-[-0.25px] md:left-0 md:h-16 md:w-full md:max-w-full md:gap-2.5 md:p-4 md:font-heading md:font-normal md:text-[32px] md:leading-[1.1] md:tracking-[-0.64px] lg:inset-x-0 lg:bottom-0 lg:left-0 lg:h-auto lg:w-full lg:px-4 lg:py-3 lg:leading-10 lg:tracking-[-0.02em]">
+          <CollectionNameBackground
+            color={overlayColor}
+            opacity={overlayOpacity}
+            mobileColor={showcaseMobileEffectColor}
+            mobileOpacity={showcaseMobileEffectOpacity}
           />
+          <span className="relative z-10 line-clamp-1 uppercase">
+            {collection.title}
+          </span>
         </h3>
       </Link>
     );

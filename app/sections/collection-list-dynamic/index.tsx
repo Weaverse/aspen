@@ -3,17 +3,62 @@ import { createContext, forwardRef, useContext } from "react";
 import type { SectionProps } from "~/components/section";
 import { layoutInputs, Section } from "~/components/section";
 import { cn } from "~/utils/cn";
+import {
+  DEFAULT_COLLECTION_CARD_OVERLAY_COLOR,
+  DEFAULT_COLLECTION_CARD_OVERLAY_OPACITY,
+  DEFAULT_SHOWCASE_MOBILE_EFFECT_COLOR,
+  DEFAULT_SHOWCASE_MOBILE_EFFECT_OPACITY,
+} from "./collection-card-overlay";
 
 export type CollectionListLayout = "grid" | "slider" | "showcase";
+export const DEFAULT_SHOWCASE_HOVER_ZOOM = 102;
 
 interface CollectionListDynamicProps extends SectionProps {
   layout?: CollectionListLayout;
+  overlayColor?: string;
+  overlayOpacity?: number;
+  showcaseHoverZoom?: number;
+  showcaseMobileEffectColor?: string;
+  showcaseMobileEffectOpacity?: number;
 }
 
 interface CollectionListLayoutContextValue {
   layout: CollectionListLayout;
   isLegacyLayout: boolean;
+  overlayColor?: string;
+  overlayOpacity?: number;
+  showcaseHoverZoom?: number;
+  showcaseMobileEffectColor?: string;
+  showcaseMobileEffectOpacity?: number;
 }
+
+interface CollectionListSettingsData {
+  layout?: CollectionListLayout;
+  children?: Array<{
+    type?: string;
+    layout?: CollectionListLayout;
+  }>;
+}
+
+const supportsCustomOverlay = (data: CollectionListSettingsData) => {
+  if (data.layout) {
+    return data.layout !== "slider";
+  }
+  const legacyLayout = data.children?.find(
+    (child) => child.type === "collection-list-dynamic-items",
+  )?.layout;
+  return (legacyLayout ?? "grid") !== "slider";
+};
+
+const isShowcaseLayout = (data: CollectionListSettingsData) => {
+  if (data.layout) {
+    return data.layout === "showcase";
+  }
+  const legacyLayout = data.children?.find(
+    (child) => child.type === "collection-list-dynamic-items",
+  )?.layout;
+  return legacyLayout === "showcase";
+};
 
 const CollectionListLayoutContext =
   createContext<CollectionListLayoutContextValue>({
@@ -37,6 +82,11 @@ let CollectionListDynamic = forwardRef<HTMLElement, CollectionListDynamicProps>(
       children,
       className,
       layout,
+      overlayColor,
+      overlayOpacity,
+      showcaseHoverZoom,
+      showcaseMobileEffectColor,
+      showcaseMobileEffectOpacity,
       verticalPadding = "medium",
       ...rest
     } = props;
@@ -45,7 +95,15 @@ let CollectionListDynamic = forwardRef<HTMLElement, CollectionListDynamicProps>(
 
     return (
       <CollectionListLayoutContext.Provider
-        value={{ layout: resolvedLayout, isLegacyLayout: layout === undefined }}
+        value={{
+          layout: resolvedLayout,
+          isLegacyLayout: layout === undefined,
+          overlayColor,
+          overlayOpacity,
+          showcaseHoverZoom,
+          showcaseMobileEffectColor,
+          showcaseMobileEffectOpacity,
+        }}
       >
         <Section
           ref={ref}
@@ -90,6 +148,61 @@ export let schema: HydrogenComponentSchema = {
       ],
     },
     {
+      group: "Collection card",
+      inputs: [
+        {
+          type: "color",
+          name: "overlayColor",
+          label: "Effect color",
+          helpText: "Style 3: desktop only. Style 1: all screen sizes.",
+          condition: supportsCustomOverlay,
+          defaultValue: DEFAULT_COLLECTION_CARD_OVERLAY_COLOR,
+        },
+        {
+          type: "range",
+          name: "overlayOpacity",
+          label: "Effect opacity",
+          helpText: "Style 3: desktop only. Style 1: all screen sizes.",
+          condition: supportsCustomOverlay,
+          configs: {
+            min: 0,
+            max: 100,
+            step: 1,
+            unit: "%",
+          },
+          defaultValue: DEFAULT_COLLECTION_CARD_OVERLAY_OPACITY,
+        },
+        {
+          type: "color",
+          name: "showcaseMobileEffectColor",
+          label: "Effect color — tablet & mobile",
+          condition: isShowcaseLayout,
+          defaultValue: DEFAULT_SHOWCASE_MOBILE_EFFECT_COLOR,
+        },
+        {
+          type: "range",
+          name: "showcaseMobileEffectOpacity",
+          label: "Effect opacity — tablet & mobile",
+          condition: isShowcaseLayout,
+          configs: { min: 0, max: 100, step: 1, unit: "%" },
+          defaultValue: DEFAULT_SHOWCASE_MOBILE_EFFECT_OPACITY,
+        },
+        {
+          type: "range",
+          name: "showcaseHoverZoom",
+          label: "Hover image zoom",
+          condition: isShowcaseLayout,
+          configs: {
+            min: 100,
+            max: 120,
+            step: 1,
+            unit: "%",
+          },
+          defaultValue: DEFAULT_SHOWCASE_HOVER_ZOOM,
+        },
+      ],
+    },
+    {
       group: "Collection List",
       inputs: [
         ...layoutInputs.filter(
@@ -100,6 +213,9 @@ export let schema: HydrogenComponentSchema = {
   ],
   presets: {
     layout: "grid",
+    overlayColor: DEFAULT_COLLECTION_CARD_OVERLAY_COLOR,
+    overlayOpacity: DEFAULT_COLLECTION_CARD_OVERLAY_OPACITY,
+    showcaseHoverZoom: DEFAULT_SHOWCASE_HOVER_ZOOM,
     gap: 64,
     width: "fixed",
     verticalPadding: "medium",
