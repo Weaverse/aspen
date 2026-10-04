@@ -27,7 +27,7 @@ const buttonVariants = cva(
         ],
       },
       arrowsShape: {
-        square: "",
+        square: "rounded-none",
         "rounded-sm": "rounded-(--radius-md)",
         circle: "rounded-full",
       },
