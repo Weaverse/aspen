@@ -318,7 +318,7 @@
     flex-direction: row !important;
     align-items: stretch !important;
     height: auto !important;
-    padding-block: 40px !important;
+    padding-block: var(--iwt-vertical-spacing, 40px) !important;
     padding-inline: 0 !important;
   }
 
@@ -394,7 +394,7 @@
     flex-direction: row !important;
     align-items: stretch !important;
     height: 944px !important;
-    padding-block: 40px !important;
+    padding-block: var(--iwt-vertical-spacing, 40px) !important;
     padding-inline: 0 !important;
   }
 
