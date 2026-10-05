@@ -5,16 +5,13 @@ import { useEffect, useRef, useState } from "react";
 import { useSwiper } from "swiper/react";
 import { cn } from "~/utils/cn";
 
-const variants = cva(
-  [
-    "slideshow-dots pointer-events-none absolute z-2",
-    "bottom-[73px] flex lg:bottom-[71px]",
-  ],
+const containerVariants = cva(
+  "mx-auto flex w-full max-w-(--page-width) px-8 md:px-(--page-padding) 2xl:px-0",
   {
     variants: {
       dotsPosition: {
-        left: "left-8 justify-start lg:left-(--page-padding)",
-        middle: "inset-x-0 mx-auto w-full justify-center",
+        left: "justify-start",
+        middle: "justify-center",
       },
     },
     defaultVariants: {
@@ -54,7 +51,8 @@ const dotVariants = cva(
   },
 );
 
-export interface SlideshowDotsProps extends VariantProps<typeof variants> {
+export interface SlideshowDotsProps
+  extends VariantProps<typeof containerVariants> {
   className?: string;
   slidesCount?: number;
   dotsColor?: "light" | "dark";
@@ -128,27 +126,31 @@ export function Dots(props: SlideshowDotsProps) {
   return (
     <div
       ref={containerRef}
-      className={cn(
-        variants({
-          dotsPosition: dotsPosition === "middle" ? "middle" : "left",
-        }),
-        className,
-      )}
+      className="slideshow-dots pointer-events-none absolute inset-x-0 bottom-[73px] z-2 lg:bottom-[71px]"
     >
-      <div className={trackClassName}>
-        {Array.from({ length: slidesCount }, (_, index) => (
-          <button
-            key={index}
-            type="button"
-            className={dotVariants({
-              dotsColor,
-              isActive: index <= activeIndex,
-            })}
-            onClick={() => handleDotClick(index)}
-            aria-label={t("carousel.goToSlide", { index: index + 1 })}
-            aria-current={index === activeIndex ? "true" : undefined}
-          />
-        ))}
+      <div
+        className={cn(
+          containerVariants({
+            dotsPosition: dotsPosition === "middle" ? "middle" : "left",
+          }),
+          className,
+        )}
+      >
+        <div className={trackClassName}>
+          {Array.from({ length: slidesCount }, (_, index) => (
+            <button
+              key={index}
+              type="button"
+              className={dotVariants({
+                dotsColor,
+                isActive: index <= activeIndex,
+              })}
+              onClick={() => handleDotClick(index)}
+              aria-label={t("carousel.goToSlide", { index: index + 1 })}
+              aria-current={index === activeIndex ? "true" : undefined}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
