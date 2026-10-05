@@ -9,11 +9,13 @@ export function ProductCardWishlistButton({
   productTitle,
   showOnTablet = false,
   showOnMobile = false,
+  className,
 }: {
   productId: string;
   productTitle: string;
   showOnTablet?: boolean;
   showOnMobile?: boolean;
+  className?: string;
 }) {
   const { t } = useTranslation();
   const { error, isLoading, isUpdating, isWishlisted, setupRequired, toggle } =
@@ -37,6 +39,7 @@ export function ProductCardWishlistButton({
           : showOnTablet
             ? "hidden md:flex"
             : "hidden lg:flex",
+        className,
       )}
       disabled={isLoading || updating}
       onClick={() => toggle(productId)}

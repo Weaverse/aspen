@@ -31,6 +31,29 @@ import { useFeaturedProductsLayout } from ".";
 type ItemsPerRowType = "2" | "3" | "4" | "5";
 type GapType = 8 | 12 | 16 | 20 | 24 | 28 | 32;
 
+function FeaturedProductsNavCaret({
+  direction,
+}: {
+  direction: "left" | "right";
+}) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={direction === "right" ? "rotate-180" : undefined}
+      width="9"
+      height="17"
+      viewBox="0 0 9 17"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M0.219934 7.71993L7.71993 0.219933C7.78962 0.150251 7.87234 0.0949764 7.96339 0.0572643C8.05443 0.0195522 8.15201 0.000141144 8.25056 0.000141144C8.34911 0.000141144 8.44669 0.0195522 8.53773 0.0572643C8.62878 0.0949764 8.7115 0.150251 8.78118 0.219933C8.85087 0.289616 8.90614 0.372341 8.94385 0.463387C8.98157 0.554431 9.00098 0.652013 9.00098 0.750559C9.00098 0.849105 8.98157 0.946687 8.94385 1.03773C8.90614 1.12878 8.85087 1.2115 8.78118 1.28118L1.81087 8.25056L8.78118 15.2199C8.92192 15.3607 9.00098 15.5515 9.00098 15.7506C9.00098 15.9496 8.92192 16.1405 8.78118 16.2812C8.64045 16.4219 8.44958 16.501 8.25056 16.501C8.05154 16.501 7.86066 16.4219 7.71993 16.2812L0.219934 8.78119C0.150202 8.71153 0.094882 8.62881 0.0571394 8.53776C0.0193958 8.44672 -2.95639e-05 8.34912 -2.95639e-05 8.25056C-2.95639e-05 8.152 0.0193958 8.0544 0.0571394 7.96335C0.094882 7.87231 0.150202 7.78959 0.219934 7.71993Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
 const productItemsVariants = cva("", {
   variants: {
     layout: {
@@ -108,7 +131,7 @@ interface ProductItemsProps
   productsToShow?: number;
   arrowsColor?: "primary" | "secondary";
   arrowsShape?: "rounded-sm" | "circle" | "square";
-  arrowsIcon?: "caret" | "arrow";
+  arrowsIcon?: "auto" | "caret" | "arrow";
   /** Legacy Studio value; product cards now use the responsive layout everywhere. */
   relatedProductCardLayout?: "mobile" | "responsive";
 }
@@ -137,6 +160,12 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
       isProductPage,
     } = useFeaturedProductsLayout();
     const activeLayout = isLegacyLayout ? layout : sectionLayout;
+    const resolvedArrowIcon =
+      arrowsIcon === "auto"
+        ? activeLayout === "carousel"
+          ? "caret"
+          : "arrow"
+        : arrowsIcon;
     const designGap = isLegacyLayout ? gap : 16;
     const resolvedSlidesPerView = isProductPage ? 3 : slidesPerView;
 
@@ -178,14 +207,23 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
 
     const arrowColorClasses = useMemo(() => {
       return arrowsColor === "secondary"
-        ? [
-            "text-(--btn-secondary-text)",
-            "bg-(--btn-secondary-bg)",
-            "border-(--btn-secondary-bg)",
-            "hover:text-(--btn-secondary-text-hover)",
-            "hover:bg-(--btn-secondary-bg-hover)",
-            "hover:border-(--btn-secondary-bg-hover)",
-          ]
+        ? activeLayout === "carousel"
+          ? [
+              "text-(--btn-featured-products-nav-text)",
+              "bg-(--btn-featured-products-nav-bg)",
+              "border-(--btn-featured-products-nav-bg)",
+              "hover:text-(--btn-featured-products-nav-text-hover)",
+              "hover:bg-(--btn-featured-products-nav-bg-hover)",
+              "hover:border-(--btn-featured-products-nav-bg-hover)",
+            ]
+          : [
+              "text-(--btn-secondary-text)",
+              "bg-(--btn-secondary-bg)",
+              "border-(--btn-secondary-bg)",
+              "hover:text-(--btn-secondary-text-hover)",
+              "hover:bg-(--btn-secondary-bg-hover)",
+              "hover:border-(--btn-secondary-bg-hover)",
+            ]
         : [
             "text-(--btn-primary-text)",
             "bg-(--btn-primary-bg)",
@@ -194,17 +232,26 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
             "hover:bg-(--btn-primary-bg-hover)",
             "hover:border-(--btn-primary-bg-hover)",
           ];
-    }, [arrowsColor]);
+    }, [arrowsColor, activeLayout]);
 
     const arrowShapeClasses = useMemo(() => {
       if (arrowsShape === "circle") {
         return "rounded-full";
       }
       if (arrowsShape === "square") {
-        return "";
+        return activeLayout === "carousel" ? "rounded-none" : "";
       }
-      return "rounded-(--radius-sm)";
-    }, [arrowsShape]);
+      return activeLayout === "carousel"
+        ? "rounded-(--radius-md)"
+        : "rounded-(--radius-sm)";
+    }, [arrowsShape, activeLayout]);
+
+    const arrowButtonClasses =
+      activeLayout === "carousel"
+        ? resolvedArrowIcon === "caret"
+          ? "size-11 border-0 p-3 [&>svg]:h-[17px] [&>svg]:w-[9px]"
+          : "size-11 border-0 p-3 [&>svg]:size-4"
+        : "border p-4";
 
     const renderArrowControls = (classPrefix: string) => (
       <div className="flex justify-center gap-2">
@@ -213,14 +260,18 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
           type="button"
           className={clsx(
             `${classPrefix}-prev`,
-            "border p-4",
+            arrowButtonClasses,
             arrowColorClasses,
             arrowShapeClasses,
           )}
           aria-label={t("product.previousProduct")}
         >
-          {arrowsIcon === "caret" ? (
-            <CaretLeft size={16} />
+          {resolvedArrowIcon === "caret" ? (
+            activeLayout === "carousel" ? (
+              <FeaturedProductsNavCaret direction="left" />
+            ) : (
+              <CaretLeft size={16} />
+            )
           ) : (
             <ArrowLeft size={16} />
           )}
@@ -230,14 +281,18 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
           type="button"
           className={clsx(
             `${classPrefix}-next`,
-            "border p-4",
+            arrowButtonClasses,
             arrowColorClasses,
             arrowShapeClasses,
           )}
           aria-label={t("product.nextProduct")}
         >
-          {arrowsIcon === "caret" ? (
-            <CaretRight size={16} />
+          {resolvedArrowIcon === "caret" ? (
+            activeLayout === "carousel" ? (
+              <FeaturedProductsNavCaret direction="right" />
+            ) : (
+              <CaretRight size={16} />
+            )
           ) : (
             <ArrowRight size={16} />
           )}
@@ -338,7 +393,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
                 <ProductCard
                   key={product.id}
                   product={product}
-                  className="w-full !pt-0 md:flex md:flex-col md:items-start md:gap-5 md:[&>div:last-child]:pt-0 lg:block lg:[&>div:last-child]:pt-5"
+                  className="w-full !pt-0 md:flex md:flex-col md:items-start md:gap-5 md:max-desktop:[&>div:last-child]:pt-0 lg:block"
                   stretchImageOnTablet
                 />
               ))}
@@ -391,7 +446,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
             }}
             modules={[Navigation]}
             className={clsx(
-              "mb-6 w-full py-4 transition-opacity duration-300",
+              "mb-8 w-full py-4 transition-opacity duration-300",
               isProductPage && "md:py-0 lg:py-4",
               isSwiperInitialized ? "opacity-100" : "opacity-0",
             )}
@@ -406,7 +461,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
               >
                 <ProductCard
                   product={product}
-                  className="h-full w-full !pt-0 md:flex md:flex-col md:items-start md:gap-5 md:[&>div:last-child]:pt-0 lg:block lg:[&>div:last-child]:pt-5"
+                  className="h-full w-full !pt-0 md:flex md:flex-col md:items-start md:gap-5 md:max-desktop:[&>div:last-child]:pt-0 lg:block"
                   quickShopIconOnlyOnTablet={isProductPage}
                   stretchImageOnTablet
                 />
@@ -596,19 +651,22 @@ export const schema = createSchema({
           label: "Arrow icon",
           name: "arrowsIcon",
           helpText:
-            "In Style 2, arrow settings apply to the mobile product slider only.",
+            "Design default uses Caret in Style 1 and Arrow in Style 2. In Style 2, arrow settings apply to the mobile product slider only.",
           configs: {
             options: [
+              { value: "auto", label: "Design default" },
               { value: "caret", label: "Caret" },
               { value: "arrow", label: "Arrow" },
             ],
           },
-          defaultValue: "arrow",
+          defaultValue: "auto",
         },
         {
           type: "select",
           label: "Arrows color",
           name: "arrowsColor",
+          helpText:
+            "In Style 1, Secondary uses the Featured Products navigation colors in Theme Settings. Style 2 uses the standard Secondary button colors.",
           configs: {
             options: [
               { value: "primary", label: "Primary" },
@@ -640,6 +698,6 @@ export const schema = createSchema({
     productsToShow: 4,
     arrowsColor: "secondary",
     arrowsShape: "rounded-sm",
-    arrowsIcon: "arrow",
+    arrowsIcon: "auto",
   },
 });

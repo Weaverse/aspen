@@ -34,6 +34,10 @@ export type DesignTokens = {
   buttonSecondaryColor: string;
   buttonSecondaryBgHover: string;
   buttonSecondaryColorHover: string;
+  buttonFeaturedProductsNavBg: string;
+  buttonFeaturedProductsNavColor: string;
+  buttonFeaturedProductsNavBgHover: string;
+  buttonFeaturedProductsNavColorHover: string;
   buttonOutlineText: string;
   buttonOutlineBackground: string;
   buttonOutlineBorder: string;
@@ -105,6 +109,10 @@ export const ASPEN_2026_DESIGN_TOKENS: DesignTokens = {
   buttonSecondaryColor: "#24211E",
   buttonSecondaryBgHover: "#E9E7E4",
   buttonSecondaryColorHover: "#24211E",
+  buttonFeaturedProductsNavBg: "#EDEAE6",
+  buttonFeaturedProductsNavColor: "#524B46",
+  buttonFeaturedProductsNavBgHover: "#D8D2CB",
+  buttonFeaturedProductsNavColorHover: "#524B46",
   buttonOutlineText: "#343231",
   buttonOutlineBackground: "#FFFFFF",
   buttonOutlineBorder: "#B1B0AF",
