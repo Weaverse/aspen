@@ -31,3 +31,23 @@ test("product cards no longer offer the removed second-image hover effect", () =
     false,
   );
 });
+
+test("Featured Products nav color settings match the design token defaults", () => {
+  const colors = themeSchema.settings
+    .flatMap((group) => group.inputs)
+    .filter(
+      (input) =>
+        typeof input.name === "string" &&
+        input.name.startsWith("buttonFeaturedProductsNav"),
+    );
+
+  assert.deepEqual(
+    Object.fromEntries(colors.map((input) => [input.name, input.defaultValue])),
+    {
+      buttonFeaturedProductsNavBg: "#EDEAE6",
+      buttonFeaturedProductsNavColor: "#524B46",
+      buttonFeaturedProductsNavBgHover: "#D8D2CB",
+      buttonFeaturedProductsNavColorHover: "#524B46",
+    },
+  );
+});

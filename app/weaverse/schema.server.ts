@@ -427,6 +427,34 @@ export const themeSchema: HydrogenThemeSchema = {
         },
         {
           type: "heading",
+          label: "Button (Featured Products navigation)",
+        },
+        {
+          type: "color",
+          label: "Background color",
+          name: "buttonFeaturedProductsNavBg",
+          defaultValue: "#EDEAE6",
+        },
+        {
+          type: "color",
+          label: "Icon color",
+          name: "buttonFeaturedProductsNavColor",
+          defaultValue: "#524B46",
+        },
+        {
+          type: "color",
+          label: "Background color (hover)",
+          name: "buttonFeaturedProductsNavBgHover",
+          defaultValue: "#D8D2CB",
+        },
+        {
+          type: "color",
+          label: "Icon color (hover)",
+          name: "buttonFeaturedProductsNavColorHover",
+          defaultValue: "#524B46",
+        },
+        {
+          type: "heading",
           label: "Button (outline)",
         },
         {

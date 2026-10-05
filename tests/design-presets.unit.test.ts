@@ -17,12 +17,30 @@ test("Aspen 2026 restores the previous button and product card visuals", () => {
   const tokens = resolveDesignTokens({ designSystemPreset: "aspen-2026" });
 
   assert.equal(tokens.buttonSecondaryColor, "#24211E");
+  assert.equal(tokens.buttonFeaturedProductsNavBg, "#EDEAE6");
+  assert.equal(tokens.buttonFeaturedProductsNavColor, "#524B46");
+  assert.equal(tokens.buttonFeaturedProductsNavBgHover, "#D8D2CB");
   assert.equal(tokens.buttonOutlineBackground, "#FFFFFF");
   assert.equal(tokens.buttonOutlineTextHover, "#524B46");
   assert.equal(tokens.buttonOutlineBorderHover, "#B0ACA9");
   assert.equal(tokens.newBadgeColor, "#EBE8E5");
   assert.equal(tokens.pcardHoverBackgroundColor, "#F1F1F1");
   assert.equal(tokens.pcardBorderRadius, 8);
+});
+
+test("custom Featured Products nav colors preserve saved values and default missing values", () => {
+  const tokens = resolveDesignTokens({
+    designSystemPreset: "custom",
+    buttonSecondaryBg: "#123456",
+    buttonFeaturedProductsNavBg: "#ABCDEF",
+    buttonFeaturedProductsNavColor: "#FEDCBA",
+  });
+
+  assert.equal(tokens.buttonSecondaryBg, "#123456");
+  assert.equal(tokens.buttonFeaturedProductsNavBg, "#ABCDEF");
+  assert.equal(tokens.buttonFeaturedProductsNavColor, "#FEDCBA");
+  assert.equal(tokens.buttonFeaturedProductsNavBgHover, "#D8D2CB");
+  assert.equal(tokens.buttonFeaturedProductsNavColorHover, "#524B46");
 });
 
 test("Aspen 2026 restores responsive footer control colors", () => {

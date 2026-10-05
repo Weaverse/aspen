@@ -143,7 +143,9 @@ export function ProductCard({
   return (
     <article
       className={clsx(
-        "group/product-card @container/product-card overflow-hidden p-5 desktop:px-0 desktop:pt-0 desktop:gap-0 bg-(--pcard-background) transition-colors duration-300 desktop:hover:bg-(--pcard-hover-background) desktop:focus-within:bg-(--pcard-hover-background)",
+        "group/product-card @container/product-card overflow-hidden p-5 bg-(--pcard-background) transition-colors duration-300",
+        !mobileLayout &&
+          "desktop:px-0 desktop:pt-0 desktop:gap-0 desktop:hover:bg-(--pcard-hover-background) desktop:focus-within:bg-(--pcard-hover-background)",
         className,
       )}
       style={
@@ -180,7 +182,11 @@ export function ProductCard({
         <div
           data-product-card-image-frame
           style={{ borderRadius: productCardBorderRadius }}
-          className="absolute inset-0 transition-[inset] duration-300 desktop:group-hover/product-card:inset-(--pcard-hover-padding) desktop:group-focus-within/product-card:inset-(--pcard-hover-padding)"
+          className={clsx(
+            "absolute inset-0 transition-[inset] duration-300",
+            !mobileLayout &&
+              "desktop:group-hover/product-card:inset-(--pcard-hover-padding) desktop:group-focus-within/product-card:inset-(--pcard-hover-padding)",
+          )}
         >
           <Link
             to={productPath}
@@ -200,6 +206,7 @@ export function ProductCard({
                   className={clsx(
                     "h-full w-full [&>img]:transition-transform [&>img]:duration-300",
                     pcardImageZoom &&
+                      !mobileLayout &&
                       "desktop:group-hover/product-card:[&>img]:scale-(--pcard-hover-zoom) desktop:group-focus-within/product-card:[&>img]:scale-(--pcard-hover-zoom)",
                   )}
                   sizes={`${minWidthQuery(DESKTOP_MIN_PX)} 25vw, ${minWidthQuery(TABLET_MIN_PX)} 30vw, 45vw`}
@@ -264,7 +271,8 @@ export function ProductCard({
       <div
         className={clsx(
           "flex flex-col gap-(--pcard-content-gap) pt-(--pcard-image-content-gap) pb-0",
-          "desktop:px-5 transition-[padding] duration-300 desktop:group-hover/product-card:pt-(--pcard-hover-info-top) desktop:group-hover/product-card:pb-(--pcard-hover-info-bottom) desktop:group-focus-within/product-card:pt-(--pcard-hover-info-top) desktop:group-focus-within/product-card:pb-(--pcard-hover-info-bottom)",
+          !mobileLayout &&
+            "desktop:px-5 transition-[padding] duration-300 desktop:group-hover/product-card:pt-(--pcard-hover-info-top) desktop:group-hover/product-card:pb-(--pcard-hover-info-bottom) desktop:group-focus-within/product-card:pt-(--pcard-hover-info-top) desktop:group-focus-within/product-card:pb-(--pcard-hover-info-bottom)",
           quickShopIconOnlyOnTablet && "self-stretch text-left",
           CONTENT_ALIGNMENT_CLASSES[
             alignment as keyof typeof CONTENT_ALIGNMENT_CLASSES

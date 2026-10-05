@@ -31,6 +31,29 @@ import { useFeaturedProductsLayout } from ".";
 type ItemsPerRowType = "2" | "3" | "4" | "5";
 type GapType = 8 | 12 | 16 | 20 | 24 | 28 | 32;
 
+function FeaturedProductsNavCaret({
+  direction,
+}: {
+  direction: "left" | "right";
+}) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={direction === "right" ? "rotate-180" : undefined}
+      width="9"
+      height="17"
+      viewBox="0 0 9 17"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M0.219934 7.71993L7.71993 0.219933C7.78962 0.150251 7.87234 0.0949764 7.96339 0.0572643C8.05443 0.0195522 8.15201 0.000141144 8.25056 0.000141144C8.34911 0.000141144 8.44669 0.0195522 8.53773 0.0572643C8.62878 0.0949764 8.7115 0.150251 8.78118 0.219933C8.85087 0.289616 8.90614 0.372341 8.94385 0.463387C8.98157 0.554431 9.00098 0.652013 9.00098 0.750559C9.00098 0.849105 8.98157 0.946687 8.94385 1.03773C8.90614 1.12878 8.85087 1.2115 8.78118 1.28118L1.81087 8.25056L8.78118 15.2199C8.92192 15.3607 9.00098 15.5515 9.00098 15.7506C9.00098 15.9496 8.92192 16.1405 8.78118 16.2812C8.64045 16.4219 8.44958 16.501 8.25056 16.501C8.05154 16.501 7.86066 16.4219 7.71993 16.2812L0.219934 8.78119C0.150202 8.71153 0.094882 8.62881 0.0571394 8.53776C0.0193958 8.44672 -2.95639e-05 8.34912 -2.95639e-05 8.25056C-2.95639e-05 8.152 0.0193958 8.0544 0.0571394 7.96335C0.094882 7.87231 0.150202 7.78959 0.219934 7.71993Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
 const productItemsVariants = cva("", {
   variants: {
     layout: {
@@ -126,7 +149,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
       productsToShow = 4,
       arrowsColor = "primary",
       arrowsShape = "rounded-sm",
-      arrowsIcon = "auto",
+      arrowsIcon = "arrow",
       relatedProductCardLayout: _legacyRelatedProductCardLayout,
       ...rest
     } = props;
@@ -186,7 +209,12 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
       return arrowsColor === "secondary"
         ? activeLayout === "carousel"
           ? [
-              "bg-[#EDEAE6] text-body-subtle hover:bg-[#EDEAE6] hover:text-body-subtle",
+              "text-(--btn-featured-products-nav-text)",
+              "bg-(--btn-featured-products-nav-bg)",
+              "border-(--btn-featured-products-nav-bg)",
+              "hover:text-(--btn-featured-products-nav-text-hover)",
+              "hover:bg-(--btn-featured-products-nav-bg-hover)",
+              "hover:border-(--btn-featured-products-nav-bg-hover)",
             ]
           : [
               "text-(--btn-secondary-text)",
@@ -208,9 +236,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
 
     const arrowShapeClasses = useMemo(() => {
       if (arrowsShape === "circle") {
-        return activeLayout === "carousel"
-          ? "size-[40.501px] rounded-full"
-          : "rounded-full";
+        return "rounded-full";
       }
       if (arrowsShape === "square") {
         return activeLayout === "carousel" ? "rounded-none" : "";
@@ -220,6 +246,13 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
         : "rounded-(--radius-sm)";
     }, [arrowsShape, activeLayout]);
 
+    const arrowButtonClasses =
+      activeLayout === "carousel"
+        ? resolvedArrowIcon === "caret"
+          ? "size-11 border-0 p-3 [&>svg]:h-[17px] [&>svg]:w-[9px]"
+          : "size-11 border-0 p-3 [&>svg]:size-4"
+        : "border p-4";
+
     const renderArrowControls = (classPrefix: string) => (
       <div className="flex justify-center gap-2">
         <ArrowButton
@@ -227,19 +260,18 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
           type="button"
           className={clsx(
             `${classPrefix}-prev`,
-            activeLayout === "carousel"
-              ? "size-[40.501px] border-0 p-3 [&>svg]:h-[16.501px] [&>svg]:w-[9.001px]"
-              : "border p-4",
+            arrowButtonClasses,
             arrowColorClasses,
             arrowShapeClasses,
           )}
           aria-label={t("product.previousProduct")}
         >
           {resolvedArrowIcon === "caret" ? (
-            <CaretLeft
-              size={16}
-              viewBox={activeLayout === "carousel" ? "72 40 96 176" : undefined}
-            />
+            activeLayout === "carousel" ? (
+              <FeaturedProductsNavCaret direction="left" />
+            ) : (
+              <CaretLeft size={16} />
+            )
           ) : (
             <ArrowLeft size={16} />
           )}
@@ -249,19 +281,18 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
           type="button"
           className={clsx(
             `${classPrefix}-next`,
-            activeLayout === "carousel"
-              ? "size-[40.501px] border-0 p-3 [&>svg]:h-[16.501px] [&>svg]:w-[9.001px]"
-              : "border p-4",
+            arrowButtonClasses,
             arrowColorClasses,
             arrowShapeClasses,
           )}
           aria-label={t("product.nextProduct")}
         >
           {resolvedArrowIcon === "caret" ? (
-            <CaretRight
-              size={16}
-              viewBox={activeLayout === "carousel" ? "88 40 96 176" : undefined}
-            />
+            activeLayout === "carousel" ? (
+              <FeaturedProductsNavCaret direction="right" />
+            ) : (
+              <CaretRight size={16} />
+            )
           ) : (
             <ArrowRight size={16} />
           )}
@@ -634,6 +665,8 @@ export const schema = createSchema({
           type: "select",
           label: "Arrows color",
           name: "arrowsColor",
+          helpText:
+            "In Style 1, Secondary uses the Featured Products navigation colors in Theme Settings. Style 2 uses the standard Secondary button colors.",
           configs: {
             options: [
               { value: "primary", label: "Primary" },
