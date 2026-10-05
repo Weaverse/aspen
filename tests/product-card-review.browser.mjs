@@ -280,18 +280,32 @@ test("badges, wishlist and Quick Add stay inside the inset image frame", async (
     const frame = card.locator("[data-product-card-image-frame]");
     await expect(frame).toHaveCSS("top", width >= 1025 ? "20px" : "0px");
     const bounds = await frame.boundingBox();
+    const badge = frame.locator(".best-seller-badge");
+    const wishlist = frame.getByRole("button", {
+      name: "wishlist.add",
+      exact: true,
+    });
     for (const overlay of [
-      frame.locator(".best-seller-badge"),
+      badge,
       frame.getByRole("button", { name: "product.selectOptions", exact: true }),
-      ...(width >= 1025
-        ? [frame.getByRole("button", { name: "wishlist.add", exact: true })]
-        : []),
+      ...(width >= 1025 ? [wishlist] : []),
     ]) {
       await expect(overlay).toBeVisible();
       const box = await overlay.boundingBox();
       assert.ok(box.x >= bounds.x && box.y >= bounds.y);
       assert.ok(box.x + box.width <= bounds.x + bounds.width + 0.1);
       assert.ok(box.y + box.height <= bounds.y + bounds.height + 0.1);
+    }
+    if (width >= 1025) {
+      const badgeBox = await badge.boundingBox();
+      const wishlistIconBox = await wishlist.locator("svg").boundingBox();
+      assert.ok(
+        Math.abs(
+          badgeBox.y +
+            badgeBox.height / 2 -
+            (wishlistIconBox.y + wishlistIconBox.height / 2),
+        ) < 0.1,
+      );
     }
     await page.close();
   }

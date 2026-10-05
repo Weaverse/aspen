@@ -235,6 +235,7 @@ export function ProductCard({
             <ProductCardWishlistButton
               productId={product.id}
               productTitle={product.title}
+              className="top-[13px]"
             />
           )}
           <div
