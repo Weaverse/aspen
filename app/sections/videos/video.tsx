@@ -16,6 +16,7 @@ import { QuickShopTrigger } from "~/components/product/quick-shop";
 import { SpacedMoney } from "~/components/product/variant-prices";
 import { PRODUCT_QUERY } from "~/graphql/queries";
 import { useTranslatedText } from "~/hooks/use-translated-text";
+import { useTranslatedThemeSettings } from "~/hooks/use-translated-theme-settings";
 import { cn } from "~/utils/cn";
 import { useClientReady } from "~/utils/react-player";
 
@@ -67,6 +68,7 @@ let VideoItem = forwardRef<HTMLDivElement, VideoItemProps>((props, ref) => {
   });
   const quickAddButtonRef = useRef<HTMLButtonElement>(null);
   const translateText = useTranslatedText();
+  const { quickShopButtonTextOpen } = useTranslatedThemeSettings();
 
   const { t } = useTranslation();
   let {
@@ -88,7 +90,7 @@ let VideoItem = forwardRef<HTMLDivElement, VideoItemProps>((props, ref) => {
   const selectedVariant = productData?.selectedOrFirstAvailableVariant;
   const cartButtonText = selectedVariant?.availableForSale
     ? addToCartText
-    : t("video.soldOut");
+    : t("product.soldOut");
   const productImage = selectedVariant?.image || productData?.featuredImage;
   const productUrl = productData?.handle
     ? `/products/${productData.handle}`
@@ -224,9 +226,9 @@ let VideoItem = forwardRef<HTMLDivElement, VideoItemProps>((props, ref) => {
                       type="button"
                       onClick={() => setQuickAddOpen(true)}
                       className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[8px] border border-[#D8D8D8] bg-white"
-                      aria-label={t("product.viewProduct", {
-                        product: productData.title,
-                      })}
+                      aria-label={
+                        quickShopButtonTextOpen || t("product.selectOptions")
+                      }
                       aria-haspopup="dialog"
                       aria-expanded={quickAddOpen}
                     >

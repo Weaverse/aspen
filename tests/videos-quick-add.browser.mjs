@@ -25,7 +25,8 @@ const bundle = await build({
       const product = {handle:"fixture-product", title:"Fixture product",
         selectedOrFirstAvailableVariant:{id:"variant",availableForSale:true,price:money,selectedOptions:[{name:"Color",value:"Blue"}]}};
       window.fixtureSettings = {};
-      window.start = ({inline = false, withImage = false, label = "Add to Cart", available = true} = {}) => {
+      window.start = ({inline = false, withImage = false, label = "Add to Cart", available = true, quickShopLabel} = {}) => {
+        window.fixtureSettings = quickShopLabel ? {quickShopButtonTextOpen: quickShopLabel} : {};
         product.selectedOrFirstAvailableVariant.availableForSale = available;
         window.cartStore = useCartStore;
         window.productRequests = [];
@@ -92,7 +93,7 @@ const bundle = await build({
                export const IMAGES_PLACEHOLDERS = {};
                export const useParentInstance = () => null;
                export const useThemeSettings = () => window.fixtureSettings;
-               export const useTranslation = () => ({ t: (key, values = {}) => key === 'video.soldOut' ? 'Soldout' : key + (values.value ? ':' + values.value : '') });`,
+               export const useTranslation = () => ({ t: (key, values = {}) => key === 'product.soldOut' ? 'Sold out' : key + (values.value ? ':' + values.value : '') });`,
         }));
       },
     },
@@ -138,7 +139,9 @@ async function render(width, options = {}) {
   }
   await page
     .getByRole("button", {
-      name: options.inline ? "Other Add" : "product.viewProduct",
+      name: options.inline
+        ? "Other Add"
+        : options.quickShopLabel || "product.selectOptions",
     })
     .waitFor();
   return page;
@@ -148,7 +151,7 @@ test("video eye opens the existing responsive Quick Add and restores focus", asy
   for (const width of [390, 767, 768, 1024, 1440]) {
     const page = await render(width);
     const button = page.getByRole("button", {
-      name: "product.viewProduct",
+      name: "product.selectOptions",
       exact: true,
       includeHidden: true,
     });
@@ -186,6 +189,18 @@ test("video eye opens the existing responsive Quick Add and restores focus", asy
     await expect(button).toHaveAttribute("aria-expanded", "false");
     await page.close();
   }
+});
+
+test("Videos Quick Add respects the merchant-configured accessible label", async () => {
+  const page = await render(768, { quickShopLabel: "Choose your variant" });
+  const button = page.getByRole("button", {
+    name: "Choose your variant",
+    exact: true,
+  });
+  await expect(button).toBeVisible();
+  await button.click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await page.close();
 });
 // Register mutation tests after the browser fixture has initialized.
 test("Videos Add to Cart spins without resizing, blocks repeats and settles on success/error", async () => {
@@ -297,7 +312,7 @@ test("Videos purchase buttons stay compact and inside the card at responsive wid
       exact: true,
     });
     const eye = page.getByRole("button", {
-      name: "product.viewProduct",
+      name: "product.selectOptions",
       exact: true,
     });
     await button.focus();
@@ -330,17 +345,17 @@ test("Videos purchase buttons stay compact and inside the card at responsive wid
   }
 });
 
-test("Videos unavailable variants show Soldout and cannot submit at all breakpoints", async () => {
+test("Videos unavailable variants show Sold out and cannot submit at all breakpoints", async () => {
   for (const width of [390, 768, 1440]) {
     const page = await render(width, { available: false, withImage: true });
     const eye = page.getByRole("button", {
-      name: "product.viewProduct",
+      name: "product.selectOptions",
       exact: true,
     });
     await eye.focus();
-    const button = page.getByRole("button", { name: "Soldout", exact: true });
+    const button = page.getByRole("button", { name: "Sold out", exact: true });
     await expect(button).toBeVisible();
-    await expect(button).toHaveText("Soldout");
+    await expect(button).toHaveText("Sold out");
     await expect(button).toBeDisabled();
     await expect(
       page.getByRole("button", { name: "Add to Cart", exact: true }),
@@ -365,7 +380,7 @@ test("Videos narrow cards and long merchant labels do not overflow or clip loadi
     });
     const button = page.getByRole("button", { name: label, exact: true });
     const eye = page.getByRole("button", {
-      name: "product.viewProduct",
+      name: "product.selectOptions",
       exact: true,
     });
     await button.focus();
