@@ -266,7 +266,7 @@ export const schema = createSchema({
           configs: {
             options: [
               { value: "left", label: "Left" },
-              { value: "middle", label: "Middle" },
+              { value: "middle", label: "Center" },
             ],
           },
           defaultValue: "left",
