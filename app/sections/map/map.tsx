@@ -193,7 +193,7 @@ const MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
             />
             <div
               className={cn(
-                "relative z-1 flex flex-col gap-8 px-6 py-12",
+                "relative z-1 flex flex-col gap-8 rounded-(--radius-md) px-6 py-12",
                 "md:max-lg:mx-8 md:max-lg:my-[108px] md:max-lg:w-[487px] md:max-lg:max-w-[calc(100%-64px)] md:max-lg:p-10",
                 "xl:absolute xl:top-1/2 xl:left-(--page-padding) xl:w-[52%] xl:-translate-y-1/2 xl:gap-10 xl:p-10",
               )}
