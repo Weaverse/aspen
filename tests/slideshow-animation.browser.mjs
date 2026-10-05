@@ -39,10 +39,11 @@ const bundle = await build({
         );
       }
       window.startNested = () => createRoot(document.getElementById("root")).render(React.createElement(NestedSection));
-      window.start = (effect, dotsPosition, arrowsShape) => createRoot(document.getElementById("root")).render(
+      window.start = (effect, dotsPosition, arrowsShape, className) => createRoot(document.getElementById("root")).render(
         React.createElement(Slideshow, {
           effect, loop: true, showDots: true, showArrows: true,
           dotsPosition,
+          className,
           arrowsIcon: "caret", iconSize: 24, arrowsShape,
           autoRotate: false, changeSlidesEvery: 5,
           children: ["First", "Second", "Third"].map((headingContent) =>
@@ -93,6 +94,29 @@ const css = stylesheet.build(
     sources: [{ base: `${root}app`, pattern: "**/*.{ts,tsx}", negated: false }],
   }).scan(),
 );
+
+const dotsLayout = {
+  mobilePadding: 32,
+  pagePadding: 40,
+  mediumBreakpoint: 768,
+  largeBreakpoint: 1025,
+  extraLargeBreakpoint: 1536,
+  pageWidths: [1440, 1600],
+};
+
+function getExpectedDotsLeft(viewportWidth, pageWidth) {
+  const centeredPageInset =
+    (viewportWidth - Math.min(viewportWidth, pageWidth)) / 2;
+  if (viewportWidth >= dotsLayout.extraLargeBreakpoint) {
+    return centeredPageInset;
+  }
+  return (
+    centeredPageInset +
+    (viewportWidth >= dotsLayout.mediumBreakpoint
+      ? dotsLayout.pagePadding
+      : dotsLayout.mobilePadding)
+  );
+}
 
 test("slideshow arrow shapes override the shared button radius", async () => {
   const browser = await chromium.launch();
@@ -315,51 +339,91 @@ test("nested animation scopes leave all content visible after completion", async
   }
 });
 
-test("dots use exact responsive offsets with Left, Middle and legacy positions", async () => {
+test("dots stay at the bottom and align responsively to the page container", async () => {
   const browser = await chromium.launch();
   try {
-    for (const viewportWidth of [390, 768, 1024, 1025, 1440, 1920]) {
-      for (const position of [
-        undefined,
-        "left",
-        "middle",
-        "top",
-        "bottom",
-        "right",
+    for (const pageWidth of dotsLayout.pageWidths) {
+      for (const viewportWidth of [
+        390, 767, 768, 1024, 1025, 1535, 1536, 1920,
       ]) {
-        const page = await browser.newPage();
-        await page.setViewportSize({ width: viewportWidth, height: 1000 });
-        await page.setContent(`<style>${css}
-        :root { --page-padding: 40px; }
-        .swiper { width: 800px; height: 300px; }
+        for (const position of [
+          undefined,
+          "left",
+          "middle",
+          "top",
+          "bottom",
+          "right",
+        ]) {
+          const page = await browser.newPage();
+          await page.setViewportSize({ width: viewportWidth, height: 1000 });
+          await page.setContent(`<style>${css}
+        :root { --page-padding: ${dotsLayout.pagePadding}px; --page-width: ${pageWidth}px; }
+        .swiper { width: 100%; height: 300px; }
       </style><div id="root"></div>`);
-        await page.addScriptTag({ content: bundle.outputFiles[0].text });
-        await page.evaluate((value) => window.start("fade", value), position);
-        await page.waitForSelector(".swiper-initialized");
-        const layout = await page.locator(".swiper").evaluate((element) => {
-          const banner = element.getBoundingClientRect();
-          const track = element
-            .querySelector(".slideshow-dots > div")
-            .getBoundingClientRect();
-          return {
-            bottom: banner.bottom - track.bottom,
-            left: track.left - banner.left,
-            center: (track.left + track.right - banner.left - banner.right) / 2,
-            width: track.width,
-            height: track.height,
-          };
-        });
-        assert.equal(layout.bottom, viewportWidth >= 1025 ? 71 : 73);
-        assert.equal(layout.width, 160);
-        assert.equal(layout.height, 4);
-        if (position === "middle") {
-          assert.ok(Math.abs(layout.center) < 1);
-        } else {
-          assert.equal(layout.left, viewportWidth >= 1025 ? 40 : 32);
+          await page.addScriptTag({ content: bundle.outputFiles[0].text });
+          await page.evaluate((value) => window.start("fade", value), position);
+          await page.waitForSelector(".swiper-initialized");
+          const layout = await page.locator(".swiper").evaluate((element) => {
+            const banner = element.getBoundingClientRect();
+            const track = element
+              .querySelector(".slideshow-dots > div > div")
+              .getBoundingClientRect();
+            return {
+              bottom: banner.bottom - track.bottom,
+              left: track.left - banner.left,
+              center:
+                (track.left + track.right - banner.left - banner.right) / 2,
+              width: track.width,
+              height: track.height,
+            };
+          });
+          assert.equal(
+            layout.bottom,
+            viewportWidth >= dotsLayout.largeBreakpoint ? 71 : 73,
+          );
+          assert.equal(layout.width, 160);
+          assert.equal(layout.height, 4);
+          if (position === "middle") {
+            assert.ok(Math.abs(layout.center) < 1);
+          } else {
+            assert.equal(
+              layout.left,
+              getExpectedDotsLeft(viewportWidth, pageWidth),
+            );
+          }
+          await page.close();
         }
-        await page.close();
       }
     }
+  } finally {
+    await browser.close();
+  }
+});
+
+test("dots layout className overrides apply to the responsive container", async () => {
+  const browser = await chromium.launch();
+  try {
+    const page = await browser.newPage({
+      viewport: { width: 1440, height: 900 },
+    });
+    await page.setContent(`<style>${css}
+      :root { --page-padding: 40px; --page-width: 1440px; }
+      .swiper { width: 100%; height: 300px; }
+    </style><div id="root"></div>`);
+    await page.addScriptTag({ content: bundle.outputFiles[0].text });
+    await page.evaluate(() =>
+      window.start("fade", "left", undefined, "max-w-none px-0 justify-center"),
+    );
+    await page.waitForSelector(".swiper-initialized");
+    const centerOffset = await page.locator(".swiper").evaluate((element) => {
+      const banner = element.getBoundingClientRect();
+      const track = element
+        .querySelector(".slideshow-dots > div > div")
+        .getBoundingClientRect();
+      return (track.left + track.right - banner.left - banner.right) / 2;
+    });
+    assert.ok(Math.abs(centerOffset) < 1);
+    await page.close();
   } finally {
     await browser.close();
   }
