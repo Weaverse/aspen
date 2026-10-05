@@ -30,6 +30,9 @@ export function AddToCartButton({
   disabled,
   analytics,
   onAdded,
+  loadingStyle = "inline",
+  cartOpenTiming = "submit",
+  onMutationStateChange,
   ...props
 }: {
   children: React.ReactNode;
@@ -40,6 +43,12 @@ export function AddToCartButton({
   disabled?: boolean;
   analytics?: unknown;
   onAdded?: () => void;
+  loadingStyle?: "inline" | "overlay";
+  cartOpenTiming?: "submit" | "success";
+  onMutationStateChange?: (state: {
+    pending: boolean;
+    hasError: boolean;
+  }) => void;
   [key: string]: any;
 }) {
   const { t } = useTranslation();
@@ -77,7 +86,9 @@ export function AddToCartButton({
         if (tokenInput instanceof HTMLInputElement) {
           tokenInput.value = pendingToken.current ?? "";
         }
-        useCartStore.getState().open();
+        if (cartOpenTiming === "submit") {
+          useCartStore.getState().open();
+        }
       }}
     >
       <CartForm
@@ -92,6 +103,9 @@ export function AddToCartButton({
             <AddToCartAnalytics
               fetcher={fetcher}
               onAdded={onAdded}
+              cartOpenTiming={cartOpenTiming}
+              onMutationStateChange={onMutationStateChange}
+              hasError={Boolean(errorMessage)}
               pendingToken={pendingToken}
               submitted={submitted}
             >
@@ -110,8 +124,14 @@ export function AddToCartButton({
                     disabled || isAdding || !hasValidLines || !isHydrated,
                   )}
                   {...props}
+                  loading={
+                    loadingStyle === "overlay" ? isAdding : props.loading
+                  }
+                  aria-busy={
+                    loadingStyle === "overlay" ? isAdding : props["aria-busy"]
+                  }
                 >
-                  {isAdding ? (
+                  {isAdding && loadingStyle === "inline" ? (
                     <span className="flex items-center justify-center gap-2">
                       <svg
                         aria-hidden="true"
@@ -187,14 +207,29 @@ function AddToCartAnalytics({
   onAdded,
   pendingToken,
   submitted,
+  cartOpenTiming,
+  onMutationStateChange,
+  hasError,
 }: {
   fetcher: FetcherWithComponents<any>;
   children: React.ReactNode;
   onAdded?: () => void;
   pendingToken: React.MutableRefObject<string | null>;
   submitted: React.MutableRefObject<boolean>;
+  cartOpenTiming: "submit" | "success";
+  onMutationStateChange?: (state: {
+    pending: boolean;
+    hasError: boolean;
+  }) => void;
+  hasError: boolean;
 }) {
   useCartFetcherSync(fetcher);
+  useEffect(() => {
+    onMutationStateChange?.({
+      pending: fetcher.state !== "idle",
+      hasError: fetcher.state === "idle" && hasError,
+    });
+  }, [fetcher.state, hasError, onMutationStateChange]);
   useEffect(() => {
     if (!submitted.current || fetcher.state !== "idle") {
       return;
@@ -220,7 +255,11 @@ function AddToCartAnalytics({
   const handledData = useRef<unknown>(null);
 
   useEffect(() => {
-    if (fetcherData && handledData.current !== fetcherData) {
+    if (
+      (cartOpenTiming === "submit" || fetcher.state === "idle") &&
+      fetcherData &&
+      handledData.current !== fetcherData
+    ) {
       handledData.current = fetcherData;
       const cartData: Record<string, unknown> = {};
 
@@ -244,6 +283,9 @@ function AddToCartAnalytics({
         !fetcherData.userErrors?.length &&
         !fetcherData.errors?.length
       ) {
+        if (cartOpenTiming === "success") {
+          useCartStore.getState().open();
+        }
         onAdded?.();
       }
 
@@ -262,7 +304,14 @@ function AddToCartAnalytics({
         });
       }
     }
-  }, [fetcherData, formData, onAdded, pageAnalytics]);
+  }, [
+    fetcher.state,
+    fetcherData,
+    formData,
+    onAdded,
+    pageAnalytics,
+    cartOpenTiming,
+  ]);
 
   return <>{children}</>;
 }
