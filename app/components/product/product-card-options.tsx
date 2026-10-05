@@ -76,11 +76,11 @@ export function ProductCardOptions({
                   <button
                     type="button"
                     className={cn(
-                      "flex box-content size-3 items-start justify-center gap-2.5 rounded-xs border p-0.5 transition-colors",
+                      "flex box-content size-3 items-start justify-center gap-2.5 rounded-(--radius-xs) bg-background p-0.5 transition-colors",
                       "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body",
                       selected
-                        ? "border-line"
-                        : "border-line-subtle hover:border-line",
+                        ? "border border-line"
+                        : "border-[0.5px] border-line-subtle hover:border-line",
                       unavailable && "diagonal opacity-60",
                     )}
                     aria-label={t("product.selectOptionValue", {

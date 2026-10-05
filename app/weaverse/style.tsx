@@ -43,6 +43,10 @@ export function GlobalStyle() {
     buttonSecondaryColor,
     buttonSecondaryBgHover,
     buttonSecondaryColorHover,
+    buttonFeaturedProductsNavBg,
+    buttonFeaturedProductsNavColor,
+    buttonFeaturedProductsNavBgHover,
+    buttonFeaturedProductsNavColorHover,
     buttonOutlineText,
     buttonOutlineBackground,
     buttonOutlineBorder,
@@ -145,6 +149,10 @@ export function GlobalStyle() {
             --btn-secondary-text: ${buttonSecondaryColor};
             --btn-secondary-bg-hover: ${buttonSecondaryBgHover};
             --btn-secondary-text-hover: ${buttonSecondaryColorHover};
+            --btn-featured-products-nav-bg: ${buttonFeaturedProductsNavBg};
+            --btn-featured-products-nav-text: ${buttonFeaturedProductsNavColor};
+            --btn-featured-products-nav-bg-hover: ${buttonFeaturedProductsNavBgHover};
+            --btn-featured-products-nav-text-hover: ${buttonFeaturedProductsNavColorHover};
             --btn-outline-text: ${buttonOutlineText};
             --btn-outline-background: ${buttonOutlineBackground};
             --btn-outline-border: ${buttonOutlineBorder};

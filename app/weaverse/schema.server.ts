@@ -427,6 +427,34 @@ export const themeSchema: HydrogenThemeSchema = {
         },
         {
           type: "heading",
+          label: "Button (Featured Products navigation)",
+        },
+        {
+          type: "color",
+          label: "Background color",
+          name: "buttonFeaturedProductsNavBg",
+          defaultValue: "#EDEAE6",
+        },
+        {
+          type: "color",
+          label: "Icon color",
+          name: "buttonFeaturedProductsNavColor",
+          defaultValue: "#524B46",
+        },
+        {
+          type: "color",
+          label: "Background color (hover)",
+          name: "buttonFeaturedProductsNavBgHover",
+          defaultValue: "#D8D2CB",
+        },
+        {
+          type: "color",
+          label: "Icon color (hover)",
+          name: "buttonFeaturedProductsNavColorHover",
+          defaultValue: "#524B46",
+        },
+        {
+          type: "heading",
           label: "Button (outline)",
         },
         {
@@ -801,6 +829,8 @@ export const themeSchema: HydrogenThemeSchema = {
           type: "range",
           name: "pcardHoverPadding",
           label: "Desktop hover padding",
+          helpText:
+            "Insets the image on desktop hover without resizing the card.",
           defaultValue: 20,
           configs: { min: 0, max: 40, step: 1, unit: "px" },
         },
@@ -832,6 +862,14 @@ export const themeSchema: HydrogenThemeSchema = {
           defaultValue: true,
         },
         {
+          type: "range",
+          name: "pcardHoverZoom",
+          label: "Desktop hover zoom",
+          defaultValue: 105,
+          configs: { min: 100, max: 150, step: 1, unit: "%" },
+          condition: (settings) => settings.pcardImageZoom !== false,
+        },
+        {
           type: "color",
           name: "pcardQuickShopHoverBackground",
           label: "Quick shop button hover background",
@@ -846,12 +884,6 @@ export const themeSchema: HydrogenThemeSchema = {
         {
           type: "heading",
           label: "Image",
-        },
-        {
-          type: "switch",
-          name: "pcardShowImageOnHover",
-          label: "Show second image on hover",
-          defaultValue: true,
         },
         {
           type: "select",
