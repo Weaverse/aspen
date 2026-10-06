@@ -273,7 +273,7 @@ export function ProductCard({
         className={clsx(
           "flex flex-col gap-(--pcard-content-gap) pt-(--pcard-image-content-gap) pb-0",
           !mobileLayout &&
-            "desktop:px-5 transition-[padding] duration-300 desktop:group-hover/product-card:pt-(--pcard-hover-info-top) desktop:group-hover/product-card:pb-(--pcard-hover-info-bottom) desktop:group-focus-within/product-card:pt-(--pcard-hover-info-top) desktop:group-focus-within/product-card:pb-(--pcard-hover-info-bottom)",
+            "desktop:px-0 transition-[padding] duration-300 desktop:group-hover/product-card:px-5 desktop:group-focus-within/product-card:px-5 desktop:group-hover/product-card:pt-(--pcard-hover-info-top) desktop:group-hover/product-card:pb-(--pcard-hover-info-bottom) desktop:group-focus-within/product-card:pt-(--pcard-hover-info-top) desktop:group-focus-within/product-card:pb-(--pcard-hover-info-bottom)",
           quickShopIconOnlyOnTablet && "self-stretch text-left",
           CONTENT_ALIGNMENT_CLASSES[
             alignment as keyof typeof CONTENT_ALIGNMENT_CLASSES
