@@ -41,25 +41,27 @@ export function ToolsBar({
 
   return (
     <header className="pb-6 md:pb-8">
-      <div className="flex flex-col gap-4 md:grid md:grid-cols-[minmax(0,1fr)_auto] md:items-stretch md:gap-x-8 lg:grid-cols-[50%_minmax(0,1fr)] xl:gap-x-10">
-        <div className="flex min-w-0 w-full flex-col gap-4 md:justify-between">
-          <h1 className="self-stretch text-left font-heading font-normal text-[37px] uppercase leading-[110%] tracking-[-0.74px] text-[var(--color-text,#343231)] md:max-w-full md:break-words">
+      <div className="flex flex-col gap-4 md:grid md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:gap-x-8 lg:grid-cols-[50%_minmax(0,1fr)] xl:gap-x-10">
+        <div className="flex min-w-0 w-full flex-col gap-4 md:contents">
+          <h1 className="min-w-0 text-left font-heading font-normal text-[37px] uppercase leading-[110%] tracking-[-0.74px] text-[var(--color-text,#343231)] md:col-start-1 md:row-start-1 md:max-w-full md:break-words">
             {collection.title}
           </h1>
           {showProductsCount && (
-            <p className="flex h-12 items-center uppercase">
+            <p className="flex h-12 items-center uppercase md:col-start-1 md:row-start-2">
               {t("collection.products")} ({productCount})
             </p>
           )}
         </div>
-        <div className="flex w-full flex-col gap-4 md:w-auto md:items-end md:justify-between">
-          <div className="flex w-full items-center justify-between gap-2 md:w-fit md:justify-end md:gap-3">
+        <div className="flex w-full flex-col gap-4 md:contents">
+          <div className="flex w-full items-center justify-between gap-2 md:col-start-2 md:row-start-1 md:w-fit md:justify-self-end md:justify-end md:gap-3">
             <LayoutSwitcher
               className={cn(
                 "flex-row overflow-hidden rounded-xl border border-[#9D9D9D]",
                 "[&>button]:border-0 [&>button]:text-[#C8C8C8]",
                 '[&>button[data-active="true"]]:text-[#8A8A8A]',
-                "[&>button+button]:border-[#D8D8D8] [&>button+button]:border-l",
+                "[&>button]:border-[#D8D8D8]",
+                'max-md:[&>button[data-layout-context="mobile"]+button[data-layout-context="mobile"]]:border-l',
+                'md:[&>button[data-layout-context="desktop"]+button[data-layout-context="desktop"]]:border-l',
               )}
               mobileColumns={[1, 2]}
               gridSizeDesktop={gridSizeDesktop}
@@ -75,7 +77,7 @@ export function ToolsBar({
             )}
           </div>
           {enableSort && (
-            <div className="flex w-full justify-end md:w-fit">
+            <div className="flex w-full justify-end md:col-start-2 md:row-start-2 md:w-fit md:justify-self-end">
               <Sort />
             </div>
           )}

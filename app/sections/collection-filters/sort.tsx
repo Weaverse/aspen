@@ -49,6 +49,11 @@ export function Sort({
     );
   }
 
+  const dropdownSortList = [
+    ...sortList.filter(({ key }) => key === "relevance"),
+    ...sortList.filter(({ key }) => key !== "relevance"),
+  ];
+
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger className="flex h-12 w-fit items-center justify-end gap-1.5 py-2.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body">
@@ -62,22 +67,20 @@ export function Sort({
         <DropdownMenu.Content
           sideOffset={8}
           align="end"
-          className="z-20 flex h-fit w-52 flex-col border border-line-subtle bg-background p-2 shadow-lg"
+          className="z-20 flex h-fit w-60 max-w-[calc(100vw-2rem)] flex-col gap-3 rounded-(--radius-md) border border-line bg-background p-6"
         >
-          {sortList.map(({ key, labelKey }) => (
+          {dropdownSortList.map(({ key, labelKey }) => (
             <DropdownMenu.Item key={key} asChild>
               <Link
                 to={getSortUrl(location.pathname, searchParams, key)}
+                aria-current={currentSort.key === key ? "true" : undefined}
                 className={cn(
-                  "flex min-h-10 items-center justify-between gap-3 px-3 py-2 outline-hidden hover:bg-gray-50 focus:bg-gray-50",
-                  currentSort.key === key && "font-semibold",
+                  "flex items-center justify-start self-stretch text-left font-body text-sm font-normal text-body uppercase leading-[1.6] tracking-[0.01em] outline-hidden hover:bg-gray-50 focus:bg-gray-50",
+                  currentSort.key === key && "font-semibold tracking-[0.02em]",
                 )}
                 preventScrollReset
               >
                 <span>{t(labelKey)}</span>
-                {currentSort.key === key && (
-                  <CheckIcon aria-hidden="true" className="h-4 w-4" />
-                )}
               </Link>
             </DropdownMenu.Item>
           ))}

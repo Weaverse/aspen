@@ -40,6 +40,7 @@ export function LayoutSwitcher({
           <button
             key={col}
             type="button"
+            data-layout-context="mobile"
             data-active={gridSizeMobile === col}
             aria-label={t("collection.productsPerRow", { count: col })}
             aria-pressed={gridSizeMobile === col}
@@ -58,6 +59,7 @@ export function LayoutSwitcher({
           <button
             key={`desktop-${col}`}
             type="button"
+            data-layout-context="desktop"
             data-active={gridSizeDesktop === col}
             aria-label={t("collection.productsPerRow", { count: col })}
             aria-pressed={gridSizeDesktop === col}
