@@ -1,9 +1,9 @@
 import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
-import { clsx } from "clsx";
 import { forwardRef } from "react";
 import { useTranslatedText } from "~/hooks/use-translated-text";
+import { cn } from "~/utils/cn";
 
 export interface ParagraphProps
   extends VariantProps<typeof variants>,
@@ -18,7 +18,7 @@ const variants = cva("paragraph", {
     textSize: {
       xs: "text-xs",
       sm: "text-sm",
-      base: "",
+      base: "text-base",
       lg: "text-lg",
       xl: "text-xl",
       "2xl": "text-2xl",
@@ -77,7 +77,7 @@ const Paragraph = forwardRef<
       data-motion="fade-up"
       {...rest}
       style={{ color }}
-      className={clsx(variants({ textSize, width, alignment, className }))}
+      className={cn(variants({ textSize, width, alignment }), className)}
       suppressHydrationWarning
       dangerouslySetInnerHTML={{ __html: content }}
     />

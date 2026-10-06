@@ -42,7 +42,9 @@ type CountDownTimerData = {
   scenario2MobileNumberSize?: number;
   scenario2DesktopNumberSize?: number;
   mobileLabelSize?: number;
+  scenario1DesktopLabelSize?: number;
   desktopLabelSize?: number;
+  showLabels?: boolean;
 };
 
 const CountdownTimer = forwardRef<
@@ -59,7 +61,9 @@ const CountdownTimer = forwardRef<
     scenario2MobileNumberSize = 36,
     scenario2DesktopNumberSize = 48,
     mobileLabelSize = 10,
+    scenario1DesktopLabelSize = 14,
     desktopLabelSize = 12,
+    showLabels = true,
     ...rest
   } = props;
   // Get parent scenario using Weaverse's useParentInstance hook
@@ -114,7 +118,12 @@ const CountdownTimer = forwardRef<
         : scenario1DesktopNumberSize
     }px`,
     "--timer-label-mobile": `${mobileLabelSize}px`,
-    "--timer-label-desktop": `${desktopLabelSize}px`,
+    "--timer-label-tablet": `${desktopLabelSize}px`,
+    "--timer-label-desktop": `${
+      parentScenario === "scenario1"
+        ? scenario1DesktopLabelSize
+        : desktopLabelSize
+    }px`,
   } as CSSProperties;
 
   const isVertical = effectiveLayout === "vertical";
@@ -127,12 +136,19 @@ const CountdownTimer = forwardRef<
   const numberPaddingClass =
     parentScenario === "scenario1" ? "px-0 md:px-2" : "px-0 md:px-5";
   const numberClass = cn(
-    "ff-heading shrink-0 font-normal !leading-[0.8] [font-size:var(--timer-number-mobile)] md:[font-size:var(--timer-number-desktop)]",
+    "ff-heading shrink-0 font-normal [font-size:var(--timer-number-mobile)] md:[font-size:var(--timer-number-desktop)]",
+    parentScenario === "scenario1"
+      ? "leading-[0.8] lg:text-center lg:leading-[1.1] lg:tracking-[-0.03em]"
+      : "leading-[0.8]",
     numberPaddingClass,
     parentScenario !== "scenario2" && "md:max-lg:px-0",
   );
-  const labelClass =
-    "min-w-0 whitespace-nowrap capitalize leading-none [font-size:var(--timer-label-mobile)] md:[font-size:var(--timer-label-desktop)]";
+  const labelClass = cn(
+    "min-w-0 whitespace-nowrap capitalize [font-size:var(--timer-label-mobile)] md:[font-size:var(--timer-label-tablet)] lg:[font-size:var(--timer-label-desktop)]",
+    parentScenario === "scenario1"
+      ? "leading-none lg:font-body lg:font-semibold lg:leading-[1.6] lg:tracking-[0.02em]"
+      : "leading-none",
+  );
 
   return (
     <div
@@ -151,25 +167,29 @@ const CountdownTimer = forwardRef<
         <div className={numberClass}>
           {formatNumber(remainingTime?.days || 0)}
         </div>
-        <div className={labelClass}>{t("countdown.days")}</div>
+        {showLabels && <div className={labelClass}>{t("countdown.days")}</div>}
       </div>
       <div className={itemClass}>
         <div className={numberClass}>
           {formatNumber(remainingTime?.hours || 0)}
         </div>
-        <div className={labelClass}>{t("countdown.hours")}</div>
+        {showLabels && <div className={labelClass}>{t("countdown.hours")}</div>}
       </div>
       <div className={itemClass}>
         <div className={numberClass}>
           {formatNumber(remainingTime?.minutes || 0)}
         </div>
-        <div className={labelClass}>{t("countdown.minutes")}</div>
+        {showLabels && (
+          <div className={labelClass}>{t("countdown.minutes")}</div>
+        )}
       </div>
       <div className={itemClass}>
         <div className={numberClass}>
           {formatNumber(remainingTime?.seconds || 0)}
         </div>
-        <div className={labelClass}>{t("countdown.seconds")}</div>
+        {showLabels && (
+          <div className={labelClass}>{t("countdown.seconds")}</div>
+        )}
       </div>
     </div>
   );
@@ -235,10 +255,23 @@ export const schema = createSchema({
         },
         {
           type: "range",
+          name: "scenario1DesktopLabelSize",
+          label: "Style 1 unit label size (desktop)",
+          configs: { min: 8, max: 24, step: 1, unit: "px" },
+          defaultValue: 14,
+        },
+        {
+          type: "range",
           name: "desktopLabelSize",
-          label: "Unit label size (desktop)",
+          label: "Unit label size (tablet / Style 2 desktop)",
           configs: { min: 8, max: 24, step: 1, unit: "px" },
           defaultValue: 12,
+        },
+        {
+          type: "switch",
+          name: "showLabels",
+          label: "Show unit labels",
+          defaultValue: true,
         },
       ],
     },

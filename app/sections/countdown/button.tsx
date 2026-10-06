@@ -15,6 +15,16 @@ import {
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import type { RootLoader } from "~/root";
 import { cn } from "~/utils/cn";
+import { prefixPathWithLocale } from "~/utils/locale";
+
+const STYLE_2_DEFAULT_COLORS = {
+  background: "#514A45",
+  text: "#FFFFFF",
+  border: "#514A45",
+  backgroundHover: "#403A36",
+  textHover: "#FFFFFF",
+  borderHover: "#403A36",
+} as const;
 
 export const variants = cva(["button inline-flex transition-colors"], {
   variants: {
@@ -83,6 +93,13 @@ export interface LinkData
   style2Text?: string;
   openInNewTab?: boolean;
   alignment?: "left" | "center" | "right";
+  style2Alignment?: "left" | "center" | "right";
+  style2BackgroundColor?: string;
+  style2TextColor?: string;
+  style2BorderColor?: string;
+  style2BackgroundColorHover?: string;
+  style2TextColorHover?: string;
+  style2BorderColorHover?: string;
 }
 
 export interface LinkProps
@@ -94,16 +111,9 @@ export function useHrefWithLocale(href: LinkProps["to"]) {
   const rootData = useRouteLoaderData<RootLoader>("root");
   const selectedLocale = rootData?.selectedLocale;
 
-  let toWithLocale = href;
-  if (
-    typeof toWithLocale === "string" &&
-    selectedLocale?.pathPrefix &&
-    !toWithLocale.toLowerCase().startsWith(selectedLocale.pathPrefix)
-  ) {
-    toWithLocale = `${selectedLocale.pathPrefix}${href}`;
-  }
-
-  return toWithLocale;
+  return typeof href === "string" && selectedLocale
+    ? prefixPathWithLocale(href, selectedLocale)
+    : href;
 }
 
 /**
@@ -131,7 +141,8 @@ export const Link = forwardRef(
       style2Text: rawI18nStyle2Text,
       variant,
       openInNewTab,
-      alignment = "center",
+      alignment,
+      style2Alignment,
       className,
       style,
       textColor,
@@ -141,6 +152,12 @@ export const Link = forwardRef(
       backgroundColorHover,
       borderColorHover,
       textColorDecor,
+      style2BackgroundColor = STYLE_2_DEFAULT_COLORS.background,
+      style2TextColor = STYLE_2_DEFAULT_COLORS.text,
+      style2BorderColor = STYLE_2_DEFAULT_COLORS.border,
+      style2BackgroundColorHover = STYLE_2_DEFAULT_COLORS.backgroundHover,
+      style2TextColorHover = STYLE_2_DEFAULT_COLORS.textHover,
+      style2BorderColorHover = STYLE_2_DEFAULT_COLORS.borderHover,
       children,
       ...rest
     } = props;
@@ -157,16 +174,23 @@ export const Link = forwardRef(
     const isStyle2 = parent?.data?.scenario === "scenario2";
     const href = useHrefWithLocale(to);
     const effectiveText = isStyle2 && style2Text ? style2Text : text;
+    const effectiveAlignment = isStyle2
+      ? style2Alignment || alignment || "center"
+      : alignment || "left";
 
     if (variant === "custom") {
       style = {
         ...style,
-        "--btn-text": textColor,
-        "--btn-bg": backgroundColor,
-        "--btn-border": borderColor,
-        "--btn-bg-hover": backgroundColorHover,
-        "--btn-text-hover": textColorHover,
-        "--btn-border-hover": borderColorHover,
+        "--btn-text": isStyle2 ? style2TextColor : textColor,
+        "--btn-bg": isStyle2 ? style2BackgroundColor : backgroundColor,
+        "--btn-border": isStyle2 ? style2BorderColor : borderColor,
+        "--btn-bg-hover": isStyle2
+          ? style2BackgroundColorHover
+          : backgroundColorHover,
+        "--btn-text-hover": isStyle2 ? style2TextColorHover : textColorHover,
+        "--btn-border-hover": isStyle2
+          ? style2BorderColorHover
+          : borderColorHover,
       } as React.CSSProperties;
     }
     if (variant === "decor") {
@@ -182,10 +206,11 @@ export const Link = forwardRef(
 
     const alignmentClasses = cn(
       "flex w-full",
-      alignment === "left" && "justify-start",
-      alignment === "center" && "justify-center",
-      alignment === "right" && "justify-end",
+      effectiveAlignment === "left" && "justify-start",
+      effectiveAlignment === "center" && "justify-center",
+      effectiveAlignment === "right" && "justify-end",
     );
+    const isTextVariant = variant === "decor" || variant === "underline";
 
     return (
       <div className={cn("button-countdown", alignmentClasses)}>
@@ -204,12 +229,12 @@ export const Link = forwardRef(
           }
           target={openInNewTab ? "_blank" : undefined}
           className={cn(
-            variants({ variant, className }),
-            "rounded-(--radius-sm) px-5 py-3 text-xs",
-            !isStyle2 &&
-              "min-h-[54px] w-fit min-w-[159px] items-center justify-center whitespace-nowrap rounded-(--radius-sm) !border-transparent !bg-[#F0EFED] px-6 py-4 text-sm font-medium leading-none !text-[#343231] hover:!bg-[#e4e3e1]",
-            isStyle2 &&
-              "!border-[#514a45] !bg-[#514a45] !text-white hover:!bg-[#403a36]",
+            variants({ variant }),
+            !isTextVariant && "rounded-(--radius-sm)",
+            !(isStyle2 || isTextVariant) &&
+              "min-h-[54px] w-fit min-w-[159px] items-center justify-center whitespace-nowrap px-6 py-4 text-sm font-medium leading-none",
+            isStyle2 && !isTextVariant && "px-5 py-3 text-xs",
+            className,
           )}
           {...rest}
         >
@@ -289,7 +314,20 @@ export const linkContentInputs: InspectorGroup["inputs"] = [
   {
     type: "toggle-group",
     name: "alignment",
-    label: "Alignment",
+    label: "Style 1 alignment",
+    configs: {
+      options: [
+        { value: "left", label: "Left", icon: "align-start-vertical" },
+        { value: "center", label: "Center", icon: "align-center-vertical" },
+        { value: "right", label: "Right", icon: "align-end-vertical" },
+      ],
+    },
+    defaultValue: "left",
+  },
+  {
+    type: "toggle-group",
+    name: "style2Alignment",
+    label: "Style 2 alignment",
     configs: {
       options: [
         { value: "left", label: "Left", icon: "align-start-vertical" },
@@ -352,6 +390,51 @@ export const linkStylesInputs: InspectorGroup["inputs"] = [
   },
 ];
 
+export const style2LinkStylesInputs: InspectorGroup["inputs"] = [
+  {
+    type: "color",
+    label: "Style 2 background color",
+    name: "style2BackgroundColor",
+    defaultValue: STYLE_2_DEFAULT_COLORS.background,
+    condition: (data: LinkData) => data.variant === "custom",
+  },
+  {
+    type: "color",
+    label: "Style 2 text color",
+    name: "style2TextColor",
+    defaultValue: STYLE_2_DEFAULT_COLORS.text,
+    condition: (data: LinkData) => data.variant === "custom",
+  },
+  {
+    type: "color",
+    label: "Style 2 border color",
+    name: "style2BorderColor",
+    defaultValue: STYLE_2_DEFAULT_COLORS.border,
+    condition: (data: LinkData) => data.variant === "custom",
+  },
+  {
+    type: "color",
+    label: "Style 2 background color (hover)",
+    name: "style2BackgroundColorHover",
+    defaultValue: STYLE_2_DEFAULT_COLORS.backgroundHover,
+    condition: (data: LinkData) => data.variant === "custom",
+  },
+  {
+    type: "color",
+    label: "Style 2 text color (hover)",
+    name: "style2TextColorHover",
+    defaultValue: STYLE_2_DEFAULT_COLORS.textHover,
+    condition: (data: LinkData) => data.variant === "custom",
+  },
+  {
+    type: "color",
+    label: "Style 2 border color (hover)",
+    name: "style2BorderColorHover",
+    defaultValue: STYLE_2_DEFAULT_COLORS.borderHover,
+    condition: (data: LinkData) => data.variant === "custom",
+  },
+];
+
 export const linkInputs: InspectorGroup["inputs"] = [
   ...linkContentInputs,
   {
@@ -359,6 +442,11 @@ export const linkInputs: InspectorGroup["inputs"] = [
     label: "Button custom styles",
   },
   ...linkStylesInputs,
+  {
+    type: "heading",
+    label: "Style 2 custom styles",
+  },
+  ...style2LinkStylesInputs,
 ];
 
 export const schema = createSchema({
