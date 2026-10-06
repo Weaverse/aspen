@@ -3,9 +3,17 @@ import type {
   HydrogenComponentSchema,
 } from "@weaverse/hydrogen";
 import { cva, type VariantProps } from "class-variance-authority";
-import { type CSSProperties, forwardRef } from "react";
+import {
+  Children,
+  type CSSProperties,
+  forwardRef,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import { cn } from "~/utils/cn";
+import { ScrollingTextCopyContext } from "./item";
 
 let variants = cva("", {
   variants: {
@@ -53,59 +61,40 @@ const ScrollingText = forwardRef<HTMLElement, ScrollingProps>((props, ref) => {
     gap,
     visibleOnMobile,
     layoutStyle = "style1",
-    iconUrls = "",
+    iconUrls: _legacyIconUrls,
     iconSize = 24,
+    children,
     ...rest
   } = props;
   const content = translateText(
     rawI18nContent,
     "themeContent.sectionsScrollingTextIndex.content",
   );
-  const parseIcons = (text: string) => {
-    const items: Array<{ content: string; isSvg: boolean }> = [];
-    const lines = text.split("\n");
-    let currentSvg = "";
-    let inSvg = false;
-
-    for (const line of lines) {
-      const trimmedLine = line.trim();
-
-      if (trimmedLine.startsWith("<svg")) {
-        inSvg = true;
-        currentSvg = line;
-
-        if (trimmedLine.includes("</svg>")) {
-          items.push({
-            content: currentSvg,
-            isSvg: true,
-          });
-          currentSvg = "";
-          inSvg = false;
-        }
-      } else if (inSvg) {
-        currentSvg += `\n${line}`;
-
-        if (trimmedLine.includes("</svg>")) {
-          items.push({
-            content: currentSvg,
-            isSvg: true,
-          });
-          currentSvg = "";
-          inSvg = false;
-        }
-      } else if (trimmedLine && !inSvg) {
-        // It's a URL or other content
-        items.push({
-          content: trimmedLine,
-          isSvg: false,
-        });
-      }
+  const hasItems = Children.toArray(children).length > 0;
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const sequenceRef = useRef<HTMLDivElement>(null);
+  const [repetitions, setRepetitions] = useState(1);
+  useEffect(() => {
+    if (layoutStyle !== "style2" || !hasItems) {
+      return;
     }
-
-    return items;
-  };
-
-  const icons = parseIcons(iconUrls);
+    const viewport = viewportRef.current;
+    const sequence = sequenceRef.current;
+    if (!(viewport && sequence)) {
+      return;
+    }
+    const update = () => {
+      const width = sequence.getBoundingClientRect().width;
+      if (width > 0) {
+        setRepetitions(Math.ceil(viewport.clientWidth / width) + 1);
+      }
+    };
+    const observer = new ResizeObserver(update);
+    observer.observe(viewport);
+    observer.observe(sequence);
+    update();
+    return () => observer.disconnect();
+  }, [layoutStyle, hasItems]);
 
   let sectionStyle: CSSProperties = {
     "--text-color": textColor,
@@ -131,96 +120,70 @@ const ScrollingText = forwardRef<HTMLElement, ScrollingProps>((props, ref) => {
         !visibleOnMobile && "hidden sm:block",
       )}
     >
-      <div className="ff-heading block text-center text-base sm:hidden">
-        {layoutStyle === "style2" && icons.length > 0 && (
-          <span
-            className="mr-2 inline-flex items-center justify-center align-middle [&_svg]:h-full [&_svg]:w-full"
-            style={{
-              width: `${iconSize}px`,
-              height: `${iconSize}px`,
-              flexShrink: 0,
-            }}
-          >
-            {icons[0].isSvg ? (
-              <span
-                dangerouslySetInnerHTML={{ __html: icons[0].content }}
-                className="inline-flex h-full w-full items-center justify-center"
-              />
-            ) : (
-              // biome-ignore lint/performance/noImgElement: The section accepts arbitrary icon URLs, not Shopify image objects.
-              <img
-                src={icons[0].content}
-                alt=""
-                width={iconSize}
-                height={iconSize}
-                className="h-full w-full object-contain"
-              />
-            )}
-          </span>
-        )}
-        <span dangerouslySetInnerHTML={{ __html: content }} />
-      </div>
-      <ul className="hidden list-none sm:inline-flex">
-        {(() => {
-          const createItems = (startKey: number) => {
-            const baseRepetitions = 25;
-            const repetitions =
-              layoutStyle === "style2" && icons.length > 0
-                ? Math.ceil(baseRepetitions / icons.length) * icons.length
-                : baseRepetitions;
+      {layoutStyle === "style2" ? (
+        <div
+          ref={viewportRef}
+          className="flex font-heading text-(--text-color)"
+          style={{ fontSize: `${textSize}px` }}
+        >
+          {hasItems &&
+            [0, 1].map((copy) => (
+              <div
+                key={copy}
+                aria-hidden={copy === 1 ? true : undefined}
+                inert={copy === 1 ? true : undefined}
+                className="flex shrink-0 animate-marquee items-center motion-reduce:animate-none"
+              >
+                {Array.from({ length: repetitions }, (_, repetition) => (
+                  <div
+                    key={repetition}
+                    aria-hidden={repetition > 0 ? true : undefined}
+                    inert={repetition > 0 ? true : undefined}
+                    ref={
+                      copy === 0 && repetition === 0 ? sequenceRef : undefined
+                    }
+                    className="flex shrink-0 items-center gap-(--gap) pr-(--gap)"
+                  >
+                    <ScrollingTextCopyContext.Provider
+                      value={copy === 1 || repetition > 0}
+                    >
+                      {children}
+                    </ScrollingTextCopyContext.Provider>
+                  </div>
+                ))}
+              </div>
+            ))}
+        </div>
+      ) : (
+        <>
+          <div className="ff-heading block text-center text-base sm:hidden">
+            <span dangerouslySetInnerHTML={{ __html: content }} />
+          </div>
+          <ul className="hidden list-none sm:inline-flex">
+            {(() => {
+              const createItems = (startKey: number) => {
+                const baseRepetitions = 25;
 
-            return Array.from({ length: repetitions }).map((_, i) => {
-              const iconIndex =
-                layoutStyle === "style2" && icons.length > 0
-                  ? i % icons.length
-                  : 0;
-              const currentIcon = icons[iconIndex];
-
-              return (
-                <li
-                  key={`${startKey}-${i}`}
-                  className="ff-heading animate-marquee whitespace-nowrap pr-[var(--gap)] font-normal tracking-[-0.02em] text-[var(--text-color)]"
-                  style={{
-                    fontSize: `${textSize}px`,
-                  }}
-                >
-                  {layoutStyle === "style2" && icons.length > 0 && (
-                    <span
-                      className="mr-2 inline-flex items-center justify-center align-middle [&_svg]:h-full [&_svg]:w-full"
+                return Array.from({ length: baseRepetitions }).map((_, i) => {
+                  return (
+                    <li
+                      key={`${startKey}-${i}`}
+                      className="ff-heading animate-marquee whitespace-nowrap pr-[var(--gap)] font-normal tracking-[-0.02em] text-[var(--text-color)]"
                       style={{
-                        width: `${iconSize}px`,
-                        height: `${iconSize}px`,
-                        flexShrink: 0,
+                        fontSize: `${textSize}px`,
                       }}
                     >
-                      {currentIcon.isSvg ? (
-                        <span
-                          dangerouslySetInnerHTML={{
-                            __html: currentIcon.content,
-                          }}
-                          className="inline-flex h-full w-full items-center justify-center"
-                        />
-                      ) : (
-                        // biome-ignore lint/performance/noImgElement: The section accepts arbitrary icon URLs, not Shopify image objects.
-                        <img
-                          src={currentIcon.content}
-                          alt=""
-                          width={iconSize}
-                          height={iconSize}
-                          className="h-full w-full object-contain"
-                        />
-                      )}
-                    </span>
-                  )}
-                  <span dangerouslySetInnerHTML={{ __html: content }} />
-                </li>
-              );
-            });
-          };
+                      <span dangerouslySetInnerHTML={{ __html: content }} />
+                    </li>
+                  );
+                });
+              };
 
-          return [...createItems(0), ...createItems(1)];
-        })()}
-      </ul>
+              return [...createItems(0), ...createItems(1)];
+            })()}
+          </ul>
+        </>
+      )}
     </section>
   );
 });
@@ -230,6 +193,7 @@ export default ScrollingText;
 export let schema: HydrogenComponentSchema = {
   type: "scrolling-text",
   title: "Scrolling Text",
+  childTypes: ["scrolling-text--item"],
   settings: [
     {
       group: "Scrolling Text",
@@ -245,6 +209,8 @@ export let schema: HydrogenComponentSchema = {
               { label: "Style 2", value: "style2" },
             ],
           },
+          helpText:
+            "Style 1 uses the section Text. Style 2 uses Icon and text child items; add items to populate the scrolling content.",
         },
         {
           type: "textarea",
@@ -252,9 +218,8 @@ export let schema: HydrogenComponentSchema = {
           label: "Icons (one per line)",
           placeholder: "<svg>...</svg>\nhttps://example.com/icon.png",
           defaultValue: "",
-          condition: (data: ScrollingProps) => data.layoutStyle === "style2",
-          helpText:
-            "Enter inline SVG code or image URLs (PNG, JPEG). Each line = one icon. Icons will rotate through the scrolling text.",
+          // Retain the saved field without exposing an inactive Studio control.
+          condition: () => false,
         },
         {
           type: "range",
@@ -273,6 +238,7 @@ export let schema: HydrogenComponentSchema = {
           type: "richtext",
           name: "content",
           label: "Text",
+          condition: (data: ScrollingProps) => data.layoutStyle !== "style2",
           defaultValue:
             "Lorem Ipsum is simply dummy text of the printing and typesetting industry.",
         },
@@ -376,4 +342,28 @@ export let schema: HydrogenComponentSchema = {
       ],
     },
   ],
+  presets: {
+    children: [
+      {
+        type: "scrolling-text--item",
+        content: "Text content A",
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3 10 12 2l9 8v12h-6v-8H9v8H3Z"/></svg>',
+      },
+      {
+        type: "scrolling-text--item",
+        content: "Text content B",
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a8 8 0 0 0-8 8c0 6 8 12 8 12s8-6 8-12a8 8 0 0 0-8-8Zm0 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6Z"/></svg>',
+      },
+      {
+        type: "scrolling-text--item",
+        content: "Text content C",
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2-7 9h3l-5 7h7v4h4v-4h7l-5-7h3Z"/></svg>',
+      },
+      {
+        type: "scrolling-text--item",
+        content: "Text content D",
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20h2a3 3 0 0 0 0-6h-1a1 1 0 0 1 0-2h3a6 6 0 0 0 6-6c0-4-5-6-10-6Z"/></svg>',
+      },
+    ],
+  },
 };
