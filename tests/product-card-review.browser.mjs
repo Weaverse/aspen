@@ -147,6 +147,32 @@ async function render(width, options = {}) {
   return page;
 }
 
+test("resting product card information aligns with the image", async () => {
+  for (const layout of [undefined, "carousel", "grid"]) {
+    for (const width of [390, 768, 1024, 1025, 1440]) {
+      const page = await render(width, { layout });
+      const card = page.locator("article:visible").first();
+      const frame = card.locator("[data-product-card-image-frame]");
+      const imageBounds = await frame.boundingBox();
+      const info = card.locator(":scope > div").last();
+      const title = info.getByRole("link", {
+        name: "Fixture product",
+        exact: true,
+      });
+      const price = info.locator(".whitespace-nowrap").last();
+      for (const item of [info.locator("fieldset"), title, price]) {
+        await expect(item).toBeVisible();
+        const bounds = await item.boundingBox();
+        assert.ok(
+          Math.abs(bounds.x - imageBounds.x) < 0.1,
+          `resting ${layout || "standard"} at ${width}px: info x=${bounds.x}, image x=${imageBounds.x}`,
+        );
+      }
+      await page.close();
+    }
+  }
+});
+
 test("standard product cards zoom only on desktop without swapping images", async () => {
   for (const width of [390, 768, 1024, 1025, 1440]) {
     for (const mobileLayout of [false, true]) {
