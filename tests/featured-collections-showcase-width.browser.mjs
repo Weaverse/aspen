@@ -37,7 +37,7 @@ const css = sheet.build(
 test("Style 3 name background spans the card at every breakpoint", async () => {
   const browser = await chromium.launch();
   try {
-    for (const width of [390, 767, 768, 900, 1024, 1025, 1520]) {
+    for (const width of [390, 767, 768, 900, 1032, 1033, 1520]) {
       const page = await browser.newPage({ viewport: { width, height: 900 } });
       await page.setContent(`<style>${css}</style>
         <a class="relative block" style="width: ${width * 0.6}px; height: 400px">
@@ -65,7 +65,7 @@ test("Style 3 name background spans the card at every breakpoint", async () => {
 test("Style 3 separates desktop effects from shared tablet/mobile effects", async () => {
   const browser = await chromium.launch();
   try {
-    for (const width of [390, 767, 768, 1024, 1025, 1520]) {
+    for (const width of [390, 767, 768, 1032, 1033, 1520]) {
       const page = await browser.newPage({ viewport: { width, height: 900 } });
       await page.setContent(`<style>${css}</style><div class="relative" style="height: 100px">
         <span class="${backgroundClass}" style="--collection-mobile-effect-color:#CABDB7;--collection-mobile-effect-opacity:.9;--collection-desktop-effect-color:#000000;--collection-desktop-effect-opacity:.5"></span></div>`);
@@ -76,7 +76,7 @@ test("Style 3 separates desktop effects from shared tablet/mobile effects", asyn
       }));
       assert.deepEqual(
         effect,
-        width < 1025
+        width < 1033
           ? { color: "rgb(202, 189, 183)", opacity: "0.9" }
           : { color: "rgb(0, 0, 0)", opacity: "0.5" },
       );
@@ -93,7 +93,7 @@ test("Style 3 separates desktop effects from shared tablet/mobile effects", asyn
       }));
       assert.deepEqual(
         effect,
-        width < 1025
+        width < 1033
           ? { color: "rgb(255, 0, 0)", opacity: "0.7" }
           : { color: "rgb(0, 0, 0)", opacity: "0.5" },
       );

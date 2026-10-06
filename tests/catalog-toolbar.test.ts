@@ -1,13 +1,20 @@
 import { expect, test } from "@playwright/test";
 
 for (const path of ["/collections/chairs", "/search?q=chair"]) {
-  for (const width of [390, 767, 768, 1440]) {
+  for (const width of [390, 767, 768, 1032, 1033, 1440]) {
     test(`catalog toolbar at ${path}, ${width}px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
       await page.goto(path);
       const header = page.locator("header").filter({ has: page.locator("h1") });
       const title = header.locator("h1:visible");
       await expect(title).toBeVisible();
+      if (path.startsWith("/collections/")) {
+        await expect(header).toHaveCSS(
+          "padding-bottom",
+          width < 768 ? "24px" : width < 1033 ? "0px" : "32px",
+        );
+        await expect(header.locator("+ div")).toHaveCSS("padding-top", "12px");
+      }
       const buttons = header.locator("button[data-layout-context]:visible");
       await expect(buttons).toHaveCount(2);
       await expect(buttons.first()).toHaveCSS("border-left-width", "0px");

@@ -73,7 +73,7 @@ const css = stylesheet.build(
 test("split spacing toggle and right corners preserve other layouts and breakpoints", async () => {
   const browser = await chromium.launch();
   try {
-    for (const width of [390, 767, 768, 1024, 1025, 1520]) {
+    for (const width of [390, 767, 768, 1032, 1033, 1520]) {
       const page = await browser.newPage({ viewport: { width, height: 1000 } });
       await page.setContent(`<style>${css}</style><div id="root"></div>`);
       await page.addScriptTag({ content: bundle.outputFiles[0].text });
