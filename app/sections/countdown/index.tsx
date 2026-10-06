@@ -30,6 +30,28 @@ interface CountdownProps extends VariantProps<typeof variants>, SectionProps {
   style2Description?: string;
 }
 
+const isStyle1 = (data: CountdownProps) => data.scenario !== "scenario2";
+const countdownBackgroundInputs = backgroundInputs.map((input) => {
+  if (input.name === "backgroundImage") {
+    return { ...input, condition: isStyle1 };
+  }
+  if (input.name === "backgroundFit" || input.name === "backgroundPosition") {
+    return {
+      ...input,
+      condition: (data: CountdownProps) =>
+        isStyle1(data) && Boolean(data.backgroundImage),
+    };
+  }
+  return input;
+});
+const countdownOverlayInputs = overlayInputs.map((input) => ({
+  ...input,
+  condition:
+    input.name === "enableOverlay"
+      ? isStyle1
+      : (data: CountdownProps) => isStyle1(data) && Boolean(data.enableOverlay),
+}));
+
 const Countdown = forwardRef<HTMLElement, CountdownProps>((props, ref) => {
   const translateText = useTranslatedText();
   const {
@@ -80,10 +102,10 @@ const Countdown = forwardRef<HTMLElement, CountdownProps>((props, ref) => {
               ? "mx-auto max-w-[1360px] items-center gap-y-8 px-5 md:grid-cols-[minmax(0,1fr)_auto_220px] md:gap-x-12 md:gap-y-0 md:px-0"
               : "countdown-wrapper mx-auto max-w-[1440px] gap-y-6 px-5 py-10 md:max-lg:px-10 md:max-lg:py-12 lg:grid-cols-[repeat(2,minmax(0,684px))] lg:gap-x-[72px] lg:gap-y-8 lg:px-0 lg:pt-0 lg:pb-12",
             !isScenario2 &&
-              "md:max-lg:[&_.subheading]:justify-start md:max-lg:[&_.subheading]:text-2xl md:max-lg:[&_.paragraph]:max-w-none md:max-lg:[&_.paragraph]:text-left md:max-lg:[&_.paragraph]:text-2xl md:max-lg:[&_.paragraph]:leading-[1.2] md:max-lg:[&_.button-countdown]:mt-0",
+              "md:max-lg:[&_.subheading]:justify-start md:max-lg:[&_.paragraph]:max-w-none md:max-lg:[&_.paragraph]:text-left md:max-lg:[&_.paragraph]:text-2xl md:max-lg:[&_.paragraph]:leading-[1.2] md:max-lg:[&_.button-countdown]:mt-0",
             isScenario2
-              ? "[&_.button-countdown]:order-3 [&_.button-countdown]:justify-center md:[&_.button-countdown]:col-start-3 md:[&_.button-countdown]:row-start-1 [&_.countdown--timer]:order-2 md:[&_.countdown--timer]:col-start-2 md:[&_.countdown--timer]:row-start-1 [&_.paragraph]:hidden [&_.subheading]:hidden"
-              : "[&_.button-countdown]:order-4 [&_.button-countdown]:mt-1 [&_.button-countdown]:h-fit [&_.button-countdown]:justify-start lg:[&_.button-countdown]:col-start-2 lg:[&_.button-countdown]:row-start-2 lg:[&_.button-countdown]:mt-[26px] [&_.countdown--timer]:order-2 lg:[&_.countdown--timer]:col-start-1 lg:[&_.countdown--timer]:row-start-2 [&_.paragraph]:order-3 [&_.paragraph]:max-w-[684px] [&_.paragraph]:text-sm lg:[&_.paragraph]:col-start-2 lg:[&_.paragraph]:row-start-1 [&_.subheading]:order-1 lg:[&_.subheading]:col-start-1 lg:[&_.subheading]:row-start-1",
+              ? "[&_.button-countdown]:order-3 md:[&_.button-countdown]:col-start-3 md:[&_.button-countdown]:row-start-1 [&_.countdown--timer]:order-2 md:[&_.countdown--timer]:col-start-2 md:[&_.countdown--timer]:row-start-1 [&_.paragraph]:hidden [&_.subheading]:hidden"
+              : "[&_.button-countdown]:order-4 [&_.button-countdown]:mt-1 [&_.button-countdown]:h-fit lg:[&_.button-countdown]:col-start-2 lg:[&_.button-countdown]:row-start-2 lg:[&_.button-countdown]:mt-[26px] [&_.countdown--timer]:order-2 lg:[&_.countdown--timer]:col-start-1 lg:[&_.countdown--timer]:row-start-2 [&_.paragraph]:order-3 [&_.paragraph]:min-w-0 lg:[&_.paragraph]:font-heading lg:[&_.paragraph]:font-normal lg:[&_.paragraph]:[line-height:normal] lg:[&_.paragraph.text-base]:text-2xl lg:[&_.paragraph.text-base]:leading-[normal] lg:[&_.paragraph]:col-start-2 lg:[&_.paragraph]:row-start-1 [&_.subheading]:order-1 lg:[&_.subheading]:col-start-1 lg:[&_.subheading]:row-start-1",
           )}
         >
           {isScenario2 && (
@@ -199,8 +221,8 @@ export const schema = createSchema({
         },
       ],
     },
-    { group: "Background", inputs: backgroundInputs },
-    { group: "Overlay", inputs: overlayInputs },
+    { group: "Background", inputs: countdownBackgroundInputs },
+    { group: "Overlay", inputs: countdownOverlayInputs },
   ],
   childTypes: [
     "subheading--countdown",
@@ -223,6 +245,7 @@ export const schema = createSchema({
       {
         type: "subheading--countdown",
         content: "Seasonal Sale",
+        size: "2xl",
         color: "#FEF4EB",
         backgroundColor: "#434343",
       },
@@ -231,6 +254,7 @@ export const schema = createSchema({
         content:
           "Wide inventory of furniture with plenty of essentials that no home would be complete without.",
         width: "full",
+        textSize: "2xl",
         color: "#FEF4EB",
       },
       {
@@ -241,13 +265,17 @@ export const schema = createSchema({
         scenario2MobileNumberSize: 36,
         scenario2DesktopNumberSize: 48,
         mobileLabelSize: 10,
+        scenario1DesktopLabelSize: 14,
         desktopLabelSize: 12,
+        showLabels: true,
       },
       {
         type: "button--countdown",
         text: "DISCOVER NOW",
         style2Text: "Shop Now",
         to: "/collections/all",
+        alignment: "left",
+        style2Alignment: "center",
         variant: "custom",
         backgroundColor: "#FEF4EB",
         textColor: "#343231",
@@ -255,6 +283,12 @@ export const schema = createSchema({
         backgroundColorHover: "#EDE6DF",
         textColorHover: "#343231",
         borderColorHover: "#FEF4EB",
+        style2BackgroundColor: "#514A45",
+        style2TextColor: "#FFFFFF",
+        style2BorderColor: "#514A45",
+        style2BackgroundColorHover: "#403A36",
+        style2TextColorHover: "#FFFFFF",
+        style2BorderColorHover: "#403A36",
       },
     ],
   },

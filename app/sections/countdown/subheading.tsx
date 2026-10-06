@@ -5,15 +5,12 @@ import { forwardRef } from "react";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import { cn } from "~/utils/cn";
 
-const variants = cva("subheading", {
+const variants = cva("subheading self-start", {
   variants: {
     size: {
       base: "text-base",
       large: "text-lg",
-    },
-    weight: {
-      normal: "font-normal",
-      medium: "font-medium",
+      "2xl": "text-2xl",
     },
     alignment: {
       left: "flex justify-start text-left",
@@ -22,8 +19,7 @@ const variants = cva("subheading", {
     },
   },
   defaultVariants: {
-    size: "base",
-    weight: "normal",
+    size: "2xl",
     alignment: "center",
   },
 });
@@ -35,6 +31,7 @@ interface SubHeadingProps
   color?: string;
   backgroundColor?: string;
   backgroundBorderRadius?: number;
+  weight?: "normal" | "medium" | null;
   content: string;
 }
 
@@ -51,7 +48,7 @@ const SubHeading = forwardRef<
     backgroundColor,
     backgroundBorderRadius,
     size,
-    weight,
+    weight = "normal",
     alignment,
     className,
     ...rest
@@ -65,10 +62,7 @@ const SubHeading = forwardRef<
       ref={ref}
       {...rest}
       data-motion="fade-up"
-      className={cn(
-        variants({ size, weight, alignment, className }),
-        "text-base lg:text-2xl",
-      )}
+      className={cn(variants({ size, alignment, className }))}
     >
       <Tag
         style={{
@@ -81,7 +75,8 @@ const SubHeading = forwardRef<
             : undefined,
         }}
         className={cn(
-          "mb-0 h-full w-fit font-heading",
+          "mb-0 w-fit font-heading",
+          weight === "medium" ? "font-medium" : "font-normal",
           backgroundColor && "inline-flex items-center px-4 py-0.5 lg:py-0",
         )}
       >
@@ -153,9 +148,10 @@ export const schema = createSchema({
             options: [
               { value: "base", label: "Base" },
               { value: "large", label: "Large" },
+              { value: "2xl", label: "2x large" },
             ],
           },
-          defaultValue: "base",
+          defaultValue: "2xl",
         },
         {
           type: "select",
