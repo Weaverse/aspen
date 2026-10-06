@@ -49,7 +49,7 @@ const SubHeading = forwardRef<
     content: rawI18nContent,
     color,
     backgroundColor,
-    backgroundBorderRadius = 0,
+    backgroundBorderRadius,
     size,
     weight,
     alignment,
@@ -75,12 +75,14 @@ const SubHeading = forwardRef<
           color,
           backgroundColor,
           borderRadius: backgroundColor
-            ? `${backgroundBorderRadius}px`
+            ? typeof backgroundBorderRadius === "number"
+              ? `${backgroundBorderRadius}px`
+              : "var(--radius-sm)"
             : undefined,
         }}
         className={cn(
-          "mb-0 h-full w-fit",
-          backgroundColor && "px-4 py-0.5 lg:py-0",
+          "mb-0 h-full w-fit font-heading",
+          backgroundColor && "inline-flex items-center px-4 py-0.5 lg:py-0",
         )}
       >
         {content}
@@ -140,7 +142,7 @@ export const schema = createSchema({
             step: 1,
             unit: "px",
           },
-          defaultValue: 0,
+          defaultValue: 8,
           condition: (data: SubHeadingProps) => Boolean(data.backgroundColor),
         },
         {
