@@ -77,6 +77,7 @@ import * as PromotionGridItem from "~/sections/promotion-grid/item";
 import * as RelatedArticles from "~/sections/related-articles";
 import * as RelatedProducts from "~/sections/related-products";
 import * as ScrollingText from "~/sections/scrolling-text";
+import * as ScrollingTextItem from "~/sections/scrolling-text/item";
 import * as SingleProduct from "~/sections/single-product";
 import * as SlideShow from "~/sections/slideshow";
 import * as SlideShowSlide from "~/sections/slideshow/slide";
@@ -187,4 +188,5 @@ export const components: HydrogenComponent[] = [
   SlideShowSlide,
   Spacer,
   ScrollingText,
+  ScrollingTextItem,
 ];
