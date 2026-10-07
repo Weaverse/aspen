@@ -213,7 +213,7 @@ export default function Search() {
   return (
     <>
       <Section width="fixed" verticalPadding="small" overflow="unset">
-        <header className="pb-6 md:pb-8">
+        <header className="pb-6 md:pb-3 desktop:pb-8">
           <div className="flex flex-col gap-4 md:grid md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:gap-x-8 lg:grid-cols-[50%_minmax(0,1fr)] xl:gap-x-10">
             <div className="flex min-w-0 w-full flex-col gap-4 md:contents">
               <div className="md:hidden">
@@ -574,7 +574,7 @@ function SearchPageForm({ defaultValue = "" }: { defaultValue?: string }) {
           type="button"
           aria-label={t("search.clearFilters")}
           onClick={() => setQuery("")}
-          className="flex size-6 aspect-square shrink-0 items-center justify-center rounded-(--radius-xs) bg-(--color-background-subtle) text-[#9D9D9D] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body"
+          className="flex size-6 shrink-0 items-center justify-center rounded-(--radius-xs) bg-(--color-background-subtle) text-[#9D9D9D] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body"
         >
           <XIcon aria-hidden="true" className="h-5 w-5" />
         </button>
