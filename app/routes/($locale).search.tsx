@@ -38,6 +38,7 @@ import { Section } from "~/components/section";
 import { PRODUCT_CARD_FRAGMENT } from "~/graphql/fragments";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import { useTranslatedThemeSettings } from "~/hooks/use-translated-theme-settings";
+import { AppliedFilterTags } from "~/sections/collection-filters/applied-filter-tags";
 import { Filters } from "~/sections/collection-filters/filters";
 import { LayoutSwitcher } from "~/sections/collection-filters/layout-switcher";
 import { Sort } from "~/sections/collection-filters/sort";
@@ -50,7 +51,6 @@ import {
 import {
   type AppliedFilter,
   FILTER_URL_PREFIX,
-  getAppliedFilterLink,
   type SortParam,
 } from "~/utils/filter";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
@@ -213,7 +213,12 @@ export default function Search() {
   return (
     <>
       <Section width="fixed" verticalPadding="small" overflow="unset">
-        <header className="pb-6 md:pb-3 desktop:pb-8">
+        <header
+          className={cn(
+            "pb-6 md:pb-3 desktop:pb-8",
+            appliedFilters.length > 0 && "pb-3 desktop:pb-3",
+          )}
+        >
           <div className="flex flex-col gap-4 md:grid md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:gap-x-8 lg:grid-cols-[50%_minmax(0,1fr)] xl:gap-x-10">
             <div className="flex min-w-0 w-full flex-col gap-4 md:contents">
               <div className="md:hidden">
@@ -280,7 +285,7 @@ export default function Search() {
           </div>
         </header>
 
-        <AppliedFilters filters={appliedFilters} />
+        <AppliedFilterTags className="mb-8" filters={appliedFilters} />
 
         {products.nodes.length > 0 ? (
           <SearchProducts
@@ -395,7 +400,7 @@ function SearchProducts({
                     key={product.id}
                     className={cn(index >= mobileVisible && "max-md:hidden")}
                   >
-                    <ProductCard product={product} />
+                    <ProductCard product={product} flushHorizontalPadding />
                   </div>
                 ),
               )}
@@ -436,49 +441,6 @@ function SearchProducts({
         );
       }}
     </Pagination>
-  );
-}
-
-function AppliedFilters({ filters }: { filters: AppliedFilter[] }) {
-  const { t } = useTranslation();
-  const [params] = useSearchParams();
-  const location = useLocation();
-
-  if (!filters.length) {
-    return null;
-  }
-
-  const clearAllParams = new URLSearchParams(params);
-  for (const key of Array.from(clearAllParams.keys())) {
-    if (key.startsWith(FILTER_URL_PREFIX)) {
-      clearAllParams.delete(key);
-    }
-  }
-
-  return (
-    <div className="mb-8 flex flex-wrap items-center gap-3">
-      {filters.map((filter) => (
-        <Link
-          key={`${filter.label}-${JSON.stringify(filter.filter)}`}
-          to={getAppliedFilterLink(filter, params, location)}
-          className="flex min-h-9 items-center gap-2 border border-line-subtle px-3 py-1.5 hover:border-line"
-          variant="custom"
-          preventScrollReset
-        >
-          <span>
-            {filter.label === "Price" ? t("product.price") : filter.label}
-          </span>
-          <XIcon aria-hidden="true" className="h-4 w-4" />
-        </Link>
-      ))}
-      <Link
-        to={`${location.pathname}?${clearAllParams.toString()}`}
-        variant="underline"
-        preventScrollReset
-      >
-        {t("collection.clearAllFilters")}
-      </Link>
-    </div>
   );
 }
 

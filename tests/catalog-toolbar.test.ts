@@ -1,8 +1,20 @@
 import { expect, type Page, test } from "@playwright/test";
+import {
+  DESKTOP_MIN_PX,
+  MOBILE_MAX_PX,
+  TABLET_MAX_PX,
+  TABLET_MIN_PX,
+} from "~/utils/breakpoints";
 
-const TABLET_MIN_PX = 768;
-const DESKTOP_MIN_PX = 1025;
 const TABLET_TOOLBAR_CONTENT_GAP_PX = 12;
+const CATALOG_VIEWPORT_WIDTHS = [
+  390,
+  MOBILE_MAX_PX,
+  TABLET_MIN_PX,
+  TABLET_MAX_PX,
+  DESKTOP_MIN_PX,
+  1440,
+];
 
 async function goToCatalogPage(page: Page, catalog: "collection" | "search") {
   if (catalog === "search") {
@@ -37,7 +49,7 @@ async function goToCatalogPage(page: Page, catalog: "collection" | "search") {
 }
 
 for (const catalog of ["collection", "search"] as const) {
-  for (const width of [390, 767, 768, 1024, 1025, 1440]) {
+  for (const width of CATALOG_VIEWPORT_WIDTHS) {
     test(`catalog toolbar on ${catalog}, ${width}px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
       await goToCatalogPage(page, catalog);
@@ -160,4 +172,149 @@ test("search clear button follows the existing subtle background token", async (
   await clear.click();
   await expect(form.locator('input[name="q"]')).toHaveValue("");
   await expect(clear).not.toBeVisible();
+});
+
+for (const catalog of ["collection", "search"] as const) {
+  for (const width of CATALOG_VIEWPORT_WIDTHS) {
+    test(`applied filter tags on ${catalog}, ${width}px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await goToCatalogPage(page, catalog);
+
+      const selectedSort = catalog === "search" ? "price-low-high" : "newest";
+      const sortedUrl = new URL(page.url());
+      sortedUrl.searchParams.set("sort", selectedSort);
+      await page.goto(`${sortedUrl.pathname}${sortedUrl.search}`);
+
+      const header = page.locator("header").filter({ has: page.locator("h1") });
+      const toolbarContent = header.locator(":scope > div");
+      await header.getByRole("button", { name: "Filter products" }).click();
+
+      const drawer = page.getByRole("dialog", { name: "Filter" });
+      const checkbox = drawer.getByRole("checkbox");
+      await expect(checkbox.first()).toBeVisible();
+      await checkbox.first().click();
+      await expect(page).toHaveURL(/filter\./);
+
+      const closeButton = drawer.getByRole("button", {
+        name: "Close filter drawer",
+      });
+      if (await closeButton.isVisible()) {
+        await closeButton.click();
+      }
+
+      const tags = page.locator("[data-applied-filter-tags]");
+      await expect(tags).toBeVisible();
+      await expect(tags).toHaveCSS("column-gap", "10px");
+      await expect(tags).toHaveCSS("row-gap", "6px");
+
+      const label = tags.getByText("Filtered by:", { exact: true });
+      const filterTag = tags.locator("a").first();
+      const clearAll = tags.getByRole("link", { name: "Clear all filters" });
+      await expect(filterTag).toHaveAccessibleName(/^Remove .+ filter$/);
+      expect(
+        await filterTag.evaluate((element) =>
+          element.previousElementSibling?.hasAttribute(
+            "data-filtered-by-label",
+          ),
+        ),
+      ).toBe(true);
+      await expect(label).toHaveCSS("color", "rgb(82, 75, 70)");
+      await expect(label).toHaveCSS("font-family", /DM Sans/);
+      await expect(label).toHaveCSS("font-size", "14px");
+      await expect(label).toHaveCSS("font-weight", "600");
+      await expect(label).toHaveCSS("line-height", "22.4px");
+      await expect(label).toHaveCSS("letter-spacing", "0.28px");
+
+      await expect(filterTag).toHaveCSS("color", "rgb(82, 75, 70)");
+      await expect(filterTag).toHaveCSS("font-family", /DM Sans/);
+      await expect(filterTag).toHaveCSS("font-size", "14px");
+      await expect(filterTag).toHaveCSS("font-weight", "400");
+      await expect(filterTag).toHaveCSS("line-height", "14px");
+      await expect(filterTag).toHaveCSS("padding", "6px 8px");
+      await expect(filterTag).toHaveCSS("border-radius", "12px");
+      await expect(filterTag).toHaveCSS("border-width", "1px");
+
+      await expect(clearAll).toHaveText("Clear all");
+      await expect(clearAll).toHaveCSS("font-weight", "400");
+      await expect(clearAll).toHaveCSS("line-height", "22.4px");
+      await expect(clearAll).toHaveCSS("letter-spacing", "0.14px");
+      await expect(clearAll).toHaveCSS("text-decoration-line", "underline");
+
+      const [toolbarBounds, tagsBounds, labelBounds, tagBounds, clearBounds] =
+        await Promise.all([
+          toolbarContent.boundingBox(),
+          tags.boundingBox(),
+          label.boundingBox(),
+          filterTag.boundingBox(),
+          clearAll.boundingBox(),
+        ]);
+      expect(toolbarBounds).not.toBeNull();
+      expect(tagsBounds).not.toBeNull();
+      expect(labelBounds).not.toBeNull();
+      expect(tagBounds).not.toBeNull();
+      expect(clearBounds).not.toBeNull();
+      if (
+        toolbarBounds &&
+        tagsBounds &&
+        labelBounds &&
+        tagBounds &&
+        clearBounds
+      ) {
+        expect(tagsBounds.y - (toolbarBounds.y + toolbarBounds.height)).toBe(
+          12,
+        );
+        expect(tagBounds.x - (labelBounds.x + labelBounds.width)).toBe(18);
+        expect(clearBounds.x - (tagBounds.x + tagBounds.width)).toBe(18);
+      }
+
+      await clearAll.click();
+      await expect(tags).not.toBeVisible();
+      expect(new URL(page.url()).searchParams.get("sort")).toBe(selectedSort);
+      if (catalog === "search") {
+        expect(new URL(page.url()).searchParams.get("q")).toBe("chair");
+      }
+    });
+  }
+}
+
+test("an applied tag removes only its own filter and preserves catalog state", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 900 });
+  await page.goto("/search?q=chair&sort=price-low-high");
+  const header = page.locator("header").filter({ has: page.locator("h1") });
+  await header.getByRole("button", { name: "Filter products" }).click();
+
+  const drawer = page.getByRole("dialog", { name: "Filter" });
+  const checkbox = drawer.getByRole("checkbox").first();
+  await expect(checkbox).toBeVisible();
+  await checkbox.click();
+  await expect(page).toHaveURL(/filter\./);
+
+  const closeButton = drawer.getByRole("button", {
+    name: "Close filter drawer",
+  });
+  if (await closeButton.isVisible()) {
+    await closeButton.click();
+  }
+
+  const tags = page.locator("[data-applied-filter-tags]");
+  const filterTag = tags.locator("a").first();
+  const currentUrl = new URL(page.url());
+  const tagHref = await filterTag.getAttribute("href");
+  expect(tagHref).not.toBeNull();
+  const targetUrl = new URL(tagHref ?? "", page.url());
+  const currentFilters = Array.from(currentUrl.searchParams.keys()).filter(
+    (key) => key.startsWith("filter."),
+  );
+  const targetFilters = Array.from(targetUrl.searchParams.keys()).filter(
+    (key) => key.startsWith("filter."),
+  );
+  expect(targetFilters).toHaveLength(currentFilters.length - 1);
+
+  await filterTag.click();
+  await expect(tags).not.toBeVisible();
+  const nextUrl = new URL(page.url());
+  expect(nextUrl.searchParams.get("q")).toBe("chair");
+  expect(nextUrl.searchParams.get("sort")).toBe("price-low-high");
 });

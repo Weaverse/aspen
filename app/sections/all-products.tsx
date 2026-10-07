@@ -75,7 +75,11 @@ const AllProducts = forwardRef<HTMLElement, AllProductsProps>((props, ref) => {
                 ])}
               >
                 {nodes.map((product) => (
-                  <ProductCard key={product.id} product={product} />
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    flushHorizontalPadding
+                  />
                 ))}
               </div>
               {hasNextPage && (

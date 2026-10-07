@@ -40,7 +40,12 @@ export function ToolsBar({
   const hasFilters = Boolean(collection.products.filters?.length);
 
   return (
-    <header className="pb-6 md:pb-0 desktop:pb-8">
+    <header
+      className={cn(
+        "pb-6 md:pb-0 desktop:pb-8",
+        appliedFilters.length > 0 && "pb-0 desktop:pb-0",
+      )}
+    >
       <div className="flex flex-col gap-4 md:grid md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:gap-x-8 lg:grid-cols-[50%_minmax(0,1fr)] xl:gap-x-10">
         <div className="flex min-w-0 w-full flex-col gap-4 md:contents">
           <h1 className="min-w-0 text-left font-heading font-normal text-[37px] uppercase leading-[110%] tracking-[-0.74px] text-[var(--color-text,#343231)] md:col-start-1 md:row-start-1 md:max-w-full md:break-words">
