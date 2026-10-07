@@ -7,6 +7,11 @@ import { chromium, expect } from "@playwright/test";
 import { compile } from "@tailwindcss/node";
 import { Scanner } from "@tailwindcss/oxide";
 import { build } from "esbuild";
+import {
+  DESKTOP_MIN_PX,
+  isDesktopViewport,
+  TABLET_MAX_PX,
+} from "./responsive-test-widths.mjs";
 
 // Run with: node --test tests/product-card-review.browser.mjs
 // Render the real ProductCard, ProductCardOptions, ProductItems and Swiper.
@@ -149,7 +154,7 @@ async function render(width, options = {}) {
 
 test("resting product card information aligns with the image", async () => {
   for (const layout of [undefined, "carousel", "grid"]) {
-    for (const width of [390, 768, 1024, 1025, 1440]) {
+    for (const width of [390, 768, TABLET_MAX_PX, DESKTOP_MIN_PX, 1440]) {
       const page = await render(width, { layout });
       const card = page.locator("article:visible").first();
       const frame = card.locator("[data-product-card-image-frame]");
@@ -174,7 +179,7 @@ test("resting product card information aligns with the image", async () => {
 });
 
 test("standard product cards zoom only on desktop without swapping images", async () => {
-  for (const width of [390, 768, 1024, 1025, 1440]) {
+  for (const width of [390, 768, TABLET_MAX_PX, DESKTOP_MIN_PX, 1440]) {
     for (const mobileLayout of [false, true]) {
       const page = await render(width, {
         mobileLayout,
@@ -187,7 +192,7 @@ test("standard product cards zoom only on desktop without swapping images", asyn
       await expect(image).toHaveCSS("opacity", "1");
       await expect(image).toHaveCSS(
         "scale",
-        width >= 1025 && !mobileLayout ? "1.3" : "none",
+        isDesktopViewport(width) && !mobileLayout ? "1.3" : "none",
       );
       await page.mouse.move(0, 0);
       await expect(image).toHaveCSS("scale", "none");
@@ -232,7 +237,7 @@ test("Related products mobileLayout keeps its desktop padding, background and im
 
 test("image insets 20px on desktop without resizing either featured card style", async () => {
   for (const layout of ["carousel", "grid"]) {
-    for (const width of [390, 768, 1024, 1025, 1440]) {
+    for (const width of [390, 768, TABLET_MAX_PX, DESKTOP_MIN_PX, 1440]) {
       const page = await render(width, { layout });
       const card = page.locator("article:visible").first();
       const link = card.locator("a").first();
@@ -240,12 +245,24 @@ test("image insets 20px on desktop without resizing either featured card style",
       const beforeCard = await card.boundingBox();
       const beforeLink = await link.boundingBox();
       await card.hover();
-      await expect(frame).toHaveCSS("top", width >= 1025 ? "20px" : "0px");
-      await expect(frame).toHaveCSS("right", width >= 1025 ? "20px" : "0px");
-      await expect(frame).toHaveCSS("bottom", width >= 1025 ? "20px" : "0px");
-      await expect(frame).toHaveCSS("left", width >= 1025 ? "20px" : "0px");
+      await expect(frame).toHaveCSS(
+        "top",
+        isDesktopViewport(width) ? "20px" : "0px",
+      );
+      await expect(frame).toHaveCSS(
+        "right",
+        isDesktopViewport(width) ? "20px" : "0px",
+      );
+      await expect(frame).toHaveCSS(
+        "bottom",
+        isDesktopViewport(width) ? "20px" : "0px",
+      );
+      await expect(frame).toHaveCSS(
+        "left",
+        isDesktopViewport(width) ? "20px" : "0px",
+      );
       assert.deepEqual(await card.boundingBox(), beforeCard);
-      if (width >= 1025) {
+      if (isDesktopViewport(width)) {
         const bounds = await card.boundingBox();
         const imageBounds = await link.boundingBox();
         assert.ok(Math.abs(imageBounds.x - bounds.x - 20) < 0.1);
@@ -262,7 +279,7 @@ test("image insets 20px on desktop without resizing either featured card style",
       } else {
         assert.deepEqual(await link.boundingBox(), beforeLink);
       }
-      if (width >= 1025) {
+      if (isDesktopViewport(width)) {
         await expect(card).toHaveCSS("background-color", "rgb(241, 241, 241)");
       }
       await page.close();
@@ -278,11 +295,11 @@ test("keyboard focus gets the desktop image effect without moving the card", asy
     await card.locator("a").first().focus();
     await expect(card.locator("[data-product-card-image-frame]")).toHaveCSS(
       "top",
-      width >= 1025 ? "20px" : "0px",
+      isDesktopViewport(width) ? "20px" : "0px",
     );
     await expect(card.locator("img")).toHaveCSS(
       "scale",
-      width >= 1025 ? "1.05" : "none",
+      isDesktopViewport(width) ? "1.05" : "none",
     );
     assert.deepEqual(await card.boundingBox(), before);
     await page.close();
@@ -290,7 +307,7 @@ test("keyboard focus gets the desktop image effect without moving the card", asy
 });
 
 test("badges, wishlist and Quick Add stay inside the inset image frame", async () => {
-  for (const width of [390, 768, 1025, 1440]) {
+  for (const width of [390, 768, TABLET_MAX_PX, DESKTOP_MIN_PX, 1440]) {
     const page = await render(width, {
       settings: {
         pcardEnableWishlist: true,
@@ -304,7 +321,10 @@ test("badges, wishlist and Quick Add stay inside the inset image frame", async (
     const card = page.locator("article");
     await card.hover();
     const frame = card.locator("[data-product-card-image-frame]");
-    await expect(frame).toHaveCSS("top", width >= 1025 ? "20px" : "0px");
+    await expect(frame).toHaveCSS(
+      "top",
+      isDesktopViewport(width) ? "20px" : "0px",
+    );
     const bounds = await frame.boundingBox();
     const badge = frame.locator(".best-seller-badge");
     const wishlist = frame.getByRole("button", {
@@ -314,7 +334,7 @@ test("badges, wishlist and Quick Add stay inside the inset image frame", async (
     for (const overlay of [
       badge,
       frame.getByRole("button", { name: "product.selectOptions", exact: true }),
-      ...(width >= 1025 ? [wishlist] : []),
+      ...(isDesktopViewport(width) ? [wishlist] : []),
     ]) {
       await expect(overlay).toBeVisible();
       const box = await overlay.boundingBox();
@@ -322,7 +342,7 @@ test("badges, wishlist and Quick Add stay inside the inset image frame", async (
       assert.ok(box.x + box.width <= bounds.x + bounds.width + 0.1);
       assert.ok(box.y + box.height <= bounds.y + bounds.height + 0.1);
     }
-    if (width >= 1025) {
+    if (isDesktopViewport(width)) {
       const badgeBox = await badge.boundingBox();
       const wishlistIconBox = await wishlist.locator("svg").boundingBox();
       assert.ok(
@@ -507,7 +527,7 @@ test("saved sections without arrowsIcon retain the Arrow fallback", async () => 
 
 test("only Style 1 receives the new nav design and 32px slider gap", async () => {
   for (const [layout, widths] of [
-    ["carousel", [390, 768, 1025, 1440]],
+    ["carousel", [390, 768, TABLET_MAX_PX, DESKTOP_MIN_PX, 1440]],
     ["grid", [390]],
   ]) {
     for (const width of widths) {

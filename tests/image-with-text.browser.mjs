@@ -6,6 +6,7 @@ import { chromium, expect } from "@playwright/test";
 import { compile } from "@tailwindcss/node";
 import { Scanner } from "@tailwindcss/oxide";
 import { build } from "esbuild";
+import { DESKTOP_MIN_PX, TABLET_MAX_PX } from "./responsive-test-widths.mjs";
 
 // Real section and stylesheet; stub CMS and the generic section wrapper only.
 const root = fileURLToPath(new URL("../", import.meta.url));
@@ -73,7 +74,7 @@ const css = stylesheet.build(
 test("split spacing toggle and right corners preserve other layouts and breakpoints", async () => {
   const browser = await chromium.launch();
   try {
-    for (const width of [390, 767, 768, 1024, 1025, 1520]) {
+    for (const width of [390, 767, 768, TABLET_MAX_PX, DESKTOP_MIN_PX, 1520]) {
       const page = await browser.newPage({ viewport: { width, height: 1000 } });
       await page.setContent(`<style>${css}</style><div id="root"></div>`);
       await page.addScriptTag({ content: bundle.outputFiles[0].text });
