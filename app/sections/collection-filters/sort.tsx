@@ -10,8 +10,8 @@ import { cn } from "~/utils/cn";
 import type { SortParam } from "~/utils/filter";
 
 const SORT_LIST: { labelKey: string; key: SortParam }[] = [
-  { labelKey: "collection.featured", key: "featured" },
   { labelKey: "collection.relevance", key: "relevance" },
+  { labelKey: "collection.featured", key: "featured" },
   { labelKey: "collection.priceLowHigh", key: "price-low-high" },
   { labelKey: "collection.priceHighLow", key: "price-high-low" },
   { labelKey: "collection.bestSelling", key: "best-selling" },
@@ -62,22 +62,20 @@ export function Sort({
         <DropdownMenu.Content
           sideOffset={8}
           align="end"
-          className="z-20 flex h-fit w-52 flex-col border border-line-subtle bg-background p-2 shadow-lg"
+          className="z-20 flex h-fit w-60 max-w-[calc(100vw-2rem)] flex-col gap-3 rounded-(--radius-md) border border-line bg-background p-6"
         >
           {sortList.map(({ key, labelKey }) => (
             <DropdownMenu.Item key={key} asChild>
               <Link
                 to={getSortUrl(location.pathname, searchParams, key)}
+                aria-current={currentSort.key === key ? "true" : undefined}
                 className={cn(
-                  "flex min-h-10 items-center justify-between gap-3 px-3 py-2 outline-hidden hover:bg-gray-50 focus:bg-gray-50",
-                  currentSort.key === key && "font-semibold",
+                  "-my-1.5 flex items-center justify-start self-stretch py-1.5 text-left font-body text-sm font-normal text-body uppercase leading-[1.6] tracking-[0.01em] outline-hidden hover:bg-gray-50 focus:bg-gray-50",
+                  currentSort.key === key && "font-semibold tracking-[0.02em]",
                 )}
                 preventScrollReset
               >
                 <span>{t(labelKey)}</span>
-                {currentSort.key === key && (
-                  <CheckIcon aria-hidden="true" className="h-4 w-4" />
-                )}
               </Link>
             </DropdownMenu.Item>
           ))}

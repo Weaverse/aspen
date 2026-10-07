@@ -1,64 +1,88 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Locator, test } from "@playwright/test";
+import {
+  DESKTOP_MIN_PX,
+  MOBILE_MAX_PX,
+  TABLET_MAX_PX,
+  TABLET_MIN_PX,
+} from "~/utils/breakpoints";
 
-for (const width of [390, 768, 1520]) {
-  test(`featured products align cards 40px below content at ${width}px`, async ({
+async function expectFeaturedSectionAligned(section: Locator) {
+  await section.scrollIntoViewIfNeeded();
+
+  const content = section.locator('[data-wv-type="featured-content-products"]');
+  const imageFrames = section.locator(
+    "[data-product-card-image-frame]:visible",
+  );
+  await expect(imageFrames.first()).toBeVisible();
+
+  const contentBounds = await content.boundingBox();
+  const firstImageBounds = await imageFrames.first().boundingBox();
+  if (!contentBounds || !firstImageBounds) {
+    throw new Error("Featured Products content or card image is missing");
+  }
+
+  expect(
+    Math.abs(
+      firstImageBounds.y - (contentBounds.y + contentBounds.height) - 40,
+    ),
+  ).toBeLessThan(1);
+  expect(Math.abs(firstImageBounds.x - contentBounds.x)).toBeLessThan(1);
+
+  const firstRowBounds = await imageFrames.evaluateAll(
+    (frames, contentRight) => {
+      const rects = frames.map((frame) => frame.getBoundingClientRect());
+      const firstTop = rects[0]?.top;
+      const firstRow = rects.filter(
+        (rect) =>
+          firstTop !== undefined &&
+          Math.abs(rect.top - firstTop) < 1 &&
+          rect.left < contentRight,
+      );
+      return {
+        left: Math.min(...firstRow.map((rect) => rect.left)),
+        right: Math.max(...firstRow.map((rect) => rect.right)),
+        gaps: firstRow.slice(1).map((rect, index) => {
+          const previous = firstRow[index];
+          return rect.left - previous.right;
+        }),
+      };
+    },
+    contentBounds.x + contentBounds.width,
+  );
+
+  expect(Math.abs(firstRowBounds.left - contentBounds.x)).toBeLessThan(1);
+  expect(
+    Math.abs(firstRowBounds.right - (contentBounds.x + contentBounds.width)),
+  ).toBeLessThan(1);
+  for (const gap of firstRowBounds.gaps.slice(1)) {
+    expect(Math.abs(gap - firstRowBounds.gaps[0])).toBeLessThan(1);
+  }
+}
+
+const VIEWPORT_WIDTHS = [
+  390,
+  MOBILE_MAX_PX,
+  TABLET_MIN_PX,
+  TABLET_MAX_PX,
+  DESKTOP_MIN_PX,
+  1520,
+];
+
+for (const width of VIEWPORT_WIDTHS) {
+  test(`featured product layouts align cards at ${width}px`, async ({
     page,
   }) => {
     await page.setViewportSize({ width, height: 1000 });
-    await page.goto("/products/madison-bed", { waitUntil: "networkidle" });
 
-    const section = page
-      .locator('section[data-wv-type="featured-products"]')
-      .first();
-    await section.scrollIntoViewIfNeeded();
-    await section.locator(".swiper.swiper-initialized").first().waitFor();
-
-    const content = section.locator(
-      '[data-wv-type="featured-content-products"]',
-    );
-    const heading = content.locator(".heading").first();
-    const cards = section.locator(".swiper-slide article");
-    const contentBounds = await content.boundingBox();
-    const headingBounds = await heading.boundingBox();
-    const imageBounds = await cards
-      .first()
-      .locator("img")
-      .first()
-      .boundingBox();
-    if (!contentBounds || !headingBounds || !imageBounds) {
-      throw new Error("Featured Products content or card image is missing");
-    }
-
-    expect(
-      Math.abs(imageBounds.y - (contentBounds.y + contentBounds.height) - 40),
-    ).toBeLessThan(1);
-
-    if (width >= 768) {
-      expect(Math.abs(imageBounds.x - headingBounds.x)).toBeLessThan(1);
-
-      const secondImage = await cards
-        .nth(1)
-        .locator("img")
-        .first()
-        .boundingBox();
-      const thirdImage = await cards
-        .nth(2)
-        .locator("img")
-        .first()
-        .boundingBox();
-      if (!secondImage || !thirdImage) {
-        throw new Error("Featured Products row has fewer than three images");
+    for (const route of ["/products/madison-bed", "/"]) {
+      await page.goto(route);
+      const sections = page.locator(
+        'section[data-wv-type="featured-products"]',
+      );
+      await expect(sections.first()).toBeVisible();
+      for (const section of await sections.all()) {
+        await expectFeaturedSectionAligned(section);
       }
-      const firstGap = secondImage.x - (imageBounds.x + imageBounds.width);
-      const secondGap = thirdImage.x - (secondImage.x + secondImage.width);
-      expect(Math.abs(firstGap - secondGap)).toBeLessThan(1);
-      expect(
-        Math.abs(
-          contentBounds.x +
-            contentBounds.width -
-            (thirdImage.x + thirdImage.width),
-        ),
-      ).toBeLessThan(1);
     }
   });
 }

@@ -91,7 +91,7 @@ export function CartBestSellers({
         </div>
         <div
           ref={railRef}
-          className="scrollbar-hide flex snap-x snap-mandatory gap-4 overflow-x-auto px-[9%] md:px-0"
+          className="scrollbar-hide flex snap-x snap-mandatory gap-4 overflow-x-auto"
         >
           <CartBestSellersContent
             count={count}
@@ -193,6 +193,7 @@ function CartBestSellersContent({
         <ProductCard
           product={product as unknown as ProductCardFragment}
           contentAlignment="left"
+          flushHorizontalPadding={layout === "page"}
           quickShopIconOnly={layout === "drawer"}
         />
       </div>

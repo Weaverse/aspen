@@ -1,20 +1,15 @@
-import { FunnelXIcon, XIcon } from "@phosphor-icons/react";
+import { FunnelXIcon } from "@phosphor-icons/react";
 import { Pagination } from "@shopify/hydrogen";
 import { useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { useEffect } from "react";
 import { useInView } from "react-intersection-observer";
-import {
-  useLoaderData,
-  useLocation,
-  useNavigate,
-  useSearchParams,
-} from "react-router";
+import { useLoaderData, useNavigate } from "react-router";
 import type {
   CollectionQuery,
   ProductCardFragment,
 } from "storefront-api.generated";
-import Link, { variants } from "~/components/link";
+import { variants } from "~/components/link";
 import { ProductCard } from "~/components/product/product-card";
 import { SaleFilterStatus } from "~/components/sale-filter-status";
 import { cn } from "~/utils/cn";
@@ -22,7 +17,8 @@ import {
   COMBINED_LISTINGS_CONFIGS,
   isCombinedListing,
 } from "~/utils/combined-listings";
-import { type AppliedFilter, getAppliedFilterLink } from "~/utils/filter";
+import type { AppliedFilter } from "~/utils/filter";
+import { AppliedFilterTags } from "./applied-filter-tags";
 
 export function ProductsPagination({
   gridSizeDesktop: desktopCols = 2,
@@ -42,49 +38,12 @@ export function ProductsPagination({
       appliedFilters: AppliedFilter[];
     }
   >();
-  const [params] = useSearchParams();
-  const location = useLocation();
-  const { pathname } = location;
   const { ref, inView } = useInView();
 
   return (
     <div className="grow space-y-6">
       <SaleFilterStatus />
-      {appliedFilters.length > 0 ? (
-        <div className="flex flex-wrap items-center gap-6">
-          <div className="flex items-center gap-2">
-            {appliedFilters.map((filter: AppliedFilter) => {
-              const { label } = filter;
-              return (
-                <Link
-                  key={label}
-                  to={getAppliedFilterLink(filter, params, location)}
-                  className="items-center gap-2 border border-line-subtle px-2 py-1 hover:border-line"
-                  variant="custom"
-                  preventScrollReset
-                >
-                  <span>
-                    {filter.filter.price && label === "Price"
-                      ? t("product.price")
-                      : label}
-                  </span>
-                  <XIcon className="h-4 w-4" />
-                </Link>
-              );
-            })}
-          </div>
-          {appliedFilters.length > 1 ? (
-            <Link
-              to={pathname}
-              variant="underline"
-              aria-label={t("collection.clearAllFilters")}
-              preventScrollReset
-            >
-              {t("collection.clearAllFilters")}
-            </Link>
-          ) : null}
-        </div>
-      ) : null}
+      <AppliedFilterTags filters={appliedFilters} />
       {collection.products.nodes.length > 0 ? (
         <Pagination connection={collection.products}>
           {({
@@ -178,7 +137,11 @@ function ProductsLoadedOnScroll(props: ProductsLoadedOnScrollProps) {
             ),
         )
         .map((product: ProductCardFragment) => (
-          <ProductCard key={product.id} product={product} />
+          <ProductCard
+            key={product.id}
+            product={product}
+            flushHorizontalPadding
+          />
         ))}
     </div>
   );
