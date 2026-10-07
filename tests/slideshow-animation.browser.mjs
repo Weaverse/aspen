@@ -99,7 +99,7 @@ const dotsLayout = {
   mobilePadding: 32,
   pagePadding: 40,
   mediumBreakpoint: 768,
-  largeBreakpoint: 1033,
+  largeBreakpoint: 1025,
   extraLargeBreakpoint: 1536,
   pageWidths: [1440, 1600],
 };
@@ -344,7 +344,7 @@ test("dots stay at the bottom and align responsively to the page container", asy
   try {
     for (const pageWidth of dotsLayout.pageWidths) {
       for (const viewportWidth of [
-        390, 767, 768, 1032, 1033, 1535, 1536, 1920,
+        390, 767, 768, 1024, 1025, 1535, 1536, 1920,
       ]) {
         for (const position of [
           undefined,
