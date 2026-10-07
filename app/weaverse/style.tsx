@@ -1,4 +1,5 @@
 import { useThemeSettings } from "@weaverse/hydrogen";
+import { DESKTOP_MIN_PX } from "~/utils/breakpoints";
 import {
   type DesignTokenSettings,
   getDesignSystemPreset,
@@ -207,7 +208,7 @@ export function GlobalStyle() {
             }
           }
 
-          @media (min-width: 1025px) {
+          @media (min-width: ${DESKTOP_MIN_PX}px) {
             :root {
               --page-padding: 40px;
             }

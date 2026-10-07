@@ -6,6 +6,11 @@ import { chromium, expect } from "@playwright/test";
 import { compile } from "@tailwindcss/node";
 import { Scanner } from "@tailwindcss/oxide";
 import { build } from "esbuild";
+import {
+  DESKTOP_MIN_PX,
+  isDesktopViewport,
+  TABLET_MAX_PX,
+} from "./responsive-test-widths.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const bundle = await build({
@@ -575,14 +580,14 @@ test("Countdown preserves responsive typography and applies the reviewed desktop
         labelLineHeight: "12px",
       },
       {
-        width: 1024,
+        width: TABLET_MAX_PX,
         numberSize: "80px",
         numberLineHeight: "64px",
         labelSize: "12px",
         labelLineHeight: "12px",
       },
       {
-        width: 1025,
+        width: DESKTOP_MIN_PX,
         numberSize: "80px",
         numberLineHeight: "88px",
         labelSize: "14px",
@@ -615,7 +620,7 @@ test("Countdown preserves responsive typography and applies the reviewed desktop
       await expect(unit).toHaveCSS("font-size", expected.labelSize);
       await expect(unit).toHaveCSS("line-height", expected.labelLineHeight);
 
-      if (expected.width >= 1025) {
+      if (isDesktopViewport(expected.width)) {
         await expect(number).toHaveCSS("letter-spacing", "-2.4px");
         await expect(number).toHaveCSS("text-align", "center");
         await expect(unit).toHaveCSS("font-weight", "600");

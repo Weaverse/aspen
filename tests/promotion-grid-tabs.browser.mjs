@@ -7,6 +7,11 @@ import { chromium, expect } from "@playwright/test";
 import { compile } from "@tailwindcss/node";
 import { Scanner } from "@tailwindcss/oxide";
 import { build } from "esbuild";
+import {
+  DESKTOP_MIN_PX,
+  isDesktopViewport,
+  TABLET_MAX_PX,
+} from "./responsive-test-widths.mjs";
 
 // Real TabsLayout, Paragraph and Link; expose the private layout only in this bundle.
 const root = fileURLToPath(new URL("../", import.meta.url));
@@ -118,14 +123,14 @@ async function render(width) {
 }
 
 test("Promotion Tabs title row uses desktop 120px, tablet 40px and unchanged mobile 373px", async () => {
-  for (const width of [390, 767, 768, 1024, 1025, 1440]) {
+  for (const width of [390, 767, 768, TABLET_MAX_PX, DESKTOP_MIN_PX, 1440]) {
     const page = await render(width);
     const row = page
       .getByRole("button", { name: "Best Selling", exact: true })
       .locator("..");
     await expect(row).toHaveCSS(
       "top",
-      width < 768 ? "373px" : width <= 1024 ? "40px" : "120px",
+      width < 768 ? "373px" : isDesktopViewport(width) ? "120px" : "40px",
     );
     await expect(
       page.getByRole("button", { name: "Best Selling", exact: true }),
@@ -146,7 +151,7 @@ test("Promotion Tabs switches title, body and link together while background sti
       ["Best Selling", 0],
     ]) {
       const button = page.getByRole("button", { name, exact: true });
-      if (width > 1024) {
+      if (isDesktopViewport(width)) {
         await button.hover({ force: true });
       } else {
         await button.click({ force: true });
