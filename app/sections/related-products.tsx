@@ -68,6 +68,7 @@ const RelatedProducts = forwardRef<HTMLElement, RelatedProductsProps>(
                         mobileLayout
                         contentAlignment="left"
                         className="w-80 snap-start"
+                        flushHorizontalPadding
                       />
                     ))}
                   </Swimlane>

@@ -38,6 +38,7 @@ import { Section } from "~/components/section";
 import { PRODUCT_CARD_FRAGMENT } from "~/graphql/fragments";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import { useTranslatedThemeSettings } from "~/hooks/use-translated-theme-settings";
+import { AppliedFilterTags } from "~/sections/collection-filters/applied-filter-tags";
 import { Filters } from "~/sections/collection-filters/filters";
 import { LayoutSwitcher } from "~/sections/collection-filters/layout-switcher";
 import { Sort } from "~/sections/collection-filters/sort";
@@ -50,7 +51,6 @@ import {
 import {
   type AppliedFilter,
   FILTER_URL_PREFIX,
-  getAppliedFilterLink,
   type SortParam,
 } from "~/utils/filter";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
@@ -213,16 +213,21 @@ export default function Search() {
   return (
     <>
       <Section width="fixed" verticalPadding="small" overflow="unset">
-        <header className="pb-6 md:pb-8">
-          <div className="flex flex-col gap-4 md:grid md:grid-cols-[minmax(0,1fr)_auto] md:items-stretch md:gap-x-8 lg:grid-cols-[50%_minmax(0,1fr)] xl:gap-x-10">
-            <div className="flex min-w-0 w-full flex-col gap-4 md:justify-between">
+        <header
+          className={cn(
+            "pb-6 md:pb-3 desktop:pb-8",
+            appliedFilters.length > 0 && "pb-3 desktop:pb-3",
+          )}
+        >
+          <div className="flex flex-col gap-4 md:grid md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:gap-x-8 lg:grid-cols-[50%_minmax(0,1fr)] xl:gap-x-10">
+            <div className="flex min-w-0 w-full flex-col gap-4 md:contents">
               <div className="md:hidden">
                 <SearchHeading searchTerm={searchTerm} stacked />
               </div>
-              <div className="hidden md:block xl:hidden">
+              <div className="hidden min-w-0 md:col-start-1 md:row-start-1 md:block xl:hidden">
                 <SearchHeading searchTerm={searchTerm} />
               </div>
-              <div className="hidden xl:block">
+              <div className="hidden min-w-0 md:col-start-1 md:row-start-1 xl:block">
                 <SearchHeading
                   searchTerm={searchTerm}
                   resultCount={resultCount}
@@ -233,14 +238,16 @@ export default function Search() {
               )}
             </div>
             {searchTerm && (
-              <div className="flex w-full flex-col gap-4 md:w-auto md:items-end md:justify-between">
-                <div className="flex w-full items-center justify-between gap-2 md:w-fit md:justify-end md:gap-3">
+              <div className="flex w-full flex-col gap-4 md:contents">
+                <div className="flex w-full items-center justify-between gap-2 md:col-start-2 md:row-start-1 md:w-fit md:justify-self-end md:justify-end md:gap-3">
                   <LayoutSwitcher
                     className={cn(
                       "flex-row overflow-hidden rounded-xl border border-[#9D9D9D]",
                       "[&>button]:border-0 [&>button]:text-[#C8C8C8]",
                       '[&>button[data-active="true"]]:text-[#8A8A8A]',
-                      "[&>button+button]:border-[#D8D8D8] [&>button+button]:border-l",
+                      "[&>button]:border-[#D8D8D8]",
+                      'max-md:[&>button[data-layout-context="mobile"]+button[data-layout-context="mobile"]]:border-l',
+                      'md:[&>button[data-layout-context="desktop"]+button[data-layout-context="desktop"]]:border-l',
                     )}
                     mobileColumns={[2, 1]}
                     gridSizeDesktop={gridSizeDesktop}
@@ -270,7 +277,7 @@ export default function Search() {
                     disabled={!products.filters.length}
                   />
                 </div>
-                <div className="flex w-full justify-end md:w-fit">
+                <div className="flex w-full justify-end md:col-start-2 md:row-start-2 md:w-fit md:justify-self-end">
                   <Sort defaultSort="relevance" options={SEARCH_SORT_OPTIONS} />
                 </div>
               </div>
@@ -278,7 +285,7 @@ export default function Search() {
           </div>
         </header>
 
-        <AppliedFilters filters={appliedFilters} />
+        <AppliedFilterTags className="mb-8" filters={appliedFilters} />
 
         {products.nodes.length > 0 ? (
           <SearchProducts
@@ -393,7 +400,7 @@ function SearchProducts({
                     key={product.id}
                     className={cn(index >= mobileVisible && "max-md:hidden")}
                   >
-                    <ProductCard product={product} />
+                    <ProductCard product={product} flushHorizontalPadding />
                   </div>
                 ),
               )}
@@ -434,49 +441,6 @@ function SearchProducts({
         );
       }}
     </Pagination>
-  );
-}
-
-function AppliedFilters({ filters }: { filters: AppliedFilter[] }) {
-  const { t } = useTranslation();
-  const [params] = useSearchParams();
-  const location = useLocation();
-
-  if (!filters.length) {
-    return null;
-  }
-
-  const clearAllParams = new URLSearchParams(params);
-  for (const key of Array.from(clearAllParams.keys())) {
-    if (key.startsWith(FILTER_URL_PREFIX)) {
-      clearAllParams.delete(key);
-    }
-  }
-
-  return (
-    <div className="mb-8 flex flex-wrap items-center gap-3">
-      {filters.map((filter) => (
-        <Link
-          key={`${filter.label}-${JSON.stringify(filter.filter)}`}
-          to={getAppliedFilterLink(filter, params, location)}
-          className="flex min-h-9 items-center gap-2 border border-line-subtle px-3 py-1.5 hover:border-line"
-          variant="custom"
-          preventScrollReset
-        >
-          <span>
-            {filter.label === "Price" ? t("product.price") : filter.label}
-          </span>
-          <XIcon aria-hidden="true" className="h-4 w-4" />
-        </Link>
-      ))}
-      <Link
-        to={`${location.pathname}?${clearAllParams.toString()}`}
-        variant="underline"
-        preventScrollReset
-      >
-        {t("collection.clearAllFilters")}
-      </Link>
-    </div>
   );
 }
 
@@ -538,7 +502,7 @@ function SearchPageForm({ defaultValue = "" }: { defaultValue?: string }) {
   return (
     <Form
       method="get"
-      className="flex h-12 w-full items-center gap-3 self-stretch rounded-[var(--Radius-border-radius-md,12px)] border border-[var(--Border-Subtle,#D8D8D8)] bg-[var(--Background-Background,#FFF)] px-4 md:max-w-[calc(50vw-var(--page-padding))] lg:max-w-full"
+      className="flex h-12 w-full items-center gap-3 self-stretch rounded-[var(--Radius-border-radius-md,12px)] border border-[var(--Border-Subtle,#D8D8D8)] bg-[var(--Background-Background,#FFF)] px-4 md:col-start-1 md:row-start-2 md:max-w-[calc(50vw-var(--page-padding))] lg:max-w-full"
     >
       <label htmlFor={inputId} className="sr-only">
         {t("search.searchProducts")}
@@ -572,7 +536,7 @@ function SearchPageForm({ defaultValue = "" }: { defaultValue?: string }) {
           type="button"
           aria-label={t("search.clearFilters")}
           onClick={() => setQuery("")}
-          className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#F2F2F2] text-[#9D9D9D] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body"
+          className="flex size-6 shrink-0 items-center justify-center rounded-(--radius-xs) bg-(--color-background-subtle) text-[#9D9D9D] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body"
         >
           <XIcon aria-hidden="true" className="h-5 w-5" />
         </button>

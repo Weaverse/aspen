@@ -320,11 +320,12 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
       product: (typeof displayedProducts)[number],
       quickShopIconOnlyOnTablet?: boolean,
     ) => (
-      <div className="relative left-1/2 flex w-screen -translate-x-1/2 justify-center px-5 md:hidden">
+      <div className="relative left-1/2 flex w-screen -translate-x-1/2 justify-center px-(--page-padding) md:hidden">
         <div className="w-full">
           <ProductCard
             product={product}
             className="h-full w-full !pt-0"
+            flushHorizontalPadding
             quickShopIconOnlyOnTablet={quickShopIconOnlyOnTablet}
           />
         </div>
@@ -344,8 +345,6 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
                 centeredSlides
                 centerInsufficientSlides
                 spaceBetween={20}
-                slidesOffsetBefore={20}
-                slidesOffsetAfter={20}
                 onSwiper={() => {
                   requestAnimationFrame(() => {
                     setIsSwiperInitialized(true);
@@ -364,12 +363,15 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
                 {displayedProducts.map((product) => (
                   <SwiperSlide
                     key={product.id}
-                    style={{ width: "calc(100vw - 80px)" }}
+                    style={{
+                      width: "calc(100vw - 2 * var(--page-padding))",
+                    }}
                   >
                     <div className="relative h-full">
                       <ProductCard
                         product={product}
                         className="h-full w-full !pt-0"
+                        flushHorizontalPadding
                       />
                     </div>
                   </SwiperSlide>
@@ -380,7 +382,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
             </div>
           )}
 
-          <div className="hidden md:-mx-5 md:block md:w-[calc(100%+40px)]">
+          <div className="hidden md:block">
             <div
               className={clsx(
                 "grid grid-cols-2 gap-x-5 gap-y-16",
@@ -394,6 +396,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
                   key={product.id}
                   product={product}
                   className="w-full !pt-0 md:flex md:flex-col md:items-start md:gap-5 md:max-desktop:[&>div:last-child]:pt-0 lg:block"
+                  flushHorizontalPadding
                   stretchImageOnTablet
                 />
               ))}
@@ -421,7 +424,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
         {...rest}
         className={clsx("relative", isProductPage && "md:!mt-10")}
       >
-        <div className="relative left-1/2 w-screen -translate-x-1/2 md:-mx-5 md:left-auto md:w-[calc(100%+40px)] md:translate-x-0">
+        <div className="relative left-1/2 w-screen -translate-x-1/2 md:left-auto md:w-full md:translate-x-0">
           <Swiper
             key={`swiper-carousel-${displayedProducts.length}-${resolvedSlidesPerView}-${designGap}`}
             slidesPerView="auto"
@@ -457,11 +460,12 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
             {displayedProducts.map((product) => (
               <SwiperSlide
                 key={product.id}
-                className="!h-auto max-md:!w-[calc(100vw_-_40px)]"
+                className="!h-auto max-md:!w-[calc(100vw-2*var(--page-padding))]"
               >
                 <ProductCard
                   product={product}
                   className="h-full w-full !pt-0 md:flex md:flex-col md:items-start md:gap-5 md:max-desktop:[&>div:last-child]:pt-0 lg:block"
+                  flushHorizontalPadding
                   quickShopIconOnlyOnTablet={isProductPage}
                   stretchImageOnTablet
                 />

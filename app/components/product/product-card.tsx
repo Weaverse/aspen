@@ -51,6 +51,7 @@ type ProductCardProps = {
   quickShopIconOnlyOnTablet?: boolean;
   stretchImageOnTablet?: boolean;
   mobileLayout?: boolean;
+  flushHorizontalPadding?: boolean;
 };
 
 export function ProductCard({
@@ -61,6 +62,7 @@ export function ProductCard({
   quickShopIconOnlyOnTablet = false,
   stretchImageOnTablet = false,
   mobileLayout = false,
+  flushHorizontalPadding = false,
 }: ProductCardProps) {
   const { t } = useTranslation();
   const {
@@ -143,7 +145,8 @@ export function ProductCard({
   return (
     <article
       className={clsx(
-        "group/product-card @container/product-card overflow-hidden p-5 bg-(--pcard-background) transition-colors duration-300",
+        "group/product-card @container/product-card overflow-hidden bg-(--pcard-background) transition-colors duration-300",
+        flushHorizontalPadding ? "py-5" : "p-5",
         !mobileLayout &&
           "desktop:px-0 desktop:pt-0 desktop:gap-0 desktop:hover:bg-(--pcard-hover-background) desktop:focus-within:bg-(--pcard-hover-background)",
         className,
