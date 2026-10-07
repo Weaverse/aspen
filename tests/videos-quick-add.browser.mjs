@@ -7,6 +7,7 @@ import { chromium, expect } from "@playwright/test";
 import { compile } from "@tailwindcss/node";
 import { Scanner } from "@tailwindcss/oxide";
 import { build } from "esbuild";
+import { DESKTOP_MIN_PX, TABLET_MAX_PX } from "./responsive-test-widths.mjs";
 
 // Run with: node --test tests/videos-quick-add.browser.mjs
 // Render the real VideoItem and responsive QuickShopTrigger.
@@ -148,7 +149,7 @@ async function render(width, options = {}) {
 }
 
 test("video eye opens the existing responsive Quick Add and restores focus", async () => {
-  for (const width of [390, 767, 768, 1024, 1440]) {
+  for (const width of [390, 767, 768, TABLET_MAX_PX, DESKTOP_MIN_PX, 1440]) {
     const page = await render(width);
     const button = page.getByRole("button", {
       name: "product.selectOptions",
@@ -305,7 +306,7 @@ test("other Add to Cart callers retain the existing inline loading", async () =>
 });
 
 test("Videos purchase buttons stay compact and inside the card at responsive widths", async () => {
-  for (const width of [375, 768, 834, 1024, 1440]) {
+  for (const width of [375, 768, 834, TABLET_MAX_PX, DESKTOP_MIN_PX, 1440]) {
     const page = await render(width, { withImage: true });
     const button = page.getByRole("button", {
       name: "Add to Cart",

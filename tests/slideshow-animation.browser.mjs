@@ -6,6 +6,7 @@ import { chromium } from "@playwright/test";
 import { compile } from "@tailwindcss/node";
 import { Scanner } from "@tailwindcss/oxide";
 import { build } from "esbuild";
+import { DESKTOP_MIN_PX, TABLET_MAX_PX } from "./responsive-test-widths.mjs";
 
 // Run with: node --test tests/slideshow-animation.browser.mjs
 // Keep the real Slideshow, Slide, animation hook and Swiper; only stub CMS data.
@@ -99,7 +100,7 @@ const dotsLayout = {
   mobilePadding: 32,
   pagePadding: 40,
   mediumBreakpoint: 768,
-  largeBreakpoint: 1025,
+  largeBreakpoint: DESKTOP_MIN_PX,
   extraLargeBreakpoint: 1536,
   pageWidths: [1440, 1600],
 };
@@ -344,7 +345,14 @@ test("dots stay at the bottom and align responsively to the page container", asy
   try {
     for (const pageWidth of dotsLayout.pageWidths) {
       for (const viewportWidth of [
-        390, 767, 768, 1024, 1025, 1535, 1536, 1920,
+        390,
+        767,
+        768,
+        TABLET_MAX_PX,
+        DESKTOP_MIN_PX,
+        1535,
+        1536,
+        1920,
       ]) {
         for (const position of [
           undefined,

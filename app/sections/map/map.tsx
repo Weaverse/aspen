@@ -230,7 +230,7 @@ export const schema: HydrogenComponentSchema = {
             ],
           },
           helpText:
-            "Style 1: store list beside the map from tablet up. Style 2: overlay panel on tablet (768–1024px) and large desktop (1280px+); stacked accordion at other widths.",
+            "Style 1: store list beside the map from tablet up. Style 2: overlay panel on tablet (768–1032px) and large desktop (1280px+); stacked accordion at other widths.",
         },
       ],
     },

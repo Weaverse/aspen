@@ -5,6 +5,7 @@ import { chromium, expect } from "@playwright/test";
 import { compile } from "@tailwindcss/node";
 import { Scanner } from "@tailwindcss/oxide";
 import { build } from "esbuild";
+import { DESKTOP_MIN_PX, TABLET_MAX_PX } from "./responsive-test-widths.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const bundle = await build({
@@ -113,7 +114,7 @@ const css = stylesheet.build(
 test("Style 2 map panel uses the medium theme radius at every breakpoint", async () => {
   const browser = await chromium.launch();
   try {
-    for (const width of [390, 768, 1024, 1280, 1520]) {
+    for (const width of [390, 768, TABLET_MAX_PX, DESKTOP_MIN_PX, 1280, 1520]) {
       const page = await browser.newPage({ viewport: { width, height: 1000 } });
       await page.setContent(
         `<style>${css}:root { --radius-md: 12px; }</style><div id="root"></div>`,
