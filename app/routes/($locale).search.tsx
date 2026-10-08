@@ -222,7 +222,7 @@ export default function Search() {
           <div className="flex flex-col gap-4 md:grid md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:gap-x-8 lg:grid-cols-[50%_minmax(0,1fr)] xl:gap-x-10">
             <div className="flex min-w-0 w-full flex-col gap-4 md:contents">
               <div className="md:hidden">
-                <SearchHeading searchTerm={searchTerm} stacked />
+                <SearchHeading searchTerm={searchTerm} keepLabelTogether />
               </div>
               <div className="hidden min-w-0 md:col-start-1 md:row-start-1 md:block xl:hidden">
                 <SearchHeading searchTerm={searchTerm} />
@@ -311,20 +311,24 @@ export default function Search() {
 function SearchHeading({
   searchTerm,
   resultCount,
-  stacked = false,
+  keepLabelTogether = false,
 }: {
   searchTerm: string;
   resultCount?: number;
-  stacked?: boolean;
+  keepLabelTogether?: boolean;
 }) {
   const { t } = useTranslation();
   return (
     <h1 className="self-stretch text-left font-heading font-normal text-[37px] uppercase leading-[110%] tracking-[-0.74px] text-[var(--color-text,#343231)] md:max-w-full md:break-words">
       {typeof resultCount === "number" && `${resultCount} `}
-      {searchTerm && stacked ? (
+      {searchTerm && keepLabelTogether ? (
         <>
-          {t("search.resultsForLabel")}
-          <span className="block">“{searchTerm}”</span>
+          <span className="inline-block whitespace-nowrap">
+            {t("search.resultsForLabel")}
+          </span>{" "}
+          <span className="inline-block max-w-full break-words">
+            “{searchTerm}”
+          </span>
         </>
       ) : searchTerm ? (
         t("search.resultsFor", { term: searchTerm })
