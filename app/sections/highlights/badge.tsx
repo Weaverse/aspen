@@ -10,6 +10,7 @@ import Heading, {
 } from "~/components/heading";
 import Link from "~/components/link";
 import { useTranslatedText } from "~/hooks/use-translated-text";
+import { ASPEN_2026_DESIGN_TOKENS } from "~/weaverse/design-presets";
 
 export interface HighlightsBadgeProps
   extends HydrogenComponentProps,
@@ -36,7 +37,7 @@ let HighlightsBadge = forwardRef<HTMLDivElement, HighlightsBadgeProps>(
       iconType = "circle",
       showIcon = true,
       customIcon = "",
-      badgeTextColor = "#29231E",
+      badgeTextColor = "var(--color-text)",
       // Heading props
       headingContent: rawI18nHeadingContent,
       headingTagName,
@@ -79,21 +80,21 @@ let HighlightsBadge = forwardRef<HTMLDivElement, HighlightsBadgeProps>(
         case "circle":
           return (
             <div
-              className="size-5 flex-shrink-0 rounded-full"
+              className="size-10 flex-shrink-0 rounded-full"
               style={{ backgroundColor: badgeTextColor }}
             />
           );
         case "square":
           return (
             <div
-              className="size-5 flex-shrink-0"
+              className="size-9 flex-shrink-0"
               style={{ backgroundColor: badgeTextColor }}
             />
           );
         case "triangle":
           return (
             <div
-              className="h-5 w-6 flex-shrink-0"
+              className="size-12 flex-shrink-0"
               style={{
                 clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)",
                 backgroundColor: badgeTextColor,
@@ -247,7 +248,7 @@ export let schema = createSchema({
           type: "color",
           name: "badgeTextColor",
           label: "Icon & Text Color",
-          defaultValue: "#29231E",
+          defaultValue: ASPEN_2026_DESIGN_TOKENS.colorText,
           helpText: "For SVG icons, this will be used as the icon color",
         },
       ],
@@ -304,7 +305,7 @@ export let schema = createSchema({
   presets: {
     iconType: "circle",
     showIcon: true,
-    badgeTextColor: "#29231E",
+    badgeTextColor: ASPEN_2026_DESIGN_TOKENS.colorText,
     headingContent:
       "Quality furniture made to last through moves and milestones.",
     color: "#29231E",

@@ -5,6 +5,7 @@ import { forwardRef } from "react";
 import type { SectionProps } from "~/components/section";
 import { layoutInputs, Section } from "~/components/section";
 import { cn } from "~/utils/cn";
+import { ASPEN_2026_DESIGN_TOKENS } from "~/weaverse/design-presets";
 
 export interface HighlightsProps extends VariantProps<typeof variants> {
   backgroundColor?: string;
@@ -88,7 +89,7 @@ export let schema = createSchema({
         type: "highlights-badge",
         iconType: "circle",
         showIcon: true,
-        badgeTextColor: "#29231E",
+        badgeTextColor: ASPEN_2026_DESIGN_TOKENS.colorText,
         headingContent:
           "The best of every modern style from minimalist to mid century.",
         headingTagName: "h6",
@@ -102,7 +103,7 @@ export let schema = createSchema({
         type: "highlights-badge",
         iconType: "square",
         showIcon: true,
-        badgeTextColor: "#29231E",
+        badgeTextColor: ASPEN_2026_DESIGN_TOKENS.colorText,
         headingContent:
           "Quality furniture made to last through moves and milestones.",
         headingTagName: "h6",
@@ -116,7 +117,7 @@ export let schema = createSchema({
         type: "highlights-badge",
         iconType: "triangle",
         showIcon: true,
-        badgeTextColor: "#29231E",
+        badgeTextColor: ASPEN_2026_DESIGN_TOKENS.colorText,
         headingContent: "Delivery for free in days — not weeks.",
         headingTagName: "h6",
         color: "#29231E",
