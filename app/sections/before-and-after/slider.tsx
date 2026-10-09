@@ -13,7 +13,7 @@ import { MEDIA_FROM_TABLET } from "~/utils/breakpoints";
 
 type HeightMode = "aspen" | "custom";
 
-interface BeforeAndAfterProps extends HydrogenComponentProps {
+export interface BeforeAfterSettings {
   beforeImage1?: WeaverseImage | string;
   afterImage2?: WeaverseImage | string;
   separatorColor?: string;
@@ -26,6 +26,10 @@ interface BeforeAndAfterProps extends HydrogenComponentProps {
   initialPositionDesktop?: number;
   initialPositionMobile?: number;
 }
+
+interface BeforeAndAfterProps
+  extends Partial<HydrogenComponentProps>,
+    BeforeAfterSettings {}
 
 const clampPosition = (position: number) =>
   Math.min(100, Math.max(0, position));

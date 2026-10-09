@@ -360,6 +360,12 @@
   },
   "blog": {
     "copyLink": "Copy link",
+    "closeShare": "Close share buttons",
+    "shareTwitter": "Share on Twitter",
+    "shareFacebook": "Share on Facebook",
+    "shareLinkedIn": "Share on LinkedIn",
+    "articleLinkCopied": "Article link copied",
+    "copyLinkFailed": "Could not copy the article link. Please try again.",
     "linkCopied": "Link copied",
     "readMinutes": "{{count}} min read",
     "share": "Share",
@@ -504,7 +510,7 @@
     },
     "sectionsArticlesIndex": {
       "viewAllText": "VIEW ALL",
-      "readMoreText": "Read More",
+      "readMoreText": "View More",
       "buttonText": "Load More",
       "headingContent": "ARTICLES"
     },
@@ -680,6 +686,7 @@
     },
     "sectionsRelatedArticles": {
       "heading": "Related articles",
+      "readMoreText": "View More",
       "viewAllText": "VIEW ALL"
     },
     "sectionsScrollingTextIndex": {

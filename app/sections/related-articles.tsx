@@ -22,6 +22,7 @@ interface RelatedArticlesProps
   showCategory?: boolean;
   showCategoryDesktop?: boolean;
   viewAllText?: string;
+  readMoreText?: string;
 }
 
 const RelatedArticles = forwardRef<HTMLElement, RelatedArticlesProps>(
@@ -43,7 +44,8 @@ const RelatedArticles = forwardRef<HTMLElement, RelatedArticlesProps>(
       showCategoryDesktop = false,
       showAuthor = false,
       showDate = false,
-      showReadmore,
+      showReadmore = false,
+      readMoreText: rawI18nReadMoreText = "View More",
       imageAspectRatio,
       ...rest
     } = props;
@@ -54,6 +56,10 @@ const RelatedArticles = forwardRef<HTMLElement, RelatedArticlesProps>(
     const heading = translateText(
       rawI18nHeading,
       "themeContent.sectionsRelatedArticles.heading",
+    );
+    const readMoreText = translateText(
+      rawI18nReadMoreText,
+      "themeContent.sectionsRelatedArticles.readMoreText",
     );
 
     if (relatedArticles.length > 0) {
@@ -175,11 +181,12 @@ const RelatedArticles = forwardRef<HTMLElement, RelatedArticlesProps>(
                         </p>
                       )}
                       {showReadmore && (
-                        <span className="group/read-more md:mt-4 flex w-fit items-center gap-2 font-semibold text-[#524B46] text-sm capitalize leading-none tracking-[0.28px] xl:mt-4 xl:font-normal xl:uppercase xl:leading-[1.6] xl:tracking-[0.14px]">
-                          {t("navigation.readMore")}
+                        <span className="mt-1 flex w-fit items-center gap-1.5 text-center font-body font-normal text-(--color-text-subtle) text-sm leading-(--body-base-line-height) tracking-(--body-base-spacing)">
+                          {readMoreText}
                           <ArrowRight
                             aria-hidden="true"
-                            className="size-4 transition-transform duration-300 group-hover/read-more:translate-x-1 motion-reduce:transition-none xl:hidden"
+                            size={11}
+                            weight="regular"
                           />
                         </span>
                       )}
@@ -287,8 +294,15 @@ export const schema = createSchema({
         {
           type: "switch",
           name: "showReadmore",
-          label: "Show read more",
-          defaultValue: true,
+          label: "Show view more link",
+          defaultValue: false,
+        },
+        {
+          type: "text",
+          name: "readMoreText",
+          label: "View more text",
+          defaultValue: "View More",
+          condition: "showReadmore.eq.true",
         },
       ],
     },
