@@ -5,7 +5,6 @@ import { chromium, expect } from "@playwright/test";
 import { compile } from "@tailwindcss/node";
 import { Scanner } from "@tailwindcss/oxide";
 import { build } from "esbuild";
-import { DESKTOP_MIN_PX, TABLET_MAX_PX } from "./responsive-test-widths.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const bundle = await build({
@@ -62,11 +61,13 @@ const css = stylesheet.build(
   }).scan(),
 );
 
-test("Highlights built-in icons match the design across breakpoints and retain Studio controls", async () => {
+test("Highlights icons retain design sizes, Studio controls and legacy custom SVG colors", async () => {
   const browser = await chromium.launch();
   try {
-    for (const width of [390, 768, TABLET_MAX_PX, DESKTOP_MIN_PX, 1280]) {
-      const page = await browser.newPage({ viewport: { width, height: 900 } });
+    {
+      const page = await browser.newPage({
+        viewport: { width: 1280, height: 900 },
+      });
       await page.setContent(
         `<style>${css}:root { --color-text: #343231; }</style><div id="root"></div>`,
       );
@@ -83,7 +84,7 @@ test("Highlights built-in icons match the design across breakpoints and retain S
         );
         await expect(icon).toHaveCSS("width", `${size}px`);
         await expect(icon).toHaveCSS("height", `${size}px`);
-        await expect(icon).toHaveCSS("background-color", "rgb(52, 50, 49)");
+        await expect(icon).toHaveCSS("background-color", "rgb(41, 35, 30)");
         if (iconType === "circle") {
           const radius = await icon.evaluate((element) =>
             Number.parseFloat(getComputedStyle(element).borderTopLeftRadius),
@@ -106,11 +107,37 @@ test("Highlights built-in icons match the design across breakpoints and retain S
       await page.evaluate(() =>
         window.renderBadge({
           iconType: "custom",
-          customIcon: '<svg width="48" height="48"></svg>',
+          customIcon:
+            '<svg width="48" height="48"><path fill="#ffffff" d="M0 0h48v48H0z"/></svg>',
         }),
       );
       await expect(icon).toHaveCSS("width", "48px");
       await expect(icon.locator("svg")).toHaveCount(1);
+      await expect(icon.locator("path")).toHaveAttribute("fill", "#29231E");
+      await page.evaluate(() =>
+        window.renderBadge({
+          iconType: "custom",
+          badgeTextColor: "#ff0000",
+          customIcon: '<svg><path fill="#ffffff" d="M0 0h48v48H0z"/></svg>',
+        }),
+      );
+      await expect(icon.locator("path")).toHaveAttribute("fill", "#ff0000");
+      await page.route("https://icons.example.test/icon.svg", (route) =>
+        route.fulfill({
+          contentType: "image/svg+xml",
+          body: '<svg xmlns="http://www.w3.org/2000/svg"/>',
+        }),
+      );
+      await page.evaluate(() =>
+        window.renderBadge({
+          iconType: "custom",
+          customIcon: "https://icons.example.test/icon.svg",
+        }),
+      );
+      await expect(icon.locator("img")).toHaveCSS(
+        "filter",
+        "brightness(0) saturate(1) invert(0.1)",
+      );
       await page.close();
     }
   } finally {

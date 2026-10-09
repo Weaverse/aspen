@@ -10,7 +10,6 @@ import Heading, {
 } from "~/components/heading";
 import Link from "~/components/link";
 import { useTranslatedText } from "~/hooks/use-translated-text";
-import { ASPEN_2026_DESIGN_TOKENS } from "~/weaverse/design-presets";
 
 export interface HighlightsBadgeProps
   extends HydrogenComponentProps,
@@ -37,7 +36,7 @@ let HighlightsBadge = forwardRef<HTMLDivElement, HighlightsBadgeProps>(
       iconType = "circle",
       showIcon = true,
       customIcon = "",
-      badgeTextColor = "var(--color-text)",
+      badgeTextColor = "#29231E",
       // Heading props
       headingContent: rawI18nHeadingContent,
       headingTagName,
@@ -248,7 +247,7 @@ export let schema = createSchema({
           type: "color",
           name: "badgeTextColor",
           label: "Icon & Text Color",
-          defaultValue: ASPEN_2026_DESIGN_TOKENS.colorText,
+          defaultValue: "#29231E",
           helpText: "For SVG icons, this will be used as the icon color",
         },
       ],
@@ -305,7 +304,7 @@ export let schema = createSchema({
   presets: {
     iconType: "circle",
     showIcon: true,
-    badgeTextColor: ASPEN_2026_DESIGN_TOKENS.colorText,
+    badgeTextColor: "#29231E",
     headingContent:
       "Quality furniture made to last through moves and milestones.",
     color: "#29231E",
