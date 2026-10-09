@@ -44,7 +44,8 @@ export function AddToCartButton({
   analytics?: unknown;
   onAdded?: () => void;
   loadingStyle?: "inline" | "overlay";
-  cartOpenTiming?: "submit" | "success";
+  /** Manual lets a modal finish its exit before its owner opens the cart. */
+  cartOpenTiming?: "submit" | "success" | "manual";
   onMutationStateChange?: (state: {
     pending: boolean;
     hasError: boolean;
@@ -216,7 +217,7 @@ function AddToCartAnalytics({
   onAdded?: () => void;
   pendingToken: React.MutableRefObject<string | null>;
   submitted: React.MutableRefObject<boolean>;
-  cartOpenTiming: "submit" | "success";
+  cartOpenTiming: "submit" | "success" | "manual";
   onMutationStateChange?: (state: {
     pending: boolean;
     hasError: boolean;

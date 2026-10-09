@@ -9,9 +9,10 @@ import {
 import { useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFetcher } from "react-router";
 import type { ProductVariantFragment } from "storefront-api.generated";
+import { useCartStore } from "~/components/cart/store";
 import Link from "~/components/link";
 import { LoyaltyPointsHint } from "~/components/loyalty/loyalty-points-hint";
 import { AddToCartButton } from "~/components/product/add-to-cart-button";
@@ -71,12 +72,14 @@ export function QuickShop({
   data,
   onCloseAll,
   layout = "mobile",
+  cartOpenTiming = "submit",
 }: {
   data: ProductData;
   showDescription?: boolean;
   setShowDescription?: (show: boolean) => void;
   onCloseAll?: () => void;
   layout?: "mobile" | "desktop";
+  cartOpenTiming?: "submit" | "manual";
 }) {
   const { t } = useTranslation();
   const themeSettings = useTranslatedThemeSettings();
@@ -233,6 +236,7 @@ export function QuickShop({
               containerClassName="min-w-0 flex-1"
               disabled={!selectedVariant?.availableForSale}
               onAdded={onCloseAll}
+              cartOpenTiming={cartOpenTiming}
               lines={[
                 {
                   merchandiseId: selectedVariant?.id,
@@ -328,6 +332,13 @@ export function QuickShopTrigger({
   const open = controlledOpen ?? internalOpen;
   const setOpen = onOpenChange ?? setInternalOpen;
   const [isMobile, setIsMobile] = useState(false);
+  const cartHandoff = useRef<"idle" | "closing" | "complete">("idle");
+
+  useEffect(() => {
+    if (open) {
+      cartHandoff.current = "idle";
+    }
+  }, [open]);
 
   useEffect(() => {
     const query = window.matchMedia(MEDIA_MOBILE);
@@ -348,6 +359,21 @@ export function QuickShopTrigger({
 
   const closeAllDrawers = () => {
     setOpen(false);
+  };
+
+  const handleAdded = () => {
+    cartHandoff.current = "closing";
+    setOpen(false);
+  };
+
+  const handleCloseAutoFocus = (event: Event) => {
+    if (cartHandoff.current !== "idle") {
+      // The next dialog owns focus; do not restore it to the Quick Add trigger.
+      event.preventDefault();
+    } else if (onCloseFocus) {
+      event.preventDefault();
+      onCloseFocus();
+    }
   };
 
   useEffect(() => {
@@ -415,7 +441,14 @@ export function QuickShopTrigger({
         </Dialog.Trigger>
       )}
       <Dialog.Portal forceMount>
-        <AnimatePresence>
+        <AnimatePresence
+          onExitComplete={() => {
+            if (cartHandoff.current === "closing" && !open) {
+              useCartStore.getState().open();
+              cartHandoff.current = "complete";
+            }
+          }}
+        >
           {open && (
             <>
               <Dialog.Overlay forceMount>
@@ -430,14 +463,7 @@ export function QuickShopTrigger({
               {isMobile && (
                 <Dialog.Content
                   forceMount
-                  onCloseAutoFocus={
-                    onCloseFocus
-                      ? (event) => {
-                          event.preventDefault();
-                          onCloseFocus();
-                        }
-                      : undefined
-                  }
+                  onCloseAutoFocus={handleCloseAutoFocus}
                   className="fixed inset-0 z-10 h-dvh"
                   aria-describedby={undefined}
                 >
@@ -474,7 +500,8 @@ export function QuickShopTrigger({
                           ) : data ? (
                             <QuickShop
                               data={data as ProductData}
-                              onCloseAll={closeAllDrawers}
+                              onCloseAll={handleAdded}
+                              cartOpenTiming="manual"
                             />
                           ) : (
                             <QuickShopLoadError onRetry={() => load(apiPath)} />
@@ -490,14 +517,7 @@ export function QuickShopTrigger({
               {!isMobile && (
                 <Dialog.Content
                   forceMount
-                  onCloseAutoFocus={
-                    onCloseFocus
-                      ? (event) => {
-                          event.preventDefault();
-                          onCloseFocus();
-                        }
-                      : undefined
-                  }
+                  onCloseAutoFocus={handleCloseAutoFocus}
                   className="fixed inset-0 z-10 flex items-center justify-center"
                   aria-describedby={undefined}
                 >
@@ -524,7 +544,8 @@ export function QuickShopTrigger({
                     ) : data ? (
                       <QuickShop
                         data={data as ProductData}
-                        onCloseAll={closeAllDrawers}
+                        onCloseAll={handleAdded}
+                        cartOpenTiming="manual"
                         layout="desktop"
                       />
                     ) : (
