@@ -75,8 +75,8 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
     borderRadius = 8,
     showPublishedDate = true,
     showCategory = true,
-    showReadMore = true,
-    readMoreText: rawI18nReadMoreText = "Read More",
+    showReadMore = false,
+    readMoreText: rawI18nReadMoreText = "View More",
     enableLoadMore = false,
     // Load More props
     initialCount = 3,
@@ -297,7 +297,7 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
                       </div>
                     )}
                     {showReadMore && (
-                      <span className="mt-1 flex items-center gap-1.5 text-xs leading-none tracking-[0.02em]">
+                      <span className="mt-1 flex items-center gap-1.5 text-center font-body font-normal text-(--color-text-subtle) text-sm leading-(--body-base-line-height) tracking-(--body-base-spacing)">
                         {readMoreText}
                         <ArrowRight size={11} weight="regular" />
                       </span>
@@ -482,14 +482,14 @@ export const schema: HydrogenComponentSchema = {
         {
           type: "switch",
           name: "showReadMore",
-          label: "Show read more link",
-          defaultValue: true,
+          label: "Show view more link",
+          defaultValue: false,
         },
         {
           type: "text",
           name: "readMoreText",
-          label: "Read more text",
-          defaultValue: "Read More",
+          label: "View more text",
+          defaultValue: "View More",
           condition: "showReadMore.eq.true",
         },
         {
@@ -566,8 +566,8 @@ export const schema: HydrogenComponentSchema = {
     showSeperator: false,
     showPublishedDate: true,
     showCategory: true,
-    showReadMore: true,
-    readMoreText: "Read More",
+    showReadMore: false,
+    readMoreText: "View More",
     enableLoadMore: false,
     viewAllText: "VIEW ALL",
     buttonVariant: "secondary",

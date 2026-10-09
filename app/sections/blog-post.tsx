@@ -1,15 +1,17 @@
 import {
   FacebookLogoIcon,
+  LinkedinLogoIcon,
   LinkSimpleIcon,
-  PinterestLogoIcon,
-  XLogoIcon,
+  TwitterLogoIcon,
+  XCircleIcon,
 } from "@phosphor-icons/react";
 import { createSchema, isBrowser, useTranslation } from "@weaverse/hydrogen";
-import { forwardRef, useState } from "react";
+import { forwardRef, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useLoaderData, useRouteLoaderData } from "react-router";
 import {
   FacebookShareButton,
-  PinterestShareButton,
+  LinkedinShareButton,
   XShareButton,
 } from "react-share";
 import type { ArticleQuery } from "storefront-api.generated";
@@ -21,11 +23,15 @@ import { cn } from "~/utils/cn";
 interface BlogPostProps extends SectionProps {
   showTags: boolean;
   showShareButtons: boolean;
+  showShareTwitter?: boolean;
+  showShareFacebook?: boolean;
+  showShareLinkedIn?: boolean;
 }
 
 const SHARE_ICON_CLASSES = cn(
-  "flex size-10 items-center justify-center rounded-full",
-  "bg-(--color-background) text-(--color-text)",
+  "flex size-10 shrink-0 items-center justify-center rounded-full",
+  "border border-(--color-line-subtle) bg-(--color-background-subtle) text-(--color-text)",
+  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-text)",
   "transition-colors hover:bg-(--color-background-subtle-2)",
 );
 
@@ -39,29 +45,147 @@ function estimateReadMinutes(html: string) {
 
 function CopyLinkButton({ url }: { url: string }) {
   const { t } = useTranslation();
-  const [copied, setCopied] = useState(false);
+  const [status, setStatus] = useState<"idle" | "copied" | "error">("idle");
+  const [mounted, setMounted] = useState(false);
+  const copied = status === "copied";
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  useEffect(() => {
+    if (status === "idle") {
+      return;
+    }
+    const timer = setTimeout(() => setStatus("idle"), 2000);
+    return () => clearTimeout(timer);
+  }, [status]);
   return (
-    <button
-      type="button"
-      className={SHARE_ICON_CLASSES}
-      aria-label={t(copied ? "blog.linkCopied" : "blog.copyLink")}
-      onClick={() => {
-        navigator.clipboard?.writeText(url).then(() => {
-          setCopied(true);
-          setTimeout(() => setCopied(false), 2000);
-        });
-      }}
-    >
-      <LinkSimpleIcon size={16} weight={copied ? "bold" : "regular"} />
-    </button>
+    <>
+      <button
+        type="button"
+        className={SHARE_ICON_CLASSES}
+        aria-label={t(copied ? "blog.linkCopied" : "blog.copyLink")}
+        onClick={async () => {
+          setStatus("idle");
+          try {
+            if (!navigator.clipboard?.writeText) {
+              setStatus("error");
+              return;
+            }
+            await navigator.clipboard.writeText(url);
+            setStatus("copied");
+          } catch {
+            setStatus("error");
+          }
+        }}
+      >
+        <LinkSimpleIcon size={16} weight={copied ? "bold" : "regular"} />
+      </button>
+      {mounted &&
+        createPortal(
+          <span
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+            className={
+              status === "idle"
+                ? "sr-only"
+                : "fixed inset-x-4 bottom-4 z-50 mx-auto w-fit max-w-full rounded-(--radius-md) border border-(--color-line-subtle) bg-(--color-background) px-4 py-3 text-center font-body text-(--color-text) text-sm shadow-md"
+            }
+          >
+            {status === "copied"
+              ? t("blog.articleLinkCopied")
+              : status === "error"
+                ? t("blog.copyLinkFailed")
+                : ""}
+          </span>,
+          document.body,
+        )}
+    </>
+  );
+}
+
+function ArticleShareGroup({
+  url,
+  title,
+  showShareTwitter,
+  showShareFacebook,
+  showShareLinkedIn,
+}: {
+  url: string;
+  title: string;
+} & Pick<
+  BlogPostProps,
+  "showShareTwitter" | "showShareFacebook" | "showShareLinkedIn"
+>) {
+  const { t } = useTranslation();
+  const [dismissed, setDismissed] = useState(false);
+  if (dismissed) {
+    return null;
+  }
+  return (
+    <div className="mx-auto mt-4 w-full max-w-(--article-width) md:mt-5 lg:col-start-1 lg:row-start-1 lg:mt-0 lg:mr-10 lg:ml-0 lg:h-full lg:w-fit lg:justify-self-end lg:pt-16">
+      <div className="flex w-fit max-w-full flex-wrap items-center gap-3 rounded-(--radius-md) border border-(--color-line-subtle) bg-(--color-background) px-3 py-4 lg:sticky lg:top-28 lg:min-w-14 lg:flex-col lg:flex-nowrap lg:gap-4 lg:px-2 lg:py-3">
+        <span className="font-body font-normal text-(--color-text-subtle) text-sm leading-(--body-base-line-height) tracking-(--body-base-spacing)">
+          {t("blog.share")}
+        </span>
+        {showShareTwitter && (
+          <XShareButton
+            url={url}
+            title={title}
+            resetButtonStyle={false}
+            className={SHARE_ICON_CLASSES}
+            aria-label={t("blog.shareTwitter")}
+          >
+            <TwitterLogoIcon size={20} />
+          </XShareButton>
+        )}
+        {showShareFacebook && (
+          <FacebookShareButton
+            url={url}
+            resetButtonStyle={false}
+            className={SHARE_ICON_CLASSES}
+            aria-label={t("blog.shareFacebook")}
+          >
+            <FacebookLogoIcon size={20} />
+          </FacebookShareButton>
+        )}
+        {showShareLinkedIn && (
+          <LinkedinShareButton
+            url={url}
+            title={title}
+            resetButtonStyle={false}
+            className={SHARE_ICON_CLASSES}
+            aria-label={t("blog.shareLinkedIn")}
+          >
+            <LinkedinLogoIcon size={20} />
+          </LinkedinShareButton>
+        )}
+        <button
+          type="button"
+          className={SHARE_ICON_CLASSES}
+          aria-label={t("blog.closeShare")}
+          onClick={() => setDismissed(true)}
+        >
+          <XCircleIcon size={20} />
+        </button>
+        <CopyLinkButton url={url} />
+      </div>
+    </div>
   );
 }
 
 const BlogPost = forwardRef<HTMLElement, BlogPostProps>((props, ref) => {
   const { t } = useTranslation();
-  const { showTags = true, showShareButtons = true, ...rest } = props;
+  const {
+    showTags = true,
+    showShareButtons = true,
+    showShareTwitter = true,
+    showShareFacebook = true,
+    showShareLinkedIn = false,
+    ...rest
+  } = props;
   const { layout } = useRouteLoaderData<RootLoader>("root");
-  const { article, formattedDate } = useLoaderData<{
+  const { article, blog, formattedDate } = useLoaderData<{
     article: ArticleQuery["blog"]["articleByHandle"];
     blog: ArticleQuery["blog"];
     formattedDate: string;
@@ -75,7 +199,9 @@ const BlogPost = forwardRef<HTMLElement, BlogPostProps>((props, ref) => {
         domain = origin;
       }
     }
-    const articleUrl = `${domain}/blogs/${handle}`;
+    const articleUrl = isBrowser
+      ? `${domain}${window.location.pathname}`
+      : `${domain}/blogs/${blog.handle}/${handle}`;
     const readMinutes = estimateReadMinutes(contentHtml || "");
     const category = tags?.[0];
 
@@ -129,41 +255,8 @@ const BlogPost = forwardRef<HTMLElement, BlogPostProps>((props, ref) => {
         </div>
 
         {/* Body: floating share sidebar + 720px article column */}
-        <div className="relative px-5 md:px-10">
-          {showShareButtons && (
-            <div className="absolute top-10 left-10 hidden xl:block 2xl:left-[calc(50%-448px)]">
-              <div className="sticky top-28 flex w-14 flex-col items-center gap-4 rounded-2xl bg-(--color-background-subtle) px-3 py-4">
-                <span className="font-body text-(--color-text-subtle) text-xs uppercase leading-none tracking-[0.02em]">
-                  {t("blog.share")}
-                </span>
-                <XShareButton
-                  url={articleUrl}
-                  title={title}
-                  resetButtonStyle={false}
-                  className={SHARE_ICON_CLASSES}
-                >
-                  <XLogoIcon size={16} />
-                </XShareButton>
-                <FacebookShareButton
-                  url={articleUrl}
-                  resetButtonStyle={false}
-                  className={SHARE_ICON_CLASSES}
-                >
-                  <FacebookLogoIcon size={16} />
-                </FacebookShareButton>
-                <PinterestShareButton
-                  url={articleUrl}
-                  media={image?.url}
-                  resetButtonStyle={false}
-                  className={SHARE_ICON_CLASSES}
-                >
-                  <PinterestLogoIcon size={16} />
-                </PinterestShareButton>
-                <CopyLinkButton url={articleUrl} />
-              </div>
-            </div>
-          )}
-          <article className="prose mx-auto max-w-[720px] pt-10 md:pt-16 [&_h2]:font-heading [&_h2]:font-normal [&_h2]:tracking-[-0.02em] [&_h3]:font-heading [&_h3]:font-normal [&_h3]:tracking-[-0.02em] [&_img]:rounded-(--radius-md) [&_p]:font-body [&_p]:text-sm [&_p]:leading-[1.6] [&_p]:tracking-[0.01em]">
+        <div className="grid px-5 [--article-width:720px] md:px-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,var(--article-width))_minmax(0,1fr)]">
+          <article className="prose mx-auto w-full min-w-0 max-w-(--article-width) pt-10 md:pt-16 lg:col-start-2 lg:row-start-1 [&_h2]:font-heading [&_h2]:font-normal [&_h2]:tracking-[-0.02em] [&_h3]:font-heading [&_h3]:font-normal [&_h3]:tracking-[-0.02em] [&_img]:rounded-(--radius-md) [&_p]:font-body [&_p]:text-sm [&_p]:leading-[1.6] [&_p]:tracking-[0.01em]">
             <div
               suppressHydrationWarning
               dangerouslySetInnerHTML={{ __html: contentHtml }}
@@ -178,23 +271,17 @@ const BlogPost = forwardRef<HTMLElement, BlogPostProps>((props, ref) => {
                 </span>
               </div>
             )}
-            {showShareButtons && (
-              <div className="mt-6 flex items-center gap-2 xl:hidden">
-                <strong className="font-body text-sm uppercase tracking-[0.02em]">
-                  {t("blog.share")}:
-                </strong>
-                <FacebookShareButton url={articleUrl}>
-                  <FacebookLogoIcon size={24} />
-                </FacebookShareButton>
-                <PinterestShareButton url={articleUrl} media={image?.url}>
-                  <PinterestLogoIcon size={24} />
-                </PinterestShareButton>
-                <XShareButton url={articleUrl} title={title}>
-                  <XLogoIcon size={24} />
-                </XShareButton>
-              </div>
-            )}
           </article>
+          {showShareButtons && (
+            <ArticleShareGroup
+              key={articleUrl}
+              url={articleUrl}
+              title={title}
+              showShareTwitter={showShareTwitter}
+              showShareFacebook={showShareFacebook}
+              showShareLinkedIn={showShareLinkedIn}
+            />
+          )}
         </div>
       </Section>
     );
@@ -230,6 +317,27 @@ export const schema = createSchema({
           label: "Show share buttons",
           name: "showShareButtons",
           defaultValue: true,
+        },
+        {
+          type: "switch",
+          label: "Share on Twitter / X",
+          name: "showShareTwitter",
+          defaultValue: true,
+          condition: "showShareButtons.eq.true",
+        },
+        {
+          type: "switch",
+          label: "Share on Facebook",
+          name: "showShareFacebook",
+          defaultValue: true,
+          condition: "showShareButtons.eq.true",
+        },
+        {
+          type: "switch",
+          label: "Share on LinkedIn",
+          name: "showShareLinkedIn",
+          defaultValue: false,
+          condition: "showShareButtons.eq.true",
         },
       ],
     },
