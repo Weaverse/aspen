@@ -79,21 +79,21 @@ let HighlightsBadge = forwardRef<HTMLDivElement, HighlightsBadgeProps>(
         case "circle":
           return (
             <div
-              className="size-5 flex-shrink-0 rounded-full"
+              className="size-10 flex-shrink-0 rounded-full"
               style={{ backgroundColor: badgeTextColor }}
             />
           );
         case "square":
           return (
             <div
-              className="size-5 flex-shrink-0"
+              className="size-9 flex-shrink-0"
               style={{ backgroundColor: badgeTextColor }}
             />
           );
         case "triangle":
           return (
             <div
-              className="h-5 w-6 flex-shrink-0"
+              className="size-12 flex-shrink-0"
               style={{
                 clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)",
                 backgroundColor: badgeTextColor,
