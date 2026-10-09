@@ -51,7 +51,7 @@ export function CartLineItem({
       className={clsx(
         "relative transition-all duration-300",
         layout === "drawer"
-          ? "flex gap-4"
+          ? "flex gap-4 max-md:min-w-0 max-md:w-full"
           : "flex h-full flex-col items-center md:flex-row",
         isOptimistic && "opacity-70",
         id.startsWith("optimistic-") && "pointer-events-none",
@@ -61,7 +61,7 @@ export function CartLineItem({
       <div
         className={clsx(
           layout === "drawer"
-            ? "shrink-0 max-xl:w-[clamp(100px,32.56vw,140px)]"
+            ? "shrink-0 rounded-(--radius-md) bg-(--color-background-subtle)/50 max-xl:w-[clamp(100px,32.56vw,140px)] max-md:relative max-md:h-[140px] max-md:min-w-0 max-md:flex-[1_0_0] max-md:self-start max-md:overflow-hidden"
             : "aspect-square w-full md:h-[360px] md:w-[360px] md:shrink-0",
         )}
       >
@@ -73,7 +73,7 @@ export function CartLineItem({
             className={clsx(
               "!object-cover",
               layout === "drawer"
-                ? "h-auto w-[140px] rounded-xl max-xl:aspect-square max-xl:h-full max-xl:max-h-[140px] max-xl:w-full"
+                ? "h-auto w-[140px] rounded-xl max-xl:aspect-square max-xl:h-full max-xl:max-h-[140px] max-xl:w-full max-md:absolute max-md:inset-0 max-md:aspect-auto max-md:max-h-none max-md:rounded-(--radius-md)"
                 : "h-full w-full rounded",
             )}
             alt={title}
@@ -87,7 +87,7 @@ export function CartLineItem({
         className={clsx(
           "flex flex-col",
           layout === "drawer"
-            ? "min-w-0 grow justify-between gap-2.5 max-xl:min-h-[140px] max-xl:text-sm"
+            ? "min-w-0 grow justify-between gap-4 max-xl:min-h-[140px] max-xl:text-sm max-md:basis-3/5 max-md:grow-0 max-md:shrink-0 max-md:gap-2"
             : "h-full w-full rounded-r-[var(--Radius-border-radius-md,12px)] bg-[var(--Background-Background,#FFF)] p-6 md:h-[360px]",
         )}
       >
@@ -160,7 +160,7 @@ export function CartLineItem({
           <>
             {/* Figma 512:13491 — title + variant, subscription pill, then the
                 quantity/price row. REMOVE is pinned to the bottom of the row. */}
-            <div className="flex min-h-0 flex-1 flex-col items-start gap-2">
+            <div className="flex min-h-0 flex-1 flex-col items-start gap-2 max-md:flex-none">
               <div className="flex w-full flex-col gap-1">
                 {product?.handle ? (
                   <Link
@@ -168,12 +168,12 @@ export function CartLineItem({
                     className="w-full justify-start text-left max-xl:leading-5"
                     onClick={() => toggleCartDrawer(false)}
                   >
-                    <span className="max-xl:line-clamp-2 xl:line-clamp-1 font-semibold uppercase">
+                    <span className="max-xl:line-clamp-2 xl:line-clamp-1 font-semibold uppercase max-md:line-clamp-1">
                       {product?.title || ""}
                     </span>
                   </Link>
                 ) : (
-                  <p className="max-xl:line-clamp-2 xl:line-clamp-1 font-semibold uppercase">
+                  <p className="max-xl:line-clamp-2 xl:line-clamp-1 font-semibold uppercase max-md:line-clamp-1">
                     {product?.title || ""}
                   </p>
                 )}
@@ -181,25 +181,27 @@ export function CartLineItem({
               </div>
               <SubscriptionLineItem
                 line={line as any}
-                className="max-xl:max-w-full"
+                className="max-xl:max-w-full max-md:[&>span]:truncate max-md:[&>svg]:shrink-0"
               />
-              <div className="flex w-full flex-wrap items-center gap-2 pt-1 max-xl:mt-auto">
+            </div>
+            <div className="flex flex-col items-start gap-4 max-md:mt-auto max-md:gap-2">
+              <div className="flex w-full flex-wrap items-center gap-2 max-md:h-7.5 max-md:flex-nowrap">
                 <CartLineQuantityAdjust line={line} layout={layout} />
                 <CartLinePrice
                   line={line}
                   amountType="total"
                   as="span"
-                  className="ml-auto"
+                  className="ml-auto max-md:shrink-0 max-md:whitespace-nowrap"
                   isLoading={isOptimistic}
                 />
               </div>
+              <ItemRemoveButton
+                lineId={id}
+                productTitle={product?.title || title}
+                className="shrink-0 self-start"
+                layout={layout}
+              />
             </div>
-            <ItemRemoveButton
-              lineId={id}
-              productTitle={product?.title || title}
-              className="shrink-0 self-start"
-              layout={layout}
-            />
           </>
         )}
       </div>
@@ -331,6 +333,7 @@ export function PriceLoadingSpinner({
   return (
     <div className={`inline-flex items-center gap-2 ${className}`}>
       <svg
+        aria-hidden="true"
         className="h-4 w-4 animate-spin text-gray-400"
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
@@ -350,7 +353,7 @@ export function PriceLoadingSpinner({
           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
         />
       </svg>
-      <span className="text-gray-400 text-sm">{t("cart.loading")}</span>
+      <span className="sr-only">{t("cart.loading")}</span>
     </div>
   );
 }
