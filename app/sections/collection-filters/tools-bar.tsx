@@ -42,22 +42,22 @@ export function ToolsBar({
   return (
     <header
       className={cn(
-        "pb-6 md:pb-0 desktop:pb-8",
+        "pb-0 desktop:pb-8",
         appliedFilters.length > 0 && "pb-0 desktop:pb-0",
       )}
     >
-      <div className="flex flex-col gap-4 md:grid md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:gap-x-8 lg:grid-cols-[50%_minmax(0,1fr)] xl:gap-x-10">
+      <div className="flex flex-col gap-6 md:grid md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:gap-4 md:gap-x-8 lg:grid-cols-[50%_minmax(0,1fr)] xl:gap-x-10">
         <div className="flex min-w-0 w-full flex-col gap-4 md:contents">
           <h1 className="min-w-0 text-left font-heading font-normal text-[37px] uppercase leading-[110%] tracking-[-0.74px] text-[var(--color-text,#343231)] md:col-start-1 md:row-start-1 md:max-w-full md:break-words">
             {collection.title}
           </h1>
-          {showProductsCount && (
+          {showProductsCount && !enableSort && (
             <p className="flex h-12 items-center uppercase md:col-start-1 md:row-start-2">
               {t("collection.products")} ({productCount})
             </p>
           )}
         </div>
-        <div className="flex w-full flex-col gap-4 md:contents">
+        <div className="flex w-full flex-col gap-3 md:contents">
           <div className="flex w-full items-center justify-between gap-2 md:col-start-2 md:row-start-1 md:w-fit md:justify-self-end md:justify-end md:gap-3">
             <LayoutSwitcher
               className={cn(
@@ -82,8 +82,15 @@ export function ToolsBar({
             )}
           </div>
           {enableSort && (
-            <div className="flex w-full justify-end md:col-start-2 md:row-start-2 md:w-fit md:justify-self-end">
-              <Sort />
+            <div className="flex w-full items-center justify-between gap-2 md:contents">
+              {showProductsCount && (
+                <p className="flex h-12 items-center uppercase md:col-start-1 md:row-start-2">
+                  {t("collection.products")} ({productCount})
+                </p>
+              )}
+              <div className="ml-auto flex min-w-0 justify-end md:col-start-2 md:row-start-2 md:ml-0 md:w-fit md:justify-self-end">
+                <Sort />
+              </div>
             </div>
           )}
         </div>
