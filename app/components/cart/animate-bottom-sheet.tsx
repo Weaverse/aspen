@@ -1,40 +1,63 @@
 import * as Dialog from "@radix-ui/react-dialog";
-import { AnimatePresence, motion } from "framer-motion";
+import clsx from "clsx";
+import { AnimatePresence, motion, type Transition } from "framer-motion";
+import {
+  CART_DRAWER_RADIUS_CLASS,
+  CART_DRAWER_WIDTH_CLASS,
+} from "./drawer-frame";
+
+const BOTTOM_SHEET_TRANSITION = {
+  duration: 0.25,
+  ease: [0.22, 1, 0.36, 1],
+} satisfies Transition;
 
 export function AnimatedBottomSheet({ open, children }) {
   return (
     <Dialog.Portal forceMount>
       <AnimatePresence>
         {open && (
-          <>
+          <motion.div
+            className="contents"
+            initial={{ "--cart-sheet-progress": 0 }}
+            animate={{ "--cart-sheet-progress": 1 }}
+            exit={{ "--cart-sheet-progress": 0 }}
+            transition={BOTTOM_SHEET_TRANSITION}
+          >
             <Dialog.Overlay forceMount>
-              <motion.div
-                className="fixed inset-y-0 right-0 z-[60] w-screen max-w-[430px] bg-black/50 backdrop-blur-xs"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
+              <div
+                // The cart drawer already owns the blurred page backdrop.
+                // A second animated blur repaints the cart on entry and exit.
+                className={clsx(
+                  "fixed inset-y-0 right-0 z-[60] bg-black/50",
+                  CART_DRAWER_WIDTH_CLASS,
+                )}
+                style={{ opacity: "var(--cart-sheet-progress)" }}
               />
             </Dialog.Overlay>
             <Dialog.Content
               onEscapeKeyDown={(event) => event.stopPropagation()}
               forceMount
-              className="fixed right-0 bottom-0 z-[60] w-screen max-w-[430px]"
+              className={clsx(
+                "fixed right-0 bottom-0 z-[60]",
+                CART_DRAWER_WIDTH_CLASS,
+              )}
               aria-describedby={undefined}
             >
-              <motion.div
-                initial={{ y: "100%" }}
-                animate={{ y: 0 }}
-                exit={{ y: "100%" }}
-                transition={{
-                  duration: 0.25,
-                  ease: [0.22, 1, 0.36, 1],
+              <div
+                // One progress value keeps the fade and slide in the same frame.
+                style={{
+                  transform:
+                    "translateY(calc((1 - var(--cart-sheet-progress)) * 100%))",
                 }}
-                className="max-h-[calc(100dvh-24px)] w-full overflow-y-auto rounded-xl bg-white px-5 py-4 pb-[max(16px,env(safe-area-inset-bottom))] shadow-2xl"
+                className={clsx(
+                  "max-h-[calc(100dvh-24px)] w-full overflow-y-auto bg-white px-5 py-4 pb-[max(16px,env(safe-area-inset-bottom))] shadow-2xl",
+                  CART_DRAWER_RADIUS_CLASS,
+                )}
               >
                 {children}
-              </motion.div>
+              </div>
             </Dialog.Content>
-          </>
+          </motion.div>
         )}
       </AnimatePresence>
     </Dialog.Portal>

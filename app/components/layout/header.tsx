@@ -64,13 +64,12 @@ export function Header() {
     isHome &&
     !routeError;
   const isTransparent = enableTransparent && !scrolled && !isSearchOpen;
-  const headerPosition =
-    isSearchOpen || enableTransparent
-      ? [
-          "group/header fixed inset-x-0 w-full",
-          "top-(--topbar-height,var(--initial-topbar-height))",
-        ]
-      : "sticky top-0";
+  const headerPosition = enableTransparent
+    ? [
+        "group/header fixed inset-x-0 w-full",
+        "top-(--topbar-height,var(--initial-topbar-height))",
+      ]
+    : "sticky top-0";
 
   return (
     <header
