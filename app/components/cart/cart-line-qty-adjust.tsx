@@ -1,7 +1,6 @@
 import { CaretDown } from "@phosphor-icons/react";
 import * as Select from "@radix-ui/react-select";
 import { useTranslation } from "@weaverse/hydrogen";
-import clsx from "clsx";
 import { useEffect, useId, useState } from "react";
 import type { CartLayout, CartLine } from "./cart-types";
 import { useCartStore } from "./store";
@@ -14,7 +13,7 @@ export function CartLineQuantityAdjust({
   layout: CartLayout;
 }) {
   const { t } = useTranslation();
-  const { id: lineId, isOptimistic } = line || {};
+  const { id: lineId } = line || {};
   const quantityId = useId();
 
   const optimisticQuantity = line?.quantity ?? 1;
@@ -39,7 +38,7 @@ export function CartLineQuantityAdjust({
   ).sort((a, b) => a - b);
 
   const disabled = lineId.startsWith("optimistic-");
-  const desktopStepper = (() => {
+  const drawerStepper = (() => {
     if (layout !== "drawer") {
       return null;
     }
@@ -52,39 +51,33 @@ export function CartLineQuantityAdjust({
 
     return (
       <fieldset
-        className="hidden h-[30px] items-center rounded-lg bg-(--color-background-subtle) xl:inline-flex"
+        className="inline-flex shrink-0 items-stretch rounded-(--radius-sm) bg-(--color-background-subtle) max-md:grid max-md:h-7.5 max-md:min-w-0 max-md:max-w-33 max-md:flex-1 max-md:grid-cols-3"
         aria-label={t("product.quantityValue", {
           quantity: optimisticQuantity,
         })}
       >
         <button
           type="button"
-          className="flex h-full w-11 items-center justify-center disabled:opacity-40"
+          className="flex w-11 shrink-0 flex-col items-center justify-center py-2 disabled:opacity-40 max-md:min-w-0 max-md:w-auto max-md:flex-1 max-md:py-0"
           disabled={disabled || optimisticQuantity <= 1}
           aria-label={t("product.decreaseQuantity")}
           onClick={() => updateQuantity(optimisticQuantity - 1)}
         >
-          <span
-            aria-hidden="true"
-            className="font-semibold text-sm leading-none"
-          >
+          <span aria-hidden="true" className="font-semibold text-sm">
             -
           </span>
         </button>
-        <span className="flex h-full w-[30px] items-center justify-center border-white/20 border-x font-semibold text-sm">
+        <span className="flex w-11 shrink-0 flex-col items-center justify-center border-white/20 border-x py-2 font-semibold text-sm max-md:min-w-0 max-md:w-auto max-md:flex-1 max-md:py-0">
           {optimisticQuantity}
         </span>
         <button
           type="button"
-          className="flex h-full w-11 items-center justify-center disabled:opacity-40"
+          className="flex w-11 shrink-0 flex-col items-center justify-center py-2 disabled:opacity-40 max-md:min-w-0 max-md:w-auto max-md:flex-1 max-md:py-0"
           disabled={disabled}
           aria-label={t("product.increaseQuantity")}
           onClick={() => updateQuantity(optimisticQuantity + 1)}
         >
-          <span
-            aria-hidden="true"
-            className="font-semibold text-sm leading-none"
-          >
+          <span aria-hidden="true" className="font-semibold text-sm">
             +
           </span>
         </button>
@@ -92,18 +85,16 @@ export function CartLineQuantityAdjust({
     );
   })();
 
+  if (layout === "drawer") {
+    return drawerStepper;
+  }
+
   return (
     <>
-      {desktopStepper}
       <label htmlFor={quantityId} className="sr-only">
         {t("product.quantityValue", { quantity: optimisticQuantity })}
       </label>
-      <div
-        className={clsx(
-          "quantity-selector relative",
-          layout === "drawer" && "xl:hidden",
-        )}
-      >
+      <div className="quantity-selector relative">
         <Select.Root
           value={String(selectedQty)}
           onValueChange={(value) => {
@@ -123,23 +114,13 @@ export function CartLineQuantityAdjust({
         >
           <Select.Trigger
             id={quantityId}
-            className={clsx(
-              "inline-flex min-w-[80px] items-center justify-between gap-2 bg-white outline-hidden",
-              layout === "drawer" && "min-h-8 min-w-20 focus-visible:outline-2",
-            )}
+            className="inline-flex min-w-[80px] items-center justify-between gap-2 bg-white outline-hidden"
             aria-label={t("product.selectQuantity")}
           >
-            <span
-              className={clsx(layout === "page" ? "font-medium text-sm" : "")}
-            >
+            <span className="font-medium text-sm">
               {t("product.quantityShort")}
             </span>
-            <span
-              className={clsx(
-                "flex-1 text-center",
-                layout === "page" ? "text-sm" : "",
-              )}
-            >
+            <span className="flex-1 text-center text-sm">
               <Select.Value />
             </span>
             <Select.Icon className="shrink-0">
