@@ -64,13 +64,12 @@ export function Header() {
     isHome &&
     !routeError;
   const isTransparent = enableTransparent && !scrolled && !isSearchOpen;
-  const headerPosition =
-    isSearchOpen || enableTransparent
-      ? [
-          "group/header fixed inset-x-0 w-full",
-          "top-(--topbar-height,var(--initial-topbar-height))",
-        ]
-      : "sticky top-0";
+  const headerPosition = enableTransparent
+    ? [
+        "group/header fixed inset-x-0 w-full",
+        "top-(--topbar-height,var(--initial-topbar-height))",
+      ]
+    : "sticky top-0";
 
   return (
     <header
@@ -81,6 +80,9 @@ export function Header() {
         "text-(--color-header-text) hover:text-(--color-header-text)",
         "border-line-subtle border-b",
         variants({ padding: headerWidth }),
+        designSystemPreset !== "custom" &&
+          headerWidth !== "full" &&
+          "sm:max-desktop:px-8",
         scrolled ? "shadow-none" : "shadow-none",
         headerPosition,
         isTransparent
@@ -105,6 +107,7 @@ export function Header() {
       <div
         className={cn(
           "grid grid-cols-[1fr_auto_1fr] items-center",
+          designSystemPreset !== "custom" && "max-desktop:gap-x-2.5",
           variants({ width: headerWidth }),
         )}
       >
@@ -123,7 +126,9 @@ export function Header() {
 
         <div
           className={cn(
-            "col-start-2 row-start-1 justify-self-center",
+            "col-start-2 row-start-1 flex items-center justify-self-center",
+            designSystemPreset !== "custom" &&
+              "max-sm:[&_svg]:h-6 max-sm:[&_svg]:w-27",
             !isCompactDesktop && "xl:col-start-1 xl:justify-self-start",
           )}
         >

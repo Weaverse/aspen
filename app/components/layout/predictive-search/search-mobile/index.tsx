@@ -129,6 +129,7 @@ export function PredictiveSearchButtonMobile({ setIsSearchOpen }) {
                                 className="h-5 w-5"
                               />
                             </button>
+                            {/* Keep a readable input size so iOS does not zoom on focus. */}
                             <input
                               name="q"
                               type="search"
@@ -165,7 +166,7 @@ export function PredictiveSearchButtonMobile({ setIsSearchOpen }) {
                               placeholder={t("search.placeholder")}
                               ref={inputRef}
                               autoComplete="off"
-                              className="h-12 min-w-0 flex-1 !rounded-none !border-0 !bg-transparent px-0 text-sm shadow-none outline-none focus-visible:!border-0 focus-visible:!shadow-none"
+                              className="h-12 min-w-0 flex-1 !rounded-none !border-0 !bg-transparent px-0 text-[length:max(1rem,var(--body-base-size))] shadow-none outline-none focus-visible:!border-0 focus-visible:!shadow-none"
                             />
                             {searchQuery && (
                               <button
