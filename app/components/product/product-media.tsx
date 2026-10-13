@@ -332,9 +332,7 @@ export function ProductMedia(props: ProductMediaProps) {
             // pagination={{ type: "fraction" }}
             modules={[Pagination, Navigation, Thumbs]}
             className={clsx("overflow-hidden", fillContainer && "h-full")}
-            onSlideChange={(instance) =>
-              setActiveSlide(instance.realIndex || instance.activeIndex)
-            }
+            onSlideChange={(instance) => setActiveSlide(instance.realIndex)}
             onInit={(instance) => {
               // Force update navigation after Swiper is fully initialized
               setTimeout(() => {
@@ -413,7 +411,8 @@ export function ProductMedia(props: ProductMediaProps) {
                   colorClasses(arrowsColor),
                   navigationStyle === "sides" &&
                     navigationVariant !== "quick-shop" && [
-                      "ml-6 size-12 rounded-lg border-transparent bg-white p-0 text-body shadow-sm",
+                      "ml-6 size-12 rounded-lg border-transparent bg-white p-0 text-body",
+                      navigationVariant !== "product-page" && "shadow-sm",
                       navigationVariant === "product-page" &&
                         "md:ml-[39px] lg:ml-8",
                       navigationVariant !== "product-page" && "lg:ml-8",
@@ -445,7 +444,8 @@ export function ProductMedia(props: ProductMediaProps) {
                   colorClasses(arrowsColor),
                   navigationStyle === "sides" &&
                     navigationVariant !== "quick-shop" && [
-                      "mr-6 size-12 rounded-lg border-transparent bg-white p-0 text-body shadow-sm",
+                      "mr-6 size-12 rounded-lg border-transparent bg-white p-0 text-body",
+                      navigationVariant !== "product-page" && "shadow-sm",
                       navigationVariant === "product-page" &&
                         "md:mr-[39px] lg:mr-8",
                       navigationVariant !== "product-page" && "lg:mr-8",
@@ -630,17 +630,18 @@ function ProductMediaDots({
   };
 
   const dotWidth = calculateDotWidth(slidesCount);
+  const isProductPage = variant === "product-page";
 
   return (
     <div
       className={cn(
         "-translate-x-1/2 absolute left-1/2 z-[5] flex items-center justify-center gap-0",
         variant === "quick-shop" ? "bottom-[37.5px]" : "bottom-6",
-        variant === "product-page" && "bottom-[38px] !w-[160px]",
+        isProductPage && "bottom-[38px] overflow-hidden rounded-(--radius-sm)",
       )}
       style={{
         maxWidth: variant === "quick-shop" ? "160px" : maxContainerWidth,
-        width: "fit-content",
+        width: isProductPage ? "160px" : "fit-content",
       }}
     >
       {Array.from({ length: slidesCount }, (_, index) => (
@@ -651,14 +652,19 @@ function ProductMediaDots({
             dotVariants({
               isActive: index === activeIndex,
             }),
-            variant === "product-page" &&
-              "lg:!min-w-0 lg:!w-auto lg:flex-1 lg:bg-[#D8D8D8]",
+            isProductPage && "min-w-0 flex-1 lg:bg-[#D8D8D8]",
           )}
           style={{
-            width:
-              variant === "quick-shop" ? `${160 / slidesCount}px` : dotWidth,
-            minWidth:
-              variant === "quick-shop" ? `${160 / slidesCount}px` : dotWidth,
+            width: isProductPage
+              ? undefined
+              : variant === "quick-shop"
+                ? `${160 / slidesCount}px`
+                : dotWidth,
+            minWidth: isProductPage
+              ? undefined
+              : variant === "quick-shop"
+                ? `${160 / slidesCount}px`
+                : dotWidth,
           }}
           onClick={() => onDotClick(index)}
           aria-label={t("carousel.goToSlide", { index: index + 1 })}

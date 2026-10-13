@@ -13,6 +13,17 @@ test("Aspen 2026 remains the default preset", () => {
   assert.deepEqual(resolveDesignTokens(), ASPEN_2026_DESIGN_TOKENS);
 });
 
+test("compare-at price defaults match Figma without replacing custom colors", () => {
+  assert.equal(resolveDesignTokens().comparePriceTextColor, "#999999");
+  assert.equal(
+    resolveDesignTokens({
+      designSystemPreset: "custom",
+      comparePriceTextColor: "#123456",
+    }).comparePriceTextColor,
+    "#123456",
+  );
+});
+
 test("Aspen 2026 restores the previous button and product card visuals", () => {
   const tokens = resolveDesignTokens({ designSystemPreset: "aspen-2026" });
 
