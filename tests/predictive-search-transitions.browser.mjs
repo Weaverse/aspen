@@ -265,6 +265,49 @@ test("Mobile Search input meets the iOS focus-zoom font floor and preserves larg
   }
 });
 
+test("Search resource tabs keep 40px gaps and align the active underline", async () => {
+  const browser = await chromium.launch();
+  try {
+    for (const width of [390, 768, 1032, 1279, 1280, 1440]) {
+      const page = await browser.newPage({ viewport: { width, height: 844 } });
+      await mount(page);
+      await page.getByPlaceholder("Enter a keyword").fill("chair");
+      const labels =
+        width < 1280
+          ? ["search.products", "search.collections", "search.page"]
+          : [
+              "search.products (10)",
+              "search.collections (10)",
+              "search.page (10)",
+            ];
+      const tabs = labels.map((name) =>
+        page.getByRole("button", { name, exact: true }),
+      );
+      const pageTab = tabs[2];
+      await expect(pageTab).toBeVisible();
+      await pageTab.click();
+
+      const bounds = await Promise.all(tabs.map((tab) => tab.boundingBox()));
+      expect(bounds[1].x - (bounds[0].x + bounds[0].width)).toBeCloseTo(40, 1);
+      expect(bounds[2].x - (bounds[1].x + bounds[1].width)).toBeCloseTo(40, 1);
+
+      const alignment = await pageTab.evaluate((element) => {
+        const button = element.getBoundingClientRect();
+        const underline = getComputedStyle(element, "::after");
+        return {
+          labelLeft: button.left,
+          underlineLeft: button.left + Number.parseFloat(underline.left),
+        };
+      });
+
+      expect(alignment.underlineLeft).toBeCloseTo(alignment.labelLeft, 1);
+      await page.close();
+    }
+  } finally {
+    await browser.close();
+  }
+});
+
 test("Search popup content width stays stable when resource tabs toggle vertical overflow", async () => {
   const browser = await chromium.launch({
     ignoreDefaultArgs: ["--hide-scrollbars"],

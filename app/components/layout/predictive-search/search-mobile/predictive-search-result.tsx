@@ -191,7 +191,7 @@ function TextResultItem({
 }) {
   return (
     <li>
-      <Link to={item.url} className="block w-fit font-normal">
+      <Link to={item.url} className="block w-fit font-normal leading-5">
         {item.title}
       </Link>
     </li>

@@ -251,7 +251,7 @@ function PredictiveSearchResults() {
     <div className="w-full">
       <PredictiveSearchResult type="queries" items={queries?.items} />
       <div className="mt-4">
-        <div className="relative grid grid-cols-[116px_139px_1fr] border-[#D8D8D8] border-b">
+        <div className="relative flex gap-10 border-[#D8D8D8] border-b">
           {(["products", "collections", "pages"] as const).map((type) => {
             const label = t(
               type === "pages" ? "search.page" : `search.${type}`,
@@ -261,15 +261,10 @@ function PredictiveSearchResults() {
                 key={type}
                 type="button"
                 className={clsx(
-                  "relative pb-[11px] text-left font-semibold text-sm uppercase outline-none transition focus-visible:outline focus-visible:outline-1 focus-visible:outline-[#343231] focus-visible:outline-offset-2",
+                  "relative pb-[11px] text-left font-semibold text-sm uppercase outline-none transition after:absolute after:right-0 after:bottom-0 after:left-0 after:h-px after:translate-y-px focus-visible:outline focus-visible:outline-1 focus-visible:outline-[#343231] focus-visible:outline-offset-2",
                   activeType === type
-                    ? clsx(
-                        "text-[#343231] after:absolute after:bottom-0 after:h-px after:translate-y-px after:bg-[#9D9D9D]",
-                        type === "products" && "after:left-0 after:w-[76px]",
-                        type === "collections" && "after:left-0 after:w-[99px]",
-                        type === "pages" && "after:left-5 after:w-[37px]",
-                      )
-                    : "text-[#979797]",
+                    ? "text-[#343231] after:bg-[#9D9D9D]"
+                    : "text-[#979797] after:bg-transparent",
                 )}
                 onClick={() => setActiveType(type)}
               >
