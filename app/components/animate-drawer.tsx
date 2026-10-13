@@ -1,6 +1,10 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import clsx from "clsx";
 import { AnimatePresence, motion } from "framer-motion";
+import {
+  CART_DRAWER_RADIUS_CLASS,
+  CART_DRAWER_WIDTH_CLASS,
+} from "./cart/drawer-frame";
 
 /**
  * `flush` pins the cart to the top/right edges. `filter` uses the same full
@@ -47,9 +51,16 @@ export function AnimatedDrawer({
                   stiffness: 150,
                 }}
                 className={clsx(
-                  "h-full max-w-[430px] overflow-hidden bg-background",
-                  filter ? "w-[calc(100vw-var(--spacing)*8)]" : "w-screen",
-                  flush && "rounded-xl md:rounded-r-none xl:bg-white",
+                  "h-full overflow-hidden bg-background",
+                  flush
+                    ? CART_DRAWER_WIDTH_CLASS
+                    : [
+                        filter
+                          ? "w-[calc(100vw-var(--spacing)*8)]"
+                          : "w-screen",
+                        "max-w-[430px]",
+                      ],
+                  flush && [CART_DRAWER_RADIUS_CLASS, "xl:bg-white"],
                   filter &&
                     "rounded-l-(--radius-md) rounded-r-none pt-3 pb-6 xl:bg-white",
                   !flush && !filter && "rounded-(--radius-md) pt-3 pb-6",

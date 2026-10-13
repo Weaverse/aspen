@@ -71,7 +71,9 @@ const stylesheet = await compile(
   { base: `${root}app/styles`, onDependency: () => undefined },
 );
 const sources = await Promise.all(
-  [menu, drawer].map((path) => readFile(path, "utf8")),
+  [menu, drawer, `${root}app/components/cart/drawer-frame.ts`].map((path) =>
+    readFile(path, "utf8"),
+  ),
 );
 const css = stylesheet.build([
   ...sources.join(" ").match(/[A-Za-z0-9_!()[\]#%.:/,+<>*=&~-]+/g),
@@ -88,7 +90,7 @@ const css = stylesheet.build([
 async function mount(page, width) {
   await page.setViewportSize({ width, height: 900 });
   await page.setContent(
-    `<style>${css}:root{--body-base-size:14px;--color-background:white;--radius-md:12px}body{margin:0}header{flex-shrink:0}</style><div id="root"></div>`,
+    `<style>${css}:root{--body-base-size:14px;--color-background:white;--radius-md:12px;--page-padding:20px}body{margin:0}header{flex-shrink:0}</style><div id="root"></div>`,
   );
   await page.addScriptTag({ content: bundle.outputFiles[0].text });
   await expect(

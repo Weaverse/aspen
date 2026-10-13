@@ -82,7 +82,7 @@ const bundle = await build({
           } else if (path.includes("types/predictive-search")) {
             contents = `export const PREDICTIVE_SEARCH_FETCHER_KEY='fixture-search';`;
           } else if (path === "@weaverse/hydrogen") {
-            contents = `export const useThemeSettings=()=>({designSystemPreset:new URLSearchParams(location.search).get('transparent')?'custom':'aspen',enableTransparentHeader:location.search.includes('transparent'),headerLayout:'inline',headerWidth:'stretch'});export const useTranslation=()=>({t:k=>({'accessibility.openSearch':'Open search','search.placeholder':'Enter a keyword','search.searching':'Searching','search.predictiveTitle':'Predictive search'}[k]||k)});`;
+            contents = `export const useThemeSettings=()=>({designSystemPreset:new URLSearchParams(location.search).get('transparent')?'custom':'aspen',enableTransparentHeader:location.search.includes('transparent'),headerLayout:'inline',headerWidth:'stretch'});export const useTranslation=()=>({t:k=>({'accessibility.openSearch':'Open search','search.placeholder':'Enter a keyword','search.searching':'Searching','search.predictiveTitle':'Predictive search',...window.fixtureTranslations}[k]||k)});`;
           } else if (path === "react-router") {
             contents = `import React from 'react';export {useFixtureFetcher as useFetcher} from 'fixture-predictive';const route={pathname:'/'};export const useParams=()=>({});export const useLocation=()=>route;export const useNavigate=()=>url=>{window.fixtureNavigation=url};export const useRouteError=()=>null;export const useRouteLoaderData=()=>({});export const Await=({children,resolve})=>children(resolve);`;
           } else if (path.includes("useWindowScroll")) {
@@ -94,7 +94,7 @@ const bundle = await build({
           } else if (path.includes("pinned-collections")) {
             contents = `export const withPinnedCollections=items=>items||[];`;
           } else if (path.includes("predictive-search-result")) {
-            contents = `import React from 'react';export const PredictiveSearchResult=({items=[],type})=><ul>{items.map(item=><li key={item.id} style={{height:type==='products'?40:20}}>{item.title}</li>)}</ul>;`;
+            contents = `import React from 'react';export const PredictiveSearchResult=({items=[],type})=><ul>{items.map(item=><li key={item.id} style={{height:type==='products'?40:20,overflow:'hidden'}}>{item.title}</li>)}</ul>;`;
           } else if (path.includes("PopularSearch")) {
             contents = `import React from 'react';export const PopularSearch=({className})=><div className={className} style={{height:240}}>Popular searches</div>;`;
           } else {
@@ -302,6 +302,62 @@ test("Search resource tabs keep 40px gaps and align the active underline", async
 
       expect(alignment.underlineLeft).toBeCloseTo(alignment.labelLeft, 1);
       await page.close();
+    }
+  } finally {
+    await browser.close();
+  }
+});
+
+test("Mobile Search tabs isolate horizontal overflow and remain keyboard-accessible with merchant fonts and translated labels", async () => {
+  const browser = await chromium.launch();
+  try {
+    for (const width of [320, 375, 390, 768, 1032]) {
+      for (const size of [14, 20, 22, 48]) {
+        const page = await browser.newPage({
+          viewport: { width, height: 844 },
+        });
+        await mount(page);
+        await page.evaluate((fontSize) => {
+          document.documentElement.style.setProperty(
+            "--body-base-size",
+            `${fontSize}px`,
+          );
+          window.fixtureTranslations = {
+            "search.products": fontSize === 48 ? "Produkte" : "Products",
+            "search.collections":
+              fontSize === 48 ? "Produktkollektionen" : "Collections",
+            "search.page": fontSize === 48 ? "Seiten" : "Page",
+            "search.viewAllProducts": "All",
+          };
+        }, size);
+        await page.getByPlaceholder("Enter a keyword").fill("chair");
+        const pageTab = page.getByRole("button", {
+          name: size === 48 ? "Seiten" : "Page",
+          exact: true,
+        });
+        await expect(pageTab).toBeVisible();
+        const layout = await pageTab.evaluate((button) => {
+          const row = button.parentElement;
+          const scroller = row.closest("form").lastElementChild;
+          return {
+            rowClient: row.clientWidth,
+            rowScroll: row.scrollWidth,
+            contentClient: scroller.clientWidth,
+            contentScroll: scroller.scrollWidth,
+          };
+        });
+        expect(layout.contentScroll).toBe(layout.contentClient);
+        await pageTab.focus();
+        await pageTab.press("Enter");
+        await expect(page.getByText("pages0", { exact: true })).toBeVisible();
+        const bounds = await pageTab.boundingBox();
+        const rowBounds = await pageTab.locator("..").boundingBox();
+        expect(bounds.x).toBeGreaterThanOrEqual(rowBounds.x - 1);
+        expect(bounds.x + bounds.width).toBeLessThanOrEqual(
+          rowBounds.x + rowBounds.width + 1,
+        );
+        await page.close();
+      }
     }
   } finally {
     await browser.close();

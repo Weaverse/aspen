@@ -88,7 +88,8 @@ export function CartNoteDialogWrapper({
           className={clsx(
             layout === "page" ? "bg-white" : "bg-[#F0EFED]",
             "rounded-lg px-3 py-2 font-semibold text-sm",
-            layout === "drawer" && "max-xl:py-1.5",
+            layout === "drawer" &&
+              "max-xl:py-1.5 transition-colors desktop:hover:bg-(--btn-secondary-bg-hover) motion-reduce:transition-none",
           )}
         >
           {cartNoteButtonText}
@@ -123,7 +124,8 @@ export function DiscountCodeDialogWrapper({
           className={clsx(
             layout === "page" ? "bg-white" : "bg-[#F0EFED]",
             "rounded-lg px-3 py-2 font-semibold text-sm",
-            layout === "drawer" && "max-xl:py-1.5",
+            layout === "drawer" &&
+              "max-xl:py-1.5 transition-colors desktop:hover:bg-(--btn-secondary-bg-hover) motion-reduce:transition-none",
           )}
         >
           {discountCodeButtonText}
@@ -156,7 +158,8 @@ export function GiftCardDialogWrapper({
           className={clsx(
             layout === "page" ? "bg-white" : "bg-[#F0EFED]",
             "rounded-lg px-3 py-2 font-semibold text-sm",
-            layout === "drawer" && "max-xl:py-1.5",
+            layout === "drawer" &&
+              "max-xl:py-1.5 transition-colors desktop:hover:bg-(--btn-secondary-bg-hover) motion-reduce:transition-none",
           )}
         >
           {giftCardButtonText}
@@ -234,9 +237,8 @@ export function CartDetails({
     return (
       // Keep checkout visible while the line items scroll at every viewport.
       <div className="flex min-h-0 w-full flex-1 flex-col gap-4 overflow-hidden max-xl:gap-6">
-        {enableFreeShipping && !isOptimistic && (
-          <CartProgression cost={cart.cost} />
-        )}
+        {/* Optimistic line mutations retain the server-confirmed cart cost. */}
+        {enableFreeShipping && <CartProgression cost={cart.cost} />}
         <div className="flex min-h-0 flex-1 flex-col">
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-4">
             {mutationError}
