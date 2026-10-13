@@ -130,6 +130,81 @@ async function mount(page, transparent = false) {
   ).toBeVisible();
 }
 
+test("Scrolled Search retains sticky navigation and page geometry throughout scroll lock", async () => {
+  const browser = await chromium.launch();
+  try {
+    for (const width of [1440, 390, 768, 1032, 1033, 1280, 2560]) {
+      for (const scroll of [900, 0, 40]) {
+        const page = await browser.newPage({
+          viewport: { width, height: 844 },
+        });
+        // Match root.tsx's standards-mode document and long flex layout, not
+        // only a dialog in an unscrolled, short presentation fixture.
+        await page.setContent(
+          `<!doctype html><style>${css}:root{--height-nav:81px;--topbar-height:${Math.max(56 - scroll, 0)}px;--initial-topbar-height:56px;--body-base-size:14px;--color-header-bg:white;--color-header-text:#343231}body{margin:0}#root{display:flex;flex-direction:column;min-height:100vh}</style><div style="height:56px">Announcement</div><div id="root"></div>`,
+        );
+        await page.addScriptTag({ content: bundle.outputFiles[0].text });
+        const trigger = page.getByRole("button", {
+          name: "Open search",
+          exact: true,
+        });
+        await expect(trigger).toBeVisible();
+        await page.evaluate((y) => window.scrollTo(0, y), scroll);
+        const measure = () =>
+          page.evaluate(() => ({
+            scroll: scrollY,
+            headerY: document.querySelector("header").getBoundingClientRect().y,
+            headerHeight: document
+              .querySelector("header")
+              .getBoundingClientRect().height,
+            mainY:
+              document.querySelector("main").getBoundingClientRect().y +
+              scrollY,
+            documentWidth: document.documentElement.scrollWidth,
+          }));
+        const before = await measure();
+        const triggerBounds = await trigger.boundingBox();
+        await page.mouse.click(
+          triggerBounds.x + triggerBounds.width / 2,
+          triggerBounds.y + triggerBounds.height / 2,
+        );
+        await expect(page.locator("body")).toHaveAttribute(
+          "data-scroll-locked",
+          "1",
+        );
+        await expect(page.locator("body")).toHaveCSS("overflow", "hidden");
+        expect(await measure()).toEqual(before);
+        if (width >= 1280) {
+          const popup = await page.getByRole("dialog").boundingBox();
+          expect(
+            Math.abs(popup.y - (before.headerY + before.headerHeight)),
+          ).toBeLessThanOrEqual(1);
+        }
+        await page.mouse.wheel(0, 300);
+        await page.evaluate(
+          () =>
+            new Promise((resolve) =>
+              requestAnimationFrame(() => requestAnimationFrame(resolve)),
+            ),
+        );
+        expect((await measure()).scroll).toBe(before.scroll);
+        await page.keyboard.press("Escape");
+        // Radix keeps the body locked during Framer Motion's exit. The header
+        // must not disappear in that interval or after the lock is released.
+        expect(await measure()).toEqual(before);
+        await expect(page.getByRole("dialog")).toHaveCount(0);
+        await expect(page.locator("body")).not.toHaveAttribute(
+          "data-scroll-locked",
+        );
+        expect(await measure()).toEqual(before);
+        await page.close();
+      }
+    }
+  } finally {
+    await browser.close();
+  }
+});
+
 async function trace(page, action, milliseconds = 1300) {
   const [frames] = await Promise.all([
     page.evaluate(async (duration) => {
