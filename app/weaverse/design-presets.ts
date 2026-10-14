@@ -119,7 +119,7 @@ export const ASPEN_2026_DESIGN_TOKENS: DesignTokens = {
   buttonOutlineTextHover: "#524B46",
   buttonOutlineBackgroundHover: "#E9E7E4",
   buttonOutlineBorderHover: "#B0ACA9",
-  comparePriceTextColor: "#979797",
+  comparePriceTextColor: "#999999",
   saleBadgeColor: "#573B3B",
   newBadgeColor: "#EBE8E5",
   bestSellerBadgeColor: "#3B3B3B",

@@ -18,6 +18,7 @@ import {
 import clsx from "clsx";
 import { forwardRef, useEffect, useState } from "react";
 import { useLoaderData } from "react-router";
+import Link from "~/components/link";
 import { LoyaltyPointsHint } from "~/components/loyalty/loyalty-points-hint";
 import { AddToCartButton } from "~/components/product/add-to-cart-button";
 import { BackInStockForm } from "~/components/product/back-in-stock-form";
@@ -36,8 +37,8 @@ import { ProductWishlistButton } from "~/components/wishlist/product-wishlist-bu
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import type { loader as productRouteLoader } from "~/routes/($locale).products.$productHandle";
 import ReviewIndex from "~/sections/judgeme-reviews/review-index";
-import { isCombinedListing } from "~/utils/combined-listings";
 import { isDiscounted } from "~/utils/product";
+import { getCombinedListingTarget } from "./combined-listing-target";
 import { ProductDetails } from "./product-details";
 import { ProductStory } from "./product-story";
 import { ProductVariants } from "./variants";
@@ -203,7 +204,11 @@ const ProductInformation = forwardRef<
 
   const isBundle = Boolean(product?.isBundle?.requiresComponents);
   const bundledVariants = isBundle ? product?.isBundle?.components.nodes : null;
-  const combinedListing = isCombinedListing(product);
+  const combinedListingTarget = getCombinedListingTarget(
+    product,
+    productOptions,
+  );
+  const combinedListing = Boolean(combinedListingTarget);
 
   if (product) {
     const { title, handle, vendor } = product;
@@ -332,7 +337,7 @@ const ProductInformation = forwardRef<
                           withoutTrailingZeros
                           data={selectedVariant.compareAtPrice as MoneyV2}
                           as="span"
-                          className="text-body-subtle line-through lg:text-2xl lg:leading-[normal]"
+                          className="font-heading font-normal text-(--color-compare-price-text) text-2xl leading-[normal] line-through"
                         />
                       )}
                     <Money
@@ -412,6 +417,17 @@ const ProductInformation = forwardRef<
                 )}
               </div>
 
+              {combinedListingTarget && (
+                <div className="mt-8 w-full md:mt-0 lg:mt-8">
+                  <Link
+                    to={combinedListingTarget}
+                    variant="primary"
+                    className="min-h-[54px] w-full whitespace-normal uppercase [overflow-wrap:anywhere]"
+                  >
+                    {t("product.selectOptions")}
+                  </Link>
+                </div>
+              )}
               {!combinedListing && (
                 <div
                   className="sp-button mt-8 w-full space-y-3 md:mt-0 lg:mt-8"
@@ -421,17 +437,17 @@ const ProductInformation = forwardRef<
                     } as React.CSSProperties
                   }
                 >
-                  <div className="flex items-center gap-[var(--p-12,12px)]">
+                  <div className="grid grid-cols-[minmax(0,1fr)] items-center gap-3 md:flex">
                     <Quantity
                       value={quantity}
                       onChange={setQuantity}
                       maxQuantity={maxQuantity}
-                      variant="stepper"
-                      className="w-[132px] min-w-[132px] shrink-0 grid-cols-[44px_44px_44px] md:flex! md:h-[54px] md:w-[256.667px] md:min-w-[256.667px] md:items-start md:[&>*]:w-auto md:[&>*]:flex-1 lg:grid! lg:w-[132px] lg:min-w-[132px] lg:grid-cols-[44px_44px_44px] lg:[&>*]:w-11 lg:[&>*]:flex-none"
+                      variant="product-page"
+                      className="col-span-full shrink-0"
                     />
                     <AddToCartButton
                       width="auto"
-                      containerClassName="min-w-0 flex-1"
+                      containerClassName="min-w-0 md:flex-1"
                       disabled={!selectedVariant?.availableForSale}
                       lines={[
                         {
@@ -444,7 +460,7 @@ const ProductInformation = forwardRef<
                         },
                       ]}
                       data-test="add-to-cart"
-                      className="h-[54px] w-full rounded-[var(--Radius-border-radius-sm,8px)] bg-[var(--Primary-Background,#4D4946)] px-6 py-5 uppercase"
+                      className="min-h-[54px] w-full whitespace-normal rounded-[var(--Radius-border-radius-sm,8px)] bg-[var(--Primary-Background,#4D4946)] px-6 py-5 uppercase [overflow-wrap:anywhere]"
                       onClick={() => {
                         if (
                           selectedSellingPlanId &&
@@ -472,6 +488,7 @@ const ProductInformation = forwardRef<
                       <ProductWishlistButton
                         productId={product.id}
                         productTitle={title}
+                        className="col-start-2 row-start-2"
                       />
                     )}
                   </div>

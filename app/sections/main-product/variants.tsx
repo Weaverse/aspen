@@ -8,6 +8,19 @@ import { hasOnlyDefaultVariant } from "~/utils/product";
 
 const COLOR_OPTION_NAMES = new Set(["color", "colors", "colour", "colours"]);
 
+function swatchFrameClassName(productDetail: boolean, selected: boolean) {
+  if (productDetail) {
+    return cn(
+      "size-auto items-start justify-start gap-2.5 rounded-(--radius-xs) bg-background",
+      selected ? "border border-line" : "border-[0.5px] border-line-subtle",
+    );
+  }
+  return cn(
+    "size-9 items-center justify-center rounded-[7px] border",
+    selected ? "border-body" : "border-line-subtle hover:border-line",
+  );
+}
+
 export function ProductVariants({
   productOptions,
   selectedVariant,
@@ -80,18 +93,11 @@ export function ProductVariants({
                         key={value.name}
                         type="button"
                         className={cn(
-                          "flex size-9 items-center justify-center rounded-[7px] border p-1 transition-colors",
-                          isSelected
-                            ? "border-body"
-                            : "border-line-subtle hover:border-line",
-                          productDetailSwatches &&
-                            "size-auto items-start justify-start gap-[10px] rounded-[var(--Radius-border-radius-xs,4px)] bg-[var(--Background-Background,#FFF)] p-[var(--p-4,4px)]",
-                          productDetailSwatches &&
-                            isSelected &&
-                            "border-[var(--Border-Border,#9D9D9D)]",
-                          productDetailSwatches &&
-                            !isSelected &&
-                            "border-[0.5px] border-[var(--Border-Subtle,#D8D8D8)] lg:border-[1px]",
+                          "flex p-1 transition-colors",
+                          swatchFrameClassName(
+                            productDetailSwatches,
+                            isSelected,
+                          ),
                           !isAvailable && "cursor-not-allowed opacity-40",
                         )}
                         onClick={() => selectOption(value)}
@@ -105,17 +111,26 @@ export function ProductVariants({
                         {swatchImage ? (
                           <Image
                             data={swatchImage}
-                            width={28}
-                            height={28}
-                            sizes="28px"
-                            className="size-5 aspect-square rounded-[var(--Radius-border-radius-xs,4px)] object-cover lg:size-7"
+                            width={productDetailSwatches ? 20 : 28}
+                            height={productDetailSwatches ? 20 : 28}
+                            sizes={productDetailSwatches ? "20px" : "28px"}
+                            className={cn(
+                              "aspect-square object-cover",
+                              productDetailSwatches
+                                ? "size-5 shrink-0 rounded-(--radius-xs)"
+                                : "size-5 rounded-[var(--Radius-border-radius-xs,4px)] lg:size-7",
+                            )}
                           />
                         ) : (
                           <span
                             className={cn(
-                              "size-5 aspect-square rounded-[var(--Radius-border-radius-xs,4px)] lg:size-7",
-                              (!isValidColor(swatchColor) ||
-                                isLightColor(swatchColor)) &&
+                              "aspect-square",
+                              productDetailSwatches
+                                ? "size-5 shrink-0 rounded-(--radius-xs)"
+                                : "size-5 rounded-[var(--Radius-border-radius-xs,4px)] lg:size-7",
+                              !productDetailSwatches &&
+                                (!isValidColor(swatchColor) ||
+                                  isLightColor(swatchColor)) &&
                                 "border border-line-subtle",
                             )}
                             style={{

@@ -7,7 +7,7 @@ interface QuantityProps {
   value: number;
   onChange: (value: number) => void;
   maxQuantity?: number; // Optional max quantity limit
-  variant?: "select" | "stepper";
+  variant?: "select" | "stepper" | "product-page";
   className?: string;
 }
 
@@ -21,11 +21,14 @@ export function Quantity(props: QuantityProps) {
     className,
   } = props;
 
-  if (variant === "stepper") {
+  const isProductPage = variant === "product-page";
+  if (variant === "stepper" || isProductPage) {
     return (
       <fieldset
         className={cn(
           "grid h-[54px] min-w-32 grid-cols-3 overflow-hidden rounded-lg bg-[#f0efed]",
+          isProductPage &&
+            "w-[187px] min-w-0 grid-cols-[44px_minmax(0,1fr)_44px] rounded-(--radius-sm) bg-(--color-background-subtle-2) font-body text-body",
           className,
         )}
         data-motion="fade-up"
@@ -38,10 +41,23 @@ export function Quantity(props: QuantityProps) {
           disabled={value <= 1}
           aria-label={t("product.decreaseQuantity")}
         >
-          <MinusIcon aria-hidden="true" className="h-4 w-4" />
+          {isProductPage ? (
+            <span
+              aria-hidden="true"
+              className="font-semibold text-xl leading-normal"
+            >
+              -
+            </span>
+          ) : (
+            <MinusIcon aria-hidden="true" className="h-4 w-4" />
+          )}
         </button>
         <output
-          className="flex min-w-0 items-center justify-center self-stretch border-line-subtle border-x"
+          className={cn(
+            "flex min-w-0 items-center justify-center self-stretch border-line-subtle border-x",
+            isProductPage &&
+              "border-white/20 font-semibold text-base leading-normal",
+          )}
           aria-live="polite"
           aria-label={t(
             value === 1 ? "product.itemCount" : "product.itemCount_other",
@@ -59,7 +75,10 @@ export function Quantity(props: QuantityProps) {
         >
           <span
             aria-hidden="true"
-            className="font-body font-semibold text-xl leading-normal text-[#343231]"
+            className={cn(
+              "font-body font-semibold text-xl leading-normal text-[#343231]",
+              isProductPage && "text-body",
+            )}
           >
             +
           </span>
