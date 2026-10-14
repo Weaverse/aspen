@@ -53,7 +53,7 @@ export function BackInStockForm({
   }
 
   return (
-    <div className="space-y-3 border border-line-subtle p-4">
+    <div className="space-y-3 rounded-(--radius-md) border border-line-subtle p-4">
       <div>
         <p className="font-semibold">{t("product.backInStockTitle")}</p>
         <p className="mt-1 text-body-subtle text-sm">
