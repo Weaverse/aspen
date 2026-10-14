@@ -600,13 +600,13 @@ function LocaleSelectors() {
       <CountrySelector
         enableFlag={false}
         wrapperClassName={currencySelectorWrapperClassName}
-        inputClassName="min-h-[50px] w-auto max-w-full rounded-none border border-[var(--Border-Border,#9D9D9D)] px-5 py-1 tracking-[0.02em]"
+        inputClassName="min-h-[50px] w-auto max-w-full rounded-(--radius-sm) border border-(--footer-input-border) px-5 py-1 tracking-[0.02em]"
       />
       <CountrySelector
         mode="language"
         enableFlag={false}
         wrapperClassName={languageSelectorWrapperClassName}
-        inputClassName="min-h-[50px] w-auto max-w-full rounded-none border border-[var(--Border-Border,#9D9D9D)] px-4 py-1 tracking-[0.02em]"
+        inputClassName="min-h-[50px] w-auto max-w-full rounded-(--radius-sm) border border-(--footer-input-border) px-4 py-1 tracking-[0.02em]"
       />
     </div>
   );
@@ -638,7 +638,7 @@ function PaymentMethods({
         return Icon ? (
           <li
             key={method}
-            className="flex h-6 w-[38px] items-center justify-center overflow-hidden bg-white"
+            className="flex h-6 w-[38px] items-center justify-center overflow-hidden rounded-(--radius-xs) bg-white"
             title={method.replace(/_/g, " ")}
           >
             <Icon className="h-[18px] w-[32px]" />
