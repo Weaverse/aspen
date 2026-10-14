@@ -14,16 +14,20 @@ const bundle = await build({
     contents: `
       import React from "react";
       import {createRoot} from "react-dom/client";
-      import {CartLineItem} from "./app/components/cart/cart-line-item";
+      import {CartLineItem, CartLineDiscountBadges} from "./app/components/cart/cart-line-item";
       import {CartLineQuantityAdjust} from "./app/components/cart/cart-line-qty-adjust";
       const root = createRoot(document.getElementById("root"));
       window.updates=[];
-      window.renderQuantity=(quantity=2,layout="drawer",id="line-1",pending=false,amount="49.00")=>{
+      window.renderBadges=()=>root.render(<CartLineDiscountBadges line={{discountAllocations:[{code:"Welcome",discountedAmount:{amount:"10.00",currencyCode:"USD"}},{title:"Summer sale",discountedAmount:{amount:"5.00",currencyCode:"USD"}},{discountedAmount:{amount:"2.00",currencyCode:"USD"}}]}} discountCodes={[{code:"Welcome",applicable:true},{code:"Another",applicable:true},{code:"Fallback",applicable:true}]}/>);
+      window.renderQuantity=(quantity=2,layout="drawer",id="line-1",pending=false,amount="49.00",fullItem=false)=>{
         window.currentQuantity=quantity;
+        window.currentLayout=layout;
+        window.currentAmount=amount;
+        window.fullItem=fullItem;
         const line={id,quantity,isOptimistic:pending,discountAllocations:[],cost:{amountPerQuantity:{amount,currencyCode:"USD"},totalAmount:{amount,currencyCode:"USD"}},merchandise:{title:"Color",selectedOptions:[{name:"Color",value:"Cream"}],product:{handle:"chair",title:"Product title"}}};
         line.merchandise.image={url:"fixture",width:140,height:140};
         line.sellingPlanAllocation={sellingPlan:{name:"Deliver every 4 weeks",options:[]}};
-        root.render(layout==="drawer" ? <ul className="grid gap-6" style={{width:"min(calc(100vw - var(--page-padding)),430px)",padding:20}}><CartLineItem line={line} layout={layout} discountCodes={[]}/></ul> : <CartLineQuantityAdjust line={line} layout={layout}/>);
+        root.render(layout==="drawer" || fullItem ? <ul className="grid gap-6" style={{width:layout==="drawer"?"min(calc(100vw - var(--page-padding)),430px)":"min(calc(100vw - 40px),740px)",padding:layout==="drawer"?20:0}}><CartLineItem line={line} layout={layout} discountCodes={[]}/></ul> : <CartLineQuantityAdjust line={line} layout={layout}/>);
       };
     `,
     loader: "tsx",
@@ -57,7 +61,7 @@ const bundle = await build({
           export const calculateAspectRatio=()=>"1/1";
           export const toggleCartDrawer=()=>{};
           export const useCartStore=(selector)=>selector({pendingLineRemovals:new Set()});
-          useCartStore.getState=()=>({stageLineUpdate:(id,quantity)=>{window.updates.push({id,quantity});window.renderQuantity(quantity,"drawer",id,true);}});
+          useCartStore.getState=()=>({stageLineUpdate:(id,quantity)=>{window.updates.push({id,quantity});window.renderQuantity(quantity,window.currentLayout,id,true,window.currentAmount,window.fullItem);}});
         `,
           loader: "tsx",
           resolveDir: root,
@@ -75,6 +79,170 @@ const css = stylesheet.build(
     sources: [{ base: `${root}app`, pattern: "**/*.{ts,tsx}", negated: false }],
   }).scan(),
 );
+
+test("Cart item discount labels are uppercase without changing automatic titles or amounts", async () => {
+  const browser = await chromium.launch();
+  try {
+    for (const width of [375, 768, 1440]) {
+      const page = await browser.newPage({ viewport: { width, height: 900 } });
+      await page.setContent(`<style>${css}</style><div id="root"></div>`);
+      await page.addScriptTag({ content: bundle.outputFiles[0].text });
+      await page.evaluate(() => window.renderBadges());
+      await expect(page.getByText("Welcome", { exact: true })).toHaveCSS(
+        "text-transform",
+        "uppercase",
+      );
+      await expect(page.getByText("Fallback", { exact: true })).toHaveCSS(
+        "text-transform",
+        "uppercase",
+      );
+      await expect(page.getByText("Summer sale", { exact: true })).toHaveCSS(
+        "text-transform",
+        "none",
+      );
+      for (const amount of ["10.00", "5.00", "2.00"]) {
+        await expect(page.getByText(amount, { exact: true })).toHaveCSS(
+          "text-transform",
+          "none",
+        );
+      }
+      await page.close();
+    }
+  } finally {
+    await browser.close();
+  }
+});
+
+test("Cart page quantity matches inspected mobile/tablet design and preserves desktop and mutation behavior", async () => {
+  const browser = await chromium.launch();
+  try {
+    for (const width of [
+      320,
+      430,
+      767,
+      768,
+      TABLET_MAX_PX,
+      DESKTOP_MIN_PX,
+      1440,
+    ]) {
+      const page = await browser.newPage({ viewport: { width, height: 900 } });
+      await page.setContent(
+        `<!doctype html><style>${css}:root{--body-base-size:14px;--radius-sm:8px;--color-background-subtle:#ededed;--color-text:#343231}</style><div id="root"></div>`,
+      );
+      await page.addScriptTag({ content: bundle.outputFiles[0].text });
+      await page.evaluate(() =>
+        window.renderQuantity(2, "page", "line-1", false, "49.00", true),
+      );
+      const increase = page.getByRole("button", {
+        name: "product.increaseQuantity",
+        exact: true,
+      });
+      const decrease = page.getByRole("button", {
+        name: "product.decreaseQuantity",
+        exact: true,
+      });
+      if (width >= DESKTOP_MIN_PX) {
+        await expect(page.getByRole("combobox")).toBeVisible();
+        await expect(increase).toHaveCount(0);
+        await expect(
+          page.getByText("product.itemPrice:", { exact: false }),
+        ).toBeVisible();
+        const price = page.getByText("49.00", { exact: true }).last();
+        await expect(price).toHaveCSS("font-weight", "400");
+        await page.getByRole("combobox").click();
+        await expect(page.getByRole("listbox")).toBeVisible();
+        await page.setViewportSize({ width: TABLET_MAX_PX, height: 900 });
+        await expect(increase).toBeVisible();
+        await expect(page.getByRole("combobox")).toHaveCount(0);
+        await expect(page.getByRole("listbox")).toHaveCount(0);
+      }
+      const group = page.getByRole("group", {
+        name: "Quantity, 2",
+        exact: true,
+      });
+      await expect(group).toBeVisible();
+      const geometry = await group.boundingBox();
+      assert.equal(geometry.width, 120);
+      assert.equal(geometry.height, 30);
+      await expect(group).toHaveCSS("border-radius", "8px");
+      await expect(group).toHaveCSS("background-color", "rgb(237, 237, 237)");
+      for (const button of [decrease, increase]) {
+        assert.equal((await button.boundingBox()).width, 44);
+        await expect(button).toHaveCSS("padding-top", "8px");
+      }
+      await expect(
+        page.getByText("product.itemPrice:", { exact: false }),
+      ).toBeHidden();
+      const price = page
+        .getByText("49.00", { exact: true })
+        .filter({ visible: true });
+      await expect(price).toHaveCSS("font-weight", "600");
+      await page.evaluate(() =>
+        document.documentElement.style.setProperty(
+          "--body-base-line-height",
+          "2",
+        ),
+      );
+      await expect(price).toHaveCSS("line-height", "28px");
+      await page.evaluate(() =>
+        document.documentElement.style.setProperty(
+          "--body-base-line-height",
+          "1.6",
+        ),
+      );
+      const priceBounds = await price.boundingBox();
+      assert.ok(priceBounds.x >= geometry.x + geometry.width);
+      assert.ok(
+        Math.abs(
+          priceBounds.y +
+            priceBounds.height / 2 -
+            geometry.y -
+            geometry.height / 2,
+        ) < 1,
+      );
+      await increase.click();
+      await expect(
+        page.getByRole("group", { name: "Quantity, 3", exact: true }),
+      ).toBeVisible();
+      await decrease.click();
+      await expect(group).toBeVisible();
+      assert.deepEqual(await page.evaluate(() => window.updates), [
+        { id: "line-1", quantity: 3 },
+        { id: "line-1", quantity: 2 },
+      ]);
+      await page.evaluate(() =>
+        window.renderQuantity(1, "page", "line-1", false, "49.00", true),
+      );
+      await expect(decrease).toBeDisabled();
+      await page.evaluate(() =>
+        window.renderQuantity(12, "page", "line-1", false, "49.00", true),
+      );
+      await increase.click();
+      await expect(
+        page.getByRole("group", { name: "Quantity, 13", exact: true }),
+      ).toBeVisible();
+      await page.evaluate(() =>
+        window.renderQuantity(2, "page", "line-1", false, "49.00", true),
+      );
+      await expect(group).toBeVisible();
+      await page.evaluate(() =>
+        window.renderQuantity(2, "page", "optimistic-new", true, "49.00", true),
+      );
+      await expect(increase).toBeDisabled();
+      await expect(decrease).toBeDisabled();
+      await page.evaluate(() =>
+        window.renderQuantity(2, "page", "line-1", false, "49.00", true),
+      );
+      await page.evaluate(() =>
+        document.documentElement.style.setProperty("--radius-sm", "12px"),
+      );
+      await expect(group).toHaveCSS("border-radius", "12px");
+      await page.close();
+    }
+  } finally {
+    await browser.close();
+  }
+});
 
 test("Cart mobile keeps its 140px flexible image, compact spacing and one-row quantity/price without changing tablet controls", async () => {
   const browser = await chromium.launch();
@@ -252,9 +420,15 @@ test("Cart mobile keeps its 140px flexible image, compact spacing and one-row qu
         false,
       );
       await page.evaluate(() => window.renderQuantity(2, "page"));
-      await expect(page.getByRole("combobox")).toBeVisible();
-      await expect(increase).toHaveCount(0);
-      await expect(decrease).toHaveCount(0);
+      if (width <= TABLET_MAX_PX) {
+        await expect(page.getByRole("combobox")).toHaveCount(0);
+        await expect(increase).toBeVisible();
+        await expect(decrease).toBeVisible();
+      } else {
+        await expect(page.getByRole("combobox")).toBeVisible();
+        await expect(increase).toHaveCount(0);
+        await expect(decrease).toHaveCount(0);
+      }
       await page.close();
     }
   } finally {

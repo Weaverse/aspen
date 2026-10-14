@@ -164,6 +164,47 @@ async function beginCapture(page, inputId) {
   }, inputId);
 }
 
+test("Cart discount and gift-card inputs submit uppercase codes without uppercasing note text", async () => {
+  const browser = await chromium.launch();
+  try {
+    for (const width of [390, 768, 1440]) {
+      for (const [name, inputId, value, expected, inputKey] of [
+        ["Discount", "cart-discount-code", "test 2", "TEST 2", "discountCode"],
+        [
+          "Gift card",
+          "cart-gift-card-code",
+          "gift abcd",
+          "GIFT ABCD",
+          "giftCardCodes",
+        ],
+      ]) {
+        const page = await createPage(browser, width);
+        await page.getByRole("button", { name, exact: true }).click();
+        const input = page.locator(`#${inputId}`);
+        await input.fill(value);
+        await expect(input).toHaveValue(expected);
+        await input
+          .locator("..")
+          .getByRole("button", { name: "cart.apply", exact: true })
+          .click();
+        await expect
+          .poll(() => page.evaluate(() => window.submissions.length))
+          .toBe(1);
+        const payload = await page.evaluate(
+          () => window.submissions[0].payload.inputs,
+        );
+        assert.deepEqual(
+          payload[inputKey],
+          inputKey === "giftCardCodes" ? ["GIFTABCD"] : expected,
+        );
+        await page.close();
+      }
+    }
+  } finally {
+    await browser.close();
+  }
+});
+
 async function endCapture(page) {
   return page.evaluate(() => {
     window.capture = false;

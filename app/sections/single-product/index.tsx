@@ -25,7 +25,6 @@ import { layoutInputs, Section } from "~/components/section";
 import { SellingPlanSelector } from "~/components/subscriptions/selling-plan-selector";
 import { ProductCardWishlistButton } from "~/components/wishlist/product-card-wishlist-button";
 import { PRODUCT_QUERY } from "~/graphql/queries";
-import { useAnimation } from "~/hooks/use-animation";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import { isDiscounted } from "~/utils/product";
 import { ProductVariants } from "../main-product/variants";
@@ -128,7 +127,6 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
       setSelectedSellingPlanId(null);
       setQuantity(1);
     }, [product?.selectedOrFirstAvailableVariant]);
-    const [scope] = useAnimation(ref);
 
     // Get price range for when no variant is selected
     const priceRange = product?.priceRange;
@@ -211,7 +209,7 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
 
     return (
       <Section ref={ref} {...rest} overflow="unset">
-        <div ref={scope} className="flex flex-col gap-10 md:gap-16">
+        <div className="flex flex-col gap-10 md:gap-16">
           {heading && (
             <h2 className="max-w-[260px] font-heading font-normal text-[37px] md:max-w-none md:text-[44px] uppercase leading-[1.1] tracking-[-0.03em]">
               {heading}
@@ -261,8 +259,7 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
             </div>
             <div className="min-w-0">
               <div
-                className="lg:sticky flex flex-col justify-start gap-8"
-                style={{ top: "calc(var(--height-nav) + 20px)" }}
+                className="flex flex-col justify-start gap-8"
                 data-motion="slide-in"
               >
                 <div className="flex flex-col gap-4">
