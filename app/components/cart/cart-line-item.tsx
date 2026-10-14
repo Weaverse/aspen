@@ -131,8 +131,8 @@ export function CartLineItem({
               <SubscriptionLineItem line={line as any} />
 
               {/* Quantity and Pricing */}
-              <div className="grid w-full grid-cols-[1fr_auto_1fr] items-center">
-                <div>
+              <div className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-1 lg:grid-cols-[1fr_auto_1fr] lg:gap-0">
+                <div className="hidden lg:block">
                   {t("product.itemPrice")}:{" "}
                   <CartLinePrice
                     line={line}
@@ -143,11 +143,12 @@ export function CartLineItem({
                   />
                 </div>
                 <CartLineQuantityAdjust line={line} layout={layout} />
-                <div className="justify-self-end font-normal">
+                <div className="justify-self-end text-right max-lg:font-semibold max-lg:text-sm max-lg:leading-(--body-base-line-height) max-lg:tracking-[0.02em] lg:font-normal">
                   <CartLinePrice
                     line={line}
                     amountType="total"
                     fontWeight="normal"
+                    className="max-lg:font-semibold"
                     as="span"
                     isLoading={isOptimistic}
                   />
@@ -264,10 +265,13 @@ export function CartLineDiscountBadges({
   return (
     <div className="flex flex-col items-start gap-2">
       {allocations.map((allocation, index) => {
-        const label =
+        const code =
           ("code" in allocation && allocation.code) ||
+          (!("title" in allocation && allocation.title) &&
+            applicableCodes[index]?.code);
+        const label =
+          code ||
           ("title" in allocation && allocation.title) ||
-          applicableCodes[index]?.code ||
           t("cart.discount");
 
         return (
@@ -280,7 +284,7 @@ export function CartLineDiscountBadges({
           >
             <Tag size={16} className="shrink-0" aria-hidden="true" />
             <span className="whitespace-nowrap">
-              {label} (-
+              <span className={code ? "uppercase" : undefined}>{label}</span> (-
               <Money as="span" data={allocation.discountedAmount} />)
             </span>
           </span>
