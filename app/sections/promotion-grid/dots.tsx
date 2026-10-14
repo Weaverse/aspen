@@ -95,24 +95,26 @@ export function Dots(props: PromotionDotsProps) {
 
   return (
     <div className={clsx(variants({ dotsColor }), className)}>
-      {Array.from({ length: slidesCount }, (_, index) => {
-        return (
-          <button
-            key={index}
-            type="button"
-            className={clsx(
-              dotVariants({
-                dotsColor,
-                isActive: index <= activeIndex,
-              }),
-            )}
-            onClick={() => {
-              return handleDotClick(index);
-            }}
-            aria-label={t("carousel.goToSlide", { index: index + 1 })}
-          />
-        );
-      })}
+      <div className="flex min-w-0 overflow-hidden rounded-(--radius-sm)">
+        {Array.from({ length: slidesCount }, (_, index) => {
+          return (
+            <button
+              key={index}
+              type="button"
+              className={clsx(
+                dotVariants({
+                  dotsColor,
+                  isActive: index <= activeIndex,
+                }),
+              )}
+              onClick={() => {
+                return handleDotClick(index);
+              }}
+              aria-label={t("carousel.goToSlide", { index: index + 1 })}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 }

@@ -371,11 +371,11 @@ const ProductInformation = forwardRef<
                     )}
                   </p>
                   <div
-                    className="flex h-1 overflow-hidden rounded-[var(--border-radius-sm,4px)] bg-line-subtle"
+                    className="flex h-1 overflow-hidden rounded-(--radius-sm) bg-line-subtle"
                     aria-hidden="true"
                   >
                     <span
-                      className="block h-full rounded-full bg-body transition-[width]"
+                      className="block h-full rounded-(--radius-sm) bg-body transition-[width]"
                       style={{
                         width: `${Math.max(
                           8,

@@ -71,9 +71,9 @@ export function CartProgression({
           )}
         </p>
       </div>
-      <div className="relative h-1 w-full overflow-hidden rounded-full bg-[#F2F0EE] max-xl:order-1 max-xl:rounded-none max-xl:bg-[#ECECEC]">
+      <div className="relative h-1 w-full overflow-hidden rounded-(--radius-sm) bg-[#F2F0EE] max-xl:order-1 max-xl:bg-[#ECECEC]">
         <div
-          className="h-full bg-[#A79D95] transition-all duration-300 max-xl:bg-[#9B9B9B]"
+          className="h-full rounded-(--radius-sm) bg-[#A79D95] transition-all duration-300 max-xl:bg-[#9B9B9B]"
           style={{ width: `${progress}%` }}
         />
       </div>

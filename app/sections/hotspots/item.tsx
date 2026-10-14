@@ -16,9 +16,11 @@ import type {
   ProductVariantFragment,
 } from "storefront-api.generated";
 import { QuickShop, QuickShopTrigger } from "~/components/product/quick-shop";
+import { QUICK_SHOP_MOBILE_FRAME_CLASS } from "~/components/product/quick-shop-frame";
 import { ScrollArea } from "~/components/scroll-area";
 import { PRODUCT_QUERY } from "~/graphql/queries";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
+import { useQuickViewScrollbar } from "~/hooks/use-quick-view-scrollbar";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import { isDesktopWidth } from "~/utils/breakpoints";
 import { FloatingHotspot } from "./floating-hotspot";
@@ -115,6 +117,7 @@ const HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>(
       "themeContent.sectionsHotspotsItem.viewDetailsLinkText",
     );
     const [showQuickShop, setShowQuickShop] = useState(false);
+    useQuickViewScrollbar(portalPopup && showQuickShop);
     const [quickAddOptions, setQuickAddOptions] = useState<
       ProductVariantFragment["selectedOptions"]
     >([]);
@@ -236,15 +239,15 @@ const HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>(
               <Dialog.Overlay
                 className={clsx(
                   "fixed inset-0 z-50 bg-black/50",
-                  showQuickShop ? "animate-fade-in" : "animate-fade-out",
+                  showQuickShop ? "quick-view-fade-in" : "quick-view-fade-out",
                 )}
               />
               <Dialog.Content
+                data-quick-view-dialog=""
                 className={clsx(
-                  "fixed inset-y-0 right-0 z-50 w-full bg-background py-2.5 shadow-2xl md:max-w-[430px]",
-                  showQuickShop
-                    ? "animate-slide-in-right"
-                    : "animate-slide-out-right",
+                  "fixed z-50 rounded-(--radius-md) bg-background py-2.5 shadow-2xl md:inset-y-0 md:right-[var(--quick-view-locked-gap,0px)] md:left-auto md:h-auto md:w-full md:max-w-[430px] md:translate-y-0 md:rounded-none",
+                  QUICK_SHOP_MOBILE_FRAME_CLASS,
+                  showQuickShop ? "quick-view-fade-in" : "quick-view-fade-out",
                 )}
                 aria-describedby={undefined}
               >
@@ -261,7 +264,7 @@ const HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>(
                     <XIcon className="size-5" />
                   </button>
 
-                  <ScrollArea className="flex-1" size="sm">
+                  <ScrollArea rootClassName="min-h-0 flex-1" size="sm">
                     <div className="px-5 pt-12 pb-8">
                       {quickShopData ? (
                         <QuickShop

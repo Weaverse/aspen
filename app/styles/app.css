@@ -864,6 +864,23 @@
   animation: fade-out 0.25s ease-in;
 }
 
+.quick-view-fade-in {
+  opacity: 1;
+  animation: fade-in 0.2s ease-out both;
+}
+
+.quick-view-fade-out {
+  opacity: 0;
+  animation: fade-out 0.2s ease-in both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quick-view-fade-in,
+  .quick-view-fade-out {
+    animation: none;
+  }
+}
+
 /*
   iPad / responsive-mode dialog lock: react-remove-scroll injects
   `body[data-scroll-locked] { margin-right: <gap> !important }` after our
@@ -875,6 +892,27 @@
    pulls sticky navigation offscreen on an already-scrolled page. */
 html:not(:has(body[data-scroll-locked])) {
   overflow-x: clip;
+}
+
+/* Quick View snapshots the gutter before Radix locks scrolling. The existing
+   iPad compensation reset remains unchanged for every other popup. */
+html[data-quick-view-scrollbar]:has(body[data-scroll-locked]) {
+  --quick-view-locked-gap: var(--quick-view-scrollbar-gap);
+}
+
+html[data-quick-view-scrollbar] body[data-scroll-locked] {
+  padding-right: var(--quick-view-scrollbar-gap) !important;
+}
+
+html[data-quick-view-scrollbar] body[data-scroll-locked] header.fixed {
+  /* 100% shrinks as soon as the scrollbar returns, even if Radix's lock
+     attribute remains for another cleanup phase. Viewport units keep the
+     captured gutter from being subtracted twice during that interval. */
+  width: calc(100vw - var(--quick-view-scrollbar-gap));
+}
+
+html[data-quick-view-scrollbar] header.fixed {
+  transition-property: color, background-color, border-color, opacity, box-shadow;
 }
 
 html body[data-scroll-locked] {
