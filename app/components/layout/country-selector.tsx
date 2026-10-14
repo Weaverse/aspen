@@ -65,7 +65,7 @@ export function CountrySelector({
         </Popover.Trigger>
         <Popover.Portal>
           <Popover.Content
-            align="end"
+            align="center"
             sideOffset={8}
             collisionPadding={12}
             className="z-50 w-max min-w-[var(--radix-popover-trigger-width)] max-w-[calc(100vw-24px)] overflow-hidden rounded-lg border border-white/15 bg-[#3b352c] shadow-lg"

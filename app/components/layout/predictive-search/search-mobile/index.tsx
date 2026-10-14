@@ -129,6 +129,7 @@ export function PredictiveSearchButtonMobile({ setIsSearchOpen }) {
                                 className="h-5 w-5"
                               />
                             </button>
+                            {/* Keep a readable input size so iOS does not zoom on focus. */}
                             <input
                               name="q"
                               type="search"
@@ -165,7 +166,7 @@ export function PredictiveSearchButtonMobile({ setIsSearchOpen }) {
                               placeholder={t("search.placeholder")}
                               ref={inputRef}
                               autoComplete="off"
-                              className="h-12 min-w-0 flex-1 !rounded-none !border-0 !bg-transparent px-0 text-sm shadow-none outline-none focus-visible:!border-0 focus-visible:!shadow-none"
+                              className="h-12 min-w-0 flex-1 !rounded-none !border-0 !bg-transparent px-0 text-[length:max(1rem,var(--body-base-size))] shadow-none outline-none focus-visible:!border-0 focus-visible:!shadow-none"
                             />
                             {searchQuery && (
                               <button
@@ -250,7 +251,7 @@ function PredictiveSearchResults() {
     <div className="w-full">
       <PredictiveSearchResult type="queries" items={queries?.items} />
       <div className="mt-4">
-        <div className="relative grid grid-cols-[116px_139px_1fr] border-[#D8D8D8] border-b">
+        <div className="scrollbar-hide relative flex gap-10 overflow-x-auto overflow-y-hidden border-[#D8D8D8] border-b">
           {(["products", "collections", "pages"] as const).map((type) => {
             const label = t(
               type === "pages" ? "search.page" : `search.${type}`,
@@ -260,17 +261,19 @@ function PredictiveSearchResults() {
                 key={type}
                 type="button"
                 className={clsx(
-                  "relative pb-[11px] text-left font-semibold text-sm uppercase outline-none transition focus-visible:outline focus-visible:outline-1 focus-visible:outline-[#343231] focus-visible:outline-offset-2",
+                  "relative shrink-0 whitespace-nowrap pb-[11px] text-left font-semibold text-sm uppercase outline-none transition after:absolute after:right-0 after:bottom-0 after:left-0 after:h-px after:translate-y-px focus-visible:outline focus-visible:outline-1 focus-visible:outline-[#343231] focus-visible:-outline-offset-1",
                   activeType === type
-                    ? clsx(
-                        "text-[#343231] after:absolute after:bottom-0 after:h-px after:translate-y-px after:bg-[#9D9D9D]",
-                        type === "products" && "after:left-0 after:w-[76px]",
-                        type === "collections" && "after:left-0 after:w-[99px]",
-                        type === "pages" && "after:left-5 after:w-[37px]",
-                      )
-                    : "text-[#979797]",
+                    ? "text-[#343231] after:bg-[#9D9D9D]"
+                    : "text-[#979797] after:bg-transparent",
                 )}
                 onClick={() => setActiveType(type)}
+                onFocus={(event) =>
+                  event.currentTarget.scrollIntoView({
+                    block: "nearest",
+                    inline: "nearest",
+                    behavior: "instant",
+                  })
+                }
               >
                 {label}
               </button>

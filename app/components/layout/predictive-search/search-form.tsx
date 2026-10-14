@@ -52,7 +52,7 @@ export function PredictiveSearchForm({
   // will select the element based on the input
   useEffect(() => {
     inputRef?.current?.setAttribute("type", "search");
-    inputRef?.current?.focus();
+    inputRef?.current?.focus({ preventScroll: true });
   }, []);
 
   return (

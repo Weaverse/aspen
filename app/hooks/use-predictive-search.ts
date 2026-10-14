@@ -19,6 +19,7 @@ export function usePredictiveSearch(): NormalizedPredictiveSearch & {
   searchTerm: React.RefObject<string>;
   searchTermValue: string;
   searchState: "idle" | "loading" | "submitting";
+  searchRequest: FormData | undefined;
 } {
   const searchTerm = useRef<string>("");
   const searchFetcher = useFetcher<PredictiveSearchResponse>({
@@ -51,5 +52,6 @@ export function usePredictiveSearch(): NormalizedPredictiveSearch & {
     searchTerm,
     searchTermValue,
     searchState: searchFetcher.state,
+    searchRequest: searchFetcher.formData,
   };
 }

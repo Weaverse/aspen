@@ -870,7 +870,10 @@
   stylesheet. On 1024px iPad Pro it misreads visualViewport scale as a
   ~350px scrollbar and leaves a blank strip on the right.
 */
-html {
+/* While Radix locks body scrolling, let its overflow propagate to the viewport.
+   Clipping html at the same time makes body a separate scroll container and
+   pulls sticky navigation offscreen on an already-scrolled page. */
+html:not(:has(body[data-scroll-locked])) {
   overflow-x: clip;
 }
 

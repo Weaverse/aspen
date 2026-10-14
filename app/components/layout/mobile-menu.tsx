@@ -7,8 +7,8 @@ import {
 import * as Collapsible from "@radix-ui/react-collapsible";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useTranslation } from "@weaverse/hydrogen";
-import { AnimatePresence, motion } from "framer-motion";
-import { type Ref, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { type Ref, useRef, useState } from "react";
 import { Image } from "~/components/image";
 import Link from "~/components/link";
 import { useHeaderMenu } from "~/hooks/use-header-menu";
@@ -24,6 +24,8 @@ export function MobileMenu({
 }) {
   const { t } = useTranslation();
   const menuItems = useHeaderMenu();
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const reduceMotion = useReducedMotion();
   const [activeSubMenu, setActiveSubMenu] = useState<HeaderMenuItem | null>(
     null,
   );
@@ -45,7 +47,6 @@ export function MobileMenu({
   }
 
   function closeMenu() {
-    setActiveSubMenu(null);
     setOpen(false);
   }
 
@@ -54,30 +55,56 @@ export function MobileMenu({
       open={open}
       onOpenChange={(nextOpen) => {
         setOpen(nextOpen);
-        if (!nextOpen) {
+        if (nextOpen) {
           setActiveSubMenu(null);
         }
       }}
     >
       <Dialog.Trigger asChild className={triggerClassName}>
-        <MenuTrigger aria-label={t("accessibility.openMenu")} />
+        <MenuTrigger
+          ref={triggerRef}
+          aria-label={t("accessibility.openMenu")}
+        />
       </Dialog.Trigger>
-      <Dialog.Portal>
-        {open ? (
-          <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50" />
-        ) : null}
-        <AnimatePresence>
+      <Dialog.Portal forceMount>
+        <AnimatePresence
+          onExitComplete={() => {
+            if (!open) {
+              setActiveSubMenu(null);
+            }
+          }}
+        >
+          {open ? (
+            <Dialog.Overlay key="overlay" forceMount asChild>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: reduceMotion ? 0 : 0.2 }}
+                className="fixed inset-0 z-50 bg-black/50"
+              />
+            </Dialog.Overlay>
+          ) : null}
           {open ? (
             <Dialog.Content
+              key="menu"
               forceMount
+              onCloseAutoFocus={(event) => {
+                event.preventDefault();
+                triggerRef.current?.focus({ preventScroll: true });
+              }}
               aria-describedby={undefined}
               className="fixed inset-y-0 left-0 z-50 w-full max-w-[360px] bg-transparent p-0 outline-hidden"
             >
               <motion.div
-                initial={{ x: "-100%" }}
+                initial={{ x: reduceMotion ? 0 : "-100%" }}
                 animate={{ x: 0 }}
-                exit={{ x: "-100%" }}
-                transition={{ type: "spring", damping: 25, stiffness: 150 }}
+                exit={{ x: reduceMotion ? 0 : "-100%" }}
+                transition={
+                  reduceMotion
+                    ? { duration: 0 }
+                    : { type: "spring", damping: 25, stiffness: 150 }
+                }
                 className="flex h-full w-full flex-col overflow-hidden rounded-r-xl bg-[#DFDFDF] text-[#343231]"
               >
                 <MenuHeader
