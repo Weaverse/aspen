@@ -179,7 +179,7 @@ export function AppliedCartCodes({
                 <div className={cartCodeBadgeClassName}>
                   <Tag size={16} aria-hidden="true" className="shrink-0" />
                   <span className="whitespace-nowrap">
-                    {discount.code}
+                    <span className="uppercase">{discount.code}</span>
                     {layout === "page" &&
                       discountAmounts[discount.code.toLowerCase()] && (
                         <>
@@ -216,7 +216,8 @@ export function AppliedCartCodes({
                 <div className={cartCodeBadgeClassName}>
                   <Tag size={16} aria-hidden="true" className="shrink-0" />
                   <span className="whitespace-nowrap">
-                    •••• {giftCard.lastCharacters}
+                    ••••{" "}
+                    <span className="uppercase">{giftCard.lastCharacters}</span>
                     {layout === "page" && (
                       <>
                         {" "}
@@ -312,8 +313,8 @@ export function CartPageTotals({
   const subtotalBeforeDiscounts = subtotalAfterDiscounts + discountTotal;
 
   return (
-    <>
-      <div className="flex flex-col gap-6 py-6">
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-6 border-line-subtle border-y py-6">
         <div className="flex items-center justify-between">
           <span>{t("cart.subtotal")}</span>
           <span className="shrink-0 whitespace-nowrap">
@@ -364,7 +365,7 @@ export function CartPageTotals({
       {!isOptimistic && (
         <LoyaltyPointsHint amount={cart.cost.subtotalAmount?.amount} />
       )}
-    </>
+    </div>
   );
 }
 
@@ -404,7 +405,11 @@ export function CartCheckoutActions({
       >
         <Button
           disabled={pending}
-          className="!px-6 !py-5 h-[54px] w-full uppercase"
+          className={
+            layout === "page"
+              ? "w-full px-6 py-5 uppercase"
+              : "!px-6 !py-5 h-[54px] w-full uppercase"
+          }
         >
           {checkoutButtonText || t("cart.checkout")}
         </Button>
@@ -434,7 +439,7 @@ export function CartSummary({
       )}
     >
       {layout === "page" && (
-        <span className="pb-6 font-medium uppercase">
+        <span className="border-line-subtle border-b pb-6 font-medium uppercase">
           {t("cart.orderSummary")}
         </span>
       )}

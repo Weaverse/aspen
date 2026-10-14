@@ -9,6 +9,7 @@ import { Link } from "~/components/link";
 import { useTranslatedThemeSettings } from "~/hooks/use-translated-theme-settings";
 import { getCartMutationError } from "~/utils/cart-error";
 import { CartBestSellers } from "./cart-best-sellers";
+import { CartCodeForm } from "./cart-code-form";
 import { CartLineItem, PriceLoadingSpinner } from "./cart-line-item";
 import {
   AppliedCartCodes,
@@ -318,19 +319,29 @@ export function CartDetails({
           />
         </div>
         <CartSummary layout={layout}>
-          <AppliedCartCodes
-            discountAmounts={getCartCodeDiscountAmounts(cart.lines.nodes)}
-            appliedGiftCards={appliedGiftCards}
-            discountCodes={discountCodes}
-            layout={layout}
-          />
-          {summaryActions}
-          <CartPageTotals cart={cart} isOptimistic={isOptimistic} />
-          <CartCheckoutActions
-            checkoutUrl={cart.checkoutUrl}
-            layout={layout}
-            pending={isOptimistic}
-          />
+          <div className="min-w-0 space-y-4">
+            {(enableDiscountCode || enableGiftCard) && (
+              <CartCodeForm
+                allowDiscountCode={Boolean(enableDiscountCode)}
+                allowGiftCard={Boolean(enableGiftCard)}
+                pending={isOptimistic}
+              />
+            )}
+            <AppliedCartCodes
+              discountAmounts={getCartCodeDiscountAmounts(cart.lines.nodes)}
+              appliedGiftCards={appliedGiftCards}
+              discountCodes={discountCodes}
+              layout={layout}
+            />
+          </div>
+          <div className="flex flex-col gap-5">
+            <CartPageTotals cart={cart} isOptimistic={isOptimistic} />
+            <CartCheckoutActions
+              checkoutUrl={cart.checkoutUrl}
+              layout={layout}
+              pending={isOptimistic}
+            />
+          </div>
         </CartSummary>
       </div>
     </div>
