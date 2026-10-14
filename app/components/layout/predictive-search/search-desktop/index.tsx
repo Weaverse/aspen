@@ -3,8 +3,14 @@ import * as Dialog from "@radix-ui/react-dialog";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
-import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import {
+  type ReactNode,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { useLocation, useNavigate } from "react-router";
 import Link from "~/components/link";
 import { usePredictiveSearch } from "~/hooks/use-predictive-search";
@@ -26,29 +32,43 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
   const location = useLocation();
   const navigate = useNavigate();
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const { results, searchState } = usePredictiveSearch();
+  const pendingQueryRef = useRef<string | null>(null);
+  const previousRequestRef = useRef<FormData | undefined>(undefined);
+  const { searchState, searchTermValue, searchRequest } = usePredictiveSearch();
   const loading = isSearching || searchState !== "idle";
-  const hasResourceResults = results?.some(
-    (result) =>
-      (result.type === "products" ||
-        result.type === "collections" ||
-        result.type === "pages") &&
-      result.items.length > 0,
-  );
-  const showEmptyResults = hasSearched && !loading && !hasResourceResults;
+
+  // An older request must not take ownership of the next query's loading state.
+  useEffect(() => {
+    if (
+      isSearching &&
+      !debounceRef.current &&
+      searchState !== "idle" &&
+      searchRequest !== previousRequestRef.current &&
+      searchTermValue === pendingQueryRef.current
+    ) {
+      setIsSearching(false);
+    }
+  }, [isSearching, searchState, searchTermValue, searchRequest]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: close the dialog after navigation
   useEffect(() => {
     setOpen(false);
     setIsSearchOpen(false);
-    setHasSearched(false);
-    setIsSearching(false);
+    resetSearchState();
+    return clearSearchDebounce;
   }, [location]);
 
-  function resetSearchState() {
+  function clearSearchDebounce() {
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
+      debounceRef.current = null;
     }
+  }
+
+  function resetSearchState() {
+    clearSearchDebounce();
+    pendingQueryRef.current = null;
+    previousRequestRef.current = undefined;
     setHasSearched(false);
     setIsSearching(false);
   }
@@ -68,8 +88,10 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
       onOpenChange={(nextOpen) => {
         setOpen(nextOpen);
         setIsSearchOpen(nextOpen);
-        if (!nextOpen) {
+        if (nextOpen) {
           resetSearchState();
+        } else {
+          clearSearchDebounce();
         }
       }}
     >
@@ -82,7 +104,13 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
         </button>
       </Dialog.Trigger>
       <Dialog.Portal forceMount>
-        <AnimatePresence>
+        <AnimatePresence
+          onExitComplete={() => {
+            if (!open) {
+              resetSearchState();
+            }
+          }}
+        >
           {open && (
             <>
               <Dialog.Overlay forceMount>
@@ -95,6 +123,7 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
               </Dialog.Overlay>
               <Dialog.Content
                 forceMount
+                onOpenAutoFocus={(event) => event.preventDefault()}
                 onCloseAutoFocus={(event) => event.preventDefault()}
                 className="fixed inset-x-0 top-[calc(var(--height-nav)+var(--topbar-height))] z-9"
                 aria-describedby={undefined}
@@ -104,7 +133,7 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
                   animate={{ y: 0 }}
                   exit={{ y: "-100%" }}
                   transition={{ type: "spring", damping: 25, stiffness: 150 }}
-                  className="max-h-[calc(100vh-var(--height-nav)-var(--topbar-height))] w-full overflow-y-auto border-line-subtle border-t bg-(--color-header-bg)"
+                  className="max-h-[calc(100vh-var(--height-nav)-var(--topbar-height))] w-full overflow-y-auto border-line-subtle border-t bg-(--color-header-bg) [scrollbar-gutter:stable]"
                 >
                   <VisuallyHidden.Root asChild>
                     <Dialog.Title>{t("search.predictiveTitle")}</Dialog.Title>
@@ -122,11 +151,11 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
                           onClick={() => {
                             const value = inputRef.current?.value.trim() || "";
                             if (value) {
-                              if (debounceRef.current) {
-                                clearTimeout(debounceRef.current);
-                              }
+                              clearSearchDebounce();
+                              pendingQueryRef.current = value;
+                              previousRequestRef.current = searchRequest;
                               setHasSearched(true);
-                              setIsSearching(false);
+                              setIsSearching(true);
                               fetchResults(value);
                             }
                           }}
@@ -143,9 +172,9 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
                             const value = event.target.value;
                             const trimmed = value.trim();
 
-                            if (debounceRef.current) {
-                              clearTimeout(debounceRef.current);
-                            }
+                            clearSearchDebounce();
+                            pendingQueryRef.current = trimmed || null;
+                            previousRequestRef.current = searchRequest;
 
                             if (!trimmed) {
                               setHasSearched(false);
@@ -156,8 +185,9 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
 
                             setIsSearching(true);
                             debounceRef.current = setTimeout(() => {
+                              debounceRef.current = null;
                               setHasSearched(true);
-                              setIsSearching(false);
+                              setIsSearching(true);
                               fetchResults(trimmed);
                             }, 300);
                           }}
@@ -179,30 +209,20 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
                     )}
                   </PredictiveSearchForm>
                   <div className="mx-auto w-[calc(100%-4rem)] max-w-[1360px]">
-                    <AnimatePresence mode="wait" initial={false}>
+                    <SearchResultsPanel loading={loading}>
                       {!(hasSearched || loading) && (
-                        <motion.div
-                          key="popular"
-                          initial={{ opacity: 0, y: -8 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -8 }}
-                          className="py-7"
-                        >
+                        <div className="py-7">
                           <PopularSearch
                             className="mx-0 w-[258px] max-w-full pb-6"
                             headingClassName="flex h-7 w-full items-start gap-2 self-stretch border-[#D8D8D8] border-b"
                             itemClassName="font-normal text-sm tracking-[0.01em]"
                             useSearchHistory
                           />
-                        </motion.div>
+                        </div>
                       )}
                       {loading && (
-                        <motion.div
-                          key="searching"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          className="flex min-h-[165px] items-center justify-center gap-2 text-body-subtle text-sm"
+                        <div
+                          className="flex items-center justify-center gap-2 text-body-subtle text-sm"
                           aria-live="polite"
                         >
                           <CircleNotchIcon
@@ -210,19 +230,10 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
                             className="size-5 animate-spin"
                           />
                           <span>{t("search.searching")}</span>
-                        </motion.div>
+                        </div>
                       )}
-                      {hasSearched && !loading && (
-                        <motion.div
-                          key={showEmptyResults ? "empty" : "results"}
-                          initial={{ opacity: 0, y: -8 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -8 }}
-                        >
-                          <PredictiveSearchResults />
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                      {hasSearched && !loading && <PredictiveSearchResults />}
+                    </SearchResultsPanel>
                   </div>
                 </motion.div>
               </Dialog.Content>
@@ -231,6 +242,49 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
         </AnimatePresence>
       </Dialog.Portal>
     </Dialog.Root>
+  );
+}
+
+function SearchResultsPanel({
+  children,
+  loading,
+}: {
+  children: ReactNode;
+  loading: boolean;
+}) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState<number>();
+  const reducedMotion = useReducedMotion();
+
+  useLayoutEffect(() => {
+    const content = contentRef.current;
+    if (!content || loading) {
+      return;
+    }
+    const measure = () => setHeight(content.offsetHeight);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(content);
+    return () => observer.disconnect();
+  }, [loading]);
+
+  return (
+    <motion.div
+      initial={false}
+      animate={{ height: height ?? "auto" }}
+      transition={{ duration: reducedMotion ? 0 : 0.2, ease: "easeOut" }}
+      className="relative overflow-hidden"
+      aria-busy={loading}
+    >
+      <div
+        ref={contentRef}
+        className={clsx(
+          loading && "absolute inset-0 flex items-center justify-center",
+        )}
+      >
+        {children}
+      </div>
+    </motion.div>
   );
 }
 
@@ -271,10 +325,11 @@ function PredictiveSearchResults() {
       className={clsx(
         "grid grid-cols-[258px_minmax(0,1fr)] gap-5 pt-7",
         minHeight,
+        activeType === "pages" && "pb-6",
       )}
     >
       <SuggestionsPanel items={queries?.items} fallbackTerm={searchTermValue} />
-      <main className="min-w-0">
+      <main className={clsx("min-w-0", activeType === "pages" && "pb-6")}>
         <ResourceTabs
           activeType={activeType}
           counts={{

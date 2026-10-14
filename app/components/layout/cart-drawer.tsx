@@ -40,10 +40,7 @@ export function CartDrawer() {
           <ShoppingBagIcon className="size-5" />
         </span>
         {cart && cart.totalQuantity > 0 && (
-          <span
-            className="-mt-2 inline-flex h-3 shrink-0 items-center justify-center self-start whitespace-nowrap font-body text-[10px] leading-3"
-            style={{ width: `${String(cart.totalQuantity).length * 6}px` }}
-          >
+          <span className="relative top-1 -translate-y-2/3 shrink-0 self-start whitespace-nowrap font-body font-normal text-xs leading-none tracking-[0.02em]">
             {cart.totalQuantity}
           </span>
         )}

@@ -138,15 +138,15 @@ function FiltersDrawer({
         </Button>
       </Dialog.Trigger>
       <AnimatedDrawer open={open} filter>
-        <div className="flex h-full flex-col">
-          <div className="flex min-h-10 shrink-0 items-center justify-between px-[52px]">
+        <div className="flex h-full flex-col gap-4">
+          <div className="grid min-h-10 shrink-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-5 px-5">
             <Dialog.Title className="text-sm font-semibold uppercase">
               {t("collection.filter")}
             </Dialog.Title>
             <Dialog.Close asChild>
               <button
                 type="button"
-                className="-mr-2 flex h-10 w-10 items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body"
+                className="relative flex size-5 items-center justify-center before:absolute before:-inset-2.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body"
                 aria-label={t("collection.closeFilters")}
               >
                 <XIcon aria-hidden="true" className="h-5 w-5" />
@@ -158,7 +158,7 @@ function FiltersDrawer({
             className="h-full"
             size="sm"
           >
-            <Filters context="drawer" className="mx-[52px]" />
+            <Filters context="drawer" className="mr-15 ml-5" />
           </ScrollArea>
         </div>
       </AnimatedDrawer>

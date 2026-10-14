@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 for (const width of [390, 768, 1440]) {
-  test(`filter drawer is flush with the viewport at ${width}px`, async ({
+  test(`filter drawer is right-aligned with overlay space at ${width}px`, async ({
     page,
   }) => {
     await page.setViewportSize({ width, height: 900 });
@@ -16,7 +16,7 @@ for (const width of [390, 768, 1440]) {
     expect(bounds).not.toBeNull();
     expect(bounds?.y).toBe(0);
     expect(bounds?.height).toBe(900);
-    expect(bounds?.x).toBe(width < 768 ? 0 : width - 430);
+    expect(bounds?.x).toBe(width - Math.min(430, width - 32));
     expect((bounds?.x ?? 0) + (bounds?.width ?? 0)).toBe(width);
 
     const corners = await panel.evaluate((element) => {
@@ -26,8 +26,8 @@ for (const width of [390, 768, 1440]) {
         right: [style.borderTopRightRadius, style.borderBottomRightRadius],
       };
     });
-    const flatCorners = width < 768 ? corners.left : corners.right;
-    const roundCorners = width < 768 ? corners.right : corners.left;
+    const flatCorners = corners.right;
+    const roundCorners = corners.left;
     expect(flatCorners).toEqual(["0px", "0px"]);
     expect(roundCorners.every((radius) => Number.parseFloat(radius) > 0)).toBe(
       true,

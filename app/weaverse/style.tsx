@@ -97,7 +97,7 @@ export function GlobalStyle() {
         __html: `
           :root {
             /* Layout */
-            --height-nav: ${designSystemPreset === "custom" ? `${navHeightMobile}rem` : "88px"};
+            --height-nav: ${designSystemPreset === "custom" ? `${navHeightMobile}rem` : "calc(var(--spacing) * 12)"};
             --page-width: ${pageWidth}px;
             --page-padding: 20px;
             --section-padding-y: 80px;
@@ -201,7 +201,7 @@ export function GlobalStyle() {
 
           @media (min-width: 32em) {
             :root {
-              --height-nav: ${designSystemPreset === "custom" ? `${navHeightTablet}rem` : "88px"};
+              --height-nav: ${designSystemPreset === "custom" ? `${navHeightTablet}rem` : "calc(var(--spacing) * 14)"};
               --page-padding: 32px;
               --section-padding-y: 80px;
               --section-heading-gap: 64px;
@@ -210,6 +210,7 @@ export function GlobalStyle() {
 
           @media (min-width: ${DESKTOP_MIN_PX}px) {
             :root {
+              --height-nav: ${designSystemPreset === "custom" ? `${navHeightTablet}rem` : "88px"};
               --page-padding: 40px;
             }
           }

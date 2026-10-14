@@ -206,7 +206,7 @@ function CollectionResultItem({
     <li className="min-w-0">
       <Link
         to={item.url}
-        className="block font-normal text-[#343231] text-sm uppercase leading-5 tracking-[0.02em]"
+        className="group/collection block font-normal text-[#343231] text-sm uppercase leading-5 tracking-[0.02em]"
       >
         {item.image?.url && (
           <div className="aspect-[258/194] overflow-hidden rounded-xl bg-[#F0EFED]">
@@ -216,7 +216,7 @@ function CollectionResultItem({
               width={516}
               height={388}
               sizes="258px"
-              className="h-full w-full object-cover"
+              className="h-full w-full object-cover motion-safe:transition-transform motion-safe:duration-500 desktop:motion-safe:group-hover/collection:scale-105"
             />
           </div>
         )}

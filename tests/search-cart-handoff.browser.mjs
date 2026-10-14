@@ -224,20 +224,18 @@ test("Cart leaves a mobile overlay strip and has square right corners", async ()
     await page.close();
   }
 });
-test("Filter framing is unchanged, and cart spacing/radius follow theme tokens", async () => {
+test("Filter keeps its right-side overlay gutter, and cart spacing/radius follow theme tokens", async () => {
   for (const width of [390, 768, 1440]) {
     const page = await render(width, { drawerVariant: "filter" });
     await page.getByRole("button", { name: "Open cart", exact: true }).click();
     const panel = page.getByRole("dialog").locator(":scope > div");
     await expect
       .poll(async () => Math.round((await panel.boundingBox()).x))
-      .toBe(width < 768 ? 0 : width - 430);
+      .toBe(width - Math.min(430, width - 32));
     const bounds = await panel.boundingBox();
-    assert.equal(bounds.width, Math.min(width, 430));
-    await expect(panel).toHaveCSS(
-      width < 768 ? "border-top-left-radius" : "border-top-right-radius",
-      "0px",
-    );
+    assert.equal(bounds.width, Math.min(width - 32, 430));
+    await expect(panel).toHaveCSS("border-top-left-radius", "12px");
+    await expect(panel).toHaveCSS("border-top-right-radius", "0px");
     await page.close();
   }
   const page = await render(390);
