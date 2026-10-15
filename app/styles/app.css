@@ -77,6 +77,7 @@
   --animate-fade-in: fade-in var(--fade-in-duration, 0.5s) ease-in forwards;
   --animate-scale-in: scale-in 200ms ease forwards;
   --animate-scale-out: scale-out 200ms ease forwards;
+  --animate-hotspot-popup-out: hotspot-popup-out 300ms ease-out both;
   --animate-expand: expand var(--expand-duration, 0.3s)
     cubic-bezier(0.87, 0, 0.13, 1) forwards;
   --animate-collapse: collapse var(--collapse-duration, 0.3s)
@@ -98,6 +99,14 @@
     }
     100% {
       opacity: 1;
+    }
+  }
+  @keyframes hotspot-popup-out {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
     }
   }
   @keyframes scale-in {
