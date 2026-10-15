@@ -60,6 +60,7 @@ export function FloatingHotspot({
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Content
+          inert={!open}
           side={props.offsetX > 50 ? "left" : "right"}
           align={props.offsetY > 50 ? "end" : "start"}
           sideOffset={8}

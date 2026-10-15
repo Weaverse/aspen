@@ -45,7 +45,7 @@ const bundle = await build({
         builder.onLoad({ filter: /.*/, namespace: "fixture" }, ({ path }) => ({
           contents:
             path === "./product-popup"
-              ? `import React from "react";export const ProductPopup=({onQuickAdd})=><div style={{width:200,height:100,background:"white"}}>Popup fixture{onQuickAdd&&<button onClick={()=>onQuickAdd([])}>Quick Add fixture</button>}</div>;`
+              ? `import React from "react";export const ProductPopup=({onQuickAdd})=><div style={{width:200,height:100,background:"white"}}>Popup fixture{onQuickAdd&&<button onClick={()=>onQuickAdd([])}>Quick Add fixture</button>}<a href="#details" onClick={(event)=>{event.preventDefault();window.detailsActivations=(window.detailsActivations||0)+1}}>Details fixture</a></div>;`
               : `import React from "react";
             export const useTranslation=()=>({t:(key,vars)=>key==="product.viewProduct"?"View "+vars.product:key});
             export const createSchema=data=>data;
@@ -91,7 +91,7 @@ test("Desktop hotspot popup animates in/out and stays usable across hover, reope
       const page = await createPage(browser, 1440, portalPopup);
       const trigger = page.getByRole("button", { name: "View Fixture" });
       const popup = page
-        .getByRole("dialog")
+        .getByRole("dialog", { includeHidden: true })
         .filter({ hasText: "Popup fixture" });
       await trigger.hover();
       await expect(popup).toHaveCSS("animation-name", "hotspot-popup-in");
@@ -130,6 +130,63 @@ test("Desktop hotspot popup animates in/out and stays usable across hover, reope
           page.getByRole("button", { name: "Quick Shop fixture" }),
         ).toBeFocused();
       }
+      await page.close();
+    }
+  } finally {
+    await browser.close();
+  }
+});
+
+test("Closed hotspot actions cannot activate from the keyboard during fade-out", async () => {
+  const browser = await chromium.launch();
+  try {
+    for (const portalPopup of [false, true]) {
+      const page = await createPage(browser, 1440, portalPopup);
+      const trigger = page.getByRole("button", { name: "View Fixture" });
+      const popup = page
+        .getByRole("dialog", { includeHidden: true })
+        .filter({ hasText: "Popup fixture" });
+      await trigger.hover();
+      const action = portalPopup
+        ? popup.getByRole("link", { name: "Details fixture" })
+        : popup.getByRole("button", { name: "Quick Add fixture" });
+      await action.focus();
+      await expect(action).toBeFocused();
+      // Freeze the real exit animation so assertions run inside its 200ms
+      // lifetime regardless of machine speed, without changing production CSS.
+      await popup.evaluate((element) => {
+        const observer = new MutationObserver(() => {
+          if (element.dataset.state === "closed") {
+            for (const animation of element.getAnimations()) {
+              if (animation.animationName === "hotspot-popup-out") {
+                animation.pause();
+              }
+            }
+            observer.disconnect();
+          }
+        });
+        observer.observe(element, {
+          attributes: true,
+          attributeFilter: ["data-state"],
+        });
+      });
+      await page.mouse.move(0, 0);
+      await expect(popup).toHaveAttribute("data-state", "closed");
+      await page.keyboard.press("Enter");
+      await page.keyboard.press("Space");
+      await expect(page.getByText("Quick Shop fixture")).toHaveCount(0);
+      assert.equal(
+        await page.evaluate(() => window.detailsActivations || 0),
+        0,
+      );
+      await expect(popup).toHaveAttribute("inert", "");
+      await popup.evaluate((element) => {
+        for (const animation of element.getAnimations()) {
+          animation.play();
+        }
+      });
+      await expect(popup).toHaveCount(0);
+      await expect(trigger).toBeFocused();
       await page.close();
     }
   } finally {
