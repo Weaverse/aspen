@@ -268,6 +268,97 @@ test("Quick View does not flash intermediate errors or rebound opacity during op
   }
 });
 
+test("Quick View dismissal during fade-in never increases panel or overlay opacity", async () => {
+  for (const width of [390, 820, 1440]) {
+    for (const dismissal of ["Escape", "outside", "close-button"]) {
+      const page = await render(width, {
+        controlled: true,
+        deferProduct: true,
+      });
+      const trigger = page.locator("#externalQuickAdd");
+      await trigger.click();
+      const dialog = page.getByRole("dialog");
+      await expect(dialog).toBeVisible();
+      const panel = dialog.locator(":scope > div");
+      // Pin both real opening animations at 20% so the interrupted fade is
+      // deterministic even when the browser is busy.
+      const initial = await page.evaluate(() => {
+        const elements = [
+          document.querySelector('[role="dialog"]').firstElementChild,
+          document.querySelector(".backdrop-blur-xs"),
+        ];
+        window.exitEndOpacities = [];
+        return elements.map((element) => {
+          const animation = element.getAnimations()[0];
+          animation.pause();
+          animation.currentTime = animation.effect.getTiming().duration * 0.2;
+          element.addEventListener("animationend", () => {
+            if (element.classList.contains("quick-view-fade-out")) {
+              window.exitEndOpacities.push(
+                Number(getComputedStyle(element).opacity),
+              );
+            }
+          });
+          return Number(getComputedStyle(element).opacity);
+        });
+      });
+      assert.ok(initial.every((opacity) => opacity > 0 && opacity < 0.5));
+      // Radix defers installing its outside-pointer listener to a macrotask.
+      await page.evaluate(
+        () => new Promise((resolve) => setTimeout(resolve, 0)),
+      );
+      const [frames] = await Promise.all([
+        panel.evaluate(async (element) => {
+          const overlay = document.querySelector(".backdrop-blur-xs");
+          const samples = [];
+          const start = performance.now();
+          while (element.isConnected && performance.now() - start < 600) {
+            samples.push([
+              Number(getComputedStyle(element).opacity),
+              Number(getComputedStyle(overlay).opacity),
+            ]);
+            await new Promise((resolve) => requestAnimationFrame(resolve));
+          }
+          return samples;
+        }),
+        dismissal === "Escape"
+          ? page.keyboard.press("Escape")
+          : dismissal === "close-button"
+            ? page
+                .getByRole("button", { name: "product.closeQuickShop" })
+                .click()
+            : (async () => {
+                const bounds = await panel.boundingBox();
+                await page.mouse.click(
+                  bounds.x / 2,
+                  bounds.y + bounds.height / 2,
+                );
+              })(),
+      ]);
+      for (const [index, label] of ["panel", "overlay"].entries()) {
+        assert.ok(
+          frames.every(
+            (frame, i) =>
+              frame[index] <=
+              (i ? frames[i - 1][index] : initial[index]) + 0.01,
+          ),
+          `${width}px ${dismissal}: ${label} opacity must not rebound (${JSON.stringify(frames)})`,
+        );
+      }
+      await expect(
+        dialog,
+        `${width}px ${dismissal}: must finish dismissal`,
+      ).toHaveCount(0);
+      assert.deepEqual(
+        await page.evaluate(() => window.exitEndOpacities),
+        [0, 0],
+      );
+      await expect(trigger).toBeFocused();
+      await page.close();
+    }
+  }
+});
+
 test("Quick View header stays stable when scrollbar CSS is released before the lock attribute", async () => {
   const classic = await chromium.launch({
     ignoreDefaultArgs: ["--hide-scrollbars"],

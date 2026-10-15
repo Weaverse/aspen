@@ -869,9 +869,18 @@
   animation: fade-in 0.2s ease-out both;
 }
 
+@keyframes quick-view-fade-out {
+  from {
+    opacity: var(--quick-view-exit-opacity, 1);
+  }
+  to {
+    opacity: 0;
+  }
+}
+
 .quick-view-fade-out {
   opacity: 0;
-  animation: fade-out 0.2s ease-in both;
+  animation: quick-view-fade-out 0.2s ease-in both;
 }
 
 @media (prefers-reduced-motion: reduce) {
