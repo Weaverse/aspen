@@ -322,11 +322,6 @@
     padding-inline: 0 !important;
   }
 
-  section[data-media-position="left"]:has([data-content-layout="split"]) > div,
-  section[data-media-position="left"] .iwt-split-row {
-    flex-direction: row-reverse !important;
-  }
-
   section:has([data-content-layout="split"]) > div > :not([data-content-layout]),
   .iwt-split-media {
     aspect-ratio: 1 / 1 !important;
@@ -364,21 +359,13 @@
   [data-content-layout="split"] :is(h1, h2, h3, h4, h5, h6, .heading) {
     margin: 0 !important;
     width: 100% !important;
-    text-align: var(--iwt-content-text-align, left) !important;
     font-size: var(--h1-base-size) !important;
     line-height: 1 !important;
     letter-spacing: -0.03em !important;
   }
 
-  [data-content-layout="split"] :is(p, .paragraph) {
-    margin: 0 !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    text-align: var(--iwt-content-text-align, left) !important;
-  }
-
   [data-content-layout="split"] :is(a.button, button.button, .button) {
-    align-self: var(--iwt-content-align, flex-start) !important;
+    align-self: var(--iwt-button-align, var(--iwt-content-align, flex-start)) !important;
     justify-content: var(--iwt-content-align, flex-start) !important;
     margin: 0 !important;
     padding: 0 !important;
@@ -396,11 +383,6 @@
     height: 944px !important;
     padding-block: var(--iwt-vertical-spacing, 40px) !important;
     padding-inline: 0 !important;
-  }
-
-  section[data-media-position="left"]:has([data-content-layout="split"]) > div,
-  section[data-media-position="left"] .iwt-split-row {
-    flex-direction: row-reverse !important;
   }
 
   section:has([data-content-layout="split"]) > div > :not([data-content-layout]),
@@ -436,21 +418,13 @@
   [data-content-layout="split"] :is(h1, h2, h3, h4, h5, h6, .heading) {
     margin: 0 !important;
     width: 100% !important;
-    text-align: var(--iwt-content-text-align, center) !important;
     font-size: var(--h1-base-size) !important;
     line-height: 1.1 !important;
     letter-spacing: -0.03em !important;
   }
 
-  [data-content-layout="split"] :is(p, .paragraph) {
-    margin: 0 !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    text-align: var(--iwt-content-text-align, center) !important;
-  }
-
   [data-content-layout="split"] :is(a.button, button.button, .button) {
-    align-self: var(--iwt-content-align, center) !important;
+    align-self: var(--iwt-button-align, var(--iwt-content-align, center)) !important;
     justify-content: var(--iwt-content-align, center) !important;
     margin: 0 !important;
     padding: 0 !important;

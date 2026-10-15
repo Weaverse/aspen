@@ -38,7 +38,7 @@ let ImageWithTextImages = forwardRef<HTMLDivElement, ImageWithTextImageProps>(
           "flex h-full w-full",
           resolvedLayout === "overlay"
             ? "flex-row [&>*]:min-w-0 [&>*]:flex-1"
-            : "iwt-split-media aspect-square w-full shrink-0 [&>*]:h-full [&>*]:w-full md:aspect-auto md:h-full md:w-1/2",
+            : "iwt-split-media order-(--iwt-mobile-media-order) aspect-square w-full shrink-0 [&>*]:h-full [&>*]:w-full md:order-(--iwt-media-order) md:aspect-auto md:h-full md:w-1/2",
         )}
       >
         {images}
