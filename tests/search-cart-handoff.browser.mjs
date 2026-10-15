@@ -21,7 +21,7 @@ const bundle = await build({
       import * as Dialog from "@radix-ui/react-dialog";
       import {Header} from "./app/components/layout/header";
       import {QuickShop, QuickShopTrigger} from "./app/components/product/quick-shop";
-      import HotspotsItem from "./app/sections/hotspots/item";
+      import TestimonialHotspotsItem from "./app/sections/testimonials/item";
       import {useCartStore} from "./app/components/cart/store";
       const variant = {id:"gid://shopify/ProductVariant/1",availableForSale:true,selectedOptions:[],price:{amount:"100",currencyCode:"USD"},image:null};
       const product = {handle:"fixture",title:"Fixture",options:[],media:{nodes:[]},selectedOrFirstAvailableVariant:variant,adjacentVariants:[],variants:{nodes:[variant]}};
@@ -30,8 +30,8 @@ const bundle = await build({
       window.requests = [];
       function QuickAddFixture(){
         const [open,setOpen]=React.useState(false);
-        if(window.testimonial) return <HotspotsItem portalPopup product={{handle:"fixture"}} loaderData={{product}} iconSize={34} offsetX={50} offsetY={50} showPrice showViewDetailsLink viewDetailsLinkText="Details"/>;
-        // Testimonials' portalPopup caller only closes its own dialog on success.
+        if(window.testimonial) return <TestimonialHotspotsItem product={{handle:"fixture"}} loaderData={{product}} iconSize={34} offsetX={50} offsetY={50} showPrice showViewDetailsLink viewDetailsLinkText="Details"/>;
+        // Keep coverage for direct QuickShop consumers with their own dialog.
         if(window.direct) return <Dialog.Root open={open} onOpenChange={setOpen}><Dialog.Trigger>Testimonial Quick Add</Dialog.Trigger><Dialog.Portal><Dialog.Overlay className="fixed inset-0"/><Dialog.Content className="fixed inset-0 overflow-auto bg-white"><Dialog.Title>Testimonial product</Dialog.Title><QuickShop data={{product,storeDomain:"fixture.myshopify.com"}} onCloseAll={()=>{window.directCloses+=1;setOpen(false);}}/></Dialog.Content></Dialog.Portal></Dialog.Root>;
         return window.controlled ? <><button id="externalQuickAdd" onClick={()=>setOpen(true)}>product.selectOptions</button><QuickShopTrigger productHandle="fixture" open={open} onOpenChange={setOpen} hideTrigger onCloseFocus={()=>document.getElementById("externalQuickAdd").focus()}/></> : <QuickShopTrigger productHandle="fixture" showOnHover={false}/>;
       }
@@ -269,92 +269,104 @@ test("Quick View does not flash intermediate errors or rebound opacity during op
 });
 
 test("Quick View dismissal during fade-in never increases panel or overlay opacity", async () => {
-  for (const width of [390, 820, 1440]) {
-    for (const dismissal of ["Escape", "outside", "close-button"]) {
-      const page = await render(width, {
-        controlled: true,
-        deferProduct: true,
-      });
-      const trigger = page.locator("#externalQuickAdd");
-      await trigger.click();
-      const dialog = page.getByRole("dialog");
-      await expect(dialog).toBeVisible();
-      const panel = dialog.locator(":scope > div");
-      // Pin both real opening animations at 20% so the interrupted fade is
-      // deterministic even when the browser is busy.
-      const initial = await page.evaluate(() => {
-        const elements = [
-          document.querySelector('[role="dialog"]').firstElementChild,
-          document.querySelector(".backdrop-blur-xs"),
-        ];
-        window.exitEndOpacities = [];
-        return elements.map((element) => {
-          const animation = element.getAnimations()[0];
-          animation.pause();
-          animation.currentTime = animation.effect.getTiming().duration * 0.2;
-          element.addEventListener("animationend", () => {
-            if (element.classList.contains("quick-view-fade-out")) {
-              window.exitEndOpacities.push(
-                Number(getComputedStyle(element).opacity),
-              );
-            }
-          });
-          return Number(getComputedStyle(element).opacity);
+  for (const testimonial of [false, true]) {
+    for (const width of testimonial ? [390, 820] : [390, 820, 1440]) {
+      for (const dismissal of ["Escape", "outside", "close-button"]) {
+        const page = await render(width, {
+          controlled: !testimonial,
+          testimonial,
+          deferProduct: true,
         });
-      });
-      assert.ok(initial.every((opacity) => opacity > 0 && opacity < 0.5));
-      // Radix defers installing its outside-pointer listener to a macrotask.
-      await page.evaluate(
-        () => new Promise((resolve) => setTimeout(resolve, 0)),
-      );
-      const [frames] = await Promise.all([
-        panel.evaluate(async (element) => {
-          const overlay = document.querySelector(".backdrop-blur-xs");
-          const samples = [];
-          const start = performance.now();
-          while (element.isConnected && performance.now() - start < 600) {
-            samples.push([
-              Number(getComputedStyle(element).opacity),
-              Number(getComputedStyle(overlay).opacity),
-            ]);
-            await new Promise((resolve) => requestAnimationFrame(resolve));
-          }
-          return samples;
-        }),
-        dismissal === "Escape"
-          ? page.keyboard.press("Escape")
-          : dismissal === "close-button"
-            ? page
-                .getByRole("button", { name: "product.closeQuickShop" })
-                .click()
-            : (async () => {
-                const bounds = await panel.boundingBox();
-                await page.mouse.click(
-                  bounds.x / 2,
-                  bounds.y + bounds.height / 2,
+        const trigger = testimonial
+          ? page.getByRole("button", {
+              name: "product.viewProduct",
+              exact: true,
+            })
+          : page.locator("#externalQuickAdd");
+        await trigger.click();
+        const dialog = page.getByRole("dialog");
+        await expect(dialog).toBeVisible();
+        const panel = dialog.locator(":scope > div");
+        // Pin both real opening animations at 20% so the interrupted fade is
+        // deterministic even when the browser is busy.
+        const initial = await page.evaluate(() => {
+          const elements = [
+            document.querySelector('[role="dialog"].quick-view-fade-in') ??
+              document.querySelector('[role="dialog"]').firstElementChild,
+            document.querySelector('[class~="bg-black/50"]'),
+          ];
+          window.exitEndOpacities = [];
+          return elements.map((element) => {
+            const animation = element.getAnimations()[0];
+            animation.pause();
+            animation.currentTime = animation.effect.getTiming().duration * 0.2;
+            element.addEventListener("animationend", () => {
+              if (element.classList.contains("quick-view-fade-out")) {
+                window.exitEndOpacities.push(
+                  Number(getComputedStyle(element).opacity),
                 );
-              })(),
-      ]);
-      for (const [index, label] of ["panel", "overlay"].entries()) {
-        assert.ok(
-          frames.every(
-            (frame, i) =>
-              frame[index] <=
-              (i ? frames[i - 1][index] : initial[index]) + 0.01,
-          ),
-          `${width}px ${dismissal}: ${label} opacity must not rebound (${JSON.stringify(frames)})`,
+              }
+            });
+            return Number(getComputedStyle(element).opacity);
+          });
+        });
+        assert.ok(initial.every((opacity) => opacity > 0 && opacity < 0.5));
+        // Radix defers installing its outside-pointer listener to a macrotask.
+        await page.evaluate(
+          () => new Promise((resolve) => setTimeout(resolve, 0)),
         );
+        const [frames] = await Promise.all([
+          page.evaluate(async () => {
+            const element =
+              document.querySelector('[role="dialog"].quick-view-fade-in') ??
+              document.querySelector('[role="dialog"]').firstElementChild;
+            const overlay = document.querySelector('[class~="bg-black/50"]');
+            const samples = [];
+            const start = performance.now();
+            while (element.isConnected && performance.now() - start < 600) {
+              samples.push([
+                Number(getComputedStyle(element).opacity),
+                Number(getComputedStyle(overlay).opacity),
+              ]);
+              await new Promise((resolve) => requestAnimationFrame(resolve));
+            }
+            return samples;
+          }),
+          dismissal === "Escape"
+            ? page.keyboard.press("Escape")
+            : dismissal === "close-button"
+              ? page
+                  .getByRole("button", { name: "product.closeQuickShop" })
+                  .click()
+              : (async () => {
+                  const bounds = await panel.boundingBox();
+                  await page.mouse.click(
+                    bounds.x / 2,
+                    bounds.y + bounds.height / 2,
+                  );
+                })(),
+        ]);
+        for (const [index, label] of ["panel", "overlay"].entries()) {
+          assert.ok(
+            frames.every(
+              (frame, i) =>
+                frame[index] <=
+                (i ? frames[i - 1][index] : initial[index]) + 0.01,
+            ),
+            `${testimonial ? "Testimonials" : "QuickShopTrigger"} ${width}px ${dismissal}: ${label} opacity must not rebound (${JSON.stringify(frames)})`,
+          );
+        }
+        await expect(
+          dialog,
+          `${width}px ${dismissal}: must finish dismissal`,
+        ).toHaveCount(0);
+        assert.deepEqual(
+          await page.evaluate(() => window.exitEndOpacities),
+          [0, 0],
+        );
+        await expect(trigger).toBeFocused();
+        await page.close();
       }
-      await expect(
-        dialog,
-        `${width}px ${dismissal}: must finish dismissal`,
-      ).toHaveCount(0);
-      assert.deepEqual(
-        await page.evaluate(() => window.exitEndOpacities),
-        [0, 0],
-      );
-      await expect(trigger).toBeFocused();
-      await page.close();
     }
   }
 });
@@ -633,7 +645,7 @@ test("Mobile Quick View follows viewport height and tokens and dismisses through
   await page.close();
 });
 
-test("Testimonials Quick View shares mobile framing, fades, and scrolls long content", async () => {
+test("Testimonials Quick View shares the standard responsive frame, fade, and focus flow", async () => {
   for (const width of [320, 390, 767, 768, 1032]) {
     const page = await render(width, { testimonial: true });
     await page.addStyleTag({
@@ -650,18 +662,20 @@ test("Testimonials Quick View shares mobile framing, fades, and scrolls long con
       exact: true,
     });
     await expect(dialog).toBeVisible();
-    await expect(dialog).toHaveCSS("animation-name", "fade-in");
+    const panel = dialog.locator(":scope > div");
+    await expect(panel).toHaveCSS("animation-name", "fade-in");
     const bounds = await dialog.boundingBox();
     if (width < 768) {
       assert.equal(bounds.x, 24);
       assert.equal(bounds.width, width - 48);
       assert.equal(bounds.height, 900 * 0.75);
       assert.equal(bounds.y, (900 - bounds.height) / 2);
-      await expect(dialog).toHaveCSS("border-radius", "18px");
+      await expect(panel).toHaveCSS("border-radius", "18px");
     } else {
-      assert.equal(bounds.height, 900);
-      assert.equal(bounds.width, 430);
-      assert.equal(bounds.x, width - 430);
+      assert.equal(bounds.width, width - 48);
+      assert.equal(bounds.x, 24);
+      assert.ok(bounds.height <= 900 - 48);
+      assert.equal(bounds.y, (900 - bounds.height) / 2);
     }
     const add = page.getByRole("button", { name: "Add to Cart", exact: true });
     await expect(add).toBeEnabled();
@@ -682,6 +696,7 @@ test("Testimonials Quick View shares mobile framing, fades, and scrolls long con
     );
     await page.keyboard.press("Escape");
     await expect(dialog).toHaveCount(0);
+    await expect(trigger).toBeFocused();
     await page.close();
   }
 });
@@ -823,62 +838,73 @@ test("Filter keeps its right-side overlay gutter, and cart spacing/radius follow
   await page.close();
 });
 test("Quick Add stays mounted while pending, then exits before opening Cart", async () => {
-  for (const width of [390, 767, 768, 1032, 1033, 1440]) {
-    const page = await render(width, {
-      controlled: width === 390 || width === 768,
-    });
-    await page
-      .getByRole("button", { name: "product.selectOptions", exact: true })
-      .focus();
-    await page.keyboard.press("Enter");
-    const add = page.getByRole("button", { name: "Add to Cart", exact: true });
-    await expect(add).toBeEnabled();
-    await page.evaluate(() => {
-      window.overlap = false;
-      window.capture = true;
-      function sample() {
-        if (!window.capture) {
-          return;
-        }
-        const dialogs = [...document.querySelectorAll('[role="dialog"]')];
-        if (dialogs.length > 1) {
-          window.overlap = true;
+  for (const testimonial of [false, true]) {
+    for (const width of testimonial
+      ? [390, 820]
+      : [390, 767, 768, 1032, 1033, 1440]) {
+      const page = await render(width, {
+        controlled: width === 390 || width === 768,
+        testimonial,
+      });
+      await page
+        .getByRole("button", {
+          name: testimonial ? "product.viewProduct" : "product.selectOptions",
+          exact: true,
+        })
+        .focus();
+      await page.keyboard.press("Enter");
+      const add = page.getByRole("button", {
+        name: "Add to Cart",
+        exact: true,
+      });
+      await expect(add).toBeEnabled();
+      await page.evaluate(() => {
+        window.overlap = false;
+        window.capture = true;
+        function sample() {
+          if (!window.capture) {
+            return;
+          }
+          const dialogs = [...document.querySelectorAll('[role="dialog"]')];
+          if (dialogs.length > 1) {
+            window.overlap = true;
+          }
+          requestAnimationFrame(sample);
         }
         requestAnimationFrame(sample);
-      }
-      requestAnimationFrame(sample);
-    });
-    await add.click();
-    await expect
-      .poll(() => page.evaluate(() => window.requests.length))
-      .toBe(1);
-    assert.equal(
-      await page.evaluate(() => window.cartStore.getState().isOpen),
-      false,
-      "Cart must wait while Quick Add is pending",
-    );
-    await page.evaluate(() =>
-      window.finishCart({
-        cart: { id: "cart", lines: { nodes: [] } },
-        userErrors: [],
-      }),
-    );
-    await expect
-      .poll(() => page.evaluate(() => window.cartStore.getState().isOpen))
-      .toBe(true);
-    await expect(page.getByRole("dialog")).toHaveCount(1);
-    await expect(
-      page.getByRole("button", { name: "Close cart" }),
-    ).toBeFocused();
-    assert.equal(
-      await page.evaluate(() => {
-        window.capture = false;
-        return window.overlap;
-      }),
-      false,
-      "Quick Add must exit before Cart mounts",
-    );
-    await page.close();
+      });
+      await add.click();
+      await expect
+        .poll(() => page.evaluate(() => window.requests.length))
+        .toBe(1);
+      assert.equal(
+        await page.evaluate(() => window.cartStore.getState().isOpen),
+        false,
+        "Cart must wait while Quick Add is pending",
+      );
+      await page.evaluate(() =>
+        window.finishCart({
+          cart: { id: "cart", lines: { nodes: [] } },
+          userErrors: [],
+        }),
+      );
+      await expect
+        .poll(() => page.evaluate(() => window.cartStore.getState().isOpen))
+        .toBe(true);
+      await expect(page.getByRole("dialog")).toHaveCount(1);
+      await expect(
+        page.getByRole("button", { name: "Close cart" }),
+      ).toBeFocused();
+      assert.equal(
+        await page.evaluate(() => {
+          window.capture = false;
+          return window.overlap;
+        }),
+        false,
+        "Quick Add must exit before Cart mounts",
+      );
+      await page.close();
+    }
   }
 });
 
