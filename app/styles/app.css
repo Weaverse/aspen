@@ -116,8 +116,8 @@
   }
   @keyframes hotspot-popup-out {
     from {
-      opacity: 1;
-      transform: scale(1);
+      opacity: var(--hotspot-popup-exit-opacity, 1);
+      transform: var(--hotspot-popup-exit-transform, scale(1));
     }
     to {
       opacity: 0;

@@ -137,6 +137,103 @@ test("Desktop hotspot popup animates in/out and stays usable across hover, reope
   }
 });
 
+test("Early hotspot dismissal fades out from the rendered opening state without a flash", async () => {
+  const browser = await chromium.launch();
+  try {
+    for (const portalPopup of [false, true]) {
+      for (const dismissal of ["escape", "pointer-leave"]) {
+        const page = await createPage(browser, 1440, portalPopup);
+        const trigger = page.getByRole("button", { name: "View Fixture" });
+        await trigger.focus();
+        await trigger.press("Enter");
+        const popup = page
+          .getByRole("dialog", { includeHidden: true })
+          .filter({ hasText: "Popup fixture" });
+        await expect(popup).toHaveAttribute("data-state", "open");
+        const opening = await popup.evaluate(async (element) => {
+          const animation = element
+            .getAnimations()
+            .find((a) => a.animationName === "hotspot-popup-in");
+          animation.pause();
+          animation.currentTime = 20;
+          const samples = [];
+          for (let frame = 0; frame < 3; frame += 1) {
+            await new Promise(requestAnimationFrame);
+            samples.push(Number(getComputedStyle(element).opacity));
+          }
+          const style = getComputedStyle(element);
+          const observer = new MutationObserver(() => {
+            if (element.dataset.state === "closed") {
+              for (const exit of element.getAnimations()) {
+                if (exit.animationName === "hotspot-popup-out") {
+                  exit.pause();
+                  exit.currentTime = 0;
+                }
+              }
+              observer.disconnect();
+            }
+          });
+          observer.observe(element, {
+            attributes: true,
+            attributeFilter: ["data-state"],
+          });
+          return {
+            samples,
+            opacity: Number(style.opacity),
+            scale: new DOMMatrixReadOnly(style.transform).a,
+          };
+        });
+        assert.ok(opening.opacity > 0 && opening.opacity < 0.8);
+        assert.ok(
+          opening.samples.every(
+            (value) => Math.abs(value - opening.opacity) < 0.001,
+          ),
+        );
+        if (dismissal === "escape") {
+          await page.keyboard.press("Escape");
+        } else {
+          await trigger.hover();
+          await page.mouse.move(0, 0);
+        }
+        await expect(popup).toHaveAttribute("data-state", "closed");
+        const closing = await popup.evaluate(async (element) => {
+          const samples = [];
+          for (let frame = 0; frame < 3; frame += 1) {
+            await new Promise(requestAnimationFrame);
+            const style = getComputedStyle(element);
+            samples.push({
+              opacity: Number(style.opacity),
+              scale: new DOMMatrixReadOnly(style.transform).a,
+            });
+          }
+          return samples;
+        });
+        for (const sample of closing) {
+          assert.ok(
+            Math.abs(sample.opacity - opening.opacity) < 0.001,
+            `${dismissal}: opacity jumped from ${opening.opacity} to ${sample.opacity}`,
+          );
+          assert.ok(
+            Math.abs(sample.scale - opening.scale) < 0.001,
+            `${dismissal}: popup scale jumped during dismissal`,
+          );
+        }
+        await expect(popup).toHaveAttribute("inert", "");
+        await popup.evaluate((element) => {
+          for (const animation of element.getAnimations()) {
+            animation.play();
+          }
+        });
+        await expect(popup).toHaveCount(0);
+        await expect(trigger).toBeFocused();
+        await page.close();
+      }
+    }
+  } finally {
+    await browser.close();
+  }
+});
+
 test("Closed hotspot actions cannot activate from the keyboard during fade-out", async () => {
   const browser = await chromium.launch();
   try {

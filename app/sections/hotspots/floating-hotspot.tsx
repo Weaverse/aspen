@@ -20,8 +20,19 @@ export function FloatingHotspot({
 }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+  const popupRef = useRef<HTMLDivElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const openingQuickAdd = useRef(false);
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen && popupRef.current?.dataset.state === "open") {
+      // Read before changing data-state swaps the opening animation for exit.
+      const popup = popupRef.current;
+      const { opacity, transform } = window.getComputedStyle(popup);
+      popup.style.setProperty("--hotspot-popup-exit-opacity", opacity);
+      popup.style.setProperty("--hotspot-popup-exit-transform", transform);
+    }
+    setOpen(nextOpen);
+  };
   const cancelClose = () => {
     if (timer.current) {
       clearTimeout(timer.current);
@@ -29,7 +40,7 @@ export function FloatingHotspot({
   };
   const scheduleClose = () => {
     cancelClose();
-    timer.current = setTimeout(() => setOpen(false), 180);
+    timer.current = setTimeout(() => handleOpenChange(false), 180);
   };
   useEffect(
     () => () => {
@@ -40,7 +51,7 @@ export function FloatingHotspot({
     [],
   );
   return (
-    <Popover.Root open={open} onOpenChange={setOpen}>
+    <Popover.Root open={open} onOpenChange={handleOpenChange}>
       <Popover.Trigger asChild>
         <button
           ref={markerRef}
@@ -60,6 +71,7 @@ export function FloatingHotspot({
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Content
+          ref={popupRef}
           inert={!open}
           side={props.offsetX > 50 ? "left" : "right"}
           align={props.offsetY > 50 ? "end" : "start"}
@@ -84,7 +96,7 @@ export function FloatingHotspot({
                 ? (selectedOptions) => {
                     openingQuickAdd.current = true;
                     cancelClose();
-                    setOpen(false);
+                    handleOpenChange(false);
                     props.onQuickAdd?.(selectedOptions);
                   }
                 : undefined
