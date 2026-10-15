@@ -75,6 +75,45 @@ test("Style 3 name background spans the card at every breakpoint", async () => {
   }
 });
 
+test("Style 3 mobile collection names use heading font while preserving their original metrics", async () => {
+  const browser = await chromium.launch();
+  try {
+    for (const width of [375, 767, 768, TABLET_MAX_PX, DESKTOP_MIN_PX]) {
+      const page = await browser.newPage({ viewport: { width, height: 900 } });
+      await page.setContent(`<!doctype html><style>${css}:root{--font-heading:"Merchant Heading",serif;--font-body:"Merchant Body",sans-serif;--body-base-size:14px}</style>
+        <a class="relative block" style="width:160px;height:300px">
+          <h3 class="${headingClass}"><span class="relative line-clamp-1 uppercase">Living Room</span></h3>
+        </a>`);
+      const typography = await page.locator("h3").evaluate((element) => {
+        const style = getComputedStyle(element);
+        return {
+          family: style.fontFamily,
+          size: style.fontSize,
+          weight: style.fontWeight,
+          lineHeight: style.lineHeight,
+          tracking: style.letterSpacing,
+          paddingTop: style.paddingTop,
+        };
+      });
+      assert.ok(typography.family.includes("Merchant Heading"));
+      assert.equal(typography.size, width < 768 ? "14px" : "32px");
+      assert.equal(typography.weight, width < 768 ? "600" : "400");
+      assert.equal(typography.tracking, width < 768 ? "0.28px" : "-0.64px");
+      assert.equal(
+        typography.lineHeight,
+        width >= DESKTOP_MIN_PX ? "40px" : width < 768 ? "22.4px" : "35.2px",
+      );
+      assert.equal(
+        typography.paddingTop,
+        width >= DESKTOP_MIN_PX ? "12px" : width >= 768 ? "16px" : "10px",
+      );
+      await page.close();
+    }
+  } finally {
+    await browser.close();
+  }
+});
+
 test("Style 3 separates desktop effects from shared tablet/mobile effects", async () => {
   const browser = await chromium.launch();
   try {

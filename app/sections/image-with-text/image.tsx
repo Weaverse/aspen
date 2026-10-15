@@ -95,6 +95,7 @@ const ImageWithTextImage = forwardRef<HTMLDivElement, ImageWithTextImageProps>(
           "h-full w-full",
           layout === "overlay" && "min-w-0 flex-1",
           variants({ objectFit, borderRadius }),
+          "max-md:rounded-none",
         )}
         data-aspect-ratio={finalAspectRatio}
       />

@@ -44,6 +44,7 @@ export const MapContext = createContext<MapContextValue>({
 
 const mapDesktopFrameClassName = {
   md: "md:aspect-[16/10] md:rounded-(--radius-md)",
+  lg: "lg:aspect-[16/10] lg:rounded-(--radius-md)",
   xl: "xl:aspect-[16/10] xl:rounded-(--radius-md)",
 } as const;
 
@@ -145,14 +146,16 @@ const MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
           className={cn(
             "text-[28px] leading-[1.1] tracking-[-0.03em]",
             layoutMap === "list"
-              ? "md:text-[44px]"
+              ? "md:text-[44px] md:max-lg:text-[37px] md:max-lg:tracking-[-0.02em]"
               : "md:max-lg:text-[44px] xl:text-[44px]",
           )}
         />
       )}
 
       {layoutMap === "list" ? (
-        <div className="flex flex-col gap-1">{children}</div>
+        <div className="flex flex-col gap-1 md:max-lg:gap-[23px]">
+          {children}
+        </div>
       ) : (
         <AccordionPrimitive.Root
           type="single"
@@ -174,14 +177,14 @@ const MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
     <MapContext.Provider value={contextValue}>
       <Section ref={ref} {...rest} width="full" verticalPadding="none">
         {layoutMap === "list" ? (
-          <div className="mx-auto grid w-full md:max-w-(--page-width) md:grid-cols-[280px_minmax(0,1fr)] md:gap-12 md:px-(--page-padding) md:py-(--section-padding-y) xl:gap-16">
-            <div className="order-2 flex flex-col gap-8 px-6 py-12 md:order-1 md:gap-10 md:px-0 md:py-0">
+          <div className="mx-auto grid w-full md:max-w-(--page-width) md:grid-cols-[280px_minmax(0,1fr)] md:gap-12 md:px-(--page-padding) md:py-(--section-padding-y) md:max-lg:grid-cols-1 md:max-lg:gap-10 md:max-lg:px-0 md:max-lg:pt-0 md:max-lg:pb-20 xl:gap-16">
+            <div className="order-2 flex flex-col gap-8 px-6 py-12 md:order-1 md:gap-10 md:px-0 md:py-0 md:max-lg:order-2 md:max-lg:px-8">
               {content}
             </div>
             <MapFrame
               address={activeAddress}
-              desktopFrom="md"
-              className="order-1 md:order-2"
+              desktopFrom="lg"
+              className="order-1 md:order-2 md:max-lg:order-1 md:max-lg:aspect-video"
             />
           </div>
         ) : (
@@ -230,7 +233,7 @@ export const schema: HydrogenComponentSchema = {
             ],
           },
           helpText:
-            "Style 1: store list beside the map from tablet up. Style 2: overlay panel on tablet (768–1032px) and large desktop (1280px+); stacked accordion at other widths.",
+            "Style 1: map above the store list on mobile and tablet; side by side on desktop. Style 2: overlay panel on tablet (768–1032px) and large desktop (1280px+); stacked accordion at other widths.",
         },
       ],
     },

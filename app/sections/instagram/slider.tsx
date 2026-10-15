@@ -11,7 +11,7 @@ const InstagramGrid = forwardRef<HTMLDivElement, InstagramGridProps>(
         {...rest}
         className="instagram-grid-wrap w-full min-w-0 md:flex-1"
       >
-        <div className="instagram-grid grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-5">
+        <div className="instagram-grid grid grid-cols-2 gap-2 min-[744px]:grid-cols-4 min-[744px]:gap-5">
           {children}
         </div>
       </div>

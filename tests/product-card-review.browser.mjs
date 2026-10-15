@@ -132,8 +132,9 @@ test.after(() => browser.close());
 async function render(width, options = {}) {
   const page = await browser.newPage({ viewport: { width, height: 1200 } });
   page.setDefaultTimeout(5000);
-  await page.setContent(`<style>${css}
+  await page.setContent(`<!doctype html><style>${css}
     :root { --radius-xs: 4px; --radius-sm: 8px; --radius-md: 12px;
+      --page-padding:20px; --page-width:1440px;
       --color-background: #FFF; --color-text: #343231; --color-text-subtle: #524B46;
       --color-line: #9D9D9D; --color-line-subtle: #D8D8D8;
       --pcard-border-radius-default: 8px; --pcard-hover-background-default: #F1F1F1;
@@ -470,7 +471,7 @@ test("Style 1 left and right carets share the supplied design path", async () =>
   await page.close();
 });
 
-test("Style 1 nav uses its own theme colors while Style 2 retains Secondary colors", async () => {
+test("Both styles use the Featured Products navigation theme colors", async () => {
   const carousel = await render(1440, { layout: "carousel" });
   await carousel.addStyleTag({
     content:
@@ -498,8 +499,8 @@ test("Style 1 nav uses its own theme colors while Style 2 retains Secondary colo
     name: "product.nextProduct",
     exact: true,
   });
-  await expect(gridButton).toHaveCSS("background-color", "rgb(52, 86, 120)");
-  await expect(gridButton).toHaveCSS("color", "rgb(254, 220, 186)");
+  await expect(gridButton).toHaveCSS("background-color", "rgb(237, 234, 230)");
+  await expect(gridButton).toHaveCSS("color", "rgb(82, 75, 70)");
   await grid.close();
 });
 
@@ -525,10 +526,10 @@ test("saved sections without arrowsIcon retain the Arrow fallback", async () => 
   await newPage.close();
 });
 
-test("only Style 1 receives the new nav design and 32px slider gap", async () => {
+test("Both styles share navigation buttons while preserving their slider gaps", async () => {
   for (const [layout, widths] of [
     ["carousel", [390, 768, TABLET_MAX_PX, DESKTOP_MIN_PX, 1440]],
-    ["grid", [390]],
+    ["grid", [390, 767]],
   ]) {
     for (const width of widths) {
       const page = await render(width, { layout });
@@ -554,7 +555,18 @@ test("only Style 1 receives the new nav design and 32px slider gap", async () =>
             name: "product.nextProduct",
             exact: true,
           }),
-        ).toHaveCSS("padding", "16px");
+        ).toHaveCSS("padding", "12px");
+        const button = page.getByRole("button", {
+          name: "product.nextProduct",
+          exact: true,
+        });
+        await expect(button).toHaveCSS("width", "44px");
+        await expect(button).toHaveCSS("height", "44px");
+        await expect(button).toHaveCSS("border-radius", "12px");
+        await expect(button.locator("svg")).toHaveAttribute(
+          "viewBox",
+          "0 0 9 17",
+        );
       } else {
         const button = page.getByRole("button", {
           name: "product.nextProduct",

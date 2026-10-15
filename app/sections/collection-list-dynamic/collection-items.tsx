@@ -212,7 +212,7 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
             className="absolute inset-0 h-full w-full bg-[lightgray] object-cover object-[50%_50%] transition-transform duration-500 group-hover:scale-[var(--showcase-hover-scale)]"
           />
         )}
-        <h3 className="absolute inset-x-0 bottom-0 flex h-auto w-full items-center gap-2 px-4 py-2.5 text-left font-body font-semibold text-[var(--Text-Inverse,#FEF4EB)] text-sm uppercase leading-[1.6] tracking-[0.02em] md:inset-x-auto md:bottom-[-0.25px] md:left-0 md:h-16 md:w-full md:max-w-full md:gap-2.5 md:p-4 md:font-heading md:font-normal md:text-[32px] md:leading-[1.1] md:tracking-[-0.64px] lg:inset-x-0 lg:bottom-0 lg:left-0 lg:h-auto lg:w-full lg:px-4 lg:py-3 lg:leading-10 lg:tracking-[-0.02em]">
+        <h3 className="absolute inset-x-0 bottom-0 flex h-auto w-full items-center gap-2 px-4 py-2.5 text-left font-heading font-semibold text-[var(--Text-Inverse,#FEF4EB)] text-sm uppercase leading-[1.6] tracking-[0.02em] md:inset-x-auto md:bottom-[-0.25px] md:left-0 md:h-16 md:w-full md:max-w-full md:gap-2.5 md:p-4 md:font-normal md:text-[32px] md:leading-[1.1] md:tracking-[-0.64px] lg:inset-x-0 lg:bottom-0 lg:left-0 lg:h-auto lg:w-full lg:px-4 lg:py-3 lg:leading-10 lg:tracking-[-0.02em]">
           <CollectionNameBackground
             color={overlayColor}
             opacity={overlayOpacity}
@@ -277,14 +277,25 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
       const third = editorialCollections[2];
 
       return (
-        <div ref={scope} {...rest} className="w-full" style={style}>
-          <div className="grid grid-cols-2 items-stretch gap-[var(--gap-mobile)] md:aspect-square lg:aspect-auto lg:gap-[var(--gap-desktop)]">
-            <div className="flex min-h-0 flex-[1_0_0] flex-col gap-[var(--gap-mobile)] self-stretch lg:gap-[var(--gap-desktop)]">
+        <div
+          ref={scope}
+          {...rest}
+          data-collection-layout="showcase"
+          className="w-full"
+          style={style}
+        >
+          <div className="grid grid-cols-2 items-stretch gap-[var(--gap-mobile)] lg:gap-[var(--gap-desktop)]">
+            <div className="flex min-h-0 flex-[1_0_0] flex-col gap-[var(--gap-mobile)] self-stretch max-lg:contents lg:gap-[var(--gap-desktop)]">
               {firstTwo.map((collection, ind) =>
                 renderEditorialCard(
                   collection,
                   ind,
-                  "aspect-[159.5/140.25] md:aspect-auto md:min-h-0 md:flex-[1_0_0] md:self-stretch lg:aspect-[670/504] lg:flex-none",
+                  clsx(
+                    "aspect-[159.5/140.25] md:aspect-auto md:min-h-0 md:flex-[1_0_0] md:self-stretch lg:aspect-[670/504] lg:flex-none",
+                    ind === 0
+                      ? "max-lg:col-start-1 max-lg:row-start-1 md:max-lg:aspect-[4/3]"
+                      : "max-lg:col-start-2 max-lg:row-span-2 max-lg:row-start-1 max-md:aspect-auto",
+                  ),
                 ),
               )}
             </div>
@@ -292,7 +303,7 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
               renderEditorialCard(
                 third,
                 2,
-                "h-full min-h-0 flex-[1_0_0] self-stretch",
+                "h-full min-h-0 flex-[1_0_0] self-stretch max-lg:col-start-1 max-lg:row-start-2 max-lg:h-auto max-md:aspect-[159.5/140.25] md:max-lg:aspect-[4/3]",
               )}
           </div>
         </div>
@@ -302,8 +313,9 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
       <div
         ref={scope}
         {...rest}
+        data-collection-layout="grid"
         className={clsx(
-          "grid w-full grid-cols-2 gap-[var(--gap-mobile)] md:grid-cols-3 md:gap-[var(--gap-desktop)]",
+          "grid w-full grid-cols-[repeat(2,minmax(0,187px))] justify-center gap-[var(--gap-mobile)] md:grid-cols-[repeat(3,minmax(0,246px))] lg:grid-cols-3 lg:gap-[var(--gap-desktop)]",
         )}
         style={style}
       >
@@ -474,6 +486,7 @@ export let schema: HydrogenComponentSchema = {
           type: "range",
           name: "gap",
           label: "Mobile gap",
+          helpText: "Style 1 also uses this gap on tablet.",
           configs: {
             min: 8,
             max: 80,
