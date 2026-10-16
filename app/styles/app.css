@@ -72,6 +72,7 @@
   --text-9xl--line-height: 1;
 
   --animate-spin: spin 0.5s linear infinite;
+  --animate-hotspot-pulse: hotspot-pulse 2s ease-in-out infinite;
   --animate-marquee: marquee var(--marquee-duration, 15s) linear infinite;
   --animate-underline-toggle: underline-toggle 400ms linear;
   --animate-fade-in: fade-in var(--fade-in-duration, 0.5s) ease-in forwards;
@@ -107,6 +108,19 @@
     }
     to {
       opacity: 0;
+    }
+  }
+  @keyframes hotspot-pulse {
+    0% {
+      opacity: 0;
+      transform: scale(1);
+    }
+    25% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      transform: scale(2);
     }
   }
   @keyframes scale-in {

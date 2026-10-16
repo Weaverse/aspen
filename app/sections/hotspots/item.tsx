@@ -54,10 +54,7 @@ function HotspotMarker({
     const Icon = HOTSPOT_ICONS[icon];
     return (
       <span className="relative inline-flex items-center justify-center">
-        <span
-          className="absolute inset-0 animate-ping rounded-full bg-gray-700 opacity-75"
-          style={{ animationDuration: "1500ms" }}
-        />
+        <span className="absolute inset-0 animate-hotspot-pulse rounded-full bg-gray-700 opacity-75 motion-reduce:animate-none" />
         <span className="relative inline-flex rounded-full bg-white p-2 transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg">
           <Icon aria-hidden="true" style={{ width: size, height: size }} />
         </span>
@@ -68,10 +65,9 @@ function HotspotMarker({
   return (
     <span className="relative inline-flex items-center justify-center">
       <span
-        className="absolute animate-ping rounded-full bg-white/30"
+        className="absolute animate-hotspot-pulse rounded-full bg-white/30 motion-reduce:animate-none"
         style={{
           inset: ringInset,
-          animationDuration: "1500ms",
         }}
       />
       <span
