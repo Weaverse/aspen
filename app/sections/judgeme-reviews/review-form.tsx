@@ -31,11 +31,11 @@ function RatingBreakdown({ reviews }: { reviews: JudgemeReviewsData }) {
               <StarIcon aria-hidden="true" className="size-3" weight="fill" />
             </span>
             <div
-              className="h-2 overflow-hidden rounded-full bg-line-subtle"
+              className="h-2 overflow-hidden rounded-(--radius-sm) bg-line-subtle"
               aria-hidden="true"
             >
               <span
-                className="block h-full rounded-full bg-body"
+                className="block h-full rounded-(--radius-sm) bg-body"
                 style={{ width: `${percentage}%` }}
               />
             </div>

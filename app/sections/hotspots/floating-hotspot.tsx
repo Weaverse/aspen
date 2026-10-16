@@ -21,6 +21,7 @@ export function FloatingHotspot({
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [openingQuickAdd, setOpeningQuickAdd] = useState(false);
   const cancelClose = () => {
     if (timer.current) {
       clearTimeout(timer.current);
@@ -59,12 +60,20 @@ export function FloatingHotspot({
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Content
+          inert={!open}
+          data-opening-quick-add={openingQuickAdd}
           side={props.offsetX > 50 ? "left" : "right"}
           align={props.offsetY > 50 ? "end" : "start"}
           sideOffset={8}
           collisionPadding={12}
-          className="z-50 max-h-[var(--radix-popover-content-available-height)] overflow-y-auto rounded-xl outline-none"
+          className="z-50 max-h-[var(--radix-popover-content-available-height)] overflow-y-auto rounded-xl outline-none data-[state=closed]:pointer-events-none motion-safe:data-[state=closed]:data-[opening-quick-add=false]:animate-hotspot-popup-out"
           onOpenAutoFocus={(event) => event.preventDefault()}
+          onCloseAutoFocus={(event) => {
+            if (openingQuickAdd) {
+              event.preventDefault();
+              setOpeningQuickAdd(false);
+            }
+          }}
           onMouseEnter={cancelClose}
           onMouseLeave={scheduleClose}
         >
@@ -74,6 +83,7 @@ export function FloatingHotspot({
             onQuickAdd={
               props.onQuickAdd
                 ? (selectedOptions) => {
+                    setOpeningQuickAdd(true);
                     cancelClose();
                     setOpen(false);
                     props.onQuickAdd?.(selectedOptions);
