@@ -20,8 +20,10 @@ import invariant from "tiny-invariant";
 import { Cart } from "~/components/cart/cart";
 import { CartBestSellers } from "~/components/cart/cart-best-sellers";
 import { Section } from "~/components/section";
+import { CART_CODE_APPLY_ACTION } from "~/utils/cart-code";
 import {
   addGiftCardCodes,
+  applyCartCode,
   updateDiscountCodes,
 } from "~/utils/cart-codes.server";
 import { CART_ERROR_KEYS } from "~/utils/cart-error";
@@ -38,9 +40,30 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   const status = 200;
   let result: CartQueryDataReturn;
+  let codeType: "gift-card" | "discount" | undefined;
+  let codeApplied: boolean | undefined;
   let shouldCommitLocalizationSession = false;
 
   switch (cartFormAction) {
+    case CART_CODE_APPLY_ACTION: {
+      const code = typeof inputs.code === "string" ? inputs.code.trim() : "";
+      const allowDiscountCode = inputs.allowDiscountCode === true;
+      const allowGiftCard = inputs.allowGiftCard === true;
+      if (!code || !(allowDiscountCode || allowGiftCard)) {
+        return data(
+          { userErrors: [{ message: "cart.invalidCode" }] },
+          { status: 400 },
+        );
+      }
+      const codeResult = await applyCartCode(cart, code, {
+        allowDiscountCode,
+        allowGiftCard,
+      });
+      result = codeResult;
+      codeType = codeResult.codeType;
+      codeApplied = codeResult.codeApplied;
+      break;
+    }
     case CartForm.ACTIONS.LinesAdd: {
       const lines = (inputs.lines as CartLineInput[] | undefined) ?? [];
       const hasInvalidLine =
@@ -214,6 +237,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       cart: cartResult,
       userErrors,
       errors,
+      ...(codeType && { codeType, codeApplied }),
     },
     { status, headers },
   );

@@ -43,7 +43,10 @@ const bundle = await build({
             filter:
               /^@shopify\/hydrogen$|^@weaverse\/hydrogen$|^react-router$|^react-use\/esm\/useScroll$|^~\/(hooks|utils|components\/(button|link|image|loyalty|subscriptions))|^\.\/cart-(best-sellers|line-qty-adjust|sync|summary-actions)$|^\.\/store$|^\.\.\/layout\/cart-drawer$/,
           },
-          ({ path }) => ({ path, namespace: "fixture" }),
+          ({ path }) =>
+            path === "~/utils/cart-code"
+              ? undefined
+              : { path, namespace: "fixture" },
         );
         builder.onLoad({ filter: /.*/, namespace: "fixture" }, ({ path }) => {
           let contents;

@@ -1,9 +1,21 @@
 import { CaretDown } from "@phosphor-icons/react";
 import * as Select from "@radix-ui/react-select";
 import { useTranslation } from "@weaverse/hydrogen";
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useState, useSyncExternalStore } from "react";
+import { MEDIA_UNTIL_DESKTOP } from "~/utils/breakpoints";
+import { cn } from "~/utils/cn";
 import type { CartLayout, CartLine } from "./cart-types";
 import { useCartStore } from "./store";
+
+function subscribePageViewport(onChange: () => void) {
+  const query = window.matchMedia(MEDIA_UNTIL_DESKTOP);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
+const isPageStepperViewport = () =>
+  window.matchMedia(MEDIA_UNTIL_DESKTOP).matches;
+const desktopSnapshot = () => false;
+const noViewportSubscription = () => () => undefined;
 
 export function CartLineQuantityAdjust({
   line,
@@ -15,6 +27,11 @@ export function CartLineQuantityAdjust({
   const { t } = useTranslation();
   const { id: lineId } = line || {};
   const quantityId = useId();
+  const pageStepper = useSyncExternalStore(
+    layout === "page" ? subscribePageViewport : noViewportSubscription,
+    layout === "page" ? isPageStepperViewport : desktopSnapshot,
+    desktopSnapshot,
+  );
 
   const optimisticQuantity = line?.quantity ?? 1;
   const quantities = Array.from(
@@ -38,8 +55,8 @@ export function CartLineQuantityAdjust({
   ).sort((a, b) => a - b);
 
   const disabled = lineId.startsWith("optimistic-");
-  const drawerStepper = (() => {
-    if (layout !== "drawer") {
+  const stepper = (() => {
+    if (layout !== "drawer" && !pageStepper) {
       return null;
     }
     const updateQuantity = (nextQuantity: number) => {
@@ -51,33 +68,67 @@ export function CartLineQuantityAdjust({
 
     return (
       <fieldset
-        className="inline-flex shrink-0 items-stretch rounded-(--radius-sm) bg-(--color-background-subtle) max-md:grid max-md:h-7.5 max-md:min-w-0 max-md:max-w-33 max-md:flex-1 max-md:grid-cols-3"
+        className={cn(
+          "inline-flex shrink-0 items-stretch rounded-(--radius-sm) bg-(--color-background-subtle)",
+          pageStepper
+            ? "w-30 overflow-hidden font-body text-body text-sm leading-none tracking-[0.02em]"
+            : "max-md:grid max-md:h-7.5 max-md:min-w-0 max-md:max-w-33 max-md:flex-1 max-md:grid-cols-3",
+        )}
         aria-label={t("product.quantityValue", {
           quantity: optimisticQuantity,
         })}
       >
         <button
           type="button"
-          className="flex w-11 shrink-0 flex-col items-center justify-center py-2 disabled:opacity-40 max-md:min-w-0 max-md:w-auto max-md:flex-1 max-md:py-0"
+          className={cn(
+            "flex w-11 shrink-0 flex-col items-center justify-center py-2 disabled:opacity-40",
+            pageStepper
+              ? "focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-body"
+              : "max-md:min-w-0 max-md:w-auto max-md:flex-1 max-md:py-0",
+          )}
           disabled={disabled || optimisticQuantity <= 1}
           aria-label={t("product.decreaseQuantity")}
           onClick={() => updateQuantity(optimisticQuantity - 1)}
         >
-          <span aria-hidden="true" className="font-semibold text-sm">
+          <span
+            aria-hidden="true"
+            className={cn(
+              "font-semibold text-sm",
+              pageStepper && "leading-none",
+            )}
+          >
             -
           </span>
         </button>
-        <span className="flex w-11 shrink-0 flex-col items-center justify-center border-white/20 border-x py-2 font-semibold text-sm max-md:min-w-0 max-md:w-auto max-md:flex-1 max-md:py-0">
+        <span
+          className={cn(
+            "flex flex-col items-center justify-center border-white/20 border-x py-2 font-semibold text-sm",
+            pageStepper
+              ? "min-w-0 flex-1 leading-none"
+              : "w-11 shrink-0 max-md:min-w-0 max-md:w-auto max-md:flex-1 max-md:py-0",
+          )}
+        >
           {optimisticQuantity}
         </span>
         <button
           type="button"
-          className="flex w-11 shrink-0 flex-col items-center justify-center py-2 disabled:opacity-40 max-md:min-w-0 max-md:w-auto max-md:flex-1 max-md:py-0"
+          className={cn(
+            "flex w-11 shrink-0 flex-col items-center justify-center py-2 disabled:opacity-40",
+            pageStepper
+              ? "focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-body"
+              : "max-md:min-w-0 max-md:w-auto max-md:flex-1 max-md:py-0",
+          )}
           disabled={disabled}
           aria-label={t("product.increaseQuantity")}
           onClick={() => updateQuantity(optimisticQuantity + 1)}
         >
-          <span aria-hidden="true" className="font-semibold text-sm">
+          <span
+            aria-hidden="true"
+            className={cn(
+              "font-semibold text-sm",
+              pageStepper && "leading-none",
+            )}
+          >
             +
           </span>
         </button>
@@ -85,8 +136,8 @@ export function CartLineQuantityAdjust({
     );
   })();
 
-  if (layout === "drawer") {
-    return drawerStepper;
+  if (layout === "drawer" || pageStepper) {
+    return stepper;
   }
 
   return (

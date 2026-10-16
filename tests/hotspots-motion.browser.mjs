@@ -14,14 +14,18 @@ const bundle = await build({
       import React from "react";
       import {createRoot} from "react-dom/client";
       import HotspotsItem from "./app/sections/hotspots/item";
+      import TestimonialHotspot from "./app/sections/testimonials/item";
       const root = createRoot(document.getElementById("root"));
-      window.start = (icon="circle", portalPopup=false) => root.render(
+      window.start = (icon="circle", testimonial=false) => {
+        const Item = testimonial ? TestimonialHotspot : HotspotsItem;
+        root.render(
         <div style={{position:"relative",width:"100%",height:440}}>
-          <HotspotsItem icon={icon} iconSize={34} offsetX={30} offsetY={30}
+          <Item icon={icon} iconSize={34} offsetX={30} offsetY={30}
             product={{handle:"fixture",title:"Fixture"}}
             loaderData={{product:{title:"Fixture"}}}
-            portalPopup={portalPopup} showPrice showViewDetailsLink viewDetailsLinkText="Details"/>
+            showPrice showViewDetailsLink viewDetailsLinkText="Details"/>
         </div>);
+      };
     `,
     loader: "tsx",
     resolveDir: root,
@@ -73,44 +77,36 @@ const css = stylesheet.build(
   }).scan(),
 );
 
-async function createPage(browser, width, portalPopup = false) {
+async function createPage(browser, width, testimonial = false) {
   const page = await browser.newPage({ viewport: { width, height: 700 } });
   await page.setContent(`<style>${css}</style><div id="root"></div>`);
   await page.addScriptTag({ content: bundle.outputFiles[0].text });
-  await page.evaluate((value) => window.start("circle", value), portalPopup);
+  await page.evaluate((value) => window.start("circle", value), testimonial);
   await expect(
     page.getByRole("button", { name: "View Fixture" }),
   ).toBeVisible();
   return page;
 }
 
-test("Desktop hotspot popup animates in/out and stays usable across hover, reopen and Quick Add", async () => {
+test("Desktop hotspot popup uses PR85 opening and exit behavior across hover, reopen and Quick Add", async () => {
   const browser = await chromium.launch();
   try {
-    for (const portalPopup of [false, true]) {
-      const page = await createPage(browser, 1440, portalPopup);
+    for (const testimonial of [false, true]) {
+      const page = await createPage(browser, 1440, testimonial);
       const trigger = page.getByRole("button", { name: "View Fixture" });
       const popup = page
         .getByRole("dialog", { includeHidden: true })
         .filter({ hasText: "Popup fixture" });
       await trigger.hover();
-      await expect(popup).toHaveCSS("animation-name", "hotspot-popup-in");
-      await expect(popup).toHaveCSS("animation-duration", "0.4s");
-      const halfway = await popup.evaluate((el) => {
-        const a = el.getAnimations()[0];
-        a.pause();
-        a.currentTime = 100;
-        const opacity = Number(getComputedStyle(el).opacity);
-        a.play();
-        return opacity;
-      });
-      assert.ok(halfway > 0 && halfway < 1);
+      await expect(popup).toHaveCSS("animation-name", "none");
+      await expect(popup).toHaveCSS("opacity", "1");
       await popup.hover();
       await page.waitForTimeout(220);
       await expect(popup).toHaveAttribute("data-state", "open");
       await page.mouse.move(0, 0);
       await expect(popup).toHaveAttribute("data-state", "closed");
       await expect(popup).toHaveCSS("animation-name", "hotspot-popup-out");
+      await expect(popup).toHaveCSS("animation-duration", "0.3s");
       await trigger.hover();
       await expect(popup).toHaveAttribute("data-state", "open");
       await page.mouse.move(0, 0);
@@ -121,7 +117,7 @@ test("Desktop hotspot popup animates in/out and stays usable across hover, reope
       await page.keyboard.press("Escape");
       await expect(popup).toHaveCount(0);
       await expect(trigger).toBeFocused();
-      if (!portalPopup) {
+      if (!testimonial) {
         await trigger.hover();
         await popup.getByRole("button", { name: "Quick Add fixture" }).click();
         await expect(page.getByText("Quick Shop fixture")).toBeVisible();
@@ -137,12 +133,12 @@ test("Desktop hotspot popup animates in/out and stays usable across hover, reope
   }
 });
 
-test("Early hotspot dismissal fades out from the rendered opening state without a flash", async () => {
+test("Early hotspot dismissal retains PR85 opacity and scale without a flash", async () => {
   const browser = await chromium.launch();
   try {
-    for (const portalPopup of [false, true]) {
+    for (const testimonial of [false, true]) {
       for (const dismissal of ["escape", "pointer-leave"]) {
-        const page = await createPage(browser, 1440, portalPopup);
+        const page = await createPage(browser, 1440, testimonial);
         const trigger = page.getByRole("button", { name: "View Fixture" });
         await trigger.focus();
         await trigger.press("Enter");
@@ -151,11 +147,6 @@ test("Early hotspot dismissal fades out from the rendered opening state without 
           .filter({ hasText: "Popup fixture" });
         await expect(popup).toHaveAttribute("data-state", "open");
         const opening = await popup.evaluate(async (element) => {
-          const animation = element
-            .getAnimations()
-            .find((a) => a.animationName === "hotspot-popup-in");
-          animation.pause();
-          animation.currentTime = 20;
           const samples = [];
           for (let frame = 0; frame < 3; frame += 1) {
             await new Promise(requestAnimationFrame);
@@ -183,7 +174,7 @@ test("Early hotspot dismissal fades out from the rendered opening state without 
             scale: new DOMMatrixReadOnly(style.transform).a,
           };
         });
-        assert.ok(opening.opacity > 0 && opening.opacity < 0.8);
+        assert.equal(opening.opacity, 1);
         assert.ok(
           opening.samples.every(
             (value) => Math.abs(value - opening.opacity) < 0.001,
@@ -237,19 +228,19 @@ test("Early hotspot dismissal fades out from the rendered opening state without 
 test("Closed hotspot actions cannot activate from the keyboard during fade-out", async () => {
   const browser = await chromium.launch();
   try {
-    for (const portalPopup of [false, true]) {
-      const page = await createPage(browser, 1440, portalPopup);
+    for (const testimonial of [false, true]) {
+      const page = await createPage(browser, 1440, testimonial);
       const trigger = page.getByRole("button", { name: "View Fixture" });
       const popup = page
         .getByRole("dialog", { includeHidden: true })
         .filter({ hasText: "Popup fixture" });
       await trigger.hover();
-      const action = portalPopup
+      const action = testimonial
         ? popup.getByRole("link", { name: "Details fixture" })
         : popup.getByRole("button", { name: "Quick Add fixture" });
       await action.focus();
       await expect(action).toBeFocused();
-      // Freeze the real exit animation so assertions run inside its 200ms
+      // Freeze the real exit animation so assertions run inside its 300ms
       // lifetime regardless of machine speed, without changing production CSS.
       await popup.evaluate((element) => {
         const observer = new MutationObserver(() => {

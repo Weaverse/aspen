@@ -31,12 +31,12 @@ export function GlobalLoading() {
   return (
     <div
       aria-hidden={!active}
-      className="fixed inset-x-0 top-0 left-0 z-50 h-1 animate-pulse"
+      className="fixed inset-x-0 top-0 left-0 z-50 h-1 animate-pulse overflow-hidden rounded-(--radius-sm)"
     >
       <div
         ref={ref}
         className={clsx(
-          "h-full bg-linear-to-r from-neutral-500 to-gray-400 transition-all duration-500 ease-in-out",
+          "h-full rounded-(--radius-sm) bg-linear-to-r from-neutral-500 to-gray-400 transition-all duration-500 ease-in-out",
           transition.state === "idle" &&
             (animating ? "w-full" : "w-0 opacity-0 transition-none"),
           transition.state === "submitting" && "w-4/12",

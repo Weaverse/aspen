@@ -72,15 +72,13 @@
   --text-9xl--line-height: 1;
 
   --animate-spin: spin 0.5s linear infinite;
-  --animate-hotspot-popup-in: hotspot-popup-in 400ms
-    cubic-bezier(0.16, 1, 0.3, 1) both;
-  --animate-hotspot-popup-out: hotspot-popup-out 200ms ease-in both;
   --animate-hotspot-pulse: hotspot-pulse 2s ease-in-out infinite;
   --animate-marquee: marquee var(--marquee-duration, 15s) linear infinite;
   --animate-underline-toggle: underline-toggle 400ms linear;
   --animate-fade-in: fade-in var(--fade-in-duration, 0.5s) ease-in forwards;
   --animate-scale-in: scale-in 200ms ease forwards;
   --animate-scale-out: scale-out 200ms ease forwards;
+  --animate-hotspot-popup-out: hotspot-popup-out 300ms ease-out both;
   --animate-expand: expand var(--expand-duration, 0.3s)
     cubic-bezier(0.87, 0, 0.13, 1) forwards;
   --animate-collapse: collapse var(--collapse-duration, 0.3s)
@@ -104,24 +102,12 @@
       opacity: 1;
     }
   }
-  @keyframes hotspot-popup-in {
-    from {
-      opacity: 0;
-      transform: scale(0.98);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
   @keyframes hotspot-popup-out {
     from {
-      opacity: var(--hotspot-popup-exit-opacity, 1);
-      transform: var(--hotspot-popup-exit-transform, scale(1));
+      opacity: 1;
     }
     to {
       opacity: 0;
-      transform: scale(0.98);
     }
   }
   @keyframes hotspot-pulse {
@@ -901,6 +887,32 @@
   animation: fade-out 0.25s ease-in;
 }
 
+.quick-view-fade-in {
+  opacity: 1;
+  animation: fade-in 0.2s ease-out both;
+}
+
+@keyframes quick-view-fade-out {
+  from {
+    opacity: var(--quick-view-exit-opacity, 1);
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.quick-view-fade-out {
+  opacity: 0;
+  animation: quick-view-fade-out 0.2s ease-in both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quick-view-fade-in,
+  .quick-view-fade-out {
+    animation: none;
+  }
+}
+
 /*
   iPad / responsive-mode dialog lock: react-remove-scroll injects
   `body[data-scroll-locked] { margin-right: <gap> !important }` after our
@@ -912,6 +924,27 @@
    pulls sticky navigation offscreen on an already-scrolled page. */
 html:not(:has(body[data-scroll-locked])) {
   overflow-x: clip;
+}
+
+/* Quick View snapshots the gutter before Radix locks scrolling. The existing
+   iPad compensation reset remains unchanged for every other popup. */
+html[data-quick-view-scrollbar]:has(body[data-scroll-locked]) {
+  --quick-view-locked-gap: var(--quick-view-scrollbar-gap);
+}
+
+html[data-quick-view-scrollbar] body[data-scroll-locked] {
+  padding-right: var(--quick-view-scrollbar-gap) !important;
+}
+
+html[data-quick-view-scrollbar] body[data-scroll-locked] header.fixed {
+  /* 100% shrinks as soon as the scrollbar returns, even if Radix's lock
+     attribute remains for another cleanup phase. Viewport units keep the
+     captured gutter from being subtracted twice during that interval. */
+  width: calc(100vw - var(--quick-view-scrollbar-gap));
+}
+
+html[data-quick-view-scrollbar] header.fixed {
+  transition-property: color, background-color, border-color, opacity, box-shadow;
 }
 
 html body[data-scroll-locked] {

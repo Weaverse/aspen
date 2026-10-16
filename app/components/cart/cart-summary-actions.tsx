@@ -8,6 +8,7 @@ import { useFetcher } from "react-router";
 import type { CartApiQueryFragment } from "storefront-api.generated";
 import { Button } from "~/components/button";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
+import { uppercaseCartCode } from "~/utils/cart-code";
 import { getCartMutationError } from "~/utils/cart-error";
 import { normalizeGiftCardCode } from "~/utils/gift-card";
 import { AnimatedBottomSheet } from "./animate-bottom-sheet";
@@ -212,7 +213,9 @@ export function DiscountDialog({
       return;
     }
     const formData = new FormData(event.currentTarget);
-    const discountCode = formData.get("discountCode") as string;
+    const discountCode = uppercaseCartCode(
+      String(formData.get("discountCode") ?? ""),
+    ).trim();
     if (discountCode) {
       setSubmittedCode(discountCode.trim());
       fetcher.submit(
@@ -244,7 +247,8 @@ export function DiscountDialog({
         <input
           id="cart-discount-code"
           value={code}
-          onChange={(e) => setCode(e.target.value)}
+          onChange={(e) => setCode(uppercaseCartCode(e.target.value))}
+          autoCapitalize="characters"
           className="h-[54px] w-full rounded-lg border border-[#CCC] bg-white px-4 text-[#343231] text-sm leading-5 placeholder:text-[#979797] focus:border-gray-500 focus:outline-none"
           type="text"
           name="discountCode"
@@ -347,10 +351,11 @@ export function GiftCardDialog({
           className="h-[54px] w-full rounded-lg border border-[#CCC] bg-white px-4 text-[#343231] text-sm leading-5 placeholder:text-[#979797] focus:border-gray-500 focus:outline-none"
           type="text"
           name="giftCardCode"
+          autoCapitalize="characters"
           placeholder={t("cart.giftCardTitle")}
           value={code}
           onChange={(e) => {
-            setCode(e.target.value);
+            setCode(uppercaseCartCode(e.target.value));
             setSubmittedCode("");
           }}
           required
