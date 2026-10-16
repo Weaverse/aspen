@@ -159,7 +159,7 @@ let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
         ref={ref}
         {...rest}
         className={cn(
-          "order-2 flex min-w-0 w-full flex-col px-5 pt-5 pb-10 md:order-1 md:h-auto md:min-h-0 md:px-0 md:py-0 lg:h-[648px]",
+          "order-2 flex min-w-0 w-full flex-col px-5 pt-5 pb-10 md:order-1 md:h-auto md:min-h-0 md:px-0 md:py-0 md:max-lg:px-8 lg:h-[648px]",
           className,
         )}
       >

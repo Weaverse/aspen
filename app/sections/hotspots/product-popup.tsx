@@ -14,9 +14,9 @@ import { Link } from "~/components/link";
 import { AddToCartButton } from "~/components/product/add-to-cart-button";
 import { ProductCardRating } from "~/components/product/product-card-rating";
 import { OPTIONS_AS_SWATCH } from "~/components/product/product-option-values";
+import { SwatchFill, swatchFrameClassName } from "~/components/product/swatch";
 import { SpacedMoney } from "~/components/product/variant-prices";
 import { Tooltip, TooltipContent, TooltipTrigger } from "~/components/tooltip";
-import { isLightColor, isValidColor } from "~/utils/misc";
 import { translatePreview } from "~/utils/preview-translation";
 import type { HotspotsItemData } from "./item";
 
@@ -79,12 +79,10 @@ function ProductColorOptions({
   product,
   selectedVariant,
   setSelectedVariant,
-  updatedStyle = false,
 }: {
   product: ProductQuery["product"];
   selectedVariant: ProductVariantFragment | null;
   setSelectedVariant: (variant: ProductVariantFragment) => void;
-  updatedStyle?: boolean;
 }) {
   const colorOption = product.options?.find(({ name }) =>
     OPTIONS_AS_SWATCH.includes(name),
@@ -111,63 +109,20 @@ function ProductColorOptions({
               <TooltipTrigger>
                 <button
                   type="button"
+                  aria-label={name}
                   aria-pressed={isSelected}
-                  className={clsx(
-                    "flex transition-colors",
-                    updatedStyle
-                      ? clsx(
-                          "items-start gap-2.5 rounded-(--radius-xs) bg-background p-0.5",
-                          isSelected
-                            ? "border border-line"
-                            : "border-[0.5px] border-line-subtle",
-                        )
-                      : clsx(
-                          "size-4 items-center justify-center rounded-[4px] border p-px",
-                          isSelected
-                            ? "border-[#A79D95]"
-                            : "border-[#9D9D9D] hover:border-[#A79D95]",
-                        ),
-                  )}
+                  className={swatchFrameClassName("small", isSelected)}
                   onClick={() => {
                     if (firstSelectableVariant) {
                       setSelectedVariant(firstSelectableVariant);
                     }
                   }}
                 >
-                  {swatch?.image?.previewImage ? (
-                    <Image
-                      data={swatch.image.previewImage}
-                      className={clsx(
-                        "object-cover object-center",
-                        updatedStyle
-                          ? "size-3 shrink-0 rounded-(--radius-xs)"
-                          : "h-full w-full rounded-[1px]",
-                      )}
-                      width={12}
-                      height={12}
-                      sizes="12px"
-                    />
-                  ) : (
-                    <span
-                      className={clsx(
-                        "inline-block text-[0px]",
-                        updatedStyle
-                          ? "size-3 shrink-0 rounded-(--radius-xs)"
-                          : "h-full w-full rounded-[1px]",
-                        (!isValidColor(swatchColor) ||
-                          isLightColor(swatchColor)) &&
-                          "border border-line-subtle",
-                        !isValidColor(swatchColor) && "bg-gray-200",
-                      )}
-                      style={
-                        isValidColor(swatchColor)
-                          ? { backgroundColor: swatchColor }
-                          : undefined
-                      }
-                    >
-                      {name}
-                    </span>
-                  )}
+                  <SwatchFill
+                    size="small"
+                    color={swatchColor}
+                    image={swatch?.image?.previewImage}
+                  />
                 </button>
               </TooltipTrigger>
               <TooltipContent sideOffset={6}>{name}</TooltipContent>
@@ -257,7 +212,6 @@ export function ProductPopup({
             product={product}
             selectedVariant={selectedVariant}
             setSelectedVariant={setSelectedVariant}
-            updatedStyle={Boolean(onQuickAdd)}
           />
           <ProductCardRating
             ratingValue={product.reviewRating?.value}

@@ -402,7 +402,6 @@ const ProductInformation = forwardRef<
                 )}
 
                 <ProductVariants
-                  productDetailSwatches
                   productOptions={productOptions}
                   selectedVariant={selectedVariant}
                   combinedListing={combinedListing}

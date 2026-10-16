@@ -87,7 +87,7 @@ let InstagramContent = forwardRef<HTMLDivElement, InstagramContentProps>(
       <div
         ref={ref}
         {...rest}
-        className="instagram-content flex w-full flex-col items-start gap-6 rounded-[var(--Radius-border-radius-md,12px)] bg-white p-6 md:w-[320px] md:flex-none md:self-stretch desktop:w-[320px] desktop:self-start"
+        className="instagram-content flex w-full min-w-0 flex-col items-start gap-6 rounded-[var(--Radius-border-radius-md,12px)] bg-white p-6 min-[744px]:self-stretch lg:w-80 lg:flex-none desktop:w-[320px] desktop:self-start"
       >
         <div className="flex w-full flex-col items-start gap-2.5">
           {headingContent && (
