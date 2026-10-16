@@ -1,38 +1,23 @@
-import { Image, type MappedProductOptions } from "@shopify/hydrogen";
+import type { MappedProductOptions } from "@shopify/hydrogen";
 import { useTranslation } from "@weaverse/hydrogen";
 import { useNavigate } from "react-router";
 import type { ProductVariantFragment } from "storefront-api.generated";
+import { SwatchFill, swatchFrameClassName } from "~/components/product/swatch";
 import { cn } from "~/utils/cn";
-import { isLightColor, isValidColor } from "~/utils/misc";
 import { hasOnlyDefaultVariant } from "~/utils/product";
 
 const COLOR_OPTION_NAMES = new Set(["color", "colors", "colour", "colours"]);
-
-function swatchFrameClassName(productDetail: boolean, selected: boolean) {
-  if (productDetail) {
-    return cn(
-      "size-auto items-start justify-start gap-2.5 rounded-(--radius-xs) bg-background",
-      selected ? "border border-line" : "border-[0.5px] border-line-subtle",
-    );
-  }
-  return cn(
-    "size-9 items-center justify-center rounded-[7px] border",
-    selected ? "border-body" : "border-line-subtle hover:border-line",
-  );
-}
 
 export function ProductVariants({
   productOptions,
   selectedVariant,
   combinedListing,
   onVariantChange,
-  productDetailSwatches = false,
 }: {
   productOptions: MappedProductOptions[];
   selectedVariant: ProductVariantFragment;
   combinedListing?: boolean;
   onVariantChange?: (variant: ProductVariantFragment) => void;
-  productDetailSwatches?: boolean;
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -93,11 +78,7 @@ export function ProductVariants({
                         key={value.name}
                         type="button"
                         className={cn(
-                          "flex p-1 transition-colors",
-                          swatchFrameClassName(
-                            productDetailSwatches,
-                            isSelected,
-                          ),
+                          swatchFrameClassName("large", isSelected),
                           !isAvailable && "cursor-not-allowed opacity-40",
                         )}
                         onClick={() => selectOption(value)}
@@ -108,38 +89,11 @@ export function ProductVariants({
                         })}
                         aria-pressed={isSelected}
                       >
-                        {swatchImage ? (
-                          <Image
-                            data={swatchImage}
-                            width={productDetailSwatches ? 20 : 28}
-                            height={productDetailSwatches ? 20 : 28}
-                            sizes={productDetailSwatches ? "20px" : "28px"}
-                            className={cn(
-                              "aspect-square object-cover",
-                              productDetailSwatches
-                                ? "size-5 shrink-0 rounded-(--radius-xs)"
-                                : "size-5 rounded-[var(--Radius-border-radius-xs,4px)] lg:size-7",
-                            )}
-                          />
-                        ) : (
-                          <span
-                            className={cn(
-                              "aspect-square",
-                              productDetailSwatches
-                                ? "size-5 shrink-0 rounded-(--radius-xs)"
-                                : "size-5 rounded-[var(--Radius-border-radius-xs,4px)] lg:size-7",
-                              !productDetailSwatches &&
-                                (!isValidColor(swatchColor) ||
-                                  isLightColor(swatchColor)) &&
-                                "border border-line-subtle",
-                            )}
-                            style={{
-                              backgroundColor: isValidColor(swatchColor)
-                                ? swatchColor
-                                : "var(--color-line-subtle)",
-                            }}
-                          />
-                        )}
+                        <SwatchFill
+                          size="large"
+                          color={swatchColor}
+                          image={swatchImage}
+                        />
                       </button>
                     );
                   }

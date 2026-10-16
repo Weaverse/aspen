@@ -4,8 +4,8 @@ import { Image, type MappedProductOptions } from "@shopify/hydrogen";
 import { useTranslation } from "@weaverse/hydrogen";
 import { useNavigate } from "react-router";
 import type { ProductVariantFragment } from "storefront-api.generated";
+import { SwatchPreview } from "~/components/product/swatch";
 import { cn } from "~/utils/cn";
-import { isLightColor, isValidColor } from "~/utils/misc";
 
 /*
  * Configure which options should show color swatches beside the dropdown
@@ -41,49 +41,30 @@ export function ProductOptionValues({
   return (
     <div className="flex items-center gap-3">
       {/* Color swatch or image preview */}
-      {(showSwatch || showImage) && selectedOption && (
-        <div className="h-3 w-3 flex-shrink-0 overflow-hidden">
-          {showSwatch && selectedOption.swatch?.image?.previewImage ? (
-            <Image
-              data={selectedOption.swatch.image.previewImage}
-              className="h-3 w-3 object-cover object-center"
-              width={12}
-              height={12}
-              sizes="12px"
-            />
-          ) : showSwatch && selectedOption.swatch?.color ? (
-            <div
-              className={cn(
-                "h-3 w-3",
-                (!isValidColor(selectedOption.swatch.color) ||
-                  isLightColor(selectedOption.swatch.color)) &&
-                  "border border-line-subtle",
-              )}
-              style={{ backgroundColor: selectedOption.swatch.color }}
-            />
-          ) : showSwatch ? (
-            <div
-              className={cn(
-                "h-3 w-3",
-                (!isValidColor(selectedOption.name) ||
-                  isLightColor(selectedOption.name)) &&
-                  "border border-line-subtle",
-              )}
-              style={{ backgroundColor: selectedOption.name }}
-            />
-          ) : showImage && selectedOption.firstSelectableVariant?.image ? (
-            <Image
-              data={selectedOption.firstSelectableVariant.image}
-              className="h-3 w-3 object-cover object-center"
-              width={12}
-              height={12}
-              sizes="12px"
-            />
-          ) : (
-            <div className="h-3 w-3 bg-gray-200" />
-          )}
-        </div>
-      )}
+      {(showSwatch || showImage) &&
+        selectedOption &&
+        (showSwatch ? (
+          <SwatchPreview
+            size="small"
+            selected
+            color={selectedOption.swatch?.color || selectedOption.name}
+            image={selectedOption.swatch?.image?.previewImage}
+          />
+        ) : (
+          <div className="h-3 w-3 flex-shrink-0 overflow-hidden">
+            {selectedOption.firstSelectableVariant?.image ? (
+              <Image
+                data={selectedOption.firstSelectableVariant.image}
+                className="h-3 w-3 object-cover object-center"
+                width={12}
+                height={12}
+                sizes="12px"
+              />
+            ) : (
+              <div className="h-3 w-3 bg-gray-200" />
+            )}
+          </div>
+        ))}
 
       {/* Dropdown for ALL options */}
       <Select.Root
@@ -142,48 +123,29 @@ export function ProductOptionValues({
                     )}
                   >
                     {/* Swatch/Image in dropdown item */}
-                    {(showSwatch || showImage) && (
-                      <div className="h-3 w-3 flex-shrink-0 overflow-hidden">
-                        {showSwatch && swatch?.image?.previewImage ? (
-                          <Image
-                            data={swatch.image.previewImage}
-                            className="h-full w-full object-cover object-center"
-                            width={12}
-                            height={12}
-                            sizes="12px"
-                          />
-                        ) : showSwatch && swatch?.color ? (
-                          <div
-                            className={cn(
-                              "h-full w-full",
-                              (!isValidColor(swatch.color) ||
-                                isLightColor(swatch.color)) &&
-                                "border border-line-subtle",
-                            )}
-                            style={{ backgroundColor: swatch.color }}
-                          />
-                        ) : showSwatch ? (
-                          <div
-                            className={cn(
-                              "h-full w-full",
-                              (!isValidColor(value) || isLightColor(value)) &&
-                                "border border-line-subtle",
-                            )}
-                            style={{ backgroundColor: value }}
-                          />
-                        ) : showImage && firstSelectableVariant?.image ? (
-                          <Image
-                            data={firstSelectableVariant.image}
-                            className="h-full w-full object-cover object-center"
-                            width={12}
-                            height={12}
-                            sizes="12px"
-                          />
-                        ) : (
-                          <div className="h-full w-full bg-gray-200" />
-                        )}
-                      </div>
-                    )}
+                    {(showSwatch || showImage) &&
+                      (showSwatch ? (
+                        <SwatchPreview
+                          size="small"
+                          selected={selected}
+                          color={swatch?.color || value}
+                          image={swatch?.image?.previewImage}
+                        />
+                      ) : (
+                        <div className="h-3 w-3 flex-shrink-0 overflow-hidden">
+                          {firstSelectableVariant?.image ? (
+                            <Image
+                              data={firstSelectableVariant.image}
+                              className="h-full w-full object-cover object-center"
+                              width={12}
+                              height={12}
+                              sizes="12px"
+                            />
+                          ) : (
+                            <div className="h-full w-full bg-gray-200" />
+                          )}
+                        </div>
+                      ))}
 
                     <Select.ItemText className="flex-1">
                       {value}

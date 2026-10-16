@@ -3,7 +3,11 @@ import * as Select from "@radix-ui/react-select";
 import { Image, type MappedProductOptions } from "@shopify/hydrogen";
 import { useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
-import { isLightColor, isValidColor } from "~/utils/misc";
+import {
+  SwatchFill,
+  SwatchPreview,
+  swatchFrameClassName,
+} from "~/components/product/swatch";
 
 /*
  * Configure which options should show color swatches beside the dropdown
@@ -56,8 +60,7 @@ export function QuickShopOptionValues({
                   key={value}
                   type="button"
                   className={clsx(
-                    "flex size-[30px] items-center justify-center rounded border bg-white p-1 transition-colors",
-                    selected ? "border-2 border-[#9D9D9D]" : "border-[#D8D8D8]",
+                    swatchFrameClassName("large", selected),
                     !available && "cursor-not-allowed opacity-40",
                   )}
                   disabled={!available}
@@ -65,25 +68,11 @@ export function QuickShopOptionValues({
                   aria-pressed={selected}
                   onClick={selectVariant}
                 >
-                  {swatch?.image?.previewImage ? (
-                    <Image
-                      data={swatch.image.previewImage}
-                      className="size-5 rounded object-cover object-center"
-                      width={20}
-                      height={20}
-                      sizes="20px"
-                    />
-                  ) : (
-                    <span
-                      className={clsx(
-                        "size-5 rounded",
-                        (!isValidColor(swatchColor) ||
-                          isLightColor(swatchColor)) &&
-                          "border border-line-subtle",
-                      )}
-                      style={{ backgroundColor: swatchColor }}
-                    />
-                  )}
+                  <SwatchFill
+                    size="large"
+                    color={swatchColor}
+                    image={swatch?.image?.previewImage}
+                  />
                 </button>
               );
             }
@@ -123,49 +112,30 @@ export function QuickShopOptionValues({
   return (
     <div className="flex items-center gap-3">
       {/* Color swatch or image preview */}
-      {(showSwatch || showImage) && selectedOption && (
-        <div className="h-3 w-3 flex-shrink-0 overflow-hidden">
-          {showSwatch && selectedOption.swatch?.image?.previewImage ? (
-            <Image
-              data={selectedOption.swatch.image.previewImage}
-              className="h-3 w-3 object-cover object-center"
-              width={12}
-              height={12}
-              sizes="12px"
-            />
-          ) : showSwatch && selectedOption.swatch?.color ? (
-            <div
-              className={clsx(
-                "h-3 w-3",
-                (!isValidColor(selectedOption.swatch.color) ||
-                  isLightColor(selectedOption.swatch.color)) &&
-                  "border border-line-subtle",
-              )}
-              style={{ backgroundColor: selectedOption.swatch.color }}
-            />
-          ) : showSwatch ? (
-            <div
-              className={clsx(
-                "h-3 w-3",
-                (!isValidColor(selectedOption.name) ||
-                  isLightColor(selectedOption.name)) &&
-                  "border border-line-subtle",
-              )}
-              style={{ backgroundColor: selectedOption.name }}
-            />
-          ) : showImage && selectedOption.firstSelectableVariant?.image ? (
-            <Image
-              data={selectedOption.firstSelectableVariant.image}
-              className="h-3 w-3 object-cover object-center"
-              width={12}
-              height={12}
-              sizes="12px"
-            />
-          ) : (
-            <div className="h-3 w-3 bg-gray-200" />
-          )}
-        </div>
-      )}
+      {(showSwatch || showImage) &&
+        selectedOption &&
+        (showSwatch ? (
+          <SwatchPreview
+            size="small"
+            selected
+            color={selectedOption.swatch?.color || selectedOption.name}
+            image={selectedOption.swatch?.image?.previewImage}
+          />
+        ) : (
+          <div className="h-3 w-3 flex-shrink-0 overflow-hidden">
+            {selectedOption.firstSelectableVariant?.image ? (
+              <Image
+                data={selectedOption.firstSelectableVariant.image}
+                className="h-3 w-3 object-cover object-center"
+                width={12}
+                height={12}
+                sizes="12px"
+              />
+            ) : (
+              <div className="h-3 w-3 bg-gray-200" />
+            )}
+          </div>
+        ))}
 
       {/* Dropdown */}
       <Select.Root
@@ -211,48 +181,29 @@ export function QuickShopOptionValues({
                     )}
                   >
                     {/* Swatch/Image in dropdown item */}
-                    {(showSwatch || showImage) && (
-                      <div className="h-3 w-3 flex-shrink-0 overflow-hidden">
-                        {showSwatch && swatch?.image?.previewImage ? (
-                          <Image
-                            data={swatch.image.previewImage}
-                            className="h-full w-full object-cover object-center"
-                            width={12}
-                            height={12}
-                            sizes="12px"
-                          />
-                        ) : showSwatch && swatch?.color ? (
-                          <div
-                            className={clsx(
-                              "h-full w-full",
-                              (!isValidColor(swatch.color) ||
-                                isLightColor(swatch.color)) &&
-                                "border border-line-subtle",
-                            )}
-                            style={{ backgroundColor: swatch.color }}
-                          />
-                        ) : showSwatch ? (
-                          <div
-                            className={clsx(
-                              "h-full w-full",
-                              (!isValidColor(value) || isLightColor(value)) &&
-                                "border border-line-subtle",
-                            )}
-                            style={{ backgroundColor: value }}
-                          />
-                        ) : showImage && firstSelectableVariant?.image ? (
-                          <Image
-                            data={firstSelectableVariant.image}
-                            className="h-full w-full object-cover object-center"
-                            width={12}
-                            height={12}
-                            sizes="12px"
-                          />
-                        ) : (
-                          <div className="h-full w-full bg-gray-200" />
-                        )}
-                      </div>
-                    )}
+                    {(showSwatch || showImage) &&
+                      (showSwatch ? (
+                        <SwatchPreview
+                          size="small"
+                          selected={selected}
+                          color={swatch?.color || value}
+                          image={swatch?.image?.previewImage}
+                        />
+                      ) : (
+                        <div className="h-3 w-3 flex-shrink-0 overflow-hidden">
+                          {firstSelectableVariant?.image ? (
+                            <Image
+                              data={firstSelectableVariant.image}
+                              className="h-full w-full object-cover object-center"
+                              width={12}
+                              height={12}
+                              sizes="12px"
+                            />
+                          ) : (
+                            <div className="h-full w-full bg-gray-200" />
+                          )}
+                        </div>
+                      ))}
 
                     <Select.ItemText className="flex-1">
                       {value}
