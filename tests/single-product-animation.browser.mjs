@@ -114,6 +114,43 @@ const css = stylesheet.build(
 const scenarios = [390, 820, TABLET_MAX_PX, DESKTOP_MIN_PX, 1440].map(
   (width) => ({ width, reveal: true }),
 );
+
+test("Featured Product mobile titles use available width and natural wrapping", async () => {
+  const browser = await chromium.launch();
+  try {
+    for (const width of [320, 330, 375, 390, 767, 768, DESKTOP_MIN_PX]) {
+      const page = await browser.newPage({ viewport: { width, height: 900 } });
+      await page.setContent(
+        `<!doctype html><style>${css}:root{--page-padding:16px;--page-width:1440px}</style><div id="root"></div>`,
+      );
+      await page.evaluate(() => {
+        window.reveal = false;
+      });
+      await page.addScriptTag({ content: bundle.outputFiles[0].text });
+      await page.evaluate(() => window.start());
+      await page.locator(".featured-product-media").waitFor();
+      const typography = await page.locator("h2, h3").evaluateAll((headings) =>
+        headings.map((heading) => ({
+          tag: heading.tagName,
+          wrap: getComputedStyle(heading).textWrap,
+          width: heading.getBoundingClientRect().width,
+          parentWidth: heading.parentElement.getBoundingClientRect().width,
+          maxWidth: getComputedStyle(heading).maxWidth,
+        })),
+      );
+      for (const heading of typography) {
+        assert.equal(heading.wrap, width < 768 ? "wrap" : "balance");
+        if (width < 768 && heading.tag === "H2") {
+          assert.equal(heading.width, heading.parentWidth);
+          assert.equal(heading.maxWidth, "none");
+        }
+      }
+      await page.close();
+    }
+  } finally {
+    await browser.close();
+  }
+});
 scenarios.push({ width: 390, reveal: false });
 
 for (const { width, reveal } of scenarios) {

@@ -112,7 +112,9 @@ async function render(width) {
   const page = await browser.newPage({ viewport: { width, height: 1100 } });
   page.setDefaultTimeout(3000);
   await page.route("**/fixture*.jpg*", (route) => route.abort());
-  await page.setContent(`<style>${css}</style><div id="root"></div>`);
+  await page.setContent(
+    `<!doctype html><style>${css}</style><div id="root"></div>`,
+  );
   await page.addScriptTag({
     content: bundle.outputFiles.find((file) => file.path.endsWith(".js")).text,
   });
@@ -135,6 +137,68 @@ test("Promotion Tabs title row uses desktop 120px, tablet 40px and unchanged mob
     await expect(
       page.getByRole("button", { name: "Best Selling", exact: true }),
     ).toHaveCSS("padding-top", width < 768 ? "12px" : "16px");
+    await page.close();
+  }
+});
+
+test("Promotion Tabs tablet spacing follows the tab row and preserves other breakpoints", async () => {
+  for (const width of [
+    390,
+    767,
+    768,
+    834,
+    TABLET_MAX_PX,
+    DESKTOP_MIN_PX,
+    1440,
+  ]) {
+    const page = await render(width);
+    const tablet = width >= 768 && !isDesktopViewport(width);
+    for (const wrapped of [false, true]) {
+      if (wrapped) {
+        await page
+          .locator(".promotion-tabs button span")
+          .evaluateAll((labels) => {
+            for (const label of labels) {
+              label.textContent =
+                "Long collection label that wraps to multiple lines";
+            }
+          });
+      }
+      const geometry = await page
+        .locator(".promotion-tabs")
+        .evaluate((section) => {
+          const paragraph = section.querySelector(".paragraph");
+          const row = section.querySelector("button").parentElement;
+          const content = paragraph.parentElement;
+          return {
+            rowToContent:
+              content.getBoundingClientRect().top -
+              row.getBoundingClientRect().bottom,
+            contentTop:
+              content.getBoundingClientRect().top -
+              section.getBoundingClientRect().top,
+            paragraphToLink:
+              section.querySelector("a").getBoundingClientRect().top -
+              paragraph.getBoundingClientRect().bottom,
+            bottomSpace:
+              section.getBoundingClientRect().bottom -
+              section.querySelector("a").getBoundingClientRect().bottom,
+            height: section.getBoundingClientRect().height,
+            contentWidth: content.getBoundingClientRect().width,
+            tabFontSize: getComputedStyle(row.querySelector("span")).fontSize,
+          };
+        });
+      assert.equal(geometry.paragraphToLink, tablet ? 40 : 48);
+      if (tablet) {
+        assert.equal(geometry.rowToContent, 64);
+        assert.equal(geometry.bottomSpace, 80);
+        assert.equal(geometry.contentWidth, Math.min(720, width - 64));
+        assert.equal(geometry.tabFontSize, "26px");
+      } else {
+        assert.equal(geometry.contentTop, width < 768 ? 48 : 420);
+        assert.equal(geometry.height, width < 768 ? 562 : 840);
+      }
+    }
     await page.close();
   }
 });

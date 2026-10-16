@@ -37,7 +37,7 @@ const bundle = await build({
         builder.onResolve(
           {
             filter:
-              /^@weaverse\/hydrogen$|^react-router$|^~\/hooks\/(use-translated-text|use-locale)$|^~\/components\/(heading|link|image|section|button|background-image)$/,
+              /^@weaverse\/hydrogen$|^react-router$|^\.\/(overlay-and-background|background-image)$|^~\/hooks\/(use-translated-text|use-locale)$|^~\/components\/(heading|link|image|button|background-image)$/,
           },
           ({ path }) => ({ path, namespace: "fixture" }),
         );
@@ -45,7 +45,9 @@ const bundle = await build({
           let contents;
           if (path === "@weaverse/hydrogen") {
             contents =
-              "export const createSchema = (schema) => schema; export const IMAGES_PLACEHOLDERS = {}; export const useTranslation = () => ({ t: (key) => key });";
+              "export const createSchema = (schema) => schema; export const IMAGES_PLACEHOLDERS = {}; export const useThemeSettings = () => ({revealElementsOnScroll:false}); export const useTranslation = () => ({ t: (key) => key });";
+          } else if (path === "./overlay-and-background") {
+            contents = "export const OverlayAndBackground = () => null;";
           } else if (path === "react-router") {
             contents =
               'export const useLoaderData = () => ({ relatedArticles: [{ id: "article", title: "Article title", handle: "journal/article" }] });';
@@ -81,6 +83,65 @@ const css = stylesheet.build(
     sources: [{ base: `${root}app`, pattern: "**/*.{ts,tsx}", negated: false }],
   }).scan(),
 );
+
+test("Articles tablet spacing matches design without changing other breakpoints or custom vertical padding", async () => {
+  const browser = await chromium.launch();
+  try {
+    for (const width of [
+      390,
+      767,
+      768,
+      834,
+      TABLET_MAX_PX,
+      DESKTOP_MIN_PX,
+      1280,
+    ]) {
+      const page = await browser.newPage({ viewport: { width, height: 1200 } });
+      await page.setContent(
+        `<!doctype html><style>${css}:root{--page-width:1440px;--page-padding:20px;--section-padding-y:96px}</style><div id="root"></div>`,
+      );
+      await page.addScriptTag({ content: bundle.outputFiles[0].text });
+      for (const verticalPadding of ["medium", "none"]) {
+        await page.evaluate(
+          (padding) =>
+            window.renderArticles({ width: "fixed", verticalPadding: padding }),
+          verticalPadding,
+        );
+        await expect(page.locator("article")).toHaveCount(1);
+        const spacing = await page.locator("section").evaluate((section) => {
+          const stack = section.firstElementChild.firstElementChild;
+          const header = stack.firstElementChild.getBoundingClientRect();
+          const grid = stack.children[1].getBoundingClientRect();
+          const bounds = section.getBoundingClientRect();
+          return {
+            top: header.top - bounds.top,
+            bottom: bounds.bottom - grid.bottom,
+            left: grid.left - bounds.left,
+            right: bounds.right - grid.right,
+            gap: grid.top - header.bottom,
+            cardGap: getComputedStyle(stack.children[1]).columnGap,
+          };
+        });
+        const tablet = width >= 768 && width <= TABLET_MAX_PX;
+        assert.equal(
+          spacing.top,
+          verticalPadding === "none" ? 0 : tablet ? 80 : 96,
+        );
+        assert.equal(spacing.bottom, spacing.top);
+        assert.equal(spacing.left, tablet ? 40 : 20);
+        assert.equal(spacing.right, spacing.left);
+        assert.equal(
+          spacing.gap,
+          tablet ? 64 : width >= DESKTOP_MIN_PX ? 48 : 40,
+        );
+        assert.equal(spacing.cardGap, tablet ? "16px" : "20px");
+      }
+      await page.close();
+    }
+  } finally {
+    await browser.close();
+  }
+});
 
 test("Articles and Related Articles View More default off and use body-base tokens across breakpoints", async () => {
   const browser = await chromium.launch();

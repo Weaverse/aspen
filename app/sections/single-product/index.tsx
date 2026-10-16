@@ -211,7 +211,7 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
       <Section ref={ref} {...rest} overflow="unset">
         <div className="flex flex-col gap-10 md:gap-16">
           {heading && (
-            <h2 className="max-w-[260px] font-heading font-normal text-[37px] md:max-w-none md:text-[44px] uppercase leading-[1.1] tracking-[-0.03em]">
+            <h2 className="font-heading font-normal text-[37px] max-md:text-wrap md:text-[44px] uppercase leading-[1.1] tracking-[-0.03em]">
               {heading}
             </h2>
           )}
@@ -266,7 +266,7 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
                   {showVendor && product.vendor && (
                     <span className="text-body-subtle">{product.vendor}</span>
                   )}
-                  <h3 className="font-heading font-normal text-[37px] uppercase leading-[1.1] tracking-[-0.03em] lg:text-[44px]">
+                  <h3 className="font-heading font-normal text-[37px] max-md:text-wrap uppercase leading-[1.1] tracking-[-0.03em] lg:text-[44px]">
                     {product?.title}
                   </h3>
 

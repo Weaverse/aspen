@@ -1,9 +1,4 @@
-import {
-  ArrowLeft,
-  ArrowRight,
-  CaretLeft,
-  CaretRight,
-} from "@phosphor-icons/react";
+import { ArrowLeft, ArrowRight } from "@phosphor-icons/react";
 import {
   type ComponentLoaderArgs,
   createSchema,
@@ -160,12 +155,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
       isProductPage,
     } = useFeaturedProductsLayout();
     const activeLayout = isLegacyLayout ? layout : sectionLayout;
-    const resolvedArrowIcon =
-      arrowsIcon === "auto"
-        ? activeLayout === "carousel"
-          ? "caret"
-          : "arrow"
-        : arrowsIcon;
+    const resolvedArrowIcon = arrowsIcon === "auto" ? "caret" : arrowsIcon;
     const designGap = isLegacyLayout ? gap : 16;
     const resolvedSlidesPerView = isProductPage ? 3 : slidesPerView;
 
@@ -207,23 +197,14 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
 
     const arrowColorClasses = useMemo(() => {
       return arrowsColor === "secondary"
-        ? activeLayout === "carousel"
-          ? [
-              "text-(--btn-featured-products-nav-text)",
-              "bg-(--btn-featured-products-nav-bg)",
-              "border-(--btn-featured-products-nav-bg)",
-              "hover:text-(--btn-featured-products-nav-text-hover)",
-              "hover:bg-(--btn-featured-products-nav-bg-hover)",
-              "hover:border-(--btn-featured-products-nav-bg-hover)",
-            ]
-          : [
-              "text-(--btn-secondary-text)",
-              "bg-(--btn-secondary-bg)",
-              "border-(--btn-secondary-bg)",
-              "hover:text-(--btn-secondary-text-hover)",
-              "hover:bg-(--btn-secondary-bg-hover)",
-              "hover:border-(--btn-secondary-bg-hover)",
-            ]
+        ? [
+            "text-(--btn-featured-products-nav-text)",
+            "bg-(--btn-featured-products-nav-bg)",
+            "border-(--btn-featured-products-nav-bg)",
+            "hover:text-(--btn-featured-products-nav-text-hover)",
+            "hover:bg-(--btn-featured-products-nav-bg-hover)",
+            "hover:border-(--btn-featured-products-nav-bg-hover)",
+          ]
         : [
             "text-(--btn-primary-text)",
             "bg-(--btn-primary-bg)",
@@ -232,26 +213,22 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
             "hover:bg-(--btn-primary-bg-hover)",
             "hover:border-(--btn-primary-bg-hover)",
           ];
-    }, [arrowsColor, activeLayout]);
+    }, [arrowsColor]);
 
     const arrowShapeClasses = useMemo(() => {
       if (arrowsShape === "circle") {
         return "rounded-full";
       }
       if (arrowsShape === "square") {
-        return activeLayout === "carousel" ? "rounded-none" : "";
+        return "rounded-none";
       }
-      return activeLayout === "carousel"
-        ? "rounded-(--radius-md)"
-        : "rounded-(--radius-sm)";
-    }, [arrowsShape, activeLayout]);
+      return "rounded-(--radius-md)";
+    }, [arrowsShape]);
 
     const arrowButtonClasses =
-      activeLayout === "carousel"
-        ? resolvedArrowIcon === "caret"
-          ? "size-11 border-0 p-3 [&>svg]:h-[17px] [&>svg]:w-[9px]"
-          : "size-11 border-0 p-3 [&>svg]:size-4"
-        : "border p-4";
+      resolvedArrowIcon === "caret"
+        ? "size-11 border-0 p-3 [&>svg]:h-[17px] [&>svg]:w-[9px]"
+        : "size-11 border-0 p-3 [&>svg]:size-4";
 
     const renderArrowControls = (classPrefix: string) => (
       <div className="flex justify-center gap-2">
@@ -267,11 +244,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
           aria-label={t("product.previousProduct")}
         >
           {resolvedArrowIcon === "caret" ? (
-            activeLayout === "carousel" ? (
-              <FeaturedProductsNavCaret direction="left" />
-            ) : (
-              <CaretLeft size={16} />
-            )
+            <FeaturedProductsNavCaret direction="left" />
           ) : (
             <ArrowLeft size={16} />
           )}
@@ -288,11 +261,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
           aria-label={t("product.nextProduct")}
         >
           {resolvedArrowIcon === "caret" ? (
-            activeLayout === "carousel" ? (
-              <FeaturedProductsNavCaret direction="right" />
-            ) : (
-              <CaretRight size={16} />
-            )
+            <FeaturedProductsNavCaret direction="right" />
           ) : (
             <ArrowRight size={16} />
           )}
@@ -655,7 +624,7 @@ export const schema = createSchema({
           label: "Arrow icon",
           name: "arrowsIcon",
           helpText:
-            "Design default uses Caret in Style 1 and Arrow in Style 2. In Style 2, arrow settings apply to the mobile product slider only.",
+            "Design default uses Caret in both styles. In Style 2, arrow settings apply to the mobile product slider only.",
           configs: {
             options: [
               { value: "auto", label: "Design default" },
@@ -670,7 +639,7 @@ export const schema = createSchema({
           label: "Arrows color",
           name: "arrowsColor",
           helpText:
-            "In Style 1, Secondary uses the Featured Products navigation colors in Theme Settings. Style 2 uses the standard Secondary button colors.",
+            "Secondary uses the Featured Products navigation colors in Theme Settings for both styles.",
           configs: {
             options: [
               { value: "primary", label: "Primary" },

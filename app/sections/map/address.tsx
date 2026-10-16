@@ -92,6 +92,7 @@ const Address = forwardRef<HTMLDivElement, AddressProps>((props, ref) => {
           type="button"
           className={cn(
             "flex w-full cursor-pointer items-start gap-2.5 rounded-(--radius-sm) p-3 text-left transition-opacity hover:opacity-80",
+            "md:max-lg:p-0",
             "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-text)",
           )}
           style={{
@@ -108,14 +109,16 @@ const Address = forwardRef<HTMLDivElement, AddressProps>((props, ref) => {
           <MapPinLineIcon
             size={16}
             weight="light"
-            className="mt-0.5 shrink-0"
+            className="mt-0.5 shrink-0 md:max-lg:size-5"
             aria-hidden
           />
-          <span className="flex min-w-0 flex-col gap-1">
-            <span className="font-medium text-xs uppercase leading-4 tracking-wide">
+          <span className="flex min-w-0 flex-col gap-1 md:max-lg:gap-0">
+            <span className="font-medium text-xs uppercase leading-4 tracking-wide md:max-lg:font-semibold md:max-lg:text-[14px] md:max-lg:leading-[1.6] md:max-lg:tracking-[0.02em]">
               {nameStore}
             </span>
-            <span className="text-[11px] leading-[1.45]">{address}</span>
+            <span className="text-[11px] leading-[1.45] md:max-lg:text-[14px] md:max-lg:leading-[1.6] md:max-lg:tracking-[0.01em]">
+              {address}
+            </span>
           </span>
         </button>
       </div>

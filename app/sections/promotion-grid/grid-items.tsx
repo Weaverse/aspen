@@ -117,7 +117,7 @@ const TabsLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
     <div
       ref={ref}
       {...rest}
-      className="promotion-tabs relative isolate h-[var(--promotion-tabs-mobile-height)] min-w-0 overflow-hidden md:h-[var(--promotion-tabs-height)]"
+      className="promotion-tabs relative isolate h-[var(--promotion-tabs-mobile-height)] min-w-0 overflow-hidden md:h-[var(--promotion-tabs-height)] md:max-lg:flex md:max-lg:h-auto md:max-lg:flex-col md:max-lg:gap-16 md:max-lg:pt-10 md:max-lg:pb-20"
       style={
         {
           "--promotion-tabs-height": `${tabsHeight}px`,
@@ -147,7 +147,7 @@ const TabsLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
         </div>
       )}
 
-      <div className="absolute inset-x-0 top-12 z-2 mx-auto flex max-w-[335px] min-w-0 flex-col items-center px-5 text-center md:top-[360px] md:max-w-[560px] md:px-0 lg:top-[420px] lg:max-w-[680px]">
+      <div className="absolute inset-x-0 top-12 z-2 mx-auto flex max-w-[335px] min-w-0 flex-col items-center px-5 text-center md:top-[360px] md:max-w-180 md:px-0 md:max-lg:static md:max-lg:order-2 md:max-lg:w-[calc(100%-var(--spacing)*16)] lg:top-[420px] lg:max-w-[680px]">
         {activeTabData.subheadingContent && (
           <SubheadingTag
             className="mb-4 font-body text-sm"
@@ -158,7 +158,7 @@ const TabsLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
         )}
         {activeTabData.paragraphContent && (
           <Paragraph
-            className="ff-heading !mx-auto w-full min-w-0 break-words text-[24px] leading-[1.15] md:text-[24px] lg:text-[26px]"
+            className="ff-heading !mx-auto w-full min-w-0 break-words text-[24px] leading-[1.15] md:text-[24px] md:max-lg:leading-[normal] lg:text-[26px]"
             content={activeTabData.paragraphContent}
             as={activeTabData.paragraphTag}
             color={activeTabData.paragraphColor}
@@ -178,7 +178,7 @@ const TabsLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
             textColorDecor={activeTabData.textColorDecor}
             openInNewTab={activeTabData.openInNewTab}
             to={activeTabData.to}
-            className="mt-12 w-fit"
+            className="mt-12 w-fit md:max-lg:mt-10"
             style={{
               color: activeTabData.buttonTextColor,
               fontSize: `${activeTabData.buttonTextSize}px`,
@@ -189,7 +189,7 @@ const TabsLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
         )}
       </div>
 
-      <div className="absolute top-[373px] right-8 left-8 z-3 flex min-w-0 flex-col md:top-10 md:right-0 md:left-0 md:mx-auto md:grid md:w-[calc(100%-64px)] md:max-w-[1440px] md:grid-cols-3 md:gap-5 lg:top-[120px] lg:w-[calc(100%-288px)]">
+      <div className="absolute top-[373px] right-8 left-8 z-3 flex min-w-0 flex-col md:top-10 md:right-0 md:left-0 md:mx-auto md:grid md:w-[calc(100%-64px)] md:max-w-[1440px] md:grid-cols-3 md:gap-5 md:max-lg:static md:max-lg:order-1 lg:top-[120px] lg:w-[calc(100%-288px)]">
         {tabsData.map((tab: any, index: number) => {
           const isActive = activeTab === index;
           return (
@@ -205,7 +205,7 @@ const TabsLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
                   : "border-transparent text-[#979797] hover:text-(--color-text-inverse)",
               )}
             >
-              <span className="min-w-0 break-words text-center font-heading text-[26px] leading-[1.1] tracking-[-0.025em] md:text-[28px] lg:text-[44px] lg:leading-none">
+              <span className="min-w-0 break-words text-center font-heading text-[26px] leading-[1.1] tracking-[-0.025em] md:max-lg:tracking-[-0.02em] lg:text-[44px] lg:leading-none">
                 {tab.headingContent === "Tab"
                   ? t("carousel.tab")
                   : tab.headingContent}
