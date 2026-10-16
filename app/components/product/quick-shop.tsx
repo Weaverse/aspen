@@ -8,8 +8,8 @@ import {
 } from "@shopify/hydrogen";
 import { useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
-import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { AnimatePresence } from "framer-motion";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useFetcher } from "react-router";
 import type { ProductVariantFragment } from "storefront-api.generated";
 import { useCartStore } from "~/components/cart/store";
@@ -27,9 +27,12 @@ import { Skeleton } from "~/components/skeleton";
 import { SellingPlanSelector } from "~/components/subscriptions/selling-plan-selector";
 import { ProductCardWishlistButton } from "~/components/wishlist/product-card-wishlist-button";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
+import { useQuickViewScrollbar } from "~/hooks/use-quick-view-scrollbar";
 import { useTranslatedThemeSettings } from "~/hooks/use-translated-theme-settings";
 import type { ProductData } from "~/routes/($locale).api.product";
 import { MEDIA_MOBILE } from "~/utils/breakpoints";
+import { QuickShopFade } from "./quick-shop-fade";
+import { QUICK_SHOP_MOBILE_FRAME_CLASS } from "./quick-shop-frame";
 import { VariantPrices } from "./variant-prices";
 
 const LOW_STOCK_THRESHOLD = 10;
@@ -58,9 +61,9 @@ function StockIndicator({
       <span className="text-sm">
         {t("product.lowStock", { count: quantityAvailable })}
       </span>
-      <div className="h-1 w-full rounded-full bg-[#DFDFDF]">
+      <div className="h-1 w-full overflow-hidden rounded-(--radius-sm) bg-[#DFDFDF]">
         <div
-          className="h-1 rounded-full bg-(--color-text-subtle)"
+          className="h-1 rounded-(--radius-sm) bg-(--color-text-subtle)"
           style={{ width: `${fillPercent}%` }}
         />
       </div>
@@ -330,6 +333,7 @@ export function QuickShopTrigger({
   const triggerLabel = quickShopButtonTextOpen || t("product.selectOptions");
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
+  useQuickViewScrollbar(open);
   const setOpen = onOpenChange ?? setInternalOpen;
   const [isMobile, setIsMobile] = useState(false);
   const cartHandoff = useRef<"idle" | "closing" | "complete">("idle");
@@ -348,7 +352,20 @@ export function QuickShopTrigger({
     return () => query.removeEventListener("change", update);
   }, []);
   const [loadedPath, setLoadedPath] = useState<string | null>(null);
+  const [pendingPath, setPendingPath] = useState<string | null>(null);
   const { load, data, state } = useFetcher<ProductData>();
+  const requestProduct = useCallback(
+    (path: string) => {
+      setLoadedPath(path);
+      setPendingPath(path);
+      // Fetcher state may still be idle for a render after load() starts.
+      // Keep the skeleton until the request settles, including on a retry.
+      const finish = () =>
+        setPendingPath((pending) => (pending === path ? null : pending));
+      load(path).then(finish, finish);
+    },
+    [load],
+  );
   const optionParams = new URLSearchParams(
     mapSelectedProductOptionToObject(selectedOptions),
   );
@@ -356,6 +373,8 @@ export function QuickShopTrigger({
   const apiPath = usePrefixPathWithLocale(
     `/api/product?${optionParams.toString()}`,
   );
+  const productLoading =
+    state === "loading" || pendingPath === apiPath || loadedPath !== apiPath;
 
   const closeAllDrawers = () => {
     setOpen(false);
@@ -381,9 +400,8 @@ export function QuickShopTrigger({
       return;
     }
 
-    setLoadedPath(apiPath);
-    load(apiPath);
-  }, [apiPath, load, loadedPath, open, state]);
+    requestProduct(apiPath);
+  }, [apiPath, requestProduct, loadedPath, open, state]);
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
@@ -452,32 +470,18 @@ export function QuickShopTrigger({
           {open && (
             <>
               <Dialog.Overlay forceMount>
-                <motion.div
-                  className="fixed inset-0 z-10 bg-black/50 backdrop-blur-xs"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                />
+                <QuickShopFade className="fixed inset-0 z-10 bg-black/50 backdrop-blur-xs" />
               </Dialog.Overlay>
               {/* Mount only the active dialog so hidden focus traps cannot dismiss it. */}
               {isMobile && (
                 <Dialog.Content
                   forceMount
                   onCloseAutoFocus={handleCloseAutoFocus}
-                  className="fixed inset-0 z-10 h-dvh"
+                  data-quick-view-dialog=""
+                  className={clsx("fixed z-10", QUICK_SHOP_MOBILE_FRAME_CLASS)}
                   aria-describedby={undefined}
                 >
-                  <motion.div
-                    initial={{ x: "100%" }}
-                    animate={{ x: 0 }}
-                    exit={{ x: "100%" }}
-                    transition={{
-                      type: "spring",
-                      damping: 25,
-                      stiffness: 150,
-                    }}
-                    className="h-full w-full overflow-hidden rounded-(--radius-md) bg-background"
-                  >
+                  <QuickShopFade className="h-full w-full overflow-hidden rounded-(--radius-md) bg-background">
                     <div className="relative flex h-full flex-col">
                       <Dialog.Title asChild>
                         <span className="sr-only">
@@ -495,7 +499,7 @@ export function QuickShopTrigger({
 
                       <ScrollArea rootClassName="min-h-0 flex-1" size="sm">
                         <div className="px-5 pt-10 pb-8">
-                          {state === "loading" || loadedPath !== apiPath ? (
+                          {productLoading ? (
                             <QuickShopSkeleton />
                           ) : data ? (
                             <QuickShop
@@ -504,12 +508,14 @@ export function QuickShopTrigger({
                               cartOpenTiming="manual"
                             />
                           ) : (
-                            <QuickShopLoadError onRetry={() => load(apiPath)} />
+                            <QuickShopLoadError
+                              onRetry={() => requestProduct(apiPath)}
+                            />
                           )}
                         </div>
                       </ScrollArea>
                     </div>
-                  </motion.div>
+                  </QuickShopFade>
                 </Dialog.Content>
               )}
 
@@ -518,16 +524,11 @@ export function QuickShopTrigger({
                 <Dialog.Content
                   forceMount
                   onCloseAutoFocus={handleCloseAutoFocus}
-                  className="fixed inset-0 z-10 flex items-center justify-center"
+                  data-quick-view-dialog=""
+                  className="fixed top-1/2 left-[calc((100%-var(--quick-view-locked-gap,0px))/2)] z-10 w-[calc(100%-var(--quick-view-locked-gap,0px)-48px)] max-w-[1375px] -translate-x-1/2 -translate-y-1/2"
                   aria-describedby={undefined}
                 >
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.96 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.96 }}
-                    transition={{ duration: 0.2 }}
-                    className="relative max-h-[calc(100dvh-48px)] w-[calc(100%-48px)] max-w-[1375px] overflow-y-auto rounded-xl bg-background p-6"
-                  >
+                  <QuickShopFade className="relative max-h-[calc(100dvh-48px)] w-full overflow-y-auto rounded-xl bg-background p-6">
                     <Dialog.Title asChild>
                       <span className="sr-only">{t("product.quickShop")}</span>
                     </Dialog.Title>
@@ -539,7 +540,7 @@ export function QuickShopTrigger({
                     >
                       <XIcon className="size-5" />
                     </button>
-                    {state === "loading" || loadedPath !== apiPath ? (
+                    {productLoading ? (
                       <QuickShopDesktopSkeleton />
                     ) : data ? (
                       <QuickShop
@@ -549,9 +550,11 @@ export function QuickShopTrigger({
                         layout="desktop"
                       />
                     ) : (
-                      <QuickShopLoadError onRetry={() => load(apiPath)} />
+                      <QuickShopLoadError
+                        onRetry={() => requestProduct(apiPath)}
+                      />
                     )}
-                  </motion.div>
+                  </QuickShopFade>
                 </Dialog.Content>
               )}
             </>
