@@ -16,11 +16,12 @@ const bundle = await build({
       import React from "react";
       import { createRoot } from "react-dom/client";
       import ImageWithText, { schema } from "./app/sections/image-with-text";
+      import ImageWithTextImage from "./app/sections/image-with-text/image";
       const root = createRoot(document.getElementById("root"));
       window.schema = schema;
       window.renderSection = (props) => root.render(React.createElement(ImageWithText, props,
         React.createElement("div", { className: "iwt-split-media" },
-          React.createElement("div", { className: "rounded-[20px]", style: { height: 100 } }))));
+          React.createElement(ImageWithTextImage, {image:{url:"fixture.jpg"},borderRadius:20}))));
     `,
     loader: "tsx",
     resolveDir: root,
@@ -37,21 +38,23 @@ const bundle = await build({
         builder.onResolve(
           {
             filter:
-              /^(@weaverse\/hydrogen|~\/components\/(section|background-image))$/,
+              /^(@weaverse\/hydrogen|~\/components\/(section|background-image|image))$/,
           },
           ({ path }) => ({ path, namespace: "fixture" }),
         );
         builder.onLoad({ filter: /.*/, namespace: "fixture" }, ({ path }) => ({
           contents:
             path === "@weaverse/hydrogen"
-              ? "export const createSchema = (schema) => schema;"
+              ? "export const createSchema = (schema) => schema;export const IMAGES_PLACEHOLDERS={};export const useTranslation=()=>({t:key=>key});"
               : path.endsWith("background-image")
                 ? "export const backgroundInputs = [];"
-                : `import React from "react";
+                : path.endsWith("/image")
+                  ? `import React from "react";export const Image=React.forwardRef(({className},ref)=><div ref={ref} className={className} style={{height:100}}/>);`
+                  : `import React from "react";
                export const Section = React.forwardRef(({children, containerClassName, className, style, "data-media-position": position}, ref) =>
                  React.createElement("section", {ref, className, style, "data-media-position": position},
                    React.createElement("div", {className: containerClassName}, children)));`,
-          loader: "js",
+          loader: "tsx",
           resolveDir: root,
         }));
       },
@@ -94,10 +97,16 @@ test("split spacing toggle and right corners preserve other layouts and breakpoi
           width < 768 ? "0px" : "40px",
         );
         const image = page.locator(".iwt-split-media > div");
-        await expect(image).toHaveCSS("border-top-left-radius", "20px");
-        await expect(image).toHaveCSS("border-bottom-left-radius", "20px");
+        await expect(image).toHaveCSS(
+          "border-top-left-radius",
+          width < 768 ? "0px" : "20px",
+        );
+        await expect(image).toHaveCSS(
+          "border-bottom-left-radius",
+          width < 768 ? "0px" : "20px",
+        );
         const rightRadius =
-          width >= 768 && mediaPosition === "right" ? "0px" : "20px";
+          width < 768 || mediaPosition === "right" ? "0px" : "20px";
         await expect(image).toHaveCSS("border-top-right-radius", rightRadius);
         await expect(image).toHaveCSS(
           "border-bottom-right-radius",
@@ -121,7 +130,7 @@ test("split spacing toggle and right corners preserve other layouts and breakpoi
       await expect(page.locator(".iwt-split-row")).toHaveCount(0);
       await expect(page.locator(".iwt-split-media > div")).toHaveCSS(
         "border-top-right-radius",
-        "20px",
+        width < 768 ? "0px" : "20px",
       );
       assert.equal(
         await page.evaluate(() => {

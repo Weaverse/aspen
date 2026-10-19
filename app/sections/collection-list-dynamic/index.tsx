@@ -88,6 +88,7 @@ let CollectionListDynamic = forwardRef<HTMLElement, CollectionListDynamicProps>(
       showcaseMobileEffectColor,
       showcaseMobileEffectOpacity,
       verticalPadding = "medium",
+      gap,
       ...rest
     } = props;
     const usesDesignPadding = verticalPadding === "medium";
@@ -108,8 +109,20 @@ let CollectionListDynamic = forwardRef<HTMLElement, CollectionListDynamicProps>(
         <Section
           ref={ref}
           {...rest}
-          className={cn("overflow-x-clip", className)}
-          containerClassName={cn("flex flex-col", usesDesignPadding && "py-20")}
+          className={cn(
+            "overflow-x-clip",
+            "max-md:has-[[data-collection-layout=grid]]:[--page-padding:calc(var(--spacing)*5)] md:max-lg:has-[[data-collection-layout=grid]]:[--page-padding:calc(var(--spacing)*8)]",
+            "max-md:has-[[data-collection-layout=showcase]]:[--page-padding:calc(var(--spacing)*5)]",
+            className,
+          )}
+          containerClassName={cn(
+            "flex flex-col",
+            usesDesignPadding && "py-20",
+            "max-md:has-[[data-collection-layout=showcase]]:space-y-10 md:max-lg:has-[[data-collection-layout=showcase]]:space-y-18",
+            gap === 64 &&
+              "max-md:has-[[data-collection-layout=grid]]:space-y-10",
+          )}
+          gap={gap}
           overflow="unset"
           verticalPadding={usesDesignPadding ? "none" : verticalPadding}
         >
@@ -205,9 +218,19 @@ export let schema: HydrogenComponentSchema = {
     {
       group: "Collection List",
       inputs: [
-        ...layoutInputs.filter(
-          (inp) => inp.name !== "divider" && inp.name !== "borderRadius",
-        ),
+        ...layoutInputs
+          .filter(
+            (inp) => inp.name !== "divider" && inp.name !== "borderRadius",
+          )
+          .map((input) =>
+            input.name === "gap"
+              ? {
+                  ...input,
+                  helpText:
+                    "Style 3 uses this gap on desktop. Header-to-cards spacing is 40px on mobile and 72px on tablet.",
+                }
+              : input,
+          ),
       ],
     },
   ],
