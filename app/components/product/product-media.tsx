@@ -635,9 +635,9 @@ function ProductMediaDots({
   return (
     <div
       className={cn(
-        "-translate-x-1/2 absolute left-1/2 z-[5] flex items-center justify-center gap-0",
+        "-translate-x-1/2 absolute left-1/2 z-[5] flex items-center justify-center gap-0 overflow-hidden rounded-(--radius-sm)",
         variant === "quick-shop" ? "bottom-[37.5px]" : "bottom-6",
-        isProductPage && "bottom-[38px] overflow-hidden rounded-(--radius-sm)",
+        isProductPage && "bottom-[38px]",
       )}
       style={{
         maxWidth: variant === "quick-shop" ? "160px" : maxContainerWidth,
