@@ -95,7 +95,7 @@ const ImageWithTextImage = forwardRef<HTMLDivElement, ImageWithTextImageProps>(
           "h-full w-full",
           layout === "overlay" && "min-w-0 flex-1",
           variants({ objectFit, borderRadius }),
-          "max-md:rounded-none",
+          "max-md:rounded-[var(--iwt-mobile-image-radius,0px)]",
         )}
         data-aspect-ratio={finalAspectRatio}
       />
@@ -121,7 +121,7 @@ export const schema = createSchema({
         {
           type: "range",
           name: "borderRadius",
-          label: "Border radius",
+          label: "Border radius on desktop and tablet",
           configs: {
             min: 0,
             max: 40,
@@ -129,6 +129,8 @@ export const schema = createSchema({
             unit: "px",
           },
           defaultValue: 0,
+          helpText:
+            "Style 2 keeps corners touching the section edge square. Set the mobile image radius on the parent section.",
         },
         {
           type: "select",

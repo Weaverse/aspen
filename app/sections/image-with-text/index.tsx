@@ -13,6 +13,8 @@ import {
 interface ImageWithTextProps extends SectionProps {
   layout?: ImageWithTextLayout;
   mediaPosition?: "left" | "right";
+  mobileMediaPosition?: "top" | "bottom";
+  mobileImageRadius?: number;
   showVerticalSpacing?: boolean;
 }
 
@@ -23,6 +25,8 @@ const ImageWithText = forwardRef<HTMLElement, ImageWithTextProps>(
       className,
       layout,
       mediaPosition = "right",
+      mobileMediaPosition = "top",
+      mobileImageRadius = 0,
       showVerticalSpacing = true,
       backgroundColor = "#F0F0EF",
       ...rest
@@ -52,24 +56,26 @@ const ImageWithText = forwardRef<HTMLElement, ImageWithTextProps>(
           className={cn(
             "overflow-x-clip bg-[#F0F0EF]",
             !isOverlay &&
-              mediaPosition === "right" &&
-              "md:[&_.iwt-split-media>*]:rounded-r-none",
+              (mediaPosition === "right"
+                ? "md:[&_.iwt-split-media>*]:rounded-r-none"
+                : "md:[&_.iwt-split-media>*]:rounded-l-none"),
             className,
           )}
           style={
             {
               ...props.style,
               "--iwt-vertical-spacing": showVerticalSpacing ? "40px" : "0px",
+              "--iwt-media-order": mediaPosition === "left" ? -1 : 1,
+              "--iwt-mobile-media-order":
+                mobileMediaPosition === "top" ? -1 : 1,
+              "--iwt-mobile-image-radius": `${mobileImageRadius}px`,
             } as React.CSSProperties
           }
           containerClassName={cn(
             "px-0 sm:px-0",
             isOverlay
               ? "relative flex h-[417px] flex-row md:h-[960px]"
-              : cn(
-                  "iwt-split-row flex flex-col-reverse md:h-auto md:flex-row md:py-10 lg:h-[944px]",
-                  mediaPosition === "left" && "md:flex-row-reverse",
-                ),
+              : "iwt-split-row flex flex-col md:h-auto md:flex-row md:py-10 lg:h-[944px]",
           )}
           data-media-position={!isOverlay ? mediaPosition : undefined}
           backgroundColor={backgroundColor || "#F0F0EF"}
@@ -120,7 +126,7 @@ export const schema = createSchema({
         {
           type: "toggle-group",
           name: "mediaPosition",
-          label: "Image position on desktop",
+          label: "Image position on desktop and tablet",
           configs: {
             options: [
               { value: "left", label: "Left" },
@@ -129,6 +135,28 @@ export const schema = createSchema({
           },
           defaultValue: "right",
           condition: (data: ImageWithTextProps) => data.layout === "split",
+        },
+        {
+          type: "toggle-group",
+          name: "mobileMediaPosition",
+          label: "Image position on mobile",
+          configs: {
+            options: [
+              { value: "top", label: "Image first" },
+              { value: "bottom", label: "Content first" },
+            ],
+          },
+          defaultValue: "top",
+          condition: (data: ImageWithTextProps) => data.layout === "split",
+        },
+        {
+          type: "range",
+          name: "mobileImageRadius",
+          label: "Image corner radius on mobile",
+          configs: { min: 0, max: 40, step: 2, unit: "px" },
+          defaultValue: 0,
+          helpText:
+            "Use 0 for square corners. Desktop and tablet use the image block's radius; corners touching the section's left or right edge stay square in Style 2.",
         },
       ],
     },
@@ -145,6 +173,8 @@ export const schema = createSchema({
     width: "full",
     verticalPadding: "none",
     mediaPosition: "right",
+    mobileMediaPosition: "top",
+    mobileImageRadius: 0,
     showVerticalSpacing: true,
     backgroundColor: "#F0F0EF",
     backgroundFor: "section",
