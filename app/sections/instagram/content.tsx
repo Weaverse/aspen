@@ -89,7 +89,7 @@ let InstagramContent = forwardRef<HTMLDivElement, InstagramContentProps>(
         {...rest}
         className="instagram-content flex w-full min-w-0 flex-col items-start gap-6 rounded-[var(--Radius-border-radius-md,12px)] bg-white p-6 min-[744px]:self-stretch lg:w-80 lg:flex-none desktop:w-[320px] desktop:self-start"
       >
-        <div className="flex w-full flex-col items-start gap-2.5">
+        <div className="flex w-full min-w-0 flex-col items-start gap-2.5">
           {headingContent && (
             <div className="flex items-center gap-2">
               <InstagramLogo className="size-5 shrink-0" weight="regular" />
@@ -104,7 +104,7 @@ let InstagramContent = forwardRef<HTMLDivElement, InstagramContentProps>(
           )}
           {subheadingContent && (
             <SubheadingTag
-              className="text-left font-normal text-base leading-[1.4]"
+              className="max-w-full wrap-anywhere text-left font-normal text-base leading-[1.4]"
               style={{ color: subheadingColor }}
             >
               {subheadingContent}
