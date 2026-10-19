@@ -8,6 +8,7 @@ import {
   useRouteLoaderData,
   useSearchParams,
 } from "react-router";
+import { SwatchFill, swatchFrameClassName } from "~/components/product/swatch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "~/components/tooltip";
 import type { RootLoader } from "~/root";
 import { cn } from "~/utils/cn";
@@ -65,24 +66,19 @@ export function FilterItem({
             aria-pressed={checked}
             aria-label={option.label}
             className={cn(
-              "h-10 w-10 rounded-sm disabled:cursor-not-allowed",
-              "border hover:border-body",
-              checked ? "border-line p-1" : "border-line-subtle",
+              swatchFrameClassName("large", checked),
+              "disabled:cursor-not-allowed",
               option.count === 0 && "diagonal",
             )}
             onClick={() => handleCheckedChange(!checked)}
             disabled={option.count === 0}
           >
-            <span
-              className="inline-block h-full w-full"
-              style={{
-                backgroundImage: swatchImage?.value
-                  ? `url(${swatchImage?.value})`
-                  : undefined,
-                backgroundSize: "cover",
-                backgroundColor:
-                  swatchColor?.value || option.label.toLowerCase(),
-              }}
+            <SwatchFill
+              size="large"
+              color={swatchColor?.value || option.label.toLowerCase()}
+              image={
+                swatchImage?.value ? { url: swatchImage.value } : undefined
+              }
             />
           </button>
         </TooltipTrigger>
