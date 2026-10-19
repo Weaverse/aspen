@@ -1,3 +1,4 @@
+import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
@@ -14,13 +15,14 @@ const bundle = await build({
       import React from "react";
       import { createRoot } from "react-dom/client";
       import MapSection from "./app/sections/map/map";
+      import Address from "./app/sections/map/address";
 
       const root = createRoot(document.getElementById("root"));
       window.renderMap = (layoutMap) => root.render(
         React.createElement(
           MapSection,
           { layoutMap, heading: "OUR STORES", panelBackgroundColor: "#FFFFFF" },
-          React.createElement("div", null, "Store address"),
+          ...["First address", "Second address", "Third address"].map((address,itemIndex)=>React.createElement(Address,{key:address,address,nameStore:"Store "+(itemIndex+1),itemIndex})),
         ),
       );
     `,
@@ -57,8 +59,10 @@ const bundle = await build({
             return {
               contents: `
                 export const useChildInstances = () => [
-                  { data: { type: "address-item", address: "81 Greene St" } },
+                  { _id: "fixture-address", data: { type: "address-item", address: "First address" } },
                 ];
+                export const useItemInstance = () => null;
+                export const useParentInstance = () => null;
                 export const useTranslation = () => ({ t: (key) => key });
               `,
               loader: "js",
@@ -110,6 +114,80 @@ const css = stylesheet.build(
     sources: [{ base: `${root}app`, pattern: "**/*.{ts,tsx}", negated: false }],
   }).scan(),
 );
+
+test("Style 1 tablet stacks a full-width map above selectable stores with design spacing", async () => {
+  const browser = await chromium.launch();
+  try {
+    for (const width of [
+      390,
+      767,
+      768,
+      834,
+      TABLET_MAX_PX,
+      DESKTOP_MIN_PX,
+      1280,
+    ]) {
+      const page = await browser.newPage({ viewport: { width, height: 1400 } });
+      await page.route("https://maps.google.com/**", (route) => route.abort());
+      await page.setContent(
+        `<!doctype html><style>${css}:root{--radius-md:12px;--page-width:1440px;--page-padding:32px;--section-padding-y:80px}</style><div id="root"></div>`,
+      );
+      await page.addScriptTag({ content: bundle.outputFiles[0].text });
+      await page.evaluate(() => window.renderMap("list"));
+      const map = page.locator("iframe");
+      await expect(map).toHaveAttribute("src", /First%20address/);
+      await page
+        .getByRole("button", { name: "Store 2 Second address" })
+        .click();
+      await expect(map).toHaveAttribute("src", /Second%20address/);
+      await expect(
+        page.getByRole("button", { name: "Store 2 Second address" }),
+      ).toHaveAttribute("aria-pressed", "true");
+      const geometry = await page.locator("section > div").evaluate((row) => {
+        const frame = row.querySelector("iframe").parentElement;
+        const info = row.firstElementChild;
+        const r = row.getBoundingClientRect(),
+          f = frame.getBoundingClientRect(),
+          i = info.getBoundingClientRect();
+        return {
+          width: r.width,
+          mapWidth: f.width,
+          mapHeight: f.height,
+          gap: i.top - f.bottom,
+          left: getComputedStyle(info).paddingLeft,
+          right: getComputedStyle(info).paddingRight,
+          bottom: r.bottom - i.bottom,
+          radius: getComputedStyle(frame).borderTopLeftRadius,
+          columns: getComputedStyle(row).gridTemplateColumns.split(" ").length,
+          infoWidth: i.width,
+          overflow: document.documentElement.scrollWidth > innerWidth,
+        };
+      });
+      assert.equal(geometry.overflow, false);
+      if (width >= 768 && width <= TABLET_MAX_PX) {
+        assert.equal(geometry.mapWidth, width);
+        assert.ok(Math.abs(geometry.mapHeight - (width * 9) / 16) < 1);
+        assert.equal(geometry.gap, 40);
+        assert.equal(geometry.left, "32px");
+        assert.equal(geometry.right, "32px");
+        assert.equal(geometry.bottom, 80);
+        assert.equal(geometry.radius, "0px");
+        assert.equal(geometry.columns, 1);
+      } else if (width >= DESKTOP_MIN_PX) {
+        assert.equal(geometry.columns, 2);
+        assert.equal(geometry.infoWidth, 280);
+        assert.equal(geometry.radius, "12px");
+      } else {
+        assert.ok(Math.abs(geometry.mapHeight - (width * 469.125) / 375) < 1);
+        assert.equal(geometry.columns, 1);
+        assert.equal(geometry.left, "24px");
+      }
+      await page.close();
+    }
+  } finally {
+    await browser.close();
+  }
+});
 
 test("Style 2 map panel uses the medium theme radius at every breakpoint", async () => {
   const browser = await chromium.launch();

@@ -34,7 +34,7 @@ const InstagramImage = forwardRef<HTMLDivElement, InstagramImageProps>(
             data={imageData}
             alt={imageData.altText || ""}
             className="h-full w-full"
-            sizes="(min-width: 64rem) 260px, (min-width: 48rem) 22vw, calc((100vw - 48px) / 2)"
+            sizes="(min-width: 64rem) 260px, (min-width: 744px) 22vw, calc((100vw - 48px) / 2)"
           />
         ) : (
           <span className="flex h-full w-full items-center justify-center bg-[#EBE8E5]">

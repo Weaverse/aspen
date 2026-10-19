@@ -37,7 +37,7 @@ let HotspotsTestimonial = forwardRef<HTMLDivElement, HotspotsTestimonialProps>(
         {...rest}
         data-legacy-aspect-ratio={aspectRatio || undefined}
         className={cn(
-          "relative order-1 aspect-[375/416] min-w-0 w-full overflow-hidden rounded-lg md:order-2 md:aspect-[10/9] md:h-auto lg:h-full",
+          "relative order-1 aspect-[375/416] min-w-0 w-full overflow-hidden rounded-none md:order-2 md:aspect-[10/9] md:h-auto md:rounded-lg md:max-lg:rounded-r-none lg:h-full",
           className,
         )}
       >

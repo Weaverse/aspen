@@ -13,7 +13,7 @@ const TestimonialItem = forwardRef<HTMLDivElement, TestimonialProps>(
         ref={ref}
         {...rest}
         className={cn(
-          "mx-auto grid h-full min-w-0 w-full max-w-[1360px] grid-cols-1 overflow-x-clip md:grid-cols-2 md:items-stretch md:gap-8 md:px-(--page-padding) md:py-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,52.94%)] lg:gap-16 lg:py-20",
+          "mx-auto grid h-full min-w-0 w-full max-w-[1360px] grid-cols-1 overflow-x-clip md:grid-cols-2 md:items-stretch md:gap-8 md:px-(--page-padding) md:py-16 md:max-lg:gap-0 md:max-lg:px-0 lg:grid-cols-[minmax(0,1fr)_minmax(0,52.94%)] lg:gap-16 lg:py-20",
           className,
         )}
       >

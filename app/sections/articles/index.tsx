@@ -17,13 +17,14 @@ import Heading, {
 } from "~/components/heading";
 import { Image } from "~/components/image";
 import Link from "~/components/link";
-import { layoutInputs, Section } from "~/components/section";
+import { layoutInputs, Section, type SectionProps } from "~/components/section";
 import { useLocale } from "~/hooks/use-locale";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import { DESKTOP_MIN_PX, minWidthQuery } from "~/utils/breakpoints";
 import { formatDate } from "~/utils/locale";
 
 type ArticleData = {
+  verticalPadding?: SectionProps["verticalPadding"];
   blogs: WeaverseBlog;
   articlePerRow: number;
   showSeperator: boolean;
@@ -96,6 +97,7 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
     minSize,
     maxSize,
     animate,
+    verticalPadding = "medium",
     ...rest
   } = props;
   const headingContent = translateText(
@@ -200,10 +202,14 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
     <Section
       ref={ref}
       {...rest}
-      className="flex h-full w-full justify-center"
+      className="flex h-full w-full justify-center md:max-lg:[--page-padding:calc(var(--spacing)*10)]"
+      verticalPadding={verticalPadding}
+      containerClassName={
+        verticalPadding === "medium" ? "md:max-lg:py-20" : undefined
+      }
       style={sectionStyle}
     >
-      <div className="flex w-full flex-col gap-10 lg:gap-12">
+      <div className="flex w-full flex-col gap-10 md:max-lg:gap-16 lg:gap-12">
         <div className="flex items-center justify-between">
           {headingContent && (
             <Heading
@@ -245,7 +251,7 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
         </div>
         <div
           className={clsx(
-            "grid gap-x-5 gap-y-8",
+            "grid gap-x-5 gap-y-8 md:max-lg:gap-x-4",
             articlesPerRowClasses[Math.min(articlePerRow, res?.length || 1)],
           )}
         >
