@@ -1,4 +1,3 @@
-import { Image } from "@shopify/hydrogen";
 import { useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import type {
@@ -7,11 +6,11 @@ import type {
 } from "storefront-api.generated";
 import { Button } from "~/components/button";
 import { Link } from "~/components/link";
+import { SwatchFill, swatchFrameClassName } from "~/components/product/swatch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "~/components/tooltip";
 import { useTranslatedThemeSettings } from "~/hooks/use-translated-theme-settings";
 import { RevealUnderline } from "~/reveal-underline";
 import { cn } from "~/utils/cn";
-import { isLightColor, isValidColor } from "~/utils/misc";
 import { OPTIONS_AS_SWATCH } from "./product-option-values";
 
 export function ProductCardOptions({
@@ -76,11 +75,8 @@ export function ProductCardOptions({
                   <button
                     type="button"
                     className={cn(
-                      "flex box-content size-3 items-start justify-center gap-2.5 rounded-(--radius-xs) bg-background p-0.5 transition-colors",
+                      swatchFrameClassName("small", selected),
                       "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body",
-                      selected
-                        ? "border border-line"
-                        : "border-[0.5px] border-line-subtle hover:border-line",
                       unavailable && "diagonal opacity-60",
                     )}
                     aria-label={t("product.selectOptionValue", {
@@ -95,33 +91,11 @@ export function ProductCardOptions({
                       }
                     }}
                   >
-                    {swatch?.image?.previewImage ? (
-                      <Image
-                        data={swatch.image.previewImage}
-                        className="size-3 shrink-0 rounded-(--radius-xs) object-cover object-center"
-                        width={16}
-                        height={16}
-                        sizes="16px"
-                        alt=""
-                      />
-                    ) : (
-                      <span
-                        className={clsx(
-                          "inline-block size-3 shrink-0 rounded-(--radius-xs) text-[0px]",
-                          (!isValidColor(swatchColor) ||
-                            isLightColor(swatchColor)) &&
-                            "border border-line-subtle",
-                          !isValidColor(swatchColor) && "bg-gray-200",
-                        )}
-                        style={
-                          isValidColor(swatchColor)
-                            ? { backgroundColor: swatchColor }
-                            : undefined
-                        }
-                      >
-                        {name}
-                      </span>
-                    )}
+                    <SwatchFill
+                      size="small"
+                      color={swatchColor}
+                      image={swatch?.image?.previewImage}
+                    />
                   </button>
                 </TooltipTrigger>
                 <TooltipContent sideOffset={6}>{name}</TooltipContent>
