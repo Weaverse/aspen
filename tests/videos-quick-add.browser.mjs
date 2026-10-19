@@ -179,7 +179,11 @@ test("video eye opens the existing responsive Quick Add and restores focus", asy
     );
     assert.equal(new URL(request).searchParams.get("Color"), "Blue");
     if (width < 768) {
-      await expect(dialog).toHaveCSS("height", "1200px");
+      const bounds = await dialog.boundingBox();
+      assert.equal(bounds.height, 1200 * 0.75);
+      assert.equal(bounds.width, width - 32);
+      assert.equal(bounds.x, 16);
+      assert.equal(bounds.y, (1200 - bounds.height) / 2);
     } else {
       const panel = await dialog.locator(":scope > div").boundingBox();
       assert.ok(panel.width <= width - 48 + 0.1);

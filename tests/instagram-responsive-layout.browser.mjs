@@ -2,12 +2,61 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { chromium } from "@playwright/test";
+import { chromium, expect } from "@playwright/test";
 import { compile } from "@tailwindcss/node";
 import { Scanner } from "@tailwindcss/oxide";
+import { build } from "esbuild";
 import { DESKTOP_MIN_PX, TABLET_MAX_PX } from "./responsive-test-widths.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
+// Keep InstagramContent, Heading and Paragraph real; stub only Studio and routing.
+const bundle = await build({
+  stdin: {
+    resolveDir: root,
+    loader: "tsx",
+    contents: `
+      import React from "react";
+      import {createRoot} from "react-dom/client";
+      import Content from "./app/sections/instagram/content";
+      createRoot(document.getElementById("content")).render(<Content
+        headingContent="Instagram"
+        subheadingContent="@furniturecollectionworldwide"
+        paragraphContent="Meet the room edits: real life shots of our furniture in action."
+      />);
+    `,
+  },
+  bundle: true,
+  write: false,
+  format: "iife",
+  jsx: "automatic",
+  alias: { "~": `${root}app` },
+  plugins: [
+    {
+      name: "instagram-boundaries",
+      setup(builder) {
+        builder.onResolve(
+          {
+            filter:
+              /^@weaverse\/hydrogen$|use-translated-text$|^~\/components\/link$/,
+          },
+          ({ path }) => ({ path, namespace: "fixture" }),
+        );
+        builder.onLoad({ filter: /.*/, namespace: "fixture" }, ({ path }) => ({
+          loader: "js",
+          contents:
+            path === "@weaverse/hydrogen"
+              ? "export const createSchema=v=>v;"
+              : path.endsWith("use-translated-text")
+                ? "export const useTranslatedText=()=>v=>v;"
+                : "export const linkInputs=[]; export default function Link(){return null;}",
+        }));
+      },
+    },
+  ],
+});
+const font = await readFile(
+  `${root}node_modules/@fontsource-variable/dm-sans/files/dm-sans-latin-wght-normal.woff2`,
+);
 async function classes(file, prefix) {
   const source = await readFile(
     `${root}app/sections/instagram/${file}.tsx`,
@@ -32,6 +81,66 @@ const css = sheet.build(
     sources: [{ base: `${root}app`, pattern: "**/*.{ts,tsx}", negated: false }],
   }).scan(),
 );
+
+test("Instagram real content keeps long merchant handles inside the card", async () => {
+  const browser = await chromium.launch();
+  try {
+    for (const width of [
+      390,
+      743,
+      744,
+      768,
+      820,
+      TABLET_MAX_PX,
+      DESKTOP_MIN_PX,
+      1440,
+    ]) {
+      const page = await browser.newPage({ viewport: { width, height: 1200 } });
+      await page.setContent(`<style>${css}
+        @font-face {font-family: 'DM Sans Variable'; font-weight: 100 900; src: url(data:font/woff2;base64,${font.toString("base64")}) format('woff2');}
+        body {font-family: 'DM Sans Variable';}
+        #content {display: contents;}
+      </style><div class="${rowClass}"><div id="content"></div><div class="${wrapClass}"><div class="${gridClass}">${Array.from({ length: 8 }, () => `<div class="${tileClass}"></div>`).join("")}</div></div></div>`);
+      await page.addScriptTag({ content: bundle.outputFiles[0].text });
+      const handle = page.getByText("@furniturecollectionworldwide", {
+        exact: true,
+      });
+      await expect(handle).toBeVisible();
+      await page.evaluate(() => document.fonts.ready);
+      const geometry = await handle.evaluate((node) => {
+        const card = node.closest(".instagram-content");
+        const bounds = card.getBoundingClientRect();
+        const style = getComputedStyle(card);
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        return {
+          text: [...range.getClientRects()].map((rect) => ({
+            left: rect.left,
+            right: rect.right,
+          })),
+          left: bounds.left + parseFloat(style.paddingLeft),
+          right: bounds.right - parseFloat(style.paddingRight),
+          overflow: card.scrollWidth > card.clientWidth,
+        };
+      });
+      assert.equal(
+        geometry.overflow,
+        false,
+        `${width}px card must not overflow`,
+      );
+      for (const rect of geometry.text) {
+        assert.ok(
+          rect.left >= geometry.left - 1 && rect.right <= geometry.right + 1,
+          `${width}px handle must stay inside the content padding`,
+        );
+      }
+      await expect(handle).toHaveText("@furniturecollectionworldwide");
+      await page.close();
+    }
+  } finally {
+    await browser.close();
+  }
+});
 
 test("Instagram tablet keeps content beside a usable horizontal image grid", async () => {
   const browser = await chromium.launch();

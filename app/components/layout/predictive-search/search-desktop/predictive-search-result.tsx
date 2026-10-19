@@ -4,13 +4,13 @@ import { useTranslation } from "@weaverse/hydrogen";
 import { Image } from "~/components/image";
 import { Link } from "~/components/link";
 import { ProductCardRating } from "~/components/product/product-card-rating";
+import { SwatchFill, swatchFrameClassName } from "~/components/product/swatch";
 import { CompareAtPrice } from "~/components/product/variant-prices";
 import type {
   NormalizedPredictiveSearchResultItem,
   NormalizedPredictiveSearchResults,
   PredictiveSearchSwatch,
 } from "~/types/predictive-search";
-import { isValidColor } from "~/utils/misc";
 import { isDiscounted } from "~/utils/product";
 import { SuggestionTitle } from "../suggestion-title";
 
@@ -166,33 +166,10 @@ function Swatch({ swatch }: { swatch: PredictiveSearchSwatch }) {
 
   return (
     <li
-      className={
-        swatch.selected
-          ? "flex size-[18px] items-center justify-center rounded-[5px] border border-[#9D9D9D] p-0.5"
-          : "flex size-[18px] items-center justify-center rounded-[5px] border border-[#D8D8D8] p-0.5"
-      }
+      className={swatchFrameClassName("small", swatch.selected)}
       title={swatch.name}
     >
-      {swatch.image?.url ? (
-        <Image
-          alt=""
-          src={swatch.image.url}
-          width={14}
-          height={14}
-          sizes="14px"
-          className="h-full w-full rounded-[2px] object-cover"
-        />
-      ) : (
-        <span
-          aria-hidden="true"
-          className="h-full w-full rounded-[2px]"
-          style={{
-            backgroundColor: isValidColor(swatchColor)
-              ? swatchColor
-              : "#ECE9DE",
-          }}
-        />
-      )}
+      <SwatchFill size="small" color={swatchColor} image={swatch.image} />
     </li>
   );
 }
