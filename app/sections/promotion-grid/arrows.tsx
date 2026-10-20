@@ -1,15 +1,14 @@
 import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
+import { useTranslation } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
-import clsx from "clsx";
 import { ArrowButton } from "~/components/arrow-button";
+import { cn } from "~/utils/cn";
 
 let variants = cva(
   [
-    "block",
     "-translate-y-1/2 absolute top-1/2 z-10",
     "cursor-pointer p-3",
-    "border border-transparent",
     "transition-all duration-200",
   ],
   {
@@ -39,8 +38,8 @@ let variants = cva(
         ],
       },
       arrowsShape: {
-        square: "",
-        rounded: "rounded-[12px]",
+        square: "rounded-none",
+        rounded: "rounded-(--radius-md)",
         circle: "rounded-full",
       },
       disabled: {
@@ -54,22 +53,24 @@ let variants = cva(
       {
         showArrowsOnHover: true,
         side: "left",
-        className: "-left-12 group-hover:left-2",
+        className:
+          "left-0 lg:left-2 lg:opacity-0 lg:group-hover:opacity-100 lg:focus-visible:opacity-100",
       },
       {
         showArrowsOnHover: false,
         side: "left",
-        className: "-left-11 md:-left-[22px]",
+        className: "-left-5 md:-left-[22px]",
       },
       {
         showArrowsOnHover: true,
         side: "right",
-        className: "-right-12 group-hover:right-2",
+        className:
+          "right-0 lg:right-2 lg:opacity-0 lg:group-hover:opacity-100 lg:focus-visible:opacity-100",
       },
       {
         showArrowsOnHover: false,
         side: "right",
-        className: "-right-11 md:-right-[22px]",
+        className: "-right-5 md:-right-[22px]",
       },
     ],
   },
@@ -82,6 +83,7 @@ export interface PromotionArrowsProps extends VariantProps<typeof variants> {
 }
 
 export function Arrows(props: PromotionArrowsProps) {
+  const { t } = useTranslation();
   let {
     arrowsIcon = "caret",
     iconSize = 24,
@@ -94,7 +96,8 @@ export function Arrows(props: PromotionArrowsProps) {
     <>
       <ArrowButton
         type="button"
-        className={clsx(
+        aria-label={t("carousel.previousSlide")}
+        className={cn(
           "promotion-arrow-prev",
           variants({
             arrowsColor,
@@ -120,7 +123,8 @@ export function Arrows(props: PromotionArrowsProps) {
       </ArrowButton>
       <ArrowButton
         type="button"
-        className={clsx(
+        aria-label={t("carousel.nextSlide")}
+        className={cn(
           "promotion-arrow-next",
           variants({
             arrowsColor,
