@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { chromium, expect } from "@playwright/test";
 import { compile } from "@tailwindcss/node";
 import { Scanner } from "@tailwindcss/oxide";
+import { IMAGES_PLACEHOLDERS } from "@weaverse/hydrogen";
 import { build } from "esbuild";
 import {
   DESKTOP_MIN_PX,
@@ -129,7 +130,8 @@ const bundle = await build({
                    });`
                     : path === "translation"
                       ? "export const useTranslatedText = () => (value) => value;"
-                      : `export const createSchema = (value) => value;
+                      : `export const IMAGES_PLACEHOLDERS = ${JSON.stringify(IMAGES_PLACEHOLDERS)};
+                     export const createSchema = (value) => value;
                      export const useParentInstance = () => ({ data: { scenario: globalThis.__countdownScenario || "scenario1" } });
                      export const useThemeSettings = () => ({ enableViewTransition: false });
                      export const useTranslation = () => ({ t: (key) => key.split(".").at(-1) });`,

@@ -12,6 +12,7 @@ import { overlayInputs } from "~/components/overlay";
 import type { SectionProps } from "~/components/section";
 import { layoutInputs, Section } from "~/components/section";
 import type { loader as productRouteLoader } from "~/routes/($locale).products.$productHandle";
+import { sectionImageSource } from "~/utils/section-placeholder";
 
 export interface HeroImageProps extends VariantProps<typeof variants> {}
 
@@ -76,6 +77,10 @@ const HeroImage = forwardRef<HTMLElement, HeroImageProps & SectionProps>(
       <Section
         ref={ref}
         {...rest}
+        backgroundImage={sectionImageSource(
+          rest.backgroundImage,
+          IMAGES_PLACEHOLDERS.banner_1,
+        )}
         containerClassName={variants({
           contentPosition,
           height,
@@ -145,7 +150,7 @@ export const schema = createSchema({
     children: [
       {
         type: "heading",
-        content: "THE KITCHEN THAT INSPIRES",
+        content: "Image banner",
         as: "h1",
         color: "#FEF4EB",
         size: "scale",
@@ -156,8 +161,7 @@ export const schema = createSchema({
       },
       {
         type: "paragraph",
-        content:
-          "Thoughtful furniture and warm materials for the rooms where life happens.",
+        content: "Use this space to introduce your store and share your story.",
         color: "#FEF4EB",
         textSize: "base",
         width: "narrow",

@@ -106,38 +106,18 @@ export let schema: HydrogenComponent["schema"] = {
     children: [
       {
         type: "video--item",
-        video: {
-          url: "https://cdn.shopify.com/videos/c/o/v/cd5b45e50cc542e99b4f2d964154638a.webm",
-          alt: "Video 1",
-          mediaContentType: "VIDEO",
-        },
         addToCartText: "Add to Cart",
       },
       {
         type: "video--item",
-        video: {
-          url: "https://cdn.shopify.com/videos/c/o/v/4f8e7bc773bd49138b00903c987d528b.webm",
-          alt: "Video 2",
-          mediaContentType: "VIDEO",
-        },
         addToCartText: "Add to Cart",
       },
       {
         type: "video--item",
-        video: {
-          url: "https://cdn.shopify.com/videos/c/o/v/e63ad074b7404e84a96ceeec6cc466c5.webm",
-          alt: "Video 3",
-          mediaContentType: "VIDEO",
-        },
         addToCartText: "Add to Cart",
       },
       {
         type: "video--item",
-        video: {
-          url: "https://cdn.shopify.com/videos/c/o/v/4f8e7bc773bd49138b00903c987d528b.webm",
-          alt: "Video 4",
-          mediaContentType: "VIDEO",
-        },
         addToCartText: "Add to Cart",
       },
     ],

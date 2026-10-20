@@ -1,11 +1,13 @@
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
 import {
   type HydrogenComponentSchema,
+  IMAGES_PLACEHOLDERS,
   useChildInstances,
   useTranslation,
 } from "@weaverse/hydrogen";
 import { createContext, forwardRef, useEffect, useMemo, useState } from "react";
 import Heading from "~/components/heading";
+import { Image } from "~/components/image";
 import type { SectionProps } from "~/components/section";
 import { Section, sectionSettings } from "~/components/section";
 import { useTranslatedText } from "~/hooks/use-translated-text";
@@ -68,15 +70,26 @@ export const MapFrame = ({
         className,
       )}
     >
-      <iframe
-        key={address}
-        className="absolute inset-0 h-full w-full"
-        title={t("map.embeddedFrame")}
-        src={`https://maps.google.com/maps?t=m&q=${encodeURIComponent(address)}&ie=UTF8&&output=embed`}
-        style={{ border: 0 }}
-        loading="lazy"
-        allowFullScreen
-      />
+      {address?.trim() ? (
+        <iframe
+          key={address}
+          className="absolute inset-0 h-full w-full"
+          title={t("map.embeddedFrame")}
+          src={`https://maps.google.com/maps?t=m&q=${encodeURIComponent(address)}&ie=UTF8&&output=embed`}
+          style={{ border: 0 }}
+          loading="lazy"
+          allowFullScreen
+        />
+      ) : (
+        <Image
+          data={{
+            url: IMAGES_PLACEHOLDERS.image,
+            altText: t("accessibility.imagePlaceholder"),
+          }}
+          sizes="auto"
+          className="absolute inset-0 h-full w-full"
+        />
+      )}
     </div>
   );
 };
@@ -286,27 +299,15 @@ export const schema: HydrogenComponentSchema = {
     children: [
       {
         type: "address-item",
-        nameStore: "ASPEN SOHO",
-        address: "81 Greene Street, New York, NY 10012",
-        phoneNumber: "+1 212 555 0148",
-        openingHours: "Mon - Fri: 10:00AM - 7:00PM",
-        openingHoursSat: "Sat - Sun: 11:00AM - 6:00PM",
+        nameStore: "Store 1",
       },
       {
         type: "address-item",
-        nameStore: "ASPEN BROOKLYN",
-        address: "55 Water Street, Brooklyn, NY 11201",
-        phoneNumber: "+1 718 555 0196",
-        openingHours: "Mon - Fri: 10:00AM - 7:00PM",
-        openingHoursSat: "Sat - Sun: 11:00AM - 6:00PM",
+        nameStore: "Store 2",
       },
       {
         type: "address-item",
-        nameStore: "ASPEN LOS ANGELES",
-        address: "8220 Melrose Avenue, Los Angeles, CA 90046",
-        phoneNumber: "+1 323 555 0124",
-        openingHours: "Mon - Fri: 10:00AM - 7:00PM",
-        openingHoursSat: "Sat - Sun: 11:00AM - 6:00PM",
+        nameStore: "Store 3",
       },
     ],
   },

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import enUS from "~/locales/en-us.json";
 import {
   defaultTranslation,
   type Translate,
@@ -132,5 +133,80 @@ test("a shared published key does not replace custom page content", () => {
       },
     }),
     "Autumn Collection",
+  );
+});
+
+test("new placeholder copy has its own translation key without replacing legacy defaults", () => {
+  const key = "themeContent.sectionsCountdownIndex.style2Heading";
+  assert.equal(
+    translateThemeText(t, "Countdown heading", key),
+    "translated:themePresets.placeholderContent.countdownHeading",
+  );
+  assert.equal(
+    translateThemeText(t, "Limited Sale Offers", key),
+    `translated:${key}`,
+  );
+});
+
+test("existing field translation overrides also apply to known new placeholder copy", () => {
+  const key = "themeContent.sectionsCountdownIndex.style2Heading";
+  for (const overrides of [
+    { designOverrides: { [key]: "COMPTE À REBOURS" } },
+    {
+      merchantOverrides: {
+        themeContent: {
+          sectionsCountdownIndex: { style2Heading: "COMPTE À REBOURS" },
+        },
+      },
+    },
+  ]) {
+    assert.equal(
+      translateThemeText(
+        () => "COMPTE À REBOURS",
+        "Countdown heading",
+        key,
+        overrides,
+      ),
+      "COMPTE À REBOURS",
+    );
+    assert.equal(
+      translateThemeText(
+        () => "COMPTE À REBOURS",
+        "Merchant heading",
+        key,
+        overrides,
+      ),
+      "Merchant heading",
+    );
+  }
+});
+
+test("every new placeholder resolves through the locale catalog without changing English copy", () => {
+  const staticT: Translate = (key) => defaultTranslation(key) ?? key;
+  for (const [field, value] of Object.entries(
+    enUS.themePresets.placeholderContent,
+  )) {
+    assert.equal(
+      translateThemeText(t, value, "themeContent.componentsParagraph.content"),
+      `translated:themePresets.placeholderContent.${field}`,
+    );
+    assert.equal(
+      translateThemeText(
+        staticT,
+        value,
+        "themeContent.componentsParagraph.content",
+      ),
+      value,
+    );
+  }
+});
+
+test("cleared optional content stays empty instead of reviving an old store default", () => {
+  const key = "themeContent.sectionsMapAddress.address";
+  assert.equal(
+    translateThemeText(t, "", key, {
+      designOverrides: { [key]: "Old store address" },
+    }),
+    "",
   );
 });

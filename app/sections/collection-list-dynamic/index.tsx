@@ -253,8 +253,7 @@ export let schema: HydrogenComponentSchema = {
         weight: "400",
         letterSpacing: "tight",
         alignment: "center",
-        paragraphContent:
-          "If you're looking for products that bring ease through form and function, we offer no-fuss furniture built to last.",
+        paragraphContent: "Add a description for this section.",
         paragraphAlignment: "center",
         paragraphWidth: "narrow",
         buttonContent: "EXPLORE NOW",

@@ -9,6 +9,7 @@ import { forwardRef } from "react";
 import { Image } from "~/components/image";
 import type { ImageAspectRatio } from "~/types/image";
 import { calculateAspectRatio } from "~/utils/image";
+import { sectionImage } from "~/utils/section-placeholder";
 import { useHotspotsContext } from "./hotpots";
 
 interface HotspotsProps extends HydrogenComponentProps {
@@ -25,10 +26,11 @@ let HotspotsImage = forwardRef<HTMLDivElement, HotspotsProps>((props, ref) => {
   const finalAspectRatio = parentAspectRatio || localAspectRatio || "design";
   const usesDesignRatio = finalAspectRatio === "design";
 
-  let imageData: Partial<WeaverseImage> =
-    typeof image === "string"
-      ? { url: image, altText: t("accessibility.hotspotsImage") }
-      : image;
+  const imageData = sectionImage(
+    image,
+    IMAGES_PLACEHOLDERS.collection_1,
+    t("accessibility.hotspotsImage"),
+  );
 
   return (
     <div

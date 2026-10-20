@@ -549,7 +549,7 @@ export const loader = async ({ weaverse, data }: ComponentLoaderArgs) => {
   const collectionHandle = data.collection?.handle;
 
   // Return empty products if no collection is selected
-  if (!collectionHandle) {
+  if (!collectionHandle?.trim()) {
     return { collection: data.collection, products: [] };
   }
 

@@ -1,6 +1,7 @@
 import {
   createSchema,
   type HydrogenComponentProps,
+  IMAGES_PLACEHOLDERS,
   type WeaverseImage,
 } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
@@ -8,6 +9,7 @@ import { cva } from "class-variance-authority";
 import clsx from "clsx";
 import { forwardRef } from "react";
 import { Image } from "~/components/image";
+import { sectionImage } from "~/utils/section-placeholder";
 
 const variants = cva("h-(--image-height)", {
   variants: {
@@ -53,7 +55,7 @@ interface ImageGalleryItemProps
 const ImageGalleryItem = forwardRef<HTMLImageElement, ImageGalleryItemProps>(
   (props, ref) => {
     const { src, columnSpan, borderRadius, hideOnMobile, ...rest } = props;
-    const data = typeof src === "object" ? src : { url: src, altText: src };
+    const data = sectionImage(src);
     return (
       <Image
         ref={ref}
@@ -82,8 +84,7 @@ export const schema = createSchema({
           type: "image",
           name: "src",
           label: "Image",
-          defaultValue:
-            "https://cdn.shopify.com/s/files/1/0838/0052/3057/files/h2-placeholder-image.svg",
+          defaultValue: IMAGES_PLACEHOLDERS.image,
         },
         {
           type: "range",

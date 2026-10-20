@@ -24,6 +24,7 @@ import type { OverlayProps } from "~/components/overlay";
 import { Overlay, overlayInputs } from "~/components/overlay";
 import { useAnimation } from "~/hooks/use-animation";
 import { useClientReady } from "~/utils/react-player";
+import { sectionImage, sectionImageSource } from "~/utils/section-placeholder";
 
 const SECTION_HEIGHTS = {
   small: {
@@ -140,10 +141,11 @@ function getImageData(
   image: string | WeaverseImage | undefined,
   altText: string,
 ) {
-  if (!image) {
+  const source = sectionImageSource(image, "");
+  if (!source) {
     return undefined;
   }
-  return typeof image === "string" ? { url: image, altText } : image;
+  return typeof source === "string" ? { url: source, altText } : source;
 }
 
 // react-player v3 is ESM-only and lazy-loads individual players internally.
@@ -216,7 +218,11 @@ const HeroVideo = forwardRef<HTMLElement, HeroVideoProps>((props, ref) => {
   }, [videoAspectRatio]);
 
   const [scope] = useAnimation();
-  const desktopPoster = getImageData(posterImage, t("video.poster"));
+  const desktopPoster = sectionImage(
+    posterImage,
+    IMAGES_PLACEHOLDERS.banner_1,
+    t("video.poster"),
+  );
   const mobilePoster = getImageData(mobilePosterImage, t("video.poster"));
 
   return (
@@ -378,8 +384,8 @@ export const schema = createSchema({
           type: "text",
           name: "videoURL",
           label: "Video URL",
-          defaultValue: "https://www.youtube.com/watch?v=gbLmku5QACM",
-          placeholder: "https://www.youtube.com/watch?v=gbLmku5QACM",
+          defaultValue: "",
+          placeholder: "Enter your video URL",
           helpText: "Supports YouTube, Vimeo, MP4, WebM, and HLS streams.",
         },
         {
@@ -423,7 +429,7 @@ export const schema = createSchema({
     enableOverlay: true,
     overlayColor: "#000000",
     overlayOpacity: 20,
-    videoURL: "https://www.youtube.com/watch?v=gbLmku5QACM",
+    videoURL: "",
     videoAspectRatio: "1/1",
     posterImage: IMAGES_PLACEHOLDERS.banner_1,
     height: "aspen",
@@ -432,7 +438,7 @@ export const schema = createSchema({
     children: [
       {
         type: "subheading",
-        content: "A laidback, sophisticated lounge piece",
+        content: "Video section",
         as: "p",
         color: "#FEF4EB",
         size: "base",
@@ -441,7 +447,7 @@ export const schema = createSchema({
       },
       {
         type: "heading",
-        content: "CLOUD-LIKE SOFAS THAT SUPPORT RELAXING ANY TIME",
+        content: "Video with text",
         as: "h2",
         color: "#FEF4EB",
         size: "custom",
@@ -453,8 +459,7 @@ export const schema = createSchema({
       },
       {
         type: "paragraph",
-        content:
-          "A thoughtfully designed, curated furniture collection—made for real life.",
+        content: "Add a description for this promotion.",
         color: "#FEF4EB",
         textSize: "sm",
         width: "full",

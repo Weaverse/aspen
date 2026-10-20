@@ -11,6 +11,7 @@ import { forwardRef } from "react";
 import { Image } from "~/components/image";
 import Link, { type LinkProps, linkContentInputs } from "~/components/link";
 import { useTranslatedText } from "~/hooks/use-translated-text";
+import { sectionImage } from "~/utils/section-placeholder";
 
 const variants = cva("", {
   variants: {
@@ -72,7 +73,7 @@ const ColumnWithImageItem = forwardRef<
       style={{ "--radius": `${imageBorderRadius}px` } as CSSProperties}
     >
       <Image
-        data={typeof imageSrc === "object" ? imageSrc : { url: imageSrc }}
+        data={sectionImage(imageSrc, IMAGES_PLACEHOLDERS.product_4)}
         sizes="auto"
         className="aspect-(--image-aspect-ratio) h-auto rounded-(--radius)"
         aspectRatio={undefined}
