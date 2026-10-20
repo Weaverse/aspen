@@ -18,6 +18,7 @@ import { overlayInputs } from "~/components/overlay";
 import Paragraph, { type ParagraphProps } from "~/components/paragraph";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import { cn } from "~/utils/cn";
+import { sectionImageSource } from "~/utils/section-placeholder";
 
 const variants = cva(
   [
@@ -197,7 +198,12 @@ const PromotionGridItem = forwardRef<HTMLDivElement, PromotionItemProps>(
         data-motion="slide-in"
         className={variants({ contentPosition, borderRadius })}
       >
-        <BackgroundImage backgroundImage={backgroundImage} />
+        <BackgroundImage
+          backgroundImage={sectionImageSource(
+            backgroundImage,
+            IMAGES_PLACEHOLDERS.collection_3,
+          )}
+        />
         {enableOverlay && (
           <div
             className="pointer-events-none absolute inset-0 z-1"
@@ -569,15 +575,14 @@ export const schema = createSchema({
           type: "text",
           name: "tabLabel",
           label: "Heading / tab label",
-          defaultValue: "Best Selling",
+          defaultValue: "Promotion 1",
           helpText: "Used as the navigation label in Style 2.",
         },
         {
           type: "richtext",
           name: "tabParagraphContent",
           label: "Description",
-          defaultValue:
-            "From mid-century modern to contemporary, our design language is intentionally universal; we design so you can settle in, comfortably, for the long haul.",
+          defaultValue: "Add a description for this promotion.",
         },
         {
           type: "text",
@@ -614,15 +619,13 @@ export const schema = createSchema({
     overlayColor: "#202020",
     overlayColorHover: "#A3A3A3",
     overlayOpacity: 50,
-    headingContent:
-      "The best of every modern style from minimalist to mid century.",
+    headingContent: "Promotion heading",
     size: "default",
     minSize: 28,
     maxSize: 44,
     color: "#FEF4EB",
     alignment: "center",
-    paragraphContent:
-      "A thoughtfully designed, curated furniture collection—made for real life.",
+    paragraphContent: "Add a description for this promotion.",
     paragraphColor: "#FEF4EB",
     paragraphAlignment: "center",
     buttonContent: "EXPLORE NOW",
@@ -630,9 +633,8 @@ export const schema = createSchema({
     textColorDecor: "#FEF4EB",
     buttonTextColor: "#FEF4EB",
     buttonTextSize: 14,
-    tabLabel: "Best Selling",
-    tabParagraphContent:
-      "From mid-century modern to contemporary, our design language is intentionally universal; we design so you can settle in, comfortably, for the long haul.",
+    tabLabel: "Promotion 1",
+    tabParagraphContent: "Add a description for this promotion.",
     tabButtonContent: "EXPLORE NOW",
     tabOverlayColor: "#1A1A1A",
     tabOverlayOpacity: 60,

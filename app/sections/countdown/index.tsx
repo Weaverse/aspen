@@ -1,4 +1,4 @@
-import { createSchema } from "@weaverse/hydrogen";
+import { createSchema, IMAGES_PLACEHOLDERS } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import { forwardRef } from "react";
@@ -8,6 +8,7 @@ import type { SectionProps } from "~/components/section";
 import { Section } from "~/components/section";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import { cn } from "~/utils/cn";
+import { sectionImageSource } from "~/utils/section-placeholder";
 
 const variants = cva("flex items-start justify-center lg:items-end", {
   variants: {
@@ -59,8 +60,8 @@ const Countdown = forwardRef<HTMLElement, CountdownProps>((props, ref) => {
     height,
     scenario = "scenario1",
     style2VerticalPadding = 56,
-    style2Heading = "Limited Sale Offers",
-    style2Description = "Up to 50% including Best Sellers",
+    style2Heading = "Countdown heading",
+    style2Description = "Add details about your promotion.",
     ...rest
   } = props;
   const isScenario2 = scenario === "scenario2";
@@ -70,7 +71,14 @@ const Countdown = forwardRef<HTMLElement, CountdownProps>((props, ref) => {
       ref={ref}
       {...rest}
       verticalPadding="none"
-      backgroundImage={isScenario2 ? undefined : rest.backgroundImage}
+      backgroundImage={
+        isScenario2
+          ? undefined
+          : sectionImageSource(
+              rest.backgroundImage,
+              IMAGES_PLACEHOLDERS.banner_1,
+            )
+      }
       backgroundColor={
         isScenario2 ? rest.backgroundColor || "#F4EFEB" : rest.backgroundColor
       }
@@ -197,14 +205,14 @@ export const schema = createSchema({
           type: "text",
           name: "style2Heading",
           label: "Style 2 heading",
-          defaultValue: "Limited Sale Offers",
+          defaultValue: "Countdown heading",
           condition: "scenario.eq.scenario2",
         },
         {
           type: "text",
           name: "style2Description",
           label: "Style 2 description",
-          defaultValue: "Up to 50% including Best Sellers",
+          defaultValue: "Add details about your promotion.",
           condition: "scenario.eq.scenario2",
         },
         {
@@ -231,28 +239,26 @@ export const schema = createSchema({
     "button--countdown",
   ],
   presets: {
-    backgroundImage:
-      "https://cdn.shopify.com/s/files/1/0969/1650/4944/files/00____cover_1920_1536.webp?v=1756974435",
+    backgroundImage: IMAGES_PLACEHOLDERS.banner_1,
     width: "full",
     height: "medium",
     enableOverlay: true,
     overlayColor: "#1B1B19",
     overlayOpacity: 36,
     style2VerticalPadding: 56,
-    style2Heading: "Limited Sale Offers",
-    style2Description: "Up to 50% including Best Sellers",
+    style2Heading: "Countdown heading",
+    style2Description: "Add details about your promotion.",
     children: [
       {
         type: "subheading--countdown",
-        content: "Seasonal Sale",
+        content: "Your promotion",
         size: "2xl",
         color: "#FEF4EB",
         backgroundColor: "#434343",
       },
       {
         type: "paragraph",
-        content:
-          "Wide inventory of furniture with plenty of essentials that no home would be complete without.",
+        content: "Add details about your promotion.",
         width: "full",
         textSize: "2xl",
         color: "#FEF4EB",

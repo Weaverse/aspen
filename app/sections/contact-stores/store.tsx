@@ -76,12 +76,10 @@ const ContactStore = forwardRef<HTMLDivElement, StoreProps>(
             </div>
           )}
         </div>
-        {translatedAddress && (
-          <MapFrame
-            address={translatedAddress}
-            className="order-1 aspect-auto h-[280px] md:order-2 lg:aspect-auto lg:rounded-none"
-          />
-        )}
+        <MapFrame
+          address={translatedAddress}
+          className="order-1 aspect-auto h-[280px] md:order-2 lg:aspect-auto lg:rounded-none"
+        />
       </div>
     );
   },

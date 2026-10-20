@@ -10,6 +10,7 @@ import clsx from "clsx";
 import type { CSSProperties, KeyboardEvent, PointerEvent } from "react";
 import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
 import { MEDIA_FROM_TABLET } from "~/utils/breakpoints";
+import { sectionImage } from "~/utils/section-placeholder";
 
 type HeightMode = "aspen" | "custom";
 
@@ -38,10 +39,7 @@ function getImageData(
   image: WeaverseImage | string | undefined,
   altText: string,
 ) {
-  if (!image) {
-    return undefined;
-  }
-  return typeof image === "string" ? { url: image, altText } : image;
+  return sectionImage(image, IMAGES_PLACEHOLDERS.banner_1, altText);
 }
 
 const BeforeAndAfter = forwardRef<HTMLDivElement, BeforeAndAfterProps>(

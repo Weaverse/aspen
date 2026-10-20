@@ -147,7 +147,7 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
       handle: null,
       tags: [t("blog.categories.design")],
       publishedAt: "2025-08-12T00:00:00Z",
-      author: { name: "Rylan Holden" },
+      author: { name: t("preview.authorName") },
     },
     {
       id: 2,
@@ -162,7 +162,7 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
       handle: null,
       tags: [t("blog.categories.inspiration")],
       publishedAt: "2025-07-28T00:00:00Z",
-      author: { name: "Sarah Jenkins" },
+      author: { name: t("preview.authorName") },
     },
     {
       id: 3,
@@ -177,7 +177,7 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
       handle: null,
       tags: [t("blog.categories.interiors")],
       publishedAt: "2025-06-16T00:00:00Z",
-      author: { name: "Marcus Thorne" },
+      author: { name: t("preview.authorName") },
     },
   ];
 
@@ -331,7 +331,7 @@ export default Blogs;
 export let loader = async (args: ComponentLoaderArgs<ArticleData>) => {
   let { weaverse, data } = args;
   let { storefront, request } = weaverse;
-  if (data.blogs) {
+  if (data.blogs?.handle?.trim()) {
     const res = await storefront.query(BLOG_QUERY, {
       variables: {
         blogHandle: data.blogs.handle,

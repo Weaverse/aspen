@@ -7,6 +7,7 @@ import { IMAGES_PLACEHOLDERS, useTranslation } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
 import { Image } from "~/components/image";
 import { cn } from "~/utils/cn";
+import { sectionImage } from "~/utils/section-placeholder";
 
 interface HotspotsTestimonialProps extends HydrogenComponentProps {
   image: WeaverseImage | string;
@@ -19,17 +20,11 @@ let HotspotsTestimonial = forwardRef<HTMLDivElement, HotspotsTestimonialProps>(
 
     let { image, aspectRatio, children, className, ...rest } = props;
 
-    let imageData: Partial<WeaverseImage>;
-    if (typeof image === "string") {
-      imageData = { url: image, altText: t("accessibility.hotspotsImage") };
-    } else if (image && typeof image === "object") {
-      imageData = image;
-    } else {
-      imageData = {
-        url: IMAGES_PLACEHOLDERS.collection_1,
-        altText: t("accessibility.hotspotsImage"),
-      };
-    }
+    const imageData = sectionImage(
+      image,
+      IMAGES_PLACEHOLDERS.collection_1,
+      t("accessibility.hotspotsImage"),
+    );
 
     return (
       <div

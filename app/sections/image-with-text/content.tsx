@@ -179,7 +179,7 @@ export const schema = createSchema({
     children: [
       {
         type: "heading",
-        content: "MAKE YOURSELF AT HOME",
+        content: "Image with text",
         as: "h2",
         weight: "400",
         letterSpacing: "tight",
@@ -188,7 +188,7 @@ export const schema = createSchema({
       {
         type: "paragraph",
         content:
-          "Discover nomad, our best-selling and most-awarded modular seating.",
+          "Pair an image with text to introduce your store or tell a story.",
         width: "full",
         alignment: "left",
       },

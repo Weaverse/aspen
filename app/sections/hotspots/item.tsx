@@ -191,7 +191,7 @@ export default HotspotsItem;
 export const loader = async (args: ComponentLoaderArgs<HotspotsItemData>) => {
   const { weaverse, data } = args;
   const { storefront } = weaverse;
-  if (!data?.product) {
+  if (!data?.product?.handle?.trim()) {
     return null;
   }
 

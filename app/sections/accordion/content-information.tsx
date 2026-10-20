@@ -92,24 +92,24 @@ export const schema = createSchema({
       },
       {
         type: "subheading",
-        content: "We offer support via email.",
+        content: "Add your customer service information here.",
         alignment: "left",
       },
       {
         type: "paragraph",
-        content: "<p>Email</p><p>support@archercommerce.com</p>",
+        content: "<p>Email</p><p>Add your support email</p>",
         width: "full",
         alignment: "left",
       },
       {
         type: "paragraph",
-        content: "<p>Hours</p><p>Monday - Friday, 9AM - 5PM ET</p>",
+        content: "<p>Hours</p><p>Add your support hours</p>",
         width: "full",
         alignment: "left",
       },
       {
         type: "paragraph",
-        content: "<p>Average response time</p><p>1 Business day</p>",
+        content: "<p>Average response time</p><p>Add your response time</p>",
         width: "full",
         alignment: "left",
       },

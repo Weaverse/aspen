@@ -3,6 +3,7 @@ import {
   type ComponentLoaderArgs,
   createSchema,
   type HydrogenComponentProps,
+  IMAGES_PLACEHOLDERS,
   useTranslation,
   type WeaverseProduct,
   type WeaverseVideo,
@@ -27,23 +28,12 @@ const VideoPlaceholder = () => {
 
   return (
     <div className="absolute inset-0 flex h-full w-full items-center justify-center bg-gray-100">
-      <div className="flex flex-col items-center gap-4 text-gray-400">
-        <svg
-          width="48"
-          height="48"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-        >
-          <path d="M10 8L16 12L10 16V8Z" fill="currentColor" />
-          <path
-            d="M2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12Z"
-            stroke="currentColor"
-            strokeWidth="2"
-          />
-        </svg>
-
+      <Image
+        data={{ url: IMAGES_PLACEHOLDERS.image, altText: t("video.none") }}
+        sizes="auto"
+        className="absolute inset-0 h-full w-full"
+      />
+      <div className="relative flex flex-col items-center gap-4 text-gray-400">
         <p className="font-medium text-sm">{t("video.none")}</p>
       </div>
     </div>
@@ -259,7 +249,7 @@ export const loader = async (args: ComponentLoaderArgs<VideoItemData>) => {
   const { weaverse, data } = args;
   const { storefront } = weaverse;
 
-  if (!data?.product?.handle) {
+  if (!data?.product?.handle?.trim()) {
     return null;
   }
 

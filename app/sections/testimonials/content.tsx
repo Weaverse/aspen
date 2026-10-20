@@ -272,8 +272,7 @@ export let schema: HydrogenComponentSchema = {
           type: "richtext",
           name: "description",
           label: "Description",
-          defaultValue:
-            "Beautiful dining set, the color is natural and the chairs very comfortable!",
+          defaultValue: "Share a customer testimonial here.",
           placeholder: "Pair large text with an image to tell a story.",
         },
         {
@@ -291,7 +290,7 @@ export let schema: HydrogenComponentSchema = {
           type: "text",
           name: "author",
           label: "Author name",
-          defaultValue: "Stephanie L.",
+          defaultValue: "Customer name",
           placeholder: "Name of the author",
         },
       ],
@@ -387,10 +386,9 @@ export let schema: HydrogenComponentSchema = {
     weight: "400",
     letterSpacing: "tight",
     alignment: "left",
-    description:
-      "Beautiful dining set, the color is natural and the chairs very comfortable!",
+    description: "Share a customer testimonial here.",
     ratting: 5,
-    author: "Stephanie L.",
+    author: "Customer name",
     subHeadingTag: "p",
     subHeadingSize: "large",
     subHeadingWeight: "normal",

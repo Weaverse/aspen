@@ -221,8 +221,7 @@ export let schema = createSchema({
           type: "richtext",
           name: "paragraphContent",
           label: "Paragraph content",
-          defaultValue:
-            "Meet the room edits: real life shots of our furniture in action. (We like to think we style our furniture well, but we can't help but show off how you do it.)",
+          defaultValue: "Share images from your social feed here.",
           placeholder: "Enter paragraph text",
         },
         {
@@ -269,10 +268,9 @@ export let schema = createSchema({
     headingContent: "INSTAGRAM",
     headingTagName: "h2",
     color: "#29231E",
-    subheadingContent: "@aspen_life",
+    subheadingContent: "@yourbrand",
     subheadingColor: "#524B46",
-    paragraphContent:
-      "Meet the room edits: real life shots of our furniture in action.",
+    paragraphContent: "Share images from your social feed here.",
     paragraphColor: "#524B46",
     buttonContent: "EXPLORE NOW",
     to: "https://www.instagram.com/",

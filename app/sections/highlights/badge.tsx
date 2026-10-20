@@ -259,8 +259,7 @@ export let schema = createSchema({
           type: "text",
           name: "headingContent",
           label: "Heading content",
-          defaultValue:
-            "Quality furniture made to last through moves and milestones.",
+          defaultValue: "Highlight heading",
           placeholder: "Enter heading text",
         },
         ...headingInputs
@@ -283,7 +282,7 @@ export let schema = createSchema({
           type: "textarea",
           name: "description",
           label: "Description",
-          defaultValue: "Built with durable materials for years of daily use.",
+          defaultValue: "Describe a highlight of your store.",
         },
         {
           type: "text",
@@ -305,10 +304,9 @@ export let schema = createSchema({
     iconType: "circle",
     showIcon: true,
     badgeTextColor: "#29231E",
-    headingContent:
-      "Quality furniture made to last through moves and milestones.",
+    headingContent: "Highlight heading",
     color: "#29231E",
-    description: "Built with durable materials for years of daily use.",
+    description: "Describe a highlight of your store.",
     linkText: "Explore More",
     linkTo: "/collections/all",
   },

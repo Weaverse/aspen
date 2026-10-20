@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { chromium, expect } from "@playwright/test";
 import { compile } from "@tailwindcss/node";
 import { Scanner } from "@tailwindcss/oxide";
+import { IMAGES_PLACEHOLDERS } from "@weaverse/hydrogen";
 import { build } from "esbuild";
 import { DESKTOP_MIN_PX, TABLET_MAX_PX } from "./responsive-test-widths.mjs";
 
@@ -58,6 +59,7 @@ const bundle = await build({
           if (path === "weaverse") {
             return {
               contents: `
+                export const IMAGES_PLACEHOLDERS = ${JSON.stringify(IMAGES_PLACEHOLDERS)};
                 export const useChildInstances = () => [
                   { _id: "fixture-address", data: { type: "address-item", address: "First address" } },
                 ];

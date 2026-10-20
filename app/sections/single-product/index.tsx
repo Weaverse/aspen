@@ -403,7 +403,7 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
 export const loader = async (args: ComponentLoaderArgs<SingleProductData>) => {
   const { weaverse, data } = args;
   const { storefront } = weaverse;
-  if (!data.product) {
+  if (!data?.product?.handle?.trim()) {
     return null;
   }
   const productHandle = data.product.handle;
@@ -674,8 +674,8 @@ export const schema = createSchema({
           type: "text",
           label: "Estimated delivery text",
           name: "estimatedDeliveryText",
-          defaultValue: "Estimated delivery within 3-5 business days",
-          placeholder: "Estimated delivery within 3-5 business days",
+          defaultValue: "",
+          placeholder: "Enter delivery information",
           helpText: "Leave blank to hide the delivery estimate row.",
         },
       ],
