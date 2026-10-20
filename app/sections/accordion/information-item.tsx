@@ -33,7 +33,7 @@ export const schema = createSchema({
       },
       {
         type: "paragraph",
-        content: "support@archercommerce.com",
+        content: "Add your support email",
         alignment: "left",
         width: "full",
       },

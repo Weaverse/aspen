@@ -10,6 +10,10 @@ const presetKeys = new Map(
   ),
 );
 
+const placeholderValues = new Set<string>(
+  Object.values(enUS.themePresets.placeholderContent),
+);
+
 export function translatePresetText<T>(t: Translate, value: T): T | string {
   const key = typeof value === "string" ? presetKeys.get(value) : undefined;
   return key ? t(key) : value;
@@ -67,10 +71,12 @@ export function translateThemeText<T>(
     return value;
   }
 
-  // Page content belongs to each section instance. A shared translation key
-  // must not replace an Aspen preset or merchant-authored value.
+  // New theme-owned placeholders have their own keys, but keep honoring explicit
+  // field translations. Different legacy presets and merchant copy stay intact.
   if (key.startsWith("themeContent.")) {
-    return value === defaultTranslation(key)
+    return value === defaultTranslation(key) ||
+      (placeholderValues.has(value) &&
+        hasTranslationOverride(key, { merchantOverrides, designOverrides }))
       ? t(key)
       : translatePresetText(t, value);
   }

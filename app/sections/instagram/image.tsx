@@ -1,4 +1,4 @@
-import { Image as ImageIcon, InstagramLogo } from "@phosphor-icons/react";
+import { InstagramLogo } from "@phosphor-icons/react";
 import {
   createSchema,
   type HydrogenComponentProps,
@@ -8,6 +8,7 @@ import { forwardRef } from "react";
 import { Link as RemixLink } from "react-router";
 import { Image } from "~/components/image";
 import { useHrefWithLocale } from "~/components/link";
+import { sectionImage } from "~/utils/section-placeholder";
 
 interface InstagramImageProps extends HydrogenComponentProps {
   image?: WeaverseImage | string;
@@ -20,30 +21,16 @@ const InstagramImage = forwardRef<HTMLDivElement, InstagramImageProps>(
   (props, ref) => {
     const { image, altText, to, openInNewTab, ...rest } = props;
     const href = useHrefWithLocale(to);
-    const imageData =
-      typeof image === "string"
-        ? { url: image, altText }
-        : image
-          ? { ...image, altText: altText || image.altText }
-          : null;
+    const imageData = sectionImage(image);
 
     const content = (
       <>
-        {imageData?.url ? (
-          <Image
-            data={imageData}
-            alt={imageData.altText || ""}
-            className="h-full w-full"
-            sizes="(min-width: 64rem) 260px, (min-width: 744px) 22vw, calc((100vw - 48px) / 2)"
-          />
-        ) : (
-          <span className="flex h-full w-full items-center justify-center bg-[#EBE8E5]">
-            <ImageIcon
-              aria-hidden="true"
-              className="size-[50px] text-[#524B46] opacity-60"
-            />
-          </span>
-        )}
+        <Image
+          data={imageData}
+          alt={altText || imageData.altText || ""}
+          className="h-full w-full"
+          sizes="(min-width: 64rem) 260px, (min-width: 744px) 22vw, calc((100vw - 48px) / 2)"
+        />
         <span className="pointer-events-none absolute inset-0 bg-black/30 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100 group-active:opacity-100" />
         <InstagramLogo className="-translate-x-1/2 -translate-y-1/2 pointer-events-none absolute top-1/2 left-1/2 z-1 size-8 text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100 group-active:opacity-100" />
       </>

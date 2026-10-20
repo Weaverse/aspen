@@ -1,12 +1,14 @@
 import {
   createSchema,
   type HydrogenComponentProps,
+  IMAGES_PLACEHOLDERS,
   useTranslation,
   type WeaverseVideo,
 } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import { forwardRef } from "react";
+import { Image } from "~/components/image";
 
 const variants = cva("mx-auto aspect-video w-full", {
   variants: {
@@ -52,21 +54,33 @@ interface VideoItemProps
   videoUrl: string;
 }
 
-const VideoEmbedItem = forwardRef<HTMLIFrameElement, VideoItemProps>(
+const VideoEmbedItem = forwardRef<HTMLDivElement, VideoItemProps>(
   (props, ref) => {
     const { t } = useTranslation();
     const { video, videoUrl, size, borderRadius, ...rest } = props;
+    const source = video?.url?.trim() || videoUrl?.trim();
     return (
-      <iframe
+      <div
         ref={ref}
         {...rest}
-        className={variants({ size, borderRadius })}
-        src={video?.url || videoUrl}
-        allowFullScreen
-        title={t("video.youtubePlayer")}
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        sandbox="allow-presentation allow-same-origin allow-scripts"
-      />
+        className={`${variants({ size, borderRadius })} relative overflow-hidden`}
+      >
+        {source ? (
+          <iframe
+            className="absolute inset-0 h-full w-full"
+            src={source}
+            allowFullScreen
+            title={t("video.youtubePlayer")}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            sandbox="allow-presentation allow-same-origin allow-scripts"
+          />
+        ) : (
+          <Image
+            data={{ url: IMAGES_PLACEHOLDERS.image, altText: t("video.none") }}
+            sizes="auto"
+          />
+        )}
+      </div>
     );
   },
 );
@@ -91,8 +105,8 @@ export const schema = createSchema({
           type: "text",
           name: "videoUrl",
           label: "Embed URL",
-          defaultValue: "https://www.youtube.com/embed/Su-x4Mo5xmU",
-          placeholder: "https://www.youtube.com/embed/Su-x4Mo5xmU",
+          defaultValue: "",
+          placeholder: "Enter your video embed URL",
           helpText:
             'How to get YouTube <a target="_blank" href="https://support.google.com/youtube/answer/171780?hl=en#:~:text=On%20a%20computer%2C%20go%20to,appears%2C%20copy%20the%20HTML%20code.">embed code</a>.',
         },

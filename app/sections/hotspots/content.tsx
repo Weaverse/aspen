@@ -123,7 +123,7 @@ export const schema = createSchema({
       {
         type: "paragraph",
         content:
-          "Discover nomad, our best-selling and most-awarded modular seating.",
+          "Pair an image with text to introduce your store or tell a story.",
         alignment: "center",
         width: "narrow",
       },

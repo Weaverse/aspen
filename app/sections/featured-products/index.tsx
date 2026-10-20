@@ -220,8 +220,7 @@ export const schema = createSchema({
         weight: "400",
         letterSpacing: "tight",
         alignment: "center",
-        paragraphContent:
-          "Considered materials, enduring construction, and comfort designed for everyday life.",
+        paragraphContent: "Add a description for this section.",
         paragraphAlignment: "center",
         paragraphWidth: "narrow",
         buttonContent: "EXPLORE NOW",

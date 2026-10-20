@@ -384,8 +384,7 @@ export const schema = createSchema({
           type: "richtext",
           name: "paragraphContent",
           label: "Paragraph content",
-          defaultValue:
-            "If you're looking for products that bring ease through form and function, we offer no-fuss furniture built to last.",
+          defaultValue: "Add a description for this section.",
           placeholder: "Enter paragraph text",
           helpText: "Shown in Style 1 and Style 3; hidden in Style 2.",
         },
@@ -519,8 +518,7 @@ export const schema = createSchema({
     weight: "400",
     letterSpacing: "normal",
     alignment: "center",
-    paragraphContent:
-      "If you're looking for products that bring ease through form and function, we offer no-fuss furniture built to last.",
+    paragraphContent: "Add a description for this section.",
     paragraphAlignment: "center",
     paragraphWidth: "narrow",
     buttonContent: "EXPLORE NOW",

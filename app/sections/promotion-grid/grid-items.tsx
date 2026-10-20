@@ -26,6 +26,7 @@ import { translatePresetText } from "~/utils/translation";
 import "swiper/css";
 import { DESKTOP_MIN_PX, TABLET_MIN_PX } from "~/utils/breakpoints";
 import { cn } from "~/utils/cn";
+import { sectionImageSource } from "~/utils/section-placeholder";
 import type { PromotionArrowsProps } from "./arrows";
 import { Arrows } from "./arrows";
 import type { PromotionDotsProps } from "./dots";
@@ -356,7 +357,10 @@ const extractTabsData = (childrenData: any[]) => {
         "tabButtonContent",
         getValue("buttonContent", ""),
       ),
-      backgroundImage: getValue("backgroundImage", ""),
+      backgroundImage: sectionImageSource(
+        getValue("backgroundImage", ""),
+        IMAGES_PLACEHOLDERS.collection_1,
+      ),
       contentPosition: getValue("contentPosition", "center center"),
       enableOverlay: getValue("enableOverlay", true),
       overlayColor: getValue(
@@ -434,7 +438,7 @@ let PromotionSlider = forwardRef<HTMLDivElement, GridItemProps>(
       mobileTabsHeight = 562,
       sliderHeading: rawI18nSliderHeading = "EXPLORE MORE",
       sliderDescription:
-        rawI18nSliderDescription = "If you're looking for products that bring ease through form and function, we offer no-fuss furniture built to last.",
+        rawI18nSliderDescription = "Add a description for your promotions.",
       ...rest
     } = props;
     const layout = usePromotionGridLayout() ?? legacyLayout;
@@ -632,8 +636,7 @@ export let schema = createSchema({
           type: "richtext",
           name: "sliderDescription",
           label: "Description",
-          defaultValue:
-            "If you're looking for products that bring ease through form and function, we offer no-fuss furniture built to last.",
+          defaultValue: "Add a description for your promotions.",
         },
       ],
     },
@@ -810,8 +813,7 @@ export let schema = createSchema({
     tabsHeight: 840,
     mobileTabsHeight: 562,
     sliderHeading: "EXPLORE MORE",
-    sliderDescription:
-      "If you're looking for products that bring ease through form and function, we offer no-fuss furniture built to last.",
+    sliderDescription: "Add a description for your promotions.",
     children: [
       {
         type: "promotion-grid-item",
@@ -822,26 +824,23 @@ export let schema = createSchema({
         overlayColor: "#202020",
         overlayColorHover: "#A3A3A3",
         overlayOpacity: 50,
-        headingContent:
-          "The best of every modern style from minimalist to mid century.",
+        headingContent: "Promotion heading",
         size: "default",
         minSize: 28,
         maxSize: 44,
         color: "#FEF4EB",
         alignment: "center",
         weight: "400",
-        paragraphContent:
-          "A thoughtfully designed, curated furniture collection—made for real life.",
+        paragraphContent: "Add a description for this promotion.",
         paragraphColor: "#FEF4EB",
         paragraphAlignment: "center",
         paragraphWidth: "full",
         buttonContent: "EXPLORE NOW",
-        to: "/collections/best-sellers",
+        to: "#",
         variant: "decor",
         textColorDecor: "#FEF4EB",
-        tabLabel: "Best Selling",
-        tabParagraphContent:
-          "From mid-century modern to contemporary, our design language is intentionally universal; we design so you can settle in, comfortably, for the long haul.",
+        tabLabel: "Promotion 1",
+        tabParagraphContent: "Add a description for this promotion.",
         tabButtonContent: "EXPLORE NOW",
         tabOverlayColor: "#1A1A1A",
         tabOverlayOpacity: 60,
@@ -855,26 +854,23 @@ export let schema = createSchema({
         overlayColor: "#202020",
         overlayColorHover: "#A3A3A3",
         overlayOpacity: 50,
-        headingContent:
-          "Quality furniture made to last through moves and milestones.",
+        headingContent: "Promotion heading",
         size: "default",
         minSize: 28,
         maxSize: 44,
         color: "#FEF4EB",
         alignment: "center",
         weight: "400",
-        paragraphContent:
-          "A thoughtfully designed, curated furniture collection—made for real life.",
+        paragraphContent: "Add a description for this promotion.",
         paragraphColor: "#FEF4EB",
         paragraphAlignment: "center",
         paragraphWidth: "full",
         buttonContent: "EXPLORE NOW",
-        to: "/collections/sofa-beds",
+        to: "#",
         variant: "decor",
         textColorDecor: "#FEF4EB",
-        tabLabel: "Sofa Beds",
-        tabParagraphContent:
-          "Generous comfort by day, a welcoming place to stay by night. Designed to transform with ease.",
+        tabLabel: "Promotion 2",
+        tabParagraphContent: "Add a description for this promotion.",
         tabButtonContent: "EXPLORE NOW",
         tabOverlayColor: "#1A1A1A",
         tabOverlayOpacity: 60,
@@ -888,25 +884,23 @@ export let schema = createSchema({
         overlayColor: "#202020",
         overlayColorHover: "#A3A3A3",
         overlayOpacity: 50,
-        headingContent: "Finishing touches for a home that feels like yours.",
+        headingContent: "Promotion heading",
         size: "default",
         minSize: 28,
         maxSize: 44,
         color: "#FEF4EB",
         alignment: "center",
         weight: "400",
-        paragraphContent:
-          "A thoughtfully designed, curated furniture collection—made for real life.",
+        paragraphContent: "Add a description for this promotion.",
         paragraphColor: "#FEF4EB",
         paragraphAlignment: "center",
         paragraphWidth: "full",
         buttonContent: "EXPLORE NOW",
-        to: "/collections/decorations",
+        to: "#",
         variant: "decor",
         textColorDecor: "#FEF4EB",
-        tabLabel: "Decorations",
-        tabParagraphContent:
-          "The finishing touches that bring warmth, texture, and personality to every room.",
+        tabLabel: "Promotion 3",
+        tabParagraphContent: "Add a description for this promotion.",
         tabButtonContent: "EXPLORE NOW",
         tabOverlayColor: "#1A1A1A",
         tabOverlayOpacity: 60,

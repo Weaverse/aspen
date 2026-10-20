@@ -12,6 +12,7 @@ import { forwardRef, useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { translatePreview } from "~/utils/preview-translation";
+import { sectionImage } from "~/utils/section-placeholder";
 import "swiper/css";
 import type { CollectionByIdsQuery } from "storefront-api.generated";
 import { Image } from "~/components/image";
@@ -137,6 +138,10 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
         ),
       ];
     }
+    collections = collections.map((collection) => ({
+      ...collection,
+      image: sectionImage(collection.image, IMAGES_PLACEHOLDERS.collection_1),
+    }));
     let style = {
       "--collection-name-color": collectionNameColor,
       "--collection-bg-color": collectionBackgroundColor,
@@ -382,6 +387,7 @@ export let loader = async ({
 }: ComponentLoaderArgs<CollectionItemsData>) => {
   let { language, country } = weaverse.storefront.i18n;
   let ids = data.collections
+    ?.filter((collection) => Boolean(collection?.id))
     ?.slice(0, MAX_COLLECTIONS)
     .map((collection) => `gid://shopify/Collection/${collection.id}`);
   if (ids?.length) {
@@ -410,12 +416,15 @@ function SliderCollectionCard({
     null,
   );
   const { ref, inView } = useInView({ rootMargin: "200px", triggerOnce: true });
+  const isPlaceholder = collection.id.startsWith(
+    "gid://shopify/Collection/placeholder-",
+  );
   const countPath = usePrefixPathWithLocale(
     `/api/collection/${collection.handle}/product-count`,
   );
 
   useEffect(() => {
-    if (!inView) {
+    if (!inView || isPlaceholder) {
       return;
     }
     const controller = new AbortController();
@@ -433,7 +442,7 @@ function SliderCollectionCard({
         }
       });
     return () => controller.abort();
-  }, [countPath, inView]);
+  }, [countPath, inView, isPlaceholder]);
 
   return (
     <Link

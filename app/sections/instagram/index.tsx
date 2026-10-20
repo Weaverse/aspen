@@ -56,9 +56,8 @@ export const schema: HydrogenComponentSchema = {
         type: "instagram--content",
         headingContent: "INSTAGRAM",
         headingTagName: "h2",
-        subheadingContent: "@aspen_life",
-        paragraphContent:
-          "Meet the room edits: real life shots of our furniture in action.",
+        subheadingContent: "@yourbrand",
+        paragraphContent: "Share images from your social feed here.",
         buttonContent: "EXPLORE NOW",
         to: "https://www.instagram.com/",
         alignment: "left",

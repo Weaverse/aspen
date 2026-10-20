@@ -1,6 +1,7 @@
 import {
   createSchema,
   type HydrogenComponentProps,
+  IMAGES_PLACEHOLDERS,
   type WeaverseImage,
 } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
@@ -24,6 +25,7 @@ import { layoutInputs } from "~/components/section";
 import { useAnimation } from "~/hooks/use-animation";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import { cn } from "~/utils/cn";
+import { sectionImageSource } from "~/utils/section-placeholder";
 
 const variants = cva("flex h-full w-full items-end", {
   variants: {
@@ -124,7 +126,7 @@ function resolveSlideImage(image?: WeaverseImage | string) {
     return undefined;
   }
 
-  return image;
+  return sectionImageSource(image, "") || undefined;
 }
 
 const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
@@ -228,8 +230,14 @@ const Slide = forwardRef<HTMLDivElement, SlideProps>((props, ref) => {
   const mobileButton = mobileButtonContent || buttonContent;
   const desktopImage = resolveSlideImage(backgroundImage);
   const mobileImage = resolveSlideImage(mobileBackgroundImage);
-  const desktopDisplayImage = desktopImage || mobileImage;
-  const mobileDisplayImage = mobileImage || desktopImage;
+  const desktopDisplayImage = sectionImageSource(
+    desktopImage || mobileImage,
+    IMAGES_PLACEHOLDERS.banner_1,
+  );
+  const mobileDisplayImage = sectionImageSource(
+    mobileImage || desktopImage,
+    IMAGES_PLACEHOLDERS.banner_1,
+  );
   const headingTrackingClassName =
     (!letterSpacing || letterSpacing === "normal") && "tracking-[-0.03em]";
   const tabletHeadingClassName =
@@ -717,18 +725,16 @@ export const schema = createSchema({
     enableOverlay: true,
     overlayColor: "#1B1B19",
     overlayOpacity: 30,
-    headingContent: "THE CRAFTED COMFORT",
-    mobileHeadingContent: "THE TAILORED ELEGANCE",
+    headingContent: "Slideshow heading",
+    mobileHeadingContent: "Slideshow heading",
     headingTagName: "h1",
     color: "#FEF4EB",
     size: "default",
     weight: "400",
     letterSpacing: "normal",
     alignment: "left",
-    paragraphContent:
-      "Handcrafted pieces designed to bring warmth, character, and lasting quality to every room.",
-    mobileParagraphContent:
-      "Wide inventory of furniture with plenty of essentials that no home would be complete without.",
+    paragraphContent: "Add a description for this slide.",
+    mobileParagraphContent: "Add a description for this slide.",
     paragraphColor: "#FEF4EB",
     paragraphSize: "base",
     paragraphAlignment: "left",

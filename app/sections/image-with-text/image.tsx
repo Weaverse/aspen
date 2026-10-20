@@ -11,6 +11,7 @@ import { forwardRef } from "react";
 import { Image } from "~/components/image";
 import type { ImageAspectRatio } from "~/types/image";
 import { cn } from "~/utils/cn";
+import { sectionImage } from "~/utils/section-placeholder";
 import { useImageWithTextContext } from "./context";
 
 const variants = cva("h-auto w-full", {
@@ -69,10 +70,11 @@ const ImageWithTextImage = forwardRef<HTMLDivElement, ImageWithTextImageProps>(
       isLegacyLayout,
     } = useImageWithTextContext();
     const finalAspectRatio = propAspectRatio || contextAspectRatio;
-    const imageData: Partial<WeaverseImage> =
-      typeof image === "string"
-        ? { url: image, altText: t("accessibility.imagePlaceholder") }
-        : image;
+    const imageData = sectionImage(
+      image,
+      IMAGES_PLACEHOLDERS.image,
+      t("accessibility.imagePlaceholder"),
+    );
 
     let aspRt: string | undefined;
     if (finalAspectRatio === "adapt") {

@@ -102,8 +102,7 @@ export const schema = createSchema({
       { type: "heading", content: "EXPLORE MORE" },
       {
         type: "paragraph",
-        content:
-          "If you're looking for products that bring ease through form and function, we offer no-fuss furniture built to last.",
+        content: "Add a description for this section.",
       },
     ],
   },
