@@ -17,12 +17,13 @@ import type { OverlayProps } from "~/components/overlay";
 import { overlayInputs } from "~/components/overlay";
 import Paragraph, { type ParagraphProps } from "~/components/paragraph";
 import { useTranslatedText } from "~/hooks/use-translated-text";
+import { cn } from "~/utils/cn";
 
 const variants = cva(
   [
     "promotion-grid-item",
     "group/overlay",
-    "relative isolate flex aspect-[335/427] flex-col gap-14 overflow-hidden px-8 py-10 md:aspect-[678/462] md:px-12 md:py-10",
+    "relative isolate flex min-h-[427px] flex-col gap-10 overflow-hidden px-10 py-20 lg:min-h-[462px]",
     "[&_.paragraph]:mx-[unset]",
   ],
   {
@@ -162,7 +163,7 @@ const PromotionGridItem = forwardRef<HTMLDivElement, PromotionItemProps>(
       borderColorHover,
       textColorDecor = "#FEF4EB",
       buttonTextColor = "#FEF4EB",
-      buttonTextSize = 12,
+      buttonTextSize = 14,
       tabLabel: _tabLabel,
       tabParagraphContent: _tabParagraphContent,
       tabButtonContent: _tabButtonContent,
@@ -206,52 +207,65 @@ const PromotionGridItem = forwardRef<HTMLDivElement, PromotionItemProps>(
             }}
           />
         )}
-        <div className="flex flex-col gap-2">
-          {headingContent && (
-            <Heading
-              content={translateText(
-                headingContent,
-                "themeContent.componentsHeading.content",
+        <div className="relative z-2 flex w-full max-w-165 flex-col gap-9">
+          {(headingContent || subheadingContent) && (
+            <div className="flex w-full flex-col gap-2">
+              {headingContent && (
+                <Heading
+                  content={translateText(
+                    headingContent,
+                    "themeContent.componentsHeading.content",
+                  )}
+                  as={headingTagName}
+                  color={color}
+                  size={size}
+                  mobileSize={mobileSize}
+                  desktopSize={desktopSize}
+                  weight={weight}
+                  letterSpacing={letterSpacing}
+                  alignment={alignment}
+                  minSize={minSize}
+                  maxSize={maxSize}
+                  animate={animate}
+                  className={cn(
+                    "w-full leading-[1.1]",
+                    (!size || size === "default") &&
+                      "text-(length:--h6-base-size) lg:text-(length:--h3-base-size)",
+                    (!size || size === "default") &&
+                      (!letterSpacing || letterSpacing === "normal") &&
+                      "tracking-[-0.02em] lg:tracking-[-0.03em]",
+                    "md:max-lg:text-wrap md:max-lg:leading-[1.1]",
+                  )}
+                />
               )}
-              as={headingTagName}
-              color={color}
-              size={size}
-              mobileSize={mobileSize}
-              desktopSize={desktopSize}
-              weight={weight}
-              letterSpacing={letterSpacing}
-              alignment={alignment}
-              minSize={minSize}
-              maxSize={maxSize}
-              animate={animate}
+              {subheadingContent && (
+                <SubheadingTag
+                  className={subheadingClasses}
+                  style={{ color: subheadingColor }}
+                >
+                  {translateText(
+                    subheadingContent,
+                    "themeContent.componentsSubheading.content",
+                  )}
+                </SubheadingTag>
+              )}
+            </div>
+          )}
+          {paragraphContent && (
+            <Paragraph
+              className="py-4 font-body text-sm leading-[1.6] tracking-[0.01em]"
+              content={translateText(
+                paragraphContent,
+                "themeContent.componentsParagraph.content",
+              )}
+              as={paragraphTag}
+              color={paragraphColor}
+              textSize={paragraphSize}
+              alignment={paragraphAlignment}
+              width={paragraphWidth}
             />
           )}
-          {subheadingContent && (
-            <SubheadingTag
-              className={subheadingClasses}
-              style={{ color: subheadingColor }}
-            >
-              {translateText(
-                subheadingContent,
-                "themeContent.componentsSubheading.content",
-              )}
-            </SubheadingTag>
-          )}
         </div>
-        {paragraphContent && (
-          <Paragraph
-            className="font-body text-sm leading-[1.55]"
-            content={translateText(
-              paragraphContent,
-              "themeContent.componentsParagraph.content",
-            )}
-            as={paragraphTag}
-            color={paragraphColor}
-            textSize={paragraphSize}
-            alignment={paragraphAlignment}
-            width={paragraphWidth}
-          />
-        )}
         {buttonContent && (
           <Link
             variant={variant}
@@ -264,7 +278,7 @@ const PromotionGridItem = forwardRef<HTMLDivElement, PromotionItemProps>(
             textColorDecor={textColorDecor}
             openInNewTab={openInNewTab}
             to={to}
-            className="w-fit"
+            className={cn("relative z-2 w-fit", variant === "decor" && "p-1")}
             style={{
               color: buttonTextColor,
               fontSize: `${buttonTextSize}px`,
@@ -530,7 +544,7 @@ export const schema = createSchema({
             step: 1,
             unit: "px",
           },
-          defaultValue: 12,
+          defaultValue: 14,
         },
         {
           type: "color",
@@ -602,7 +616,7 @@ export const schema = createSchema({
     overlayOpacity: 50,
     headingContent:
       "The best of every modern style from minimalist to mid century.",
-    size: "scale",
+    size: "default",
     minSize: 28,
     maxSize: 44,
     color: "#FEF4EB",
@@ -615,7 +629,7 @@ export const schema = createSchema({
     variant: "decor",
     textColorDecor: "#FEF4EB",
     buttonTextColor: "#FEF4EB",
-    buttonTextSize: 12,
+    buttonTextSize: 14,
     tabLabel: "Best Selling",
     tabParagraphContent:
       "From mid-century modern to contemporary, our design language is intentionally universal; we design so you can settle in, comfortably, for the long haul.",

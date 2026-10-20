@@ -11,6 +11,7 @@ import {
   isValidElement,
   type ReactNode,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import { Autoplay, Navigation } from "swiper/modules";
@@ -23,12 +24,13 @@ import type { SectionProps } from "~/components/section";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import { translatePresetText } from "~/utils/translation";
 import "swiper/css";
-import { TABLET_MIN_PX } from "~/utils/breakpoints";
+import { DESKTOP_MIN_PX, TABLET_MIN_PX } from "~/utils/breakpoints";
 import { cn } from "~/utils/cn";
 import type { PromotionArrowsProps } from "./arrows";
 import { Arrows } from "./arrows";
 import type { PromotionDotsProps } from "./dots";
 import { Dots } from "./dots";
+import { usePromotionGridLayout } from "./index";
 
 type GridItemProps = VariantProps<typeof variants> &
   SectionProps &
@@ -36,6 +38,7 @@ type GridItemProps = VariantProps<typeof variants> &
   PromotionDotsProps & {
     layout?: "slider" | "tabs";
     slidesToShow?: number;
+    tabletGap?: number;
     autoPlay?: boolean;
     autoPlayDelay?: number;
     showDots?: boolean;
@@ -47,7 +50,7 @@ type GridItemProps = VariantProps<typeof variants> &
   };
 
 let variants = cva(
-  "promotion-slider group relative mx-auto w-full min-w-0 max-w-[1376px] px-5 md:px-0",
+  "promotion-slider group relative mx-auto w-full min-w-0 max-w-360 px-5 md:px-8",
   {
     variants: {
       slidesToShow: {
@@ -117,7 +120,7 @@ const TabsLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
     <div
       ref={ref}
       {...rest}
-      className="promotion-tabs relative isolate h-[var(--promotion-tabs-mobile-height)] min-w-0 overflow-hidden md:h-[var(--promotion-tabs-height)] md:max-lg:flex md:max-lg:h-auto md:max-lg:flex-col md:max-lg:gap-16 md:max-lg:pt-10 md:max-lg:pb-20"
+      className="promotion-tabs relative isolate flex min-h-(--promotion-tabs-mobile-height) min-w-0 flex-col overflow-hidden md:min-h-0 md:gap-16 md:pt-10 md:pb-20 lg:min-h-(--promotion-tabs-height) lg:gap-[200px] lg:pt-40"
       style={
         {
           "--promotion-tabs-height": `${tabsHeight}px`,
@@ -147,7 +150,7 @@ const TabsLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
         </div>
       )}
 
-      <div className="absolute inset-x-0 top-12 z-2 mx-auto flex max-w-[335px] min-w-0 flex-col items-center px-5 text-center md:top-[360px] md:max-w-180 md:px-0 md:max-lg:static md:max-lg:order-2 md:max-lg:w-[calc(100%-var(--spacing)*16)] lg:top-[420px] lg:max-w-[680px]">
+      <div className="relative z-2 mx-auto flex w-full min-w-0 max-w-180 flex-col items-center px-6 py-12 text-center md:order-2 md:w-[calc(100%-var(--spacing)*16)] md:p-0">
         {activeTabData.subheadingContent && (
           <SubheadingTag
             className="mb-4 font-body text-sm"
@@ -158,7 +161,7 @@ const TabsLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
         )}
         {activeTabData.paragraphContent && (
           <Paragraph
-            className="ff-heading !mx-auto w-full min-w-0 break-words text-[24px] leading-[1.15] md:text-[24px] md:max-lg:leading-[normal] lg:text-[26px]"
+            className="ff-heading !mx-auto w-full min-w-0 break-words text-2xl leading-[normal]"
             content={activeTabData.paragraphContent}
             as={activeTabData.paragraphTag}
             color={activeTabData.paragraphColor}
@@ -178,7 +181,10 @@ const TabsLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
             textColorDecor={activeTabData.textColorDecor}
             openInNewTab={activeTabData.openInNewTab}
             to={activeTabData.to}
-            className="mt-12 w-fit md:max-lg:mt-10"
+            className={cn(
+              "mt-10 w-fit",
+              activeTabData.variant === "decor" && "p-1",
+            )}
             style={{
               color: activeTabData.buttonTextColor,
               fontSize: `${activeTabData.buttonTextSize}px`,
@@ -189,23 +195,24 @@ const TabsLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
         )}
       </div>
 
-      <div className="absolute top-[373px] right-8 left-8 z-3 flex min-w-0 flex-col md:top-10 md:right-0 md:left-0 md:mx-auto md:grid md:w-[calc(100%-64px)] md:max-w-[1440px] md:grid-cols-3 md:gap-5 md:max-lg:static md:max-lg:order-1 lg:top-[120px] lg:w-[calc(100%-288px)]">
+      <div className="relative z-3 mx-auto flex w-full min-w-0 flex-col gap-5 px-8 pt-10 pb-12 md:order-1 md:grid md:w-[calc(100%-64px)] md:max-w-360 md:grid-cols-3 md:p-0">
         {tabsData.map((tab: any, index: number) => {
           const isActive = activeTab === index;
           return (
             <button
               key={tab.id}
               type="button"
+              aria-pressed={isActive}
               onClick={() => setActiveTab(index)}
               onMouseEnter={() => setActiveTab(index)}
               className={cn(
-                "group flex h-[49px] min-w-0 w-full items-start justify-center border-t-4 pt-3 transition-colors duration-300 md:h-auto md:pt-4",
+                "group flex min-w-0 w-full items-start justify-center transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current",
                 isActive
-                  ? "border-[#D8D8D8] text-(--color-text-inverse)"
-                  : "border-transparent text-[#979797] hover:text-(--color-text-inverse)",
+                  ? "border-t-4 border-line-subtle pt-2.5 text-(--color-text-inverse)"
+                  : "text-(--color-text-light) hover:text-(--color-text-inverse)",
               )}
             >
-              <span className="min-w-0 break-words text-center font-heading text-[26px] leading-[1.1] tracking-[-0.025em] md:max-lg:tracking-[-0.02em] lg:text-[44px] lg:leading-none">
+              <span className="min-w-0 break-words text-center font-heading text-(length:--h6-base-size) leading-[1.1] tracking-[-0.02em] lg:text-(length:--h3-base-size) lg:tracking-[-0.03em]">
                 {tab.headingContent === "Tab"
                   ? t("carousel.tab")
                   : tab.headingContent}
@@ -225,6 +232,7 @@ let SliderLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
     totalSlides,
     slidesToShow,
     gap,
+    tabletGap,
     showArrows,
     showDots,
     autoPlay,
@@ -238,56 +246,85 @@ let SliderLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
     dotsColor,
     rest,
   } = props;
+  const sliderRef = useRef<HTMLDivElement>(null);
+  const canNavigate = totalSlides > 1;
 
   return (
     <div ref={ref} {...rest} className={variants({ slidesToShow, gap })}>
-      <Swiper
-        key={swiperKey}
-        modules={[Autoplay, Navigation]}
-        spaceBetween={gap}
-        slidesPerView={slidesToShow}
-        autoplay={
-          autoPlay && totalSlides > slidesToShow
-            ? {
-                delay: autoPlayDelay * 1000,
-                disableOnInteraction: false,
-                pauseOnMouseEnter: false,
-              }
-            : false
-        }
-        loop={totalSlides > slidesToShow}
-        navigation={{
-          nextEl: ".promotion-arrow-next",
-          prevEl: ".promotion-arrow-prev",
-        }}
-        breakpoints={{
-          320: {
-            slidesPerView: 1,
-            spaceBetween: gap / 2,
-          },
-          [TABLET_MIN_PX]: {
-            slidesPerView: slidesToShow,
-            spaceBetween: gap,
-          },
-        }}
-        className="w-full"
-      >
-        {childrenArray.map((child: ReactNode, index: number) => {
-          return <SwiperSlide key={index}>{child}</SwiperSlide>;
-        })}
-        {showDots && totalSlides > slidesToShow && (
-          <Dots dotsColor={dotsColor} slidesCount={totalSlides} />
+      <div ref={sliderRef} className="relative">
+        <Swiper
+          key={swiperKey}
+          modules={[Autoplay, Navigation]}
+          spaceBetween={gap}
+          slidesPerView={slidesToShow}
+          autoplay={
+            autoPlay && canNavigate
+              ? {
+                  delay: autoPlayDelay * 1000,
+                  disableOnInteraction: false,
+                  pauseOnMouseEnter: false,
+                }
+              : false
+          }
+          loop={totalSlides > slidesToShow}
+          onBeforeInit={(swiper) => {
+            const navigation = swiper.params.navigation;
+            if (navigation && typeof navigation !== "boolean") {
+              navigation.prevEl = sliderRef.current?.querySelector(
+                ".promotion-arrow-prev",
+              );
+              navigation.nextEl = sliderRef.current?.querySelector(
+                ".promotion-arrow-next",
+              );
+            }
+          }}
+          navigation={{}}
+          breakpoints={{
+            0: {
+              slidesPerView: 1,
+              spaceBetween: gap / 2,
+            },
+            [TABLET_MIN_PX]: {
+              slidesPerView: slidesToShow,
+              spaceBetween: tabletGap,
+            },
+            [DESKTOP_MIN_PX]: {
+              slidesPerView: slidesToShow,
+              spaceBetween: gap,
+            },
+          }}
+          className="w-full [&_.swiper-wrapper]:items-stretch [&_.promotion-grid-item]:w-full"
+        >
+          {childrenArray.map((child: ReactNode, index: number) => {
+            // Swiper's unlayered CSS otherwise overrides Tailwind height/display.
+            // Let each slide stretch to the tallest card instead of sizing alone.
+            return (
+              <SwiperSlide
+                key={index}
+                style={{ display: "flex", height: "auto" }}
+              >
+                {child}
+              </SwiperSlide>
+            );
+          })}
+          {showDots && canNavigate && (
+            <Dots
+              dotsColor={dotsColor}
+              slidesCount={totalSlides}
+              className={totalSlides <= slidesToShow ? "md:hidden" : undefined}
+            />
+          )}
+        </Swiper>
+        {showArrows && canNavigate && (
+          <Arrows
+            arrowsIcon={arrowsIcon}
+            iconSize={iconSize}
+            showArrowsOnHover={showArrowsOnHover}
+            arrowsColor={arrowsColor}
+            arrowsShape={arrowsShape}
+          />
         )}
-      </Swiper>
-      {showArrows && totalSlides > slidesToShow && (
-        <Arrows
-          arrowsIcon={arrowsIcon}
-          iconSize={iconSize}
-          showArrowsOnHover={showArrowsOnHover}
-          arrowsColor={arrowsColor}
-          arrowsShape={arrowsShape}
-        />
-      )}
+      </div>
     </div>
   );
 });
@@ -343,7 +380,7 @@ const extractTabsData = (childrenData: any[]) => {
       borderColorHover: getValue("borderColorHover", "#ffffff"),
       textColorDecor: getValue("textColorDecor", "#FEF4EB"),
       buttonTextColor: getValue("buttonTextColor", "#FEF4EB"),
-      buttonTextSize: getValue("buttonTextSize", 12),
+      buttonTextSize: getValue("buttonTextSize", 14),
       // Heading props
       color: getValue("color", "#ffffff"),
       size: getValue("size", "3xl"),
@@ -379,9 +416,10 @@ let PromotionSlider = forwardRef<HTMLDivElement, GridItemProps>(
 
     let {
       children,
-      layout = "slider",
+      layout: legacyLayout = "slider",
       slidesToShow = 2,
       gap = 20,
+      tabletGap = 16,
       autoPlay = false,
       autoPlayDelay = 5,
       showDots = true,
@@ -399,6 +437,7 @@ let PromotionSlider = forwardRef<HTMLDivElement, GridItemProps>(
         rawI18nSliderDescription = "If you're looking for products that bring ease through form and function, we offer no-fuss furniture built to last.",
       ...rest
     } = props;
+    const layout = usePromotionGridLayout() ?? legacyLayout;
     const sliderDescription = translateText(
       rawI18nSliderDescription,
       "themeContent.sectionsPromotionGridGridItems.sliderDescription",
@@ -491,15 +530,15 @@ let PromotionSlider = forwardRef<HTMLDivElement, GridItemProps>(
 
     return (
       <div ref={ref} {...rest} className="bg-[#F0F0EF] py-20">
-        <div className="mx-auto mb-8 flex max-w-[650px] flex-col items-center gap-6 px-5 text-center">
-          <h2 className="font-heading text-[36px] leading-[1.1] tracking-[-0.025em] md:text-[44px]">
+        <div className="mx-auto mb-8 flex max-w-165 flex-col items-center gap-6 px-5 text-center md:px-0">
+          <h2 className="font-heading text-(length:--h4-base-size) leading-[1.1] tracking-[-0.02em] md:text-(length:--h2-base-size) md:tracking-[-0.03em] lg:text-(length:--h3-base-size)">
             {sliderHeading}
           </h2>
           <Paragraph
             content={sliderDescription}
             alignment="center"
             width="full"
-            className="font-body text-sm leading-[1.55]"
+            className="font-body text-sm leading-[1.6] tracking-[0.01em]"
           />
         </div>
         <SliderLayout
@@ -507,6 +546,7 @@ let PromotionSlider = forwardRef<HTMLDivElement, GridItemProps>(
           totalSlides={totalSlides}
           slidesToShow={slidesToShow}
           gap={gap}
+          tabletGap={tabletGap}
           showArrows={showArrows}
           showDots={showDots}
           autoPlay={autoPlay}
@@ -530,9 +570,10 @@ export default PromotionSlider;
 export let schema = createSchema({
   type: "grid-items",
   title: "Promotion slider",
+  limit: 1,
   settings: [
     {
-      group: "Layout",
+      group: "Style 2 settings",
       inputs: [
         {
           type: "select",
@@ -545,6 +586,8 @@ export let schema = createSchema({
             ],
           },
           defaultValue: "slider",
+          // Retain saved child layouts, but expose the selector only on parent.
+          condition: () => false,
         },
         {
           type: "range",
@@ -557,7 +600,8 @@ export let schema = createSchema({
             unit: "px",
           },
           defaultValue: 840,
-          condition: "layout.eq.tabs",
+          helpText:
+            "Minimum desktop height. The section grows if its content needs more space.",
         },
         {
           type: "range",
@@ -570,7 +614,8 @@ export let schema = createSchema({
             unit: "px",
           },
           defaultValue: 562,
-          condition: "layout.eq.tabs",
+          helpText:
+            "Minimum mobile height. Longer text expands the section so the tabs never overlap the content.",
         },
       ],
     },
@@ -582,7 +627,6 @@ export let schema = createSchema({
           name: "sliderHeading",
           label: "Heading",
           defaultValue: "EXPLORE MORE",
-          condition: "layout.eq.slider",
         },
         {
           type: "richtext",
@@ -590,7 +634,6 @@ export let schema = createSchema({
           label: "Description",
           defaultValue:
             "If you're looking for products that bring ease through form and function, we offer no-fuss furniture built to last.",
-          condition: "layout.eq.slider",
         },
       ],
     },
@@ -607,12 +650,11 @@ export let schema = createSchema({
             step: 1,
           },
           defaultValue: 2,
-          condition: "layout.eq.slider",
         },
         {
           type: "range",
           name: "gap",
-          label: "Items gap",
+          label: "Items gap (desktop; mobile uses half)",
           configs: {
             min: 0,
             max: 60,
@@ -620,14 +662,19 @@ export let schema = createSchema({
             unit: "px",
           },
           defaultValue: 20,
-          condition: "layout.eq.slider",
+        },
+        {
+          type: "range",
+          name: "tabletGap",
+          label: "Items gap (tablet)",
+          configs: { min: 0, max: 60, step: 4, unit: "px" },
+          defaultValue: 16,
         },
         {
           type: "switch",
           name: "autoPlay",
           label: "Auto play",
           defaultValue: false,
-          condition: "layout.eq.slider",
         },
         {
           type: "range",
@@ -645,7 +692,7 @@ export let schema = createSchema({
       ],
     },
     {
-      group: "Navigation",
+      group: "Style 1 navigation",
       inputs: [
         {
           type: "heading",
@@ -656,7 +703,6 @@ export let schema = createSchema({
           name: "showArrows",
           label: "Show arrows",
           defaultValue: true,
-          condition: "layout.eq.slider",
         },
         {
           type: "select",
@@ -728,7 +774,6 @@ export let schema = createSchema({
           name: "showDots",
           label: "Show dots",
           defaultValue: true,
-          condition: "layout.eq.slider",
         },
         {
           type: "select",
@@ -751,6 +796,7 @@ export let schema = createSchema({
     layout: "slider",
     slidesToShow: 2,
     gap: 20,
+    tabletGap: 16,
     autoPlay: false,
     autoPlayDelay: 5,
     showDots: false,
@@ -778,7 +824,7 @@ export let schema = createSchema({
         overlayOpacity: 50,
         headingContent:
           "The best of every modern style from minimalist to mid century.",
-        size: "scale",
+        size: "default",
         minSize: 28,
         maxSize: 44,
         color: "#FEF4EB",
@@ -811,7 +857,7 @@ export let schema = createSchema({
         overlayOpacity: 50,
         headingContent:
           "Quality furniture made to last through moves and milestones.",
-        size: "scale",
+        size: "default",
         minSize: 28,
         maxSize: 44,
         color: "#FEF4EB",
@@ -843,7 +889,7 @@ export let schema = createSchema({
         overlayColorHover: "#A3A3A3",
         overlayOpacity: 50,
         headingContent: "Finishing touches for a home that feels like yours.",
-        size: "scale",
+        size: "default",
         minSize: 28,
         maxSize: 44,
         color: "#FEF4EB",
