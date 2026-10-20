@@ -2,6 +2,7 @@ import { ArrowRightIcon } from "@phosphor-icons/react";
 import { createSchema, type WeaverseImage } from "@weaverse/hydrogen";
 import { createContext, forwardRef, useContext } from "react";
 import { useRouteLoaderData } from "react-router";
+import { sectionBackgroundInputs } from "~/components/background-image";
 import { Image } from "~/components/image";
 import { Link } from "~/components/link";
 import type { SectionProps } from "~/components/section";
@@ -12,6 +13,8 @@ import ReviewIndex from "~/sections/judgeme-reviews/review-index";
 import { cn } from "~/utils/cn";
 
 export type FeaturedProductsLayout = "carousel" | "grid";
+
+const DEFAULT_BACKGROUND_COLOR = "#FFFFFF";
 
 interface FeaturedProductsProps extends SectionProps {
   layout?: FeaturedProductsLayout;
@@ -46,6 +49,7 @@ const FeaturedProducts = forwardRef<HTMLElement, FeaturedProductsProps>(
       children,
       className,
       layout,
+      backgroundColor,
       showProductPromo = true,
       productPromoImage,
       productPromoHeading:
@@ -75,7 +79,6 @@ const FeaturedProducts = forwardRef<HTMLElement, FeaturedProductsProps>(
         : productPromoImage || fallbackPromoImage;
     const resolvedLayout = isProductPage ? "carousel" : (layout ?? "grid");
     const isLegacyLayout = isProductPage ? false : layout === undefined;
-    const isGrid = resolvedLayout === "grid";
 
     return (
       <FeaturedProductsLayoutContext.Provider
@@ -84,11 +87,9 @@ const FeaturedProducts = forwardRef<HTMLElement, FeaturedProductsProps>(
         <Section
           ref={ref}
           {...rest}
-          className={cn(
-            "overflow-x-clip",
-            isGrid && !isProductPage ? "bg-[#F4F4F5]" : "bg-white",
-            className,
-          )}
+          backgroundFor="section"
+          backgroundColor={backgroundColor || DEFAULT_BACKGROUND_COLOR}
+          className={cn("overflow-x-clip", className)}
           containerClassName={cn(
             "flex flex-col",
             "space-y-10 py-20",
@@ -161,6 +162,10 @@ export const schema = createSchema({
       ],
     },
     {
+      group: "Background",
+      inputs: sectionBackgroundInputs(DEFAULT_BACKGROUND_COLOR),
+    },
+    {
       group: "Product page promo",
       inputs: [
         {
@@ -205,6 +210,7 @@ export const schema = createSchema({
     },
   ],
   presets: {
+    backgroundColor: DEFAULT_BACKGROUND_COLOR,
     layout: "grid",
     gap: 0,
     width: "fixed",

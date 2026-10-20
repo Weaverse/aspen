@@ -1,5 +1,6 @@
 import { createSchema } from "@weaverse/hydrogen";
 import { forwardRef } from "react";
+import { sectionBackgroundInputs } from "~/components/background-image";
 import { Section, type SectionProps } from "~/components/section";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import ContactForm from "~/sections/contact-form";
@@ -20,6 +21,7 @@ const ContactStores = forwardRef<HTMLElement, ContactStoresProps>(
       heading: rawI18nHeading = "Our Stores",
       formHeading: rawI18nFormHeading = "Hear More From Us",
       children,
+      backgroundColor,
       namePlaceholder: rawI18nNamePlaceholder = "Your name",
       emailPlaceholder: rawI18nEmailPlaceholder = "Your email",
       messagePlaceholder: rawI18nMessagePlaceholder = "Message",
@@ -62,11 +64,12 @@ const ContactStores = forwardRef<HTMLElement, ContactStoresProps>(
     return (
       <Section
         {...rest}
+        backgroundFor="section"
         ref={ref}
         width="full"
         verticalPadding="none"
         gap={0}
-        backgroundColor="#FFFFFF"
+        backgroundColor={backgroundColor || "#FFFFFF"}
       >
         <div className="mx-auto w-full max-w-[910px] px-5 py-16 md:px-8 md:pb-[84px] xl:max-w-[886px] xl:px-5">
           <h2 className="mb-6 font-heading font-normal text-[32px] uppercase leading-[1.15] tracking-[-0.02em] md:text-[37px]">
@@ -78,7 +81,7 @@ const ContactStores = forwardRef<HTMLElement, ContactStoresProps>(
               layout="wide"
               headingContent={formHeading}
               description=""
-              backgroundColor="#FFFFFF"
+              backgroundColor="transparent"
               namePlaceholder={namePlaceholder}
               emailPlaceholder={emailPlaceholder}
               messagePlaceholder={messagePlaceholder}
@@ -144,6 +147,7 @@ export const schema = createSchema({
         },
       ],
     },
+    { group: "Background", inputs: sectionBackgroundInputs() },
   ],
   presets: {
     children: [

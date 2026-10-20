@@ -533,7 +533,11 @@ let PromotionSlider = forwardRef<HTMLDivElement, GridItemProps>(
     }
 
     return (
-      <div ref={ref} {...rest} className="bg-[#F0F0EF] py-20">
+      <div
+        ref={ref}
+        {...rest}
+        className="bg-[var(--promotion-slider-background,#F0F0EF)] py-20"
+      >
         <div className="mx-auto mb-8 flex max-w-165 flex-col items-center gap-6 px-5 text-center md:px-0">
           <h2 className="font-heading text-(length:--h4-base-size) leading-[1.1] tracking-[-0.02em] md:text-(length:--h2-base-size) md:tracking-[-0.03em] lg:text-(length:--h3-base-size)">
             {sliderHeading}

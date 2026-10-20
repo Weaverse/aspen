@@ -62,7 +62,7 @@ const bundle = await build({
                 : path.endsWith("use-translated-text")
                   ? "export const useTranslatedText=()=>value=>value;"
                   : path.endsWith("background-image")
-                    ? "export const backgroundInputs = [];"
+                    ? "export const backgroundInputs = [];export const sectionBackgroundInputs = () => [];"
                     : path.endsWith("/image")
                       ? `import React from "react";export const Image=React.forwardRef(({className},ref)=><div ref={ref} className={className} style={{height:100}}/>);`
                       : `import React from "react";
