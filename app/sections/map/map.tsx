@@ -196,7 +196,7 @@ const MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
         ref={ref}
         {...rest}
         backgroundFor="section"
-        backgroundColor={backgroundColor || DEFAULT_BACKGROUND_COLOR}
+        backgroundColor={backgroundColor ?? DEFAULT_BACKGROUND_COLOR}
         width="full"
         verticalPadding="none"
       >

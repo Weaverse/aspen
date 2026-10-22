@@ -48,7 +48,7 @@ const AccordionSection = forwardRef<HTMLElement, AccordionSectionProps>(
         {...rest}
         width="full"
         verticalPadding="none"
-        backgroundColor={backgroundColor || DEFAULT_BACKGROUND_COLOR}
+        backgroundColor={backgroundColor ?? DEFAULT_BACKGROUND_COLOR}
         backgroundFor="section"
       >
         <AccordionProvider value={contextValue}>
