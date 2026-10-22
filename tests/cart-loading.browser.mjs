@@ -44,7 +44,7 @@ const bundle = await build({
               /^@shopify\/hydrogen$|^@weaverse\/hydrogen$|^react-router$|^react-use\/esm\/useScroll$|^~\/(hooks|utils|components\/(button|link|image|loyalty|subscriptions))|^\.\/cart-(best-sellers|line-qty-adjust|sync|summary-actions)$|^\.\/store$|^\.\.\/layout\/cart-drawer$/,
           },
           ({ path }) =>
-            path === "~/utils/cart-code"
+            path === "~/utils/cart-code" || path === "~/utils/cn"
               ? undefined
               : { path, namespace: "fixture" },
         );

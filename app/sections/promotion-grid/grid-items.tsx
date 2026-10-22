@@ -789,7 +789,8 @@ export let schema = createSchema({
             ],
           },
           defaultValue: "dark",
-          condition: "showDots.eq.true",
+          // Retain saved palettes; progression colors now come from shared tokens.
+          condition: () => false,
         },
       ],
     },

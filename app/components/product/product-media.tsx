@@ -20,6 +20,7 @@ import { FreeMode, Navigation, Pagination, Thumbs } from "swiper/modules";
 import { Swiper, type SwiperClass, SwiperSlide } from "swiper/react";
 import { ArrowButton } from "~/components/arrow-button";
 import { Image } from "~/components/image";
+import { SegmentedProgressBar } from "~/components/progress-bar";
 import type { ImageAspectRatio } from "~/types/image";
 import { DESKTOP_MIN_PX, minWidthQuery } from "~/utils/breakpoints";
 import { cn } from "~/utils/cn";
@@ -579,24 +580,6 @@ function getSelectedVariantMediaIndex(
   return media.findIndex((med) => med.previewImage?.url === mediaUrl);
 }
 
-const dotVariants = cva(
-  [
-    "dot cursor-pointer",
-    "h-0.5 p-0",
-    "transition-all duration-300",
-    "border-0 outline-none",
-    "bg-[#DBD7D1] hover:bg-[#DBD7D1]/50",
-  ],
-  {
-    variants: {
-      isActive: {
-        true: "!bg-[#514c48]",
-        false: "",
-      },
-    },
-  },
-);
-
 interface ProductMediaDotsProps {
   slidesCount: number;
   activeIndex: number;
@@ -633,9 +616,13 @@ function ProductMediaDots({
   const isProductPage = variant === "product-page";
 
   return (
-    <div
+    <SegmentedProgressBar
+      count={slidesCount}
+      activeIndex={activeIndex}
+      onSegmentSelect={onDotClick}
+      getLabel={(index) => t("carousel.goToSlide", { index: index + 1 })}
       className={cn(
-        "-translate-x-1/2 absolute left-1/2 z-[5] flex items-center justify-center gap-0 overflow-hidden rounded-(--radius-sm)",
+        "-translate-x-1/2 absolute left-1/2 z-[5] flex items-center justify-center gap-0",
         variant === "quick-shop" ? "bottom-[37.5px]" : "bottom-6",
         isProductPage && "bottom-[38px]",
       )}
@@ -643,33 +630,22 @@ function ProductMediaDots({
         maxWidth: variant === "quick-shop" ? "160px" : maxContainerWidth,
         width: isProductPage ? "160px" : "fit-content",
       }}
-    >
-      {Array.from({ length: slidesCount }, (_, index) => (
-        <button
-          key={index}
-          type="button"
-          className={cn(
-            dotVariants({
-              isActive: index === activeIndex,
-            }),
-            isProductPage && "min-w-0 flex-1 lg:bg-[#D8D8D8]",
-          )}
-          style={{
-            width: isProductPage
-              ? undefined
-              : variant === "quick-shop"
-                ? `${160 / slidesCount}px`
-                : dotWidth,
-            minWidth: isProductPage
-              ? undefined
-              : variant === "quick-shop"
-                ? `${160 / slidesCount}px`
-                : dotWidth,
-          }}
-          onClick={() => onDotClick(index)}
-          aria-label={t("carousel.goToSlide", { index: index + 1 })}
-        />
-      ))}
-    </div>
+      segmentClassName={cn(
+        "h-0.5 transition-all duration-300",
+        isProductPage && "min-w-0 flex-1",
+      )}
+      segmentStyle={{
+        width: isProductPage
+          ? undefined
+          : variant === "quick-shop"
+            ? `${160 / slidesCount}px`
+            : dotWidth,
+        minWidth: isProductPage
+          ? undefined
+          : variant === "quick-shop"
+            ? `${160 / slidesCount}px`
+            : dotWidth,
+      }}
+    />
   );
 }

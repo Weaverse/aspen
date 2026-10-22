@@ -31,6 +31,7 @@ import {
 } from "~/components/product/product-media";
 import { Quantity } from "~/components/product/quantity";
 import { VariantPrices } from "~/components/product/variant-prices";
+import { ProgressBar } from "~/components/progress-bar";
 import { layoutInputs, Section, type SectionProps } from "~/components/section";
 import { SellingPlanSelector } from "~/components/subscriptions/selling-plan-selector";
 import { ProductWishlistButton } from "~/components/wishlist/product-wishlist-button";
@@ -370,24 +371,18 @@ const ProductInformation = forwardRef<
                       String(quantityAvailable),
                     )}
                   </p>
-                  <div
-                    className="flex h-1 overflow-hidden rounded-(--radius-sm) bg-line-subtle"
+                  <ProgressBar
+                    className="flex h-1"
                     aria-hidden="true"
-                  >
-                    <span
-                      className="block h-full rounded-(--radius-sm) bg-body transition-[width]"
-                      style={{
-                        width: `${Math.max(
-                          8,
-                          Math.min(
-                            100,
-                            ((quantityAvailable || 0) / inventoryThreshold) *
-                              100,
-                          ),
-                        )}%`,
-                      }}
-                    />
-                  </div>
+                    indicatorClassName="block h-full transition-[width]"
+                    value={Math.max(
+                      8,
+                      Math.min(
+                        100,
+                        ((quantityAvailable || 0) / inventoryThreshold) * 100,
+                      ),
+                    )}
+                  />
                 </div>
               )}
 

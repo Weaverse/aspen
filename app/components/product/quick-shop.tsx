@@ -22,6 +22,7 @@ import { ProductCardRating } from "~/components/product/product-card-rating";
 import { ProductMedia } from "~/components/product/product-media";
 import { Quantity } from "~/components/product/quantity";
 import { QuickShopVariants } from "~/components/product/quick-shop-variants";
+import { ProgressBar } from "~/components/progress-bar";
 import { ScrollArea } from "~/components/scroll-area";
 import { Skeleton } from "~/components/skeleton";
 import { SellingPlanSelector } from "~/components/subscriptions/selling-plan-selector";
@@ -61,12 +62,11 @@ function StockIndicator({
       <span className="text-sm">
         {t("product.lowStock", { count: quantityAvailable })}
       </span>
-      <div className="h-1 w-full overflow-hidden rounded-(--radius-sm) bg-[#DFDFDF]">
-        <div
-          className="h-1 rounded-(--radius-sm) bg-(--color-text-subtle)"
-          style={{ width: `${fillPercent}%` }}
-        />
-      </div>
+      <ProgressBar
+        className="h-1 w-full"
+        indicatorClassName="h-1"
+        value={fillPercent}
+      />
     </div>
   );
 }

@@ -7,6 +7,7 @@ import type { CartApiQueryFragment } from "storefront-api.generated";
 import { Button } from "~/components/button";
 import { Link } from "~/components/link";
 import { LoyaltyPointsHint } from "~/components/loyalty/loyalty-points-hint";
+import { ProgressBar } from "~/components/progress-bar";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import { useTranslatedThemeSettings } from "~/hooks/use-translated-theme-settings";
 import { getCartMutationError } from "~/utils/cart-error";
@@ -71,12 +72,11 @@ export function CartProgression({
           )}
         </p>
       </div>
-      <div className="relative h-1 w-full overflow-hidden rounded-(--radius-sm) bg-[#F2F0EE] max-xl:order-1 max-xl:bg-[#ECECEC]">
-        <div
-          className="h-full rounded-(--radius-sm) bg-[#A79D95] transition-all duration-300 max-xl:bg-[#9B9B9B]"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
+      <ProgressBar
+        className="relative h-1 w-full max-xl:order-1"
+        indicatorClassName="h-full transition-all duration-300"
+        value={progress}
+      />
     </div>
   );
 }
