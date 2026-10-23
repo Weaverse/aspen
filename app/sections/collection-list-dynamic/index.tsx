@@ -1,5 +1,6 @@
 import type { HydrogenComponentSchema } from "@weaverse/hydrogen";
 import { createContext, forwardRef, useContext } from "react";
+import { sectionBackgroundInputs } from "~/components/background-image";
 import type { SectionProps } from "~/components/section";
 import { layoutInputs, Section } from "~/components/section";
 import { cn } from "~/utils/cn";
@@ -109,6 +110,7 @@ let CollectionListDynamic = forwardRef<HTMLElement, CollectionListDynamicProps>(
         <Section
           ref={ref}
           {...rest}
+          backgroundFor="section"
           className={cn(
             "overflow-x-clip",
             "max-md:has-[[data-collection-layout=grid]]:[--page-padding:calc(var(--spacing)*5)] md:max-lg:has-[[data-collection-layout=grid]]:[--page-padding:calc(var(--spacing)*8)]",
@@ -159,6 +161,10 @@ export let schema: HydrogenComponentSchema = {
           },
         },
       ],
+    },
+    {
+      group: "Background",
+      inputs: sectionBackgroundInputs(),
     },
     {
       group: "Collection card",

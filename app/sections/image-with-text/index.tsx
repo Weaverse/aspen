@@ -1,6 +1,6 @@
 import { createSchema } from "@weaverse/hydrogen";
 import { forwardRef, useState } from "react";
-import { backgroundInputs } from "~/components/background-image";
+import { sectionBackgroundInputs } from "~/components/background-image";
 import type { SectionProps } from "~/components/section";
 import { Section } from "~/components/section";
 import { cn } from "~/utils/cn";
@@ -18,6 +18,8 @@ interface ImageWithTextProps extends SectionProps {
   showVerticalSpacing?: boolean;
 }
 
+const DEFAULT_BACKGROUND_COLOR = "#DBDBDB";
+
 const ImageWithText = forwardRef<HTMLElement, ImageWithTextProps>(
   (props, ref) => {
     const {
@@ -28,7 +30,7 @@ const ImageWithText = forwardRef<HTMLElement, ImageWithTextProps>(
       mobileMediaPosition = "top",
       mobileImageRadius = 0,
       showVerticalSpacing = true,
-      backgroundColor = "#F0F0EF",
+      backgroundColor,
       ...rest
     } = props;
 
@@ -54,7 +56,7 @@ const ImageWithText = forwardRef<HTMLElement, ImageWithTextProps>(
           ref={ref}
           {...rest}
           className={cn(
-            "overflow-x-clip bg-[#F0F0EF]",
+            "overflow-x-clip",
             !isOverlay &&
               (mediaPosition === "right"
                 ? "md:[&_.iwt-split-media>*]:rounded-r-none"
@@ -78,7 +80,7 @@ const ImageWithText = forwardRef<HTMLElement, ImageWithTextProps>(
               : "iwt-split-row flex flex-col md:h-auto md:flex-row md:py-10 lg:h-[944px]",
           )}
           data-media-position={!isOverlay ? mediaPosition : undefined}
-          backgroundColor={backgroundColor || "#F0F0EF"}
+          backgroundColor={backgroundColor || DEFAULT_BACKGROUND_COLOR}
           backgroundFor="section"
           gap={0}
           overflow="unset"
@@ -162,9 +164,7 @@ export const schema = createSchema({
     },
     {
       group: "Background",
-      inputs: backgroundInputs.filter(
-        (input) => input.name !== "backgroundFor",
-      ),
+      inputs: sectionBackgroundInputs(DEFAULT_BACKGROUND_COLOR),
     },
   ],
   childTypes: ["image-with-text--content", "image-with-text--images"],
@@ -176,7 +176,7 @@ export const schema = createSchema({
     mobileMediaPosition: "top",
     mobileImageRadius: 0,
     showVerticalSpacing: true,
-    backgroundColor: "#F0F0EF",
+    backgroundColor: DEFAULT_BACKGROUND_COLOR,
     backgroundFor: "section",
     children: [
       { type: "image-with-text--content" },

@@ -99,3 +99,16 @@ export const backgroundInputs: InspectorGroup["inputs"] = [
     condition: (data: BackgroundImageProps) => Boolean(data.backgroundImage),
   },
 ];
+
+/** Parent controls for section-only backgrounds; other callers keep both scopes. */
+export function sectionBackgroundInputs(
+  defaultColor?: string,
+): InspectorGroup["inputs"] {
+  return backgroundInputs
+    .filter((input) => input.name !== "backgroundFor")
+    .map((input) =>
+      input.name === "backgroundColor" && defaultColor !== undefined
+        ? { ...input, defaultValue: defaultColor }
+        : input,
+    );
+}
