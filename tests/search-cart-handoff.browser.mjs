@@ -819,9 +819,9 @@ test("Filter keeps its right-side overlay gutter, and cart spacing/radius follow
     const panel = page.getByRole("dialog").locator(":scope > div");
     await expect
       .poll(async () => Math.round((await panel.boundingBox()).x))
-      .toBe(width - Math.min(430, width - 32));
+      .toBe(width - (width >= 1033 ? 397 : Math.min(430, width - 32)));
     const bounds = await panel.boundingBox();
-    assert.equal(bounds.width, Math.min(width - 32, 430));
+    assert.equal(bounds.width, width >= 1033 ? 397 : Math.min(width - 32, 430));
     await expect(panel).toHaveCSS("border-top-left-radius", "12px");
     await expect(panel).toHaveCSS("border-top-right-radius", "0px");
     await page.close();

@@ -24,10 +24,10 @@ const bundle = await build({
         window.currentLayout=layout;
         window.currentAmount=amount;
         window.fullItem=fullItem;
-        const line={id,quantity,isOptimistic:pending,discountAllocations:[],cost:{amountPerQuantity:{amount,currencyCode:"USD"},totalAmount:{amount,currencyCode:"USD"}},merchandise:{title:"Color",selectedOptions:[{name:"Color",value:"Cream"}],product:{handle:"chair",title:"Product title"}}};
+        const line={id,quantity,isOptimistic:pending,discountAllocations:[],cost:{amountPerQuantity:{amount,currencyCode:"USD"},totalAmount:{amount,currencyCode:"USD"}},merchandise:{title:"Color",selectedOptions:[{name:"Color",value:"Cream"}],product:{handle:"chair",title:window.productTitle || "Product title"}}};
         line.merchandise.image={url:"fixture",width:140,height:140};
         line.sellingPlanAllocation={sellingPlan:{name:"Deliver every 4 weeks",options:[]}};
-        root.render(layout==="drawer" || fullItem ? <ul className="grid gap-6" style={{width:layout==="drawer"?"min(calc(100vw - var(--page-padding)),430px)":"min(calc(100vw - 40px),740px)",padding:layout==="drawer"?20:0}}><CartLineItem line={line} layout={layout} discountCodes={[]}/></ul> : <CartLineQuantityAdjust line={line} layout={layout}/>);
+        root.render(layout==="drawer" || fullItem ? <ul className="grid gap-6" style={{width:layout==="drawer"?"min(calc(100vw - var(--page-padding)),430px)":"min(calc(100vw - 40px),740px)",padding:layout==="drawer"?20:0}}><CartLineItem line={line} layout={layout} discountCodes={[]}/></ul> : <CartLineQuantityAdjust line={line}/>);
       };
     `,
     loader: "tsx",
@@ -113,7 +113,7 @@ test("Cart item discount labels are uppercase without changing automatic titles 
   }
 });
 
-test("Cart page quantity matches inspected mobile/tablet design and preserves desktop and mutation behavior", async () => {
+test("Cart page quantity matches Figma on mobile, tablet and desktop while preserving mutations", async () => {
   const browser = await chromium.launch();
   try {
     for (const width of [
@@ -127,7 +127,7 @@ test("Cart page quantity matches inspected mobile/tablet design and preserves de
     ]) {
       const page = await browser.newPage({ viewport: { width, height: 900 } });
       await page.setContent(
-        `<!doctype html><style>${css}:root{--body-base-size:14px;--radius-sm:8px;--color-background-subtle:#ededed;--color-text:#343231}</style><div id="root"></div>`,
+        `<!doctype html><style>${css}:root{--body-base-size:14px;--radius-sm:8px;--radius-md:12px;--color-background-subtle:#ededed;--color-text:#343231}</style><div id="root"></div>`,
       );
       await page.addScriptTag({ content: bundle.outputFiles[0].text });
       await page.evaluate(() =>
@@ -141,21 +141,15 @@ test("Cart page quantity matches inspected mobile/tablet design and preserves de
         name: "product.decreaseQuantity",
         exact: true,
       });
-      if (width >= DESKTOP_MIN_PX) {
-        await expect(page.getByRole("combobox")).toBeVisible();
-        await expect(increase).toHaveCount(0);
-        await expect(
-          page.getByText("product.itemPrice:", { exact: false }),
-        ).toBeVisible();
-        const price = page.getByText("49.00", { exact: true }).last();
-        await expect(price).toHaveCSS("font-weight", "400");
-        await page.getByRole("combobox").click();
-        await expect(page.getByRole("listbox")).toBeVisible();
-        await page.setViewportSize({ width: TABLET_MAX_PX, height: 900 });
-        await expect(increase).toBeVisible();
-        await expect(page.getByRole("combobox")).toHaveCount(0);
-        await expect(page.getByRole("listbox")).toHaveCount(0);
-      }
+      await expect(
+        page.getByText("product.itemPrice:", { exact: false }),
+      ).toHaveCount(0);
+      await expect(page.getByText("49.00", { exact: true })).toHaveCount(1);
+      const card = page.locator("li");
+      await expect(card).toHaveCSS("border-radius", "12px");
+      await expect(card).toHaveCSS("overflow-x", "hidden");
+      await expect(card).toHaveCSS("overflow-y", "hidden");
+      await expect(page.getByRole("combobox")).toHaveCount(0);
       const group = page.getByRole("group", {
         name: "Quantity, 2",
         exact: true,
@@ -164,18 +158,58 @@ test("Cart page quantity matches inspected mobile/tablet design and preserves de
       const geometry = await group.boundingBox();
       assert.equal(geometry.width, 120);
       assert.equal(geometry.height, 30);
+      const rowLeft = await group.evaluate(
+        (element) => element.parentElement.getBoundingClientRect().left,
+      );
+      assert.ok(
+        Math.abs(geometry.x - rowLeft) < 1,
+        "Cart page quantity must start at the left edge of the pricing row at every breakpoint",
+      );
       await expect(group).toHaveCSS("border-radius", "8px");
       await expect(group).toHaveCSS("background-color", "rgb(237, 237, 237)");
       for (const button of [decrease, increase]) {
         assert.equal((await button.boundingBox()).width, 44);
         await expect(button).toHaveCSS("padding-top", "8px");
       }
-      await expect(
-        page.getByText("product.itemPrice:", { exact: false }),
-      ).toBeHidden();
+      const output = group.locator("output");
+      await expect(output).toHaveCSS("width", "30px");
+      await expect(output).toHaveCSS("border-left-width", "0px");
+      for (const element of [
+        decrease.locator("span"),
+        output,
+        increase.locator("span"),
+      ]) {
+        await expect(element).toHaveCSS("font-family", /DM Sans/);
+        await expect(element).toHaveCSS("font-size", "14px");
+        await expect(element).toHaveCSS("font-weight", "600");
+        await expect(element).toHaveCSS("line-height", "14px");
+        await expect(element).toHaveCSS("letter-spacing", "0.28px");
+        await expect(element).toHaveCSS("color", "rgb(52, 50, 49)");
+      }
+      const dividers = group.locator(":scope > span[aria-hidden='true']");
+      await expect(dividers).toHaveCount(2);
+      for (const divider of await dividers.all()) {
+        await expect(divider).toHaveCSS("width", "1px");
+        await expect(divider).toHaveCSS("height", "30px");
+        const paint = await divider.evaluate((element) => {
+          const canvas = document.createElement("canvas");
+          canvas.width = canvas.height = 1;
+          const context = canvas.getContext("2d");
+          context.fillStyle = getComputedStyle(element).backgroundColor;
+          context.fillRect(0, 0, 1, 1);
+          return Array.from(context.getImageData(0, 0, 1, 1).data);
+        });
+        assert.deepEqual(paint, [255, 255, 255, 51]);
+      }
+      if (width < DESKTOP_MIN_PX) {
+        await expect(
+          page.getByText("product.itemPrice:", { exact: false }),
+        ).toBeHidden();
+      }
       const price = page
         .getByText("49.00", { exact: true })
-        .filter({ visible: true });
+        .filter({ visible: true })
+        .last();
       await expect(price).toHaveCSS("font-weight", "600");
       await page.evaluate(() =>
         document.documentElement.style.setProperty(
@@ -183,7 +217,10 @@ test("Cart page quantity matches inspected mobile/tablet design and preserves de
           "2",
         ),
       );
-      await expect(price).toHaveCSS("line-height", "28px");
+      if (width < DESKTOP_MIN_PX) {
+        await expect(price).toHaveCSS("line-height", "28px");
+      }
+      await expect(output).toHaveCSS("line-height", "14px");
       await page.evaluate(() =>
         document.documentElement.style.setProperty(
           "--body-base-line-height",
@@ -214,6 +251,7 @@ test("Cart page quantity matches inspected mobile/tablet design and preserves de
         window.renderQuantity(1, "page", "line-1", false, "49.00", true),
       );
       await expect(decrease).toBeDisabled();
+      await expect(decrease).toHaveCSS("opacity", "1");
       await page.evaluate(() =>
         window.renderQuantity(12, "page", "line-1", false, "49.00", true),
       );
@@ -237,6 +275,10 @@ test("Cart page quantity matches inspected mobile/tablet design and preserves de
         document.documentElement.style.setProperty("--radius-sm", "12px"),
       );
       await expect(group).toHaveCSS("border-radius", "12px");
+      await page.evaluate(() =>
+        document.documentElement.style.setProperty("--radius-md", "18px"),
+      );
+      await expect(card).toHaveCSS("border-radius", "18px");
       await page.close();
     }
   } finally {
@@ -244,10 +286,9 @@ test("Cart page quantity matches inspected mobile/tablet design and preserves de
   }
 });
 
-test("Cart mobile keeps its 140px flexible image, compact spacing and one-row quantity/price without changing tablet controls", async () => {
+test("Cart drawer uses the Cart page stepper while preserving compact item layout and mutations", async () => {
   const browser = await chromium.launch();
   try {
-    let desktopStyle;
     for (const width of [
       1440,
       320,
@@ -293,25 +334,15 @@ test("Cart mobile keeps its 140px flexible image, compact spacing and one-row qu
           background: computedStyle.backgroundColor,
         };
       });
-      if (width === 1440) {
-        desktopStyle = style;
-      }
-      if (width >= 768) {
-        assert.deepEqual(style, desktopStyle);
-        assert.equal(style.width, 132);
-      } else {
-        assert.ok(style.width > 0 && style.width <= 132);
-      }
-      assert.ok(Math.abs(style.height - (width < 768 ? 30 : 38.4)) < 0.1);
+      assert.equal(style.width, 120);
+      assert.equal(style.height, 30);
       assert.equal(style.radius, "8px");
       for (const button of [increase, decrease]) {
         const buttonWidth = (await button.boundingBox()).width;
-        assert.ok(
-          Math.abs(buttonWidth - (width < 768 ? style.width / 3 : 44)) < 0.1,
-        );
+        assert.equal(buttonWidth, 44);
         assert.equal(
           await button.evaluate((el) => getComputedStyle(el).paddingTop),
-          width < 768 ? "0px" : "8px",
+          "8px",
         );
       }
       const remove = page.getByRole("button", { name: "cart.removeItem" });
@@ -419,15 +450,46 @@ test("Cart mobile keeps its 140px flexible image, compact spacing and one-row qu
         ),
         false,
       );
+      await page.evaluate(() => {
+        window.productTitle =
+          "EXTREMELYLONGUNBROKENPRODUCTMODELIDENTIFIER12345";
+        window.renderQuantity(2, "drawer", "line-1", false, "123456.78");
+      });
+      await expect(
+        page.getByText("EXTREMELYLONGUNBROKENPRODUCTMODELIDENTIFIER12345", {
+          exact: true,
+        }),
+      ).toBeVisible();
+      const longTitleLayout = await page.locator("li").evaluate((element) => ({
+        overflow: document.documentElement.scrollWidth > innerWidth,
+        thumbnailWidth: element.children[0].getBoundingClientRect().width,
+        infoRight: element.children[1].getBoundingClientRect().right,
+        right: element.getBoundingClientRect().right,
+      }));
+      assert.equal(longTitleLayout.overflow, false);
+      assert.ok(longTitleLayout.thumbnailWidth > 0);
+      assert.ok(longTitleLayout.infoRight <= longTitleLayout.right + 1);
+      await page.evaluate(() => {
+        window.productTitle = "Product title";
+      });
       await page.evaluate(() => window.renderQuantity(2, "page"));
-      if (width <= TABLET_MAX_PX) {
+      {
         await expect(page.getByRole("combobox")).toHaveCount(0);
         await expect(increase).toBeVisible();
         await expect(decrease).toBeVisible();
-      } else {
-        await expect(page.getByRole("combobox")).toBeVisible();
-        await expect(increase).toHaveCount(0);
-        await expect(decrease).toHaveCount(0);
+        const pageStyle = await page
+          .getByRole("group", { name: "Quantity, 2", exact: true })
+          .evaluate((element) => {
+            const bounds = element.getBoundingClientRect();
+            const computed = getComputedStyle(element);
+            return {
+              width: bounds.width,
+              height: bounds.height,
+              radius: computed.borderRadius,
+              background: computed.backgroundColor,
+            };
+          });
+        assert.deepEqual(pageStyle, style);
       }
       await page.close();
     }

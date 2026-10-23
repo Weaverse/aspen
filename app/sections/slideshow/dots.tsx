@@ -3,6 +3,7 @@ import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import { useEffect, useRef, useState } from "react";
 import { useSwiper } from "swiper/react";
+import { SegmentedProgressBar } from "~/components/progress-bar";
 import { cn } from "~/utils/cn";
 
 const containerVariants = cva(
@@ -20,37 +21,6 @@ const containerVariants = cva(
   },
 );
 
-const trackClassName =
-  "pointer-events-auto flex h-1 w-40 overflow-hidden rounded-(--radius-sm)";
-
-const dotVariants = cva(
-  "dot flex-1 cursor-pointer border-0 p-0 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white transition-colors duration-300",
-  {
-    variants: {
-      dotsColor: {
-        light: "bg-(--color-line-subtle) hover:bg-(--color-line)",
-        dark: "bg-white/40 hover:bg-white/70",
-      },
-      isActive: {
-        true: "",
-        false: "",
-      },
-    },
-    compoundVariants: [
-      {
-        dotsColor: "light",
-        isActive: true,
-        className: "bg-(--color-line)!",
-      },
-      {
-        dotsColor: "dark",
-        isActive: true,
-        className: "bg-white!",
-      },
-    ],
-  },
-);
-
 export interface SlideshowDotsProps
   extends VariantProps<typeof containerVariants> {
   className?: string;
@@ -60,12 +30,7 @@ export interface SlideshowDotsProps
 
 export function Dots(props: SlideshowDotsProps) {
   const { t } = useTranslation();
-  const {
-    className,
-    dotsPosition = "left",
-    dotsColor = "light",
-    slidesCount = 0,
-  } = props;
+  const { className, dotsPosition = "left", slidesCount = 0 } = props;
   const swiper = useSwiper();
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -136,21 +101,16 @@ export function Dots(props: SlideshowDotsProps) {
           className,
         )}
       >
-        <div className={trackClassName}>
-          {Array.from({ length: slidesCount }, (_, index) => (
-            <button
-              key={index}
-              type="button"
-              className={dotVariants({
-                dotsColor,
-                isActive: index <= activeIndex,
-              })}
-              onClick={() => handleDotClick(index)}
-              aria-label={t("carousel.goToSlide", { index: index + 1 })}
-              aria-current={index === activeIndex ? "true" : undefined}
-            />
-          ))}
-        </div>
+        <SegmentedProgressBar
+          className="pointer-events-auto flex h-1 w-40"
+          count={slidesCount}
+          activeIndex={activeIndex}
+          cumulative
+          markCurrent
+          segmentClassName="flex-1 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white transition-colors duration-300"
+          onSegmentSelect={handleDotClick}
+          getLabel={(index) => t("carousel.goToSlide", { index: index + 1 })}
+        />
       </div>
     </div>
   );

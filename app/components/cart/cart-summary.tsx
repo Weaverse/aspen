@@ -7,6 +7,7 @@ import type { CartApiQueryFragment } from "storefront-api.generated";
 import { Button } from "~/components/button";
 import { Link } from "~/components/link";
 import { LoyaltyPointsHint } from "~/components/loyalty/loyalty-points-hint";
+import { ProgressBar } from "~/components/progress-bar";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import { useTranslatedThemeSettings } from "~/hooks/use-translated-theme-settings";
 import { getCartMutationError } from "~/utils/cart-error";
@@ -71,12 +72,11 @@ export function CartProgression({
           )}
         </p>
       </div>
-      <div className="relative h-1 w-full overflow-hidden rounded-(--radius-sm) bg-[#F2F0EE] max-xl:order-1 max-xl:bg-[#ECECEC]">
-        <div
-          className="h-full rounded-(--radius-sm) bg-[#A79D95] transition-all duration-300 max-xl:bg-[#9B9B9B]"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
+      <ProgressBar
+        className="relative h-1 w-full max-xl:order-1"
+        indicatorClassName="h-full transition-all duration-300"
+        value={progress}
+      />
     </div>
   );
 }
@@ -433,7 +433,7 @@ export function CartSummary({
       className={clsx(
         className,
         layout === "drawer" &&
-          "grid max-h-[55dvh] shrink-0 gap-2.5 overflow-y-auto border-line-subtle border-t bg-white py-4 max-xl:gap-3.5 max-xl:pt-2.5 max-xl:pb-0",
+          "hidden-scroll grid max-h-[55dvh] shrink-0 gap-2.5 overflow-y-auto border-line-subtle border-t bg-white py-4 max-xl:gap-3.5 max-xl:pt-2.5 max-xl:pb-0",
         layout === "page" &&
           "flex w-full flex-col gap-6 px-5 pb-6 md:mx-auto md:w-[432px] md:px-0 xl:mx-0 xl:w-full xl:px-6",
       )}

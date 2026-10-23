@@ -3,6 +3,7 @@ import { useTranslation } from "@weaverse/hydrogen";
 import { useEffect, useId, useRef, useState } from "react";
 import { useFetcher, useLoaderData } from "react-router";
 import { Button } from "~/components/button";
+import { ProgressBar } from "~/components/progress-bar";
 import { StarRating } from "~/components/star-rating";
 import type { loader as productRouteLoader } from "~/routes/($locale).products.$productHandle";
 import { cn } from "~/utils/cn";
@@ -30,15 +31,12 @@ function RatingBreakdown({ reviews }: { reviews: JudgemeReviewsData }) {
               {rating}
               <StarIcon aria-hidden="true" className="size-3" weight="fill" />
             </span>
-            <div
-              className="h-2 overflow-hidden rounded-(--radius-sm) bg-line-subtle"
+            <ProgressBar
+              className="h-2"
               aria-hidden="true"
-            >
-              <span
-                className="block h-full rounded-(--radius-sm) bg-body"
-                style={{ width: `${percentage}%` }}
-              />
-            </div>
+              indicatorClassName="block h-full"
+              value={percentage}
+            />
             <span className="text-body-subtle">
               {t(count === 1 ? "reviews.count" : "reviews.count_other", {
                 count,

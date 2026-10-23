@@ -24,7 +24,13 @@ let variants = cva("", {
   },
 });
 
-const MAX_DURATION = 20;
+const BASE_SCROLL_DURATION = 20;
+const DEFAULT_SCROLL_SPEED = 1;
+const scrollingSpeedConfigs = { min: 1, max: 20, step: 1, unit: "x" };
+
+function isValidScrollSpeed(value: number | undefined) {
+  return Number.isFinite(value) && value > 0;
+}
 
 export interface ScrollingProps
   extends VariantProps<typeof variants>,
@@ -38,6 +44,8 @@ export interface ScrollingProps
   verticalPadding?: number;
   verticalMargin?: number;
   topbarScrollingSpeed?: number;
+  style1ScrollingSpeed?: number;
+  style2ScrollingSpeed?: number;
   gap?: number;
   visibleOnMobile?: boolean;
   layoutStyle?: "style1" | "style2";
@@ -58,6 +66,8 @@ const ScrollingText = forwardRef<HTMLElement, ScrollingProps>((props, ref) => {
     verticalPadding,
     verticalMargin,
     topbarScrollingSpeed,
+    style1ScrollingSpeed,
+    style2ScrollingSpeed,
     gap,
     visibleOnMobile,
     layoutStyle = "style1",
@@ -96,13 +106,21 @@ const ScrollingText = forwardRef<HTMLElement, ScrollingProps>((props, ref) => {
     return () => observer.disconnect();
   }, [layoutStyle, hasItems]);
 
+  const configuredSpeed =
+    layoutStyle === "style2" ? style2ScrollingSpeed : style1ScrollingSpeed;
+  const scrollSpeed = isValidScrollSpeed(configuredSpeed)
+    ? configuredSpeed
+    : isValidScrollSpeed(topbarScrollingSpeed)
+      ? topbarScrollingSpeed
+      : DEFAULT_SCROLL_SPEED;
+
   let sectionStyle: CSSProperties = {
     "--text-color": textColor,
     "--border-color": borderColor,
     "--background-color": backgroundColor,
     "--vertical-padding": `${verticalPadding}px`,
     "--vertical-margin": `${verticalMargin}px`,
-    "--marquee-duration": `${MAX_DURATION / topbarScrollingSpeed}s`,
+    "--marquee-duration": `${BASE_SCROLL_DURATION / scrollSpeed}s`,
     "--gap": `${gap}px`,
     "--icon-size": `${iconSize}px`,
   } as CSSProperties;
@@ -313,14 +331,25 @@ export let schema: HydrogenComponentSchema = {
           type: "range",
           label: "Scrolling speed",
           name: "topbarScrollingSpeed",
-          configs: {
-            min: 1,
-            max: 20,
-            step: 1,
-            unit: "x",
-          },
-          defaultValue: 1,
+          // Keep the old shared field as a fallback for saved sections only.
+          condition: () => false,
+          configs: scrollingSpeedConfigs,
+          defaultValue: DEFAULT_SCROLL_SPEED,
         },
+        ...(["style1", "style2"] as const).map((style, index) => ({
+          type: "range" as const,
+          label: `Style ${index + 1} scrolling speed`,
+          name:
+            style === "style1"
+              ? "style1ScrollingSpeed"
+              : "style2ScrollingSpeed",
+          // Schema defaults would overwrite the legacy fallback on old sections.
+          // Only presets initialize the new fields.
+          configs: scrollingSpeedConfigs,
+          condition: (data: ScrollingProps) =>
+            (data.layoutStyle ?? "style1") === style,
+          helpText: `Higher values scroll faster. 1x is a ${BASE_SCROLL_DURATION}-second cycle. If unset, keeps the previously saved shared speed.`,
+        })),
         {
           type: "range",
           name: "gap",
@@ -343,6 +372,8 @@ export let schema: HydrogenComponentSchema = {
     },
   ],
   presets: {
+    style1ScrollingSpeed: DEFAULT_SCROLL_SPEED,
+    style2ScrollingSpeed: DEFAULT_SCROLL_SPEED,
     children: [
       {
         type: "scrolling-text--item",

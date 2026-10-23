@@ -61,6 +61,31 @@ export function CompareAtPrice({
   );
 }
 
+export function ProductCompareAtPrice({
+  data,
+  className,
+  spacedCurrency = false,
+}: {
+  data: MoneyV2;
+  className?: string;
+  spacedCurrency?: boolean;
+}) {
+  return (
+    <span
+      className={cn(
+        "font-heading font-normal text-[24px] text-(--color-compare-price-text) not-italic leading-[normal] line-through",
+        className,
+      )}
+    >
+      {spacedCurrency ? (
+        <SpacedMoney data={data} />
+      ) : (
+        <Money withoutTrailingZeros data={data} />
+      )}
+    </span>
+  );
+}
+
 export function VariantPrices({
   variant,
   showCompareAtPrice = true,
@@ -69,6 +94,7 @@ export function VariantPrices({
   compareAtFirst = false,
   priceClassName,
   compareAtPriceClassName,
+  compareAtPriceVariant = "inherit",
 }: {
   spacedCurrency?: boolean;
   variant:
@@ -79,6 +105,7 @@ export function VariantPrices({
   compareAtFirst?: boolean;
   priceClassName?: string;
   compareAtPriceClassName?: string;
+  compareAtPriceVariant?: "inherit" | "product";
 }) {
   if (variant) {
     const { price } = variant;
@@ -94,7 +121,13 @@ export function VariantPrices({
         showCompareAtPrice &&
         compareAtPrice &&
         isDiscounted(price as MoneyV2, compareAtPrice as MoneyV2) ? (
-          spacedCurrency ? (
+          compareAtPriceVariant === "product" ? (
+            <ProductCompareAtPrice
+              data={compareAtPrice as MoneyV2}
+              className={compareAtPriceClassName}
+              spacedCurrency={spacedCurrency}
+            />
+          ) : spacedCurrency ? (
             <span className={cn("strike", compareAtPriceClassName)}>
               <SpacedMoney data={compareAtPrice as MoneyV2} />
             </span>

@@ -74,7 +74,12 @@ export function PriceRangeFilter({
   }
 
   return (
-    <div className={cn("space-y-5", context === "sidebar" && "space-y-4")}>
+    <div
+      className={cn(
+        "space-y-5",
+        context === "sidebar" ? "space-y-4" : "lg:space-y-4",
+      )}
+    >
       <p>
         {t("collection.highestPrice", {
           price: `${currencySymbol}${formatNumber(maxVariantPrice, locale, {
@@ -84,6 +89,7 @@ export function PriceRangeFilter({
       </p>
       <div className="grid grid-cols-2 gap-6">
         <PriceInput
+          context={context}
           ariaLabel={t("collection.minimumPrice")}
           currencySymbol={currencySymbol}
           min={minVariantPrice}
@@ -94,6 +100,7 @@ export function PriceRangeFilter({
           onCommit={() => handleFilter()}
         />
         <PriceInput
+          context={context}
           ariaLabel={t("collection.maximumPrice")}
           currencySymbol={currencySymbol}
           min={minVariantPrice}
@@ -109,6 +116,7 @@ export function PriceRangeFilter({
 }
 
 function PriceInput({
+  context,
   ariaLabel,
   currencySymbol,
   min,
@@ -118,6 +126,7 @@ function PriceInput({
   onChange,
   onCommit,
 }: {
+  context: "sidebar" | "drawer";
   ariaLabel: string;
   currencySymbol: string;
   min: number;
@@ -128,7 +137,12 @@ function PriceInput({
   onCommit: () => void;
 }) {
   return (
-    <label className="flex min-w-0 items-center gap-[5px]">
+    <label
+      className={cn(
+        "flex min-w-0 items-center gap-[5px]",
+        context === "drawer" && "lg:gap-1",
+      )}
+    >
       <span aria-hidden="true" className="text-[#3D490B]">
         {currencySymbol}
       </span>

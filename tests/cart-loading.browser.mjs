@@ -14,7 +14,7 @@ const bundle = await build({
     contents: `
       import React from "react";
       import { createRoot } from "react-dom/client";
-      import { CartMain, CartNoteDialogWrapper, DiscountCodeDialogWrapper, GiftCardDialogWrapper } from "./app/components/cart/cart-main";
+      import { CartMain, CartEmpty, CartNoteDialogWrapper, DiscountCodeDialogWrapper, GiftCardDialogWrapper } from "./app/components/cart/cart-main";
       import { PriceLoadingSpinner } from "./app/components/cart/cart-line-item";
       const root = createRoot(document.getElementById("root"));
       window.settings = {enableFreeShipping: true, freeShippingThreshold: "100", cartTitleEmpty:"Empty cart"};
@@ -24,6 +24,7 @@ const bundle = await build({
         root.render(<CartMain layout="drawer" cart={{id:"cart", totalQuantity:quantity, lines:{nodes:[]}, cost:{subtotalAmount:money,totalAmount:money}, note:null, discountCodes:[], appliedGiftCards:[], isOptimistic:pending}} />);
       };
       window.renderSpinner = () => root.render(<PriceLoadingSpinner />);
+      window.renderEmpty = (layout="drawer") => root.render(<CartEmpty hidden={false} layout={layout} />);
       window.renderActions = (layout="drawer") => root.render(<div style={{display:"flex",gap:8,flexWrap:"wrap"}}><CartNoteDialogWrapper cartNote="" cartNoteButtonText="Add a note" layout={layout}/><DiscountCodeDialogWrapper discountCodes={[]} discountCodeButtonText="Discount code" layout={layout}/><GiftCardDialogWrapper giftCardButtonText="Gift card" layout={layout}/></div>);
     `,
     loader: "tsx",
@@ -44,7 +45,7 @@ const bundle = await build({
               /^@shopify\/hydrogen$|^@weaverse\/hydrogen$|^react-router$|^react-use\/esm\/useScroll$|^~\/(hooks|utils|components\/(button|link|image|loyalty|subscriptions))|^\.\/cart-(best-sellers|line-qty-adjust|sync|summary-actions)$|^\.\/store$|^\.\.\/layout\/cart-drawer$/,
           },
           ({ path }) =>
-            path === "~/utils/cart-code"
+            path === "~/utils/cart-code" || path === "~/utils/cn"
               ? undefined
               : { path, namespace: "fixture" },
         );
@@ -94,6 +95,57 @@ const css = stylesheet.build(
     sources: [{ base: `${root}app`, pattern: "**/*.{ts,tsx}", negated: false }],
   }).scan(),
 );
+
+test("Cart drawer hides scrollbars without disabling scrolling in filled and empty states", async () => {
+  const browser = await chromium.launch();
+  try {
+    for (const width of [390, 834, 1440]) {
+      const page = await browser.newPage({ viewport: { width, height: 900 } });
+      await page.setContent(
+        `<style>${css}#root{height:500px;display:flex;flex-direction:column}</style><div id="root"></div>`,
+      );
+      await page.addScriptTag({ content: bundle.outputFiles[0].text });
+      for (const empty of [false, true]) {
+        await page.evaluate(
+          (isEmpty) => (isEmpty ? window.renderEmpty() : window.renderCart()),
+          empty,
+        );
+        const scrollers = page.locator("#root .overflow-y-auto");
+        await expect(scrollers).toHaveCount(empty ? 1 : 2);
+        for (const scroller of await scrollers.all()) {
+          await expect(scroller).toHaveCSS("overflow-y", "auto");
+          await expect(scroller).toHaveCSS("scrollbar-width", "none");
+          assert.equal(
+            await scroller.evaluate(
+              (element) =>
+                getComputedStyle(element, "::-webkit-scrollbar").display,
+            ),
+            "none",
+          );
+          await scroller.evaluate((element) => {
+            const spacer = document.createElement("div");
+            spacer.style.height = "1500px";
+            element.appendChild(spacer);
+          });
+          const bounds = await scroller.boundingBox();
+          await page.mouse.move(
+            bounds.x + bounds.width / 2,
+            bounds.y + bounds.height / 2,
+          );
+          await page.mouse.wheel(0, 250);
+          await expect
+            .poll(() => scroller.evaluate((element) => element.scrollTop))
+            .toBeGreaterThan(0);
+        }
+      }
+      await page.evaluate(() => window.renderEmpty("page"));
+      await expect(page.locator("#root .hidden-scroll")).toHaveCount(0);
+      await page.close();
+    }
+  } finally {
+    await browser.close();
+  }
+});
 
 test("Cart auxiliary buttons keep their geometry and use the secondary hover token", async () => {
   const browser = await chromium.launch();
