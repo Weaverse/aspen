@@ -234,14 +234,21 @@ const BeforeAndAfter = forwardRef<HTMLDivElement, BeforeAndAfterProps>(
                 heightMode === "aspen" ? "top-[57.6%] md:top-1/2" : "top-1/2",
               )}
             >
-              <span
-                className="flex h-[15px] w-3 items-stretch justify-between"
+              {/* Integer-spaced strokes share the same pixel alignment. */}
+              <svg
+                className="h-[15px] w-3 shrink-0 text-(--list-color)"
+                width="12"
+                height="15"
+                viewBox="0 0 12 15"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.25"
+                strokeLinecap="round"
                 aria-hidden="true"
+                focusable="false"
               >
-                <span className="w-[1.25px] rounded-full bg-[var(--list-color)]" />
-                <span className="w-[1.25px] rounded-full bg-[var(--list-color)]" />
-                <span className="w-[1.25px] rounded-full bg-[var(--list-color)]" />
-              </span>
+                <path d="M1 .625v13.75M6 .625v13.75M11 .625v13.75" />
+              </svg>
             </div>
           ) : null}
         </div>
