@@ -190,7 +190,7 @@ export function QuickShop({
               spacedCurrency
               compareAtFirst
               className="gap-3 font-heading font-normal text-2xl leading-none"
-              compareAtPriceClassName="text-body-subtle"
+              compareAtPriceVariant="product"
             />
           )}
           <ProductCardRating

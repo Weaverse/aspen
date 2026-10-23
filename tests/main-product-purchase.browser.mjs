@@ -36,7 +36,7 @@ const bundle = await build({
       name: "purchase-fixture",
       setup(builder) {
         const stubs = {
-          "@shopify/hydrogen": `import React from 'react'; export const getProductOptions=()=>window.productOptions; export const getAdjacentAndFirstAvailableVariants=()=>[]; export const useOptimisticVariant=v=>v; export const Money=({data,className})=><span className={className}>{data.amount}</span>; export const Image=()=>null; export const ShopPayButton=({variantIdsAndQuantities})=><a href={'/checkout/'+variantIdsAndQuantities[0].id}>Shop Pay</a>;`,
+          "@shopify/hydrogen": `import React from 'react'; export const getProductOptions=()=>window.productOptions; export const getAdjacentAndFirstAvailableVariants=()=>[]; export const useOptimisticVariant=v=>v; export const Money=({data,className})=><span className={className}>{data.amount}</span>; export const useMoney=data=>({currencySymbol:'$',currencyNarrowSymbol:'$',withoutTrailingZeros:'$'+data.amount,withoutTrailingZerosAndCurrency:data.amount}); export const Image=()=>null; export const ShopPayButton=({variantIdsAndQuantities})=><a href={'/checkout/'+variantIdsAndQuantities[0].id}>Shop Pay</a>;`,
           "@weaverse/hydrogen": `export const useTranslation=()=>({t:key=>key}); export const createSchema=v=>v; export const useThemeSettings=()=>({});`,
           "react-router": `import React from 'react'; export const useLoaderData=()=>window.productData; export const useRouteLoaderData=()=>({selectedLocale:window.productData.locale}); export const useNavigate=()=>to=>{window.navigation=to;}; export const Link=React.forwardRef(({to,viewTransition,...props},ref)=><a href={to} ref={ref} {...props}/>);`,
           "~/hooks/use-translated-text":
@@ -55,7 +55,6 @@ const bundle = await build({
           "~/components/product/bundled-variants",
           "~/components/product/judgeme-review",
           "~/components/product/product-media",
-          "~/components/product/variant-prices",
           "~/components/subscriptions/selling-plan-selector",
           "~/components/wishlist/product-wishlist-button",
           "~/sections/judgeme-reviews/review-index",

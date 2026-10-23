@@ -22,6 +22,7 @@ const fixtures = {
     import React from "react";
     export const Image = () => <img alt="Product image" />;
     export const Money = ({data}) => <span>{data.amount}</span>;
+    export const useMoney = (data) => ({currencySymbol: "$", currencyNarrowSymbol: "$", withoutTrailingZeros: "$" + data.amount, withoutTrailingZerosAndCurrency: data.amount});
     export const ShopPayButton = () => <div>Shop Pay</div>;
     export const getProductOptions = (product) => [{
       name: "Color", optionValues: [{
@@ -35,7 +36,6 @@ const fixtures = {
   "~/components/product/product-media": `export const ProductMedia = () => null;`,
   "~/components/product/product-card-rating": `export const ProductCardRating = () => null;`,
   "~/components/product/badges": `export const ProductBadges = () => null; export const SoldOutBadge = () => null;`,
-  "~/components/product/variant-prices": `import React from "react"; export const SpacedMoney = ({data}) => <span>{data.amount}</span>;`,
   "~/components/wishlist/product-card-wishlist-button": `export const ProductCardWishlistButton = () => null;`,
   "~/components/subscriptions/selling-plan-selector": `import React from "react"; export const SellingPlanSelector = () => <div>One time purchase</div>;`,
   "~/components/product/add-to-cart-button": `

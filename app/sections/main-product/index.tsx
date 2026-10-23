@@ -30,7 +30,10 @@ import {
   type ProductMediaProps,
 } from "~/components/product/product-media";
 import { Quantity } from "~/components/product/quantity";
-import { VariantPrices } from "~/components/product/variant-prices";
+import {
+  ProductCompareAtPrice,
+  VariantPrices,
+} from "~/components/product/variant-prices";
 import { ProgressBar } from "~/components/progress-bar";
 import { layoutInputs, Section, type SectionProps } from "~/components/section";
 import { SellingPlanSelector } from "~/components/subscriptions/selling-plan-selector";
@@ -334,11 +337,8 @@ const ProductInformation = forwardRef<
                       selectedVariant.compareAtPrice as MoneyV2,
                     ) &&
                       showSalePrice && (
-                        <Money
-                          withoutTrailingZeros
+                        <ProductCompareAtPrice
                           data={selectedVariant.compareAtPrice as MoneyV2}
-                          as="span"
-                          className="font-heading font-normal text-(--color-compare-price-text) text-2xl leading-[normal] line-through"
                         />
                       )}
                     <Money

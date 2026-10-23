@@ -20,7 +20,10 @@ import { ProductBadges, SoldOutBadge } from "~/components/product/badges";
 import { ProductCardRating } from "~/components/product/product-card-rating";
 import { ProductMedia } from "~/components/product/product-media";
 import { Quantity } from "~/components/product/quantity";
-import { SpacedMoney } from "~/components/product/variant-prices";
+import {
+  ProductCompareAtPrice,
+  SpacedMoney,
+} from "~/components/product/variant-prices";
 import { layoutInputs, Section } from "~/components/section";
 import { SellingPlanSelector } from "~/components/subscriptions/selling-plan-selector";
 import { ProductCardWishlistButton } from "~/components/wishlist/product-card-wishlist-button";
@@ -277,11 +280,10 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
                         currentVariant.compareAtPrice as MoneyV2,
                       ) &&
                         showSalePrice && (
-                          <span className="font-heading font-normal text-[24px] text-body-subtle not-italic leading-[normal] line-through">
-                            <SpacedMoney
-                              data={currentVariant.compareAtPrice as MoneyV2}
-                            />
-                          </span>
+                          <ProductCompareAtPrice
+                            data={currentVariant.compareAtPrice as MoneyV2}
+                            spacedCurrency
+                          />
                         )}
                       <SpacedMoney data={currentVariant.price} />
                     </div>
