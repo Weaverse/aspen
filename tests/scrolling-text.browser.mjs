@@ -20,8 +20,8 @@ const bundle = await build({
     const root = createRoot(document.getElementById("root"));
     window.schema = schema;
     window.renderPreset = () => root.render(<ScrollingText layoutStyle="style2" iconSize={24} textSize="20" gap={32} topbarScrollingSpeed={1} verticalPadding={12} verticalMargin={0} visibleOnMobile={true}>{schema.presets.children.map((item, index) => <Item key={index} {...item} />)}</ScrollingText>);
-    window.renderSection = (legacy = false, layoutStyle = "style2") => root.render(
-      <ScrollingText layoutStyle={layoutStyle} content="Legacy text" iconUrls='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /></svg>' iconSize={24} textSize="20" gap={32} topbarScrollingSpeed={1} verticalPadding={12} verticalMargin={0} visibleOnMobile={true}>
+    window.renderSection = (legacy = false, layoutStyle = "style2", speed = 1, styleSpeeds = {}) => root.render(
+      <ScrollingText layoutStyle={layoutStyle} content="Legacy text" iconUrls='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /></svg>' iconSize={24} textSize="20" gap={32} topbarScrollingSpeed={speed} verticalPadding={12} verticalMargin={0} visibleOnMobile={true} {...styleSpeeds}>
         {!legacy && ["A", "B", "C", "D"].map((text) => <Item key={text} data-wv-id={text} content={'<p><a href="/collections/' + text + '">Text content ' + text + '</a></p>'} icon='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /></svg>' />)}
       </ScrollingText>
     );
@@ -49,6 +49,43 @@ const bundle = await build({
     },
   ],
 });
+
+test("both styles preserve configured legacy speed and safely default invalid values", async () => {
+  const browser = await chromium.launch();
+  try {
+    const page = await browser.newPage({
+      viewport: { width: 834, height: 600 },
+    });
+    await page.setContent(`<style>${css}</style><div id="root"></div>`);
+    await page.addScriptTag({ content: bundle.outputFiles[0].text });
+    for (const style of ["style1", "style2"]) {
+      for (const [speed, duration] of [
+        [1, "20s"],
+        [2, "10s"],
+        [4, "5s"],
+        [20, "1s"],
+        [null, "20s"],
+        [0, "20s"],
+        [-1, "20s"],
+        [Number.NaN, "20s"],
+        [Number.POSITIVE_INFINITY, "20s"],
+        [Number.NEGATIVE_INFINITY, "20s"],
+      ]) {
+        await page.evaluate(
+          (settings) =>
+            window.renderSection(false, settings.style, settings.speed),
+          { style, speed },
+        );
+        await expect(
+          page.locator("section .animate-marquee").first(),
+        ).toHaveCSS("animation-duration", duration);
+      }
+    }
+    await page.close();
+  } finally {
+    await browser.close();
+  }
+});
 const stylesheet = await compile(
   await readFile(`${root}app/styles/app.css`, "utf8"),
   { base: `${root}app/styles`, onDependency: () => undefined },
@@ -58,6 +95,115 @@ const css = stylesheet.build(
     sources: [{ base: `${root}app`, pattern: "**/*.{ts,tsx}", negated: false }],
   }).scan(),
 );
+
+test("independent style speed controls preserve shared legacy settings until overridden", async () => {
+  const browser = await chromium.launch();
+  try {
+    const page = await browser.newPage({
+      viewport: { width: 834, height: 600 },
+    });
+    await page.setContent(`<style>${css}</style><div id="root"></div>`);
+    await page.addScriptTag({ content: bundle.outputFiles[0].text });
+    const scenarios = [
+      { style: "style1", values: {}, duration: "5s" },
+      { style: "style2", values: {}, duration: "5s" },
+      { style: "style1", values: { style1ScrollingSpeed: 2 }, duration: "10s" },
+      { style: "style2", values: { style1ScrollingSpeed: 2 }, duration: "5s" },
+      {
+        style: "style2",
+        values: { style1ScrollingSpeed: 2, style2ScrollingSpeed: 5 },
+        duration: "4s",
+      },
+      {
+        style: "style1",
+        values: { style1ScrollingSpeed: 2, style2ScrollingSpeed: 5 },
+        duration: "10s",
+      },
+      {
+        style: "style1",
+        values: { style1ScrollingSpeed: 10, style2ScrollingSpeed: 5 },
+        duration: "2s",
+      },
+      {
+        style: "style2",
+        values: { style1ScrollingSpeed: 10, style2ScrollingSpeed: 5 },
+        duration: "4s",
+      },
+      { style: "style1", values: { style1ScrollingSpeed: 0 }, duration: "5s" },
+      {
+        style: "style2",
+        values: { style2ScrollingSpeed: Number.NaN },
+        duration: "5s",
+      },
+      {
+        style: "style2",
+        values: { topbarScrollingSpeed: undefined },
+        duration: "20s",
+      },
+    ];
+    for (const scenario of scenarios) {
+      await page.evaluate(
+        (settings) =>
+          window.renderSection(false, settings.style, 4, settings.values),
+        scenario,
+      );
+      await expect(page.locator(".animate-marquee").first()).toHaveCSS(
+        "animation-duration",
+        scenario.duration,
+      );
+    }
+    const fields = await page.evaluate(() => {
+      const inputs = window.schema.settings.flatMap((group) => group.inputs);
+      const first = inputs.find(
+        (input) => input.name === "style1ScrollingSpeed",
+      );
+      const second = inputs.find(
+        (input) => input.name === "style2ScrollingSpeed",
+      );
+      const legacy = inputs.find(
+        (input) => input.name === "topbarScrollingSpeed",
+      );
+      return {
+        first: {
+          defaultValue: first.defaultValue,
+          type: first.type,
+          visible: first.condition({}),
+          hidden: !first.condition({ layoutStyle: "style2" }),
+        },
+        second: {
+          defaultValue: second.defaultValue,
+          type: second.type,
+          visible: second.condition({ layoutStyle: "style2" }),
+          hidden: !second.condition({ layoutStyle: "style1" }),
+        },
+        legacyHidden: !legacy.condition({}),
+        presets: [
+          window.schema.presets.style1ScrollingSpeed,
+          window.schema.presets.style2ScrollingSpeed,
+        ],
+      };
+    });
+    assert.deepEqual(fields, {
+      first: {
+        defaultValue: undefined,
+        type: "range",
+        visible: true,
+        hidden: true,
+      },
+      second: {
+        defaultValue: undefined,
+        type: "range",
+        visible: true,
+        hidden: true,
+      },
+      legacyHidden: true,
+      presets: [1, 1],
+    });
+    await page.close();
+  } finally {
+    await browser.close();
+  }
+});
 
 test("Style 2 keeps independent icon/text groups inline and scrolling at every breakpoint", async () => {
   const browser = await chromium.launch();
