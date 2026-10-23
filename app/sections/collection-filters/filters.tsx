@@ -83,7 +83,9 @@ export function Filters({ className, context = "sidebar" }: FiltersProps) {
       type="multiple"
       className={cn(
         "divide-y divide-line-subtle",
-        context === "sidebar" ? "pr-3" : "border-line-subtle border-b",
+        context === "sidebar"
+          ? "pr-3"
+          : "border-line-subtle border-b lg:space-y-3 lg:divide-y-0 lg:border-b-0 lg:font-dm-sans lg:text-sm lg:leading-[1.6] lg:tracking-[0.01em]",
         className,
       )}
       key={
@@ -112,14 +114,17 @@ export function Filters({ className, context = "sidebar" }: FiltersProps) {
             value={filter.id}
             className={cn(
               "w-full",
-              context === "sidebar" ? "pt-7 pb-6" : "py-0",
+              context === "sidebar"
+                ? "pt-7 pb-6"
+                : "py-0 lg:border-line-subtle lg:border-b lg:pt-4 lg:pb-6",
             )}
           >
             <Accordion.Trigger
               className={cn(
                 "group flex w-full items-center justify-between text-left uppercase focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body",
                 "data-[state=open]:[&_.filter-plus]:hidden data-[state=closed]:[&_.filter-minus]:hidden",
-                context === "drawer" && "min-h-[69px] pt-[5px] text-sm",
+                context === "drawer" &&
+                  "min-h-[69px] pt-[5px] text-sm lg:min-h-4 lg:pt-0 lg:leading-none lg:tracking-[0.02em]",
               )}
             >
               <span>
@@ -131,10 +136,23 @@ export function Filters({ className, context = "sidebar" }: FiltersProps) {
               </span>
               <span
                 aria-hidden="true"
-                className="relative block h-[18px] w-[18px] shrink-0"
+                className={cn(
+                  "relative block h-[18px] w-[18px] shrink-0",
+                  context === "drawer" && "lg:size-4",
+                )}
               >
-                <PlusIcon className="filter-plus absolute top-1/2 right-0.5 h-3 w-3 -translate-y-1/2" />
-                <MinusIcon className="filter-minus absolute top-1/2 right-0.5 h-3 w-3 -translate-y-1/2" />
+                <PlusIcon
+                  className={cn(
+                    "filter-plus absolute top-1/2 right-0.5 h-3 w-3 -translate-y-1/2",
+                    context === "drawer" && "lg:right-0 lg:size-4",
+                  )}
+                />
+                <MinusIcon
+                  className={cn(
+                    "filter-minus absolute top-1/2 right-0.5 h-3 w-3 -translate-y-1/2",
+                    context === "drawer" && "lg:right-0 lg:size-4",
+                  )}
+                />
               </span>
             </Accordion.Trigger>
             <Accordion.Content
@@ -160,11 +178,12 @@ export function Filters({ className, context = "sidebar" }: FiltersProps) {
                     : filter.type === "PRICE_RANGE"
                       ? "pt-1 pb-6"
                       : "pt-2 pb-6",
+                  context === "drawer" && "lg:pt-8 lg:pb-0",
                   asSwatch || asButton
                     ? "flex-wrap gap-3"
                     : cn(
                         "flex-col gap-5",
-                        context === "drawer" && "gap-[21px]",
+                        context === "drawer" && "gap-[21px] lg:gap-5",
                       ),
                 )}
               >
@@ -263,7 +282,10 @@ function FilterValues({
       {hiddenCount > 0 && (
         <button
           type="button"
-          className="w-fit underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body"
+          className={cn(
+            "w-fit underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body",
+            context === "drawer" && "lg:font-open-sans lg:tracking-[0.02em]",
+          )}
           aria-expanded={showAll}
           onClick={() => setShowAll((value) => !value)}
         >

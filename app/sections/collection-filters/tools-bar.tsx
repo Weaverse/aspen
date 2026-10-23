@@ -139,17 +139,17 @@ function FiltersDrawer({
       </Dialog.Trigger>
       <AnimatedDrawer open={open} filter>
         <div className="flex h-full flex-col gap-4">
-          <div className="grid min-h-10 shrink-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-5 px-5">
-            <Dialog.Title className="text-sm font-semibold uppercase">
+          <div className="grid min-h-10 shrink-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-5 px-5 max-lg:pl-9 lg:min-h-[42px] lg:gap-4 lg:pl-11">
+            <Dialog.Title className="text-sm font-semibold uppercase lg:tracking-[0.02em]">
               {t("collection.filter")}
             </Dialog.Title>
             <Dialog.Close asChild>
               <button
                 type="button"
-                className="relative flex size-5 items-center justify-center before:absolute before:-inset-2.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body"
+                className="relative flex size-5 items-center justify-center before:absolute before:-inset-2.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body lg:size-4"
                 aria-label={t("collection.closeFilters")}
               >
-                <XIcon aria-hidden="true" className="h-5 w-5" />
+                <XIcon aria-hidden="true" className="h-5 w-5 lg:size-4" />
               </button>
             </Dialog.Close>
           </div>
@@ -158,7 +158,7 @@ function FiltersDrawer({
             className="h-full"
             size="sm"
           >
-            <Filters context="drawer" className="mr-15 ml-5" />
+            <Filters context="drawer" className="mr-5 ml-9 lg:ml-11" />
           </ScrollArea>
         </div>
       </AnimatedDrawer>

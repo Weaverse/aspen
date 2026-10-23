@@ -16,7 +16,9 @@ for (const width of [390, 768, 1440]) {
     expect(bounds).not.toBeNull();
     expect(bounds?.y).toBe(0);
     expect(bounds?.height).toBe(900);
-    expect(bounds?.x).toBe(width - Math.min(430, width - 32));
+    expect(bounds?.x).toBe(
+      width - (width >= 1033 ? 397 : Math.min(430, width - 32)),
+    );
     expect((bounds?.x ?? 0) + (bounds?.width ?? 0)).toBe(width);
 
     const corners = await panel.evaluate((element) => {

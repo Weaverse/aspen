@@ -96,7 +96,8 @@ export function FilterItem({
         aria-pressed={checked}
         className={cn(
           "min-h-10 rounded-lg border px-3 py-2 text-center disabled:cursor-not-allowed",
-          context === "drawer" && "h-10 min-h-10 px-3 text-sm",
+          context === "drawer" &&
+            "h-10 min-h-10 px-3 text-sm lg:rounded-(--radius-md) lg:border-line lg:px-2.5 lg:py-0",
           option.count === 0 && "diagonal text-body-subtle",
           checked
             ? "border-line bg-body text-background"
@@ -127,11 +128,15 @@ export function FilterItem({
           "h-5 w-5 shrink-0 rounded-[7px]",
           "border border-line focus-visible:outline-hidden",
           "disabled:cursor-not-allowed disabled:opacity-50",
+          context === "drawer" && "lg:rounded-(--radius-sm)",
           context === "sidebar" && "data-[state=checked]:border-body",
         )}
       >
         <Checkbox.Indicator className="flex items-center justify-center text-current">
-          <CheckIcon className="h-3.5 w-3.5" weight="bold" />
+          <CheckIcon
+            className={cn("h-3.5 w-3.5", context === "drawer" && "lg:size-4")}
+            weight="bold"
+          />
         </Checkbox.Indicator>
       </Checkbox.Root>
       <label

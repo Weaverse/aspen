@@ -117,11 +117,11 @@ async function pointerOpen(page, name) {
   );
 }
 
-test("Collection and Search Filter reserve a close-button column at every breakpoint", async () => {
+test("Collection and Search Filter match Figma padding at every breakpoint", async () => {
   const browser = await chromium.launch();
   try {
     const page = await browser.newPage();
-    for (const width of [320, 390, 768, 1032, 1033, 1440]) {
+    for (const width of [320, 372, 390, 767, 768, 834, 1032, 1033, 1440]) {
       for (const kind of ["collection", "search"]) {
         await mount(page, width);
         await page.getByTestId(`${kind}-filter`).getByRole("button").click();
@@ -152,20 +152,23 @@ test("Collection and Search Filter reserve a close-button column at every breakp
             right: p.right - o.right,
             headerLeft: parseFloat(getComputedStyle(header).paddingLeft),
             top: h.y - p.y,
+            bottom: p.bottom - v.bottom,
             gap: v.y - h.bottom,
             closeRight: p.right - closeIcon.right,
             closeGap: closeIcon.left - o.right,
             overflow: panel.scrollWidth > panel.clientWidth,
           };
         });
+        const compact = width < 1033;
         expect(layout).toEqual({
-          left: 20,
-          right: 60,
-          headerLeft: 20,
+          left: compact ? 36 : 44,
+          right: 20,
+          headerLeft: compact ? 36 : 44,
           top: 12,
+          bottom: 24,
           gap: 16,
           closeRight: 20,
-          closeGap: 20,
+          closeGap: compact ? -20 : -16,
           overflow: false,
         });
         await page
@@ -382,7 +385,9 @@ test("Filter enters from the right, keeps a left overlay gutter, and uses left-o
       const panel = dialog.locator(":scope > div");
       await expect(panel).toHaveCSS("transform", "none");
       const bounds = await panel.boundingBox();
-      expect(bounds.width).toBe(Math.min(430, width - 32));
+      expect(bounds.width).toBe(
+        width >= 1033 ? 397 : Math.min(430, width - 32),
+      );
       expect(bounds.x + bounds.width).toBeCloseTo(width);
       expect(bounds.x).toBeGreaterThan(0);
       expect(Math.max(...frames)).toBeGreaterThan(bounds.x);
