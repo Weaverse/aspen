@@ -13,8 +13,11 @@ const bundle = await build({
       import React from "react";
       import { createRoot } from "react-dom/client";
       import Badge from "./app/sections/highlights/badge";
+      import Highlights from "./app/sections/highlights";
       const root = createRoot(document.getElementById("root"));
       window.renderBadge = (props) => root.render(React.createElement(Badge, props));
+      window.renderHighlights = (props) => root.render(React.createElement(Highlights, props,
+        ...[1, 2, 3].map((key) => React.createElement("div", { key, style: { height: 120 } }, "Highlight"))));
     `,
     loader: "tsx",
     resolveDir: root,
@@ -31,7 +34,7 @@ const bundle = await build({
         builder.onResolve(
           {
             filter:
-              /^@weaverse\/hydrogen$|^~\/hooks\/use-translated-text$|^~\/components\/(heading|link)$/,
+              /^@weaverse\/hydrogen$|^~\/hooks\/(use-translated-text|use-animation)$|^~\/components\/(heading|link)$|^\.\/overlay-and-background$/,
           },
           ({ path }) => ({ path, namespace: "fixture" }),
         );
@@ -39,9 +42,13 @@ const bundle = await build({
           contents:
             path === "@weaverse/hydrogen"
               ? "export const createSchema = (schema) => schema; export const useTranslation = () => ({ t: (key) => key });"
-              : path.includes("use-translated-text")
-                ? "export const useTranslatedText = () => (value) => value;"
-                : "export const headingInputs = []; export default function Component() { return null; }",
+              : path.includes("use-animation")
+                ? "export const useAnimation = (ref) => [ref];"
+                : path.includes("overlay-and-background")
+                  ? "export const OverlayAndBackground = () => null;"
+                  : path.includes("use-translated-text")
+                    ? "export const useTranslatedText = () => (value) => value;"
+                    : "export const headingInputs = []; export default function Component() { return null; }",
           loader: "js",
         }));
       },
@@ -60,6 +67,56 @@ const css = stylesheet.build(
     sources: [{ base: `${root}app`, pattern: "**/*.{ts,tsx}", negated: false }],
   }).scan(),
 );
+
+test("Highlights mobile has 20px side gutters and 80px vertical spacing without changing larger layouts", async () => {
+  const browser = await chromium.launch();
+  try {
+    const page = await browser.newPage();
+    for (const width of [320, 390, 511, 512, 767, 768, 834, 1033, 1440]) {
+      await page.setViewportSize({ width, height: 1000 });
+      await page.setContent(
+        `<!doctype html><style>${css}:root { --page-width: 1440px; --page-padding: 20px; }
+        @media (min-width: 512px) { :root { --page-padding: 32px; } }
+        @media (min-width: 1033px) { :root { --page-padding: 40px; } }
+        </style><div id="root"></div>`,
+      );
+      await page.addScriptTag({ content: bundle.outputFiles[0].text });
+      for (const mode of ["fixed", "stretch", "full"]) {
+        await page.evaluate(
+          (contentWidth) => window.renderHighlights({ width: contentWidth }),
+          mode,
+        );
+        const section = page.locator("section");
+        await expect(section).toBeVisible();
+        const bounds = await section.evaluate((element) => {
+          const outer = element.getBoundingClientRect();
+          const grid = element
+            .querySelector(":scope > div > div")
+            .getBoundingClientRect();
+          return {
+            left: grid.left - outer.left,
+            right: outer.right - grid.right,
+            top: grid.top - outer.top,
+            bottom: outer.bottom - grid.bottom,
+            overflow: element.scrollWidth > element.clientWidth,
+          };
+        });
+        const gutter =
+          width < 768 ? 20 : mode === "full" ? 0 : width < 1033 ? 32 : 40;
+        expect(bounds, `${mode} at ${width}px`).toEqual({
+          left: gutter,
+          right: gutter,
+          top: 80,
+          bottom: 80,
+          overflow: false,
+        });
+      }
+    }
+    await page.close();
+  } finally {
+    await browser.close();
+  }
+});
 
 test("Highlights icons retain design sizes, Studio controls and legacy custom SVG colors", async () => {
   const browser = await chromium.launch();
