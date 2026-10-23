@@ -1,12 +1,14 @@
 import type { HydrogenComponentSchema } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { createContext, forwardRef, useContext, useMemo } from "react";
-import { backgroundInputs } from "~/components/background-image";
+import { sectionBackgroundInputs } from "~/components/background-image";
 import { overlayInputs } from "~/components/overlay";
 import type { SectionProps } from "~/components/section";
 import { layoutInputs, Section } from "~/components/section";
 
 // Accordion Context
+const DEFAULT_BACKGROUND_COLOR = "#EAEAEA";
+
 interface AccordionContextValue {
   layout: "column" | "row";
 }
@@ -32,13 +34,7 @@ interface AccordionSectionProps extends SectionProps {
 
 const AccordionSection = forwardRef<HTMLElement, AccordionSectionProps>(
   (props, ref) => {
-    let {
-      accordionLayout,
-      children,
-      backgroundColor = "#F7F7F7",
-      backgroundFor = "section",
-      ...rest
-    } = props;
+    let { accordionLayout, children, backgroundColor, ...rest } = props;
 
     // Memoize context value to prevent unnecessary re-renders
     const contextValue = useMemo(
@@ -52,8 +48,8 @@ const AccordionSection = forwardRef<HTMLElement, AccordionSectionProps>(
         {...rest}
         width="full"
         verticalPadding="none"
-        backgroundColor={backgroundColor}
-        backgroundFor={backgroundFor}
+        backgroundColor={backgroundColor ?? DEFAULT_BACKGROUND_COLOR}
+        backgroundFor="section"
       >
         <AccordionProvider value={contextValue}>
           <div
@@ -101,7 +97,7 @@ export const schema: HydrogenComponentSchema = {
         ...layoutInputs.filter(
           (input) => input.name !== "gap" && input.name !== "verticalPadding",
         ),
-        ...backgroundInputs,
+        ...sectionBackgroundInputs(DEFAULT_BACKGROUND_COLOR),
         ...overlayInputs,
       ],
     },
@@ -109,7 +105,7 @@ export const schema: HydrogenComponentSchema = {
   childTypes: ["content-information", "accordion-group"],
   presets: {
     width: "full",
-    backgroundColor: "#F7F7F7",
+    backgroundColor: DEFAULT_BACKGROUND_COLOR,
     backgroundFor: "section",
     accordionLayout: "column",
     children: [

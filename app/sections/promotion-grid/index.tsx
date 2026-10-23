@@ -1,5 +1,11 @@
 import { createSchema } from "@weaverse/hydrogen";
-import { createContext, forwardRef, useContext } from "react";
+import {
+  type CSSProperties,
+  createContext,
+  forwardRef,
+  useContext,
+} from "react";
+import { sectionBackgroundInputs } from "~/components/background-image";
 import type { SectionProps } from "~/components/section";
 import { layoutInputs, Section } from "~/components/section";
 
@@ -18,10 +24,26 @@ export const usePromotionGridLayout = () =>
 
 const PromotionGrid = forwardRef<HTMLElement, PromotionGridProps>(
   (props, ref) => {
-    const { children, layout, ...rest } = props;
+    const { children, layout, style, ...rest } = props;
+    const hasCustomBackground = Boolean(
+      rest.backgroundColor || rest.backgroundImage,
+    );
     return (
       <PromotionGridLayoutContext.Provider value={layout}>
-        <Section ref={ref} {...rest}>
+        <Section
+          ref={ref}
+          {...rest}
+          backgroundFor="section"
+          style={
+            {
+              ...style,
+              // Let the section image/color show through the Style 1 shell.
+              "--promotion-slider-background": hasCustomBackground
+                ? "transparent"
+                : undefined,
+            } as CSSProperties
+          }
+        >
           {children}
         </Section>
       </PromotionGridLayoutContext.Provider>
@@ -55,6 +77,7 @@ export const schema = createSchema({
         ...layoutInputs,
       ],
     },
+    { group: "Background", inputs: sectionBackgroundInputs() },
   ],
   childTypes: ["grid-items"],
   presets: {

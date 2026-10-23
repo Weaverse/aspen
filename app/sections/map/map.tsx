@@ -6,6 +6,7 @@ import {
   useTranslation,
 } from "@weaverse/hydrogen";
 import { createContext, forwardRef, useEffect, useMemo, useState } from "react";
+import { sectionBackgroundInputs } from "~/components/background-image";
 import Heading from "~/components/heading";
 import { Image } from "~/components/image";
 import type { SectionProps } from "~/components/section";
@@ -21,6 +22,8 @@ interface MapSectionProps extends SectionProps {
   panelBackgroundColor?: string;
   addressFontColor?: string;
 }
+
+const DEFAULT_BACKGROUND_COLOR = "#F9F9F9";
 
 interface MapContextValue {
   layoutMap: "accordion" | "list";
@@ -105,6 +108,7 @@ const MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
     activeBackgroundColor = "#DFDFDF",
     panelBackgroundColor = "#FFFFFF",
     addressFontColor = "#524B46",
+    backgroundColor,
     ...rest
   } = props;
   const heading = translateText(
@@ -188,7 +192,14 @@ const MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
 
   return (
     <MapContext.Provider value={contextValue}>
-      <Section ref={ref} {...rest} width="full" verticalPadding="none">
+      <Section
+        ref={ref}
+        {...rest}
+        backgroundFor="section"
+        backgroundColor={backgroundColor ?? DEFAULT_BACKGROUND_COLOR}
+        width="full"
+        verticalPadding="none"
+      >
         {layoutMap === "list" ? (
           <div className="mx-auto grid w-full md:max-w-(--page-width) md:grid-cols-[280px_minmax(0,1fr)] md:gap-12 md:px-(--page-padding) md:py-(--section-padding-y) md:max-lg:grid-cols-1 md:max-lg:gap-10 md:max-lg:px-0 md:max-lg:pt-0 md:max-lg:pb-20 xl:gap-16">
             <div className="order-2 flex flex-col gap-8 px-6 py-12 md:order-1 md:gap-10 md:px-0 md:py-0 md:max-lg:order-2 md:max-lg:px-8">
@@ -285,12 +296,19 @@ export const schema: HydrogenComponentSchema = {
         },
       ],
     },
-    ...sectionSettings,
+    ...sectionSettings.map((group) =>
+      group.group === "Background"
+        ? {
+            ...group,
+            inputs: sectionBackgroundInputs(DEFAULT_BACKGROUND_COLOR),
+          }
+        : group,
+    ),
   ],
   presets: {
     width: "full",
     verticalPadding: "none",
-    backgroundColor: "#F6F4F3",
+    backgroundColor: DEFAULT_BACKGROUND_COLOR,
     heading: "OUR STORES",
     layoutMap: "list",
     activeBackgroundColor: "#DFDFDF",

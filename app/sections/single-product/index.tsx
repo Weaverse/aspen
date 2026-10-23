@@ -12,6 +12,7 @@ import {
 import clsx from "clsx";
 import { forwardRef, useEffect, useState } from "react";
 import type { ProductQuery } from "storefront-api.generated";
+import { sectionBackgroundInputs } from "~/components/background-image";
 import { Button } from "~/components/button";
 import { Image } from "~/components/image";
 import Link from "~/components/link";
@@ -133,7 +134,7 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
 
     if (!product) {
       return (
-        <Section ref={ref} {...rest}>
+        <Section ref={ref} {...rest} backgroundFor="section">
           <div className="container mx-auto px-4 md:px-6">
             <div className="grid items-start gap-6 lg:grid-cols-2 lg:gap-12 xl:grid-cols-2">
               <Image
@@ -208,7 +209,7 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
         : soldOutText || t("product.soldOut");
 
     return (
-      <Section ref={ref} {...rest} overflow="unset">
+      <Section ref={ref} {...rest} backgroundFor="section" overflow="unset">
         <div className="flex flex-col gap-10 md:gap-16">
           {heading && (
             <h2 className="font-heading font-normal text-[37px] max-md:text-wrap md:text-[44px] uppercase leading-[1.1] tracking-[-0.03em]">
@@ -455,6 +456,10 @@ export const schema = createSchema({
         },
         ...layoutInputs,
       ],
+    },
+    {
+      group: "Background",
+      inputs: sectionBackgroundInputs(),
     },
     {
       group: "Content",
