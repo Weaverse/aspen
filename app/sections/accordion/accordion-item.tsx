@@ -9,11 +9,14 @@ import type React from "react";
 import { forwardRef } from "react";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import { cn } from "~/utils/cn";
+import { useAccordionContext } from "./index";
 
 interface AccordionItemProps extends HydrogenComponentProps {
   title: string;
   content: string;
   icon: string;
+  questionBorderRadius?: number | string;
+  answerBorderRadius?: number | string;
 }
 
 const isSvgString = (icon: string) =>
@@ -22,11 +25,16 @@ const isSvgString = (icon: string) =>
 const AccordionItem = forwardRef<HTMLDivElement, AccordionItemProps>(
   (props, ref) => {
     const translateText = useTranslatedText();
+    const { layout } = useAccordionContext();
+    const radiusClassName =
+      layout === "row" ? "rounded-(--radius-md)" : "rounded";
 
     const {
       title: rawI18nTitle,
       content: rawI18nContent,
       icon,
+      questionBorderRadius = "auto",
+      answerBorderRadius = "auto",
       className,
       ...rest
     } = props;
@@ -81,9 +89,16 @@ const AccordionItem = forwardRef<HTMLDivElement, AccordionItemProps>(
               {
                 backgroundColor: "var(--accordion-bg-color)",
                 color: "var(--accordion-text-color)",
+                borderRadius:
+                  questionBorderRadius === "auto"
+                    ? undefined
+                    : `${questionBorderRadius}px`,
               } as React.CSSProperties
             }
-            className="group flex min-h-14 w-full items-center gap-3 rounded px-4 py-3 text-left"
+            className={cn(
+              "group flex min-h-14 w-full items-center gap-3 px-4 py-3 text-left",
+              radiusClassName,
+            )}
           >
             {renderIcon()}
             <span className="flex-1 font-body font-normal text-base leading-[1.4] tracking-[0.02em]">
@@ -114,10 +129,15 @@ const AccordionItem = forwardRef<HTMLDivElement, AccordionItemProps>(
               "--collapse-duration": "0.25s",
               backgroundColor: "var(--accordion-bg-color)",
               color: "var(--accordion-text-color)",
+              borderRadius:
+                answerBorderRadius === "auto"
+                  ? undefined
+                  : `${answerBorderRadius}px`,
             } as React.CSSProperties
           }
           className={cn(
-            "overflow-hidden rounded",
+            "overflow-hidden",
+            radiusClassName,
             "data-[state=closed]:animate-collapse",
             "data-[state=open]:mt-1 data-[state=open]:animate-expand",
           )}
@@ -161,7 +181,27 @@ export const schema: HydrogenComponentSchema = {
           defaultValue: "Accordion item content goes here.",
           placeholder: "Enter item content",
         },
+        {
+          type: "range",
+          name: "questionBorderRadius",
+          label: "Question border radius",
+          helpText:
+            "Unset existing items keep their design radius until customized.",
+          configs: { min: 0, max: 40, step: 2, unit: "px" },
+        },
+        {
+          type: "range",
+          name: "answerBorderRadius",
+          label: "Answer border radius",
+          helpText:
+            "Unset existing items keep their design radius until customized.",
+          configs: { min: 0, max: 40, step: 2, unit: "px" },
+        },
       ],
     },
   ],
+  presets: {
+    questionBorderRadius: 12,
+    answerBorderRadius: 12,
+  },
 };
