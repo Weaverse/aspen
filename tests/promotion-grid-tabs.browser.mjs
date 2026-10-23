@@ -38,14 +38,19 @@ const bundle = await build({
         to:"/collections/fixture" + index, variant:"decor", buttonTextSize:12,
         paragraphTag:"p", paragraphColor:"#FFFFFF"
       }));
-      function Fixture() {
+      function Fixture({overrides=[]}) {
         const [activeTab, setActiveTab] = useState(0);
-        return <TabsLayout tabsData={tabsData} activeTab={activeTab}
+        const [contentOverrides,setContentOverrides]=useState(overrides);
+        window.updateTabOverrides=setContentOverrides;
+        return <TabsLayout tabsData={tabsData.map((tab,index)=>({...tab,...contentOverrides[index]}))} activeTab={activeTab}
           setActiveTab={setActiveTab} rest={{}} />;
       }
       const router = createMemoryRouter([{id:"root",path:"/",element:<Fixture />}]);
       const root = createRoot(document.getElementById("root"));
       root.render(<RouterProvider router={router} />);
+      window.renderTabs = (overrides=[]) => root.render(<RouterProvider router={createMemoryRouter([
+        {id:"root",path:"/",element:<Fixture overrides={overrides} />}
+      ])} />);
       window.renderSlider = (options = {}) => {
         const {count=3, instances=1, headings, parentLayout, itemProps, ...props}=options;
         const element=<>{Array.from({length:instances},(_,group)=><PromotionGrid key={group} layout={parentLayout}><PromotionSlider {...sliderSchema.presets} {...props}>
@@ -56,7 +61,7 @@ const bundle = await build({
         </PromotionSlider></PromotionGrid>)}</>;
         root.render(<RouterProvider router={createMemoryRouter([{id:"root",path:"/",element}])} />);
       };
-      window.promotionSchemas = {grid:gridSchema, slider:sliderSchema};
+      window.promotionSchemas = {grid:gridSchema, slider:sliderSchema, item:itemSchema};
     `,
     loader: "tsx",
     resolveDir: root,
@@ -139,15 +144,28 @@ const themeTokens = `:root { --body-base-size:14px; --h2-base-size:53px; --h3-ba
 const browser = await chromium.launch();
 test.after(() => browser.close());
 
-async function render(width) {
-  const page = await browser.newPage({ viewport: { width, height: 1100 } });
+async function render(width, options = {}) {
+  const { imageColor, ...browserOptions } = options;
+  const page = await browser.newPage({
+    viewport: { width, height: 1100 },
+    ...browserOptions,
+  });
   page.setDefaultTimeout(3000);
   await page.route("**/fixture*.jpg*", async (route) => {
     const index = route
       .request()
       .url()
       .match(/fixture(\d)/)?.[1];
-    if (process.env.PROMOTION_VISUAL_ASSETS && index && Number(index) < 2) {
+    if (imageColor) {
+      await route.fulfill({
+        contentType: "image/svg+xml",
+        body: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><path fill="${imageColor}" d="M0 0h20v20H0z"/></svg>`,
+      });
+    } else if (
+      process.env.PROMOTION_VISUAL_ASSETS &&
+      index &&
+      Number(index) < 2
+    ) {
       await route.fulfill({
         body: await readFile(
           `${process.env.PROMOTION_VISUAL_ASSETS}/fixture${index}.png`,
@@ -155,7 +173,10 @@ async function render(width) {
         contentType: "image/png",
       });
     } else {
-      await route.abort();
+      await route.fulfill({
+        contentType: "image/svg+xml",
+        body: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><path fill="white" d="M0 0h20v20H0z"/></svg>',
+      });
     }
   });
   await page.setContent(
@@ -169,6 +190,36 @@ async function render(width) {
     .waitFor();
   return page;
 }
+
+test("Promotion heading exposes one content control and preserves saved text", async () => {
+  const page = await render(834);
+  const headingInputs = await page.evaluate(
+    () =>
+      window.promotionSchemas.item.settings.find(
+        (group) => group.group === "Heading (optional)",
+      ).inputs,
+  );
+  const contentInputs = headingInputs.filter(
+    (input) => input.name === "headingContent",
+  );
+  assert.equal(contentInputs.length, 1);
+  assert.equal(contentInputs[0].defaultValue, "Section heading");
+  assert.equal(
+    new Set(headingInputs.map((input) => input.name)).size,
+    headingInputs.length,
+  );
+  await page.evaluate(() =>
+    window.renderSlider({
+      count: 1,
+      parentLayout: "slider",
+      headings: ["Saved merchant heading"],
+    }),
+  );
+  await expect(
+    page.getByRole("heading", { name: "Saved merchant heading", exact: true }),
+  ).toBeVisible();
+  await page.close();
+});
 
 test("parent owns Layout type and overrides legacy child styles without resetting saved sections", async () => {
   const page = await render(834);
@@ -326,12 +377,172 @@ test("Promotion Tabs tablet spacing follows the tab row and preserves other brea
   }
 });
 
-test("Promotion Tabs switches title, body and link together while background still crossfades", async () => {
+test("Promotion Tabs labels stay fixed when switching tabs", async () => {
   for (const width of [390, 768, 1440]) {
     const page = await render(width);
-    await page.clock.install({ time: new Date("2026-10-04T00:00:00Z") });
-    await page.clock.pauseAt(new Date("2026-10-04T00:00:01Z"));
-    const paragraph = page.locator(".promotion-tabs .paragraph");
+    const positions = () =>
+      page
+        .locator(".promotion-tabs button span")
+        .evaluateAll((labels) =>
+          labels.map((label) => label.getBoundingClientRect().top),
+        );
+    const before = await positions();
+    await page.getByRole("button", { name: "Sofa Beds", exact: true }).click();
+    assert.deepEqual(await positions(), before);
+    await page.close();
+  }
+});
+
+test("Review 32: mobile tab headings and following content do not jump when selection changes", async () => {
+  for (const width of [320, 375, 393, 767]) {
+    const page = await render(width);
+    await page.evaluate(() =>
+      window.renderTabs([
+        { paragraphContent: "Short description." },
+        {
+          paragraphContent:
+            "Generous comfort by day, a welcoming place to stay by night. Designed to transform with ease.",
+        },
+        {
+          subheadingContent: "A collection for every home",
+          paragraphContent: "Long translated content ".repeat(25),
+          buttonContent: "Discover our collection and explore more",
+        },
+      ]),
+    );
+    for (const wrapped of [false, true]) {
+      if (wrapped) {
+        await page
+          .locator(".promotion-tabs button span")
+          .evaluateAll((labels) => {
+            for (const label of labels) {
+              label.textContent += " collection with a longer heading";
+            }
+          });
+      }
+      const geometry = () =>
+        page.locator(".promotion-tabs").evaluate((section) => {
+          const bounds = section.getBoundingClientRect();
+          return {
+            height: bounds.height,
+            headings: Array.from(section.querySelectorAll("button span")).map(
+              (label) => label.getBoundingClientRect().top - bounds.top,
+            ),
+          };
+        });
+      const before = await geometry();
+      for (const index of [1, 2, 0]) {
+        const tab = page.locator(".promotion-tabs button").nth(index);
+        await tab.click();
+        // Keep the mouse over the clicked tab through the entire transition.
+        // Previously, changing paragraph height moved another tab under it.
+        await expect(tab).toHaveAttribute("aria-pressed", "true");
+        await page.waitForTimeout(650);
+        await expect(tab).toHaveAttribute("aria-pressed", "true");
+        assert.deepEqual(await geometry(), before);
+      }
+      // Keyboard selection must use the same stable layout as touch/click.
+      const secondTab = page.locator(".promotion-tabs button").nth(1);
+      await secondTab.focus();
+      await secondTab.press("Space");
+      await expect(secondTab).toHaveAttribute("aria-pressed", "true");
+      assert.deepEqual(await geometry(), before);
+    }
+    await page.close();
+  }
+});
+
+test("mobile preview ignores mouse hover but still allows deliberate click selection", async () => {
+  const page = await render(393);
+  const first = page.getByRole("button", { name: "Best Selling", exact: true });
+  const second = page.getByRole("button", { name: "Sofa Beds", exact: true });
+  await second.hover();
+  await expect(first).toHaveAttribute("aria-pressed", "true");
+  await second.click();
+  await expect(second).toHaveAttribute("aria-pressed", "true");
+  await page.close();
+});
+
+test("mobile tabs remain stable after content edits, resizing and touch selection", async () => {
+  const page = await render(393, { hasTouch: true });
+  await page.evaluate(() =>
+    window.updateTabOverrides([
+      { paragraphContent: "Short description." },
+      { paragraphContent: "Long edited description ".repeat(15) },
+      { paragraphContent: "", buttonContent: "" },
+    ]),
+  );
+  for (const width of [393, 767, 768, 834, 1440, 393]) {
+    await page.setViewportSize({ width, height: 1100 });
+    const bounds = () =>
+      page
+        .locator(".promotion-tabs button")
+        .first()
+        .evaluate((button) => {
+          const section = button.closest(".promotion-tabs");
+          return {
+            nav:
+              button.getBoundingClientRect().top -
+              section.getBoundingClientRect().top,
+            height: section.getBoundingClientRect().height,
+          };
+        });
+    const before = await bounds();
+    for (const index of [1, 2, 0]) {
+      const button = page.locator(".promotion-tabs button").nth(index);
+      await button.tap();
+      await expect(button).toHaveAttribute("aria-pressed", "true");
+      if (width < 768) {
+        assert.deepEqual(await bounds(), before);
+      } else {
+        assert.equal((await bounds()).nav, isDesktopViewport(width) ? 160 : 40);
+      }
+    }
+    if (width >= 768) {
+      // Inactive long copy must not reserve extra height on tablet/desktop.
+      const content = page.locator(".promotion-tab-content:not([inert])");
+      const grid = content.locator("..");
+      assert.equal(
+        await grid.evaluate((el) => el.getBoundingClientRect().height),
+        await content.evaluate((el) => el.getBoundingClientRect().height),
+      );
+    }
+    await expect(page.getByRole("link")).toHaveCount(1);
+  }
+  await page.close();
+});
+
+test("Promotion Tabs fades panels without exposing inactive CTAs and respects reduced motion", async () => {
+  const page = await render(834);
+  const content = page.locator(".promotion-tab-content:not([inert])");
+  const outgoing = page.locator(".promotion-tab-content").first();
+  await page.getByRole("button", { name: "Sofa Beds", exact: true }).click();
+  await expect(outgoing).toHaveAttribute("inert", "");
+  await expect(page.getByRole("link")).toHaveCount(1);
+  await expect(content.locator(".paragraph")).toHaveText("Sofa Beds body");
+  await expect(content).toHaveCSS("opacity", "1");
+  await expect(
+    page.getByRole("link", { name: "Sofa Beds link" }),
+  ).toBeVisible();
+
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.getByRole("button", { name: "Decorations", exact: true }).click();
+  await expect(content.locator(".paragraph")).toHaveText("Decorations body");
+  await expect(content).toHaveCSS("opacity", "1");
+  await expect(page.locator(".promotion-tab-background")).toHaveCount(1);
+  await expect(page.locator(".promotion-tab-background")).toHaveCSS(
+    "animation-name",
+    "none",
+  );
+  await page.close();
+});
+
+test("Promotion Tabs switches body and link together and retargets interrupted background fades", async () => {
+  for (const width of [390, 768, 1440]) {
+    const page = await render(width);
+    const paragraph = page.locator(
+      ".promotion-tab-content:not([inert]) .paragraph",
+    );
     for (const [name, index] of [
       ["Sofa Beds", 1],
       ["Decorations", 2],
@@ -344,29 +555,176 @@ test("Promotion Tabs switches title, body and link together while background sti
         await button.click({ force: true });
       }
       await expect(button).toHaveAttribute("aria-pressed", "true");
-      await expect(paragraph).toHaveText(`${name} body`, { timeout: 200 });
+      await expect(paragraph).toHaveText(`${name} body`);
       await expect(
         page.getByRole("link", { name: `${name} link`, exact: true }),
       ).toHaveAttribute("href", `/collections/fixture${index}`);
-      await expect(paragraph.locator("..")).toHaveCSS("opacity", "1");
-      if (index === 1) {
-        await expect(page.locator(".promotion-tabs img")).toHaveCount(2);
-        await page.clock.runFor(600);
-        await expect(page.locator(".promotion-tabs img")).toHaveCount(1);
-        assert.match(
-          await page.locator(".promotion-tabs img").getAttribute("src"),
-          /fixture1\.jpg/,
-        );
-      }
+      await expect(page.locator(".promotion-tab-background")).toHaveCount(1);
     }
-    await page.clock.runFor(600);
-    await expect(page.locator(".promotion-tabs img")).toHaveCount(1);
+    const layers = page.locator(".promotion-tab-background");
+    await expect(layers).toHaveCount(1);
+    await expect(layers.nth(0)).toHaveCSS("opacity", "1");
+    await page.getByRole("button", { name: "Sofa Beds", exact: true }).click();
+    await expect
+      .poll(async () =>
+        Number(
+          await layers
+            .last()
+            .evaluate((layer) => getComputedStyle(layer).opacity),
+        ),
+      )
+      .toBeGreaterThan(0);
+    const midway = Number(
+      await layers.last().evaluate((layer) => getComputedStyle(layer).opacity),
+    );
+    assert.ok(midway < 1, "background must fade rather than switch instantly");
+    await page
+      .getByRole("button", { name: "Decorations", exact: true })
+      .click();
+    await page
+      .getByRole("button", { name: "Best Selling", exact: true })
+      .click();
+    await expect(layers).toHaveCount(1);
+    await expect(layers.first()).toHaveCSS("opacity", "1");
     assert.match(
-      await page.locator(".promotion-tabs img").getAttribute("src"),
+      await layers.locator("img").getAttribute("src"),
       /fixture0\.jpg/,
     );
+    await expect(paragraph).toHaveText("Best Selling body");
+    await expect(page.getByRole("link")).toHaveCount(1);
     await page.close();
   }
+});
+
+test("background pixels stay opaque throughout normal and interrupted fades", async () => {
+  const page = await render(834, { imageColor: "black" });
+  await expect
+    .poll(() =>
+      page
+        .locator(".promotion-tabs img")
+        .first()
+        .evaluate((img) => img.complete && img.naturalWidth > 0),
+    )
+    .toBe(true);
+  const sample = async () => {
+    const png = await page.screenshot({
+      clip: { x: 1, y: 1, width: 1, height: 1 },
+    });
+    return page.evaluate(async (data) => {
+      const image = new Image();
+      image.src = `data:image/png;base64,${data}`;
+      await image.decode();
+      const canvas = document.createElement("canvas");
+      canvas.width = canvas.height = 1;
+      const context = canvas.getContext("2d");
+      context.drawImage(image, 0, 0);
+      return Array.from(context.getImageData(0, 0, 1, 1).data);
+    }, png.toString("base64"));
+  };
+  assert.deepEqual(await sample(), [0, 0, 0, 255]);
+  for (const index of [1, 2, 0, 1]) {
+    await page.locator(".promotion-tabs button").nth(index).click();
+    await expect
+      .poll(() =>
+        page
+          .locator(".promotion-tabs img")
+          .last()
+          .evaluate((img) => img.complete && img.naturalWidth > 0),
+      )
+      .toBe(true);
+    await page.locator(".promotion-tabs").evaluate((section) => {
+      for (const layer of section.querySelectorAll(
+        ".promotion-tab-background",
+      )) {
+        for (const animation of layer.getAnimations()) {
+          animation.pause();
+          animation.currentTime = 250;
+        }
+      }
+    });
+    assert.deepEqual(
+      await sample(),
+      [0, 0, 0, 255],
+      "identical opaque images must not flash gray",
+    );
+  }
+  await page.locator(".promotion-tabs").evaluate((section) => {
+    for (const layer of section.querySelectorAll(".promotion-tab-background")) {
+      for (const animation of layer.getAnimations()) {
+        animation.finish();
+      }
+    }
+  });
+  await expect(page.locator(".promotion-tab-background")).toHaveCount(1);
+  await page.close();
+});
+
+test("slow or failed incoming images retain the last visible background and recover", async () => {
+  const page = await render(834);
+  let releaseImage;
+  const pendingImage = new Promise((resolve) => {
+    releaseImage = resolve;
+  });
+  await page.route("**/fixture1.jpg*", async (route) => {
+    await pendingImage;
+    await route.fulfill({
+      contentType: "image/svg+xml",
+      body: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><path fill="black" d="M0 0h20v20H0z"/></svg>',
+    });
+  });
+  const layers = page.locator(".promotion-tab-background");
+  await page.getByRole("button", { name: "Sofa Beds", exact: true }).click();
+  await expect(layers).toHaveCount(2);
+  await page.waitForTimeout(650);
+  await expect(layers.first()).toHaveCSS("opacity", "1");
+  await expect(layers.last()).toHaveCSS("opacity", "0");
+  assert.match(
+    await layers.first().locator("img").getAttribute("src"),
+    /fixture0\.jpg/,
+  );
+  releaseImage();
+  await expect(layers).toHaveCount(1);
+  assert.match(
+    await layers.locator("img").getAttribute("src"),
+    /fixture1\.jpg/,
+  );
+
+  await page.route("**/fixture2.jpg*", (route) => route.abort());
+  await page.getByRole("button", { name: "Decorations", exact: true }).click();
+  await expect(layers).toHaveCount(2);
+  await page.waitForTimeout(650);
+  await expect(layers.first()).toHaveCSS("opacity", "1");
+  await expect(layers.last()).toHaveCSS("opacity", "0");
+  await page.getByRole("button", { name: "Best Selling", exact: true }).click();
+  await expect(layers).toHaveCount(1);
+  assert.match(
+    await layers.locator("img").getAttribute("src"),
+    /fixture0\.jpg/,
+  );
+
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  for (const name of ["Sofa Beds", "Best Selling", "Sofa Beds"]) {
+    await page.getByRole("button", { name, exact: true }).click();
+    await expect(layers).toHaveCount(1);
+    await expect(layers).toHaveCSS("animation-name", "none");
+  }
+  await page.close();
+});
+
+test("revisiting failed targets does not accumulate invisible background layers", async () => {
+  const page = await render(834);
+  await page.route(/\/fixture[12]\.jpg/, (route) => route.abort());
+  for (const index of [1, 2, 1, 2, 1, 2]) {
+    await page.locator(".promotion-tabs button").nth(index).click();
+    await expect(page.locator(".promotion-tab-background")).toHaveCount(2);
+    await expect(page.locator(".promotion-tab-background").first()).toHaveCSS(
+      "opacity",
+      "1",
+    );
+  }
+  await page.locator(".promotion-tabs button").first().click();
+  await expect(page.locator(".promotion-tab-background")).toHaveCount(1);
+  await page.close();
 });
 
 test("Promotion slider matches responsive container and card spacing without clipping content", async () => {
@@ -589,7 +947,7 @@ test("all promotion cards share one bottom edge and retain 80px to the section b
 test("mobile tab content grows before navigation rather than overlapping long copy", async () => {
   const page = await render(375);
   await page
-    .locator(".promotion-tabs .paragraph")
+    .locator(".promotion-tab-content:not([inert]) .paragraph")
     .evaluate((el) => (el.textContent = "Long translated content ".repeat(30)));
   const geometry = await page.locator(".promotion-tabs").evaluate((el) => {
     const paragraph = el.querySelector(".paragraph").getBoundingClientRect();
