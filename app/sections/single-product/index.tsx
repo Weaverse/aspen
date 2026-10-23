@@ -21,7 +21,10 @@ import { ProductBadges, SoldOutBadge } from "~/components/product/badges";
 import { ProductCardRating } from "~/components/product/product-card-rating";
 import { ProductMedia } from "~/components/product/product-media";
 import { Quantity } from "~/components/product/quantity";
-import { SpacedMoney } from "~/components/product/variant-prices";
+import {
+  ProductCompareAtPrice,
+  SpacedMoney,
+} from "~/components/product/variant-prices";
 import { layoutInputs, Section } from "~/components/section";
 import { SellingPlanSelector } from "~/components/subscriptions/selling-plan-selector";
 import { ProductCardWishlistButton } from "~/components/wishlist/product-card-wishlist-button";
@@ -278,11 +281,10 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
                         currentVariant.compareAtPrice as MoneyV2,
                       ) &&
                         showSalePrice && (
-                          <span className="font-heading font-normal text-[24px] text-body-subtle not-italic leading-[normal] line-through">
-                            <SpacedMoney
-                              data={currentVariant.compareAtPrice as MoneyV2}
-                            />
-                          </span>
+                          <ProductCompareAtPrice
+                            data={currentVariant.compareAtPrice as MoneyV2}
+                            spacedCurrency
+                          />
                         )}
                       <SpacedMoney data={currentVariant.price} />
                     </div>
@@ -334,16 +336,16 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
                     } as React.CSSProperties
                   }
                 >
-                  <div className="flex gap-3">
+                  <div className="flex flex-wrap gap-3">
                     <Quantity
                       value={quantity}
                       onChange={setQuantity}
                       variant="stepper"
-                      className="w-[34%] min-w-0 shrink-0 bg-[#DFDFDF]"
+                      className="min-w-24"
                     />
                     <AddToCartButton
                       width="auto"
-                      containerClassName="min-w-0 flex-1"
+                      containerClassName="min-w-fit flex-1"
                       disabled={!currentVariant?.availableForSale}
                       lines={[
                         {

@@ -1,4 +1,4 @@
-import { CaretDownIcon, MinusIcon } from "@phosphor-icons/react";
+import { CaretDownIcon } from "@phosphor-icons/react";
 import * as Select from "@radix-ui/react-select";
 import { useTranslation } from "@weaverse/hydrogen";
 import { cn } from "~/utils/cn";
@@ -7,9 +7,12 @@ interface QuantityProps {
   value: number;
   onChange: (value: number) => void;
   maxQuantity?: number; // Optional max quantity limit
-  variant?: "select" | "stepper" | "product-page";
+  variant?: "select" | "stepper";
   className?: string;
 }
+
+const stepperTypography =
+  "font-dm-sans font-semibold not-italic leading-[normal] text-body";
 
 export function Quantity(props: QuantityProps) {
   const { t } = useTranslation();
@@ -21,14 +24,11 @@ export function Quantity(props: QuantityProps) {
     className,
   } = props;
 
-  const isProductPage = variant === "product-page";
-  if (variant === "stepper" || isProductPage) {
+  if (variant === "stepper") {
     return (
       <fieldset
         className={cn(
-          "grid h-[54px] min-w-32 grid-cols-3 overflow-hidden rounded-lg bg-[#f0efed]",
-          isProductPage &&
-            "w-[187px] min-w-0 grid-cols-[44px_minmax(0,1fr)_44px] rounded-(--radius-sm) bg-(--color-background-subtle-2) font-body text-body",
+          "flex h-[54px] w-[175px] min-w-24 shrink-0 items-start overflow-hidden rounded-(--radius-sm) bg-(--color-background-subtle-2)",
           className,
         )}
         data-motion="fade-up"
@@ -36,27 +36,26 @@ export function Quantity(props: QuantityProps) {
         <legend className="sr-only">{t("product.quantity")}</legend>
         <button
           type="button"
-          className="flex min-w-0 items-center justify-center self-stretch focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-body disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex w-11 shrink-0 flex-col items-center justify-center self-stretch focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-body disabled:cursor-not-allowed"
           onClick={() => onChange(Math.max(1, value - 1))}
           disabled={value <= 1}
           aria-label={t("product.decreaseQuantity")}
         >
-          {isProductPage ? (
-            <span
-              aria-hidden="true"
-              className="font-semibold text-xl leading-normal"
-            >
-              -
-            </span>
-          ) : (
-            <MinusIcon aria-hidden="true" className="h-4 w-4" />
-          )}
+          <span
+            aria-hidden="true"
+            className={cn("text-[20px]", stepperTypography)}
+          >
+            -
+          </span>
         </button>
+        <span
+          aria-hidden="true"
+          className="w-px shrink-0 self-stretch bg-white/20"
+        />
         <output
           className={cn(
-            "flex min-w-0 items-center justify-center self-stretch border-line-subtle border-x",
-            isProductPage &&
-              "border-white/20 font-semibold text-base leading-normal",
+            "flex min-w-0 flex-[1_0_0] flex-col items-center justify-center self-stretch text-[16px]",
+            stepperTypography,
           )}
           aria-live="polite"
           aria-label={t(
@@ -66,19 +65,20 @@ export function Quantity(props: QuantityProps) {
         >
           {value}
         </output>
+        <span
+          aria-hidden="true"
+          className="w-px shrink-0 self-stretch bg-white/20"
+        />
         <button
           type="button"
-          className="flex min-w-0 items-center justify-center self-stretch focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-body disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex w-11 shrink-0 flex-col items-center justify-center self-stretch focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-body disabled:cursor-not-allowed"
           onClick={() => onChange(Math.min(maxQuantity, value + 1))}
           disabled={value >= maxQuantity}
           aria-label={t("product.increaseQuantity")}
         >
           <span
             aria-hidden="true"
-            className={cn(
-              "font-body font-semibold text-xl leading-normal text-[#343231]",
-              isProductPage && "text-body",
-            )}
+            className={cn("text-[20px]", stepperTypography)}
           >
             +
           </span>

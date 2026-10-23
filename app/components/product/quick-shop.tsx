@@ -22,6 +22,7 @@ import { ProductCardRating } from "~/components/product/product-card-rating";
 import { ProductMedia } from "~/components/product/product-media";
 import { Quantity } from "~/components/product/quantity";
 import { QuickShopVariants } from "~/components/product/quick-shop-variants";
+import { ProgressBar } from "~/components/progress-bar";
 import { ScrollArea } from "~/components/scroll-area";
 import { Skeleton } from "~/components/skeleton";
 import { SellingPlanSelector } from "~/components/subscriptions/selling-plan-selector";
@@ -61,12 +62,11 @@ function StockIndicator({
       <span className="text-sm">
         {t("product.lowStock", { count: quantityAvailable })}
       </span>
-      <div className="h-1 w-full overflow-hidden rounded-(--radius-sm) bg-[#DFDFDF]">
-        <div
-          className="h-1 rounded-(--radius-sm) bg-(--color-text-subtle)"
-          style={{ width: `${fillPercent}%` }}
-        />
-      </div>
+      <ProgressBar
+        className="h-1 w-full"
+        indicatorClassName="h-1"
+        value={fillPercent}
+      />
     </div>
   );
 }
@@ -190,7 +190,7 @@ export function QuickShop({
               spacedCurrency
               compareAtFirst
               className="gap-3 font-heading font-normal text-2xl leading-none"
-              compareAtPriceClassName="text-body-subtle"
+              compareAtPriceVariant="product"
             />
           )}
           <ProductCardRating
@@ -227,16 +227,16 @@ export function QuickShop({
         </div>
 
         <div className="space-y-3">
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
             <Quantity
               value={quantity}
               onChange={setQuantity}
               variant="stepper"
-              className="w-1/3 min-w-24 shrink-0 bg-[#DFDFDF]"
+              className="min-w-24"
             />
             <AddToCartButton
               width="auto"
-              containerClassName="min-w-0 flex-1"
+              containerClassName="min-w-fit flex-1"
               disabled={!selectedVariant?.availableForSale}
               onAdded={onCloseAll}
               cartOpenTiming={cartOpenTiming}

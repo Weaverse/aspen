@@ -241,7 +241,7 @@ export function CartDetails({
         {/* Optimistic line mutations retain the server-confirmed cart cost. */}
         {enableFreeShipping && <CartProgression cost={cart.cost} />}
         <div className="flex min-h-0 flex-1 flex-col">
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-4">
+          <div className="hidden-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain pb-4">
             {mutationError}
             <CartLines
               discountCodes={discountCodes}
@@ -409,7 +409,7 @@ export function CartEmpty({
       ref={scrollRef}
       className={clsx(
         layout === "drawer" && [
-          "h-full min-h-0 w-full content-start space-y-12 overflow-y-auto transition",
+          "hidden-scroll h-full min-h-0 w-full content-start space-y-12 overflow-y-auto transition",
           y > 0 ? "border-t" : "",
         ],
         layout === "page" && [

@@ -84,6 +84,47 @@ async function render(page, count, variant = "product-page") {
   ).toBeVisible();
 }
 
+test("gallery progression shares active and track colors across variants and breakpoints", async () => {
+  const browser = await chromium.launch();
+  try {
+    for (const width of [390, 834, 1440]) {
+      for (const variant of ["default", "quick-shop", "product-page"]) {
+        const page = await browser.newPage({
+          viewport: { width, height: 800 },
+        });
+        await render(page, 5, variant);
+        const first = page.getByRole("button", {
+          name: "Slide 1",
+          exact: true,
+        });
+        const second = page.getByRole("button", {
+          name: "Slide 2",
+          exact: true,
+        });
+        await expect(first).toHaveCSS("background-color", "rgb(157, 157, 157)");
+        await expect(second).toHaveCSS(
+          "background-color",
+          "rgb(216, 216, 216)",
+        );
+        await second.hover();
+        await expect(second).toHaveCSS(
+          "background-color",
+          "rgb(216, 216, 216)",
+        );
+        await second.click();
+        await expect(second).toHaveCSS(
+          "background-color",
+          "rgb(157, 157, 157)",
+        );
+        await expect(first).toHaveCSS("background-color", "rgb(216, 216, 216)");
+        await page.close();
+      }
+    }
+  } finally {
+    await browser.close();
+  }
+});
+
 test("product-page gallery arrows have no shadow at every breakpoint", async () => {
   // Tailwind composes shadow-none as transparent zero-size shadow layers.
   const noVisibleShadow =
@@ -145,7 +186,7 @@ test("progression returns to the first segment when the gallery loops", async ()
           page
             .getByRole("button", { name: "Slide 1", exact: true })
             .locator(".."),
-        ).toHaveCSS("border-radius", "0px");
+        ).toHaveCSS("border-radius", "8px");
       }
       await page.close();
     }

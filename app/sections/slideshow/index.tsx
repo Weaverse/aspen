@@ -283,7 +283,8 @@ export const schema = createSchema({
             ],
           },
           defaultValue: "light",
-          condition: (data: SlideshowData) => data.showDots,
+          // Retain saved palettes; progression colors now come from shared tokens.
+          condition: () => false,
         },
       ],
     },

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { chromium } from "@playwright/test";
+import { chromium, expect } from "@playwright/test";
 import { compile } from "@tailwindcss/node";
 import { Scanner } from "@tailwindcss/oxide";
 import { build } from "esbuild";
@@ -22,6 +22,7 @@ const fixtures = {
     import React from "react";
     export const Image = () => <img alt="Product image" />;
     export const Money = ({data}) => <span>{data.amount}</span>;
+    export const useMoney = (data) => ({currencySymbol: "$", currencyNarrowSymbol: "$", withoutTrailingZeros: "$" + data.amount, withoutTrailingZerosAndCurrency: data.amount});
     export const ShopPayButton = () => <div>Shop Pay</div>;
     export const getProductOptions = (product) => [{
       name: "Color", optionValues: [{
@@ -35,7 +36,6 @@ const fixtures = {
   "~/components/product/product-media": `export const ProductMedia = () => null;`,
   "~/components/product/product-card-rating": `export const ProductCardRating = () => null;`,
   "~/components/product/badges": `export const ProductBadges = () => null; export const SoldOutBadge = () => null;`,
-  "~/components/product/variant-prices": `import React from "react"; export const SpacedMoney = ({data}) => <span>{data.amount}</span>;`,
   "~/components/wishlist/product-card-wishlist-button": `export const ProductCardWishlistButton = () => null;`,
   "~/components/subscriptions/selling-plan-selector": `import React from "react"; export const SellingPlanSelector = () => <div>One time purchase</div>;`,
   "~/components/product/add-to-cart-button": `
@@ -114,6 +114,68 @@ const css = stylesheet.build(
 const scenarios = [390, 820, TABLET_MAX_PX, DESKTOP_MIN_PX, 1440].map(
   (width) => ({ width, reveal: true }),
 );
+
+test("Featured Product uses the shared product stepper without overflowing its purchase row", async () => {
+  const browser = await chromium.launch();
+  try {
+    for (const width of [320, 390, 834, 1440]) {
+      const page = await browser.newPage({ viewport: { width, height: 900 } });
+      await page.setContent(
+        `<style>${css}:root{--page-padding:16px;--page-width:1440px;--body-base-size:14px;--radius-sm:8px;--color-background-subtle-2:#dfdfdf;--color-text:#343231}</style><div id="root"></div>`,
+      );
+      await page.evaluate(() => {
+        window.reveal = false;
+      });
+      await page.addScriptTag({ content: bundle.outputFiles[0].text });
+      await page.evaluate(() => window.start());
+      const group = page.getByRole("group", {
+        name: "product.quantity",
+        exact: true,
+      });
+      await expect(group).toHaveCSS("height", "54px");
+      await expect(group).toHaveCSS("border-radius", "8px");
+      await expect(group).toHaveCSS("background-color", "rgb(223, 223, 223)");
+      for (const button of await group.getByRole("button").all()) {
+        await expect(button).toHaveCSS("width", "44px");
+        await expect(button.locator("span")).toHaveCSS("font-size", "20px");
+        await expect(button.locator("span")).toHaveCSS("font-weight", "600");
+        await expect(button.locator("span")).toHaveCSS(
+          "font-family",
+          /DM Sans/,
+        );
+      }
+      await expect(group.locator("output")).toHaveCSS("font-size", "16px");
+      await expect(group.locator("output")).toHaveCSS("font-weight", "600");
+      const bounds = await group.evaluate((element) => {
+        const row = element.parentElement;
+        const cta = row.querySelector("[data-test='add-to-cart']");
+        return {
+          width: element.getBoundingClientRect().width,
+          right: cta.getBoundingClientRect().right,
+          rowRight: row.getBoundingClientRect().right,
+          scroll: cta.scrollWidth,
+          client: cta.clientWidth,
+        };
+      });
+      assert.ok(bounds.width <= 175 && bounds.width >= 96);
+      assert.ok(bounds.right <= bounds.rowRight + 1);
+      assert.ok(bounds.scroll <= bounds.client + 1);
+      if (width >= 834) {
+        await expect(group).toHaveCSS("width", "175px");
+      }
+      await group
+        .getByRole("button", { name: "product.increaseQuantity" })
+        .click();
+      await expect(page.locator("[data-test='add-to-cart']")).toHaveAttribute(
+        "data-quantity",
+        "2",
+      );
+      await page.close();
+    }
+  } finally {
+    await browser.close();
+  }
+});
 
 test("Featured Product mobile titles use available width and natural wrapping", async () => {
   const browser = await chromium.launch();
