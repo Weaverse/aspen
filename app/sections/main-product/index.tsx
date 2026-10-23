@@ -436,7 +436,7 @@ const ProductInformation = forwardRef<
                       value={quantity}
                       onChange={setQuantity}
                       maxQuantity={maxQuantity}
-                      variant="product-page"
+                      variant="stepper"
                       className="col-span-full shrink-0"
                     />
                     <AddToCartButton

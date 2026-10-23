@@ -52,7 +52,7 @@ export function CartLineItem({
         "relative transition-all duration-300",
         layout === "drawer"
           ? "flex gap-4 max-md:min-w-0 max-md:w-full"
-          : "flex h-full flex-col items-center md:flex-row",
+          : "flex h-full flex-col items-center overflow-hidden rounded-(--radius-md) md:flex-row",
         isOptimistic && "opacity-70",
         id.startsWith("optimistic-") && "pointer-events-none",
       )}
@@ -87,8 +87,8 @@ export function CartLineItem({
         className={clsx(
           "flex flex-col",
           layout === "drawer"
-            ? "min-w-0 grow justify-between gap-4 max-xl:min-h-[140px] max-xl:text-sm max-md:basis-3/5 max-md:grow-0 max-md:shrink-0 max-md:gap-2"
-            : "h-full w-full rounded-r-[var(--Radius-border-radius-md,12px)] bg-[var(--Background-Background,#FFF)] p-6 md:h-[360px]",
+            ? "min-w-0 grow justify-between gap-4 max-xl:min-h-[140px] max-xl:text-sm max-md:min-w-min max-md:basis-3/5 max-md:grow-0 max-md:shrink-0 max-md:gap-2 max-md:wrap-anywhere"
+            : "h-full w-full bg-[var(--Background-Background,#FFF)] p-6 md:h-[360px]",
         )}
       >
         {layout === "page" ? (
@@ -131,24 +131,13 @@ export function CartLineItem({
               <SubscriptionLineItem line={line as any} />
 
               {/* Quantity and Pricing */}
-              <div className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-1 lg:grid-cols-[1fr_auto_1fr] lg:gap-0">
-                <div className="hidden lg:block">
-                  {t("product.itemPrice")}:{" "}
-                  <CartLinePrice
-                    line={line}
-                    amountType="unit"
-                    fontWeight="normal"
-                    as="span"
-                    isLoading={isOptimistic}
-                  />
-                </div>
-                <CartLineQuantityAdjust line={line} layout={layout} />
-                <div className="justify-self-end text-right max-lg:font-semibold max-lg:text-sm max-lg:leading-(--body-base-line-height) max-lg:tracking-[0.02em] lg:font-normal">
+              <div className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-1">
+                <CartLineQuantityAdjust line={line} />
+                <div className="justify-self-end text-right font-semibold max-lg:text-sm max-lg:leading-(--body-base-line-height) max-lg:tracking-[0.02em]">
                   <CartLinePrice
                     line={line}
                     amountType="total"
-                    fontWeight="normal"
-                    className="max-lg:font-semibold"
+                    fontWeight="semibold"
                     as="span"
                     isLoading={isOptimistic}
                   />
@@ -187,7 +176,7 @@ export function CartLineItem({
             </div>
             <div className="flex flex-col items-start gap-4 max-md:mt-auto max-md:gap-2">
               <div className="flex w-full flex-wrap items-center gap-2 max-md:h-7.5 max-md:flex-nowrap">
-                <CartLineQuantityAdjust line={line} layout={layout} />
+                <CartLineQuantityAdjust line={line} />
                 <CartLinePrice
                   line={line}
                   amountType="total"

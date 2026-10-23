@@ -227,16 +227,16 @@ export function QuickShop({
         </div>
 
         <div className="space-y-3">
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
             <Quantity
               value={quantity}
               onChange={setQuantity}
               variant="stepper"
-              className="w-1/3 min-w-24 shrink-0 bg-[#DFDFDF]"
+              className="min-w-24"
             />
             <AddToCartButton
               width="auto"
-              containerClassName="min-w-0 flex-1"
+              containerClassName="min-w-fit flex-1"
               disabled={!selectedVariant?.availableForSale}
               onAdded={onCloseAll}
               cartOpenTiming={cartOpenTiming}

@@ -433,7 +433,7 @@ export function CartSummary({
       className={clsx(
         className,
         layout === "drawer" &&
-          "grid max-h-[55dvh] shrink-0 gap-2.5 overflow-y-auto border-line-subtle border-t bg-white py-4 max-xl:gap-3.5 max-xl:pt-2.5 max-xl:pb-0",
+          "hidden-scroll grid max-h-[55dvh] shrink-0 gap-2.5 overflow-y-auto border-line-subtle border-t bg-white py-4 max-xl:gap-3.5 max-xl:pt-2.5 max-xl:pb-0",
         layout === "page" &&
           "flex w-full flex-col gap-6 px-5 pb-6 md:mx-auto md:w-[432px] md:px-0 xl:mx-0 xl:w-full xl:px-6",
       )}
