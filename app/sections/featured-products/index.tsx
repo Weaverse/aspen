@@ -88,7 +88,7 @@ const FeaturedProducts = forwardRef<HTMLElement, FeaturedProductsProps>(
           ref={ref}
           {...rest}
           backgroundFor="section"
-          backgroundColor={backgroundColor || DEFAULT_BACKGROUND_COLOR}
+          backgroundColor={backgroundColor ?? DEFAULT_BACKGROUND_COLOR}
           className={cn("overflow-x-clip", className)}
           containerClassName={cn(
             "flex flex-col",

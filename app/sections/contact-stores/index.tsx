@@ -69,7 +69,7 @@ const ContactStores = forwardRef<HTMLElement, ContactStoresProps>(
         width="full"
         verticalPadding="none"
         gap={0}
-        backgroundColor={backgroundColor || "#FFFFFF"}
+        backgroundColor={backgroundColor ?? "#FFFFFF"}
       >
         <div className="mx-auto w-full max-w-[910px] px-5 py-16 md:px-8 md:pb-[84px] xl:max-w-[886px] xl:px-5">
           <h2 className="mb-6 font-heading font-normal text-[32px] uppercase leading-[1.15] tracking-[-0.02em] md:text-[37px]">

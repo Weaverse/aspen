@@ -262,35 +262,39 @@ test("requested defaults apply without replacing saved colors or explicit transp
   }
 });
 
-test("Accordion and Map preserve Remove Color and saved empty backgrounds at every breakpoint", async () => {
-  const browser = await chromium.launch();
-  try {
-    for (const width of [390, 834, 1440]) {
-      const page = await browser.newPage({ viewport: { width, height: 1200 } });
-      await page.setContent(`<style>${css}</style><div id='root'></div>`);
-      await page.addScriptTag({ content: bundle.outputFiles[0].text });
-      for (const [kind, options] of cases.filter(([sectionKind]) =>
-        ["accordion", "map"].includes(sectionKind),
-      )) {
-        // Mount an already-cleared section, then reproduce selecting and removing a color.
-        for (const backgroundColor of ["", "#123456", ""]) {
-          await page.evaluate(
-            ({ kind: sectionKind, props }) =>
-              window.renderSection(sectionKind, props),
-            { kind, props: { ...options, backgroundColor } },
-          );
-          await expect(page.getByTestId("subject")).toHaveCSS(
-            "background-color",
-            backgroundColor ? "rgb(18, 52, 86)" : "rgba(0, 0, 0, 0)",
-          );
+for (const sectionKinds of [["accordion", "map"], ["products"], ["stores"]]) {
+  test(`${sectionKinds.join(" and ")} preserve Remove Color and saved empty backgrounds at every breakpoint`, async () => {
+    const browser = await chromium.launch();
+    try {
+      for (const width of [390, 834, 1440]) {
+        const page = await browser.newPage({
+          viewport: { width, height: 1200 },
+        });
+        await page.setContent(`<style>${css}</style><div id='root'></div>`);
+        await page.addScriptTag({ content: bundle.outputFiles[0].text });
+        for (const [kind, options] of cases.filter(([sectionKind]) =>
+          sectionKinds.includes(sectionKind),
+        )) {
+          // Mount an already-cleared section, then reproduce selecting and removing a color.
+          for (const backgroundColor of ["", "#123456", ""]) {
+            await page.evaluate(
+              ({ kind: sectionKind, props }) =>
+                window.renderSection(sectionKind, props),
+              { kind, props: { ...options, backgroundColor } },
+            );
+            await expect(page.getByTestId("subject")).toHaveCSS(
+              "background-color",
+              backgroundColor ? "rgb(18, 52, 86)" : "rgba(0, 0, 0, 0)",
+            );
+          }
         }
+        await page.close();
       }
-      await page.close();
+    } finally {
+      await browser.close();
     }
-  } finally {
-    await browser.close();
-  }
-});
+  });
+}
 
 test("Promotion Grid image-only backgrounds show through and clearing restores its legacy shell", async () => {
   const browser = await chromium.launch();
