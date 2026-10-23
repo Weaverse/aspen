@@ -38,11 +38,11 @@ let Highlights = forwardRef<HTMLElement, HighlightsProps & SectionProps>(
       <Section
         ref={ref}
         {...rest}
-        className={variants({ alignment })}
+        className={cn(variants({ alignment }), "max-md:px-5")}
         containerClassName={cn(containerClassName, "py-20!")}
         style={{ backgroundColor }}
       >
-        <div className="mx-5 grid grid-cols-1 overflow-hidden rounded-lg border border-[#9D9D9D] [&>*]:border-[#DEDEDE] [&>*]:border-b [&>*:last-child]:border-b-0 md:mx-0 md:grid-cols-3 md:[&>*]:border-b-0 md:[&>*+*]:border-l">
+        <div className="grid grid-cols-1 overflow-hidden rounded-lg border border-[#9D9D9D] [&>*]:border-[#DEDEDE] [&>*]:border-b [&>*:last-child]:border-b-0 md:grid-cols-3 md:[&>*]:border-b-0 md:[&>*+*]:border-l">
           {children}
         </div>
       </Section>
