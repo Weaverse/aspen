@@ -6,6 +6,7 @@ import {
 } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
+import { useReducedMotion } from "framer-motion";
 import {
   forwardRef,
   isValidElement,
@@ -24,7 +25,11 @@ import type { SectionProps } from "~/components/section";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import { translatePresetText } from "~/utils/translation";
 import "swiper/css";
-import { DESKTOP_MIN_PX, TABLET_MIN_PX } from "~/utils/breakpoints";
+import {
+  DESKTOP_MIN_PX,
+  MEDIA_FROM_TABLET,
+  TABLET_MIN_PX,
+} from "~/utils/breakpoints";
 import { cn } from "~/utils/cn";
 import { sectionImageSource } from "~/utils/section-placeholder";
 import type { PromotionArrowsProps } from "./arrows";
@@ -86,6 +91,129 @@ let variants = cva(
   },
 );
 
+function TabContent({
+  children,
+  active,
+}: {
+  children: ReactNode;
+  active: boolean;
+}) {
+  return (
+    <div
+      inert={!active}
+      aria-hidden={!active}
+      className={cn(
+        "promotion-tab-content col-start-1 row-start-1 flex w-full min-w-0 self-start flex-col items-center px-6 py-12 text-center transition-opacity motion-reduce:transition-none md:p-0",
+        active
+          ? "relative opacity-100 delay-200 duration-300"
+          : "pointer-events-none opacity-0 duration-200 md:absolute md:inset-x-0 md:top-0",
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
+type TabData = ReturnType<typeof extractTabsData>[number];
+
+function BackgroundLayer({
+  tab,
+  base,
+  ready,
+  onReady,
+  onOpaque,
+}: {
+  tab: TabData;
+  base: boolean;
+  ready: boolean;
+  onReady: () => void;
+  onOpaque: () => void;
+}) {
+  const reduceMotion = useReducedMotion();
+
+  useEffect(() => {
+    if (!base && ready && reduceMotion) {
+      onOpaque();
+    }
+  }, [base, ready, reduceMotion, onOpaque]);
+
+  return (
+    <div
+      aria-hidden="true"
+      onLoadCapture={onReady}
+      onAnimationEnd={(event) => {
+        if (event.target === event.currentTarget) {
+          onOpaque();
+        }
+      }}
+      className={cn(
+        "promotion-tab-background pointer-events-none absolute inset-0 isolate",
+        !base &&
+          (ready
+            ? "animate-[fade-in_500ms_ease-in-out_both] motion-reduce:animate-none"
+            : "opacity-0"),
+      )}
+    >
+      <BackgroundImage backgroundImage={tab.backgroundImage} />
+      <Overlay
+        enableOverlay={tab.enableOverlay}
+        overlayColor={tab.overlayColor}
+        overlayColorHover={tab.overlayColorHover}
+        overlayOpacity={tab.overlayOpacity}
+      />
+    </div>
+  );
+}
+
+function TabBackground({
+  tabsData,
+  activeTab,
+}: {
+  tabsData: TabData[];
+  activeTab: number;
+}) {
+  const tab = tabsData[activeTab];
+  const [layers, setLayers] = useState(() => [{ key: 0, tab, ready: true }]);
+  const latest = layers.at(-1);
+
+  // Append instead of replacing the incoming layer, preserving the visible
+  // composition when a switch is interrupted (including revisiting a tab).
+  if (latest.tab.id !== tab.id) {
+    setLayers([
+      ...layers.filter((layer, index) => index === 0 || layer.ready),
+      { key: latest.key + 1, tab, ready: !tab.backgroundImage },
+    ]);
+  }
+
+  return layers.map((layer, index) => (
+    <BackgroundLayer
+      key={layer.key}
+      tab={tabsData.find((item) => item.id === layer.tab.id) ?? layer.tab}
+      base={index === 0}
+      ready={layer.ready}
+      onReady={() =>
+        setLayers((current) => {
+          const loaded = current.find((item) => item.key === layer.key);
+          return !loaded || loaded.ready
+            ? current
+            : current.map((item) =>
+                item.key === layer.key ? { ...item, ready: true } : item,
+              );
+        })
+      }
+      onOpaque={() =>
+        setLayers((current) => {
+          const opaqueIndex = current.findIndex(
+            (item) => item.key === layer.key,
+          );
+          // Only discard layers already fully covered by this opaque image.
+          return opaqueIndex > 0 ? current.slice(opaqueIndex) : current;
+        })
+      }
+    />
+  ));
+}
+
 const TabsLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
   const { t } = useTranslation();
 
@@ -97,23 +225,7 @@ const TabsLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
     mobileTabsHeight = 562,
     rest,
   } = props;
-  const [displayedTab, setDisplayedTab] = useState(activeTab);
-  const isTransitioning = activeTab !== displayedTab;
-
-  useEffect(() => {
-    if (activeTab !== displayedTab) {
-      const timer = setTimeout(() => {
-        setDisplayedTab(activeTab);
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [activeTab, displayedTab]);
-
-  const activeTabData = tabsData[activeTab];
-  const displayedTabData = tabsData[displayedTab];
-  const SubheadingTag = activeTabData?.subheadingTag || "p";
-
-  if (!(activeTabData && displayedTabData)) {
+  if (!tabsData[activeTab]) {
     return null;
   }
 
@@ -129,71 +241,60 @@ const TabsLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
         } as React.CSSProperties
       }
     >
-      <div className="absolute inset-0">
-        <BackgroundImage backgroundImage={displayedTabData.backgroundImage} />
-        <Overlay
-          enableOverlay={displayedTabData.enableOverlay}
-          overlayColor={displayedTabData.overlayColor}
-          overlayColorHover={displayedTabData.overlayColorHover}
-          overlayOpacity={displayedTabData.overlayOpacity}
-        />
-      </div>
+      <TabBackground tabsData={tabsData} activeTab={activeTab} />
 
-      {isTransitioning && activeTab !== displayedTab && (
-        <div className="absolute inset-0 animate-fade-in">
-          <BackgroundImage backgroundImage={activeTabData.backgroundImage} />
-          <Overlay
-            enableOverlay={activeTabData.enableOverlay}
-            overlayColor={activeTabData.overlayColor}
-            overlayColorHover={activeTabData.overlayColorHover}
-            overlayOpacity={activeTabData.overlayOpacity}
-          />
-        </div>
-      )}
-
-      <div className="relative z-2 mx-auto flex w-full min-w-0 max-w-180 flex-col items-center px-6 py-12 text-center md:order-2 md:w-[calc(100%-var(--spacing)*16)] md:p-0">
-        {activeTabData.subheadingContent && (
-          <SubheadingTag
-            className="mb-4 font-body text-sm"
-            style={{ color: activeTabData.subheadingColor }}
-          >
-            {activeTabData.subheadingContent}
-          </SubheadingTag>
-        )}
-        {activeTabData.paragraphContent && (
-          <Paragraph
-            className="ff-heading !mx-auto w-full min-w-0 break-words text-2xl leading-[normal]"
-            content={activeTabData.paragraphContent}
-            as={activeTabData.paragraphTag}
-            color={activeTabData.paragraphColor}
-            alignment="center"
-            width="full"
-          />
-        )}
-        {activeTabData.buttonContent && (
-          <Link
-            variant={activeTabData.variant}
-            textColor={activeTabData.textColor}
-            backgroundColor={activeTabData.backgroundColor}
-            borderColor={activeTabData.borderColor}
-            textColorHover={activeTabData.textColorHover}
-            backgroundColorHover={activeTabData.backgroundColorHover}
-            borderColorHover={activeTabData.borderColorHover}
-            textColorDecor={activeTabData.textColorDecor}
-            openInNewTab={activeTabData.openInNewTab}
-            to={activeTabData.to}
-            className={cn(
-              "mt-10 w-fit",
-              activeTabData.variant === "decor" && "p-1",
-            )}
-            style={{
-              color: activeTabData.buttonTextColor,
-              fontSize: `${activeTabData.buttonTextSize}px`,
-            }}
-          >
-            {activeTabData.buttonContent}
-          </Link>
-        )}
+      {/* Mobile shares one grid cell across panels, sized by the longest copy.
+          Inactive panels are out of flow at md+ to preserve those layouts. */}
+      <div className="relative z-2 mx-auto grid w-full min-w-0 max-w-180 md:order-2 md:w-[calc(100%-var(--spacing)*16)]">
+        {tabsData.map((activeTabData: any, index: number) => {
+          const SubheadingTag = activeTabData.subheadingTag || "p";
+          return (
+            <TabContent key={activeTabData.id} active={activeTab === index}>
+              {activeTabData.subheadingContent && (
+                <SubheadingTag
+                  className="mb-4 font-body text-sm"
+                  style={{ color: activeTabData.subheadingColor }}
+                >
+                  {activeTabData.subheadingContent}
+                </SubheadingTag>
+              )}
+              {activeTabData.paragraphContent && (
+                <Paragraph
+                  className="ff-heading !mx-auto w-full min-w-0 break-words text-2xl leading-[normal]"
+                  content={activeTabData.paragraphContent}
+                  as={activeTabData.paragraphTag}
+                  color={activeTabData.paragraphColor}
+                  alignment="center"
+                  width="full"
+                />
+              )}
+              {activeTabData.buttonContent && (
+                <Link
+                  variant={activeTabData.variant}
+                  textColor={activeTabData.textColor}
+                  backgroundColor={activeTabData.backgroundColor}
+                  borderColor={activeTabData.borderColor}
+                  textColorHover={activeTabData.textColorHover}
+                  backgroundColorHover={activeTabData.backgroundColorHover}
+                  borderColorHover={activeTabData.borderColorHover}
+                  textColorDecor={activeTabData.textColorDecor}
+                  openInNewTab={activeTabData.openInNewTab}
+                  to={activeTabData.to}
+                  className={cn(
+                    "mt-10 w-fit",
+                    activeTabData.variant === "decor" && "p-1",
+                  )}
+                  style={{
+                    color: activeTabData.buttonTextColor,
+                    fontSize: `${activeTabData.buttonTextSize}px`,
+                  }}
+                >
+                  {activeTabData.buttonContent}
+                </Link>
+              )}
+            </TabContent>
+          );
+        })}
       </div>
 
       <div className="relative z-3 mx-auto flex w-full min-w-0 flex-col gap-5 px-8 pt-10 pb-12 md:order-1 md:grid md:w-[calc(100%-64px)] md:max-w-360 md:grid-cols-3 md:p-0">
@@ -205,12 +306,20 @@ const TabsLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
               type="button"
               aria-pressed={isActive}
               onClick={() => setActiveTab(index)}
-              onMouseEnter={() => setActiveTab(index)}
+              onMouseEnter={() => {
+                if (
+                  window.matchMedia(MEDIA_FROM_TABLET).matches &&
+                  window.matchMedia("(hover: hover) and (pointer: fine)")
+                    .matches
+                ) {
+                  setActiveTab(index);
+                }
+              }}
               className={cn(
-                "group flex min-w-0 w-full items-start justify-center transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current",
+                "group flex min-w-0 w-full items-start justify-center border-t-4 pt-2.5 transition-colors duration-300 motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current",
                 isActive
-                  ? "border-t-4 border-line-subtle pt-2.5 text-(--color-text-inverse)"
-                  : "text-(--color-text-light) hover:text-(--color-text-inverse)",
+                  ? "border-line-subtle text-(--color-text-inverse)"
+                  : "border-transparent text-(--color-text-light) hover:text-(--color-text-inverse)",
               )}
             >
               <span className="min-w-0 break-words text-center font-heading text-(length:--h6-base-size) leading-[1.1] tracking-[-0.02em] lg:text-(length:--h3-base-size) lg:tracking-[-0.03em]">

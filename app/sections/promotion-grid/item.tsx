@@ -345,12 +345,6 @@ export const schema = createSchema({
     {
       group: "Heading (optional)",
       inputs: [
-        {
-          type: "text",
-          name: "headingContent",
-          label: "Heading content",
-          placeholder: "Enter heading text",
-        },
         ...headingInputs.map((input) => {
           if (input.name === "as") {
             return {
@@ -363,6 +357,8 @@ export const schema = createSchema({
             return {
               ...input,
               name: "headingContent",
+              label: "Heading content",
+              placeholder: "Enter heading text",
             } as any;
           }
           if (input.name === "alignment") {
