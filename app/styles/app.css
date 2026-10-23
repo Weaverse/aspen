@@ -4,6 +4,7 @@
 /* Load font-face rules at CSS level to avoid JS-timed injection (reduces FOUT) */
 @import "@fontsource/tenor-sans/400.css" layer(base);
 @import "@fontsource-variable/dm-sans/index.css" layer(base);
+@import "@fontsource/open-sans/400.css" layer(base);
 
 @theme {
   --font-sans: "DM Sans Variable", ui-sans-serif, system-ui, sans-serif;
@@ -11,6 +12,7 @@
   --font-body: "DM Sans Variable", ui-sans-serif, system-ui, sans-serif;
   --font-heading: "Tenor Sans", ui-serif, Georgia, serif;
   --font-dm-sans: "DM Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-open-sans: "Open Sans", ui-sans-serif, system-ui, sans-serif;
   --font-tenor: "Tenor Sans", ui-serif, Georgia, serif;
 
   --breakpoint-sm: 32em;

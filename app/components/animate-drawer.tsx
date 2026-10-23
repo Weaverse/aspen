@@ -56,7 +56,7 @@ export function AnimatedDrawer({
                     ? CART_DRAWER_WIDTH_CLASS
                     : [
                         filter
-                          ? "w-[calc(100vw-var(--spacing)*8)]"
+                          ? "w-[calc(100vw-var(--spacing)*8)] lg:w-[397px]"
                           : "w-screen",
                         "max-w-[430px]",
                       ],
