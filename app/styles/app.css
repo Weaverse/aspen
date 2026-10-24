@@ -83,7 +83,8 @@
   --animate-fade-in: fade-in var(--fade-in-duration, 0.5s) ease-in forwards;
   --animate-scale-in: scale-in 200ms ease forwards;
   --animate-scale-out: scale-out 200ms ease forwards;
-  --animate-hotspot-popup-out: hotspot-popup-out 300ms ease-out both;
+  --animate-hotspot-popup-in: hotspot-popup-in 150ms cubic-bezier(0.4, 0, 0.2, 1) both;
+  --animate-hotspot-popup-out: hotspot-popup-out 150ms cubic-bezier(0.4, 0, 0.2, 1) both;
   --animate-expand: expand var(--expand-duration, 0.3s)
     cubic-bezier(0.87, 0, 0.13, 1) forwards;
   --animate-collapse: collapse var(--collapse-duration, 0.3s)
@@ -107,12 +108,24 @@
       opacity: 1;
     }
   }
+  @keyframes hotspot-popup-in {
+    from {
+      opacity: var(--hotspot-popup-start-opacity, 0);
+      transform: translateY(var(--hotspot-popup-start-y, var(--hotspot-popup-offset-y)));
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
   @keyframes hotspot-popup-out {
     from {
-      opacity: 1;
+      opacity: var(--hotspot-popup-start-opacity, 1);
+      transform: translateY(var(--hotspot-popup-start-y, 0px));
     }
     to {
       opacity: 0;
+      transform: translateY(var(--hotspot-popup-offset-y));
     }
   }
   @keyframes hotspot-pulse {
