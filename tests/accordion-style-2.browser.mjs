@@ -98,18 +98,26 @@ test("section radius control is removed while saved background radii remain comp
     expect(inputs).not.toContain("borderRadius");
     expect(inputs).toContain("width");
     expect(inputs).toContain("backgroundColor");
-    for (const backgroundFor of ["section", "content"]) {
-      for (const borderRadius of [0, 24]) {
-        await page.evaluate((settings) => window.renderAccordion(settings), {
-          borderRadius,
-          backgroundFor,
-          backgroundColor: "#cccccc",
-        });
-        const frame = page.locator(
-          backgroundFor === "section" ? "section" : "section > div",
-        );
-        await expect(frame).toHaveCSS("border-radius", `${borderRadius}px`);
-        await expect(frame).toHaveCSS("background-color", "rgb(204, 204, 204)");
+    for (const width of [390, 834, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      for (const backgroundFor of ["section", "content"]) {
+        for (const borderRadius of [0, 24]) {
+          await page.evaluate((settings) => window.renderAccordion(settings), {
+            borderRadius,
+            backgroundFor,
+            backgroundColor: "#cccccc",
+          });
+          const frame = page.locator("section");
+          await expect(frame).toHaveCSS("border-radius", `${borderRadius}px`);
+          await expect(frame).toHaveCSS(
+            "background-color",
+            "rgb(204, 204, 204)",
+          );
+          await expect(page.locator("section > div")).toHaveCSS(
+            "background-color",
+            "rgba(0, 0, 0, 0)",
+          );
+        }
       }
     }
   } finally {
