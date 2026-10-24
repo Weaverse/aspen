@@ -30,22 +30,24 @@ const bundle = await build({
   ],
 });
 
-test("Aspen navbar shrinks on mobile/tablet while desktop and Custom heights remain unchanged", async () => {
+test("Aspen navbar matches Figma mobile/tablet heights while desktop and Custom heights remain unchanged", async () => {
   const browser = await chromium.launch();
   try {
     const page = await browser.newPage();
     await page.setContent(
-      `<style>:root{--spacing:0.25rem}#nav{height:var(--height-nav)}#logo{height:32px}@media(max-width:511px){#logo{height:24px}}#nav{display:flex;align-items:center}</style><div id="root"></div><div id="nav"><div id="logo"></div></div>`,
+      `<style>:root{--spacing:0.25rem}#nav{height:var(--height-nav)}</style><div id="root"></div><div id="nav"></div>`,
     );
     await page.addScriptTag({ content: bundle.outputFiles[0].text });
-    for (const preset of ["aspen", "custom"]) {
+    for (const preset of ["aspen", "aspen-2026", "custom"]) {
       await page.evaluate((p) => window.renderPreset(p), preset);
       for (const [width, aspenHeight, customHeight] of [
-        [375, 48, 64],
-        [511, 48, 64],
-        [512, 56, 80],
-        [768, 56, 80],
-        [1032, 56, 80],
+        [375, 76, 64],
+        [430, 76, 64],
+        [511, 76, 64],
+        [512, 84, 80],
+        [768, 84, 80],
+        [834, 84, 80],
+        [1032, 84, 80],
         [1033, 88, 80],
         [1279, 88, 80],
         [1280, 81, 96],
@@ -55,16 +57,6 @@ test("Aspen navbar shrinks on mobile/tablet while desktop and Custom heights rem
           "height",
           `${preset === "custom" ? customHeight : aspenHeight}px`,
         );
-        if (preset === "aspen" && width <= 1032) {
-          const gap = await page
-            .locator("#logo")
-            .evaluate(
-              (el) =>
-                el.getBoundingClientRect().top -
-                el.parentElement.getBoundingClientRect().top,
-            );
-          expect(gap).toBe(12);
-        }
       }
     }
   } finally {
