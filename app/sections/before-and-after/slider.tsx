@@ -236,12 +236,12 @@ const BeforeAndAfter = forwardRef<HTMLDivElement, BeforeAndAfterProps>(
             >
               {/* Integer-spaced strokes share the same pixel alignment. */}
               <svg
-                className="h-[15px] w-3 shrink-0 text-(--list-color)"
+                className="h-[15px] w-3 shrink-0"
                 width="12"
                 height="15"
                 viewBox="0 0 12 15"
                 fill="none"
-                stroke="currentColor"
+                stroke={listColor || "transparent"}
                 strokeWidth="1.25"
                 strokeLinecap="round"
                 aria-hidden="true"

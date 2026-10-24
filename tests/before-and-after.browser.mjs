@@ -146,7 +146,7 @@ test("drag icon keeps the merchant color and remains decorative", async () => {
     parent: { listColor: "#123456", separatorColor: "#ABCDEF" },
   });
   const icon = page.getByRole("slider").locator("svg");
-  await expect(icon).toHaveCSS("color", "rgb(18, 52, 86)");
+  await expect(icon).toHaveCSS("stroke", "rgb(18, 52, 86)");
   await expect(icon).toHaveAttribute("aria-hidden", "true");
   await expect(icon).toHaveAttribute("focusable", "false");
   await expect(icon.locator("..")).toHaveCSS(
@@ -154,6 +154,68 @@ test("drag icon keeps the merchant color and remains decorative", async () => {
     "rgb(171, 205, 239)",
   );
   await page.close();
+});
+
+test("cleared and transparent grip colors stay unpainted for parent and legacy settings", async () => {
+  const cases = [
+    { data: { parent: { listColor: "" } }, painted: false },
+    { data: { legacy: { listColor: "" } }, painted: false },
+    {
+      data: { parent: { listColor: "" }, legacy: { listColor: "#123456" } },
+      painted: false,
+    },
+    { data: { parent: { listColor: "transparent" } }, painted: false },
+    { data: { parent: { listColor: "rgba(18, 52, 86, 0)" } }, painted: false },
+    {
+      data: { parent: { listColor: "rgba(18, 52, 86, 0.5)" } },
+      painted: true,
+      stroke: "rgba(18, 52, 86, 0.5)",
+    },
+    {
+      data: { parent: { listColor: "#123456" } },
+      painted: true,
+      stroke: "rgb(18, 52, 86)",
+    },
+  ];
+  for (const width of [390, 834, 1440]) {
+    for (const { data, painted, stroke } of cases) {
+      const page = await render(width, data);
+      const icon = page.getByRole("slider").locator("svg");
+      const png = await page.screenshot({ clip: await icon.boundingBox() });
+      const paintedPixels = await page.evaluate(async (base64) => {
+        const image = new Image();
+        image.src = `data:image/png;base64,${base64}`;
+        await image.decode();
+        const canvas = document.createElement("canvas");
+        canvas.width = image.width;
+        canvas.height = image.height;
+        const context = canvas.getContext("2d");
+        context.drawImage(image, 0, 0);
+        const pixels = context.getImageData(
+          0,
+          0,
+          canvas.width,
+          canvas.height,
+        ).data;
+        let count = 0;
+        for (let i = 0; i < pixels.length; i += 4) {
+          if (pixels[i] < 255 || pixels[i + 1] < 255 || pixels[i + 2] < 255) {
+            count += 1;
+          }
+        }
+        return count;
+      }, png.toString("base64"));
+      assert.equal(
+        paintedPixels > 0,
+        painted,
+        `${JSON.stringify(data)} at ${width}px paints ${paintedPixels} pixels`,
+      );
+      if (stroke) {
+        await expect(icon).toHaveCSS("stroke", stroke);
+      }
+      await page.close();
+    }
+  }
 });
 
 test("Before & After has no child types and all comparison settings belong to the parent", async () => {
