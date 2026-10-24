@@ -2,7 +2,8 @@ import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
 import { Children, forwardRef, useEffect } from "react";
 import { cn } from "~/utils/cn";
 import type { ImageAspectRatioType } from "./context";
-import { useImageWithTextContext } from "./context";
+import { ImageSlotContext, useImageWithTextContext } from "./context";
+import ImageWithTextImage from "./image";
 
 interface ImageWithTextImageProps extends HydrogenComponentProps {
   imageAspectRatio: ImageAspectRatioType;
@@ -11,18 +12,32 @@ interface ImageWithTextImageProps extends HydrogenComponentProps {
 let ImageWithTextImages = forwardRef<HTMLDivElement, ImageWithTextImageProps>(
   (props, ref) => {
     let { imageAspectRatio, children, ...rest } = props;
-    const { setImageCount, setImageAspectRatio, layout, isLegacyLayout } =
-      useImageWithTextContext();
-    const childCount = Children.count(children);
+    const {
+      setImageCount,
+      setImageAspectRatio,
+      layout,
+      isLegacyLayout,
+      imageSettings,
+    } = useImageWithTextContext();
+    const legacyImages = Children.toArray(children).slice(0, 2);
+    const slotCount =
+      imageSettings[1].image !== undefined ? 2 : legacyImages.length || 2;
     const resolvedLayout = isLegacyLayout
-      ? childCount > 1
+      ? slotCount > 1
         ? "overlay"
         : "split"
       : layout;
-    const images = Children.toArray(children).slice(
-      0,
-      resolvedLayout === "overlay" ? 2 : 1,
-    );
+    const count = resolvedLayout === "overlay" ? Math.min(slotCount, 2) : 1;
+    // Providers add no DOM wrapper: saved child refs and Studio editing remain
+    // intact, while parent controls override only explicitly saved fields.
+    const images = Array.from({ length: count }, (_, index) => (
+      <ImageSlotContext.Provider
+        key={`image${index + 1}`}
+        value={imageSettings[index]}
+      >
+        {legacyImages[index] ?? <ImageWithTextImage />}
+      </ImageSlotContext.Provider>
+    ));
     const imageCount = images.length;
 
     useEffect(() => {
@@ -53,7 +68,6 @@ export let schema = createSchema({
   type: "image-with-text--images",
   title: "Images",
   limit: 1,
-  childTypes: ["image-with-text--image"],
   settings: [
     {
       group: "Image",
@@ -80,9 +94,5 @@ export let schema = createSchema({
   ],
   presets: {
     imageAspectRatio: "1/1",
-    children: [
-      { type: "image-with-text--image", aspectRatio: "1/1" },
-      { type: "image-with-text--image", aspectRatio: "1/1" },
-    ],
   },
 });
