@@ -95,7 +95,10 @@ export const schema: HydrogenComponentSchema = {
       group: "Accordion settings",
       inputs: [
         ...layoutInputs.filter(
-          (input) => input.name !== "gap" && input.name !== "verticalPadding",
+          (input) =>
+            input.name !== "gap" &&
+            input.name !== "verticalPadding" &&
+            input.name !== "borderRadius",
         ),
         ...sectionBackgroundInputs(DEFAULT_BACKGROUND_COLOR),
         ...overlayInputs,
