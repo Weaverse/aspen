@@ -70,18 +70,33 @@ test("Hover popup fades out before unmount, can reopen, and preserves Quick View
     await page.mouse.move(0, 0);
     await expect(popup).toHaveAttribute("data-state", "closed");
     await expect(popup).toHaveCSS("animation-name", "hotspot-popup-out");
-    await expect(popup).toHaveCSS("animation-duration", "0.3s");
+    await expect(popup).toHaveCSS("animation-duration", "0.15s");
     await expect(popup).toHaveAttribute("inert", "");
     const halfway = await popup.evaluate((el) => {
       const a = el.getAnimations()[0];
       a.pause();
-      a.currentTime = 150;
+      a.currentTime = 75;
       return Number(getComputedStyle(el).opacity);
     });
     assert.ok(halfway > 0 && halfway < 1);
     await marker.hover();
     await expect(popup).toHaveAttribute("data-state", "open");
     await expect(popup).not.toHaveAttribute("inert", "");
+    const reopened = await popup.evaluate((element) => {
+      const enter = element.getAnimations()[0];
+      enter.pause();
+      enter.currentTime = 0;
+      return Number(getComputedStyle(element).opacity);
+    });
+    assert.ok(
+      Math.abs(reopened - halfway) < 0.001,
+      "Reopening must continue from the exit frame without a flash",
+    );
+    await popup.evaluate((element) => {
+      for (const animation of element.getAnimations()) {
+        animation.finish();
+      }
+    });
     await popup.getByRole("button", { name: "Select options" }).click();
     assert.equal(
       await popup.count(),

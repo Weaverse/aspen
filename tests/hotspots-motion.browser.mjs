@@ -16,11 +16,11 @@ const bundle = await build({
       import HotspotsItem from "./app/sections/hotspots/item";
       import TestimonialHotspot from "./app/sections/testimonials/item";
       const root = createRoot(document.getElementById("root"));
-      window.start = (icon="circle", testimonial=false) => {
+      window.start = (icon="circle", testimonial=false, offsetX=30, offsetY=30) => {
         const Item = testimonial ? TestimonialHotspot : HotspotsItem;
         root.render(
         <div style={{position:"relative",width:"100%",height:440}}>
-          <Item icon={icon} iconSize={34} offsetX={30} offsetY={30}
+          <Item icon={icon} iconSize={34} offsetX={offsetX} offsetY={offsetY}
             product={{handle:"fixture",title:"Fixture"}}
             loaderData={{product:{title:"Fixture"}}}
             showPrice showViewDetailsLink viewDetailsLinkText="Details"/>
@@ -77,18 +77,77 @@ const css = stylesheet.build(
   }).scan(),
 );
 
-async function createPage(browser, width, testimonial = false) {
+async function createPage(
+  browser,
+  width,
+  testimonial = false,
+  position = { x: 30, y: 30 },
+) {
   const page = await browser.newPage({ viewport: { width, height: 700 } });
   await page.setContent(`<style>${css}</style><div id="root"></div>`);
   await page.addScriptTag({ content: bundle.outputFiles[0].text });
-  await page.evaluate((value) => window.start("circle", value), testimonial);
+  await page.evaluate(
+    (value) => window.start("circle", value.testimonial, value.x, value.y),
+    { testimonial, ...position },
+  );
   await expect(
     page.getByRole("button", { name: "View Fixture" }),
   ).toBeVisible();
   return page;
 }
 
-test("Desktop hotspot popup uses PR85 opening and exit behavior across hover, reopen and Quick Add", async () => {
+test("Pilot motion fades and shifts 16px without scaling or moving the positioning layer", async () => {
+  const browser = await chromium.launch();
+  try {
+    for (const width of [1033, 1440]) {
+      for (const testimonial of [false, true]) {
+        for (const position of [
+          { x: 20, y: 20 },
+          { x: 80, y: 80 },
+        ]) {
+          const page = await createPage(browser, width, testimonial, position);
+          await page.getByRole("button", { name: "View Fixture" }).hover();
+          const popup = page.getByRole("dialog");
+          await expect(popup).toHaveCSS("animation-name", "hotspot-popup-in");
+          const frames = await popup.evaluate((element) => {
+            const animation = element.getAnimations()[0];
+            animation.pause();
+            return [0, 75, 150].map((time) => {
+              animation.currentTime = time;
+              const style = getComputedStyle(element);
+              const matrix = new DOMMatrixReadOnly(style.transform);
+              return {
+                opacity: Number(style.opacity),
+                y: matrix.m42,
+                scale: matrix.a,
+                position: getComputedStyle(element.parentElement).transform,
+              };
+            });
+          });
+          assert.equal(frames[0].opacity, 0);
+          assert.equal(frames[0].y, position.y > 50 ? -16 : 16);
+          assert.ok(frames[1].opacity > 0 && frames[1].opacity < 1);
+          assert.ok(Math.abs(frames[1].y) > 0 && Math.abs(frames[1].y) < 16);
+          assert.equal(frames[2].opacity, 1);
+          assert.equal(frames[2].y, 0);
+          for (const frame of frames) {
+            assert.equal(frame.scale, 1);
+            assert.equal(frame.position, frames[0].position);
+          }
+          await expect(popup).toHaveCSS(
+            "animation-timing-function",
+            "cubic-bezier(0.4, 0, 0.2, 1)",
+          );
+          await page.close();
+        }
+      }
+    }
+  } finally {
+    await browser.close();
+  }
+});
+
+test("Desktop hotspot popup uses Pilot opening and exit motion across hover, reopen and Quick Add", async () => {
   const browser = await chromium.launch();
   try {
     for (const testimonial of [false, true]) {
@@ -98,7 +157,8 @@ test("Desktop hotspot popup uses PR85 opening and exit behavior across hover, re
         .getByRole("dialog", { includeHidden: true })
         .filter({ hasText: "Popup fixture" });
       await trigger.hover();
-      await expect(popup).toHaveCSS("animation-name", "none");
+      await expect(popup).toHaveCSS("animation-name", "hotspot-popup-in");
+      await expect(popup).toHaveCSS("animation-duration", "0.15s");
       await expect(popup).toHaveCSS("opacity", "1");
       await popup.hover();
       await page.waitForTimeout(220);
@@ -106,7 +166,7 @@ test("Desktop hotspot popup uses PR85 opening and exit behavior across hover, re
       await page.mouse.move(0, 0);
       await expect(popup).toHaveAttribute("data-state", "closed");
       await expect(popup).toHaveCSS("animation-name", "hotspot-popup-out");
-      await expect(popup).toHaveCSS("animation-duration", "0.3s");
+      await expect(popup).toHaveCSS("animation-duration", "0.15s");
       await trigger.hover();
       await expect(popup).toHaveAttribute("data-state", "open");
       await page.mouse.move(0, 0);
@@ -133,7 +193,7 @@ test("Desktop hotspot popup uses PR85 opening and exit behavior across hover, re
   }
 });
 
-test("Early hotspot dismissal retains PR85 opacity and scale without a flash", async () => {
+test("Early hotspot dismissal preserves the current opacity and position without a flash", async () => {
   const browser = await chromium.launch();
   try {
     for (const testimonial of [false, true]) {
@@ -147,6 +207,16 @@ test("Early hotspot dismissal retains PR85 opacity and scale without a flash", a
           .filter({ hasText: "Popup fixture" });
         await expect(popup).toHaveAttribute("data-state", "open");
         const opening = await popup.evaluate(async (element) => {
+          const enter = element
+            .getAnimations()
+            .find(
+              (animation) => animation.animationName === "hotspot-popup-in",
+            );
+          if (!enter) {
+            throw new Error("Expected Pilot enter animation");
+          }
+          enter.pause();
+          enter.currentTime = 45;
           const samples = [];
           for (let frame = 0; frame < 3; frame += 1) {
             await new Promise(requestAnimationFrame);
@@ -172,9 +242,10 @@ test("Early hotspot dismissal retains PR85 opacity and scale without a flash", a
             samples,
             opacity: Number(style.opacity),
             scale: new DOMMatrixReadOnly(style.transform).a,
+            y: new DOMMatrixReadOnly(style.transform).m42,
           };
         });
-        assert.equal(opening.opacity, 1);
+        assert.ok(opening.opacity > 0 && opening.opacity < 1);
         assert.ok(
           opening.samples.every(
             (value) => Math.abs(value - opening.opacity) < 0.001,
@@ -195,6 +266,7 @@ test("Early hotspot dismissal retains PR85 opacity and scale without a flash", a
             samples.push({
               opacity: Number(style.opacity),
               scale: new DOMMatrixReadOnly(style.transform).a,
+              y: new DOMMatrixReadOnly(style.transform).m42,
             });
           }
           return samples;
@@ -207,6 +279,10 @@ test("Early hotspot dismissal retains PR85 opacity and scale without a flash", a
           assert.ok(
             Math.abs(sample.scale - opening.scale) < 0.001,
             `${dismissal}: popup scale jumped during dismissal`,
+          );
+          assert.ok(
+            Math.abs(sample.y - opening.y) < 0.01,
+            `${dismissal}: popup position jumped during dismissal`,
           );
         }
         await expect(popup).toHaveAttribute("inert", "");
@@ -240,7 +316,7 @@ test("Closed hotspot actions cannot activate from the keyboard during fade-out",
         : popup.getByRole("button", { name: "Quick Add fixture" });
       await action.focus();
       await expect(action).toBeFocused();
-      // Freeze the real exit animation so assertions run inside its 300ms
+      // Freeze the real exit animation so assertions run inside its 150ms
       // lifetime regardless of machine speed, without changing production CSS.
       await popup.evaluate((element) => {
         const observer = new MutationObserver(() => {
