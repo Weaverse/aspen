@@ -8,11 +8,12 @@ import { Scanner } from "@tailwindcss/oxide";
 import { build } from "esbuild";
 import { DESKTOP_MIN_PX, TABLET_MAX_PX } from "./responsive-test-widths.mjs";
 
-// Real section and stylesheet; stub CMS and the generic section wrapper only.
+// Layout tests stub media; fit regressions use the real Image and Hydrogen img.
 const root = fileURLToPath(new URL("../", import.meta.url));
-const bundle = await build({
-  stdin: {
-    contents: `
+const buildFixture = (realImage = false) =>
+  build({
+    stdin: {
+      contents: `
       import React from "react";
       import { createRoot } from "react-dom/client";
       import ImageWithText, { schema } from "./app/sections/image-with-text";
@@ -37,48 +38,57 @@ const bundle = await build({
         root.render(React.createElement(ImageWithText,props,...(reverseChildren?[media,content]:[content,media])));
       };
     `,
-    loader: "tsx",
-    resolveDir: root,
-  },
-  bundle: true,
-  write: false,
-  format: "iife",
-  jsx: "automatic",
-  alias: { "~": `${root}app` },
-  plugins: [
-    {
-      name: "section-fixture",
-      setup(builder) {
-        builder.onResolve(
-          {
-            filter:
-              /^(@weaverse\/hydrogen|react-router|~\/components\/(section|background-image|image)|~\/hooks\/use-translated-text)$/,
-          },
-          ({ path }) => ({ path, namespace: "fixture" }),
-        );
-        builder.onLoad({ filter: /.*/, namespace: "fixture" }, ({ path }) => ({
-          contents:
-            path === "@weaverse/hydrogen"
-              ? "export const createSchema = (schema) => schema;export const IMAGES_PLACEHOLDERS={image:'/placeholder.svg'};export const useTranslation=()=>({t:key=>key});export const useThemeSettings=()=>({});"
-              : path === "react-router"
-                ? `import React from "react";export const useRouteLoaderData=()=>({});export const Link=React.forwardRef(({to,viewTransition,...props},ref)=><a ref={ref} href={to} {...props}/>);`
-                : path.endsWith("use-translated-text")
-                  ? "export const useTranslatedText=()=>value=>value;"
-                  : path.endsWith("background-image")
-                    ? "export const backgroundInputs = [];export const sectionBackgroundInputs = () => [];"
-                    : path.endsWith("/image")
-                      ? `import React from "react";export const Image=React.forwardRef(({className,data},ref)=><div ref={ref} data-image-url={data.url} className={className} style={{height:100}}/>);`
-                      : `import React from "react";
+      loader: "tsx",
+      resolveDir: root,
+    },
+    bundle: true,
+    write: false,
+    format: "iife",
+    jsx: "automatic",
+    alias: { "~": `${root}app` },
+    plugins: [
+      {
+        name: "section-fixture",
+        setup(builder) {
+          builder.onResolve(
+            {
+              filter:
+                /^(@weaverse\/hydrogen|react-router|~\/components\/(section|background-image|image)|~\/hooks\/use-translated-text)$/,
+            },
+            ({ path, importer }) =>
+              importer.includes("/node_modules/") ||
+              (realImage && path === "~/components/image")
+                ? undefined
+                : { path, namespace: "fixture" },
+          );
+          builder.onLoad(
+            { filter: /.*/, namespace: "fixture" },
+            ({ path }) => ({
+              contents:
+                path === "@weaverse/hydrogen"
+                  ? "export const createSchema = (schema) => schema;export const IMAGES_PLACEHOLDERS={image:'/placeholder.svg'};export const useTranslation=()=>({t:key=>key});export const useThemeSettings=()=>({});"
+                  : path === "react-router"
+                    ? `import React from "react";export const useRouteLoaderData=()=>({});export const Link=React.forwardRef(({to,viewTransition,...props},ref)=><a ref={ref} href={to} {...props}/>);`
+                    : path.endsWith("use-translated-text")
+                      ? "export const useTranslatedText=()=>value=>value;"
+                      : path.endsWith("background-image")
+                        ? "export const backgroundInputs = [];export const sectionBackgroundInputs = () => [];"
+                        : path.endsWith("/image")
+                          ? `import React from "react";export const Image=React.forwardRef(({className,data},ref)=><div ref={ref} data-image-url={data.url} className={className} style={{height:100}}/>);`
+                          : `import React from "react";
                export const Section = React.forwardRef(({children, containerClassName, className, style, "data-media-position": position}, ref) =>
                  React.createElement("section", {ref, className, style, "data-media-position": position},
                    React.createElement("div", {className: containerClassName}, children)));`,
-          loader: "tsx",
-          resolveDir: root,
-        }));
+              loader: "tsx",
+              resolveDir: root,
+            }),
+          );
+        },
       },
-    },
-  ],
-});
+    ],
+  });
+const bundle = await buildFixture();
+const realImageBundle = await buildFixture(true);
 
 const stylesheet = await compile(
   await readFile(`${root}app/styles/app.css`, "utf8"),
@@ -99,6 +109,120 @@ const arrangements = ["left", "right"].flatMap((mediaPosition) =>
     })),
   ),
 );
+
+async function mountRealImages(page) {
+  await page.route("https://cdn.shopify.com/**", (route) =>
+    route.fulfill({
+      contentType: "image/svg+xml",
+      body: '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400"><rect width="800" height="400" fill="tan"/></svg>',
+    }),
+  );
+  await page.setContent(
+    `<!doctype html><style>${css}</style><div id="root"></div>`,
+  );
+  await page.addScriptTag({ content: realImageBundle.outputFiles[0].text });
+}
+
+const imageFixture = {
+  url: "https://cdn.shopify.com/s/files/1/0000/0001/files/fit-fixture.png",
+  width: 800,
+  height: 400,
+  altText: "Fit fixture",
+};
+
+test("Parent fit controls reach the real nested img in both styles at mobile, tablet and desktop widths", async () => {
+  const browser = await chromium.launch();
+  try {
+    const page = await browser.newPage();
+    await mountRealImages(page);
+    for (const width of [390, 834, 1440]) {
+      await page.setViewportSize({ width, height: 1000 });
+      for (const layout of ["overlay", "split"]) {
+        let coverBounds;
+        for (const fit of ["cover", "contain", "cover"]) {
+          await page.evaluate((props) => window.renderSection(props), {
+            layout,
+            imageCount: 0,
+            image1: imageFixture,
+            image2: imageFixture,
+            image1ObjectFit: fit,
+            image2ObjectFit: fit,
+          });
+          const images = page.locator('img[data-motion="slide-in"]');
+          await expect(images).toHaveCount(layout === "overlay" ? 2 : 1);
+          const bounds = [];
+          for (const image of await images.all()) {
+            await expect(image).toHaveCSS("object-fit", fit);
+            await expect(image).toHaveAttribute("alt", "Fit fixture");
+            bounds.push(
+              await image.evaluate((img) => {
+                const box = img.parentElement.getBoundingClientRect();
+                return { width: box.width, height: box.height };
+              }),
+            );
+          }
+          if (coverBounds) {
+            expect(bounds).toEqual(coverBounds);
+          } else {
+            coverBounds = bounds;
+          }
+        }
+      }
+    }
+  } finally {
+    await browser.close();
+  }
+});
+
+test("Real image fit preserves legacy fallback, parent precedence, other inline styles and the default cover", async () => {
+  const browser = await chromium.launch();
+  try {
+    const page = await browser.newPage();
+    await mountRealImages(page);
+    for (const width of [390, 834, 1440]) {
+      await page.setViewportSize({ width, height: 1000 });
+      for (const layout of ["overlay", "split"]) {
+        const legacyImages = [
+          {
+            image: imageFixture,
+            objectFit: "contain",
+            style: { objectPosition: "left top", opacity: 0.75 },
+          },
+        ];
+        await page.evaluate((props) => window.renderSection(props), {
+          layout,
+          legacyImages,
+        });
+        const image = page.locator('img[data-motion="slide-in"]').first();
+        await expect(image).toHaveCSS("object-fit", "contain");
+        await expect(image).toHaveCSS("object-position", "0% 0%");
+        await expect(image).toHaveCSS("opacity", "0.75");
+        await page.evaluate((props) => window.renderSection(props), {
+          layout,
+          legacyImages,
+          image1ObjectFit: "cover",
+        });
+        await expect(image).toHaveCSS("object-fit", "cover");
+        await expect(image).toHaveCSS("object-position", "0% 0%");
+        await expect(image).toHaveCSS("opacity", "0.75");
+        await page.evaluate((props) => window.renderSection(props), {
+          layout,
+          legacyImages: [
+            { image: imageFixture, style: { objectFit: "contain" } },
+          ],
+        });
+        await expect(image).toHaveCSS("object-fit", "contain");
+        await page.evaluate((props) => window.renderSection(props), {
+          layout,
+          legacyImages: [{ image: imageFixture }],
+        });
+        await expect(image).toHaveCSS("object-fit", "cover");
+      }
+    }
+  } finally {
+    await browser.close();
+  }
+});
 
 test("legacy image controls explain parent precedence without warning on new controls", async () => {
   const browser = await chromium.launch();
@@ -179,12 +303,6 @@ test("image controls replace new child images and hide the second slot in Style 
           "/first.jpg",
         );
         if (layout === "overlay") {
-          await expect(page.locator("[data-image-url]").first()).toHaveCSS(
-            "object-fit",
-            "contain",
-          );
-        }
-        if (layout === "overlay") {
           await expect(page.locator("[data-image-url]").nth(1)).toHaveAttribute(
             "data-image-url",
             "/second.jpg",
@@ -258,7 +376,6 @@ test("parent image controls preserve legacy data and override saved defaults, ze
     const first = page.locator("[data-image-url]").first();
     await expect(first).toHaveAttribute("data-image-url", "/placeholder.svg");
     await expect(first).toHaveCSS("border-radius", "0px");
-    await expect(first).toHaveCSS("object-fit", "cover");
     await expect(page.locator("[data-image-url]").nth(1)).toHaveAttribute(
       "data-image-url",
       "/legacy-2.jpg",

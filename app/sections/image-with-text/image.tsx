@@ -8,7 +8,7 @@ import {
 } from "@weaverse/hydrogen";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
-import { forwardRef, useContext } from "react";
+import { type CSSProperties, forwardRef, useContext } from "react";
 import { Image } from "~/components/image";
 import type { ImageAspectRatio } from "~/types/image";
 import { cn } from "~/utils/cn";
@@ -17,10 +17,6 @@ import { ImageSlotContext, useImageWithTextContext } from "./context";
 
 const variants = cva("h-auto w-full", {
   variants: {
-    objectFit: {
-      cover: "object-cover",
-      contain: "object-contain",
-    },
     borderRadius: {
       0: "",
       2: "rounded-xs",
@@ -52,6 +48,8 @@ export interface ImageWithTextImageProps
     Partial<HydrogenComponentProps> {
   image?: WeaverseImage | string;
   imageAspectRatio?: ImageAspectRatio;
+  objectFit?: "cover" | "contain" | null;
+  style?: CSSProperties;
 }
 
 const ImageWithTextImage = forwardRef<HTMLDivElement, ImageWithTextImageProps>(
@@ -64,6 +62,7 @@ const ImageWithTextImage = forwardRef<HTMLDivElement, ImageWithTextImageProps>(
       borderRadius: savedBorderRadius,
       objectFit: savedObjectFit,
       imageAspectRatio: propAspectRatio,
+      style,
       ...rest
     } = props;
     const image = overrides.image !== undefined ? overrides.image : savedImage;
@@ -102,10 +101,11 @@ const ImageWithTextImage = forwardRef<HTMLDivElement, ImageWithTextImageProps>(
         data-motion="slide-in"
         sizes="auto"
         aspectRatio={isLegacyLayout ? aspRt : undefined}
+        style={{ ...style, objectFit: objectFit ?? style?.objectFit }}
         className={cn(
           "h-full w-full",
           layout === "overlay" && "min-w-0 flex-1",
-          variants({ objectFit, borderRadius }),
+          variants({ borderRadius }),
           "max-md:rounded-[var(--iwt-mobile-image-radius,0px)]",
         )}
         data-aspect-ratio={finalAspectRatio}
