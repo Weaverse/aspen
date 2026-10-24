@@ -72,8 +72,11 @@ const css = stylesheet.build(
 const browser = await chromium.launch();
 test.after(() => browser.close());
 
-async function render(width, data) {
-  const page = await browser.newPage({ viewport: { width, height: 900 } });
+async function render(width, data, options = {}) {
+  const page = await browser.newPage({
+    viewport: { width, height: 900 },
+    ...options,
+  });
   await page.setContent(`<style>${css}</style><div id="root"></div>`);
   await page.addScriptTag({ content: bundle.outputFiles[0].text });
   // Match WeaverseHydrogenItem: schema defaults are merged before saved data.
@@ -85,6 +88,135 @@ async function render(width, data) {
   await expect(page.getByRole("slider")).toHaveCount(1);
   return page;
 }
+
+test("drag icon renders all three strokes with the same visual weight", async () => {
+  for (const width of [390, 834, 1440]) {
+    for (const scale of [1, 2]) {
+      const page = await render(width, {}, { deviceScaleFactor: scale });
+      const icon = page.getByRole("slider").locator('[aria-hidden="true"]');
+      const bounds = await icon.boundingBox();
+      assert.equal(bounds.width, 12);
+      assert.equal(bounds.height, 15);
+      await expect(icon.locator("..")).toHaveCSS("width", "40px");
+      await expect(icon.locator("..")).toHaveCSS("height", "56px");
+      const png = await page.screenshot({
+        clip: {
+          x: Math.floor(bounds.x) - 1,
+          y: Math.floor(bounds.y) + 5,
+          width: 16,
+          height: 2,
+        },
+      });
+      const strokes = await page.evaluate(
+        async ({ data, dpr }) => {
+          const image = new Image();
+          image.src = `data:image/png;base64,${data}`;
+          await image.decode();
+          const canvas = document.createElement("canvas");
+          canvas.width = image.width;
+          canvas.height = image.height;
+          const context = canvas.getContext("2d");
+          context.drawImage(image, 0, 0);
+          return [0, 5, 10].map((offset) =>
+            Array.from(
+              context.getImageData(offset * dpr, 0, 4 * dpr, canvas.height)
+                .data,
+            ),
+          );
+        },
+        { data: png.toString("base64"), dpr: scale },
+      );
+      assert.deepEqual(
+        strokes[0],
+        strokes[1],
+        `first and second strokes must match at ${width}px / ${scale}x`,
+      );
+      assert.deepEqual(
+        strokes[1],
+        strokes[2],
+        `second and third strokes must match at ${width}px / ${scale}x`,
+      );
+      await page.close();
+    }
+  }
+});
+
+test("drag icon keeps the merchant color and remains decorative", async () => {
+  const page = await render(834, {
+    parent: { listColor: "#123456", separatorColor: "#ABCDEF" },
+  });
+  const icon = page.getByRole("slider").locator("svg");
+  await expect(icon).toHaveCSS("stroke", "rgb(18, 52, 86)");
+  await expect(icon).toHaveAttribute("aria-hidden", "true");
+  await expect(icon).toHaveAttribute("focusable", "false");
+  await expect(icon.locator("..")).toHaveCSS(
+    "background-color",
+    "rgb(171, 205, 239)",
+  );
+  await page.close();
+});
+
+test("cleared and transparent grip colors stay unpainted for parent and legacy settings", async () => {
+  const cases = [
+    { data: { parent: { listColor: "" } }, painted: false },
+    { data: { legacy: { listColor: "" } }, painted: false },
+    {
+      data: { parent: { listColor: "" }, legacy: { listColor: "#123456" } },
+      painted: false,
+    },
+    { data: { parent: { listColor: "transparent" } }, painted: false },
+    { data: { parent: { listColor: "rgba(18, 52, 86, 0)" } }, painted: false },
+    {
+      data: { parent: { listColor: "rgba(18, 52, 86, 0.5)" } },
+      painted: true,
+      stroke: "rgba(18, 52, 86, 0.5)",
+    },
+    {
+      data: { parent: { listColor: "#123456" } },
+      painted: true,
+      stroke: "rgb(18, 52, 86)",
+    },
+  ];
+  for (const width of [390, 834, 1440]) {
+    for (const { data, painted, stroke } of cases) {
+      const page = await render(width, data);
+      const icon = page.getByRole("slider").locator("svg");
+      const png = await page.screenshot({ clip: await icon.boundingBox() });
+      const paintedPixels = await page.evaluate(async (base64) => {
+        const image = new Image();
+        image.src = `data:image/png;base64,${base64}`;
+        await image.decode();
+        const canvas = document.createElement("canvas");
+        canvas.width = image.width;
+        canvas.height = image.height;
+        const context = canvas.getContext("2d");
+        context.drawImage(image, 0, 0);
+        const pixels = context.getImageData(
+          0,
+          0,
+          canvas.width,
+          canvas.height,
+        ).data;
+        let count = 0;
+        for (let i = 0; i < pixels.length; i += 4) {
+          if (pixels[i] < 255 || pixels[i + 1] < 255 || pixels[i + 2] < 255) {
+            count += 1;
+          }
+        }
+        return count;
+      }, png.toString("base64"));
+      assert.equal(
+        paintedPixels > 0,
+        painted,
+        `${JSON.stringify(data)} at ${width}px paints ${paintedPixels} pixels`,
+      );
+      if (stroke) {
+        await expect(icon).toHaveCSS("stroke", stroke);
+      }
+      await page.close();
+    }
+  }
+});
 
 test("Before & After has no child types and all comparison settings belong to the parent", async () => {
   const page = await render(1440, {
