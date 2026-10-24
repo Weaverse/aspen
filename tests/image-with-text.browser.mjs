@@ -16,21 +16,24 @@ const bundle = await build({
       import React from "react";
       import { createRoot } from "react-dom/client";
       import ImageWithText, { schema } from "./app/sections/image-with-text";
-      import ImageWithTextImage from "./app/sections/image-with-text/image";
-      import ImageWithTextImages from "./app/sections/image-with-text/images";
+      import ImageWithTextImage, {schema as imageSchema} from "./app/sections/image-with-text/image";
+      import ImageWithTextImages, {schema as imagesSchema} from "./app/sections/image-with-text/images";
       import ImageWithTextContent from "./app/sections/image-with-text/content";
       import Heading from "./app/components/heading";
       import Paragraph from "./app/components/paragraph";
       import Link from "./app/components/link";
       const root = createRoot(document.getElementById("root"));
       window.schema = schema;
-      window.renderSection = ({reverseChildren=false,imageCount=1,contentPosition="top left",buttonAlignment,headingAlignment="left",paragraphAlignment="left",paragraphWidth="full",...props}) => {
+      window.imagesSchema = imagesSchema;
+      window.imageSchema = imageSchema;
+      window.renderSection = ({reverseChildren=false,imageCount=1,legacyImages,contentPosition="top left",buttonAlignment,headingAlignment="left",paragraphAlignment="left",paragraphWidth="full",...props}) => {
+        window.legacyImages = legacyImages ?? Array.from({length:imageCount},()=>({image:{url:"fixture.jpg"},borderRadius:20}));
         const content=React.createElement(ImageWithTextContent,{key:"content",contentPosition,buttonAlignment},
           React.createElement(Heading,{as:"h2",content:"Fixture heading",alignment:headingAlignment}),
           React.createElement(Paragraph,{content:"Fixture paragraph with enough content to demonstrate width and alignment settings.",alignment:paragraphAlignment,width:paragraphWidth}),
           React.createElement(Link,{text:"Explore now",variant:"decor",to:"/collections"}));
         const media=React.createElement(ImageWithTextImages,{key:"media",imageAspectRatio:"1/1"},
-          Array.from({length:imageCount},(_,i)=>React.createElement(ImageWithTextImage,{key:i,image:{url:"fixture.jpg"},borderRadius:20})));
+          window.legacyImages.map((image,i)=>React.createElement(ImageWithTextImage,{key:i,...image})));
         root.render(React.createElement(ImageWithText,props,...(reverseChildren?[media,content]:[content,media])));
       };
     `,
@@ -56,7 +59,7 @@ const bundle = await build({
         builder.onLoad({ filter: /.*/, namespace: "fixture" }, ({ path }) => ({
           contents:
             path === "@weaverse/hydrogen"
-              ? "export const createSchema = (schema) => schema;export const IMAGES_PLACEHOLDERS={};export const useTranslation=()=>({t:key=>key});export const useThemeSettings=()=>({});"
+              ? "export const createSchema = (schema) => schema;export const IMAGES_PLACEHOLDERS={image:'/placeholder.svg'};export const useTranslation=()=>({t:key=>key});export const useThemeSettings=()=>({});"
               : path === "react-router"
                 ? `import React from "react";export const useRouteLoaderData=()=>({});export const Link=React.forwardRef(({to,viewTransition,...props},ref)=><a ref={ref} href={to} {...props}/>);`
                 : path.endsWith("use-translated-text")
@@ -64,7 +67,7 @@ const bundle = await build({
                   : path.endsWith("background-image")
                     ? "export const backgroundInputs = [];export const sectionBackgroundInputs = () => [];"
                     : path.endsWith("/image")
-                      ? `import React from "react";export const Image=React.forwardRef(({className},ref)=><div ref={ref} className={className} style={{height:100}}/>);`
+                      ? `import React from "react";export const Image=React.forwardRef(({className,data},ref)=><div ref={ref} data-image-url={data.url} className={className} style={{height:100}}/>);`
                       : `import React from "react";
                export const Section = React.forwardRef(({children, containerClassName, className, style, "data-media-position": position}, ref) =>
                  React.createElement("section", {ref, className, style, "data-media-position": position},
@@ -96,6 +99,181 @@ const arrangements = ["left", "right"].flatMap((mediaPosition) =>
     })),
   ),
 );
+
+test("legacy image controls explain parent precedence without warning on new controls", async () => {
+  const browser = await chromium.launch();
+  try {
+    const page = await browser.newPage();
+    await page.setContent('<div id="root"></div>');
+    await page.addScriptTag({ content: bundle.outputFiles[0].text });
+    const help = await page.evaluate(() => ({
+      legacy: window.imageSchema.settings
+        .flatMap((group) => group.inputs)
+        .map((input) => input.helpText),
+      parent: window.schema.settings
+        .flatMap((group) => group.inputs)
+        .filter((input) => /^image[12]/.test(input.name))
+        .map((input) => input.helpText ?? ""),
+    }));
+    for (const text of help.legacy) {
+      assert.match(
+        text ?? "",
+        /parent section's Images settings take priority/,
+      );
+      assert.match(text, /Style 2 only displays the first image/);
+    }
+    assert.ok(help.parent.every((text) => !text.includes("take priority")));
+  } finally {
+    await browser.close();
+  }
+});
+
+test("image controls replace new child images and hide the second slot in Style 2", async () => {
+  const browser = await chromium.launch();
+  try {
+    const page = await browser.newPage();
+    await page.setContent(`<style>${css}</style><div id="root"></div>`);
+    await page.addScriptTag({ content: bundle.outputFiles[0].text });
+    const settings = await page.evaluate(() => ({
+      childTypes: window.imagesSchema.childTypes ?? [],
+      children: window.imagesSchema.presets.children ?? [],
+      legacyEnabled: window.imageSchema.enabled,
+      secondControls: window.schema.settings
+        .flatMap((group) => group.inputs)
+        .filter((input) => input.name.startsWith("image2"))
+        .map((input) => ({
+          name: input.name,
+          split: input.condition({ layout: "split" }),
+          overlay: input.condition({ layout: "overlay" }),
+        })),
+    }));
+    assert.deepEqual(settings.childTypes, []);
+    assert.deepEqual(settings.children, []);
+    assert.equal(settings.legacyEnabled, false);
+    assert.equal(settings.secondControls.length, 3);
+    for (const control of settings.secondControls) {
+      assert.equal(control.split, false);
+      assert.equal(control.overlay, true);
+    }
+    for (const width of [390, 834, 1440]) {
+      await page.setViewportSize({ width, height: 1000 });
+      const config = {
+        imageCount: 0,
+        image1: { url: "/first.jpg" },
+        image2: { url: "/second.jpg" },
+        image1BorderRadius: 12,
+        image2BorderRadius: 20,
+        image1ObjectFit: "contain",
+        image2ObjectFit: "cover",
+      };
+      for (const layout of ["overlay", "split", "overlay"]) {
+        await page.evaluate((props) => window.renderSection(props), {
+          ...config,
+          layout,
+        });
+        await expect(page.locator("[data-image-url]")).toHaveCount(
+          layout === "split" ? 1 : 2,
+        );
+        await expect(page.locator("[data-image-url]").first()).toHaveAttribute(
+          "data-image-url",
+          "/first.jpg",
+        );
+        if (layout === "overlay") {
+          await expect(page.locator("[data-image-url]").first()).toHaveCSS(
+            "object-fit",
+            "contain",
+          );
+        }
+        if (layout === "overlay") {
+          await expect(page.locator("[data-image-url]").nth(1)).toHaveAttribute(
+            "data-image-url",
+            "/second.jpg",
+          );
+        }
+      }
+      await page.evaluate(() =>
+        window.renderSection({ layout: "split", imageCount: 0, image1: null }),
+      );
+      await expect(page.locator("[data-image-url]")).toHaveAttribute(
+        "data-image-url",
+        "/placeholder.svg",
+      );
+    }
+  } finally {
+    await browser.close();
+  }
+});
+
+test("parent image controls preserve legacy data and override saved defaults, zero and clears", async () => {
+  const browser = await chromium.launch();
+  try {
+    const page = await browser.newPage({
+      viewport: { width: 1440, height: 1000 },
+    });
+    await page.setContent(`<style>${css}</style><div id="root"></div>`);
+    await page.addScriptTag({ content: bundle.outputFiles[0].text });
+    const legacyImages = [
+      {
+        image: { url: "/legacy-1.jpg" },
+        borderRadius: 20,
+        objectFit: "contain",
+      },
+      { image: { url: "/legacy-2.jpg" }, borderRadius: 12, objectFit: "cover" },
+    ];
+    await page.evaluate((props) => window.renderSection(props), {
+      layout: "overlay",
+      legacyImages,
+    });
+    await expect(page.locator("[data-image-url]").first()).toHaveAttribute(
+      "data-image-url",
+      "/legacy-1.jpg",
+    );
+    await expect(page.locator("[data-image-url]").nth(1)).toHaveAttribute(
+      "data-image-url",
+      "/legacy-2.jpg",
+    );
+    await page.evaluate((props) => window.renderSection(props), {
+      layout: "overlay",
+      legacyImages: [
+        legacyImages[0],
+        { ...legacyImages[1], image: { url: "/edited-legacy-2.jpg" } },
+      ],
+      image1: { url: "/parent-1.jpg" },
+    });
+    await expect(page.locator("[data-image-url]").first()).toHaveAttribute(
+      "data-image-url",
+      "/parent-1.jpg",
+    );
+    await expect(page.locator("[data-image-url]").nth(1)).toHaveAttribute(
+      "data-image-url",
+      "/edited-legacy-2.jpg",
+    );
+    await page.evaluate((props) => window.renderSection(props), {
+      layout: "overlay",
+      legacyImages,
+      image1: null,
+      image1BorderRadius: 0,
+      image1ObjectFit: "cover",
+    });
+    const first = page.locator("[data-image-url]").first();
+    await expect(first).toHaveAttribute("data-image-url", "/placeholder.svg");
+    await expect(first).toHaveCSS("border-radius", "0px");
+    await expect(first).toHaveCSS("object-fit", "cover");
+    await expect(page.locator("[data-image-url]").nth(1)).toHaveAttribute(
+      "data-image-url",
+      "/legacy-2.jpg",
+    );
+    const defaults = await page.evaluate(() =>
+      window.schema.settings
+        .flatMap((group) => group.inputs)
+        .filter((input) => /^image[12]/.test(input.name))
+        .map((input) => input.defaultValue),
+    );
+    assert.ok(defaults.every((value) => value === undefined));
+  } finally {
+    await browser.close();
+  }
+});
 
 test("Image with text honors heading and paragraph alignment independently of content position", async () => {
   const browser = await chromium.launch();
