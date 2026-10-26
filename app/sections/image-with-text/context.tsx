@@ -1,4 +1,11 @@
 import { createContext, useContext } from "react";
+import type { ImageWithTextImageProps } from "./image";
+
+export type ImageSettings = Partial<
+  Pick<ImageWithTextImageProps, "image" | "borderRadius" | "objectFit">
+>;
+
+export const ImageSlotContext = createContext<ImageSettings>({});
 
 export type ImageAspectRatioType = "adapt" | "1/1" | "3/4" | "4/3" | "16/9";
 export type ImageWithTextLayout = "overlay" | "split";
@@ -10,6 +17,7 @@ interface ImageWithTextContextType {
   setImageAspectRatio: (ratio: ImageAspectRatioType) => void;
   layout: ImageWithTextLayout;
   isLegacyLayout: boolean;
+  imageSettings: [ImageSettings, ImageSettings];
 }
 
 export const ImageWithTextContext = createContext<ImageWithTextContextType>({
@@ -23,6 +31,7 @@ export const ImageWithTextContext = createContext<ImageWithTextContextType>({
   },
   layout: "split",
   isLegacyLayout: false,
+  imageSettings: [{}, {}],
 });
 
 export const useImageWithTextContext = () => useContext(ImageWithTextContext);
