@@ -1,4 +1,4 @@
-import { createSchema } from "@weaverse/hydrogen";
+import { createSchema, IMAGES_PLACEHOLDERS } from "@weaverse/hydrogen";
 import { forwardRef, useState } from "react";
 import { sectionBackgroundInputs } from "~/components/background-image";
 import type { SectionProps } from "~/components/section";
@@ -6,9 +6,11 @@ import { Section } from "~/components/section";
 import { cn } from "~/utils/cn";
 import {
   type ImageAspectRatioType,
+  type ImageSettings,
   ImageWithTextContext,
   type ImageWithTextLayout,
 } from "./context";
+import { imageInputs } from "./image";
 
 interface ImageWithTextProps extends SectionProps {
   layout?: ImageWithTextLayout;
@@ -16,6 +18,12 @@ interface ImageWithTextProps extends SectionProps {
   mobileMediaPosition?: "top" | "bottom";
   mobileImageRadius?: number;
   showVerticalSpacing?: boolean;
+  image1?: ImageSettings["image"];
+  image2?: ImageSettings["image"];
+  image1BorderRadius?: ImageSettings["borderRadius"];
+  image2BorderRadius?: ImageSettings["borderRadius"];
+  image1ObjectFit?: ImageSettings["objectFit"];
+  image2ObjectFit?: ImageSettings["objectFit"];
 }
 
 const DEFAULT_BACKGROUND_COLOR = "#DBDBDB";
@@ -31,6 +39,12 @@ const ImageWithText = forwardRef<HTMLElement, ImageWithTextProps>(
       mobileImageRadius = 0,
       showVerticalSpacing = true,
       backgroundColor,
+      image1,
+      image2,
+      image1BorderRadius,
+      image2BorderRadius,
+      image1ObjectFit,
+      image2ObjectFit,
       ...rest
     } = props;
 
@@ -50,6 +64,18 @@ const ImageWithText = forwardRef<HTMLElement, ImageWithTextProps>(
           setImageAspectRatio,
           layout: resolvedLayout,
           isLegacyLayout,
+          imageSettings: [
+            {
+              image: image1,
+              borderRadius: image1BorderRadius,
+              objectFit: image1ObjectFit,
+            },
+            {
+              image: image2,
+              borderRadius: image2BorderRadius,
+              objectFit: image2ObjectFit,
+            },
+          ],
         }}
       >
         <Section
@@ -163,6 +189,26 @@ export const schema = createSchema({
       ],
     },
     {
+      group: "Images",
+      // Defaults must not mask images or styling saved on legacy children.
+      // New sections receive their defaults through presets instead.
+      inputs: ([1, 2] as const).flatMap((slot) =>
+        imageInputs.map(({ name, defaultValue: _defaultValue, ...input }) => ({
+          ...input,
+          label:
+            name === "image"
+              ? `Image ${slot}`
+              : `Image ${slot}: ${input.label}`,
+          name:
+            name === "image"
+              ? `image${slot}`
+              : `image${slot}${name[0].toUpperCase()}${name.slice(1)}`,
+          condition: (data: ImageWithTextProps) =>
+            slot === 1 || data.layout !== "split",
+        })),
+      ),
+    },
+    {
       group: "Background",
       inputs: sectionBackgroundInputs(DEFAULT_BACKGROUND_COLOR),
     },
@@ -178,6 +224,12 @@ export const schema = createSchema({
     showVerticalSpacing: true,
     backgroundColor: DEFAULT_BACKGROUND_COLOR,
     backgroundFor: "section",
+    image1: IMAGES_PLACEHOLDERS.image,
+    image2: IMAGES_PLACEHOLDERS.image,
+    image1BorderRadius: 0,
+    image2BorderRadius: 0,
+    image1ObjectFit: "cover",
+    image2ObjectFit: "cover",
     children: [
       { type: "image-with-text--content" },
       {
