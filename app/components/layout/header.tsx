@@ -79,6 +79,7 @@ export function Header() {
         "bg-(--color-header-bg) hover:bg-(--color-header-bg-hover)",
         "text-(--color-header-text) hover:text-(--color-header-text)",
         "border-line-subtle border-b",
+        designSystemPreset !== "custom" && "max-desktop:h-(--height-nav)",
         variants({ padding: headerWidth }),
         designSystemPreset !== "custom" &&
           headerWidth !== "full" &&
@@ -109,6 +110,7 @@ export function Header() {
           "grid grid-cols-[1fr_auto_1fr] items-center",
           designSystemPreset !== "custom" && "max-desktop:gap-x-2.5",
           variants({ width: headerWidth }),
+          designSystemPreset !== "custom" && "max-desktop:h-full",
         )}
       >
         <div
@@ -127,8 +129,6 @@ export function Header() {
         <div
           className={cn(
             "col-start-2 row-start-1 flex items-center justify-self-center",
-            designSystemPreset !== "custom" &&
-              "max-sm:[&_svg]:h-6 max-sm:[&_svg]:w-27",
             !isCompactDesktop && "xl:col-start-1 xl:justify-self-start",
           )}
         >
