@@ -34,6 +34,40 @@ test("Featured collections exposes Layout first on the parent", () => {
   assert.equal(firstInput?.label, "Layout");
 });
 
+test("Style 1 exposes responsive header-to-cards spacing without changing other styles", () => {
+  const inputs = schema.settings?.flatMap((group) => group.inputs) ?? [];
+  const defaults = generateDataFromSchema(schema);
+  for (const [name, value] of [
+    ["gridSpacingDesktop", 72],
+    ["gridSpacingTablet", 64],
+    ["gridSpacingMobile", 40],
+  ] as const) {
+    const input = inputs.find((item) => item.name === name);
+    assert.equal(input?.defaultValue, value);
+    assert.equal(defaults[name], value);
+    assert.equal(input?.type, "range");
+    const condition = input?.condition as (data: {
+      layout?: string;
+      children?: Array<{ type: string; layout: string }>;
+    }) => boolean;
+    assert.equal(condition({ layout: "grid" }), true);
+    assert.equal(condition({}), true);
+    assert.equal(condition({ layout: "slider" }), false);
+    assert.equal(condition({ layout: "showcase" }), false);
+    assert.equal(
+      condition({
+        children: [{ type: "collection-list-dynamic-items", layout: "slider" }],
+      }),
+      false,
+    );
+  }
+  const gap = inputs.find((input) => input.name === "gap");
+  const condition = gap?.condition as (data: { layout: string }) => boolean;
+  assert.equal(condition({ layout: "grid" }), false);
+  assert.equal(condition({ layout: "slider" }), true);
+  assert.equal(condition({ layout: "showcase" }), true);
+});
+
 test("Featured collection overlay settings are shown for Styles 1 and 3", () => {
   const parentInputs = schema.settings?.flatMap((group) => group.inputs) ?? [];
   const childInputs =
