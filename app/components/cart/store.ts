@@ -4,6 +4,12 @@ import type { CartApiQueryFragment } from "storefront-api.generated";
 import { create } from "zustand";
 import { resolveBaselineCart } from "./cart-baseline";
 import {
+  getLineQuantityRules,
+  getNextLineQuantity,
+  getOptimisticLineQuantity,
+  getOtherVariantQuantity,
+} from "./cart-line-quantity";
+import {
   claimPendingLineUpdate,
   settlePendingLineUpdate,
   stagePendingLineUpdate,
@@ -25,6 +31,7 @@ type CartStore = {
   pendingLineUpdates: Map<string, number>;
   lineUpdatesInFlight: Map<string, number>;
   lineUpdateErrors: Map<string, CartMutationResponse>;
+  lineQuantityLimits: Map<string, CartApiQueryFragment>;
   pendingLineRemovals: Set<string>;
   lineRemovalErrors: Map<string, CartMutationResponse>;
   open: () => void;
@@ -33,6 +40,7 @@ type CartStore = {
   stagePendingAdd: (lines: OptimisticCartLineInput[]) => string | null;
   clearPendingAdd: (token: string) => void;
   stageLineUpdate: (lineId: string, quantity: number) => void;
+  adjustLineQuantity: (lineId: string, direction: 1 | -1) => void;
   claimLineUpdate: (lineId: string) => number | null;
   settleLineUpdate: (
     lineId: string,
@@ -45,6 +53,122 @@ type CartStore = {
 
 let pendingAddSequence = 0;
 
+function getQuantitySnapshot(state: CartStore) {
+  const { cart } = resolveBaselineCart(state.serverCart);
+  if (!cart) {
+    return null;
+  }
+  return (
+    applyOptimisticMutations(
+      cart,
+      [],
+      getActiveStagedLines(state.pendingAdds, 0),
+      state.pendingLineUpdates,
+    ) ?? cart
+  );
+}
+
+function canStageLineQuantity(
+  state: CartStore,
+  lineId: string,
+  quantity: number,
+  cart = getQuantitySnapshot(state),
+) {
+  const line = cart?.lines.nodes.find((node) => node.id === lineId);
+  if (
+    !line ||
+    lineId.startsWith("optimistic-") ||
+    state.pendingLineRemovals.has(lineId)
+  ) {
+    return false;
+  }
+  const { minimum, maximum, increment } = getLineQuantityRules(line);
+  if (
+    !Number.isInteger(quantity) ||
+    quantity < minimum ||
+    quantity % increment !== 0 ||
+    (maximum !== null && quantity > maximum)
+  ) {
+    return false;
+  }
+  const pending = state.pendingLineUpdates.get(lineId);
+  if (
+    quantity === line.quantity &&
+    (pending === undefined || pending === quantity)
+  ) {
+    return false;
+  }
+  if (
+    quantity > line.quantity &&
+    pending !== undefined &&
+    (pending > line.quantity ||
+      getOptimisticLineQuantity(line, quantity, cart.lines.nodes) <=
+        line.quantity)
+  ) {
+    return false;
+  }
+  const previous = state.lineQuantityLimits.get(lineId);
+  const adjusted = previous?.lines.nodes.find((node) => node.id === lineId);
+  if (
+    adjusted &&
+    adjusted.merchandise.quantityAvailable ===
+      line.merchandise.quantityAvailable &&
+    adjusted.merchandise.currentlyNotInStock ===
+      line.merchandise.currentlyNotInStock &&
+    getLineQuantityRules(adjusted).minimum === minimum &&
+    getLineQuantityRules(adjusted).maximum === maximum &&
+    getLineQuantityRules(adjusted).increment === increment &&
+    getOtherVariantQuantity(adjusted, previous.lines.nodes) ===
+      getOtherVariantQuantity(line, cart.lines.nodes) &&
+    quantity > adjusted.quantity
+  ) {
+    return false;
+  }
+  return true;
+}
+
+export function canAdjustLineQuantity(
+  state: CartStore,
+  lineId: string,
+  direction: 1 | -1,
+) {
+  const cart = getQuantitySnapshot(state);
+  const line = cart?.lines.nodes.find((node) => node.id === lineId);
+  return Boolean(
+    line &&
+      canStageLineQuantity(
+        state,
+        lineId,
+        getNextLineQuantity(line, direction),
+        cart,
+      ),
+  );
+}
+
+function stageQuantity(
+  state: CartStore,
+  lineId: string,
+  quantity: number,
+  cart = getQuantitySnapshot(state),
+) {
+  if (!canStageLineQuantity(state, lineId, quantity, cart)) {
+    return {};
+  }
+  const lineUpdateErrors = new Map(state.lineUpdateErrors);
+  lineUpdateErrors.delete(lineId);
+  const lineQuantityLimits = new Map(state.lineQuantityLimits);
+  lineQuantityLimits.delete(lineId);
+  return {
+    pendingLineUpdates: stagePendingLineUpdate(
+      state.pendingLineUpdates,
+      lineId,
+      quantity,
+    ),
+    lineUpdateErrors,
+    lineQuantityLimits,
+  };
+}
+
 export const useCartStore = create<CartStore>()((set) => ({
   isResolved: false,
   isOpen: false,
@@ -53,6 +177,7 @@ export const useCartStore = create<CartStore>()((set) => ({
   pendingLineUpdates: new Map(),
   lineUpdatesInFlight: new Map(),
   lineUpdateErrors: new Map(),
+  lineQuantityLimits: new Map(),
   pendingLineRemovals: new Set(),
   lineRemovalErrors: new Map(),
   open: () => set({ isOpen: true }),
@@ -89,17 +214,19 @@ export const useCartStore = create<CartStore>()((set) => ({
       return { pendingAdds };
     }),
   stageLineUpdate: (lineId, quantity) =>
+    set((state) => stageQuantity(state, lineId, quantity)),
+  adjustLineQuantity: (lineId, direction) =>
     set((state) => {
-      const lineUpdateErrors = new Map(state.lineUpdateErrors);
-      lineUpdateErrors.delete(lineId);
-      return {
-        pendingLineUpdates: stagePendingLineUpdate(
-          state.pendingLineUpdates,
-          lineId,
-          quantity,
-        ),
-        lineUpdateErrors,
-      };
+      const cart = getQuantitySnapshot(state);
+      const line = cart?.lines.nodes.find((node) => node.id === lineId);
+      return line
+        ? stageQuantity(
+            state,
+            lineId,
+            getNextLineQuantity(line, direction),
+            cart,
+          )
+        : {};
     }),
   claimLineUpdate: (lineId) => {
     let claimedQuantity: number | null = null;
@@ -129,15 +256,39 @@ export const useCartStore = create<CartStore>()((set) => ({
         return {};
       }
       const lineUpdateErrors = new Map(state.lineUpdateErrors);
+      const lineQuantityLimits = new Map(state.lineQuantityLimits);
+      const acceptedLine = response?.cart?.lines.nodes.find(
+        (line) => line.id === lineId,
+      );
+      const adjusted =
+        !response?.errors?.length &&
+        !response?.userErrors?.length &&
+        acceptedLine &&
+        acceptedLine.quantity < submittedQuantity;
       if (response?.errors?.length || response?.userErrors?.length) {
         lineUpdateErrors.set(lineId, response);
       } else {
         lineUpdateErrors.delete(lineId);
       }
+      if (adjusted) {
+        lineQuantityLimits.set(lineId, response.cart);
+      } else {
+        lineQuantityLimits.delete(lineId);
+      }
+      // Do not replay a queued increase after Shopify reduced the submitted
+      // quantity. A newer decrease remains a valid buyer intention.
+      if (
+        adjusted &&
+        (settled.pending.get(lineId) ?? 0) > acceptedLine.quantity
+      ) {
+        settled.pending = new Map(settled.pending);
+        settled.pending.delete(lineId);
+      }
       return {
         pendingLineUpdates: settled.pending,
         lineUpdatesInFlight: settled.inFlight,
         lineUpdateErrors,
+        lineQuantityLimits,
       };
     }),
   stageLineRemoval: (lineId) =>
@@ -157,13 +308,20 @@ export const useCartStore = create<CartStore>()((set) => ({
       pendingLineRemovals.delete(lineId);
       const lineRemovalErrors = new Map(state.lineRemovalErrors);
       const lineUpdateErrors = new Map(state.lineUpdateErrors);
+      const lineQuantityLimits = new Map(state.lineQuantityLimits);
       if (response?.errors?.length || response?.userErrors?.length) {
         lineRemovalErrors.set(lineId, response);
       } else {
         lineRemovalErrors.delete(lineId);
         lineUpdateErrors.delete(lineId);
+        lineQuantityLimits.delete(lineId);
       }
-      return { pendingLineRemovals, lineRemovalErrors, lineUpdateErrors };
+      return {
+        pendingLineRemovals,
+        lineRemovalErrors,
+        lineUpdateErrors,
+        lineQuantityLimits,
+      };
     }),
 }));
 

@@ -60,8 +60,9 @@ const bundle = await build({
           export const SubscriptionLineItem=()=>null;
           export const calculateAspectRatio=()=>"1/1";
           export const toggleCartDrawer=()=>{};
-          export const useCartStore=(selector)=>selector({pendingLineRemovals:new Set()});
-          useCartStore.getState=()=>({stageLineUpdate:(id,quantity)=>{window.updates.push({id,quantity});window.renderQuantity(quantity,window.currentLayout,id,true,window.currentAmount,window.fullItem);}});
+          export const canAdjustLineQuantity=(_,id)=>!id.startsWith("optimistic-");
+          export const useCartStore=(selector)=>selector({pendingLineRemovals:new Set(),pendingLineUpdates:new Map()});
+          useCartStore.getState=()=>({adjustLineQuantity:(id,direction)=>{const quantity=window.currentQuantity+direction;window.updates.push({id,quantity});window.renderQuantity(quantity,window.currentLayout,id,true,window.currentAmount,window.fullItem);}});
         `,
           loader: "tsx",
           resolveDir: root,
@@ -168,11 +169,14 @@ test("Cart page quantity matches Figma on mobile, tablet and desktop while prese
       await expect(group).toHaveCSS("border-radius", "8px");
       await expect(group).toHaveCSS("background-color", "rgb(237, 237, 237)");
       for (const button of [decrease, increase]) {
-        assert.equal((await button.boundingBox()).width, 44);
+        assert.equal((await button.boundingBox()).width, 32);
         await expect(button).toHaveCSS("padding-top", "8px");
+        await expect(button).toHaveCSS("padding-bottom", "8px");
+        await expect(button).toHaveCSS("padding-left", "0px");
+        await expect(button).toHaveCSS("padding-right", "0px");
       }
       const output = group.locator("output");
-      await expect(output).toHaveCSS("width", "30px");
+      await expect(output).toHaveCSS("width", "54px");
       await expect(output).toHaveCSS("border-left-width", "0px");
       for (const element of [
         decrease.locator("span"),
@@ -339,12 +343,13 @@ test("Cart drawer uses the Cart page stepper while preserving compact item layou
       assert.equal(style.radius, "8px");
       for (const button of [increase, decrease]) {
         const buttonWidth = (await button.boundingBox()).width;
-        assert.equal(buttonWidth, 44);
+        assert.equal(buttonWidth, 32);
         assert.equal(
           await button.evaluate((el) => getComputedStyle(el).paddingTop),
           "8px",
         );
       }
+      await expect(stepper.locator("output")).toHaveCSS("width", "54px");
       const remove = page.getByRole("button", { name: "cart.removeItem" });
       const stepperBounds = await stepper.boundingBox();
       const rowBounds = await stepper.evaluate((el) => {
