@@ -68,7 +68,9 @@ const isGridLayout = (data: CollectionListSettingsData) => {
   const legacyLayout = data.children?.find(
     (child) => child.type === "collection-list-dynamic-items",
   )?.layout;
-  return resolveCollectionListLayout(data.layout, legacyLayout) === "grid";
+  // Inspector snapshots may only contain child IDs. Keep generic spacing
+  // available until a grid layout is explicitly known, rather than guessing.
+  return (data.layout ?? legacyLayout) === "grid";
 };
 
 const CollectionListLayoutContext =
