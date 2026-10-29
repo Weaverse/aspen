@@ -304,6 +304,13 @@ const CART_QUERY_FRAGMENT = `#graphql
       ... on ProductVariant {
         id
         availableForSale
+        quantityAvailable
+        currentlyNotInStock
+        quantityRule {
+          minimum
+          maximum
+          increment
+        }
         compareAtPrice {
           ...Money
         }
@@ -369,6 +376,13 @@ const CART_QUERY_FRAGMENT = `#graphql
       ... on ProductVariant {
         id
         availableForSale
+        quantityAvailable
+        currentlyNotInStock
+        quantityRule {
+          minimum
+          maximum
+          increment
+        }
         compareAtPrice {
           ...Money
         }

@@ -1,33 +1,36 @@
 import { useTranslation } from "@weaverse/hydrogen";
 import type { CartLine } from "./cart-types";
-import { useCartStore } from "./store";
+import { canAdjustLineQuantity, useCartStore } from "./store";
 
 export function CartLineQuantityAdjust({ line }: { line: CartLine }) {
   const { t } = useTranslation();
+  const canIncrease = useCartStore((state) =>
+    canAdjustLineQuantity(state, line?.id, 1),
+  );
+  const canDecrease = useCartStore((state) =>
+    canAdjustLineQuantity(state, line?.id, -1),
+  );
+  const isPending = useCartStore((state) =>
+    state.pendingLineUpdates.has(line?.id),
+  );
   if (!line || typeof line.quantity === "undefined") {
     return null;
   }
 
   const { id: lineId, quantity } = line;
-  const disabled = lineId.startsWith("optimistic-");
-  const updateQuantity = (nextQuantity: number) => {
-    if (!Number.isInteger(nextQuantity) || nextQuantity < 1) {
-      return;
-    }
-    useCartStore.getState().stageLineUpdate(lineId, nextQuantity);
-  };
 
   return (
     <fieldset
       className="inline-flex h-7.5 w-30 shrink-0 items-stretch overflow-hidden rounded-(--radius-sm) bg-(--color-background-subtle) font-dm-sans font-semibold text-[14px] text-body leading-none tracking-[0.02em]"
       aria-label={t("product.quantityValue", { quantity })}
+      aria-busy={isPending}
     >
       <button
         type="button"
-        className="flex w-11 shrink-0 flex-col items-center justify-center py-2 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-body disabled:cursor-not-allowed"
-        disabled={disabled || quantity <= 1}
+        className="flex w-8 shrink-0 flex-col items-center justify-center py-2 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-body disabled:cursor-not-allowed"
+        disabled={!canDecrease || quantity <= 1}
         aria-label={t("product.decreaseQuantity")}
-        onClick={() => updateQuantity(quantity - 1)}
+        onClick={() => useCartStore.getState().adjustLineQuantity(lineId, -1)}
       >
         <span aria-hidden="true">-</span>
       </button>
@@ -47,10 +50,19 @@ export function CartLineQuantityAdjust({ line }: { line: CartLine }) {
       />
       <button
         type="button"
-        className="flex w-11 shrink-0 flex-col items-center justify-center py-2 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-body disabled:cursor-not-allowed"
-        disabled={disabled}
+        className="flex w-8 shrink-0 flex-col items-center justify-center py-2 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-body disabled:cursor-not-allowed"
+        disabled={!canIncrease}
+        title={
+          !canIncrease
+            ? t(
+                isPending
+                  ? "cart.updatingQuantity"
+                  : "cart.quantityLimitReached",
+              )
+            : undefined
+        }
         aria-label={t("product.increaseQuantity")}
-        onClick={() => updateQuantity(quantity + 1)}
+        onClick={() => useCartStore.getState().adjustLineQuantity(lineId, 1)}
       >
         <span aria-hidden="true">+</span>
       </button>

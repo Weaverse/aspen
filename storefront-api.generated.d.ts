@@ -3641,8 +3641,17 @@ export type CartLineFragment = Pick<
   }>;
   merchandise: Pick<
     StorefrontAPI.ProductVariant,
-    'id' | 'availableForSale' | 'requiresShipping' | 'title'
+    | 'id'
+    | 'availableForSale'
+    | 'quantityAvailable'
+    | 'currentlyNotInStock'
+    | 'requiresShipping'
+    | 'title'
   > & {
+    quantityRule: Pick<
+      StorefrontAPI.QuantityRule,
+      'minimum' | 'maximum' | 'increment'
+    >;
     compareAtPrice?: StorefrontAPI.Maybe<
       Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
     >;
@@ -3693,10 +3702,16 @@ export type CartLineComponentFragment = Pick<
     StorefrontAPI.ProductVariant,
     | 'id'
     | 'availableForSale'
+    | 'quantityAvailable'
+    | 'currentlyNotInStock'
     | 'requiresShipping'
     | 'title'
     | 'requiresComponents'
   > & {
+    quantityRule: Pick<
+      StorefrontAPI.QuantityRule,
+      'minimum' | 'maximum' | 'increment'
+    >;
     compareAtPrice?: StorefrontAPI.Maybe<
       Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
     >;
@@ -3786,8 +3801,17 @@ export type CartApiQueryFragment = Pick<
           }>;
           merchandise: Pick<
             StorefrontAPI.ProductVariant,
-            'id' | 'availableForSale' | 'requiresShipping' | 'title'
+            | 'id'
+            | 'availableForSale'
+            | 'quantityAvailable'
+            | 'currentlyNotInStock'
+            | 'requiresShipping'
+            | 'title'
           > & {
+            quantityRule: Pick<
+              StorefrontAPI.QuantityRule,
+              'minimum' | 'maximum' | 'increment'
+            >;
             compareAtPrice?: StorefrontAPI.Maybe<
               Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
             >;
@@ -3843,10 +3867,16 @@ export type CartApiQueryFragment = Pick<
             StorefrontAPI.ProductVariant,
             | 'id'
             | 'availableForSale'
+            | 'quantityAvailable'
+            | 'currentlyNotInStock'
             | 'requiresShipping'
             | 'title'
             | 'requiresComponents'
           > & {
+            quantityRule: Pick<
+              StorefrontAPI.QuantityRule,
+              'minimum' | 'maximum' | 'increment'
+            >;
             compareAtPrice?: StorefrontAPI.Maybe<
               Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
             >;
