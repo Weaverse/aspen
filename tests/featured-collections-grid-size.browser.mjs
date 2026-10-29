@@ -39,9 +39,9 @@ const sectionBundle = await build({
       import FeaturedCollections from "./app/sections/collection-list-dynamic";
       import CollectionItems from "./app/sections/collection-list-dynamic/collection-items";
       const collections = [0,1,2].map(index=>({id:String(index),title:"Collection "+index,handle:"collection-"+index}));
-      window.start = ({layout="grid", gap=64, verticalPadding="medium", actualItems=false}) =>
+      window.start = ({layout="grid", gap=64, verticalPadding="medium", actualItems=false, legacy=false, ...spacing}) =>
         createRoot(document.getElementById("root")).render(
-          <FeaturedCollections layout={layout} gap={gap} width="fixed" verticalPadding={verticalPadding}>
+          <FeaturedCollections layout={legacy ? undefined : layout} gap={gap} width="fixed" verticalPadding={verticalPadding} {...spacing}>
             <div id="content" style={{height:160}}>Heading, description and link</div>
             {actualItems
               ? <CollectionItems loaderData={collections} gap={16} desktopGap={20}/>
@@ -86,7 +86,23 @@ const sectionBundle = await build({
   ],
 });
 
-function expectedSectionGap(width, { layout, gap }) {
+function expectedSectionGap(
+  width,
+  {
+    layout,
+    gap,
+    gridSpacingMobile = 40,
+    gridSpacingTablet = 64,
+    gridSpacingDesktop = 72,
+  },
+) {
+  if (layout === "grid") {
+    return width < 768
+      ? gridSpacingMobile
+      : width < DESKTOP_MIN_PX
+        ? gridSpacingTablet
+        : gridSpacingDesktop;
+  }
   if (layout === "showcase" && width < DESKTOP_MIN_PX) {
     return width < 768 ? 40 : 72;
   }
@@ -109,6 +125,14 @@ test("Featured Collections spacing stays style-scoped and preserves custom setti
     for (const width of [430, 600, 834, TABLET_MAX_PX, DESKTOP_MIN_PX]) {
       for (const options of [
         { layout: "grid", gap: 64 },
+        { layout: "grid", gap: 32, legacy: true },
+        {
+          layout: "grid",
+          gap: 32,
+          gridSpacingMobile: 0,
+          gridSpacingTablet: 28,
+          gridSpacingDesktop: 48,
+        },
         { layout: "grid", gap: 40 },
         { layout: "slider", gap: 64 },
         { layout: "showcase", gap: 64 },

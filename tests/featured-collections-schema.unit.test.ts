@@ -3,13 +3,18 @@ import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { generateDataFromSchema } from "@weaverse/hydrogen";
-import { schema as accordionSchema } from "~/sections/accordion";
 import {
+  generateDataFromSchema,
+  registerComponent,
+  WeaverseHydrogen,
+  WeaverseHydrogenItem,
+} from "@weaverse/hydrogen";
+import { schema as accordionSchema } from "~/sections/accordion";
+import CollectionListDynamic, {
   resolveCollectionListLayout,
   schema,
 } from "~/sections/collection-list-dynamic";
-import {
+import CollectionItems, {
   loader as collectionItemsLoader,
   schema as collectionItemsSchema,
 } from "~/sections/collection-list-dynamic/collection-items";
@@ -33,6 +38,156 @@ test("Featured collections exposes Layout first on the parent", () => {
   assert.equal(firstInput?.name, "layout");
   assert.equal(firstInput?.label, "Layout");
 });
+
+test("Style 1 exposes responsive header-to-cards spacing without changing other styles", () => {
+  const inputs = schema.settings?.flatMap((group) => group.inputs) ?? [];
+  const defaults = generateDataFromSchema(schema);
+  for (const [name, value] of [
+    ["gridSpacingDesktop", 72],
+    ["gridSpacingTablet", 64],
+    ["gridSpacingMobile", 40],
+  ] as const) {
+    const input = inputs.find((item) => item.name === name);
+    assert.equal(input?.defaultValue, value);
+    assert.equal(defaults[name], value);
+    assert.equal(input?.type, "range");
+    const condition = input?.condition as (data: {
+      layout?: string;
+      children?: Array<{ type: string; layout: string }>;
+    }) => boolean;
+    assert.equal(condition({ layout: "grid" }), true);
+    assert.equal(condition({}), false);
+    assert.equal(condition({ layout: "slider" }), false);
+    assert.equal(condition({ layout: "showcase" }), false);
+    assert.equal(
+      condition({
+        children: [{ type: "collection-list-dynamic-items", layout: "slider" }],
+      }),
+      false,
+    );
+  }
+  const gap = inputs.find((input) => input.name === "gap");
+  const condition = gap?.condition as (data: { layout: string }) => boolean;
+  assert.equal(condition({ layout: "grid" }), false);
+  assert.equal(condition({ layout: "slider" }), true);
+  assert.equal(condition({ layout: "showcase" }), true);
+});
+
+for (const legacyLayout of ["slider", "showcase"] as const) {
+  test(`Studio preserves spacing controls for legacy ${legacyLayout} SDK snapshots`, () => {
+    const registry = WeaverseHydrogen.elementRegistry;
+    const previousParent = registry.get(schema.type);
+    const previousChild = registry.get(collectionItemsSchema.type);
+    registerComponent({
+      type: schema.type,
+      schema,
+      Component: CollectionListDynamic,
+    });
+    registerComponent({
+      type: collectionItemsSchema.type,
+      schema: collectionItemsSchema,
+      Component: CollectionItems,
+    });
+    const parentId = `spacing-parent-${legacyLayout}`;
+    const childId = `spacing-child-${legacyLayout}`;
+    const runtime = new WeaverseHydrogen({
+      pageId: "spacing-page",
+      projectId: "spacing-project",
+      internal: {},
+      isDesignMode: true,
+      weaverseHost: "https://studio.weaverse.io",
+      weaverseApiBase: "https://api.weaverse.io",
+      weaverseApiKey: "",
+      requestInfo: {
+        search: "",
+        pathname: "/",
+        queries: {},
+        i18n: { country: "US", language: "EN" },
+      },
+      data: {
+        id: "spacing-page",
+        name: "Spacing fixture",
+        rootId: parentId,
+        items: [
+          {
+            id: parentId,
+            type: schema.type,
+            children: [{ id: childId }],
+            data: { gap: 32 },
+          },
+          {
+            id: childId,
+            type: collectionItemsSchema.type,
+            data: { layout: legacyLayout },
+          },
+        ],
+      },
+    });
+    try {
+      const parent = runtime.itemInstances.get(parentId);
+      const child = runtime.itemInstances.get(childId);
+      assert.ok(parent instanceof WeaverseHydrogenItem);
+      assert.ok(child instanceof WeaverseHydrogenItem);
+      const inputs = schema.settings?.flatMap((group) => group.inputs) ?? [];
+      const gap = inputs.find((input) => input.name === "gap");
+      const responsive = inputs.filter(
+        (input) =>
+          typeof input.name === "string" &&
+          input.name.startsWith("gridSpacing"),
+      );
+      const visible = (input: (typeof inputs)[number]) => {
+        assert.equal(typeof input.condition, "function");
+        return (
+          input.condition as (
+            data: ReturnType<typeof parent.getSnapShot>,
+          ) => boolean
+        )(parent.getSnapShot());
+      };
+      assert.ok(gap);
+      assert.equal(parent.getSnapShot().layout, undefined);
+      assert.equal(parent.getSnapShot().gap, 32);
+      assert.deepEqual(parent.getSnapShot().children, [{ id: childId }]);
+      assert.equal(child.getSnapShot().layout, legacyLayout);
+      assert.equal(
+        visible(gap),
+        true,
+        "Existing gap must remain editable for referenced legacy layouts",
+      );
+      assert.equal(responsive.length, 3);
+      for (const input of responsive) {
+        assert.equal(visible(input), false);
+      }
+      parent.setData({ gap: 40 });
+      assert.equal(parent.getSnapShot().gap, 40);
+      assert.equal(visible(gap), true);
+      assert.equal(parent.getSnapShot().layout, undefined);
+      assert.equal(child.getSnapShot().layout, legacyLayout);
+      // Selecting an explicit parent layout safely changes inspector visibility.
+      for (const layout of ["grid", "slider", "showcase"] as const) {
+        parent.setData({ layout });
+        assert.equal(visible(gap), layout !== "grid");
+        for (const input of responsive) {
+          assert.equal(visible(input), layout === "grid");
+        }
+        assert.equal(parent.getSnapShot().gap, 40);
+        assert.equal(child.getSnapShot().layout, legacyLayout);
+      }
+    } finally {
+      runtime.itemInstances.delete(parentId);
+      runtime.itemInstances.delete(childId);
+      if (previousParent) {
+        registry.set(schema.type, previousParent);
+      } else {
+        registry.delete(schema.type);
+      }
+      if (previousChild) {
+        registry.set(collectionItemsSchema.type, previousChild);
+      } else {
+        registry.delete(collectionItemsSchema.type);
+      }
+    }
+  });
+}
 
 test("Featured collection overlay settings are shown for Styles 1 and 3", () => {
   const parentInputs = schema.settings?.flatMap((group) => group.inputs) ?? [];
