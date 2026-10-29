@@ -16,6 +16,9 @@ export const DEFAULT_SHOWCASE_HOVER_ZOOM = 102;
 
 interface CollectionListDynamicProps extends SectionProps {
   layout?: CollectionListLayout;
+  gridSpacingMobile?: number;
+  gridSpacingTablet?: number;
+  gridSpacingDesktop?: number;
   overlayColor?: string;
   overlayOpacity?: number;
   showcaseHoverZoom?: number;
@@ -61,6 +64,15 @@ const isShowcaseLayout = (data: CollectionListSettingsData) => {
   return legacyLayout === "showcase";
 };
 
+const isGridLayout = (data: CollectionListSettingsData) => {
+  const legacyLayout = data.children?.find(
+    (child) => child.type === "collection-list-dynamic-items",
+  )?.layout;
+  // Inspector snapshots may only contain child IDs. Keep generic spacing
+  // available until a grid layout is explicitly known, rather than guessing.
+  return (data.layout ?? legacyLayout) === "grid";
+};
+
 const CollectionListLayoutContext =
   createContext<CollectionListLayoutContextValue>({
     layout: "grid",
@@ -90,6 +102,10 @@ let CollectionListDynamic = forwardRef<HTMLElement, CollectionListDynamicProps>(
       showcaseMobileEffectOpacity,
       verticalPadding = "medium",
       gap,
+      gridSpacingMobile = 40,
+      gridSpacingTablet = 64,
+      gridSpacingDesktop = 72,
+      style,
       ...rest
     } = props;
     const usesDesignPadding = verticalPadding === "medium";
@@ -110,6 +126,14 @@ let CollectionListDynamic = forwardRef<HTMLElement, CollectionListDynamicProps>(
         <Section
           ref={ref}
           {...rest}
+          style={
+            {
+              ...style,
+              "--collections-grid-gap-mobile": `${gridSpacingMobile}px`,
+              "--collections-grid-gap-tablet": `${gridSpacingTablet}px`,
+              "--collections-grid-gap-desktop": `${gridSpacingDesktop}px`,
+            } as React.CSSProperties
+          }
           backgroundFor="section"
           className={cn(
             "overflow-x-clip",
@@ -121,8 +145,7 @@ let CollectionListDynamic = forwardRef<HTMLElement, CollectionListDynamicProps>(
             "flex flex-col",
             usesDesignPadding && "py-20",
             "max-md:has-[[data-collection-layout=showcase]]:space-y-10 md:max-lg:has-[[data-collection-layout=showcase]]:space-y-18",
-            gap === 64 &&
-              "max-md:has-[[data-collection-layout=grid]]:space-y-10",
+            "has-[[data-collection-layout=grid]]:space-y-(--collections-grid-gap-mobile) md:has-[[data-collection-layout=grid]]:space-y-(--collections-grid-gap-tablet) lg:has-[[data-collection-layout=grid]]:space-y-(--collections-grid-gap-desktop)",
           )}
           gap={gap}
           overflow="unset"
@@ -232,11 +255,27 @@ export let schema: HydrogenComponentSchema = {
             input.name === "gap"
               ? {
                   ...input,
+                  condition: (data: CollectionListSettingsData) =>
+                    !isGridLayout(data),
                   helpText:
                     "Style 3 uses this gap on desktop. Header-to-cards spacing is 40px on mobile and 72px on tablet.",
                 }
               : input,
           ),
+        ...(
+          [
+            ["gridSpacingDesktop", "Header-to-cards spacing — desktop", 72],
+            ["gridSpacingTablet", "Header-to-cards spacing — tablet", 64],
+            ["gridSpacingMobile", "Header-to-cards spacing — mobile", 40],
+          ] as const
+        ).map(([name, label, defaultValue]) => ({
+          type: "range" as const,
+          name,
+          label,
+          condition: isGridLayout,
+          defaultValue,
+          configs: { min: 0, max: 160, step: 4, unit: "px" },
+        })),
       ],
     },
   ],
