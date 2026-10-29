@@ -106,7 +106,7 @@ function TabContent({
         "promotion-tab-content col-start-1 row-start-1 flex w-full min-w-0 self-start flex-col items-center px-6 py-12 text-center transition-opacity motion-reduce:transition-none md:p-0",
         active
           ? "relative opacity-100 delay-200 duration-300"
-          : "pointer-events-none opacity-0 duration-200 md:absolute md:inset-x-0 md:top-0",
+          : "pointer-events-none opacity-0 duration-200",
       )}
     >
       {children}
@@ -233,7 +233,7 @@ const TabsLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
     <div
       ref={ref}
       {...rest}
-      className="promotion-tabs relative isolate flex min-h-(--promotion-tabs-mobile-height) min-w-0 flex-col overflow-hidden md:min-h-0 md:gap-16 md:pt-10 md:pb-20 lg:min-h-(--promotion-tabs-height) lg:gap-[200px] lg:pt-40"
+      className="promotion-tabs @container relative isolate min-w-0 overflow-hidden"
       style={
         {
           "--promotion-tabs-height": `${tabsHeight}px`,
@@ -243,93 +243,95 @@ const TabsLayout = forwardRef<HTMLDivElement, any>((props, ref) => {
     >
       <TabBackground tabsData={tabsData} activeTab={activeTab} />
 
-      {/* Mobile shares one grid cell across panels, sized by the longest copy.
-          Inactive panels are out of flow at md+ to preserve those layouts. */}
-      <div className="relative z-2 mx-auto grid w-full min-w-0 max-w-180 md:order-2 md:w-[calc(100%-var(--spacing)*16)]">
-        {tabsData.map((activeTabData: any, index: number) => {
-          const SubheadingTag = activeTabData.subheadingTag || "p";
-          return (
-            <TabContent key={activeTabData.id} active={activeTab === index}>
-              {activeTabData.subheadingContent && (
-                <SubheadingTag
-                  className="mb-4 font-body text-sm"
-                  style={{ color: activeTabData.subheadingColor }}
-                >
-                  {activeTabData.subheadingContent}
-                </SubheadingTag>
-              )}
-              {activeTabData.paragraphContent && (
-                <Paragraph
-                  className="ff-heading !mx-auto w-full min-w-0 break-words text-2xl leading-[normal]"
-                  content={activeTabData.paragraphContent}
-                  as={activeTabData.paragraphTag}
-                  color={activeTabData.paragraphColor}
-                  alignment="center"
-                  width="full"
-                />
-              )}
-              {activeTabData.buttonContent && (
-                <Link
-                  variant={activeTabData.variant}
-                  textColor={activeTabData.textColor}
-                  backgroundColor={activeTabData.backgroundColor}
-                  borderColor={activeTabData.borderColor}
-                  textColorHover={activeTabData.textColorHover}
-                  backgroundColorHover={activeTabData.backgroundColorHover}
-                  borderColorHover={activeTabData.borderColorHover}
-                  textColorDecor={activeTabData.textColorDecor}
-                  openInNewTab={activeTabData.openInNewTab}
-                  to={activeTabData.to}
-                  className={cn(
-                    "mt-10 w-fit",
-                    activeTabData.variant === "decor" && "p-1",
-                  )}
-                  style={{
-                    color: activeTabData.buttonTextColor,
-                    fontSize: `${activeTabData.buttonTextSize}px`,
-                  }}
-                >
-                  {activeTabData.buttonContent}
-                </Link>
-              )}
-            </TabContent>
-          );
-        })}
-      </div>
+      {/* Tablet follows the Figma ratio using this section's width, not the viewport. */}
+      <div className="flex min-h-(--promotion-tabs-mobile-height) flex-col md:min-h-0 md:gap-16 md:pt-10 md:pb-20 md:max-lg:min-h-[calc(100cqw*840/1728)] lg:min-h-(--promotion-tabs-height) lg:gap-[200px] lg:pt-40">
+        {/* All panels share one grid cell so changing tabs cannot resize the section. */}
+        <div className="relative z-2 mx-auto grid w-full min-w-0 max-w-180 shrink-0 md:order-2 md:w-[calc(100%-var(--spacing)*16)]">
+          {tabsData.map((activeTabData: any, index: number) => {
+            const SubheadingTag = activeTabData.subheadingTag || "p";
+            return (
+              <TabContent key={activeTabData.id} active={activeTab === index}>
+                {activeTabData.subheadingContent && (
+                  <SubheadingTag
+                    className="mb-4 font-body text-sm"
+                    style={{ color: activeTabData.subheadingColor }}
+                  >
+                    {activeTabData.subheadingContent}
+                  </SubheadingTag>
+                )}
+                {activeTabData.paragraphContent && (
+                  <Paragraph
+                    className="ff-heading !mx-auto w-full min-w-0 break-words text-2xl leading-[normal]"
+                    content={activeTabData.paragraphContent}
+                    as={activeTabData.paragraphTag}
+                    color={activeTabData.paragraphColor}
+                    alignment="center"
+                    width="full"
+                  />
+                )}
+                {activeTabData.buttonContent && (
+                  <Link
+                    variant={activeTabData.variant}
+                    textColor={activeTabData.textColor}
+                    backgroundColor={activeTabData.backgroundColor}
+                    borderColor={activeTabData.borderColor}
+                    textColorHover={activeTabData.textColorHover}
+                    backgroundColorHover={activeTabData.backgroundColorHover}
+                    borderColorHover={activeTabData.borderColorHover}
+                    textColorDecor={activeTabData.textColorDecor}
+                    openInNewTab={activeTabData.openInNewTab}
+                    to={activeTabData.to}
+                    className={cn(
+                      "mt-10 w-fit",
+                      activeTabData.variant === "decor" && "p-1",
+                    )}
+                    style={{
+                      color: activeTabData.buttonTextColor,
+                      fontSize: `${activeTabData.buttonTextSize}px`,
+                    }}
+                  >
+                    {activeTabData.buttonContent}
+                  </Link>
+                )}
+              </TabContent>
+            );
+          })}
+        </div>
 
-      <div className="relative z-3 mx-auto flex w-full min-w-0 flex-col gap-5 px-8 pt-10 pb-12 md:order-1 md:grid md:w-[calc(100%-64px)] md:max-w-360 md:grid-cols-3 md:p-0">
-        {tabsData.map((tab: any, index: number) => {
-          const isActive = activeTab === index;
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              aria-pressed={isActive}
-              onClick={() => setActiveTab(index)}
-              onMouseEnter={() => {
-                if (
-                  window.matchMedia(MEDIA_FROM_TABLET).matches &&
-                  window.matchMedia("(hover: hover) and (pointer: fine)")
-                    .matches
-                ) {
-                  setActiveTab(index);
-                }
-              }}
-              className={cn(
-                "group flex min-w-0 w-full items-start justify-center border-t-4 pt-2.5 transition-colors duration-300 motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current",
-                isActive
-                  ? "border-line-subtle text-(--color-text-inverse)"
-                  : "border-transparent text-(--color-text-light) hover:text-(--color-text-inverse)",
-              )}
-            >
-              <span className="min-w-0 break-words text-center font-heading text-(length:--h6-base-size) leading-[1.1] tracking-[-0.02em] lg:text-(length:--h3-base-size) lg:tracking-[-0.03em]">
-                {tab.headingContent === "Tab"
-                  ? t("carousel.tab")
-                  : tab.headingContent}
-              </span>
-            </button>
-          );
-        })}
+        <div className="relative z-3 mx-auto flex w-full min-w-0 flex-col gap-5 px-8 pt-10 pb-12 md:order-1 md:grid md:w-[calc(100%-64px)] md:max-w-360 md:grid-cols-3 md:p-0">
+          {tabsData.map((tab: any, index: number) => {
+            const isActive = activeTab === index;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                aria-pressed={isActive}
+                onClick={() => setActiveTab(index)}
+                onMouseEnter={() => {
+                  if (
+                    window.matchMedia(MEDIA_FROM_TABLET).matches &&
+                    window.matchMedia("(hover: hover) and (pointer: fine)")
+                      .matches
+                  ) {
+                    setActiveTab(index);
+                  }
+                }}
+                className={cn(
+                  "group flex min-w-0 w-full items-start justify-center border-t-4 pt-2.5 transition-colors duration-300 motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current",
+                  isActive
+                    ? "border-line-subtle text-(--color-text-inverse)"
+                    : "border-transparent text-(--color-text-light) hover:text-(--color-text-inverse)",
+                )}
+              >
+                <span className="min-w-0 break-words text-center font-heading text-(length:--h6-base-size) leading-[1.1] tracking-[-0.02em] lg:text-(length:--h3-base-size) lg:tracking-[-0.03em]">
+                  {tab.headingContent === "Tab"
+                    ? t("carousel.tab")
+                    : tab.headingContent}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

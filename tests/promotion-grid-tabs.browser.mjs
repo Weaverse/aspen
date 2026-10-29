@@ -48,7 +48,8 @@ const bundle = await build({
       const router = createMemoryRouter([{id:"root",path:"/",element:<Fixture />}]);
       const root = createRoot(document.getElementById("root"));
       root.render(<RouterProvider router={router} />);
-      window.renderTabs = (overrides=[]) => root.render(<RouterProvider router={createMemoryRouter([
+      let fixtureRevision = 0;
+      window.renderTabs = (overrides=[]) => root.render(<RouterProvider key={++fixtureRevision} router={createMemoryRouter([
         {id:"root",path:"/",element:<Fixture overrides={overrides} />}
       ])} />);
       window.renderSlider = (options = {}) => {
@@ -362,7 +363,7 @@ test("Promotion Tabs tablet spacing follows the tab row and preserves other brea
         assert.equal(geometry.rowLeft, 32);
         assert.equal(geometry.rowRight, 32);
         assert.equal(geometry.rowToContent, 64);
-        assert.equal(geometry.bottomSpace, 80);
+        assert.ok(geometry.bottomSpace >= 80);
         assert.equal(geometry.contentWidth, Math.min(720, width - 64));
         assert.equal(geometry.tabFontSize, "26px");
       } else if (width < 768) {
@@ -375,6 +376,110 @@ test("Promotion Tabs tablet spacing follows the tab row and preserves other brea
     }
     await page.close();
   }
+});
+
+test("Review 4: tablet tabs keep the Figma 1728/840 section ratio with short copy", async () => {
+  for (const width of [768, 834, TABLET_MAX_PX]) {
+    const page = await render(width);
+    const height = await page
+      .locator(".promotion-tabs")
+      .evaluate((el) => el.getBoundingClientRect().height);
+    assert.ok(
+      Math.abs(height - (width * 840) / 1728) < 1,
+      `At ${width}px expected ${(width * 840) / 1728}px, received ${height}px`,
+    );
+    await page.close();
+  }
+});
+
+test("Review 4: changing tabs never moves the section bottom, including long copy", async () => {
+  for (const width of [390, 768, 834, TABLET_MAX_PX, DESKTOP_MIN_PX, 1440]) {
+    const page = await render(width);
+    await page.evaluate(() =>
+      window.updateTabOverrides([
+        { paragraphContent: "Short copy." },
+        {
+          paragraphContent: "Long translated promotion description ".repeat(35),
+        },
+        { paragraphContent: "", buttonContent: "" },
+      ]),
+    );
+    await expect(
+      page.locator(".promotion-tab-content").first().locator(".paragraph"),
+    ).toHaveText("Short copy.");
+    const bounds = () =>
+      page.locator(".promotion-tabs").evaluate((el) => ({
+        height: el.getBoundingClientRect().height,
+        bottom: el.getBoundingClientRect().bottom + scrollY,
+      }));
+    const before = await bounds();
+    for (const index of [1, 2, 0]) {
+      const tab = page.locator(".promotion-tabs button").nth(index);
+      await tab.click();
+      await expect(tab).toHaveAttribute("aria-pressed", "true");
+      assert.deepEqual(
+        await bounds(),
+        before,
+        `Section jumps at ${width}px on tab ${index}`,
+      );
+      const content = page.locator(".promotion-tab-content:not([inert])");
+      assert.ok(
+        await content.evaluate(
+          (el) =>
+            el.getBoundingClientRect().bottom <=
+            el.closest(".promotion-tabs").getBoundingClientRect().bottom,
+        ),
+        `Content clipped at ${width}px`,
+      );
+    }
+    await page.close();
+  }
+});
+
+test("Review 4: tablet height uses section width and accommodates wrapped tab headings", async () => {
+  const page = await render(834);
+  await page.locator("#root").evaluate((el) => {
+    el.style.width = "760px";
+  });
+  await expect
+    .poll(() =>
+      page
+        .locator(".promotion-tabs")
+        .evaluate((el) => el.getBoundingClientRect().height),
+    )
+    .toBeCloseTo((760 * 840) / 1728, 0);
+  await page.evaluate(() =>
+    window.updateTabOverrides([
+      {
+        headingContent:
+          "A long collection heading that wraps onto several lines",
+        paragraphContent: "Long translated description ".repeat(20),
+      },
+      { paragraphContent: "Short copy." },
+    ]),
+  );
+  await expect(page.locator(".promotion-tabs button").first()).toContainText(
+    "A long collection heading",
+  );
+  const section = page.locator(".promotion-tabs");
+  const before = await section.evaluate(
+    (el) => el.getBoundingClientRect().height,
+  );
+  for (const index of [1, 0]) {
+    await section.locator("button").nth(index).click();
+    assert.equal(
+      await section.evaluate((el) => el.getBoundingClientRect().height),
+      before,
+    );
+    const bounds = await section.evaluate((el) => ({
+      bottom: el.getBoundingClientRect().bottom,
+      contentBottom: el
+        .querySelector(".promotion-tab-content:not([inert])")
+        .getBoundingClientRect().bottom,
+    }));
+    assert.ok(bounds.bottom - bounds.contentBottom >= 80);
+  }
+  await page.close();
 });
 
 test("Promotion Tabs labels stay fixed when switching tabs", async () => {
@@ -492,19 +597,20 @@ test("mobile tabs remain stable after content edits, resizing and touch selectio
       const button = page.locator(".promotion-tabs button").nth(index);
       await button.tap();
       await expect(button).toHaveAttribute("aria-pressed", "true");
-      if (width < 768) {
-        assert.deepEqual(await bounds(), before);
-      } else {
+      assert.deepEqual(await bounds(), before);
+      if (width >= 768) {
         assert.equal((await bounds()).nav, isDesktopViewport(width) ? 160 : 40);
       }
     }
     if (width >= 768) {
-      // Inactive long copy must not reserve extra height on tablet/desktop.
-      const content = page.locator(".promotion-tab-content:not([inert])");
-      const grid = content.locator("..");
+      // Every panel reserves space, including long hidden copy.
+      const content = page.locator(".promotion-tab-content");
+      const grid = content.first().locator("..");
       assert.equal(
         await grid.evaluate((el) => el.getBoundingClientRect().height),
-        await content.evaluate((el) => el.getBoundingClientRect().height),
+        await content.evaluateAll((els) =>
+          Math.max(...els.map((el) => el.getBoundingClientRect().height)),
+        ),
       );
     }
     await expect(page.getByRole("link")).toHaveCount(1);
