@@ -125,7 +125,9 @@
       "removeLine": "Unable to remove cart item",
       "updateQuantity": "Unable to update cart quantity"
     },
-    "shopBestSellers": "Shop Best Sellers"
+    "shopBestSellers": "Shop Best Sellers",
+    "updatingQuantity": "Updating quantity…",
+    "quantityLimitReached": "The maximum available quantity for this item has been reached."
   },
   "product": {
     "addToCart": "Add to cart",

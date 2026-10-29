@@ -22,7 +22,11 @@ import {
   type PendingAdd,
   resetOptimisticCartForTests,
 } from "../app/components/cart/optimistic-cart.ts";
-import { pruneCompletedPendingAdds } from "../app/components/cart/store.ts";
+import {
+  canAdjustLineQuantity,
+  pruneCompletedPendingAdds,
+  useCartStore,
+} from "../app/components/cart/store.ts";
 
 const variantId = "gid://shopify/ProductVariant/1";
 
@@ -34,6 +38,7 @@ function createInput(quantity = 1): OptimisticCartLineInput {
       id: variantId,
       title: "Default Title",
       availableForSale: true,
+      quantityAvailable: 100,
       price: { amount: "25.00", currencyCode: "USD" },
       product: {
         id: "gid://shopify/Product/1",
@@ -67,6 +72,15 @@ function createCart(quantity: number, updatedAt: string) {
 test.beforeEach(() => {
   resetCartBaselineForTests();
   resetOptimisticCartForTests();
+  useCartStore.setState({
+    serverCart: null,
+    pendingAdds: new Map(),
+    pendingLineUpdates: new Map(),
+    lineUpdatesInFlight: new Map(),
+    lineUpdateErrors: new Map(),
+    lineQuantityLimits: new Map(),
+    pendingLineRemovals: new Set(),
+  });
 });
 
 test("selects the newest error-free authoritative cart", () => {
@@ -162,6 +176,262 @@ test("composes the queued quantity over the freshest baseline", () => {
   assert.equal(cart?.lines.nodes[0].quantity, 5);
   assert.equal(cart?.totalQuantity, 5);
   assert.equal(cart?.isOptimistic, true);
+});
+
+test("never displays an optimistic quantity above known stock while Shopify validates it", () => {
+  const baseline = createCart(2, "2026-08-27T10:00:00.000Z");
+  const line = baseline.lines.nodes[0];
+  Object.assign(line.merchandise, { quantityAvailable: 3 });
+  const cart = applyOptimisticMutations(
+    baseline,
+    [],
+    [],
+    new Map([[line.id, 10]]),
+  );
+
+  assert.equal(cart?.lines.nodes[0].quantity, 3);
+  assert.equal(cart?.totalQuantity, 3);
+});
+
+test("rejects repeated quantity increases at the stock boundary while a request is pending", () => {
+  const baseline = createCart(2, "2026-08-27T10:00:00.000Z");
+  const line = baseline.lines.nodes[0];
+  Object.assign(line.merchandise, { quantityAvailable: 3 });
+  useCartStore.setState({ serverCart: baseline });
+  useCartStore.getState().stageLineUpdate(line.id, 3);
+  assert.equal(useCartStore.getState().claimLineUpdate(line.id), 3);
+  for (let quantity = 4; quantity <= 10; quantity += 1) {
+    useCartStore.getState().stageLineUpdate(line.id, quantity);
+  }
+  assert.equal(useCartStore.getState().pendingLineUpdates.get(line.id), 3);
+});
+
+test("stock bounds account for another cart line sharing the same variant", () => {
+  const baseline = createCart(2, "2026-08-27T10:00:00.000Z");
+  const line = baseline.lines.nodes[0];
+  Object.assign(line.merchandise, { quantityAvailable: 3 });
+  baseline.lines.nodes.push({ ...line, id: "second-line", quantity: 1 });
+  const cart = applyOptimisticMutations(
+    baseline,
+    [],
+    [],
+    new Map([[line.id, 3]]),
+  );
+  assert.equal(cart?.lines.nodes[0].quantity, 2);
+  assert.equal(cart?.totalQuantity, 3);
+});
+
+test("stock validation never invents a quantity that violates the variant increment", () => {
+  const baseline = createCart(2, "2026-08-27T10:00:00.000Z");
+  const line = baseline.lines.nodes[0];
+  Object.assign(line.merchandise, {
+    quantityAvailable: 3,
+    quantityRule: { minimum: 2, maximum: 6, increment: 2 },
+  });
+  const cart = applyOptimisticMutations(
+    baseline,
+    [],
+    [],
+    new Map([[line.id, 4]]),
+  );
+  assert.equal(cart?.lines.nodes[0].quantity, 2);
+});
+
+test("atomic adjustments preserve quantity rules and rapid increases inside stock", () => {
+  const baseline = createCart(2, "2026-08-27T10:00:00.000Z");
+  const line = baseline.lines.nodes[0];
+  Object.assign(line.merchandise, {
+    quantityAvailable: 100,
+    quantityRule: { minimum: 2, maximum: 6, increment: 2 },
+  });
+  useCartStore.setState({ serverCart: baseline });
+  assert.equal(
+    canAdjustLineQuantity(useCartStore.getState(), line.id, -1),
+    false,
+  );
+  for (let i = 0; i < 10; i += 1) {
+    useCartStore.getState().adjustLineQuantity(line.id, 1);
+  }
+  assert.equal(useCartStore.getState().pendingLineUpdates.get(line.id), 6);
+  assert.equal(
+    canAdjustLineQuantity(useCartStore.getState(), line.id, 1),
+    false,
+  );
+  useCartStore.getState().adjustLineQuantity(line.id, -1);
+  assert.equal(useCartStore.getState().pendingLineUpdates.get(line.id), 4);
+});
+
+test("a cart quantity above an updated maximum can still be reduced", () => {
+  const baseline = createCart(10, "2026-08-27T10:00:00.000Z");
+  const line = baseline.lines.nodes[0];
+  Object.assign(line.merchandise, {
+    quantityRule: { minimum: 2, maximum: 6, increment: 2 },
+  });
+  useCartStore.setState({ serverCart: baseline });
+  useCartStore.getState().adjustLineQuantity(line.id, -1);
+  assert.equal(useCartStore.getState().pendingLineUpdates.get(line.id), 6);
+});
+
+test("a confirmed limit is released when another line frees inventory for the same variant", () => {
+  const baseline = createCart(2, "2026-08-27T10:00:00.000Z");
+  const line = baseline.lines.nodes[0];
+  Object.assign(line.merchandise, { quantityAvailable: 3 });
+  baseline.lines.nodes.push({ ...line, id: "second-line", quantity: 1 });
+  useCartStore.setState({ serverCart: baseline });
+  useCartStore.getState().stageLineUpdate(line.id, 3);
+  useCartStore.getState().claimLineUpdate(line.id);
+  useCartStore.getState().settleLineUpdate(line.id, 3, { cart: baseline });
+  assert.equal(
+    canAdjustLineQuantity(useCartStore.getState(), line.id, 1),
+    false,
+  );
+  const afterRemoval = { ...baseline, lines: { nodes: [line] } };
+  useCartStore.setState({ serverCart: afterRemoval });
+  assert.equal(
+    canAdjustLineQuantity(useCartStore.getState(), line.id, 1),
+    true,
+  );
+});
+
+test("a stock adjustment clears newer queued overshoots but retains a newer decrease", () => {
+  for (const nextQuantity of [1, 5]) {
+    const baseline = createCart(2, "2026-08-27T10:00:00.000Z");
+    const line = baseline.lines.nodes[0];
+    useCartStore.setState({ serverCart: baseline });
+    useCartStore.getState().stageLineUpdate(line.id, 3);
+    useCartStore.getState().claimLineUpdate(line.id);
+    useCartStore.getState().stageLineUpdate(line.id, nextQuantity);
+    const accepted = createCart(2, "2026-08-27T10:00:01.000Z");
+    Object.assign(accepted.lines.nodes[0].merchandise, {
+      quantityAvailable: 2,
+    });
+    useCartStore.setState({ serverCart: accepted });
+    useCartStore.getState().settleLineUpdate(line.id, 3, { cart: accepted });
+    assert.equal(
+      useCartStore.getState().pendingLineUpdates.get(line.id),
+      nextQuantity === 1 ? 1 : undefined,
+    );
+    assert.ok(useCartStore.getState().lineQuantityLimits.has(line.id));
+    assert.equal(useCartStore.getState().lineUpdateErrors.has(line.id), false);
+    // Isolate the second scenario from the first one's pending decrease.
+    useCartStore.setState({
+      pendingLineUpdates: new Map(),
+      lineUpdateErrors: new Map(),
+      lineQuantityLimits: new Map(),
+    });
+  }
+});
+
+test("a completed quantity response never replays rejected targets during fetcher loading", () => {
+  const baseline = createCart(3, "2026-08-27T10:00:02.000Z");
+  const line = baseline.lines.nodes[0];
+  const formData = new FormData();
+  formData.set(
+    "cartFormInput",
+    JSON.stringify({
+      action: "LinesUpdate",
+      inputs: { lines: [{ id: line.id, quantity: 5 }] },
+    }),
+  );
+  const fetchers = [
+    { state: "loading", formData, data: { cart: baseline } },
+  ] as Parameters<typeof applyOptimisticMutations>[1];
+  assert.equal(
+    applyOptimisticMutations(baseline, fetchers, [], new Map()),
+    null,
+  );
+  const queuedIncrease = applyOptimisticMutations(
+    baseline,
+    fetchers,
+    [],
+    new Map([[line.id, 7]]),
+  );
+  assert.equal(
+    queuedIncrease?.lines.nodes[0].quantity ?? baseline.lines.nodes[0].quantity,
+    3,
+  );
+  const queuedDecrease = applyOptimisticMutations(
+    baseline,
+    fetchers,
+    [],
+    new Map([[line.id, 2]]),
+  );
+  assert.equal(queuedDecrease?.lines.nodes[0].quantity, 2);
+});
+
+test("a newer shared-inventory baseline supersedes an older adjustment without replaying its request", () => {
+  const adjusted = createCart(2, "2026-08-27T10:00:01.000Z");
+  const line = adjusted.lines.nodes[0];
+  Object.assign(line.merchandise, { quantityAvailable: 5 });
+  adjusted.lines.nodes.push({ ...line, id: "subscription-line", quantity: 3 });
+  adjusted.totalQuantity = 5;
+  const form = (id: string, quantity: number) => {
+    const formData = new FormData();
+    formData.set(
+      "cartFormInput",
+      JSON.stringify({
+        action: "LinesUpdate",
+        inputs: { lines: [{ id, quantity }] },
+      }),
+    );
+    return formData;
+  };
+  for (const otherQuantity of [1, 3]) {
+    const baseline = structuredClone(adjusted);
+    baseline.updatedAt = "2026-08-27T10:00:02.000Z";
+    baseline.lines.nodes[1].quantity = otherQuantity;
+    baseline.totalQuantity = 2 + otherQuantity;
+    const fetchers = [
+      {
+        state: "loading",
+        formData: form(line.id, 3),
+        data: { cart: adjusted },
+      },
+      {
+        state: "loading",
+        formData: form("subscription-line", otherQuantity),
+        data: { cart: baseline },
+      },
+    ] as Parameters<typeof applyOptimisticMutations>[1];
+    assert.equal(
+      applyOptimisticMutations(baseline, fetchers, [], new Map()),
+      null,
+    );
+    const pending = applyOptimisticMutations(
+      baseline,
+      fetchers,
+      [],
+      new Map([[line.id, 3]]),
+    );
+    assert.equal(pending?.lines.nodes[0].quantity, otherQuantity === 1 ? 3 : 2);
+    assert.equal(pending?.totalQuantity, otherQuantity === 1 ? 4 : 5);
+    assert.equal(
+      applyOptimisticMutations(baseline, fetchers, [], new Map([[line.id, 1]]))
+        ?.lines.nodes[0].quantity,
+      1,
+    );
+  }
+});
+
+test("a subscription-only line update leaves quantity unchanged", () => {
+  const baseline = createCart(2, "2026-08-27T10:00:00.000Z");
+  const formData = new FormData();
+  formData.set(
+    "cartFormInput",
+    JSON.stringify({
+      action: "LinesUpdate",
+      inputs: {
+        lines: [{ id: baseline.lines.nodes[0].id, sellingPlanId: "plan-1" }],
+      },
+    }),
+  );
+  const fetchers = [{ state: "submitting", formData }] as Parameters<
+    typeof applyOptimisticMutations
+  >[1];
+  assert.equal(
+    applyOptimisticMutations(baseline, fetchers, [], new Map()),
+    null,
+  );
 });
 
 test("does not replay an add already included in a loading fetcher cart", () => {

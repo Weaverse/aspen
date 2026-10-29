@@ -1,6 +1,7 @@
 import { CartForm, type OptimisticCartLineInput } from "@shopify/hydrogen";
 import type { Fetcher } from "react-router";
 import type { CartApiQueryFragment } from "storefront-api.generated";
+import { getOptimisticLineQuantity } from "./cart-line-quantity";
 import type {
   CartLine,
   CartMutationResponse,
@@ -203,6 +204,42 @@ function getFormInput(fetcher: Fetcher<unknown>) {
   }
 }
 
+function captureCompletedLineUpdates(
+  baseline: CartApiQueryFragment,
+  fetcher: Fetcher<unknown>,
+  updates: Array<{ id: string; quantity?: number | null }>,
+  adjusted: Map<string, number>,
+) {
+  const completed = (fetcher.data as CartMutationResponse | undefined)?.cart;
+  if (
+    fetcher.state !== "loading" ||
+    completed?.id !== baseline.id ||
+    getTimestampMs(baseline.updatedAt) < getTimestampMs(completed.updatedAt)
+  ) {
+    return false;
+  }
+  // A newer authoritative cart supersedes this adjustment. Still skip the
+  // completed request's original input, but do not cap fresh queued intent.
+  if (
+    getTimestampMs(baseline.updatedAt) > getTimestampMs(completed.updatedAt)
+  ) {
+    return true;
+  }
+  for (const update of updates) {
+    const accepted = completed.lines.nodes.find(
+      (line) => line.id === update.id,
+    );
+    if (
+      accepted &&
+      typeof update.quantity === "number" &&
+      accepted.quantity < update.quantity
+    ) {
+      adjusted.set(accepted.id, accepted.quantity);
+    }
+  }
+  return true;
+}
+
 /** Apply only mutations that have not yet been adopted by the baseline. */
 export function applyOptimisticMutations(
   baseline: CartApiQueryFragment,
@@ -232,6 +269,7 @@ export function applyOptimisticMutations(
   let mutated = false;
   const staged = applyAddLines(nodes, stagedLines);
   mutated = staged.mutated;
+  const adjustedQuantities = new Map<string, number>();
 
   for (const fetcher of pendingFetchers) {
     const formInput = getFormInput(fetcher);
@@ -264,12 +302,30 @@ export function applyOptimisticMutations(
         }
       }
     } else if (action === CartForm.ACTIONS.LinesUpdate) {
-      for (const update of inputs.lines ?? []) {
+      if (
+        captureCompletedLineUpdates(
+          baseline,
+          fetcher,
+          inputs.lines ?? [],
+          adjustedQuantities,
+        )
+      ) {
+        // The baseline already includes this result. Reapplying its original
+        // input would briefly resurrect a quantity Shopify just rejected.
+        continue;
+      }
+      for (const update of (inputs.lines ?? []).filter(
+        (line) => typeof line.quantity === "number",
+      )) {
         const index = nodes.findIndex((line) => line.id === update.id);
         if (index >= 0) {
           nodes[index] = {
             ...nodes[index],
-            quantity: update.quantity,
+            quantity: getOptimisticLineQuantity(
+              nodes[index],
+              update.quantity,
+              nodes,
+            ),
             isOptimistic: true,
           };
           mutated = true;
@@ -279,9 +335,17 @@ export function applyOptimisticMutations(
   }
 
   for (const [lineId, quantity] of pendingLineUpdates) {
+    const adjusted = adjustedQuantities.get(lineId);
+    if (adjusted !== undefined && quantity > adjusted) {
+      continue;
+    }
     const index = nodes.findIndex((line) => line.id === lineId);
     if (index >= 0) {
-      nodes[index] = { ...nodes[index], quantity, isOptimistic: true };
+      nodes[index] = {
+        ...nodes[index],
+        quantity: getOptimisticLineQuantity(nodes[index], quantity, nodes),
+        isOptimistic: true,
+      };
       mutated = true;
     }
   }

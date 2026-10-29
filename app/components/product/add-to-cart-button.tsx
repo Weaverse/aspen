@@ -30,7 +30,7 @@ export function AddToCartButton({
   disabled,
   analytics,
   onAdded,
-  loadingStyle = "inline",
+  loadingStyle = "overlay",
   cartOpenTiming = "submit",
   onMutationStateChange,
   ...props
@@ -125,6 +125,12 @@ export function AddToCartButton({
                     disabled || isAdding || !hasValidLines || !isHydrated,
                   )}
                   {...props}
+                  aria-label={
+                    props["aria-label"] ??
+                    (isAdding && loadingStyle === "overlay"
+                      ? t("cart.adding")
+                      : undefined)
+                  }
                   loading={
                     loadingStyle === "overlay" ? isAdding : props.loading
                   }

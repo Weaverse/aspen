@@ -16,6 +16,7 @@ const bundle = await build({
       import { createRoot } from "react-dom/client";
       import { CartMain, CartEmpty, CartNoteDialogWrapper, DiscountCodeDialogWrapper, GiftCardDialogWrapper } from "./app/components/cart/cart-main";
       import { PriceLoadingSpinner } from "./app/components/cart/cart-line-item";
+      import { CartSummary, CartCheckoutActions } from "./app/components/cart/cart-summary";
       const root = createRoot(document.getElementById("root"));
       window.settings = {enableFreeShipping: true, freeShippingThreshold: "100", cartTitleEmpty:"Empty cart"};
       window.renderCart = (pending = false, subtotal = "25", error = false, quantity = 1) => {
@@ -24,6 +25,7 @@ const bundle = await build({
         root.render(<CartMain layout="drawer" cart={{id:"cart", totalQuantity:quantity, lines:{nodes:[]}, cost:{subtotalAmount:money,totalAmount:money}, note:null, discountCodes:[], appliedGiftCards:[], isOptimistic:pending}} />);
       };
       window.renderSpinner = () => root.render(<PriceLoadingSpinner />);
+      window.renderSummary = (layout="drawer") => root.render(<CartSummary layout={layout}><p>Subtotal fixture</p><CartCheckoutActions layout={layout} checkoutUrl="#checkout"/></CartSummary>);
       window.renderEmpty = (layout="drawer") => root.render(<CartEmpty hidden={false} layout={layout} />);
       window.renderActions = (layout="drawer") => root.render(<div style={{display:"flex",gap:8,flexWrap:"wrap"}}><CartNoteDialogWrapper cartNote="" cartNoteButtonText="Add a note" layout={layout}/><DiscountCodeDialogWrapper discountCodes={[]} discountCodeButtonText="Discount code" layout={layout}/><GiftCardDialogWrapper giftCardButtonText="Gift card" layout={layout}/></div>);
     `,
@@ -95,6 +97,60 @@ const css = stylesheet.build(
     sources: [{ base: `${root}app`, pattern: "**/*.{ts,tsx}", negated: false }],
   }).scan(),
 );
+
+test("Cart drawer summary removes only bottom padding at every breakpoint and preserves Cart page spacing", async () => {
+  const browser = await chromium.launch();
+  try {
+    const page = await browser.newPage();
+    await page.setContent(
+      `<!doctype html><style>${css}</style><div id="root"></div>`,
+    );
+    await page.addScriptTag({ content: bundle.outputFiles[0].text });
+    for (const height of [500, 900]) {
+      for (const width of [
+        390,
+        834,
+        TABLET_MAX_PX,
+        DESKTOP_MIN_PX,
+        1279,
+        1280,
+        1440,
+      ]) {
+        await page.setViewportSize({ width, height });
+        await page.evaluate(() => window.renderSummary());
+        const summary = page
+          .getByText("Subtotal fixture", { exact: true })
+          .locator("..");
+        await expect(summary).toHaveCSS("padding-bottom", "0px");
+        await expect(summary).toHaveCSS(
+          "padding-top",
+          width < 1280 ? "10px" : "16px",
+        );
+        await expect(summary).toHaveCSS(
+          "row-gap",
+          width < 1280 ? "14px" : "10px",
+        );
+        await expect(summary).toHaveCSS("border-top-width", "1px");
+        await expect(summary).toHaveCSS("overflow-y", "auto");
+        await expect(summary).toHaveCSS(
+          "max-height",
+          `${(height * 55) / 100}px`,
+        );
+        const gap = await summary.evaluate(
+          (element) =>
+            element.getBoundingClientRect().bottom -
+            element.lastElementChild.getBoundingClientRect().bottom,
+        );
+        expect(gap).toBe(0);
+        await page.evaluate(() => window.renderSummary("page"));
+        await expect(summary).toHaveCSS("padding-bottom", "24px");
+        await expect(summary).toHaveCSS("row-gap", "24px");
+      }
+    }
+  } finally {
+    await browser.close();
+  }
+});
 
 test("Cart drawer hides scrollbars without disabling scrolling in filled and empty states", async () => {
   const browser = await chromium.launch();
