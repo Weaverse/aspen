@@ -359,6 +359,60 @@ test("a completed quantity response never replays rejected targets during fetche
   assert.equal(queuedDecrease?.lines.nodes[0].quantity, 2);
 });
 
+test("a newer shared-inventory baseline supersedes an older adjustment without replaying its request", () => {
+  const adjusted = createCart(2, "2026-08-27T10:00:01.000Z");
+  const line = adjusted.lines.nodes[0];
+  Object.assign(line.merchandise, { quantityAvailable: 5 });
+  adjusted.lines.nodes.push({ ...line, id: "subscription-line", quantity: 3 });
+  adjusted.totalQuantity = 5;
+  const form = (id: string, quantity: number) => {
+    const formData = new FormData();
+    formData.set(
+      "cartFormInput",
+      JSON.stringify({
+        action: "LinesUpdate",
+        inputs: { lines: [{ id, quantity }] },
+      }),
+    );
+    return formData;
+  };
+  for (const otherQuantity of [1, 3]) {
+    const baseline = structuredClone(adjusted);
+    baseline.updatedAt = "2026-08-27T10:00:02.000Z";
+    baseline.lines.nodes[1].quantity = otherQuantity;
+    baseline.totalQuantity = 2 + otherQuantity;
+    const fetchers = [
+      {
+        state: "loading",
+        formData: form(line.id, 3),
+        data: { cart: adjusted },
+      },
+      {
+        state: "loading",
+        formData: form("subscription-line", otherQuantity),
+        data: { cart: baseline },
+      },
+    ] as Parameters<typeof applyOptimisticMutations>[1];
+    assert.equal(
+      applyOptimisticMutations(baseline, fetchers, [], new Map()),
+      null,
+    );
+    const pending = applyOptimisticMutations(
+      baseline,
+      fetchers,
+      [],
+      new Map([[line.id, 3]]),
+    );
+    assert.equal(pending?.lines.nodes[0].quantity, otherQuantity === 1 ? 3 : 2);
+    assert.equal(pending?.totalQuantity, otherQuantity === 1 ? 4 : 5);
+    assert.equal(
+      applyOptimisticMutations(baseline, fetchers, [], new Map([[line.id, 1]]))
+        ?.lines.nodes[0].quantity,
+      1,
+    );
+  }
+});
+
 test("a subscription-only line update leaves quantity unchanged", () => {
   const baseline = createCart(2, "2026-08-27T10:00:00.000Z");
   const formData = new FormData();

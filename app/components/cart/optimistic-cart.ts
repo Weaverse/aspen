@@ -218,6 +218,13 @@ function captureCompletedLineUpdates(
   ) {
     return false;
   }
+  // A newer authoritative cart supersedes this adjustment. Still skip the
+  // completed request's original input, but do not cap fresh queued intent.
+  if (
+    getTimestampMs(baseline.updatedAt) > getTimestampMs(completed.updatedAt)
+  ) {
+    return true;
+  }
   for (const update of updates) {
     const accepted = completed.lines.nodes.find(
       (line) => line.id === update.id,
