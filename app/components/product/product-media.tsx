@@ -619,6 +619,7 @@ function ProductMediaDots({
     <SegmentedProgressBar
       count={slidesCount}
       activeIndex={activeIndex}
+      cumulative
       onSegmentSelect={onDotClick}
       getLabel={(index) => t("carousel.goToSlide", { index: index + 1 })}
       className={cn(

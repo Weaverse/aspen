@@ -15,17 +15,17 @@ const bundle = await build({
       import {createRoot} from 'react-dom/client';
       import {Quantity} from './app/components/product/quantity';
       import {Button} from './app/components/button';
-      function Fixture({variant, className}) {
+      function Fixture({variant, className, disabled}) {
         const [value, onChange] = useState(1);
-        return <Quantity value={value} onChange={onChange} maxQuantity={3} variant={variant} className={className}/>;
+        return <Quantity value={value} onChange={onChange} maxQuantity={3} variant={variant} className={className} disabled={disabled}/>;
       }
       const root = createRoot(document.getElementById('root'));
       window.renderQuantity = (variant = 'stepper') => root.render(<Fixture variant={variant}/>);
       window.renderQuickQuantity = props => root.render(<Fixture {...props}/>);
-      window.renderQuickRow = ({variant, quantityClass, rowClass, containerClass, buttonClass, quantity = 1}) => root.render(
+      window.renderQuickRow = ({variant, quantityClass, rowClass, containerClass, buttonClass, quantity = 1, label = 'ADD TO CART', pending = false}) => root.render(
         <div className={rowClass}>
           <Quantity value={quantity} onChange={()=>{}} variant={variant} className={quantityClass}/>
-          <div className={containerClass}><form><Button animate={false} className={buttonClass}>ADD TO CART</Button></form></div>
+          <div className={containerClass}><form><Button animate={false} className={buttonClass} loading={pending}>{label}</Button></form></div>
         </div>
       );
       window.renderPurchaseRow = ({rowClass, quantityClass, containerClass, buttonClass, wishlistClass, wishlist, label, pending}) => root.render(
@@ -59,6 +59,85 @@ const bundle = await build({
       },
     },
   ],
+});
+
+test("All product purchase surfaces disable quantity from the selected variant availability", async () => {
+  for (const [file, selected] of [
+    ["components/product/quick-shop.tsx", "selectedVariant"],
+    ["sections/main-product/index.tsx", "selectedVariant"],
+    ["sections/single-product/index.tsx", "currentVariant"],
+  ]) {
+    const source = await readFile(`${root}app/${file}`, "utf8");
+    const quantity = source.match(/<Quantity\s[\s\S]*?\/>/)?.[0];
+    expect(quantity, file).toContain(
+      `disabled={!${selected}?.availableForSale}`,
+    );
+  }
+});
+
+test("Sold-out quantity controls lock and recover without changing their value or limits", async () => {
+  const browser = await chromium.launch();
+  try {
+    for (const width of [390, 834, 1440]) {
+      for (const variant of ["stepper", "select"]) {
+        const page = await browser.newPage({
+          viewport: { width, height: 800 },
+        });
+        await page.setContent('<div id="root"></div>');
+        await page.addScriptTag({ content: bundle.outputFiles[0].text });
+        const render = (disabled) =>
+          page.evaluate((props) => window.renderQuickQuantity(props), {
+            variant,
+            disabled,
+          });
+        await render(false);
+        const minus = page.getByRole("button", {
+          name: "product.decreaseQuantity",
+        });
+        const plus = page.getByRole("button", {
+          name: "product.increaseQuantity",
+        });
+        const select = page.getByRole("combobox", {
+          name: "product.selectQuantity",
+        });
+        if (variant === "stepper") {
+          await plus.click();
+          await expect(page.locator("output")).toHaveText("2");
+        } else {
+          await select.click();
+          await page.getByRole("option", { name: "2", exact: true }).click();
+        }
+        await render(true);
+        if (variant === "stepper") {
+          await expect(minus).toBeDisabled();
+          await expect(plus).toBeDisabled();
+          await expect(page.locator("output")).toHaveText("2");
+        } else {
+          await expect(select).toBeDisabled();
+          await expect(select).toHaveText("2");
+        }
+        await render(false);
+        if (variant === "stepper") {
+          await expect(minus).toBeEnabled();
+          await plus.click();
+          await expect(page.locator("output")).toHaveText("3");
+          await expect(plus).toBeDisabled();
+          await minus.click();
+          await minus.click();
+          await expect(page.locator("output")).toHaveText("1");
+          await expect(minus).toBeDisabled();
+        } else {
+          await expect(select).toBeEnabled();
+          await select.click();
+          await page.getByRole("option", { name: "3", exact: true }).click();
+          await expect(select).toHaveText("3");
+        }
+        await page.close();
+      }
+    }
+  } finally {
+    await browser.close();
+  }
 });
 const stylesheet = await compile(
   await readFile(`${root}app/styles/app.css`, "utf8"),
@@ -233,6 +312,134 @@ test("Quick View purchase row keeps its preferred quantity width without overflo
       expect(numberBounds.right).toBeLessThanOrEqual(numberBounds.columnRight);
       if (width >= 834) {
         await expect(group).toHaveCSS("width", "175px");
+      }
+      await page.close();
+    }
+  } finally {
+    await browser.close();
+  }
+});
+
+test("Featured Product quantity occupies one third of its purchase row at every breakpoint", async () => {
+  const source = await readFile(
+    `${root}app/sections/single-product/index.tsx`,
+    "utf8",
+  );
+  const settings = {
+    variant: source.match(/<Quantity[\s\S]*?variant="([^"]+)"/)?.[1],
+    quantityClass: source.match(/<Quantity[\s\S]*?className="([^"]+)"/)?.[1],
+    rowClass: source.match(/<div className="([^"]+)">\s*<Quantity/)?.[1],
+    containerClass: source.match(
+      /<AddToCartButton\s+width="auto"\s+containerClassName="([^"]+)"/,
+    )?.[1],
+    buttonClass: source.match(
+      /data-test="add-to-cart"[\s\S]*?className="([^"]+)"/,
+    )?.[1],
+    quantity: 10,
+  };
+  const browser = await chromium.launch();
+  try {
+    for (const width of [
+      320,
+      390,
+      768,
+      834,
+      TABLET_MAX_PX,
+      DESKTOP_MIN_PX,
+      1440,
+    ]) {
+      const page = await browser.newPage({ viewport: { width, height: 800 } });
+      await page.setContent(
+        `<style>${css}:root{--body-base-size:14px;--radius-sm:8px;--color-background-subtle-2:#dfdfdf}#root{width:min(calc(100vw - 40px),543px)}</style><div id="root"></div>`,
+      );
+      await page.addScriptTag({ content: bundle.outputFiles[0].text });
+      await page.evaluate((props) => window.renderQuickRow(props), settings);
+      const group = page.getByRole("group", { name: "product.quantity" });
+      const button = page.getByRole("button", {
+        name: "ADD TO CART",
+        exact: true,
+      });
+      const bounds = await group.evaluate((element) => {
+        const parent = element.parentElement;
+        const frame = element.getBoundingClientRect();
+        return {
+          width: frame.width,
+          parentWidth: parent.getBoundingClientRect().width,
+          top: frame.top,
+          scroll: element.scrollWidth,
+          client: element.clientWidth,
+          parentScroll: parent.scrollWidth,
+          parentClient: parent.clientWidth,
+        };
+      });
+      expect(Math.abs(bounds.width - bounds.parentWidth / 3)).toBeLessThan(1);
+      expect(bounds.scroll).toBeLessThanOrEqual(bounds.client + 1);
+      expect(bounds.parentScroll).toBeLessThanOrEqual(bounds.parentClient + 1);
+      expect(
+        Math.abs((await button.boundingBox()).y - bounds.top),
+      ).toBeLessThan(1);
+      await expect(group).toHaveCSS("height", "54px");
+      await expect(group).toHaveCSS("border-radius", "8px");
+      await expect(group.locator("output")).toHaveCSS("font-size", "16px");
+      await expect(group.locator("output")).toHaveCSS("font-weight", "600");
+      const text = await group.locator("output").evaluate((element) => {
+        const range = document.createRange();
+        range.selectNodeContents(element);
+        const content = range.getBoundingClientRect();
+        const box = element.getBoundingClientRect();
+        return {
+          left: content.left,
+          right: content.right,
+          boxLeft: box.left,
+          boxRight: box.right,
+        };
+      });
+      expect(text.left).toBeGreaterThanOrEqual(text.boxLeft);
+      expect(text.right).toBeLessThanOrEqual(text.boxRight);
+      for (const label of [
+        "Add this item to cart",
+        "Ajouter ce produit au panier",
+        "Averylongunbrokentextconfiguredbythemerchant",
+      ]) {
+        let idleHeight;
+        for (const pending of [false, true]) {
+          await page.evaluate((props) => window.renderQuickRow(props), {
+            ...settings,
+            label,
+            pending,
+          });
+          const cta = page.locator("form button");
+          const geometry = await cta.evaluate((element) => {
+            const content = element.lastElementChild;
+            const range = document.createRange();
+            range.selectNodeContents(content);
+            const textBounds = range.getBoundingClientRect();
+            const frame = element.getBoundingClientRect();
+            return {
+              height: frame.height,
+              left: frame.left,
+              right: frame.right,
+              top: frame.top,
+              bottom: frame.bottom,
+              textLeft: textBounds.left,
+              textRight: textBounds.right,
+              textTop: textBounds.top,
+              textBottom: textBounds.bottom,
+              client: element.clientWidth,
+              scroll: element.scrollWidth,
+            };
+          });
+          expect(geometry.scroll).toBeLessThanOrEqual(geometry.client + 1);
+          expect(geometry.textLeft).toBeGreaterThanOrEqual(geometry.left);
+          expect(geometry.textRight).toBeLessThanOrEqual(geometry.right);
+          expect(geometry.textTop).toBeGreaterThanOrEqual(geometry.top);
+          expect(geometry.textBottom).toBeLessThanOrEqual(geometry.bottom);
+          if (pending) {
+            expect(geometry.height).toBe(idleHeight);
+          } else {
+            idleHeight = geometry.height;
+          }
+        }
       }
       await page.close();
     }

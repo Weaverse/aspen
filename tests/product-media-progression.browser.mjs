@@ -84,7 +84,7 @@ async function render(page, count, variant = "product-page") {
   ).toBeVisible();
 }
 
-test("gallery progression shares active and track colors across variants and breakpoints", async () => {
+test("gallery progression fills cumulatively and retracts across variants and breakpoints", async () => {
   const browser = await chromium.launch();
   try {
     for (const width of [390, 834, 1440]) {
@@ -116,7 +116,27 @@ test("gallery progression shares active and track colors across variants and bre
           "background-color",
           "rgb(157, 157, 157)",
         );
-        await expect(first).toHaveCSS("background-color", "rgb(216, 216, 216)");
+        await expect(first).toHaveCSS("background-color", "rgb(157, 157, 157)");
+        const third = page.getByRole("button", {
+          name: "Slide 3",
+          exact: true,
+        });
+        await expect(third).toHaveCSS("background-color", "rgb(216, 216, 216)");
+        await page
+          .getByRole("button", { name: "Slide 5", exact: true })
+          .click();
+        for (let index = 1; index <= 5; index += 1) {
+          await expect(
+            page.getByRole("button", { name: `Slide ${index}`, exact: true }),
+          ).toHaveCSS("background-color", "rgb(157, 157, 157)");
+        }
+        await second.click();
+        await expect(first).toHaveCSS("background-color", "rgb(157, 157, 157)");
+        await expect(second).toHaveCSS(
+          "background-color",
+          "rgb(157, 157, 157)",
+        );
+        await expect(third).toHaveCSS("background-color", "rgb(216, 216, 216)");
         await page.close();
       }
     }

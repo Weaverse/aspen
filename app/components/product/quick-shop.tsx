@@ -231,6 +231,7 @@ export function QuickShop({
             <Quantity
               value={quantity}
               onChange={setQuantity}
+              disabled={!selectedVariant?.availableForSale}
               variant="stepper"
               className="min-w-24"
             />
