@@ -336,16 +336,17 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
                     } as React.CSSProperties
                   }
                 >
-                  <div className="flex flex-wrap gap-3">
+                  <div className="flex gap-3">
                     <Quantity
                       value={quantity}
                       onChange={setQuantity}
+                      disabled={!currentVariant?.availableForSale}
                       variant="stepper"
-                      className="min-w-24"
+                      className="w-1/3 min-w-0 [&_button]:w-1/4"
                     />
                     <AddToCartButton
                       width="auto"
-                      containerClassName="min-w-fit flex-1"
+                      containerClassName="min-w-0 flex-1"
                       disabled={!currentVariant?.availableForSale}
                       lines={[
                         {
@@ -356,7 +357,7 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
                         },
                       ]}
                       data-test="add-to-cart"
-                      className="h-[54px] w-full rounded-lg uppercase"
+                      className="min-h-[54px] w-full whitespace-normal rounded-lg uppercase [overflow-wrap:anywhere]"
                     >
                       {atcText}
                     </AddToCartButton>
