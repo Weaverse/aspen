@@ -52,6 +52,8 @@
     "page": "Page",
     "viewAllProducts": "View all products",
     "noResults": "No results for “{{term}}”",
+    "noResultsFound": "No results found for “{{term}}”.",
+    "tryDifferentPhrase": "Check the spelling or use a different word or phrase.",
     "unavailable": "Search unavailable",
     "resultsFor": "Results for “{{term}}”",
     "resultsForLabel": "Results for",

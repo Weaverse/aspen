@@ -13,6 +13,10 @@ import type {
   NormalizedPredictiveSearch,
   NormalizedPredictiveSearchResults,
 } from "~/types/predictive-search";
+import {
+  COMBINED_LISTINGS_CONFIGS,
+  isCombinedListing,
+} from "~/utils/combined-listings";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 import { normalizeSearchStyledText } from "~/utils/search-highlight";
 
@@ -223,58 +227,60 @@ function normalizePredictiveSearchResults(
     });
   }
 
-  if (predictiveSearch.products.length) {
+  const visibleProducts = predictiveSearch.products.filter(
+    (product) =>
+      !COMBINED_LISTINGS_CONFIGS.hideCombinedListingsFromProductList ||
+      !isCombinedListing(product),
+  );
+  if (visibleProducts.length) {
     results.push({
       type: "products",
-      items: predictiveSearch.products.map(
-        (product: PredictiveProductFragment) => {
-          const selectedVariant = product.selectedOrFirstAvailableVariant;
-          const optionsObject = mapSelectedProductOptionToObject(
-            selectedVariant?.selectedOptions || [],
-          );
-          const productParams = new URLSearchParams(optionsObject);
-          const productWithOptions = product as PredictiveProductWithOptions;
-          const colorOption = productWithOptions.options?.find((option) =>
-            ["color", "colour"].includes(option.name.toLocaleLowerCase()),
-          );
-          const selectedColor = selectedVariant?.selectedOptions.find(
-            (option) =>
-              ["color", "colour"].includes(option.name.toLocaleLowerCase()),
-          )?.value;
+      items: visibleProducts.map((product: PredictiveProductFragment) => {
+        const selectedVariant = product.selectedOrFirstAvailableVariant;
+        const optionsObject = mapSelectedProductOptionToObject(
+          selectedVariant?.selectedOptions || [],
+        );
+        const productParams = new URLSearchParams(optionsObject);
+        const productWithOptions = product as PredictiveProductWithOptions;
+        const colorOption = productWithOptions.options?.find((option) =>
+          ["color", "colour"].includes(option.name.toLocaleLowerCase()),
+        );
+        const selectedColor = selectedVariant?.selectedOptions.find((option) =>
+          ["color", "colour"].includes(option.name.toLocaleLowerCase()),
+        )?.value;
 
-          totalResults += 1;
-          return {
-            __typename: product.__typename,
-            handle: product.handle,
-            id: product.id,
-            image: product.featuredImage,
-            title: product.title,
-            vendor: product.vendor,
-            url: `${localePrefix}/products/${product.handle}${createSearchParams(
-              product,
-              productParams,
-            )}`,
-            price: selectedVariant?.price,
-            compareAtPrice: selectedVariant?.compareAtPrice,
-            ratingValue: (
-              product as PredictiveProductFragment & {
-                reviewRating?: { value?: string } | null;
-              }
-            ).reviewRating?.value,
-            ratingCountValue: (
-              product as PredictiveProductFragment & {
-                reviewRatingCount?: { value?: string } | null;
-              }
-            ).reviewRatingCount?.value,
-            swatches: colorOption?.optionValues.map((optionValue) => ({
-              name: optionValue.name,
-              color: optionValue.swatch?.color,
-              image: optionValue.swatch?.image?.previewImage,
-              selected: optionValue.name === selectedColor,
-            })),
-          };
-        },
-      ),
+        totalResults += 1;
+        return {
+          __typename: product.__typename,
+          handle: product.handle,
+          id: product.id,
+          image: product.featuredImage,
+          title: product.title,
+          vendor: product.vendor,
+          url: `${localePrefix}/products/${product.handle}${createSearchParams(
+            product,
+            productParams,
+          )}`,
+          price: selectedVariant?.price,
+          compareAtPrice: selectedVariant?.compareAtPrice,
+          ratingValue: (
+            product as PredictiveProductFragment & {
+              reviewRating?: { value?: string } | null;
+            }
+          ).reviewRating?.value,
+          ratingCountValue: (
+            product as PredictiveProductFragment & {
+              reviewRatingCount?: { value?: string } | null;
+            }
+          ).reviewRatingCount?.value,
+          swatches: colorOption?.optionValues.map((optionValue) => ({
+            name: optionValue.name,
+            color: optionValue.swatch?.color,
+            image: optionValue.swatch?.image?.previewImage,
+            selected: optionValue.name === selectedColor,
+          })),
+        };
+      }),
     });
   }
 
@@ -388,6 +394,7 @@ const PREDICTIVE_SEARCH_QUERY = `#graphql
   fragment PredictiveProduct on Product {
     __typename
     id
+    tags
     title
     handle
     trackingParameters
