@@ -330,8 +330,6 @@ export const components: HydrogenComponent[] = [
 
 Weaverse provides a convenient way to customize your theme inside the **Weaverse Studio**. You can add new sections, customize existing ones, and change the theme settings.
 
-![Aspen in Weaverse Studio](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/aspen-demo.png?v=1755246830)
-
 ### Project Structure
 
 ```
