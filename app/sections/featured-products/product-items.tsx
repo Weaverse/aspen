@@ -276,13 +276,13 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
       "5": "lg:grid-cols-5",
     }[itemsPerRow ?? "2"];
     const desktopGridGap = {
-      8: "lg:gap-2",
-      12: "lg:gap-3",
-      16: "lg:gap-4",
-      20: "lg:gap-5",
-      24: "lg:gap-6",
-      28: "lg:gap-7",
-      32: "lg:gap-8",
+      8: "lg:gap-x-2",
+      12: "lg:gap-x-3",
+      16: "lg:gap-x-4",
+      20: "lg:gap-x-5",
+      24: "lg:gap-x-6",
+      28: "lg:gap-x-7",
+      32: "lg:gap-x-8",
     }[designGap];
 
     const renderMobileSingleProduct = (
@@ -354,17 +354,16 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
           <div className="hidden md:block">
             <div
               className={clsx(
-                "grid grid-cols-2 gap-x-5 gap-y-16",
+                "grid grid-cols-2 gap-x-5 gap-y-8",
                 desktopGridCols,
                 desktopGridGap,
-                "lg:gap-y-[86px]",
               )}
             >
               {displayedProducts.map((product) => (
                 <ProductCard
                   key={product.id}
                   product={product}
-                  className="w-full !pt-0 md:flex md:flex-col md:items-start md:gap-5 md:max-desktop:[&>div:last-child]:pt-0 lg:block"
+                  className="w-full !pt-0 pb-0 desktop:pb-2 md:flex md:flex-col md:items-start md:gap-5 md:max-desktop:[&>div:last-child]:pt-0 lg:block"
                   flushHorizontalPadding
                   stretchImageOnTablet
                 />

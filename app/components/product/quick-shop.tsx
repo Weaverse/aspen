@@ -569,7 +569,7 @@ export function QuickShopTrigger({
 function QuickShopSkeleton() {
   return (
     <div className="space-y-6">
-      <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-gray-100">
+      <div className="relative aspect-square w-full overflow-hidden rounded-xl">
         <Skeleton className="h-full w-full" />
       </div>
       <div className="space-y-6">

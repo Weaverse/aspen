@@ -21,7 +21,10 @@ export function Skeleton({
       {...props}
       width={width}
       height={height}
-      className={clsx("animate-pulse bg-gray-300", className)}
+      className={clsx(
+        "animate-pulse bg-(--color-background-subtle)",
+        className,
+      )}
     />
   );
 }

@@ -137,7 +137,7 @@ const ContactForm = forwardRef<HTMLElement, ContactFormProps>((props, ref) => {
             type="text"
             placeholder={namePlaceholder}
             aria-label={namePlaceholder}
-            className={cn(INPUT_CLASSES, wide && "rounded-none xl:rounded-lg")}
+            className={INPUT_CLASSES}
           />
           <input
             autoComplete="email"
@@ -147,7 +147,7 @@ const ContactForm = forwardRef<HTMLElement, ContactFormProps>((props, ref) => {
             required
             placeholder={emailPlaceholder}
             aria-label={emailPlaceholder}
-            className={cn(INPUT_CLASSES, wide && "rounded-none xl:rounded-lg")}
+            className={INPUT_CLASSES}
           />
           <textarea
             maxLength={5000}
@@ -155,11 +155,7 @@ const ContactForm = forwardRef<HTMLElement, ContactFormProps>((props, ref) => {
             required
             placeholder={messagePlaceholder}
             aria-label={messagePlaceholder}
-            className={cn(
-              INPUT_CLASSES,
-              "h-[90px] resize-y",
-              wide && "h-32 rounded-none xl:rounded-lg",
-            )}
+            className={cn(INPUT_CLASSES, "h-[90px] resize-y", wide && "h-32")}
           />
         </div>
         <Button

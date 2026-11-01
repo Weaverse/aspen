@@ -79,8 +79,13 @@ const CountdownTimer = forwardRef<
   // Keep the server and the first client render deterministic. The live value
   // is calculated immediately after hydration, then updated every second.
   const [remainingTime, setRemainingTime] = useState(EMPTY_REMAINING_TIME);
+  const [dayDigits, setDayDigits] = useState(2);
 
   useEffect(() => {
+    // Reserve the starting day count's width even across 100 -> 99, etc.
+    setDayDigits(
+      Math.max(2, String(calculateRemainingTime(endTime).days).length),
+    );
     const updateRemainingTime = () => {
       const updatedTimeRemaining = calculateRemainingTime(endTime);
       setRemainingTime(updatedTimeRemaining);
@@ -136,7 +141,7 @@ const CountdownTimer = forwardRef<
   const numberPaddingClass =
     parentScenario === "scenario1" ? "px-0 md:px-2" : "px-0 md:px-5";
   const numberClass = cn(
-    "ff-heading shrink-0 font-normal [font-size:var(--timer-number-mobile)] md:[font-size:var(--timer-number-desktop)]",
+    "ff-heading box-content w-[2ch] shrink-0 text-center font-normal tabular-nums [font-size:var(--timer-number-mobile)] md:[font-size:var(--timer-number-desktop)]",
     parentScenario === "scenario1"
       ? "leading-[0.8] lg:text-center lg:leading-[1.1] lg:tracking-[-0.03em]"
       : "leading-[0.8]",
@@ -164,7 +169,7 @@ const CountdownTimer = forwardRef<
       style={timerStyle}
     >
       <div className={itemClass}>
-        <div className={numberClass}>
+        <div className={numberClass} style={{ width: `${dayDigits}ch` }}>
           {formatNumber(remainingTime?.days || 0)}
         </div>
         {showLabels && <div className={labelClass}>{t("countdown.days")}</div>}
