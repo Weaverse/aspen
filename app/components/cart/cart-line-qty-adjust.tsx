@@ -27,7 +27,7 @@ export function CartLineQuantityAdjust({ line }: { line: CartLine }) {
     >
       <button
         type="button"
-        className="flex w-8 shrink-0 flex-col items-center justify-center py-2 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-body disabled:cursor-not-allowed"
+        className="flex w-8 shrink-0 flex-col items-center justify-center py-2 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-body disabled:cursor-not-allowed disabled:text-(--color-text-light)"
         disabled={!canDecrease || quantity <= 1}
         aria-label={t("product.decreaseQuantity")}
         onClick={() => useCartStore.getState().adjustLineQuantity(lineId, -1)}
@@ -50,7 +50,7 @@ export function CartLineQuantityAdjust({ line }: { line: CartLine }) {
       />
       <button
         type="button"
-        className="flex w-8 shrink-0 flex-col items-center justify-center py-2 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-body disabled:cursor-not-allowed"
+        className="flex w-8 shrink-0 flex-col items-center justify-center py-2 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-body disabled:cursor-not-allowed disabled:text-(--color-text-light)"
         disabled={!canIncrease}
         title={
           !canIncrease

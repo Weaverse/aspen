@@ -435,6 +435,7 @@ const ProductInformation = forwardRef<
                     <Quantity
                       value={quantity}
                       onChange={setQuantity}
+                      disabled={!selectedVariant?.availableForSale}
                       maxQuantity={maxQuantity}
                       variant="stepper"
                       className="col-span-full shrink-0"

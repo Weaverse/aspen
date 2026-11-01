@@ -60,7 +60,7 @@ const bundle = await build({
           export const SubscriptionLineItem=()=>null;
           export const calculateAspectRatio=()=>"1/1";
           export const toggleCartDrawer=()=>{};
-          export const canAdjustLineQuantity=(_,id)=>!id.startsWith("optimistic-");
+          export const canAdjustLineQuantity=(_,id,direction)=>!id.startsWith("optimistic-") && (direction !== 1 || window.currentQuantity < (window.quantityLimit ?? Infinity));
           export const useCartStore=(selector)=>selector({pendingLineRemovals:new Set(),pendingLineUpdates:new Map()});
           useCartStore.getState=()=>({adjustLineQuantity:(id,direction)=>{const quantity=window.currentQuantity+direction;window.updates.push({id,quantity});window.renderQuantity(quantity,window.currentLayout,id,true,window.currentAmount,window.fullItem);}});
         `,
@@ -80,6 +80,56 @@ const css = stylesheet.build(
     sources: [{ base: `${root}app`, pattern: "**/*.{ts,tsx}", negated: false }],
   }).scan(),
 );
+
+test("Cart quantity limit buttons use disabled text color without dimming the value", async () => {
+  const browser = await chromium.launch();
+  try {
+    for (const width of [390, 834, 1440]) {
+      for (const layout of ["drawer", "page"]) {
+        const page = await browser.newPage({
+          viewport: { width, height: 800 },
+        });
+        await page.setContent(
+          `<style>${css}:root{--color-text:#343231;--color-text-light:#979797;--page-padding:20px}</style><div id="root"></div>`,
+        );
+        await page.addScriptTag({ content: bundle.outputFiles[0].text });
+        await page.evaluate((surface) => {
+          window.quantityLimit = 2;
+          window.renderQuantity(1, surface);
+        }, layout);
+        const minus = page.getByRole("button", {
+          name: "product.decreaseQuantity",
+          exact: true,
+        });
+        const plus = page.getByRole("button", {
+          name: "product.increaseQuantity",
+          exact: true,
+        });
+        await expect(minus).toBeDisabled();
+        await expect(minus).toHaveCSS("color", "rgb(151, 151, 151)");
+        await expect(plus).toHaveCSS("color", "rgb(52, 50, 49)");
+        await plus.click();
+        await expect(plus).toBeDisabled();
+        await expect(plus).toHaveCSS("color", "rgb(151, 151, 151)");
+        await expect(minus).toBeEnabled();
+        await expect(minus).toHaveCSS("color", "rgb(52, 50, 49)");
+        await expect(page.locator("output")).toHaveCSS(
+          "color",
+          "rgb(52, 50, 49)",
+        );
+        await expect(page.locator("output")).toHaveText("2");
+        await minus.click();
+        await expect(minus).toBeDisabled();
+        await expect(plus).toBeEnabled();
+        await expect(plus).toHaveCSS("color", "rgb(52, 50, 49)");
+        await expect(page.locator("output")).toHaveText("1");
+        await page.close();
+      }
+    }
+  } finally {
+    await browser.close();
+  }
+});
 
 test("Cart item discount labels are uppercase without changing automatic titles or amounts", async () => {
   const browser = await chromium.launch();

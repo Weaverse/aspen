@@ -7,6 +7,7 @@ interface QuantityProps {
   value: number;
   onChange: (value: number) => void;
   maxQuantity?: number; // Optional max quantity limit
+  disabled?: boolean;
   variant?: "select" | "stepper";
   className?: string;
 }
@@ -20,6 +21,7 @@ export function Quantity(props: QuantityProps) {
     value,
     onChange,
     maxQuantity = 10,
+    disabled = false,
     variant = "select",
     className,
   } = props;
@@ -38,7 +40,7 @@ export function Quantity(props: QuantityProps) {
           type="button"
           className="flex w-11 shrink-0 flex-col items-center justify-center self-stretch focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-body disabled:cursor-not-allowed"
           onClick={() => onChange(Math.max(1, value - 1))}
-          disabled={value <= 1}
+          disabled={disabled || value <= 1}
           aria-label={t("product.decreaseQuantity")}
         >
           <span
@@ -73,7 +75,7 @@ export function Quantity(props: QuantityProps) {
           type="button"
           className="flex w-11 shrink-0 flex-col items-center justify-center self-stretch focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-body disabled:cursor-not-allowed"
           onClick={() => onChange(Math.min(maxQuantity, value + 1))}
-          disabled={value >= maxQuantity}
+          disabled={disabled || value >= maxQuantity}
           aria-label={t("product.increaseQuantity")}
         >
           <span
@@ -103,8 +105,13 @@ export function Quantity(props: QuantityProps) {
       </legend>
       <div className="w-fit">
         <Select.Root
+          disabled={disabled}
           value={value.toString()}
-          onValueChange={(v) => onChange(Number(v))}
+          onValueChange={(v) => {
+            if (!disabled) {
+              onChange(Number(v));
+            }
+          }}
         >
           <Select.Trigger
             className="inline-flex min-w-[60px] items-center justify-between gap-2 bg-white px-3 py-2 outline-hidden"
