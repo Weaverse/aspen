@@ -10,7 +10,7 @@ _Aspen is a sophisticated Shopify theme crafted specifically for home furniture 
 
 ## Demo
 
-- Live store: https://weaverse-aspen-furniture.fly.dev/
+- Live store: https://aspen-shopify-hydrogen.weaverse.dev/
 - Customizing Aspen on Weaverse Studio: https://studio.weaverse.io/demo?theme=aspen
   
 ![aspen.weaverse.dev](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/aspen-preview-desktop.png?v=1755162368)
