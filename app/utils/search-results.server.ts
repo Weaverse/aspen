@@ -131,7 +131,17 @@ async function readSearchIndex(
     const response: SearchIndex = await storefront.query<SearchIndex>(
       SEARCH_INDEX_QUERY,
       {
-        variables: { ...variables, after, first: INDEX_BATCH_SIZE },
+        variables: {
+          ...variables,
+          // Scope Shopify's facet counts as well as its nodes. Group the original
+          // query so OR expressions cannot bypass the visibility constraint.
+          searchTerm:
+            COMBINED_LISTINGS_CONFIGS.hideCombinedListingsFromProductList
+              ? `(${variables.searchTerm}) AND NOT tag:${JSON.stringify(COMBINED_LISTINGS_CONFIGS.combinedListingTag)}`
+              : variables.searchTerm,
+          after,
+          first: INDEX_BATCH_SIZE,
+        },
         cache: storefront.CacheShort(),
       },
     );

@@ -5,16 +5,22 @@ import { build } from "esbuild";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const bundle = await build({
-  entryPoints: [`${root}app/utils/search-results.server.ts`],
+  stdin: {
+    contents: `export * from "./app/utils/search-results.server";
+      export { COMBINED_LISTINGS_CONFIGS } from "./app/utils/combined-listings";`,
+    resolveDir: root,
+    loader: "ts",
+  },
   bundle: true,
   write: false,
   platform: "node",
   format: "esm",
   alias: { "~": `${root}app` },
 });
-const { searchVisibleProducts, paginateSearch } = await import(
-  `data:text/javascript;base64,${Buffer.from(bundle.outputFiles[0].text).toString("base64")}`
-);
+const { searchVisibleProducts, paginateSearch, COMBINED_LISTINGS_CONFIGS } =
+  await import(
+    `data:text/javascript;base64,${Buffer.from(bundle.outputFiles[0].text).toString("base64")}`
+  );
 
 function product(index, hidden = false) {
   return {
@@ -84,7 +90,7 @@ test("hidden matches are excluded before counting and slicing, with reversible c
   ).products;
   assert.deepEqual(previous.nodes, first.nodes);
   assert.equal(previous.pageInfo.hasPreviousPage, false);
-  assert.equal(calls[0].variables.searchTerm, "chair");
+  assert.equal(calls[0].variables.searchTerm, '(chair) AND NOT tag:"combined"');
   assert.ok(calls.every((call) => call.cache.maxAge === 1));
   assert.equal(calls[1].variables.ids.length, 8);
 });
@@ -199,4 +205,115 @@ test("price bounds remain independent of filters and use maximum variant price",
     result.lowestPriceProduct.nodes[0].priceRange.minVariantPrice.amount,
     "10",
   );
+});
+
+// Model Shopify's facet computation at the query boundary, before local slicing.
+// Blue exists only on the hidden listing; Green remains a valid alternative to Red.
+function facetStorefront() {
+  const catalog = [
+    { ...product(1), color: "Red" },
+    { ...product(2, true), color: "Blue" },
+    { ...product(3), color: "Green" },
+  ];
+  const calls = [];
+  return {
+    calls,
+    CacheShort: () => ({}),
+    async query(document, { variables }) {
+      if (!document.includes("SearchVisibleIndex")) {
+        return { nodes: catalog.filter((p) => variables.ids.includes(p.id)) };
+      }
+      calls.push(variables);
+      const candidates = variables.searchTerm.endsWith('AND NOT tag:"combined"')
+        ? catalog.filter((p) => !p.tags.includes("combined"))
+        : catalog;
+      const colors = variables.filters.flatMap((f) =>
+        f.variantOption?.name === "Color" ? [f.variantOption.value] : [],
+      );
+      return {
+        products: {
+          nodes: candidates.filter(
+            (p) => !colors.length || colors.includes(p.color),
+          ),
+          filters: [
+            {
+              id: "filter.v.option.color",
+              label: "Color",
+              type: "LIST",
+              values: ["Red", "Blue", "Green"].map((color) => ({
+                id: color,
+                label: color,
+                count: candidates.filter((p) => p.color === color).length,
+                input: JSON.stringify({
+                  variantOption: { name: "Color", value: color },
+                }),
+              })),
+            },
+          ],
+          pageInfo: { hasNextPage: false },
+        },
+      };
+    },
+  };
+}
+
+for (const selected of [[], ["Red"], ["Blue"], ["Red", "Green"]]) {
+  test(`facets exclude hidden-only options and retain Shopify alternatives: ${selected.join(",") || "unfiltered"}`, async () => {
+    const storefront = facetStorefront();
+    const filters = selected.map((value) => ({
+      variantOption: { name: "Color", value },
+    }));
+    const result = await searchVisibleProducts(
+      storefront,
+      {
+        searchTerm: "sofa OR chair",
+        filters,
+        sortKey: "RELEVANCE",
+        reverse: false,
+      },
+      { first: 1 },
+    );
+    assert.deepEqual(
+      result.products.filters[0].values.map(({ label, count }) => [
+        label,
+        count,
+      ]),
+      [
+        ["Red", 1],
+        ["Blue", 0],
+        ["Green", 1],
+      ],
+    );
+    assert.equal(
+      result.products.totalCount,
+      selected.includes("Blue") ? 0 : selected.length || 2,
+    );
+    assert.deepEqual(storefront.calls[0].filters, filters);
+    assert.ok(
+      storefront.calls.every(
+        (call) => call.searchTerm === '(sofa OR chair) AND NOT tag:"combined"',
+      ),
+    );
+    assert.equal(storefront.calls.length, selected.length ? 2 : 1);
+  });
+}
+
+test("turning off combined-listing hiding preserves the original query and facets", async () => {
+  COMBINED_LISTINGS_CONFIGS.hideCombinedListingsFromProductList = false;
+  try {
+    const storefront = facetStorefront();
+    const result = await searchVisibleProducts(
+      storefront,
+      { searchTerm: "chair", filters: [], sortKey: "PRICE", reverse: true },
+      { first: 8 },
+    );
+    assert.equal(result.products.totalCount, 3);
+    assert.equal(
+      result.products.filters[0].values.find((v) => v.label === "Blue").count,
+      1,
+    );
+    assert.equal(storefront.calls[0].searchTerm, "chair");
+  } finally {
+    COMBINED_LISTINGS_CONFIGS.hideCombinedListingsFromProductList = true;
+  }
 });
