@@ -70,7 +70,7 @@ async function render(width, config) {
 }
 
 test("short mobile search heading is inline instead of forcing the term onto another line", async () => {
-  assert.match(source, /<SearchHeading searchTerm={searchTerm} \/>/);
+  assert.match(source, /resultCount={resultCount}/);
   assert.doesNotMatch(source, /<SearchHeading[^>]*\bstacked\b/);
   for (const width of [375, 390, 767]) {
     const page = await render(width, { searchTerm: "S" });

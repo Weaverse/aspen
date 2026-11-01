@@ -222,10 +222,17 @@ export default function Search() {
           <div className="flex flex-col gap-4 md:grid md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:gap-x-8 lg:grid-cols-[50%_minmax(0,1fr)] xl:gap-x-10">
             <div className="flex min-w-0 w-full flex-col gap-4 md:contents">
               <div className="md:hidden">
-                <SearchHeading searchTerm={searchTerm} keepLabelTogether />
+                <SearchHeading
+                  searchTerm={searchTerm}
+                  resultCount={resultCount}
+                  keepLabelTogether
+                />
               </div>
               <div className="hidden min-w-0 md:col-start-1 md:row-start-1 md:block xl:hidden">
-                <SearchHeading searchTerm={searchTerm} />
+                <SearchHeading
+                  searchTerm={searchTerm}
+                  resultCount={resultCount}
+                />
               </div>
               <div className="hidden min-w-0 md:col-start-1 md:row-start-1 xl:block">
                 <SearchHeading
@@ -393,7 +400,8 @@ function SearchProducts({
             )}
             <div
               className={clsx(
-                "grid w-full gap-x-4 gap-y-8 md:gap-y-12",
+                "grid w-full gap-x-4 md:gap-y-8",
+                gridSizeMobile === 1 ? "gap-y-9" : "gap-y-8",
                 gridSizeMobile === 1 ? "grid-cols-1" : "grid-cols-2",
                 gridSizeDesktop === 3 ? "md:grid-cols-3" : "md:grid-cols-2",
               )}
@@ -404,7 +412,11 @@ function SearchProducts({
                     key={product.id}
                     className={cn(index >= mobileVisible && "max-md:hidden")}
                   >
-                    <ProductCard product={product} flushHorizontalPadding />
+                    <ProductCard
+                      product={product}
+                      flushHorizontalPadding
+                      className="pt-0 pb-0 desktop:pb-2"
+                    />
                   </div>
                 ),
               )}
