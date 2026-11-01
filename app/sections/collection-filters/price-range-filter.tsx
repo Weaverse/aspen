@@ -165,7 +165,7 @@ function PriceInput({
             event.currentTarget.blur();
           }
         }}
-        className="h-[46px] min-w-0 w-full rounded-lg border border-line bg-transparent px-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body"
+        className="h-[46px] min-w-0 w-full rounded-(--radius-sm) border border-line bg-transparent px-4 focus:shadow-none focus:outline-none"
       />
     </label>
   );

@@ -216,6 +216,38 @@ test("each item independently configures question and answer radii, including ze
   }
 });
 
+test("both accordion styles render answers at the configured color without fading", async () => {
+  const browser = await chromium.launch();
+  try {
+    for (const width of [390, 834, 1440]) {
+      const page = await fixture(browser, width);
+      for (const layout of ["row", "column"]) {
+        await page.evaluate(
+          (value) => window.renderAccordion({ layout: value }),
+          layout,
+        );
+        const answer = page
+          .getByText("Answer 1", { exact: true })
+          .filter({ visible: true });
+        await expect(answer).toHaveCSS("color", "rgb(82, 75, 70)");
+        const ancestorOpacities = await answer.evaluate((element) => {
+          const opacities = [];
+          for (let node = element; node; node = node.parentElement) {
+            opacities.push(getComputedStyle(node).opacity);
+          }
+          return opacities;
+        });
+        expect(ancestorOpacities.every((opacity) => opacity === "1")).toBe(
+          true,
+        );
+      }
+      await page.close();
+    }
+  } finally {
+    await browser.close();
+  }
+});
+
 test("new item presets start at 12px without injecting defaults into existing items", async () => {
   const browser = await chromium.launch();
   try {

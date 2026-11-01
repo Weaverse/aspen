@@ -331,6 +331,79 @@ test("Countdown timer labels can be hidden without affecting the numbers", async
   }
 });
 
+test("Countdown labels stay in place through digit changes and day rollover", async () => {
+  const browser = await chromium.launch();
+  const font = await readFile(
+    `${root}node_modules/@fontsource/tenor-sans/files/tenor-sans-latin-400-normal.woff2`,
+  );
+  try {
+    for (const width of [390, 834, 1440]) {
+      for (const scenario of ["scenario1", "scenario2"]) {
+        const page = await browser.newPage({
+          viewport: { width, height: 900 },
+        });
+        const now = new Date("2026-11-01T00:00:00Z");
+        await page.clock.install({ time: new Date(now.getTime() - 1000) });
+        await page.clock.pauseAt(now);
+        await page.setContent(
+          `<style>${css}@font-face{font-family:"Tenor Sans";src:url(data:font/woff2;base64,${font.toString("base64")})}</style><div id="root"></div>`,
+        );
+        await page.addScriptTag({ content: bundle.outputFiles[0].text });
+        await page.evaluate(
+          ({ scenario: activeScenario, endTime }) =>
+            window.renderCountdown({
+              scenario: activeScenario,
+              timerProps: { endTime },
+            }),
+          {
+            scenario,
+            endTime:
+              now.getTime() + (100 * 86400 + 12 * 3600 + 12 * 60 + 12) * 1000,
+          },
+        );
+        const numbers = page.locator(
+          ".countdown--timer > div > div:first-child",
+        );
+        await expect(numbers.first()).toHaveText("100");
+        await page.evaluate(() => document.fonts.ready);
+        const labels = page.locator(".countdown--timer > div > div:last-child");
+        const labelPositions = () =>
+          labels.evaluateAll((nodes) =>
+            nodes.map((node) => {
+              const bounds = node.getBoundingClientRect();
+              return {
+                x: bounds.x,
+                y: bounds.y,
+                width: bounds.width,
+                height: bounds.height,
+              };
+            }),
+          );
+        const before = await labelPositions();
+
+        await page.clock.fastForward(4000);
+        await expect(numbers.last()).toHaveText("08");
+        assert.deepEqual(
+          await labelPositions(),
+          before,
+          `${scenario} at ${width}px: 12 -> 08`,
+        );
+
+        await page.clock.fastForward((12 * 3600 + 12 * 60 + 9) * 1000);
+        await expect(numbers.first()).toHaveText("99");
+        assert.deepEqual(
+          await labelPositions(),
+          before,
+          `${scenario} at ${width}px: 100 -> 99 days`,
+        );
+        await page.close();
+      }
+    }
+  } finally {
+    await browser.close();
+  }
+});
+
 test("Countdown button honors merchant styles, alignment, and external URLs", async () => {
   const browser = await chromium.launch();
   try {

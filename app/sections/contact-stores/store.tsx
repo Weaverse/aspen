@@ -50,7 +50,7 @@ const ContactStore = forwardRef<HTMLDivElement, StoreProps>(
         {...rest}
         ref={ref}
         className={cn(
-          "grid overflow-hidden border border-[#DDD] md:grid-cols-2 xl:rounded-xl",
+          "grid overflow-hidden rounded-(--radius-md) border border-[#DDD] md:grid-cols-2",
           className,
         )}
       >

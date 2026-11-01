@@ -142,7 +142,7 @@ const AccordionItem = forwardRef<HTMLDivElement, AccordionItemProps>(
             "data-[state=open]:mt-1 data-[state=open]:animate-expand",
           )}
         >
-          <div className="flex w-full self-stretch items-start gap-2.5 p-4 text-sm leading-[1.6] opacity-75">
+          <div className="flex w-full self-stretch items-start gap-2.5 p-4 text-sm leading-[1.6]">
             <span className="min-w-0 flex-1">{content}</span>
           </div>
         </Accordion.Content>
