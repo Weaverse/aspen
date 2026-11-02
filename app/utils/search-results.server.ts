@@ -27,6 +27,8 @@ type SearchIndex = {
 // in batches, then fetch full cards for the visible page (not the entire index).
 const SEARCH_LIMIT = 1000;
 const INDEX_BATCH_SIZE = 250;
+const FACET_BATCH_SIZE = 8;
+const FACET_PAGE_SIZE = 100;
 
 export function paginateSearch<T>(
   nodes: T[],
@@ -68,7 +70,8 @@ export async function searchVisibleProducts(
   },
   pagination: Parameters<typeof paginateSearch>[1],
 ) {
-  const { nodes, filters } = await readSearchIndex(storefront, variables);
+  const index = await readSearchIndex(storefront, variables);
+  const { nodes, filters } = index;
   const visible = nodes.filter(
     (product) =>
       !COMBINED_LISTINGS_CONFIGS.hideCombinedListingsFromProductList ||
@@ -90,15 +93,21 @@ export async function searchVisibleProducts(
       .filter((product): product is ProductCardFragment => Boolean(product))
       .map((product) => [product.id, product]),
   );
-  const priceNodes = variables.filters.length
-    ? (
-        await readSearchIndex(storefront, { ...variables, filters: [] })
-      ).nodes.filter(
-        (product) =>
-          !COMBINED_LISTINGS_CONFIGS.hideCombinedListingsFromProductList ||
-          !isCombinedListing(product),
-      )
-    : visible;
+  const unfiltered = variables.filters.length
+    ? await readSearchIndex(storefront, { ...variables, filters: [] })
+    : index;
+  const priceNodes = unfiltered.nodes.filter(
+    (product) =>
+      !COMBINED_LISTINGS_CONFIGS.hideCombinedListingsFromProductList ||
+      !isCombinedListing(product),
+  );
+  const visibleFilters =
+    COMBINED_LISTINGS_CONFIGS.hideCombinedListingsFromProductList &&
+    (!unfiltered.complete ||
+      unfiltered.nodes.some(isCombinedListing) ||
+      nodes.some(isCombinedListing))
+      ? await countVisibleFacets(storefront, variables, filters)
+      : filters;
   const lowest = [...priceNodes].sort(
     (a, b) =>
       Number(a.priceRange.minVariantPrice.amount) -
@@ -112,12 +121,127 @@ export async function searchVisibleProducts(
   return {
     products: {
       ...page,
-      filters,
+      filters: visibleFilters,
       nodes: page.nodes.flatMap((product) => byId.get(product.id) ?? []),
     },
     lowestPriceProduct: { nodes: lowest.slice(0, 1) },
     highestPriceProduct: { nodes: highest.slice(0, 1) },
   };
+}
+
+// Keep Shopify's keyword parser and product-filter matching as the source of
+// truth. Only correct facets when hidden listings can affect their counts.
+async function countVisibleFacets(
+  storefront: Storefront<I18nLocale>,
+  variables: Parameters<typeof searchVisibleProducts>[1],
+  filters: SearchIndex["products"]["filters"],
+) {
+  const corrected = filters.map((filter) => ({
+    ...filter,
+    values: filter.values.map((value) => ({ ...value })),
+  }));
+  const pending = corrected.flatMap((filter) =>
+    filter.type === "PRICE_RANGE"
+      ? []
+      : filter.values.filter((value) => value.count > 0),
+  );
+  // Batch lightweight, keyword-preserving probes instead of making one HTTP
+  // request per value. Bound both query size and pagination like the main index.
+  for (let offset = 0; offset < pending.length; offset += FACET_BATCH_SIZE) {
+    let active = pending
+      .slice(offset, offset + FACET_BATCH_SIZE)
+      .map((value) => {
+        const input = (
+          typeof value.input === "string"
+            ? JSON.parse(value.input)
+            : value.input
+        ) as ProductFilter;
+        value.count = 0;
+        return {
+          value,
+          after: null as string | null,
+          filters: [
+            ...variables.filters.filter(
+              (filter) => filterGroup(filter) !== filterGroup(input),
+            ),
+            input,
+          ],
+        };
+      });
+    for (
+      let page = 0;
+      active.length && page < SEARCH_LIMIT / FACET_PAGE_SIZE;
+      page += 1
+    ) {
+      const response = await storefront.query<
+        Record<
+          string,
+          {
+            nodes: { tags: string[] }[];
+            pageInfo: SearchIndex["products"]["pageInfo"];
+          }
+        >
+      >(facetCountQuery(active.length), {
+        variables: {
+          searchTerm: variables.searchTerm,
+          sortKey: variables.sortKey,
+          reverse: variables.reverse,
+          ...Object.fromEntries(
+            active.flatMap((task, index) => [
+              [`filters${index}`, task.filters],
+              [`after${index}`, task.after],
+            ]),
+          ),
+        },
+        cache: storefront.CacheShort(),
+      });
+      active = active.filter((task, index) => {
+        const result = response[`facet${index}`];
+        task.value.count += result.nodes.filter(
+          (product) => !isCombinedListing(product),
+        ).length;
+        if (!result.pageInfo.hasNextPage) {
+          return false;
+        }
+        const next = result.pageInfo.endCursor;
+        if (!next || next === task.after) {
+          throw new Error("Search facet pagination did not advance");
+        }
+        task.after = next;
+        return true;
+      });
+    }
+  }
+  return corrected;
+}
+
+function facetCountQuery(size: number) {
+  const indexes = Array.from({ length: size }, (_, index) => index);
+  return `query SearchVisibleFacetCounts($searchTerm: String!, $sortKey: SearchSortKeys, $reverse: Boolean, $country: CountryCode, $language: LanguageCode,
+    ${indexes.map((index) => `$filters${index}: [ProductFilter!], $after${index}: String`).join(",")})
+    @inContext(country: $country, language: $language) {
+    ${indexes
+      .map(
+        (
+          index,
+        ) => `facet${index}: search(query: $searchTerm, types: [PRODUCT], productFilters: $filters${index}, sortKey: $sortKey, reverse: $reverse, after: $after${index}, first: ${FACET_PAGE_SIZE}) {
+      nodes { ... on Product { tags } }
+      pageInfo { hasNextPage endCursor }
+    }`,
+      )
+      .join("\n")}
+  }`;
+}
+
+function filterGroup(filter: ProductFilter) {
+  return JSON.stringify(
+    Object.entries(filter).map(([key, value]) => [
+      key,
+      value && typeof value === "object"
+        ? ["namespace", "key", "name"].map((field) => value[field])
+        : null,
+    ]),
+  );
 }
 
 async function readSearchIndex(
@@ -127,18 +251,13 @@ async function readSearchIndex(
   const nodes: SearchIndexProduct[] = [];
   let filters: SearchVisibleIndexQuery["products"]["filters"] = [];
   let after: string | null = null;
+  let complete = false;
   for (let batch = 0; batch < SEARCH_LIMIT / INDEX_BATCH_SIZE; batch += 1) {
     const response: SearchIndex = await storefront.query<SearchIndex>(
       SEARCH_INDEX_QUERY,
       {
         variables: {
           ...variables,
-          // Scope Shopify's facet counts as well as its nodes. Group the original
-          // query so OR expressions cannot bypass the visibility constraint.
-          searchTerm:
-            COMBINED_LISTINGS_CONFIGS.hideCombinedListingsFromProductList
-              ? `(${variables.searchTerm}) AND NOT tag:${JSON.stringify(COMBINED_LISTINGS_CONFIGS.combinedListingTag)}`
-              : variables.searchTerm,
           after,
           first: INDEX_BATCH_SIZE,
         },
@@ -147,7 +266,8 @@ async function readSearchIndex(
     );
     filters = response.products.filters;
     nodes.push(...response.products.nodes);
-    if (!response.products.pageInfo.hasNextPage) {
+    complete = !response.products.pageInfo.hasNextPage;
+    if (complete) {
       break;
     }
     const next = response.products.pageInfo.endCursor;
@@ -156,7 +276,7 @@ async function readSearchIndex(
     }
     after = next;
   }
-  return { nodes, filters };
+  return { nodes, filters, complete };
 }
 
 const SEARCH_INDEX_QUERY = `#graphql
