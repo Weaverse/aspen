@@ -1,0 +1,70 @@
+name: Node compatibility
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  node22:
+    name: Node ${{ matrix.node }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node: [22.0.0, 22.x, 23.11.1, 24.22.2, 25.9.0, 26.13.0]
+        include:
+          # Exercise both sides of the runtime API and former engine boundaries.
+          - os: macos-latest
+            node: 22.7.0
+          - os: macos-latest
+            node: 22.8.0
+          - os: macos-latest
+            node: 22.11.0
+          - os: macos-latest
+            node: 22.12.0
+    env:
+      SHOPIFY_CLI_NO_ANALYTICS: "1"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - name: Use the audited npm version
+        run: npm install --global npm@10.9.8 --no-audit --no-fund
+      - name: Install from the committed lockfile
+        run: npm ci --engine-strict --no-audit --no-fund
+      - name: Verify the resolved dependency graph
+        run: npm ls @shopify/mini-oxygen body-parser undici vite esbuild framer-motion motion-dom motion-utils --all
+      - name: Generate GraphQL types
+        run: npm run codegen
+      - name: Check types
+        run: npm run typecheck
+      - name: Check localization
+        run: npm run locale:check && npm run i18n:test
+      - name: Check native sanitizer compatibility and security regressions
+        run: node --test tests/sanitizer-runtime.unit.test.mjs
+      - name: Check footer sanitization
+        run: npx --no-install vite-node tests/footer-rich-text.unit.test.ts
+      - name: Build storefront
+        run: npm run build
+      - name: Check dev startup and dependency optimization
+        id: dev
+        env:
+          ASPEN_RUNTIME_LOG: ${{ runner.temp }}/aspen-dev-runtime.log
+        run: node scripts/check-dev-runtime.mjs
+      - name: Preserve dev failure diagnostics
+        if: ${{ failure() && steps.dev.outcome == 'failure' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: node22-dev-${{ matrix.os }}-${{ matrix.node }}
+          path: ${{ runner.temp }}/aspen-dev-runtime.log
+          if-no-files-found: ignore
+          retention-days: 7

@@ -7,7 +7,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["!.weaverse", "!.agents", "!scripts"]
+    "includes": ["!.weaverse", "!.agents", "!scripts", "!vendor"]
   },
   "linter": {
     "rules": {
