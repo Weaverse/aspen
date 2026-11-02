@@ -22,10 +22,12 @@ export function Sort({
   mode = "dropdown",
   defaultSort = "featured",
   options,
+  resetPagination = false,
 }: {
   mode?: "dropdown" | "drawer";
   defaultSort?: SortParam;
   options?: SortParam[];
+  resetPagination?: boolean;
 }) {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
@@ -67,7 +69,12 @@ export function Sort({
           {sortList.map(({ key, labelKey }) => (
             <DropdownMenu.Item key={key} asChild>
               <Link
-                to={getSortUrl(location.pathname, searchParams, key)}
+                to={getSortUrl(
+                  location.pathname,
+                  searchParams,
+                  key,
+                  resetPagination,
+                )}
                 aria-current={currentSort.key === key ? "true" : undefined}
                 className={cn(
                   "-my-1.5 flex items-center justify-start self-stretch py-1.5 text-left font-body text-sm font-normal text-body uppercase leading-[1.6] tracking-[0.01em] outline-hidden hover:bg-gray-50 focus:bg-gray-50",
@@ -156,8 +163,13 @@ function getSortUrl(
   pathname: string,
   searchParams: URLSearchParams,
   sort: SortParam,
+  resetPagination = false,
 ) {
   const params = new URLSearchParams(searchParams);
   params.set("sort", sort);
+  if (resetPagination) {
+    params.delete("cursor");
+    params.delete("direction");
+  }
   return `${pathname}?${params.toString()}`;
 }

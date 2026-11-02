@@ -23,10 +23,7 @@ import {
   useNavigate,
   useSearchParams,
 } from "react-router";
-import type {
-  ProductCardFragment,
-  SearchQuery,
-} from "storefront-api.generated";
+import type { ProductCardFragment } from "storefront-api.generated";
 import { AnimatedDrawer } from "~/components/animate-drawer";
 import { Button } from "~/components/button";
 import { Image } from "~/components/image";
@@ -35,7 +32,6 @@ import { ProductCard } from "~/components/product/product-card";
 import { StorefrontError } from "~/components/root/storefront-error";
 import { ScrollArea } from "~/components/scroll-area";
 import { Section } from "~/components/section";
-import { PRODUCT_CARD_FRAGMENT } from "~/graphql/fragments";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import { useTranslatedThemeSettings } from "~/hooks/use-translated-theme-settings";
 import { AppliedFilterTags } from "~/sections/collection-filters/applied-filter-tags";
@@ -46,7 +42,6 @@ import { cn } from "~/utils/cn";
 import {
   COMBINED_LISTINGS_CONFIGS,
   isCombinedListing,
-  maybeFilterOutCombinedListingsQuery,
 } from "~/utils/combined-listings";
 import {
   type AppliedFilter,
@@ -54,6 +49,10 @@ import {
   type SortParam,
 } from "~/utils/filter";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
+import {
+  type SearchConnection,
+  searchVisibleProducts,
+} from "~/utils/search-results.server";
 import { seoPayload } from "~/utils/seo.server";
 import { getMetaTranslator, localizedSeoMeta } from "~/utils/seo-translation";
 
@@ -83,7 +82,7 @@ export async function loader({
       startCursor: null,
       endCursor: null,
     },
-  } as unknown as SearchQuery["products"];
+  } as unknown as SearchConnection;
   let highestPriceProduct: { nodes: Record<string, unknown>[] } = {
     nodes: [],
   };
@@ -94,32 +93,19 @@ export async function loader({
 
   if (searchTerm) {
     try {
-      const searchData = await storefront.query<SearchQuery>(SEARCH_QUERY, {
-        variables: {
-          searchTerm: maybeFilterOutCombinedListingsQuery
-            ? `(${searchTerm}) AND ${maybeFilterOutCombinedListingsQuery}`
-            : searchTerm,
+      const searchData = await searchVisibleProducts(
+        storefront,
+        {
+          searchTerm,
           filters,
           sortKey,
           reverse,
-          ...paginationVariables,
-          country: storefront.i18n.country,
-          language: storefront.i18n.language,
         },
-      });
+        paginationVariables,
+      );
       products = searchData.products;
-      highestPriceProduct =
-        (
-          searchData as SearchQuery & {
-            highestPriceProduct?: typeof highestPriceProduct;
-          }
-        ).highestPriceProduct || highestPriceProduct;
-      lowestPriceProduct =
-        (
-          searchData as SearchQuery & {
-            lowestPriceProduct?: typeof lowestPriceProduct;
-          }
-        ).lowestPriceProduct || lowestPriceProduct;
+      highestPriceProduct = searchData.highestPriceProduct;
+      lowestPriceProduct = searchData.lowestPriceProduct;
     } catch (error) {
       console.error("Search request failed", error);
       searchError = "errors.searchUnavailable";
@@ -210,6 +196,48 @@ export default function Search() {
     );
   }
 
+  if (
+    !searchTerm ||
+    (products.nodes.length === 0 && appliedFilters.length === 0)
+  ) {
+    return (
+      <>
+        <section className="px-(--page-padding) pt-11 pb-12 text-body">
+          <div className="mx-auto flex w-full max-w-[1360px] flex-col items-center gap-6">
+            <h1 className="h4 flex min-h-12.5 items-center text-center uppercase">
+              {t("search.title")}
+            </h1>
+            <div className="flex w-full flex-col items-center gap-2">
+              <SearchPageForm
+                key={searchTerm}
+                defaultValue={searchTerm}
+                landing
+              />
+              {!searchTerm && (
+                <p className="text-center text-(--color-text-light) text-sm leading-[1.6] tracking-[0.01em]">
+                  {t("search.emptyHint")}
+                </p>
+              )}
+            </div>
+          </div>
+          {searchTerm ? (
+            <div className="mx-auto mt-11 flex min-h-[141px] flex-col items-center gap-1 text-center">
+              <h2 className="h6 break-words">
+                {t("search.noResultsFound", { term: searchTerm })}
+              </h2>
+              <p className="text-body-subtle text-sm leading-[1.6] tracking-[0.01em]">
+                {t("search.tryDifferentPhrase")}
+              </p>
+            </div>
+          ) : (
+            <div aria-hidden="true" className="h-24.5" />
+          )}
+        </section>
+        <Analytics.SearchView data={{ searchTerm, searchResults: products }} />
+      </>
+    );
+  }
+
   return (
     <>
       <Section width="fixed" verticalPadding="small" overflow="unset">
@@ -285,7 +313,11 @@ export default function Search() {
                   />
                 </div>
                 <div className="flex w-full justify-end md:col-start-2 md:row-start-2 md:w-fit md:justify-self-end">
-                  <Sort defaultSort="relevance" options={SEARCH_SORT_OPTIONS} />
+                  <Sort
+                    defaultSort="relevance"
+                    options={SEARCH_SORT_OPTIONS}
+                    resetPagination
+                  />
                 </div>
               </div>
             )}
@@ -351,7 +383,7 @@ function SearchProducts({
   gridSizeDesktop,
   gridSizeMobile,
 }: {
-  products: SearchQuery["products"];
+  products: SearchConnection;
   gridSizeDesktop: number;
   gridSizeMobile: number;
 }) {
@@ -509,7 +541,13 @@ function SearchEmptyState({
   );
 }
 
-function SearchPageForm({ defaultValue = "" }: { defaultValue?: string }) {
+function SearchPageForm({
+  defaultValue = "",
+  landing = false,
+}: {
+  defaultValue?: string;
+  landing?: boolean;
+}) {
   const { t } = useTranslation();
   const inputId = useId();
   const [query, setQuery] = useState(() =>
@@ -518,7 +556,12 @@ function SearchPageForm({ defaultValue = "" }: { defaultValue?: string }) {
   return (
     <Form
       method="get"
-      className="flex h-12 w-full items-center gap-3 self-stretch rounded-[var(--Radius-border-radius-md,12px)] border border-[var(--Border-Subtle,#D8D8D8)] bg-[var(--Background-Background,#FFF)] px-4 md:col-start-1 md:row-start-2 md:max-w-[calc(50vw-var(--page-padding))] lg:max-w-full"
+      className={cn(
+        "flex h-12 w-full items-center gap-3 rounded-(--radius-md) border border-line-subtle bg-background px-4",
+        landing
+          ? "max-w-[480px]"
+          : "self-stretch md:col-start-1 md:row-start-2 md:max-w-[calc(50vw-var(--page-padding))] lg:max-w-full",
+      )}
     >
       <label htmlFor={inputId} className="sr-only">
         {t("search.searchProducts")}
@@ -526,7 +569,10 @@ function SearchPageForm({ defaultValue = "" }: { defaultValue?: string }) {
       <button
         type="submit"
         aria-label={t("search.submit")}
-        className="flex h-10 w-7 shrink-0 items-center justify-start focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body"
+        className={cn(
+          "flex h-10 shrink-0 items-center justify-start focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body",
+          landing ? "w-5" : "w-7",
+        )}
       >
         <MagnifyingGlassIcon
           aria-hidden="true"
@@ -541,16 +587,23 @@ function SearchPageForm({ defaultValue = "" }: { defaultValue?: string }) {
         onChange={(event) =>
           setQuery(stripSearchInputQuotes(event.currentTarget.value))
         }
-        placeholder={t("search.searchProducts")}
+        placeholder={t(landing ? "search.emptyTitle" : "search.searchProducts")}
         autoComplete="off"
         autoCorrect="off"
         spellCheck={false}
-        className="h-full min-w-0 flex-1 appearance-none rounded-none border-0 bg-transparent p-0 font-semibold uppercase tracking-[0.04em] shadow-none outline-none ring-0 focus:border-0 focus:shadow-none focus:outline-none focus-visible:border-0 focus-visible:shadow-none focus-visible:outline-none"
+        className={cn(
+          "h-full min-w-0 flex-1 appearance-none rounded-none border-0 bg-transparent p-0 shadow-none outline-none ring-0 focus:border-0 focus:shadow-none focus:outline-none focus-visible:border-0 focus-visible:shadow-none focus-visible:outline-none",
+          landing
+            ? "font-normal text-sm tracking-[0.01em] placeholder:font-semibold placeholder:tracking-[0.02em] placeholder:text-(--color-text-light)"
+            : "font-semibold uppercase tracking-[0.04em]",
+        )}
       />
-      {query && (
+      {(query || landing) && (
         <button
           type="button"
-          aria-label={t("search.clearFilters")}
+          aria-label={t(
+            landing ? "accessibility.clearSearch" : "search.clearFilters",
+          )}
           onClick={() => setQuery("")}
           className="flex size-6 shrink-0 items-center justify-center rounded-(--radius-xs) bg-(--color-background-subtle) text-[#9D9D9D] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body"
         >
@@ -690,7 +743,7 @@ function getFiltersFromParams(searchParams: URLSearchParams) {
 
 function getAppliedFilters(
   selectedFilters: ProductFilter[],
-  availableFilters: SearchQuery["products"]["filters"],
+  availableFilters: SearchConnection["filters"],
   locale: { language: string; country: string; currency: string },
 ) {
   const allFilterValues = availableFilters.flatMap((filter) => filter.values);
@@ -783,95 +836,3 @@ function getSortValuesFromParam(sortParam: SortParam | null): {
       return { sortKey: "RELEVANCE", reverse: false };
   }
 }
-
-const SEARCH_QUERY = `#graphql
-  query search(
-    $country: CountryCode
-    $endCursor: String
-    $filters: [ProductFilter!]
-    $first: Int
-    $language: LanguageCode
-    $last: Int
-    $searchTerm: String!
-    $startCursor: String
-    $sortKey: SearchSortKeys
-    $reverse: Boolean
-  ) @inContext(country: $country, language: $language) {
-    products: search(
-      first: $first
-      last: $last
-      before: $startCursor
-      after: $endCursor
-      productFilters: $filters
-      sortKey: $sortKey
-      reverse: $reverse
-      query: $searchTerm
-      types: [PRODUCT]
-    ) {
-      filters: productFilters {
-        id
-        label
-        type
-        values {
-          id
-          label
-          count
-          input
-        }
-      }
-      totalCount
-      nodes {
-        ... on Product {
-          ...ProductCard
-        }
-      }
-      pageInfo {
-        startCursor
-        endCursor
-        hasNextPage
-        hasPreviousPage
-      }
-    }
-    highestPriceProduct: search(
-      first: 1
-      query: $searchTerm
-      sortKey: PRICE
-      reverse: true
-      types: [PRODUCT]
-    ) {
-      nodes {
-        ... on Product {
-          ...SearchPriceProduct
-        }
-      }
-    }
-    lowestPriceProduct: search(
-      first: 1
-      query: $searchTerm
-      sortKey: PRICE
-      types: [PRODUCT]
-    ) {
-      nodes {
-        ... on Product {
-          ...SearchPriceProduct
-        }
-      }
-    }
-  }
-  fragment SearchPriceProduct on Product {
-    id
-    title
-    handle
-    priceRange {
-      minVariantPrice {
-        amount
-        currencyCode
-      }
-      maxVariantPrice {
-        amount
-        currencyCode
-      }
-    }
-  }
-  ${PRODUCT_CARD_FRAGMENT}
-` as const;
