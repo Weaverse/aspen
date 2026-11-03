@@ -12,8 +12,8 @@ function buildAssetsUrl(assetsPort) {
 function createAssetsServer(assetsDirectory) {
   return createServer(async (req, res) => {
     if (req.method === "OPTIONS") {
-      res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "*");
-      res.setHeader("Access-Control-Allow-Credentials", "true");
+      // Build assets are public and never require browser credentials.
+      res.setHeader("Access-Control-Allow-Origin", "*");
       res.setHeader("Access-Control-Allow-Private-Network", "true");
       res.setHeader("Access-Control-Max-Age", "86400");
       res.writeHead(204);
@@ -26,19 +26,23 @@ function createAssetsServer(assetsDirectory) {
     const isValidAssetPath = pathname.startsWith(`/${artificialAssetPrefix}/`) && !pathname.includes("..");
     const relativeAssetPath = isValidAssetPath ? pathname.replace(`/${artificialAssetPrefix}`, "") : pathname;
     if (isValidAssetPath) {
-      const filePath = path.join(assetsDirectory, relativeAssetPath);
-      const file = await fs.open(filePath).catch(() => {
-      });
+      const root = await fs.realpath(assetsDirectory).catch(() => null);
+      const filePath = root && await fs.realpath(path.resolve(root, `.${relativeAssetPath}`)).catch(() => null);
+      // Resolve symlinks before checking containment, including on Windows.
+      const rootPrefix = root && (root.endsWith(path.sep) ? root : root + path.sep);
+      const isContained = filePath && filePath.startsWith(rootPrefix);
+      const file = isContained ? await fs.open(filePath).catch(() => null) : null;
       const stat = await file?.stat().catch(() => {
       });
       if (file && stat?.isFile()) {
         res.setHeader("Content-Length", stat.size);
         res.setHeader(
           "Content-Type",
-          lookupMimeType(filePath) || "application/octet-stream"
+          lookupMimeType(relativeAssetPath) || "application/octet-stream"
         );
         return file.createReadStream().pipe(res);
       }
+      await file?.close();
     }
     res.writeHead(404, { "Content-Type": "text/html; charset=utf-8" });
     res.end(

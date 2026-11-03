@@ -893,7 +893,7 @@ function CallSiteToString() {
     let typeName = this.getTypeName();
     typeName === "[object Object]" && (typeName = "null");
     let methodName = this.getMethodName();
-    functionName ? (typeName && functionName.indexOf(typeName) !== 0 && (line += `${typeName}.`), line += functionName, methodName && functionName.indexOf(`.${methodName}`) !== functionName.length - methodName.length - 1 && (line += ` [as ${methodName}]`)) : line += `${typeName}.${methodName || "<anonymous>"}`;
+    functionName ? (typeName && functionName.indexOf(typeName) !== 0 && (line += `${typeName}.`), line += functionName, methodName && !functionName.endsWith(`.${methodName}`) && (line += ` [as ${methodName}]`)) : line += `${typeName}.${methodName || "<anonymous>"}`;
   }
   return addSuffix && (line += ` (${fileLocation})`), line;
 }
@@ -1311,16 +1311,10 @@ function fetchEntryModule(env) {
     );
   }
   return runtime.import(env.__VITE_RUNTIME_EXECUTE_URL).catch((error) => {
-    let errorResponseBody = error.stack ?? error.message ?? "Internal error";
-    const message = error.message ?? error.stack?.split("\n")[0];
-    if (message && message.includes(env.__VITE_RUNTIME_EXECUTE_URL)) {
-      const missingEntryMessage = `No Oxygen worker entry was found. Use \`oxygen({ entry: "${env.__VITE_RUNTIME_EXECUTE_URL}" })\` in Vite or make sure the entry module exists.`;
-      errorResponseBody = `${missingEntryMessage}
-
-${errorResponseBody}`;
-    }
+    // Keep diagnostics in the developer console, not in HTTP responses.
+    console.error(error);
     return {
-      errorResponse: new globalThis.Response(errorResponseBody, {
+      errorResponse: new globalThis.Response("Unable to load Oxygen worker entry. Check the dev server logs.", {
         status: 503,
         statusText: "executeEntrypoint error"
       })

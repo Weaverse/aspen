@@ -67,8 +67,9 @@ format so htmlparser2 12 can be imported directly on Node 22.0.0. See its
 and the existing footer tests cover direct Node execution as well as SSR.
 The CLI's esbuild dependency is pinned to the patched 0.28.1 release.
 
-`vendor/mini-oxygen` retains the upstream 4.2.2 runtime byte-for-byte while
-adapting its LTS-only engine declaration to Aspen's Node >=22 contract.
+`vendor/mini-oxygen` adapts upstream 4.2.2 to Aspen's Node >=22 contract,
+with scoped security fixes for asset containment, credential-free asset CORS,
+HTTP error diagnostics and a bundled stack-frame suffix check.
 This is Aspen-maintained compatibility coverage, not a Shopify support claim.
 Its upstream license, dependency ranges, provenance and update procedure are
 recorded in `vendor/mini-oxygen/UPSTREAM.md`.

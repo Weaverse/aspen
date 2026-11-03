@@ -58,6 +58,8 @@ jobs:
         run: npm run locale:check && npm run i18n:test
       - name: Check native sanitizer compatibility and security regressions
         run: node --test tests/sanitizer-runtime.unit.test.mjs
+      - name: Check MiniOxygen security regressions
+        run: node --test tests/mini-oxygen-security.unit.test.mjs
       - name: Check footer sanitization
         run: npx --no-install vite-node tests/footer-rich-text.unit.test.ts
       - name: Build storefront

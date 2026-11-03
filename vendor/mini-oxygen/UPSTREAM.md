@@ -8,13 +8,25 @@ Source: `@shopify/mini-oxygen@4.2.2`, MIT, Shopify Inc.
 
 The published package limits its declared Node engines to `^22 || ^24`.
 Aspen's contract includes released odd majors and Node 26. This private
-compatibility package keeps every upstream runtime file, dependency range,
-peer dependency and license unchanged. The local manifest changes only:
+compatibility package keeps upstream dependency ranges, peer dependencies
+and license unchanged. The local manifest changes only:
 
 - the private version suffix and `private: true`;
 - the Node engine to `>=22.0.0`;
 - omission of upstream build scripts and development-only dependencies, since
   these are precompiled distribution files, not an upstream development checkout.
+
+PR #123 also applies these scoped runtime patches prompted by CodeQL:
+
+- `dist/worker/assets.js`: public assets use credential-free wildcard CORS;
+  realpath containment rejects paths and symlinks outside the asset directory.
+- `dist/node/server.js` and `dist/vite/worker-entry.js`: HTTP failures return
+  generic messages; detailed exceptions remain in developer/server logs.
+- `dist/vite/worker-entry.js`: the bundled stack-frame formatter uses
+  `endsWith` instead of an ambiguous `indexOf` suffix comparison.
+
+These are Aspen-maintained changes, not claims of upstream patches. Run
+`node --test tests/mini-oxygen-security.unit.test.mjs` when updating them.
 
 The repository sets `install-links=true` in `.npmrc`, so npm installs this
 `file:` dependency as a packed package rather than a symlink. This is required
@@ -33,7 +45,8 @@ resolve separation, standalone preview, and HTTP/2 request conversion.
 
 For updates, verify the npm tarball integrity, compare all `dist` files and
 the license byte-for-byte, retain the runtime dependencies/peer ranges, and
-apply only the manifest adaptation above. Keep the root dependency security
+review/reapply the manifest adaptation and runtime patches above. All other
+distribution files should remain byte-identical. Keep the root dependency security
 overrides. Repeat the supported Node/OS matrix and connected Studio check.
 Check upstream advisories explicitly: npm audit cannot assess this local
 package's source code.

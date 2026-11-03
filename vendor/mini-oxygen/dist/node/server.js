@@ -167,7 +167,8 @@ function createRequestMiddleware(mf, {
       res.writeHead(status || 500, {
         "Content-Type": "text/plain; charset=UTF-8"
       });
-      res.end(err.stack, "utf8");
+      console.error(err);
+      res.end("Internal server error", "utf8");
     }
   };
 }
