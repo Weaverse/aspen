@@ -12,7 +12,7 @@ import { AnimatePresence } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useFetcher } from "react-router";
 import type { ProductVariantFragment } from "storefront-api.generated";
-import { useCartStore } from "~/components/cart/store";
+import { useCanAddVariant, useCartStore } from "~/components/cart/store";
 import Link from "~/components/link";
 import { LoyaltyPointsHint } from "~/components/loyalty/loyalty-points-hint";
 import { AddToCartButton } from "~/components/product/add-to-cart-button";
@@ -106,6 +106,10 @@ export function QuickShop({
   const [selectedSellingPlanId, setSelectedSellingPlanId] = useState<
     string | null
   >(null);
+  const canAddVariant = useCanAddVariant(
+    selectedVariant?.id,
+    selectedSellingPlanId,
+  );
   const {
     addToCartText,
     soldOutText,
@@ -231,7 +235,7 @@ export function QuickShop({
             <Quantity
               value={quantity}
               onChange={setQuantity}
-              disabled={!selectedVariant?.availableForSale}
+              disabled={!selectedVariant?.availableForSale || !canAddVariant}
               variant="stepper"
               className="min-w-24"
             />

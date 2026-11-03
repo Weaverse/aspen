@@ -23,6 +23,7 @@ import {
   resetOptimisticCartForTests,
 } from "../app/components/cart/optimistic-cart.ts";
 import {
+  canAddCartLines,
   canAdjustLineQuantity,
   pruneCompletedPendingAdds,
   useCartStore,
@@ -74,6 +75,7 @@ test.beforeEach(() => {
   resetOptimisticCartForTests();
   useCartStore.setState({
     serverCart: null,
+    inventoryPolicies: new Map([[variantId, null]]),
     pendingAdds: new Map(),
     pendingLineUpdates: new Map(),
     lineUpdatesInFlight: new Map(),
@@ -81,6 +83,256 @@ test.beforeEach(() => {
     lineQuantityLimits: new Map(),
     pendingLineRemovals: new Set(),
   });
+});
+
+test("Add to Cart shares stock across subscription lines and re-enables after quantity decreases", () => {
+  const cart = createCart(1, "2026-11-03T10:00:00.000Z");
+  cart.lines.nodes[0].merchandise.quantityAvailable = 1;
+  useCartStore.setState({
+    serverCart: cart,
+    inventoryPolicies: new Map([[variantId, "DENY"]]),
+  });
+  const input = { ...createInput(), sellingPlanId: "another-plan" };
+  assert.equal(canAddCartLines(useCartStore.getState(), [input]), false);
+  useCartStore.setState({
+    serverCart: { ...cart, lines: { ...cart.lines, nodes: [] } },
+  });
+  assert.equal(canAddCartLines(useCartStore.getState(), [input]), true);
+
+  cart.lines.nodes[0].merchandise.quantityAvailable = 3;
+  cart.lines.nodes[0].quantity = 3;
+  useCartStore.setState({ serverCart: cart });
+  assert.equal(canAddCartLines(useCartStore.getState(), [input]), false);
+  useCartStore.getState().stageLineUpdate(cart.lines.nodes[0].id, 2);
+  assert.equal(canAddCartLines(useCartStore.getState(), [input]), false);
+  useCartStore.setState({
+    serverCart: {
+      ...cart,
+      lines: {
+        ...cart.lines,
+        nodes: [{ ...cart.lines.nodes[0], quantity: 2 }],
+      },
+    },
+    pendingLineUpdates: new Map(),
+  });
+  assert.equal(canAddCartLines(useCartStore.getState(), [input]), true);
+  assert.equal(
+    canAddCartLines(useCartStore.getState(), [createInput(2)]),
+    false,
+  );
+});
+
+test("pending increases and additions both reserve stock regardless of mutation order", () => {
+  const cart = createCart(1, "2026-11-03T10:00:00.000Z");
+  cart.lines.nodes[0].merchandise.quantityAvailable = 3;
+  useCartStore.setState({
+    serverCart: cart,
+    inventoryPolicies: new Map([[variantId, "DENY"]]),
+  });
+  useCartStore.getState().stageLineUpdate(cart.lines.nodes[0].id, 2);
+  assert.equal(canAddCartLines(useCartStore.getState(), [createInput()]), true);
+  useCartStore.getState().stagePendingAdd([createInput()]);
+  assert.equal(
+    canAddCartLines(useCartStore.getState(), [createInput()]),
+    false,
+  );
+});
+
+test("cart increases retain stock reserved by other subscription removals and decreases", () => {
+  const cart = createCart(1, "2026-11-03T10:00:00.000Z");
+  const first = cart.lines.nodes[0];
+  first.merchandise.quantityAvailable = 2;
+  cart.lines.nodes.push({
+    ...first,
+    id: "second-line",
+    sellingPlanAllocation: null,
+  });
+  useCartStore.setState({
+    serverCart: cart,
+    inventoryPolicies: new Map([[variantId, "DENY"]]),
+  });
+  assert.equal(
+    canAdjustLineQuantity(useCartStore.getState(), "second-line", 1),
+    false,
+  );
+  useCartStore.getState().stageLineRemoval(first.id);
+  assert.equal(
+    canAdjustLineQuantity(useCartStore.getState(), "second-line", 1),
+    false,
+  );
+  useCartStore.setState({
+    serverCart: {
+      ...cart,
+      lines: { ...cart.lines, nodes: [cart.lines.nodes[1]] },
+    },
+  });
+  assert.equal(
+    canAdjustLineQuantity(useCartStore.getState(), "second-line", 1),
+    true,
+  );
+});
+
+test("cart increases cannot overwrite pending add reservations on the same line", () => {
+  const cart = createCart(1, "2026-11-03T10:00:00.000Z");
+  cart.lines.nodes[0].merchandise.quantityAvailable = 3;
+  useCartStore.setState({
+    serverCart: cart,
+    inventoryPolicies: new Map([[variantId, "DENY"]]),
+  });
+  useCartStore.getState().stagePendingAdd([createInput()]);
+  assert.equal(
+    canAdjustLineQuantity(useCartStore.getState(), cart.lines.nodes[0].id, 1),
+    false,
+  );
+});
+
+test("pending removal keeps stock reserved until an authoritative cart drops the line", () => {
+  const cart = createCart(1, "2026-11-03T10:00:00.000Z");
+  cart.lines.nodes[0].merchandise.quantityAvailable = 1;
+  useCartStore.setState({
+    serverCart: cart,
+    inventoryPolicies: new Map([[variantId, "DENY"]]),
+  });
+  useCartStore.getState().stageLineRemoval(cart.lines.nodes[0].id);
+  assert.equal(
+    canAddCartLines(useCartStore.getState(), [createInput()]),
+    false,
+  );
+  useCartStore.getState().settleLineRemoval(cart.lines.nodes[0].id, {
+    errors: [{ message: "Rejected" }],
+  });
+  assert.equal(
+    canAddCartLines(useCartStore.getState(), [createInput()]),
+    false,
+  );
+  useCartStore.setState({
+    serverCart: { ...cart, lines: { ...cart.lines, nodes: [] } },
+  });
+  assert.equal(canAddCartLines(useCartStore.getState(), [createInput()]), true);
+});
+
+test("Add to Cart respects quantity rules and Shopify-confirmed limits independently of inventory policy", () => {
+  const cart = createCart(3, "2026-11-03T10:00:00.000Z");
+  Object.assign(cart.lines.nodes[0].merchandise, {
+    quantityAvailable: 10,
+    quantityRule: { minimum: 1, maximum: 3, increment: 1 },
+  });
+  useCartStore.setState({
+    serverCart: cart,
+    inventoryPolicies: new Map([[variantId, "CONTINUE"]]),
+  });
+  assert.equal(
+    canAddCartLines(useCartStore.getState(), [createInput()]),
+    false,
+  );
+  Object.assign(cart.lines.nodes[0].merchandise, {
+    quantityRule: { minimum: 1, maximum: null, increment: 1 },
+  });
+  assert.equal(canAddCartLines(useCartStore.getState(), [createInput()]), true);
+  useCartStore.setState({
+    lineQuantityLimits: new Map([[cart.lines.nodes[0].id, cart]]),
+  });
+  assert.equal(
+    canAddCartLines(useCartStore.getState(), [createInput()]),
+    false,
+  );
+});
+
+test("Add to Cart reserves pending additions and groups duplicate variants in a batch", () => {
+  const cart = createCart(1, "2026-11-03T10:00:00.000Z");
+  cart.lines.nodes[0].merchandise.quantityAvailable = 2;
+  useCartStore.setState({
+    serverCart: cart,
+    inventoryPolicies: new Map([[variantId, "DENY"]]),
+  });
+  assert.equal(canAddCartLines(useCartStore.getState(), [createInput()]), true);
+  assert.equal(
+    canAddCartLines(useCartStore.getState(), [createInput(), createInput()]),
+    false,
+  );
+  useCartStore.getState().stagePendingAdd([createInput()]);
+  assert.equal(
+    canAddCartLines(useCartStore.getState(), [createInput()]),
+    false,
+  );
+
+  useCartStore.setState({ serverCart: null, pendingAdds: new Map() });
+  const input = createInput();
+  assert.ok(input.selectedVariant);
+  Object.assign(input.selectedVariant, { quantityAvailable: 1 });
+  useCartStore.getState().stagePendingAdd([input]);
+  assert.equal(canAddCartLines(useCartStore.getState(), [input]), false);
+});
+
+test("Add to Cart preserves backorders, unknown inventory and failed policy lookups", () => {
+  const cart = createCart(1, "2026-11-03T10:00:00.000Z");
+  cart.lines.nodes[0].merchandise.quantityAvailable = 1;
+  useCartStore.setState({ serverCart: cart });
+  for (const policy of ["CONTINUE", null] as const) {
+    useCartStore.setState({
+      inventoryPolicies: new Map([[variantId, policy]]),
+    });
+    assert.equal(
+      canAddCartLines(useCartStore.getState(), [createInput()]),
+      true,
+    );
+  }
+  useCartStore.setState({ inventoryPolicies: new Map() });
+  assert.equal(
+    canAddCartLines(useCartStore.getState(), [createInput()]),
+    false,
+  );
+  cart.lines.nodes[0].merchandise.currentlyNotInStock = true;
+  assert.equal(canAddCartLines(useCartStore.getState(), [createInput()]), true);
+  cart.lines.nodes[0].merchandise.currentlyNotInStock = false;
+  cart.lines.nodes[0].merchandise.quantityAvailable = null;
+  assert.equal(canAddCartLines(useCartStore.getState(), [createInput()]), true);
+});
+
+test("blocks the first increase at stock for DENY and pending policies, but preserves backorders", () => {
+  const cart = createCart(3, "2026-11-03T10:00:00.000Z");
+  const line = cart.lines.nodes[0];
+  Object.assign(line.merchandise, {
+    quantityAvailable: 3,
+    currentlyNotInStock: false,
+  });
+  for (const policy of ["DENY", undefined, "CONTINUE", null] as const) {
+    useCartStore.setState({
+      serverCart: cart,
+      inventoryPolicies:
+        policy === undefined ? new Map() : new Map([[variantId, policy]]),
+      pendingLineUpdates: new Map(),
+    });
+    const allowed = policy === "CONTINUE" || policy === null;
+    assert.equal(
+      canAdjustLineQuantity(useCartStore.getState(), line.id, 1),
+      allowed,
+    );
+    useCartStore.getState().adjustLineQuantity(line.id, 1);
+    assert.equal(
+      useCartStore.getState().pendingLineUpdates.get(line.id),
+      allowed ? 4 : undefined,
+    );
+    assert.equal(
+      canAdjustLineQuantity(useCartStore.getState(), line.id, -1),
+      true,
+    );
+  }
+});
+
+test("a stock limit subtracts other lines sharing the variant before the first click", () => {
+  const cart = createCart(2, "2026-11-03T10:00:00.000Z");
+  const line = cart.lines.nodes[0];
+  Object.assign(line.merchandise, { quantityAvailable: 3 });
+  cart.lines.nodes.push({ ...line, id: "subscription-line", quantity: 1 });
+  useCartStore.setState({
+    serverCart: cart,
+    inventoryPolicies: new Map([[variantId, "DENY"]]),
+  });
+  assert.equal(
+    canAdjustLineQuantity(useCartStore.getState(), line.id, 1),
+    false,
+  );
 });
 
 test("selects the newest error-free authoritative cart", () => {
@@ -476,6 +728,41 @@ test("hides a removed line until an authoritative cart confirms removal", () => 
 
   assert.equal(cart?.lines.nodes.length, 0);
   assert.equal(cart?.totalQuantity, 0);
+});
+
+test("filters zero-quantity lines without hiding positive-quantity sold-out items or mutating the server cart", () => {
+  const baseline = createCart(0, "2026-08-27T10:00:00.000Z");
+  baseline.lines.nodes[0].quantity = 0;
+  baseline.lines.nodes.push({
+    ...baseline.lines.nodes[0],
+    id: "sold-out-line",
+    quantity: 1,
+    merchandise: {
+      ...baseline.lines.nodes[0].merchandise,
+      quantityAvailable: 0,
+    },
+  });
+  const cart = filterRemovedCartLines(baseline, new Set());
+  assert.deepEqual(
+    cart.lines.nodes.map((line) => line.id),
+    ["sold-out-line"],
+  );
+  assert.equal(cart.totalQuantity, 1);
+  assert.equal(cart.isOptimistic, false);
+  assert.equal(baseline.lines.nodes.length, 2);
+});
+
+test("zero-quantity optimistic updates remove the item and yield an empty cart", () => {
+  const baseline = createCart(1, "2026-08-27T10:00:00.000Z");
+  const cart = applyOptimisticMutations(
+    baseline,
+    [],
+    [],
+    new Map([[baseline.lines.nodes[0].id, 0]]),
+  );
+  assert.equal(cart?.lines.nodes.length, 0);
+  assert.equal(cart?.totalQuantity, 0);
+  assert.equal(baseline.lines.nodes[0].quantity, 1);
 });
 
 test("restores an optimistically removed line when Shopify rejects it", () => {

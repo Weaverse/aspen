@@ -33,7 +33,7 @@ const bundle = await build({
         cart.isOptimistic=false;
         window.baseline=cart;
         window.sequence=0;
-        useCartStore.setState({serverCart:cart,pendingAdds:new Map(),pendingLineUpdates:new Map(),lineUpdatesInFlight:new Map(),lineQuantityLimits:new Map(),lineUpdateErrors:new Map(),pendingLineRemovals:new Set()});
+        useCartStore.setState({serverCart:cart,inventoryPolicies:new Map([["variant-1",options.policy || (options.backorder?"CONTINUE":"DENY")]]),pendingAdds:new Map(),pendingLineUpdates:new Map(),lineUpdatesInFlight:new Map(),lineQuantityLimits:new Map(),lineUpdateErrors:new Map(),pendingLineRemovals:new Set()});
         root.render(<Fixture layout={layout}/>);
       };
       window.target=()=>useCartStore.getState().pendingLineUpdates.get("line-1");
@@ -114,14 +114,9 @@ test("Cart quantity stops rapid increases at stock during loading in both layout
         assert.equal(await page.evaluate(() => window.submitQuantity()), 3);
         await page.evaluate(() => window.respondQuantity(3, 3));
 
-        // Stock alone cannot distinguish an in-stock backorder variant.
-        // Validate one increase with Shopify, without displaying quantity 4.
-        await expect(increase).toBeEnabled();
-        await increase.click();
-        await expect(page.locator("output")).toHaveText("3");
+        // A confirmed DENY policy blocks the first overshoot, including after settlement.
         await expect(increase).toBeDisabled();
-        assert.equal(await page.evaluate(() => window.submitQuantity()), 4);
-        await page.evaluate(() => window.respondQuantity(3, 3));
+        assert.equal(await page.evaluate(() => window.target()), undefined);
         await expect(page.locator("output")).toHaveText("3");
         await expect(increase).toBeDisabled();
         await expect(page.getByRole("alert")).toHaveCount(0);
@@ -160,7 +155,9 @@ test("Cart quantity reconciles changed inventory without replaying queued oversh
     await expect(increase).toBeDisabled();
     assert.equal(await page.evaluate(() => window.target()), undefined);
 
-    await page.evaluate(() => window.resetQuantity(3, 3));
+    await page.evaluate(() =>
+      window.resetQuantity(3, 3, "drawer", { policy: "CONTINUE" }),
+    );
     await increase.click();
     await expect(page.locator("output")).toHaveText("3");
     await expect(increase).toBeDisabled();

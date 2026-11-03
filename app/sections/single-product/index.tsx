@@ -14,6 +14,8 @@ import { forwardRef, useEffect, useState } from "react";
 import type { ProductQuery } from "storefront-api.generated";
 import { sectionBackgroundInputs } from "~/components/background-image";
 import { Button } from "~/components/button";
+import { useCanAddVariant } from "~/components/cart/store";
+import { useVariantInventoryPolicy } from "~/components/cart/use-cart-inventory-policy";
 import { Image } from "~/components/image";
 import Link from "~/components/link";
 import { AddToCartButton } from "~/components/product/add-to-cart-button";
@@ -126,6 +128,20 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
       selectedVariant?.product?.handle === product?.handle
         ? selectedVariant
         : product?.selectedOrFirstAvailableVariant;
+    const zeroStock =
+      typeof currentVariant?.quantityAvailable === "number" &&
+      currentVariant.quantityAvailable <= 0;
+    const canAddVariant = useCanAddVariant(
+      currentVariant?.id,
+      selectedSellingPlanId,
+    );
+    const { policy, pending: policyPending } = useVariantInventoryPolicy(
+      currentVariant?.id,
+      Boolean(zeroStock && currentVariant?.availableForSale),
+    );
+    const soldOut =
+      !currentVariant?.availableForSale || (zeroStock && policy === "DENY");
+    const canPurchase = !soldOut && !policyPending;
     useEffect(() => {
       setSelectedVariant(product?.selectedOrFirstAvailableVariant);
       setSelectedSellingPlanId(null);
@@ -205,7 +221,7 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
       }
     }
 
-    const atcText = currentVariant?.availableForSale
+    const atcText = !soldOut
       ? addToCartText || t("product.addToCart")
       : currentVariant?.quantityAvailable === -1
         ? t("product.unavailable")
@@ -250,7 +266,10 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
                   currentVariant && (
                     <ProductBadges
                       product={product}
-                      selectedVariant={currentVariant}
+                      selectedVariant={{
+                        ...currentVariant,
+                        availableForSale: !soldOut,
+                      }}
                     />
                   )
                 }
@@ -340,14 +359,14 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
                     <Quantity
                       value={quantity}
                       onChange={setQuantity}
-                      disabled={!currentVariant?.availableForSale}
+                      disabled={!canPurchase || !canAddVariant}
                       variant="stepper"
                       className="w-1/3 min-w-0 [&_button]:w-1/4"
                     />
                     <AddToCartButton
                       width="auto"
                       containerClassName="min-w-0 flex-1"
-                      disabled={!currentVariant?.availableForSale}
+                      disabled={!canPurchase}
                       lines={[
                         {
                           merchandiseId: currentVariant?.id,
@@ -362,7 +381,7 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
                       {atcText}
                     </AddToCartButton>
                   </div>
-                  {currentVariant?.availableForSale && (
+                  {canPurchase && (
                     <ShopPayButton
                       width="100%"
                       variantIdsAndQuantities={[

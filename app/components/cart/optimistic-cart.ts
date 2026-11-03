@@ -178,18 +178,17 @@ export function filterRemovedCartLines(
   baseline: CartApiQueryFragment,
   pendingLineRemovals: Set<string>,
 ): CartWithOptimistic {
-  if (pendingLineRemovals.size === 0) {
+  const nodes = baseline.lines.nodes.filter(
+    (line) => line.quantity > 0 && !pendingLineRemovals.has(line.id),
+  );
+  if (nodes.length === baseline.lines.nodes.length) {
     return baseline;
   }
-
-  const nodes = baseline.lines.nodes.filter(
-    (line) => !pendingLineRemovals.has(line.id),
-  );
   return {
     ...baseline,
     lines: { ...baseline.lines, nodes },
     totalQuantity: nodes.reduce((sum, line) => sum + line.quantity, 0),
-    isOptimistic: true,
+    ...(pendingLineRemovals.size > 0 ? { isOptimistic: true } : {}),
   };
 }
 
@@ -353,7 +352,11 @@ export function applyOptimisticMutations(
   if (!mutated) {
     return null;
   }
-  cart.totalQuantity = nodes.reduce((sum, line) => sum + line.quantity, 0);
+  cart.lines.nodes = nodes.filter((line) => line.quantity > 0);
+  cart.totalQuantity = cart.lines.nodes.reduce(
+    (sum, line) => sum + line.quantity,
+    0,
+  );
   cart.isOptimistic = true;
   return cart;
 }

@@ -14,6 +14,7 @@ import {
 } from "./cart-baseline";
 import type { CartMutationResponse } from "./cart-types";
 import { useCartStore } from "./store";
+import { useCartInventoryPolicy } from "./use-cart-inventory-policy";
 
 const QUANTITY_FETCHER_PREFIX = "cart-line-quantity:";
 
@@ -89,6 +90,8 @@ export function CartStoreSync({
     | Promise<CartApiQueryFragment | null>;
 }) {
   const fetchers = useFetchers();
+  const serverCart = useCartStore((state) => state.serverCart);
+  useCartInventoryPolicy(serverCart);
   const pendingLineUpdates = useCartStore((state) => state.pendingLineUpdates);
   const lineUpdatesInFlight = useCartStore(
     (state) => state.lineUpdatesInFlight,
