@@ -10,7 +10,7 @@ _Aspen is a sophisticated Shopify theme crafted specifically for home furniture 
 
 ## Demo
 
-- Live store: https://weaverse-aspen-furniture.fly.dev/
+- Live store: https://aspen-shopify-hydrogen.weaverse.dev/
 - Customizing Aspen on Weaverse Studio: https://studio.weaverse.io/demo?theme=aspen
   
 ![aspen.weaverse.dev](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/aspen-preview-desktop.png?v=1755162368)
@@ -329,8 +329,6 @@ export const components: HydrogenComponent[] = [
 ### Manage content and style your pages within Weaverse Studio
 
 Weaverse provides a convenient way to customize your theme inside the **Weaverse Studio**. You can add new sections, customize existing ones, and change the theme settings.
-
-![Aspen in Weaverse Studio](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/aspen-demo.png?v=1755246830)
 
 ### Project Structure
 
