@@ -18,6 +18,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
+        # Exact pins cover the audited floor, boundary minors and released
+        # majors; 22.x exercises the latest released 22 patch.
         node: [22.0.0, 22.x, 23.11.1, 24.22.2, 25.9.0, 26.13.0]
         include:
           # Exercise both sides of the runtime API and former engine boundaries.
@@ -37,18 +39,22 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           cache: npm
+      # Keep npm at the audited version used for the compatibility evidence.
       - name: Use the audited npm version
         run: npm install --global npm@10.9.8 --no-audit --no-fund
       - name: Install from the committed lockfile
         run: npm ci --engine-strict --no-audit --no-fund
       - name: Verify the resolved dependency graph
         run: npm ls @shopify/mini-oxygen body-parser undici vite esbuild framer-motion motion-dom motion-utils --all
+      # The documented onboarding path must resolve the locally pinned CLI,
+      # not a published one; published CLI 4.x fails below Node 22.12.
       - name: Verify onboarding uses the pinned local CLI
         run: |
-          cli="$(npx --no-install shopify version)"
-          echo "Resolved CLI: $cli"
-          echo "$cli" | grep -q "3.94.3" || {
-            echo "The documented onboarding path must resolve the local pinned CLI, not a published one."
+          pinned="$(node -p "require('./package.json').devDependencies['@shopify/cli']")"
+          resolved="$(node -p "require('./node_modules/@shopify/cli/package.json').version")"
+          echo "Pinned: $pinned / Resolved: $resolved"
+          node -e "process.exit('$resolved' === '$pinned' ? 0 : 1)" || {
+            echo "The documented onboarding path must resolve the local pinned CLI, not a fetched one."
             exit 1
           }
       - name: Generate GraphQL types

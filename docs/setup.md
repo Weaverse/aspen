@@ -44,6 +44,11 @@ typecheck, build, and `node scripts/check-dev-runtime.mjs` on the minimum
 Node version and the representative released-major matrix below.
 The locale and translation tests use `vite-node` because Node 22.0.0 cannot
 execute TypeScript test files directly.
+`@graphql-codegen/cli` stays on 6.3.1 because 7.2.0 resolves
+`@whatwg-node/promise-helpers` 2.0.1 (engines `>=22.15.0`) into five codegen
+packages, which fails `npm ci --engine-strict` on Node 22.0.0; 6.3.1 keeps
+promise-helpers 1.3.2 (engines `>=16.0.0`). This was verified by an actual
+install attempt on 2026-11-03, not inferred from registry metadata alone.
 
 The dev runtime check verifies CLI startup, client compilation, dependency
 optimization, and a request through an Oxygen test worker. That worker imports
@@ -90,7 +95,10 @@ Node 22.0.0 is a Shopify-side change and stays an explicitly open item; this
 document reflects demonstrated behavior rather than a support claim.
 
 Recorded local verification on macOS arm64 with npm 10.9.8 (results checked
-against the current dependency graph on 2026-11-02):
+against the current dependency graph on 2026-11-02; the full 22.0.0 floor
+suite — strict clean install, dependency-graph check, pinned-CLI assertion,
+codegen, typecheck, sanitizer/footer/locale/translation tests, build and the
+dev-runtime check — was re-executed end to end on 2026-11-03 and passed):
 
 | Node | Clean install | Codegen, typecheck, build | Dev and optimizer | Home/product/collection |
 | --- | --- | --- | --- | --- |
