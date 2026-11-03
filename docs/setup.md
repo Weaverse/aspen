@@ -75,6 +75,20 @@ undici, Vite, esbuild and the Motion packages; install exit status alone does
 not prove the intended graph. Keep both `.npmrc` and `package-lock.json`
 when scaffolding a storefront.
 
+### Published Shopify CLI boundary
+
+All Aspen scripts (`npm run dev`, `build`, `preview`, and the CI runtime
+check) execute the locally pinned `@shopify/cli` 3.94.3 from
+`node_modules`; CI asserts that resolution on every matrix entry. The
+published `@shopify/cli` 4.x line declares `engines: >=22.12.0` and crashes
+before startup on Node 22.0.0–22.11.0 with
+`SyntaxError: … 'enableCompileCache'` (verified against the exact registry
+artifacts for 4.6.0 on 22.0.0 and 22.7.0; 22.8.0 starts but remains outside
+this theme's toolchain). Do not install a global or `npx`-fetched CLI 4.x
+for this theme on those versions. Making the published CLI itself work on
+Node 22.0.0 is a Shopify-side change and stays an explicitly open item; this
+document reflects demonstrated behavior rather than a support claim.
+
 Recorded local verification on macOS arm64 with npm 10.9.8 (results checked
 against the current dependency graph on 2026-11-02):
 

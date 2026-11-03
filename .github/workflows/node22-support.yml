@@ -43,6 +43,14 @@ jobs:
         run: npm ci --engine-strict --no-audit --no-fund
       - name: Verify the resolved dependency graph
         run: npm ls @shopify/mini-oxygen body-parser undici vite esbuild framer-motion motion-dom motion-utils --all
+      - name: Verify onboarding uses the pinned local CLI
+        run: |
+          cli="$(npx --no-install shopify version)"
+          echo "Resolved CLI: $cli"
+          echo "$cli" | grep -q "3.94.3" || {
+            echo "The documented onboarding path must resolve the local pinned CLI, not a published one."
+            exit 1
+          }
       - name: Generate GraphQL types
         run: npm run codegen
       - name: Check types
