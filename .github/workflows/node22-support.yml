@@ -41,7 +41,17 @@ jobs:
           cache: npm
       # Keep npm at the audited version used for the compatibility evidence.
       - name: Use the audited npm version
+        if: runner.os != 'Windows'
         run: npm install --global npm@10.9.8 --no-audit --no-fund
+      # Node 22.0.0 can pick up a broken preinstalled global npm shim on
+      # hosted Windows runners. Bootstrap with npm bundled beside node.exe.
+      - name: Use the audited npm version on Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $nodeDir = Split-Path (Get-Command node).Source
+          & node (Join-Path $nodeDir 'node_modules/npm/bin/npm-cli.js') install --global npm@10.9.8 --no-audit --no-fund
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Install from the committed lockfile
         run: npm ci --engine-strict --no-audit --no-fund
       - name: Verify the resolved dependency graph

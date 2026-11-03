@@ -27,9 +27,12 @@ function createAssetsServer(assetsDirectory) {
     const relativeAssetPath = isValidAssetPath ? pathname.replace(`/${artificialAssetPrefix}`, "") : pathname;
     if (isValidAssetPath) {
       const root = await fs.realpath(assetsDirectory).catch(() => null);
-      const filePath = root && await fs.realpath(path.resolve(root, `.${relativeAssetPath}`)).catch(() => null);
-      // Resolve symlinks before checking containment, including on Windows.
       const rootPrefix = root && (root.endsWith(path.sep) ? root : root + path.sep);
+      const candidatePath = root && path.resolve(root, `.${relativeAssetPath}`);
+      // Validate before any filesystem lookup, then check the symlink target.
+      const filePath = candidatePath && candidatePath.startsWith(rootPrefix)
+        ? await fs.realpath(candidatePath).catch(() => null)
+        : null;
       const isContained = filePath && filePath.startsWith(rootPrefix);
       const file = isContained ? await fs.open(filePath).catch(() => null) : null;
       const stat = await file?.stat().catch(() => {

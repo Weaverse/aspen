@@ -161,29 +161,40 @@ test("bundled stack formatter handles method names longer than function names", 
   );
 });
 
-test("worker entry failures return generic HTTP errors and log the exception", async () => {
-  const source = await readFile(
-    new URL("../vendor/mini-oxygen/dist/vite/worker-entry.js", import.meta.url),
-    "utf8",
-  );
-  const body = source.slice(
-    source.indexOf(
+for (const lineEnding of ["\n", "\r\n"]) {
+  test(`worker entry failures stay private with ${lineEnding === "\n" ? "LF" : "CRLF"} source`, async () => {
+    const rawSource = await readFile(
+      new URL(
+        "../vendor/mini-oxygen/dist/vite/worker-entry.js",
+        import.meta.url,
+      ),
+      "utf8",
+    );
+    const source = rawSource
+      .replace(/\r?\n/g, lineEnding)
+      .replace(/\r\n/g, "\n");
+    const start = source.indexOf(
       "return runtime.import(env.__VITE_RUNTIME_EXECUTE_URL).catch",
-    ),
-    source.indexOf("\n}\nfunction isViteInvokePayload"),
-  );
-  const run = new Function("runtime", "env", "console", body);
-  const failure = new Error("private /home/developer/source.ts");
-  const diagnostics = [];
-  const result = await run(
-    { import: () => Promise.reject(failure) },
-    {},
-    { error: (error) => diagnostics.push(error) },
-  );
-  assert.equal(result.errorResponse.status, 503);
-  assert.equal(
-    await result.errorResponse.text(),
-    "Unable to load Oxygen worker entry. Check the dev server logs.",
-  );
-  assert.deepEqual(diagnostics, [failure]);
-});
+    );
+    const end = source.indexOf("\n}\nfunction isViteInvokePayload");
+    assert.ok(
+      start >= 0 && end > start,
+      "Expected worker entry error handler boundaries",
+    );
+    const body = source.slice(start, end);
+    const run = new Function("runtime", "env", "console", body);
+    const failure = new Error("private /home/developer/source.ts");
+    const diagnostics = [];
+    const result = await run(
+      { import: () => Promise.reject(failure) },
+      {},
+      { error: (error) => diagnostics.push(error) },
+    );
+    assert.equal(result.errorResponse.status, 503);
+    assert.equal(
+      await result.errorResponse.text(),
+      "Unable to load Oxygen worker entry. Check the dev server logs.",
+    );
+    assert.deepEqual(diagnostics, [failure]);
+  });
+}
