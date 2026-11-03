@@ -49,14 +49,7 @@ jobs:
       # The documented onboarding path must resolve the locally pinned CLI,
       # not a published one; published CLI 4.x fails below Node 22.12.
       - name: Verify onboarding uses the pinned local CLI
-        run: |
-          pinned="$(node -p "require('./package.json').devDependencies['@shopify/cli']")"
-          resolved="$(node -p "require('./node_modules/@shopify/cli/package.json').version")"
-          echo "Pinned: $pinned / Resolved: $resolved"
-          node -e "process.exit('$resolved' === '$pinned' ? 0 : 1)" || {
-            echo "The documented onboarding path must resolve the local pinned CLI, not a fetched one."
-            exit 1
-          }
+        run: node -e "const assert = require('node:assert/strict'); const pinned = require('./package.json').devDependencies['@shopify/cli']; const resolved = require('./node_modules/@shopify/cli/package.json').version; console.log({pinned, resolved}); assert.equal(resolved, pinned, 'Onboarding must resolve the local pinned CLI, not a fetched one');"
       - name: Generate GraphQL types
         run: npm run codegen
       - name: Check types

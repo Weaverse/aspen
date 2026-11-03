@@ -68,6 +68,8 @@ async function stopDevServer(child) {
   if (process.platform === "win32") {
     const stop = spawn("taskkill", ["/pid", String(child.pid), "/T", "/F"]);
     await once(stop, "close");
+    // taskkill can exit before the child's piped output has finished draining.
+    await closed;
     return;
   }
   try {
