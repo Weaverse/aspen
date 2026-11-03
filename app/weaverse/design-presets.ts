@@ -77,6 +77,8 @@ export type DesignTokens = {
   footerNewsletterButtonTextColorHover: string;
   footerNewsletterButtonBackgroundDesktop: string;
   footerNewsletterButtonTextColorDesktop: string;
+  cartTagBackgroundColor: string;
+  cartNoteCardBackground: string;
 };
 
 export const ASPEN_2026_DESIGN_TOKENS: DesignTokens = {
@@ -152,6 +154,8 @@ export const ASPEN_2026_DESIGN_TOKENS: DesignTokens = {
   footerNewsletterButtonTextColorHover: "#000000",
   footerNewsletterButtonBackgroundDesktop: "#EDEDED",
   footerNewsletterButtonTextColorDesktop: "#343231",
+  cartTagBackgroundColor: "#EBE8E5",
+  cartNoteCardBackground: "#F3F3F3",
 };
 
 const PRESET_TOKENS = {

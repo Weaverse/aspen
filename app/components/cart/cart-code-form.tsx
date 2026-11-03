@@ -6,6 +6,7 @@ import { Button } from "~/components/button";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import { CART_CODE_APPLY_ACTION, uppercaseCartCode } from "~/utils/cart-code";
 import { getCartMutationError } from "~/utils/cart-error";
+import { CART_ACTION_DESKTOP_HOVER } from "./cart-action-styles";
 import { useCartFetcherSync } from "./cart-sync";
 import type { CartMutationResponse } from "./cart-types";
 
@@ -115,7 +116,7 @@ export function CartCodeForm({
           aria-label={t("cart.apply")}
           loading={busy}
           disabled={disabled || !code.trim()}
-          className="h-13.5 shrink-0 rounded-(--radius-sm) bg-transparent px-6 py-0"
+          className={`h-13.5 shrink-0 rounded-(--radius-sm) bg-transparent px-6 py-0 ${CART_ACTION_DESKTOP_HOVER}`}
         >
           {t("cart.apply")}
         </Button>

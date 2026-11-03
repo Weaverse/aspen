@@ -87,6 +87,8 @@ export function GlobalStyle() {
     footerNewsletterButtonTextColorHover,
     footerNewsletterButtonBackgroundDesktop,
     footerNewsletterButtonTextColorDesktop,
+    cartTagBackgroundColor,
+    cartNoteCardBackground,
   } = resolveDesignTokens(settings);
 
   return (
@@ -160,6 +162,10 @@ export function GlobalStyle() {
             --btn-outline-text-hover: ${buttonOutlineTextHover};
             --btn-outline-background-hover: ${buttonOutlineBackgroundHover};
             --btn-outline-border-hover: ${buttonOutlineBorderHover};
+
+            /* Colors (cart) */
+            --color-cart-tag-bg: ${cartTagBackgroundColor};
+            --color-cart-note-bg: ${cartNoteCardBackground};
 
             /* Colors (product) */
             --color-compare-price-text: ${comparePriceTextColor};

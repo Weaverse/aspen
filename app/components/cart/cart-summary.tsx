@@ -12,6 +12,7 @@ import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import { useTranslatedThemeSettings } from "~/hooks/use-translated-theme-settings";
 import { getCartMutationError } from "~/utils/cart-error";
 import { toggleCartDrawer } from "../layout/cart-drawer";
+import { CART_ACTION_DESKTOP_HOVER } from "./cart-action-styles";
 import { PriceLoadingSpinner } from "./cart-line-item";
 import { CartResponseSync, useCartFetcherSync } from "./cart-sync";
 import type {
@@ -21,8 +22,12 @@ import type {
   CartWithOptimistic,
 } from "./cart-types";
 
+/* Intentional two-font treatment: static DM Sans below xl, theme body font from xl up. */
 const cartCodeBadgeClassName =
-  "flex items-center gap-2 bg-[var(--background-subtle-2-ui,#DFDFDF)] px-2 py-1 font-['DM_Sans'] text-[12px] font-normal not-italic leading-none tracking-[0.24px] text-[color:var(--Text-Subtle,#524B46)]";
+  "flex items-center gap-2 rounded-(--radius-sm) bg-(--color-cart-tag-bg) px-2 py-1 font-['DM_Sans'] text-[12px] font-normal not-italic leading-none tracking-[0.24px] text-(--color-text-subtle)";
+
+/* Figma cart-page totals use a slightly wider tracking at xl. */
+const totalsTracking = "xl:tracking-[0.02em]";
 
 export function CartProgression({
   cost,
@@ -149,6 +154,14 @@ export function AppliedCartCodes({
   const applicableDiscountCodes = discountCodes.filter(
     (discount) => discount.applicable,
   );
+  const badgeClassName = clsx(
+    cartCodeBadgeClassName,
+    layout === "page" && "xl:font-body",
+  );
+  const removeIconClassName = clsx(
+    "shrink-0",
+    layout === "page" && "xl:size-3.5",
+  );
 
   if (!(applicableDiscountCodes.length || appliedGiftCards.length)) {
     return null;
@@ -176,7 +189,7 @@ export function AppliedCartCodes({
             {(fetcher) => (
               <>
                 <CartResponseSync fetcher={fetcher} />
-                <div className={cartCodeBadgeClassName}>
+                <div className={badgeClassName}>
                   <Tag size={16} aria-hidden="true" className="shrink-0" />
                   <span className="whitespace-nowrap">
                     <span className="uppercase">{discount.code}</span>
@@ -200,7 +213,11 @@ export function AppliedCartCodes({
                       code: discount.code,
                     })}
                   >
-                    <X size={12} aria-hidden="true" />
+                    <X
+                      size={12}
+                      aria-hidden="true"
+                      className={removeIconClassName}
+                    />
                   </button>
                 </div>
               </>
@@ -213,7 +230,7 @@ export function AppliedCartCodes({
           <GiftCardRemoveForm giftCardId={giftCard.id}>
             {(pending) => (
               <>
-                <div className={cartCodeBadgeClassName}>
+                <div className={badgeClassName}>
                   <Tag size={16} aria-hidden="true" className="shrink-0" />
                   <span className="whitespace-nowrap">
                     ••••{" "}
@@ -238,7 +255,11 @@ export function AppliedCartCodes({
                     {pending ? (
                       <PriceLoadingSpinner />
                     ) : (
-                      <X size={12} aria-hidden="true" />
+                      <X
+                        size={12}
+                        aria-hidden="true"
+                        className={removeIconClassName}
+                      />
                     )}
                   </button>
                 </div>
@@ -313,46 +334,58 @@ export function CartPageTotals({
   const subtotalBeforeDiscounts = subtotalAfterDiscounts + discountTotal;
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-6 border-line-subtle border-y py-6">
-        <div className="flex items-center justify-between">
-          <span>{t("cart.subtotal")}</span>
-          <span className="shrink-0 whitespace-nowrap">
-            {isOptimistic ? (
-              <PriceLoadingSpinner />
-            ) : (
-              <Money
-                data={{
-                  amount: subtotalBeforeDiscounts.toString(),
-                  currencyCode,
-                }}
-              />
-            )}
-          </span>
-        </div>
-        {discountTotal > 0 && (
+    <div className="flex flex-col gap-6 xl:gap-5">
+      <div className="flex flex-col gap-6 border-line-subtle border-y py-6 xl:gap-5 xl:py-5">
+        <div className="flex flex-col gap-6 xl:gap-3">
           <div className="flex items-center justify-between">
-            <span>{t("cart.discount")}</span>
-            <span className="inline-flex shrink-0 items-baseline whitespace-nowrap">
-              −
-              <Money
-                as="span"
-                data={{ amount: discountTotal.toString(), currencyCode }}
-              />
+            <span className={`xl:font-semibold ${totalsTracking}`}>
+              {t("cart.subtotal")}
+            </span>
+            <span
+              className={`shrink-0 whitespace-nowrap xl:leading-none ${totalsTracking}`}
+            >
+              {isOptimistic ? (
+                <PriceLoadingSpinner />
+              ) : (
+                <Money
+                  data={{
+                    amount: subtotalBeforeDiscounts.toString(),
+                    currencyCode,
+                  }}
+                />
+              )}
             </span>
           </div>
-        )}
-        <span className="text-(--color-text-light)">
-          {t("cart.shippingTaxesCalculated")}
-        </span>
+          {discountTotal > 0 && (
+            <div className="flex items-center justify-between">
+              <span className={`xl:font-semibold ${totalsTracking}`}>
+                {t("cart.discount")}
+              </span>
+              <span
+                className={`inline-flex shrink-0 items-baseline whitespace-nowrap xl:text-(--color-text-light) xl:leading-none ${totalsTracking}`}
+              >
+                −
+                <Money
+                  as="span"
+                  data={{ amount: discountTotal.toString(), currencyCode }}
+                />
+              </span>
+            </div>
+          )}
+          <span className="text-(--color-text-light)">
+            {t("cart.shippingTaxesCalculated")}
+          </span>
+        </div>
       </div>
       <div className="flex items-center justify-between gap-4">
-        <span>
+        <span className="xl:text-base xl:tracking-[0.01em]">
           {t(
             cart.appliedGiftCards.length ? "cart.remainingToPay" : "cart.total",
           )}
         </span>
-        <span className="shrink-0 whitespace-nowrap font-semibold">
+        <span
+          className={`shrink-0 whitespace-nowrap font-semibold ${totalsTracking}`}
+        >
           {isOptimistic ? (
             <PriceLoadingSpinner />
           ) : cart.cost.totalAmount?.amount ? (
@@ -407,8 +440,8 @@ export function CartCheckoutActions({
           disabled={pending}
           className={
             layout === "page"
-              ? "w-full px-6 py-5 uppercase"
-              : "!px-6 !py-5 h-[54px] w-full uppercase"
+              ? `w-full px-6 py-5 uppercase ${CART_ACTION_DESKTOP_HOVER}`
+              : `!px-6 !py-5 h-[54px] w-full uppercase ${CART_ACTION_DESKTOP_HOVER}`
           }
         >
           {checkoutButtonText || t("cart.checkout")}
@@ -435,11 +468,13 @@ export function CartSummary({
         layout === "drawer" &&
           "hidden-scroll grid max-h-[55dvh] shrink-0 gap-2.5 overflow-y-auto border-line-subtle border-t bg-white pt-4 max-xl:gap-3.5 max-xl:pt-2.5",
         layout === "page" &&
-          "flex w-full flex-col gap-6 px-5 pb-6 md:mx-auto md:w-[432px] md:px-0 xl:mx-0 xl:w-full xl:px-6",
+          "flex w-full flex-col gap-6 px-6 pb-6 md:mx-auto md:w-[432px] xl:mx-0 xl:w-full xl:gap-5",
       )}
     >
       {layout === "page" && (
-        <span className="border-line-subtle border-b pb-6 font-medium uppercase">
+        <span
+          className={`border-line-subtle border-b pb-6 font-medium uppercase xl:pb-5 xl:font-semibold ${totalsTracking}`}
+        >
           {t("cart.orderSummary")}
         </span>
       )}
