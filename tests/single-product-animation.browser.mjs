@@ -12,6 +12,7 @@ import { DESKTOP_MIN_PX, TABLET_MAX_PX } from "./responsive-test-widths.mjs";
 // Stub remote media/payment/cart boundaries: this test never submits commerce.
 const root = fileURLToPath(new URL("../", import.meta.url));
 const fixtures = {
+  "~/components/cart/use-cart-inventory-policy": `export const useVariantInventoryPolicy = () => ({policy: window.testPolicy ?? null, pending: window.testPolicyPending ?? false});`,
   "@weaverse/hydrogen": `
     export const createSchema = (value) => value;
     export const IMAGES_PLACEHOLDERS = { product_2: "fixture.png" };
@@ -33,6 +34,7 @@ const fixtures = {
     }];
   `,
   "~/hooks/use-translated-text": `export const useTranslatedText = () => (value) => value;`,
+  "~/components/cart/store": `export const useCanAddVariant = () => true;`,
   "~/components/product/product-media": `export const ProductMedia = () => null;`,
   "~/components/product/product-card-rating": `export const ProductCardRating = () => null;`,
   "~/components/product/badges": `export const ProductBadges = () => null; export const SoldOutBadge = () => null;`,
@@ -70,12 +72,15 @@ const bundle = await build({
         selectedOrFirstAvailableVariant: variant,
       };
       const reactRoot = createRoot(document.getElementById("root"));
-      window.start = () => reactRoot.render(
-        <MemoryRouter><SingleProduct loaderData={{product, storeDomain: "fixture.example"}}
+      window.start = ({stock=3, available=true, policy=null, pending=false}={}) => {
+        window.testPolicy = policy; window.testPolicyPending = pending;
+        const selected = {...variant, quantityAvailable: stock, availableForSale: available};
+        reactRoot.render(
+        <MemoryRouter><SingleProduct loaderData={{product: {...product, selectedOrFirstAvailableVariant: selected}, storeDomain: "fixture.example"}}
           heading="Featured Product" addToCartText="Add to bag"
           estimatedDeliveryText="Estimated delivery within 3-5 business days" />
         </MemoryRouter>
-      );
+      ); };
     `,
     loader: "tsx",
     resolveDir: root,
@@ -115,6 +120,88 @@ const scenarios = [390, 820, TABLET_MAX_PX, DESKTOP_MIN_PX, 1440].map(
   (width) => ({ width, reveal: true }),
 );
 
+test("Featured Product disables sold-out purchases and preserves zero-stock backorders on every device", async () => {
+  const browser = await chromium.launch();
+  try {
+    for (const width of [390, 834, 1440]) {
+      const page = await browser.newPage({ viewport: { width, height: 900 } });
+      await page.setContent('<div id="root"></div>');
+      await page.addScriptTag({ content: bundle.outputFiles[0].text });
+      for (const fixture of [
+        {
+          stock: 0,
+          available: false,
+          policy: null,
+          disabled: true,
+          soldOut: true,
+        },
+        {
+          stock: 0,
+          available: true,
+          policy: "DENY",
+          disabled: true,
+          soldOut: true,
+        },
+        {
+          stock: 0,
+          available: true,
+          policy: "CONTINUE",
+          disabled: false,
+          soldOut: false,
+        },
+        {
+          stock: 0,
+          available: true,
+          policy: null,
+          pending: true,
+          disabled: true,
+          soldOut: false,
+        },
+        {
+          stock: 0,
+          available: true,
+          policy: null,
+          disabled: false,
+          soldOut: false,
+        },
+        {
+          stock: 3,
+          available: true,
+          policy: null,
+          disabled: false,
+          soldOut: false,
+        },
+      ]) {
+        await page.evaluate((value) => window.start(value), fixture);
+        const add = page.locator('[data-test="add-to-cart"]');
+        if (fixture.disabled) {
+          await expect(add).toBeDisabled();
+          await expect(
+            page.getByRole("button", { name: "product.increaseQuantity" }),
+          ).toBeDisabled();
+          await expect(page.getByText("Shop Pay", { exact: true })).toHaveCount(
+            0,
+          );
+        } else {
+          await expect(add).toBeEnabled();
+          await expect(
+            page.getByRole("button", { name: "product.increaseQuantity" }),
+          ).toBeEnabled();
+          await expect(page.getByText("Shop Pay", { exact: true })).toHaveCount(
+            1,
+          );
+        }
+        await expect(add).toHaveText(
+          fixture.soldOut ? "product.soldOut" : "Add to bag",
+        );
+      }
+      await page.close();
+    }
+  } finally {
+    await browser.close();
+  }
+});
+
 test("Featured Product uses the shared product stepper without overflowing its purchase row", async () => {
   const browser = await chromium.launch();
   try {
@@ -135,8 +222,14 @@ test("Featured Product uses the shared product stepper without overflowing its p
       await expect(group).toHaveCSS("height", "54px");
       await expect(group).toHaveCSS("border-radius", "8px");
       await expect(group).toHaveCSS("background-color", "rgb(223, 223, 223)");
+      const stepperWidth = await group.evaluate(
+        (element) => element.getBoundingClientRect().width,
+      );
       for (const button of await group.getByRole("button").all()) {
-        await expect(button).toHaveCSS("width", "44px");
+        const buttonWidth = await button.evaluate(
+          (element) => element.getBoundingClientRect().width,
+        );
+        assert.ok(Math.abs(buttonWidth - stepperWidth / 4) < 0.1);
         await expect(button.locator("span")).toHaveCSS("font-size", "20px");
         await expect(button.locator("span")).toHaveCSS("font-weight", "600");
         await expect(button.locator("span")).toHaveCSS(
@@ -151,18 +244,16 @@ test("Featured Product uses the shared product stepper without overflowing its p
         const cta = row.querySelector("[data-test='add-to-cart']");
         return {
           width: element.getBoundingClientRect().width,
+          rowWidth: row.getBoundingClientRect().width,
           right: cta.getBoundingClientRect().right,
           rowRight: row.getBoundingClientRect().right,
           scroll: cta.scrollWidth,
           client: cta.clientWidth,
         };
       });
-      assert.ok(bounds.width <= 175 && bounds.width >= 96);
+      assert.ok(Math.abs(bounds.width - bounds.rowWidth / 3) < 1);
       assert.ok(bounds.right <= bounds.rowRight + 1);
       assert.ok(bounds.scroll <= bounds.client + 1);
-      if (width >= 834) {
-        await expect(group).toHaveCSS("width", "175px");
-      }
       await group
         .getByRole("button", { name: "product.increaseQuantity" })
         .click();

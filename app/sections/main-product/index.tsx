@@ -18,6 +18,7 @@ import {
 import clsx from "clsx";
 import { forwardRef, useEffect, useState } from "react";
 import { useLoaderData } from "react-router";
+import { useCanAddVariant } from "~/components/cart/store";
 import Link from "~/components/link";
 import { LoyaltyPointsHint } from "~/components/loyalty/loyalty-points-hint";
 import { AddToCartButton } from "~/components/product/add-to-cart-button";
@@ -192,6 +193,10 @@ const ProductInformation = forwardRef<
   const [selectedSellingPlanId, setSelectedSellingPlanId] = useState<
     string | null
   >(null);
+  const canAddVariant = useCanAddVariant(
+    selectedVariant?.id,
+    selectedSellingPlanId,
+  );
   const availableQuantity = selectedVariant?.quantityAvailable;
   const quantityLimit =
     availableQuantity && availableQuantity > 0
@@ -435,7 +440,9 @@ const ProductInformation = forwardRef<
                     <Quantity
                       value={quantity}
                       onChange={setQuantity}
-                      disabled={!selectedVariant?.availableForSale}
+                      disabled={
+                        !selectedVariant?.availableForSale || !canAddVariant
+                      }
                       maxQuantity={maxQuantity}
                       variant="stepper"
                       className="col-span-full shrink-0"

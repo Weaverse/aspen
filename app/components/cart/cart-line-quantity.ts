@@ -58,9 +58,9 @@ export function getOtherVariantQuantity(
 }
 
 /**
- * Inventory is an optimistic-display boundary, not a purchase restriction:
- * Storefront doesn't expose the inventory policy for an in-stock variant.
- * Shopify must confirm increases past this boundary (including backorders).
+ * Stock bounds optimistic display. A caller may also enforce that boundary
+ * when inventory policy confirms DENY; otherwise Shopify validates increases
+ * beyond it, including backorders.
  */
 export function getOptimisticLineQuantity(
   line: QuantityLine,

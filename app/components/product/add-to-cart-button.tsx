@@ -15,7 +15,7 @@ import type { FetcherWithComponents } from "react-router";
 import { useMatches } from "react-router";
 import { Button } from "~/components/button";
 import { useCartFetcherSync } from "~/components/cart/cart-sync";
-import { useCartStore } from "~/components/cart/store";
+import { canAddCartLines, useCartStore } from "~/components/cart/store";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import { getCartMutationError } from "~/utils/cart-error";
 import { cn } from "~/utils/cn";
@@ -57,6 +57,7 @@ export function AddToCartButton({
   const pendingToken = useRef<string | null>(null);
   const submitted = useRef(false);
   const [isHydrated, setIsHydrated] = useState(false);
+  const canAdd = useCartStore((state) => canAddCartLines(state, lines));
   const hasValidLines =
     lines.length > 0 &&
     lines.every(
@@ -75,7 +76,12 @@ export function AddToCartButton({
     <div
       className={cn(width === "full" ? "w-full" : "w-auto", containerClassName)}
       onSubmitCapture={(event) => {
-        if (submitted.current) {
+        if (
+          submitted.current ||
+          disabled ||
+          !hasValidLines ||
+          !canAddCartLines(useCartStore.getState(), lines)
+        ) {
           event.preventDefault();
           return;
         }
@@ -122,9 +128,14 @@ export function AddToCartButton({
                   variant="primary"
                   className={cn(className, "!border-none px-6 py-5")}
                   disabled={Boolean(
-                    disabled || isAdding || !hasValidLines || !isHydrated,
+                    disabled ||
+                      isAdding ||
+                      !hasValidLines ||
+                      !isHydrated ||
+                      !canAdd,
                   )}
                   {...props}
+                  title={!canAdd ? t("cart.quantityLimitReached") : props.title}
                   aria-label={
                     props["aria-label"] ??
                     (isAdding && loadingStyle === "overlay"

@@ -37,7 +37,8 @@ const bundle = await build({
       }
       window.start=()=>{
         resetCartBaselineForTests();
-        useCartStore.setState({serverCart:initial,isResolved:true,pendingAdds:new Map(),pendingLineUpdates:new Map(),lineUpdatesInFlight:new Map(),lineQuantityLimits:new Map(),lineUpdateErrors:new Map(),pendingLineRemovals:new Set()});
+        // Exercise Shopify validation when policy metadata is unavailable.
+        useCartStore.setState({serverCart:initial,isResolved:true,inventoryPolicies:new Map([["variant-1",null]]),pendingAdds:new Map(),pendingLineUpdates:new Map(),lineUpdatesInFlight:new Map(),lineQuantityLimits:new Map(),lineUpdateErrors:new Map(),pendingLineRemovals:new Set()});
         let cart=structuredClone(initial), sequence=0, firstLoad=true;
         window.requests=[];window.loaders=[];
         const router=createMemoryRouter([
