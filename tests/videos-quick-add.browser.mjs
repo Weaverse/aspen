@@ -21,20 +21,42 @@ const bundle = await build({
       import { createMemoryRouter, RouterProvider } from "react-router";
       import VideoItem from "./app/sections/videos/video";
       import { AddToCartButton } from "./app/components/product/add-to-cart-button";
-      import { useCartStore } from "./app/components/cart/store";
+      import { useCanAddVariant, useCartStore } from "./app/components/cart/store";
+      import { Quantity } from "./app/components/product/quantity";
+      import { CartStoreSync } from "./app/components/cart/cart-sync";
+      import { buildOptimisticAddCart } from "./app/components/cart/optimistic-cart";
       const money = {amount:"100",currencyCode:"USD"};
       const product = {handle:"fixture-product", title:"Fixture product",
         selectedOrFirstAvailableVariant:{id:"variant",availableForSale:true,price:money,selectedOptions:[{name:"Color",value:"Blue"}]}};
+      function InlinePurchase({sync}) {
+        const canAdd = useCanAddVariant("variant", window.fixturePlan);
+        return <>{sync && <CartStoreSync initialCart={window.initialCart}/>}
+          <Quantity variant="stepper" value={2} onChange={()=>{}} disabled={!canAdd}/>
+          <AddToCartButton lines={[{merchandiseId:"variant",quantity:1,sellingPlanId:window.fixturePlan ?? undefined,selectedVariant:product.selectedOrFirstAvailableVariant}]} animate={false}>Other Add</AddToCartButton></>;
+      }
       window.fixtureSettings = {};
-      window.start = ({inline = false, withImage = false, label = "Add to Cart", available = true, quickShopLabel} = {}) => {
+      window.start = ({inline = false, sync = false, plan = null, withImage = false, label = "Add to Cart", available = true, quickShopLabel} = {}) => {
+        window.fixturePlan = plan;
         window.fixtureSettings = quickShopLabel ? {quickShopButtonTextOpen: quickShopLabel} : {};
         product.selectedOrFirstAvailableVariant.availableForSale = available;
         window.cartStore = useCartStore;
         window.productRequests = [];
         window.cartRequests = [];
+        if (sync) {
+          window.initialCart = buildOptimisticAddCart([{merchandiseId:"variant",quantity:1,
+            selectedVariant:{...product.selectedOrFirstAvailableVariant,quantityAvailable:1}}]);
+          window.initialCart.id = "cart-policy-fixture";
+          window.initialCart.updatedAt = "2026-11-03T10:00:00.000Z";
+          window.initialCart.lines.nodes[0].id = "line-policy-fixture";
+          window.policyRequests = 0;
+          const originalFetch = window.fetch;
+          window.fetch = (input, ...args) => String(input).includes("cart-inventory-policy")
+            ? (window.policyRequests++, new Promise(resolve => {window.finishPolicy = () => resolve(Response.json({policies:{variant:"CONTINUE"}}));}))
+            : originalFetch(input, ...args);
+        }
         const router = createMemoryRouter([
           {id:"root",path:"/",element:inline
-            ? React.createElement(AddToCartButton,{lines:[{merchandiseId:"variant",quantity:1,selectedVariant:product.selectedOrFirstAvailableVariant}],animate:false},"Other Add")
+            ? React.createElement(InlinePurchase, {sync})
             : React.createElement(VideoItem,{video:{url:""},addToCartText:label,loaderData:{product: withImage ? {...product,featuredImage:{url:"https://cdn.shopify.com/s/files/1/0000/0001/files/fixture.jpg",width:100,height:100,altText:"Fixture image"}} : product}})},
           {path:"/api/product",loader:({request}) => {window.productRequests.push(request.url); return new Promise(() => {});}},
           {path:"/cart",action:async ({request}) => {
@@ -422,6 +444,153 @@ test("Videos narrow cards and long merchant labels do not overflow or clip loadi
       window.finishCart({ userErrors: [{ message: "Fixture cart error" }] }),
     );
     await expect(button).toHaveAttribute("aria-busy", "false");
+    await page.close();
+  }
+});
+
+test("subscription quantity controls use the selected plan's purchase limit", async () => {
+  const page = await render(834, { inline: true, plan: "two-weeks" });
+  await page.evaluate(() => {
+    window.cartStore.setState({
+      serverCart: {
+        id: "cart-plan-limit",
+        updatedAt: "2026-11-03T10:00:00.000Z",
+        totalQuantity: 3,
+        lines: {
+          nodes: [
+            {
+              id: "line-plan-limit",
+              quantity: 3,
+              attributes: [],
+              sellingPlanAllocation: { sellingPlan: { id: "two-weeks" } },
+              merchandise: {
+                id: "variant",
+                quantityAvailable: 10,
+                quantityRule: { minimum: 1, maximum: 3, increment: 1 },
+              },
+            },
+          ],
+        },
+      },
+      inventoryPolicies: new Map([["variant", "DENY"]]),
+    });
+  });
+  for (const name of [
+    "Other Add",
+    "product.decreaseQuantity",
+    "product.increaseQuantity",
+  ]) {
+    await expect(
+      page.getByRole("button", { name, exact: true }),
+    ).toBeDisabled();
+  }
+  await page.close();
+});
+
+test("inventory policy loads with the drawer closed and unlocks backorder purchase controls", async () => {
+  const page = await render(834, { inline: true, sync: true });
+  await expect.poll(() => page.evaluate(() => window.policyRequests)).toBe(1);
+  const add = page.getByRole("button", { name: "Other Add", exact: true });
+  const minus = page.getByRole("button", {
+    name: "product.decreaseQuantity",
+    exact: true,
+  });
+  const plus = page.getByRole("button", {
+    name: "product.increaseQuantity",
+    exact: true,
+  });
+  await expect(add).toBeDisabled();
+  await expect(minus).toBeDisabled();
+  await expect(plus).toBeDisabled();
+  assert.equal(
+    await page.evaluate(() => window.cartStore.getState().isOpen),
+    false,
+  );
+  await page.evaluate(() => window.finishPolicy());
+  await expect(add).toBeEnabled();
+  await expect(minus).toBeEnabled();
+  await expect(plus).toBeEnabled();
+  assert.equal(await page.evaluate(() => window.policyRequests), 1);
+  await page.close();
+});
+
+test("shared Add to Cart disables at cart stock limit and blocks submit before React re-renders", async () => {
+  for (const width of [390, 834, 1440]) {
+    const page = await render(width, { inline: true });
+    const button = page.getByRole("button", { name: "Other Add", exact: true });
+    const minus = page.getByRole("button", {
+      name: "product.decreaseQuantity",
+      exact: true,
+    });
+    const plus = page.getByRole("button", {
+      name: "product.increaseQuantity",
+      exact: true,
+    });
+    await expect(button).toBeEnabled();
+    await expect(minus).toBeEnabled();
+    await expect(plus).toBeEnabled();
+    await page.evaluate(() => {
+      const cart = {
+        id: "cart-stock-fixture",
+        updatedAt: "2026-11-03T10:00:00.000Z",
+        totalQuantity: 1,
+        lines: {
+          nodes: [
+            {
+              id: "line-subscription",
+              quantity: 1,
+              attributes: [],
+              sellingPlanAllocation: { sellingPlan: { id: "two-weeks" } },
+              merchandise: {
+                id: "variant",
+                quantityAvailable: 1,
+                currentlyNotInStock: false,
+              },
+            },
+          ],
+        },
+      };
+      window.cartStore.setState({
+        serverCart: cart,
+        inventoryPolicies: new Map([["variant", "DENY"]]),
+      });
+      document.querySelector("form").requestSubmit();
+    });
+    await expect(button).toBeDisabled();
+    await expect(minus).toBeDisabled();
+    await expect(plus).toBeDisabled();
+    assert.equal(await page.evaluate(() => window.cartRequests.length), 0);
+    assert.equal(
+      await page.evaluate(() => window.cartStore.getState().pendingAdds.size),
+      0,
+    );
+    await page.evaluate(() =>
+      window.cartStore.setState({
+        inventoryPolicies: new Map([["variant", "CONTINUE"]]),
+      }),
+    );
+    await expect(button).toBeEnabled();
+    await expect(minus).toBeEnabled();
+    await expect(plus).toBeEnabled();
+    await page.evaluate(() =>
+      window.cartStore.setState({
+        inventoryPolicies: new Map([["variant", "DENY"]]),
+      }),
+    );
+    await expect(button).toBeDisabled();
+    await page.evaluate(() => {
+      const cart = window.cartStore.getState().serverCart;
+      window.cartStore.setState({
+        serverCart: { ...cart, lines: { nodes: [] }, totalQuantity: 0 },
+      });
+    });
+    await expect(button).toBeEnabled();
+    await expect(minus).toBeEnabled();
+    await expect(plus).toBeEnabled();
+    await button.click();
+    await expect
+      .poll(() => page.evaluate(() => window.cartRequests.length))
+      .toBe(1);
     await page.close();
   }
 });

@@ -56,7 +56,8 @@ const bundle = await build({
             export const useMatches = () => [];
             export const usePrefixPathWithLocale = path => path;
             export const useCartFetcherSync = () => {};
-            export const useCartStore = {};
+            export const canAddCartLines = () => true;
+            export const useCartStore = selector => selector({});
             export const getCartMutationError = () => null;
             export const DEFAULT_LOCALE = {currency:"USD",language:"EN"};
           `,

@@ -14,10 +14,15 @@ import {
   settlePendingLineUpdate,
   stagePendingLineUpdate,
 } from "./cart-line-queue";
-import type { CartMutationResponse, CartWithOptimistic } from "./cart-types";
+import type {
+  CartLine,
+  CartMutationResponse,
+  CartWithOptimistic,
+} from "./cart-types";
 import {
   applyOptimisticMutations,
   buildOptimisticAddCart,
+  cartLineIdentity,
   filterRemovedCartLines,
   getActiveStagedLines,
   type PendingAdd,
@@ -27,6 +32,7 @@ type CartStore = {
   isResolved: boolean;
   isOpen: boolean;
   serverCart: CartApiQueryFragment | null;
+  inventoryPolicies: Map<string, "DENY" | "CONTINUE" | null>;
   pendingAdds: Map<string, PendingAdd>;
   pendingLineUpdates: Map<string, number>;
   lineUpdatesInFlight: Map<string, number>;
@@ -54,10 +60,11 @@ type CartStore = {
 let pendingAddSequence = 0;
 
 function getQuantitySnapshot(state: CartStore) {
-  const { cart } = resolveBaselineCart(state.serverCart);
-  if (!cart) {
-    return null;
+  const { cart: resolved } = resolveBaselineCart(state.serverCart);
+  if (!resolved) {
+    return buildOptimisticAddCart(getActiveStagedLines(state.pendingAdds, 0));
   }
+  const cart = filterRemovedCartLines(resolved, state.pendingLineRemovals);
   return (
     applyOptimisticMutations(
       cart,
@@ -65,6 +72,133 @@ function getQuantitySnapshot(state: CartStore) {
       getActiveStagedLines(state.pendingAdds, 0),
       state.pendingLineUpdates,
     ) ?? cart
+  );
+}
+
+function getReservedCart(state: CartStore) {
+  const { cart: baseline } = resolveBaselineCart(state.serverCart);
+  // Reserve decreases/removals until Shopify confirms them. Apply absolute
+  // quantity intentions before additions so neither reservation is lost.
+  const reserved = baseline && {
+    ...baseline,
+    lines: {
+      ...baseline.lines,
+      nodes: baseline.lines.nodes
+        .filter((line) => line.quantity > 0)
+        .map((line) => ({
+          ...line,
+          quantity: Math.max(
+            line.quantity,
+            state.pendingLineUpdates.get(line.id) ?? 0,
+            state.lineUpdatesInFlight.get(line.id) ?? 0,
+          ),
+        })),
+    },
+  };
+  const staged = getActiveStagedLines(state.pendingAdds, 0);
+  return reserved
+    ? (applyOptimisticMutations(reserved, [], staged, new Map()) ?? reserved)
+    : buildOptimisticAddCart(staged);
+}
+
+/** Inventory is shared across all selling plans and attributes of a variant. */
+export function canAddCartLines(
+  state: CartStore,
+  lines: OptimisticCartLineInput[],
+) {
+  const cart = getReservedCart(state);
+  const quantities = new Map<string, number>();
+  const lineQuantities = new Map<string, number>();
+  for (const line of cart?.lines.nodes ?? []) {
+    quantities.set(
+      line.merchandise.id,
+      (quantities.get(line.merchandise.id) ?? 0) + line.quantity,
+    );
+    lineQuantities.set(cartLineIdentity(line), line.quantity);
+  }
+  for (const line of lines) {
+    const id = line.merchandiseId;
+    const existing = cart?.lines.nodes.find(
+      (node) => node.merchandise.id === id,
+    );
+    const variant = existing?.merchandise;
+    const total = (quantities.get(id) ?? 0) + (line.quantity ?? 1);
+    const stock = variant?.quantityAvailable;
+    const policy = state.inventoryPolicies.get(id);
+    const identity = cartLineIdentity(line);
+    const matchingLine = cart?.lines.nodes.find(
+      (node) => cartLineIdentity(node) === identity,
+    );
+    const lineTotal =
+      (lineQuantities.get(identity) ?? 0) + (line.quantity ?? 1);
+    if (matchingLine && cart) {
+      const { maximum } = getLineQuantityRules(matchingLine);
+      const confirmedMaximum = getConfirmedLineMaximum(
+        state,
+        matchingLine,
+        cart,
+      );
+      if (
+        (maximum !== null && lineTotal > maximum) ||
+        (confirmedMaximum !== null && lineTotal > confirmedMaximum)
+      ) {
+        return false;
+      }
+    }
+    if (
+      existing &&
+      typeof stock === "number" &&
+      stock >= 0 &&
+      !variant?.currentlyNotInStock &&
+      policy !== "CONTINUE" &&
+      policy !== null &&
+      total > stock
+    ) {
+      return false;
+    }
+    quantities.set(id, total);
+    lineQuantities.set(identity, lineTotal);
+  }
+  return true;
+}
+
+function getConfirmedLineMaximum(
+  state: CartStore,
+  line: CartLine,
+  cart: CartWithOptimistic,
+) {
+  const previous = state.lineQuantityLimits.get(line.id);
+  const adjusted = previous?.lines.nodes.find((node) => node.id === line.id);
+  const { minimum, maximum, increment } = getLineQuantityRules(line);
+  return adjusted &&
+    adjusted.merchandise.quantityAvailable ===
+      line.merchandise.quantityAvailable &&
+    adjusted.merchandise.currentlyNotInStock ===
+      line.merchandise.currentlyNotInStock &&
+    getLineQuantityRules(adjusted).minimum === minimum &&
+    getLineQuantityRules(adjusted).maximum === maximum &&
+    getLineQuantityRules(adjusted).increment === increment &&
+    getOtherVariantQuantity(adjusted, previous.lines.nodes) ===
+      getOtherVariantQuantity(line, cart.lines.nodes)
+    ? adjusted.quantity
+    : null;
+}
+
+/** Quantity controls lock only when no additional unit can fit in the cart. */
+export function useCanAddVariant(
+  merchandiseId: string | undefined,
+  sellingPlanId?: string | null,
+) {
+  return useCartStore((state) =>
+    merchandiseId
+      ? canAddCartLines(state, [
+          {
+            merchandiseId,
+            quantity: 1,
+            sellingPlanId: sellingPlanId ?? undefined,
+          },
+        ])
+      : false,
   );
 }
 
@@ -92,6 +226,39 @@ function canStageLineQuantity(
     return false;
   }
   const pending = state.pendingLineUpdates.get(lineId);
+  // Wait for policy at the stock boundary. A failed lookup (null) retains
+  // Shopify validation rather than accidentally disabling backorders.
+  const policy = state.inventoryPolicies.get(line.merchandise.id);
+  const reserved = getReservedCart(state);
+  const { cart: authoritative } = resolveBaselineCart(state.serverCart);
+  const authoritativeQuantity =
+    authoritative?.lines.nodes.find((node) => node.id === lineId)?.quantity ??
+    0;
+  const reservedQuantity =
+    reserved?.lines.nodes.reduce(
+      (sum, node) =>
+        node.merchandise.id === line.merchandise.id ? sum + node.quantity : sum,
+      0,
+    ) ?? 0;
+  const additionalQuantity = Math.max(
+    0,
+    quantity -
+      Math.max(
+        authoritativeQuantity,
+        state.pendingLineUpdates.get(lineId) ?? 0,
+        state.lineUpdatesInFlight.get(lineId) ?? 0,
+      ),
+  );
+  if (
+    quantity > line.quantity &&
+    typeof line.merchandise.quantityAvailable === "number" &&
+    !line.merchandise.currentlyNotInStock &&
+    policy !== "CONTINUE" &&
+    policy !== null &&
+    reservedQuantity + additionalQuantity > line.merchandise.quantityAvailable
+  ) {
+    return false;
+  }
   if (
     quantity === line.quantity &&
     (pending === undefined || pending === quantity)
@@ -107,21 +274,8 @@ function canStageLineQuantity(
   ) {
     return false;
   }
-  const previous = state.lineQuantityLimits.get(lineId);
-  const adjusted = previous?.lines.nodes.find((node) => node.id === lineId);
-  if (
-    adjusted &&
-    adjusted.merchandise.quantityAvailable ===
-      line.merchandise.quantityAvailable &&
-    adjusted.merchandise.currentlyNotInStock ===
-      line.merchandise.currentlyNotInStock &&
-    getLineQuantityRules(adjusted).minimum === minimum &&
-    getLineQuantityRules(adjusted).maximum === maximum &&
-    getLineQuantityRules(adjusted).increment === increment &&
-    getOtherVariantQuantity(adjusted, previous.lines.nodes) ===
-      getOtherVariantQuantity(line, cart.lines.nodes) &&
-    quantity > adjusted.quantity
-  ) {
+  const confirmedMaximum = getConfirmedLineMaximum(state, line, cart);
+  if (confirmedMaximum !== null && quantity > confirmedMaximum) {
     return false;
   }
   return true;
@@ -173,6 +327,7 @@ export const useCartStore = create<CartStore>()((set) => ({
   isResolved: false,
   isOpen: false,
   serverCart: null,
+  inventoryPolicies: new Map(),
   pendingAdds: new Map(),
   pendingLineUpdates: new Map(),
   lineUpdatesInFlight: new Map(),
