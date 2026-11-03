@@ -13,7 +13,7 @@ import type { CartLayout, CartLine } from "./cart-types";
 import { useCartStore } from "./store";
 
 const cartCodeBadgeClassName =
-  "flex items-center gap-2 bg-[var(--background-subtle-2-ui,#DFDFDF)] px-2 py-1 font-['DM_Sans'] text-[12px] font-normal not-italic leading-none tracking-[0.24px] text-[color:var(--Text-Subtle,#524B46)]";
+  "flex items-center gap-2 bg-(--color-background-subtle-2) px-2 py-1 font-['DM_Sans'] text-[12px] font-normal not-italic leading-none tracking-[0.24px] text-(--color-text-subtle)";
 
 export function CartLineItem({
   line,

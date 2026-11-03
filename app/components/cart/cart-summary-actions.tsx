@@ -12,6 +12,10 @@ import { uppercaseCartCode } from "~/utils/cart-code";
 import { getCartMutationError } from "~/utils/cart-error";
 import { normalizeGiftCardCode } from "~/utils/gift-card";
 import { AnimatedBottomSheet } from "./animate-bottom-sheet";
+import {
+  CART_ACTION_BUTTON,
+  CART_ACTION_DESKTOP_HOVER,
+} from "./cart-action-styles";
 import { useCartFetcherSync } from "./cart-sync";
 import type { CartLayout, CartMutationResponse } from "./cart-types";
 
@@ -161,7 +165,7 @@ export function NoteDialog({
           type="submit"
           loading={fetcher.state !== "idle"}
           disabled={fetcher.state !== "idle"}
-          className="h-[54px] w-full shrink-0 rounded-lg py-0! text-sm leading-5! [--spinner-duration:400ms]"
+          className={`${CART_ACTION_BUTTON} ${CART_ACTION_DESKTOP_HOVER}`}
         >
           {t("cart.addNote")}
         </Button>
@@ -267,7 +271,7 @@ export function DiscountDialog({
         )}
         <Button
           type="submit"
-          className="h-[54px] w-full shrink-0 rounded-lg py-0! text-sm leading-5! [--spinner-duration:400ms]"
+          className={`${CART_ACTION_BUTTON} ${CART_ACTION_DESKTOP_HOVER}`}
           loading={fetcher.state !== "idle"}
           disabled={fetcher.state !== "idle"}
         >
@@ -372,7 +376,7 @@ export function GiftCardDialog({
         )}
         <Button
           type="submit"
-          className="h-[54px] w-full shrink-0 rounded-lg py-0! text-sm leading-5! [--spinner-duration:400ms]"
+          className={`${CART_ACTION_BUTTON} ${CART_ACTION_DESKTOP_HOVER}`}
           loading={fetcher.state !== "idle"}
           disabled={fetcher.state !== "idle"}
         >
