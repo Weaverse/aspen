@@ -11,6 +11,7 @@ import { getCartMutationError } from "~/utils/cart-error";
 import { CartBestSellers } from "./cart-best-sellers";
 import { CartCodeForm } from "./cart-code-form";
 import { CartLineItem, PriceLoadingSpinner } from "./cart-line-item";
+import { CartPageNote } from "./cart-page-note";
 import {
   AppliedCartCodes,
   CartCheckoutActions,
@@ -334,6 +335,7 @@ export function CartDetails({
               layout={layout}
             />
           </div>
+          <CartPageNote note={note ?? ""} enabled={Boolean(enableCartNote)} />
           <div className="flex flex-col gap-5">
             <CartPageTotals cart={cart} isOptimistic={isOptimistic} />
             <CartCheckoutActions

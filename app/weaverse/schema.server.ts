@@ -1112,10 +1112,22 @@ export const themeSchema: HydrogenThemeSchema = {
           condition: (theme) => theme.enableCartNote === true,
         },
         {
+          type: "color",
+          label: "Order note card background",
+          name: "cartNoteCardBackground",
+          defaultValue: "#F3F3F3",
+        },
+        {
           type: "switch",
           label: "Enable discount code",
           name: "enableDiscountCode",
           defaultValue: true,
+        },
+        {
+          type: "color",
+          label: "Applied code tag background",
+          name: "cartTagBackgroundColor",
+          defaultValue: "#EBE8E5",
         },
         {
           type: "text",
