@@ -108,7 +108,10 @@ const Countdown = forwardRef<HTMLElement, CountdownProps>((props, ref) => {
             "grid w-full grid-cols-1",
             isScenario2
               ? "mx-auto max-w-[1360px] items-center gap-y-8 px-5 md:grid-cols-[minmax(0,1fr)_auto_220px] md:gap-x-12 md:gap-y-0 md:px-0"
-              : "countdown-wrapper mx-auto max-w-[1440px] gap-y-6 px-5 py-10 md:max-lg:px-10 md:max-lg:py-12 lg:grid-cols-[repeat(2,minmax(0,684px))] lg:gap-x-[72px] lg:gap-y-8 lg:px-0 lg:pt-0 lg:pb-12",
+              : "countdown-wrapper mx-auto max-w-[1440px] gap-y-6 py-10 md:max-lg:py-12 lg:grid-cols-[repeat(2,minmax(0,684px))] lg:gap-x-[72px] lg:gap-y-8 lg:pt-0 lg:pb-12",
+            !isScenario2 &&
+              rest.width === "full" &&
+              "max-lg:px-(--page-padding)",
             !isScenario2 &&
               "md:max-lg:[&_.subheading]:justify-start md:max-lg:[&_.paragraph]:max-w-none md:max-lg:[&_.paragraph]:text-left md:max-lg:[&_.paragraph]:text-2xl md:max-lg:[&_.paragraph]:leading-[1.2] md:max-lg:[&_.button-countdown]:mt-0",
             isScenario2

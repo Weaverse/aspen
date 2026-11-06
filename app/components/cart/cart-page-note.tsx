@@ -1,6 +1,7 @@
 import { CartForm, Image } from "@shopify/hydrogen";
 import { useTranslation } from "@weaverse/hydrogen";
-import { useEffect, useId, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { useEffect, useId, useRef, useState } from "react";
 import { useFetcher } from "react-router";
 import { Button } from "~/components/button";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
@@ -28,12 +29,26 @@ export function CartPageNote({
   const [saved, setSaved] = useState(note);
   const [draft, setDraft] = useState(note);
   const [submitted, setSubmitted] = useState(false);
+  const pendingSave = useRef(false);
+  const formRef = useRef<HTMLFormElement>(null);
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const reducedMotion = useReducedMotion();
   useEffect(() => setSaved(note), [note]);
   useEffect(() => {
     if (!busy && fetcher.data?.cart && !error) {
       const accepted = fetcher.data.cart.note ?? "";
       setSaved(accepted);
       setDraft(accepted);
+      if (pendingSave.current) {
+        const focusIsInNote = formRef.current?.contains(document.activeElement);
+        setOpen(false);
+        if (focusIsInNote) {
+          toggleRef.current?.focus({ preventScroll: true });
+        }
+      }
+    }
+    if (!busy && fetcher.data) {
+      pendingSave.current = false;
     }
   }, [busy, fetcher.data, error]);
 
@@ -45,10 +60,14 @@ export function CartPageNote({
 
   const form = (
     <fetcher.Form
+      ref={formRef}
       method="post"
       action={route}
       className="flex flex-col gap-2.5 p-4"
-      onSubmit={() => setSubmitted(true)}
+      onSubmit={() => {
+        pendingSave.current = true;
+        setSubmitted(true);
+      }}
     >
       <input
         type="hidden"
@@ -97,8 +116,9 @@ export function CartPageNote({
   );
 
   return enabled ? (
-    <div className="flex flex-col gap-2.5 overflow-hidden rounded-(--radius-md) bg-(--color-cart-note-bg)">
+    <div className="flex flex-col overflow-hidden rounded-(--radius-md) bg-(--color-cart-note-bg)">
       <button
+        ref={toggleRef}
         type="button"
         id={`${id}-inline-title`}
         aria-expanded={open}
@@ -119,17 +139,28 @@ export function CartPageNote({
           alt=""
           width={16}
           height={16}
-          className={`shrink-0 ${open ? "rotate-90" : ""}`}
+          className={`shrink-0 transition-transform duration-300 motion-reduce:transition-none ${open ? "rotate-90" : ""}`}
         />
       </button>
-      {open && (
-        <section
-          id={`${id}-inline-panel`}
-          aria-labelledby={`${id}-inline-title`}
-        >
-          {form}
-        </section>
-      )}
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.section
+            key="note-panel"
+            id={`${id}-inline-panel`}
+            aria-labelledby={`${id}-inline-title`}
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{
+              duration: reducedMotion ? 0 : 0.3,
+              ease: "easeInOut",
+            }}
+            className="overflow-hidden"
+          >
+            <div className="pt-2.5">{form}</div>
+          </motion.section>
+        )}
+      </AnimatePresence>
     </div>
   ) : null;
 }
