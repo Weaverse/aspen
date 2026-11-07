@@ -1,6 +1,7 @@
 # Upstream candidate validation — November 6, 2026
 
-Candidate: local replacement for PR #123 base `39da61a2`, not yet committed.
+Candidate: PR #123 commit `e6adae2b`. The macOS results below describe
+the same lockfile and runtime policy.
 Lockfile SHA-256: `9d71e7e5a6c5a68b40ee204fd6d53450b6bd751dc323cc5875f6673af942c175`.
 Host: native macOS arm64; npm 10.9.8.
 
@@ -35,28 +36,32 @@ existing graph. Evidence: `/tmp/aspen-upstream-full-graph.log`.
   preflight, external-symlink disclosure and HTTP-stack disclosure. See
   [comparison](node-upstream-security.md). These failures are retained, not
   skipped, marked expected, or weakened to make CI green.
-- Native CI for commit `3f2d5b5b` completed all 12 jobs. Eleven jobs on
-  Linux/macOS/Windows passed install, selected graph, codegen/types,
-  sanitizer/footer/localization, build and dev/SSR/optimizer, then failed
-  MiniOxygen security regressions. Windows 24.x instead timed out during the
-  dev runtime check; diagnostics show optimizer startup but no worker response.
-  The targeted rerun reproduced the timeout on Windows Node 24.22.2.
-  The failing request was not identified by the committed probe logs.
-  Run: https://github.com/Weaverse/aspen/actions/runs/42329514244
+- [Native CI for `e6adae2b`](https://github.com/Weaverse/aspen/actions/runs/42330647480)
+  passed strict install, the selected graph, codegen, types,
+  localization/sanitizer/footer tests, production build and
+  dev/SSR/optimizer across all 12 jobs. All 12 jobs
+  failed the MiniOxygen security step.
+- [Earlier run for `3f2d5b5b`](https://github.com/Weaverse/aspen/actions/runs/42329514244)
+  reproduced a Windows Node 24.22.2 dev timeout on retry. The later run
+  passed the same probe with the same timeout. The cause of the earlier
+  timeout remains unknown.
 - Home/product/collection HTTP checks returned 200 on Node 22.18.0 with
   approved QA configuration. This does not establish Studio acceptance.
-- Disposable Studio remains blocked on the replacement candidate. The
-  November 7 retry reached localhost:3460 and returned HTTP 200, but Studio
-  stayed covered with “Studio still has no answer for this page”; Retry did
-  not recover the editor. This does not establish a Node-related cause.
-  Earlier tests reported Preview Connection Lost / Timeout. With explicit user approval, Apps on device was reset
-  and re-enabled only for studio.weaverse.io, then the QA page was reloaded;
-  the timeout remains. No LIVE/TEST/STARTER project content was edited.
-  Old edit/publish evidence remains historical; edits, revalidation and
-  persistence still need fresh confirmation after reconnect is resolved.
-- Published-CLI onboarding remains blocked by Weaverse/weaverse#565; CLI
-  5.8.0 still removes the committed lockfile. A source workaround is not a
-  substitute for a released CLI fix.
+- Disposable Studio QA remains blocked on the replacement candidate. On the
+  November 7 recheck, the same design-mode URL on localhost:3460 rendered
+  the saved QA heading when opened as a top-level Chrome tab. The Studio
+  bridge script loaded and reported that the standalone tab had no
+  `getDraftPage` endpoint. In Studio, the iframe pointed to the same URL,
+  but the heading was absent and Studio reported it could not reach the
+  local preview. Earlier Chrome DevTools evidence showed a blocked Local
+  Network Access request even after the approved site permission reset.
+  This isolates the observed failure to the embedded preview path, but
+  does not establish the cause of every reconnect timeout. Fresh edit,
+  revalidation and persistence checks remain blocked.
+- Published CLI onboarding remains blocked by [Weaverse/weaverse#565](https://github.com/Weaverse/weaverse/issues/565).
+  The installer in the published CLI 5.9.0 package still removes
+  `package-lock.json`. Fresh onboarding with the committed lockfile remains
+  unverified.
 
 ## Local evidence
 
