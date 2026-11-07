@@ -130,9 +130,15 @@ test("Page purchase actions share the light hover palette on desktop only", asyn
       await page
         .getByRole("button", { name: "cart.orderNote", exact: true })
         .click();
-      const add = page
-        .getByRole("region", { name: "cart.orderNote", exact: true })
-        .getByRole("button", { name: "Apply", exact: true });
+      const panel = page.getByRole("region", {
+        name: "cart.orderNote",
+        exact: true,
+      });
+      // Apply can move under the pointer while the panel opens.
+      await expect
+        .poll(() => panel.evaluate((element) => element.style.height))
+        .toBe("auto");
+      const add = panel.getByRole("button", { name: "Apply", exact: true });
       await add.hover();
       if (width >= DESKTOP_MIN_PX) {
         await expect(add).toHaveCSS("background-color", "rgb(233, 231, 228)");
@@ -150,7 +156,7 @@ test("Page purchase actions share the light hover palette on desktop only", asyn
   }
 });
 
-test("Page note saves without closing and discards unsaved edits on dismissal", async () => {
+test("Page note saves and closes, and discards unsaved edits on dismissal", async () => {
   const browser = await chromium.launch();
   try {
     for (const width of [430, 834]) {
@@ -190,8 +196,10 @@ test("Page note saves without closing and discards unsaved edits on dismissal", 
           userErrors: [],
         }),
       );
-      await expect(input).toBeEnabled();
-      await expect(panel).toBeVisible();
+      await expect(trigger).toHaveAttribute("aria-expanded", "false");
+      await expect(panel).toHaveCount(0);
+      await trigger.click();
+      await expect(input).toHaveValue("Saved instructions");
       await input.fill("Discard this");
       await trigger.click();
       await expect(panel).toHaveCount(0);
@@ -236,6 +244,26 @@ test("Page note saves without closing and discards unsaved edits on dismissal", 
         .toBe("Saved while closed");
       await trigger.click();
       await expect(input).toHaveValue("Saved while closed");
+      await input.fill("Saved with outside focus");
+      await panel.getByRole("button", { name: "Apply", exact: true }).click();
+      await expect
+        .poll(() => page.evaluate(() => window.requests.length))
+        .toBe(4);
+      const outsideInput = page.getByRole("textbox", {
+        name: "Gift card or discount code",
+      });
+      await outsideInput.focus();
+      await expect(outsideInput).toBeFocused();
+      await page.evaluate(() =>
+        window.finish({
+          cart: { ...window.cart, note: "Saved with outside focus" },
+          userErrors: [],
+        }),
+      );
+      await expect(trigger).toHaveAttribute("aria-expanded", "false");
+      await expect(outsideInput).toBeFocused();
+      await trigger.click();
+      await expect(input).toHaveValue("Saved with outside focus");
       await trigger.click();
       await page.evaluate(() => {
         window.settings.enableCartNote = false;
@@ -244,6 +272,41 @@ test("Page note saves without closing and discards unsaved edits on dismissal", 
       await expect(trigger).toHaveCount(0);
       await page.close();
     }
+  } finally {
+    await browser.close();
+  }
+});
+
+test("Tab skips the order note controls while the panel animates closed", async () => {
+  const browser = await chromium.launch();
+  try {
+    const page = await browser.newPage({
+      viewport: { width: 834, height: 900 },
+      reducedMotion: "no-preference",
+    });
+    await page.setContent(`<style>${css}</style><div id="root"></div>`);
+    await page.addScriptTag({ content: bundle.outputFiles[0].text });
+    const trigger = page.getByRole("button", {
+      name: "cart.orderNote",
+      exact: true,
+    });
+    const panel = page.getByRole("region", {
+      name: "cart.orderNote",
+      exact: true,
+    });
+    const checkout = page.getByRole("link", { name: "cart.checkout" });
+    await trigger.press("Enter");
+    await expect(panel.getByRole("textbox")).toBeVisible();
+    const closingPanel = await panel.elementHandle();
+    assert.ok(closingPanel);
+
+    await trigger.press("Enter");
+    await page.keyboard.press("Tab");
+    await expect(checkout).toBeFocused();
+    await expect(trigger).toHaveAttribute("aria-expanded", "false");
+    await expect(panel).toHaveCount(0);
+    await page.waitForFunction((element) => !element.isConnected, closingPanel);
+    await expect(checkout).toBeFocused();
   } finally {
     await browser.close();
   }
@@ -339,8 +402,10 @@ test("all cart page breakpoints use one inline note with the latest Figma geomet
           userErrors: [],
         }),
       );
-      await expect(input).toBeEnabled();
-      await expect(panel).toBeVisible();
+      await expect(trigger).toHaveAttribute("aria-expanded", "false");
+      await expect(panel).toHaveCount(0);
+      await trigger.click();
+      await expect(input).toHaveValue("Saved desktop instructions");
       await input.fill("Discard desktop draft");
       await trigger.click();
       await expect(panel).toHaveCount(0);
