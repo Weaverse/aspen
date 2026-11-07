@@ -1,0 +1,73 @@
+name: Node compatibility
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  node22:
+    name: Node ${{ matrix.node }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        # Required minimums and current patched releases in both supported majors.
+        node: [22.18.0, 22.x, 24.11.0, 24.x]
+    env:
+      SHOPIFY_CLI_NO_ANALYTICS: "1"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      # Keep npm at the audited version used for the compatibility evidence.
+      - name: Use the audited npm version
+        if: runner.os != 'Windows'
+        run: npm install --global npm@10.9.8 --no-audit --no-fund
+      # Bootstrap from the npm bundled beside node.exe on hosted Windows runners.
+      - name: Use the audited npm version on Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $nodeDir = Split-Path (Get-Command node).Source
+          & node (Join-Path $nodeDir 'node_modules/npm/bin/npm-cli.js') install --global npm@10.9.8 --no-audit --no-fund
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Install from the committed lockfile
+        run: npm ci --engine-strict --no-audit --no-fund
+      - name: Verify the resolved dependency graph
+        run: npm ls @shopify/mini-oxygen sanitize-html @shopify/cli @graphql-codegen/cli vite-node body-parser undici vite esbuild framer-motion motion-dom motion-utils --all
+      # Repository scripts must resolve the tested local CLI.
+      - name: Verify onboarding uses the pinned local CLI
+        run: node -e "const assert = require('node:assert/strict'); const pinned = require('./package.json').devDependencies['@shopify/cli']; const resolved = require('./node_modules/@shopify/cli/package.json').version; console.log({pinned, resolved}); assert.equal(resolved, pinned, 'Onboarding must resolve the local pinned CLI, not a fetched one');"
+      - name: Generate GraphQL types
+        run: npm run codegen
+      - name: Check types
+        run: npm run typecheck
+      - name: Check localization
+        run: npm run locale:check && npm run i18n:test
+      - name: Check native sanitizer compatibility and security regressions
+        run: node --test tests/sanitizer-runtime.unit.test.mjs
+      - name: Check footer sanitization
+        run: npx --no-install vite-node tests/footer-rich-text.unit.test.ts
+      - name: Build storefront
+        run: npm run build
+      - name: Check dev startup and dependency optimization
+        id: dev
+        env:
+          ASPEN_RUNTIME_LOG: ${{ runner.temp }}/aspen-dev-runtime.log
+        run: node scripts/check-dev-runtime.mjs
+      - name: Check MiniOxygen security regressions
+        run: node --test tests/mini-oxygen-security.unit.test.mjs
+      - name: Preserve dev failure diagnostics
+        if: ${{ failure() && steps.dev.outcome == 'failure' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: node22-dev-${{ matrix.os }}-${{ matrix.node }}
+          path: ${{ runner.temp }}/aspen-dev-runtime.log
+          if-no-files-found: ignore
+          retention-days: 7
