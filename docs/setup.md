@@ -23,7 +23,7 @@ page composition and theme-setting values.
 
 Install or obtain:
 
-- Node.js **22.0.0 or newer** (`node --version`)
+- Node.js **`^22.18.0 || ^24.11.0`** (use a current patched release in either supported major) (`node --version`)
 - npm, which is included with Node (`npm --version`)
 - Git (`git --version`)
 - access to a Shopify store with the Hydrogen or Headless sales channel
@@ -35,113 +35,44 @@ Do not add a second lockfile.
 
 ### Node compatibility
 
-The Shopify CLI, Vite, and GraphQL Code Generator versions are pinned for the
-Node 22.0.0 lower boundary. The Vite override also keeps `vite-node` on the
-same compatible Vite version. The CI matrix pins npm 10.9.8 to match the
-local compatibility checks. Do not upgrade these packages independently
-without repeating clean installation, dependency-graph checks, codegen,
-typecheck, build, and `node scripts/check-dev-runtime.mjs` on the minimum
-Node version and the representative released-major matrix below.
-The locale and translation tests use `vite-node` because Node 22.0.0 cannot
-execute TypeScript test files directly.
-`@graphql-codegen/cli` stays on 6.3.1 because 7.2.0 resolves
-`@whatwg-node/promise-helpers` 2.0.1 (engines `>=22.15.0`) into five codegen
-packages, which fails `npm ci --engine-strict` on Node 22.0.0; 6.3.1 keeps
-promise-helpers 1.3.2 (engines `>=16.0.0`). This was verified by an actual
-install attempt on 2026-11-03, not inferred from registry metadata alone.
+Aspen supports `^22.18.0 || ^24.11.0`, aligned with Pilot. Node 22.0.0,
+older unsupported minors, odd majors, and Node 26 are not acceptance targets.
+Prefer an up-to-date patched Node 22 or 24 release within this policy.
 
-The dev runtime check verifies CLI startup, client compilation, dependency
-optimization, and a request through an Oxygen test worker. That worker imports
-the real `server.ts` graph, renders React on the server, and runs the actual
-footer sanitizer. It calls the real fetch handler and requires the exact
-missing-session configuration guard, rejecting a generic HTTP 500. The probe
-uses an empty env file and needs no merchant data.
-Catalog rendering and a Studio connection still need separately approved
-Shopify/Weaverse test configuration. CI preserves sanitized dev diagnostics
-as an artifact when this check fails.
+The repository uses published upstream MiniOxygen 4.2.3 and sanitize-html
+2.18.1; no compatibility forks or `file:` dependencies are required.
+Shopify CLI 4.6.0, Vite 8.2.0 and GraphQL Code Generator 7.2.0 replace pins
+introduced solely for the obsolete Node 22.0.0 floor. `vite-node` 6.0.0
+runs the existing TypeScript localization/footer tests on the same Vite major.
+Keep the exact committed lockfile and dependency security overrides.
+CLI 4.6.0 already depends on patched esbuild 0.28.1, so the old CLI-specific
+esbuild override is redundant. The obsolete relay optimizer floor pin and
+vite-node/Vite override are also removed; the native dependency graph now
+passes strict engine checks at the supported minimums.
 
-Aspen uses the local ESM compatibility package in `vendor/sanitize-html`,
-based on upstream 2.18.1 with its security fixes. It changes only the module
-format so htmlparser2 12 can be imported directly on Node 22.0.0. See its
-`UPSTREAM.md` for provenance and update instructions. Native sanitizer tests
-and the existing footer tests cover direct Node execution as well as SSR.
-The CLI's esbuild dependency is pinned to the patched 0.28.1 release.
+CI covers exact minimums 22.18.0 and 24.11.0 plus the latest patches in both
+majors on native Linux, macOS and Windows. It checks strict installation,
+the resolved graph, codegen, types, focused tests, production build and real
+dev/SSR/client-optimizer execution. A declared matrix is not a passing result:
+the replacement candidate requires fresh run evidence. See the
+[local candidate validation](node-support-validation.md) for the current macOS
+results and outstanding acceptance. Linux/Windows runs
+remain unverified locally until native CI executes for this candidate.
 
-`vendor/mini-oxygen` adapts upstream 4.2.2 to Aspen's Node >=22 contract,
-with scoped security fixes for asset containment, credential-free asset CORS,
-HTTP error diagnostics and a bundled stack-frame suffix check.
-This is Aspen-maintained compatibility coverage, not a Shopify support claim.
-Its upstream license, dependency ranges, provenance and update procedure are
-recorded in `vendor/mini-oxygen/UPSTREAM.md`.
+See [upstream security comparison](node-upstream-security.md) for gaps that
+remain after removing the forks. The security regression suite intentionally
+continues to expose unresolved upstream differences; do not interpret a
+successful install/build as security acceptance.
 
-Keep `install-links=true` in `.npmrc`. It makes npm install the local packages
-as packed dependencies, so the root security overrides apply normally.
-Clean installation must also pass `npm ls` for MiniOxygen, body-parser,
-undici, Vite, esbuild and the Motion packages; install exit status alone does
-not prove the intended graph. Keep both `.npmrc` and `package-lock.json`
-when scaffolding a storefront.
+Catalog routes and Studio edit/revalidation/publish/reload/reconnect must be
+verified against the approved disposable project on the final candidate.
+Prior results are retained in [historical evidence](node-support-history.md),
+with the original commit/runtime, and do not establish acceptance here.
 
-### Published Shopify CLI boundary
-
-All Aspen scripts (`npm run dev`, `build`, `preview`, and the CI runtime
-check) execute the locally pinned `@shopify/cli` 3.94.3 from
-`node_modules`; CI asserts that resolution on every matrix entry. The
-published `@shopify/cli` 4.x line declares `engines: >=22.12.0` and crashes
-before startup on Node 22.0.0–22.11.0 with
-`SyntaxError: … 'enableCompileCache'` (verified against the exact registry
-artifacts for 4.6.0 on 22.0.0 and 22.7.0; 22.8.0 starts but remains outside
-this theme's toolchain). Do not install a global or `npx`-fetched CLI 4.x
-for this theme on those versions. Making the published CLI itself work on
-Node 22.0.0 is a Shopify-side change and stays an explicitly open item; this
-document reflects demonstrated behavior rather than a support claim.
-
-Recorded local verification on macOS arm64 with npm 10.9.8 (results checked
-against the current dependency graph on 2026-11-02; the full 22.0.0 floor
-suite — strict clean install, dependency-graph check, pinned-CLI assertion,
-codegen, typecheck, sanitizer/footer/locale/translation tests, build and the
-dev-runtime check — was re-executed end to end on 2026-11-03 and passed):
-
-| Node | Clean install | Codegen, typecheck, build | Dev and optimizer | Home/product/collection |
-| --- | --- | --- | --- | --- |
-| 22.0.0 | Passed | Passed | Passed | HTTP 200 with approved test configuration |
-| 22.7.0 | Passed | Passed | Passed | Not tested |
-| 22.8.0 | Passed | Passed | Passed | Not tested |
-| 22.11.0 | Passed | Passed | Passed | Not tested |
-| 22.12.0 | Passed | Passed | Passed | Not tested |
-| 22.23.4 | Passed | Passed | Passed | HTTP 200 with approved test configuration |
-| 23.11.1 | Passed | Passed | Passed | HTTP 200 with approved test configuration |
-| 24.22.2 | Passed | Passed | Passed | HTTP 200 with approved test configuration |
-| 25.9.0 | Passed | Passed | Passed | HTTP 200 with approved test configuration |
-| 26.13.0 | Passed | Passed | Passed | HTTP 200 with approved test configuration |
-
-The sanitizer, footer, locale, and translation tests passed on every listed
-version. The ESM sanitizer also passed all 286 tests from the upstream
-2.18.1 suite on Node 22.0.0, adapting only the suite's initial module load to ESM. Fault
-injection confirmed the dev check fails for both a broken server module and
-a broken fetch handler, and that its saved diagnostics redact secret values.
-
-Other Node 22 patches have not been individually tested. The CI workflow
-defines floor/latest checks on native Linux, macOS, and Windows, plus macOS
-checks for 22.7.0/22.8.0 (the compile-cache API boundary) and 22.11.0/22.12.0
-(the former toolchain engine boundary). Native Linux and Windows validation
-is **BLOCKED** locally because those hosts are unavailable; these CI jobs
-have not yet been executed for this change. All ten versions in the table
-passed strict clean installation, dependency-graph verification, sanitizer,
-footer, codegen, typecheck, locale, translation, build and dev-runtime checks.
-The recorded matrix and catalog checks use the same package manifest,
-lockfile, npm configuration and Vite configuration as this branch.
-
-These local results do not complete [issue #114](https://github.com/Weaverse/aspen/issues/114).
-Native Linux/Windows execution, onboarding through a published CLI release
-containing the installer fix, and the connected Studio check remain open.
-The HTTP checks above are catalog route checks, not Studio acceptance.
-
-The published Weaverse CLI 5.7.1 was independently exercised on Node 22.0.0.
-Its current Aspen scaffold still reproduces the missing compile-cache API
-and Motion drift. The related [CLI issue #565](https://github.com/Weaverse/weaverse/issues/565)
-owns lockfile retention. A local installer fix preserves the lockfile and
-uses `npm ci`; that source-level verification is not a published CLI release
-or completion of the three-theme acceptance in #565.
+Fresh onboarding must use a published Weaverse CLI release that preserves
+`package-lock.json`. [Weaverse/weaverse#565](https://github.com/Weaverse/weaverse/issues/565)
+is still separate and unresolved: CLI 5.8.0 deletes the lockfile. Repository
+`npm ci` checks do not substitute for that published-CLI acceptance.
 
 Oxygen is available through Shopify's Hydrogen sales channel. A development
 store can be used for development, although its Oxygen deployment URLs are

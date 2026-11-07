@@ -1,22 +1,23 @@
 import assert from "node:assert/strict";
 import { once } from "node:events";
-import {
-  mkdir,
-  mkdtemp,
-  readFile,
-  rm,
-  symlink,
-  writeFile,
-} from "node:fs/promises";
+import { mkdir, mkdtemp, rm, symlink, writeFile } from "node:fs/promises";
 import { request } from "node:http";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { createServer } from "../vendor/mini-oxygen/dist/node/server.js";
-import {
-  buildAssetsUrl,
-  createAssetsServer,
-} from "../vendor/mini-oxygen/dist/worker/assets.js";
+
+const { createServer } = await import(
+  new URL(
+    "./dist/node/server.js",
+    import.meta.resolve("@shopify/mini-oxygen/package.json"),
+  ).href
+);
+const { buildAssetsUrl, createAssetsServer } = await import(
+  new URL(
+    "./dist/worker/assets.js",
+    import.meta.resolve("@shopify/mini-oxygen/package.json"),
+  ).href
+);
 
 async function listen(server, t) {
   server.listen(0, "127.0.0.1");
@@ -70,10 +71,15 @@ test("assets stay public without credentials and cannot escape the real root", a
   const asset = await get(port, `${prefix}app.js`);
   assert.equal(asset.status, 200);
   assert.equal(asset.body, "public asset");
-  const options = await get(port, `${prefix}app.js`, "OPTIONS");
-  assert.equal(options.status, 204);
-  assert.equal(options.headers["access-control-allow-origin"], "*");
-  assert.equal(options.headers["access-control-allow-credentials"], undefined);
+  await t.test("public preflight must not opt into credentials", async () => {
+    const options = await get(port, `${prefix}app.js`, "OPTIONS");
+    assert.equal(options.status, 204);
+    assert.equal(options.headers["access-control-allow-origin"], "*");
+    assert.equal(
+      options.headers["access-control-allow-credentials"],
+      undefined,
+    );
+  });
   for (const suffix of [
     "../private.txt",
     "%2e%2e/private.txt",
@@ -99,13 +105,26 @@ test("assets stay public without credentials and cannot escape the real root", a
       return;
     }
     assert.equal((await get(port, `${prefix}link.txt`)).status, 404);
-    await writeFile(path.join(root, "payload"), "console.log('ok')");
-    await symlink(path.join(root, "payload"), path.join(root, "bundle.js"));
-    const linkedAsset = await get(port, `${prefix}bundle.js`);
-    assert.equal(linkedAsset.status, 200);
-    assert.match(linkedAsset.headers["content-type"], /javascript/);
-    assert.equal(linkedAsset.body, "console.log('ok')");
   });
+  await t.test(
+    "symlinks within the asset root preserve the requested MIME type",
+    async (st) => {
+      await writeFile(path.join(root, "payload"), "console.log('ok')");
+      try {
+        await symlink(path.join(root, "payload"), path.join(root, "bundle.js"));
+      } catch (error) {
+        if (error.code !== "EPERM") {
+          throw error;
+        }
+        st.skip("Native host does not permit symlink creation");
+        return;
+      }
+      const linkedAsset = await get(port, `${prefix}bundle.js`);
+      assert.equal(linkedAsset.status, 200);
+      assert.match(linkedAsset.headers["content-type"], /javascript/);
+      assert.equal(linkedAsset.body, "console.log('ok')");
+    },
+  );
 });
 
 test("request failures preserve diagnostics without exposing the stack over HTTP", async (t) => {
@@ -132,69 +151,3 @@ test("request failures preserve diagnostics without exposing the stack over HTTP
   assert.equal(response.body, "Internal server error");
   assert.ok(diagnostics.includes(failure));
 });
-
-test("bundled stack formatter handles method names longer than function names", async () => {
-  const source = await readFile(
-    new URL("../vendor/mini-oxygen/dist/vite/worker-entry.js", import.meta.url),
-    "utf8",
-  );
-  const formatter = source.slice(
-    source.indexOf("function CallSiteToString()"),
-    source.indexOf("function cloneCallSite("),
-  );
-  const format = new Function(`${formatter}; return CallSiteToString;`)();
-  const frame = {
-    isNative: () => false,
-    getScriptNameOrSourceURL: () => "file.js",
-    getLineNumber: () => 1,
-    getColumnNumber: () => 1,
-    getFunctionName: () => "f",
-    isConstructor: () => false,
-    isToplevel: () => false,
-    getTypeName: () => "Object",
-    getMethodName: () => "f",
-  };
-  assert.match(format.call(frame), /\[as f\]/);
-  assert.doesNotMatch(
-    format.call({ ...frame, getFunctionName: () => "Object.f" }),
-    /\[as/,
-  );
-});
-
-for (const lineEnding of ["\n", "\r\n"]) {
-  test(`worker entry failures stay private with ${lineEnding === "\n" ? "LF" : "CRLF"} source`, async () => {
-    const rawSource = await readFile(
-      new URL(
-        "../vendor/mini-oxygen/dist/vite/worker-entry.js",
-        import.meta.url,
-      ),
-      "utf8",
-    );
-    const source = rawSource
-      .replace(/\r?\n/g, lineEnding)
-      .replace(/\r\n/g, "\n");
-    const start = source.indexOf(
-      "return runtime.import(env.__VITE_RUNTIME_EXECUTE_URL).catch",
-    );
-    const end = source.indexOf("\n}\nfunction isViteInvokePayload");
-    assert.ok(
-      start >= 0 && end > start,
-      "Expected worker entry error handler boundaries",
-    );
-    const body = source.slice(start, end);
-    const run = new Function("runtime", "env", "console", body);
-    const failure = new Error("private /home/developer/source.ts");
-    const diagnostics = [];
-    const result = await run(
-      { import: () => Promise.reject(failure) },
-      {},
-      { error: (error) => diagnostics.push(error) },
-    );
-    assert.equal(result.errorResponse.status, 503);
-    assert.equal(
-      await result.errorResponse.text(),
-      "Unable to load Oxygen worker entry. Check the dev server logs.",
-    );
-    assert.deepEqual(diagnostics, [failure]);
-  });
-}

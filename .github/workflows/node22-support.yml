@@ -18,19 +18,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        # Exact pins cover the audited floor, boundary minors and released
-        # majors; 22.x exercises the latest released 22 patch.
-        node: [22.0.0, 22.x, 23.11.1, 24.22.2, 25.9.0, 26.13.0]
-        include:
-          # Exercise both sides of the runtime API and former engine boundaries.
-          - os: macos-latest
-            node: 22.7.0
-          - os: macos-latest
-            node: 22.8.0
-          - os: macos-latest
-            node: 22.11.0
-          - os: macos-latest
-            node: 22.12.0
+        # Required minimums and current patched releases in both supported majors.
+        node: [22.18.0, 22.x, 24.11.0, 24.x]
     env:
       SHOPIFY_CLI_NO_ANALYTICS: "1"
     steps:
@@ -43,8 +32,7 @@ jobs:
       - name: Use the audited npm version
         if: runner.os != 'Windows'
         run: npm install --global npm@10.9.8 --no-audit --no-fund
-      # Node 22.0.0 can pick up a broken preinstalled global npm shim on
-      # hosted Windows runners. Bootstrap with npm bundled beside node.exe.
+      # Bootstrap from the npm bundled beside node.exe on hosted Windows runners.
       - name: Use the audited npm version on Windows
         if: runner.os == 'Windows'
         shell: pwsh
@@ -55,9 +43,8 @@ jobs:
       - name: Install from the committed lockfile
         run: npm ci --engine-strict --no-audit --no-fund
       - name: Verify the resolved dependency graph
-        run: npm ls @shopify/mini-oxygen body-parser undici vite esbuild framer-motion motion-dom motion-utils --all
-      # The documented onboarding path must resolve the locally pinned CLI,
-      # not a published one; published CLI 4.x fails below Node 22.12.
+        run: npm ls @shopify/mini-oxygen sanitize-html @shopify/cli @graphql-codegen/cli vite-node body-parser undici vite esbuild framer-motion motion-dom motion-utils --all
+      # Repository scripts must resolve the tested local CLI.
       - name: Verify onboarding uses the pinned local CLI
         run: node -e "const assert = require('node:assert/strict'); const pinned = require('./package.json').devDependencies['@shopify/cli']; const resolved = require('./node_modules/@shopify/cli/package.json').version; console.log({pinned, resolved}); assert.equal(resolved, pinned, 'Onboarding must resolve the local pinned CLI, not a fetched one');"
       - name: Generate GraphQL types
@@ -68,8 +55,6 @@ jobs:
         run: npm run locale:check && npm run i18n:test
       - name: Check native sanitizer compatibility and security regressions
         run: node --test tests/sanitizer-runtime.unit.test.mjs
-      - name: Check MiniOxygen security regressions
-        run: node --test tests/mini-oxygen-security.unit.test.mjs
       - name: Check footer sanitization
         run: npx --no-install vite-node tests/footer-rich-text.unit.test.ts
       - name: Build storefront
@@ -79,6 +64,8 @@ jobs:
         env:
           ASPEN_RUNTIME_LOG: ${{ runner.temp }}/aspen-dev-runtime.log
         run: node scripts/check-dev-runtime.mjs
+      - name: Check MiniOxygen security regressions
+        run: node --test tests/mini-oxygen-security.unit.test.mjs
       - name: Preserve dev failure diagnostics
         if: ${{ failure() && steps.dev.outcome == 'failure' }}
         uses: actions/upload-artifact@v7
