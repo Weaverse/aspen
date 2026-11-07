@@ -1,7 +1,12 @@
 import { CartForm, Image } from "@shopify/hydrogen";
 import { useTranslation } from "@weaverse/hydrogen";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { useEffect, useId, useRef, useState } from "react";
+import {
+  AnimatePresence,
+  motion,
+  useIsPresent,
+  useReducedMotion,
+} from "framer-motion";
+import { type ReactNode, useEffect, useId, useRef, useState } from "react";
 import { useFetcher } from "react-router";
 import { Button } from "~/components/button";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
@@ -32,7 +37,6 @@ export function CartPageNote({
   const pendingSave = useRef(false);
   const formRef = useRef<HTMLFormElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
-  const reducedMotion = useReducedMotion();
   useEffect(() => setSaved(note), [note]);
   useEffect(() => {
     if (!busy && fetcher.data?.cart && !error) {
@@ -143,24 +147,38 @@ export function CartPageNote({
         />
       </button>
       <AnimatePresence initial={false}>
-        {open && (
-          <motion.section
-            key="note-panel"
-            id={`${id}-inline-panel`}
-            aria-labelledby={`${id}-inline-title`}
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{
-              duration: reducedMotion ? 0 : 0.3,
-              ease: "easeInOut",
-            }}
-            className="overflow-hidden"
-          >
-            <div className="pt-2.5">{form}</div>
-          </motion.section>
-        )}
+        {open && <CartPageNotePanel id={id}>{form}</CartPageNotePanel>}
       </AnimatePresence>
     </div>
   ) : null;
+}
+
+function CartPageNotePanel({
+  id,
+  children,
+}: {
+  id: string;
+  children: ReactNode;
+}) {
+  const isPresent = useIsPresent();
+  const reducedMotion = useReducedMotion();
+
+  return (
+    <motion.section
+      id={`${id}-inline-panel`}
+      aria-labelledby={`${id}-inline-title`}
+      aria-hidden={isPresent ? undefined : true}
+      inert={!isPresent}
+      initial={{ height: 0, opacity: 0 }}
+      animate={{ height: "auto", opacity: 1 }}
+      exit={{ height: 0, opacity: 0 }}
+      transition={{
+        duration: reducedMotion ? 0 : 0.3,
+        ease: "easeInOut",
+      }}
+      className="overflow-hidden"
+    >
+      <div className="pt-2.5">{children}</div>
+    </motion.section>
+  );
 }
