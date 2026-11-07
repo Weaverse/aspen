@@ -50,13 +50,14 @@ esbuild override is redundant. The obsolete relay optimizer floor pin and
 vite-node/Vite override are also removed; the native dependency graph now
 passes strict engine checks at the supported minimums.
 
-CI covers exact minimums 22.18.0 and 24.11.0 plus the latest patches in both
-majors on native Linux, macOS and Windows. It checks strict installation,
-the resolved graph, codegen, types, focused tests, production build and real
-dev/SSR/client-optimizer execution. A declared matrix is not a passing result:
-the replacement candidate requires fresh run evidence. See the
-[local candidate validation](node-support-validation.md) for the current macOS
-results, native CI evidence, and outstanding acceptance.
+Routine CI runs one Ubuntu job on Node 22.18.0 for pull requests and pushes
+to main. It installs from the lockfile with strict engine checks and runs
+Biome, codegen, typechecking, focused tests and the production build. Run
+the **Node compatibility** workflow manually for the wider Linux, macOS and
+Windows matrix at both minimums and the current patches. It also verifies the
+selected dependency graph and exercises dev startup, worker SSR and client
+optimization. See the [validation record](node-support-validation.md) for
+completed runs and outstanding acceptance.
 
 See [upstream security comparison](node-upstream-security.md) for gaps that
 remain after removing the forks. The security regression suite intentionally
