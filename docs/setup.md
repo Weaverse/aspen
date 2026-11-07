@@ -56,8 +56,7 @@ the resolved graph, codegen, types, focused tests, production build and real
 dev/SSR/client-optimizer execution. A declared matrix is not a passing result:
 the replacement candidate requires fresh run evidence. See the
 [local candidate validation](node-support-validation.md) for the current macOS
-results and outstanding acceptance. Linux/Windows runs
-remain unverified locally until native CI executes for this candidate.
+results, native CI evidence, and outstanding acceptance.
 
 See [upstream security comparison](node-upstream-security.md) for gaps that
 remain after removing the forks. The security regression suite intentionally

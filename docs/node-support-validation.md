@@ -35,12 +35,21 @@ existing graph. Evidence: `/tmp/aspen-upstream-full-graph.log`.
   preflight, external-symlink disclosure and HTTP-stack disclosure. See
   [comparison](node-upstream-security.md). These failures are retained, not
   skipped, marked expected, or weakened to make CI green.
-- Native Linux and Windows runs for this replacement candidate have not run.
-  CI now defines 12 jobs: four Node selections across three native hosts.
+- Native CI for commit `3f2d5b5b` completed all 12 jobs. Eleven jobs on
+  Linux/macOS/Windows passed install, selected graph, codegen/types,
+  sanitizer/footer/localization, build and dev/SSR/optimizer, then failed
+  MiniOxygen security regressions. Windows 24.x instead timed out during the
+  dev runtime check; diagnostics show optimizer startup but no worker response.
+  The targeted rerun reproduced the timeout on Windows Node 24.22.2.
+  The failing request was not identified by the committed probe logs.
+  Run: https://github.com/Weaverse/aspen/actions/runs/42329514244
 - Home/product/collection HTTP checks returned 200 on Node 22.18.0 with
   approved QA configuration. This does not establish Studio acceptance.
-- Disposable Studio still reports Preview Connection Lost / Timeout on the
-  replacement candidate. With explicit user approval, Apps on device was reset
+- Disposable Studio remains blocked on the replacement candidate. The
+  November 7 retry reached localhost:3460 and returned HTTP 200, but Studio
+  stayed covered with “Studio still has no answer for this page”; Retry did
+  not recover the editor. This does not establish a Node-related cause.
+  Earlier tests reported Preview Connection Lost / Timeout. With explicit user approval, Apps on device was reset
   and re-enabled only for studio.weaverse.io, then the QA page was reloaded;
   the timeout remains. No LIVE/TEST/STARTER project content was edited.
   Old edit/publish evidence remains historical; edits, revalidation and
