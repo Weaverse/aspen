@@ -5,7 +5,7 @@ import type {
 } from "@shopify/hydrogen/storefront-api-types";
 import { useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
-import { useEffect, useId, useMemo, useRef } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useFetcher } from "react-router";
 import type { ProductCardFragment } from "storefront-api.generated";
 import { ArrowButton } from "~/components/arrow-button";
@@ -63,14 +63,88 @@ export function CartBestSellers({
   );
   const productsPath = usePrefixPathWithLocale("/products");
   const railRef = useRef<HTMLDivElement>(null);
+  const scrollTargetRef = useRef<number | null>(null);
+  const [canScroll, setCanScroll] = useState({ previous: false, next: false });
 
   useEffect(() => {
     load(productsApiPath);
   }, [load, productsApiPath]);
 
+  // Re-measure replaced cards even when the rail's own dimensions stay unchanged.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Product and skeleton changes can alter scrollWidth without resizing the rail.
+  useEffect(() => {
+    const rail = railRef.current;
+    if (layout !== "page" || !rail) {
+      return;
+    }
+
+    const updateNavigation = () => {
+      // Allow for fractional scroll positions at either edge.
+      const position = scrollTargetRef.current ?? rail.scrollLeft;
+      const previous = position > 1;
+      const next = rail.scrollWidth - rail.clientWidth - position > 1;
+      setCanScroll((current) =>
+        current.previous === previous && current.next === next
+          ? current
+          : { previous, next },
+      );
+    };
+
+    const syncPosition = () => {
+      scrollTargetRef.current = null;
+      updateNavigation();
+    };
+
+    syncPosition();
+    rail.addEventListener("scroll", updateNavigation, { passive: true });
+    rail.addEventListener("scrollend", syncPosition);
+    rail.addEventListener("pointerdown", syncPosition);
+    rail.addEventListener("wheel", syncPosition, { passive: true });
+    rail.addEventListener("keydown", syncPosition);
+    const observer = new ResizeObserver(syncPosition);
+    observer.observe(rail);
+    return () => {
+      rail.removeEventListener("scroll", updateNavigation);
+      rail.removeEventListener("scrollend", syncPosition);
+      rail.removeEventListener("pointerdown", syncPosition);
+      rail.removeEventListener("wheel", syncPosition);
+      rail.removeEventListener("keydown", syncPosition);
+      observer.disconnect();
+    };
+  }, [layout, data?.products, count]);
+
   const scrollRail = (direction: -1 | 1) => {
-    railRef.current?.scrollBy({
-      left: direction * railRef.current.clientWidth * 0.85,
+    const rail = railRef.current;
+    if (!rail) {
+      return;
+    }
+    const maxScroll = Math.max(0, rail.scrollWidth - rail.clientWidth);
+    const position = scrollTargetRef.current ?? rail.scrollLeft;
+    const requested = position + direction * rail.clientWidth * 0.85;
+    const railLeft = rail.getBoundingClientRect().left;
+    // Match the cards' CSS snap points so the disabled state reflects the
+    // destination immediately, including a partially visible final card.
+    const targets = Array.from(rail.children, (child) => {
+      const element = child as HTMLElement;
+      const start =
+        element.getBoundingClientRect().left - railLeft + rail.scrollLeft;
+      const centerOffset =
+        getComputedStyle(element).scrollSnapAlign === "center"
+          ? (rail.clientWidth - element.clientWidth) / 2
+          : 0;
+      return Math.min(maxScroll, Math.max(0, start - centerOffset));
+    });
+    const target = targets.reduce(
+      (closest, candidate) =>
+        Math.abs(candidate - requested) < Math.abs(closest - requested)
+          ? candidate
+          : closest,
+      targets[0] ?? 0,
+    );
+    scrollTargetRef.current = target;
+    setCanScroll({ previous: target > 1, next: maxScroll - target > 1 });
+    rail.scrollTo({
+      left: target,
       behavior: "smooth",
     });
   };
@@ -103,6 +177,8 @@ export function CartBestSellers({
           <ArrowButton
             type="button"
             onClick={() => scrollRail(-1)}
+            disabled={!canScroll.previous}
+            className="disabled:pointer-events-none disabled:text-(--color-text-light)"
             tone="neutral"
             aria-label={t("product.previousRecommendations")}
           >
@@ -111,6 +187,8 @@ export function CartBestSellers({
           <ArrowButton
             type="button"
             onClick={() => scrollRail(1)}
+            disabled={!canScroll.next}
+            className="disabled:pointer-events-none disabled:text-(--color-text-light)"
             tone="neutral"
             aria-label={t("product.nextRecommendations")}
           >

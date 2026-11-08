@@ -240,6 +240,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
             arrowButtonClasses,
             arrowColorClasses,
             arrowShapeClasses,
+            "disabled:pointer-events-none disabled:text-(--color-text-light)",
           )}
           aria-label={t("product.previousProduct")}
         >
@@ -257,6 +258,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
             arrowButtonClasses,
             arrowColorClasses,
             arrowShapeClasses,
+            "disabled:pointer-events-none disabled:text-(--color-text-light)",
           )}
           aria-label={t("product.nextProduct")}
         >
