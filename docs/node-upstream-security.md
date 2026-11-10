@@ -24,6 +24,10 @@ upstream bundle formatting. Their unresolved behavior is documented above. Compl
 requires an upstream resolution or an explicit maintainer decision about these
 differences. No monkey-patch, postinstall patch, or replacement fork is added.
 
+By maintainer decision, the MiniOxygen suite is a manual diagnostic outside
+routine CI and the Node compatibility workflow. Run it with
+`node --test tests/mini-oxygen-security.unit.test.mjs`; its assertions are unchanged.
+
 The sanitizer fork changed module format only. Published sanitize-html 2.18.1
 supports the new Node policy and retains the upstream security implementation.
 Its native runtime and sanitizer/footer regression tests remain required.

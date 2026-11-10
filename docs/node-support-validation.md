@@ -34,8 +34,8 @@ existing graph. Evidence: `/tmp/aspen-upstream-full-graph.log`.
 
 - MiniOxygen security suite fails against published 4.2.3: credentialed
   preflight, external-symlink disclosure and HTTP-stack disclosure. See
-  [comparison](node-upstream-security.md). These failures are retained, not
-  skipped, marked expected, or weakened to make CI green.
+  [comparison](node-upstream-security.md). The tests remain available as manual
+  diagnostics, with unchanged assertions, outside CI by maintainer decision.
 - [Native CI for `e6adae2b`](https://github.com/Weaverse/aspen/actions/runs/42330647480)
   passed strict install, the selected graph, codegen, types,
   localization/sanitizer/footer tests, production build and

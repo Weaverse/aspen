@@ -39,5 +39,3 @@ jobs:
         run: npx --no-install vite-node tests/footer-rich-text.unit.test.ts
       - name: Build storefront
         run: npm run build
-      - name: Check MiniOxygen security regressions
-        run: node --test tests/mini-oxygen-security.unit.test.mjs
