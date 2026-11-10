@@ -1,5 +1,7 @@
 import { useTranslation } from "@weaverse/hydrogen";
+import { cn } from "~/utils/cn";
 import type { CartLine } from "./cart-types";
+import { CART_DRAWER_QUANTITY_SIZE_CLASS } from "./drawer-frame";
 import { canAdjustLineQuantity, useCartStore } from "./store";
 
 export function CartLineQuantityAdjust({ line }: { line: CartLine }) {
@@ -21,7 +23,10 @@ export function CartLineQuantityAdjust({ line }: { line: CartLine }) {
 
   return (
     <fieldset
-      className="inline-flex h-7.5 w-30 shrink-0 items-stretch overflow-hidden rounded-(--radius-sm) bg-(--color-background-subtle) font-dm-sans font-semibold text-[14px] text-body leading-none tracking-[0.02em]"
+      className={cn(
+        "inline-flex shrink-0 items-stretch overflow-hidden rounded-(--radius-sm) bg-(--color-background-subtle) font-dm-sans font-semibold text-[14px] text-body leading-none tracking-[0.02em]",
+        CART_DRAWER_QUANTITY_SIZE_CLASS,
+      )}
       aria-label={t("product.quantityValue", { quantity })}
       aria-busy={isPending}
     >

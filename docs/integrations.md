@@ -312,6 +312,106 @@ provider outage, and missing configuration. The unconfigured adapter must
 either fall back to Aspen's native wishlist or hide wishlist controls—never
 show a control that loses data.
 
+### Themivo Wishlist & Alerts — optional
+
+Aspen uses Themivo's server-side REST API and its own wishlist UI. The product
+cards, Quick View and product page continue using Aspen's existing hearts.
+
+1. Install [Themivo Wishlist & Alerts](https://apps.shopify.com/themivo-wishlist-alerts)
+   on the Shopify store connected to this Aspen storefront.
+2. In **Developers → API keys**, create a key with **Read** and **Write** scopes.
+   Set it as the server environment secret `WISHLIST_API_KEY` in local `.env` and
+   the target deployment. The key can access every shopper's wishlist. Do not
+   add it to a public variable or commit it.
+3. Enable **Guest wishlists**, **Multiple lists**, **Sharing** and **Collaborators**
+   in Themivo's feature settings to exercise those flows. Test customer login
+   using an origin registered for Shopify Customer Accounts.
+4. Open **Wishlist** from the Aspen header. Link paths use the current locale.
+   Share links open Aspen's `/wishlist/shared/{token}`; invitation links open
+   `/wishlist/join/{token}` and require a signed-in customer to accept.
+
+Without the key, Aspen keeps its native wishlist and existing preview behavior.
+With the key, Themivo owns the wishlist data. Existing native metafield items
+are not migrated, and provider outages do not switch writes to the metafield.
+Guest state lives in Aspen's signed HTTP-only session. A successful sign-in
+merge consumes the guest identifier; a failed merge leaves it available for
+retry. Private wishlist responses are not publicly cached. The server uses a
+bounded per-worker ETag cache and caches store hide rules for three minutes.
+The shared save buttons toggle entries in the default list. Entries in other
+lists are managed from the wishlist.
+
+With the REST integration enabled, the regular storefront reads the public
+Themivo configuration. Add each storefront origin under **Developers →
+Headless storefront**. Aspen caches the config for 30 seconds and uses its
+own defaults when the config is unavailable.
+
+- Buttons follow icon, preset, accent, radius, size, enabled state, and image
+  placement. Product form buttons also follow text display and full width.
+- The wishlist entry follows Drawer, Popup, or Page. The header follows the
+  count setting and the floating launcher follows its enable and position
+  settings. Aspen supplies its own header entry. Themivo's automatic Shopify
+  header injection and selector settings apply to the vendor script.
+- Saved items follow Grid or List, the optional shopper layout switch, and
+  the price, Add to cart, and Share controls. The basic empty state follows
+  the icon and continue-shopping controls. The continue-shopping link
+  accepts storefront-relative paths.
+- Guest access, new list creation, new share links, and collaborator invites
+  reflect feature switches in the UI. Themivo still authorizes every write.
+  Existing lists and links remain manageable. Quick-save feedback follows
+  the toast switch and position.
+
+Use a normal storefront URL to test the REST UI. The optional local
+`?themivo-preview=1` still opens the vendor widget for comparison and uses a
+separate browser session. Vendor Page mode in this preview opens
+`/wishlist/preview`; the regular Aspen Page mode opens its localized
+`/wishlist`.
+
+With **Save by variant** enabled, the PDP, Featured Product, and Quick View
+toggle the selected variant. Product cards toggle the displayed variant, or the
+first available variant when no swatch has been selected. Removing a variant
+preserves other variants and previously saved product-level entries. With the
+setting off, the buttons toggle the product-level entry. The product form can
+show the save count from Themivo's stats endpoint. Aspen caches counts briefly
+and budgets upstream stats requests per API key in each worker.
+
+With **Save for later** enabled, supported lines on the cart page can move
+to the separate saved cart list. The cart page and drawer both show saved
+items, and **Move to cart** restores the saved variant and quantity.
+Shopify subscription lines and lines with custom
+attributes stay in the cart because the Themivo item API stores variant and
+quantity. Each transfer writes the destination before removing the source.
+A private Shopify line attribute identifies a restore if the saved-item
+cleanup needs a retry. If saving succeeds but Shopify fails to remove the cart
+line, Aspen can retry that line independently of other saves in the same
+session for up to 24 hours.
+
+Aspen reads the dashboard's supported translations for the active storefront
+locale. Wishlist sharing exposes the configured social links, and the empty
+state can display the configured image and collection suggestions. Online
+Store selectors, custom CSS, and app blocks run through Themivo's widget or
+Shopify theme integration. Admin analytics, POS, alert templates and external
+notification services require validation in their own surfaces.
+
+For email verification, save an eligible product as a signed-in test customer
+and trigger a configured alert in Themivo. Open the product and buy links from
+the received email. They target the shop's primary domain. If that host is not
+the Aspen deployment, configure a redirect on the **primary domain** for
+`/products/{handle}` to Aspen's HTTPS storefront, preserving the handle and
+query string. Verify the final URL, product, and any intended variant on the
+target storefront. No redirect is needed when Aspen already serves the primary
+domain.
+
+Before rollout, check both guest and signed-in add/remove, repeated saves,
+cross-device reads, guest merge, list management, link revocation, collaborator
+access and hide rules. Simulate an outage or revoked key and verify the UI
+reports it without writing to the native wishlist. Remove the secret and verify
+native fallback separately. The Shopify listing shows **Free**. Confirm actual
+REST access and feature availability in the target store by creating a key
+and testing the endpoints.
+
+See the [Headless guide](https://wishlist.themivo.com/docs/headless) and
+[REST API reference](https://wishlist.themivo.com/docs/rest-api).
+
 ## Loyalty and referrals
 
 ### LoyaltyLion — built in

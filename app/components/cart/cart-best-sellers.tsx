@@ -6,7 +6,6 @@ import type {
 import { useTranslation } from "@weaverse/hydrogen";
 import clsx from "clsx";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { useFetcher } from "react-router";
 import type { ProductCardFragment } from "storefront-api.generated";
 import { ArrowButton } from "~/components/arrow-button";
 import { Link } from "~/components/link";
@@ -49,7 +48,7 @@ export function CartBestSellers({
   );
 
   const { t } = useTranslation();
-  const { load, data } = useFetcher<{ products: Product[] }>();
+  const [products, setProducts] = useState<Product[]>();
   const queryString = useMemo(
     () =>
       Object.entries({ count: count * 2, sortKey, query, reverse })
@@ -67,8 +66,23 @@ export function CartBestSellers({
   const [canScroll, setCanScroll] = useState({ previous: false, next: false });
 
   useEffect(() => {
-    load(productsApiPath);
-  }, [load, productsApiPath]);
+    const controller = new AbortController();
+    fetch(productsApiPath, { signal: controller.signal })
+      .then(async (response) => {
+        if (!response.ok) {
+          return [];
+        }
+        const result = (await response.json()) as { products: Product[] };
+        return result.products;
+      })
+      .catch(() => [])
+      .then((result) => {
+        if (!controller.signal.aborted) {
+          setProducts(result);
+        }
+      });
+    return () => controller.abort();
+  }, [productsApiPath]);
 
   // Re-measure replaced cards even when the rail's own dimensions stay unchanged.
   // biome-ignore lint/correctness/useExhaustiveDependencies: Product and skeleton changes can alter scrollWidth without resizing the rail.
@@ -111,7 +125,7 @@ export function CartBestSellers({
       rail.removeEventListener("keydown", syncPosition);
       observer.disconnect();
     };
-  }, [layout, data?.products, count]);
+  }, [layout, products, count]);
 
   const scrollRail = (direction: -1 | 1) => {
     const rail = railRef.current;
@@ -170,7 +184,7 @@ export function CartBestSellers({
           <CartBestSellersContent
             count={count}
             layout={layout}
-            products={data?.products as Product[]}
+            products={products}
           />
         </div>
         <div className="flex justify-center gap-2">
@@ -211,7 +225,7 @@ export function CartBestSellers({
         <CartBestSellersContent
           count={count}
           layout={layout}
-          products={data?.products as Product[]}
+          products={products}
         />
       </div>
     </>

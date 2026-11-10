@@ -13,6 +13,10 @@ import { getLocaleSegment, localeCode } from "~/utils/locale";
 import { loadLoyaltyBalance } from "~/utils/loyalty.server";
 import { isLoyaltyLionConfigured } from "~/utils/loyaltylion.server";
 import { seoPayload } from "~/utils/seo.server";
+import {
+  readThemivoHearts,
+  themivoEnabled,
+} from "~/utils/themivo-wishlist.server";
 import { readWishlist } from "~/utils/wishlist.server";
 import {
   isWishlistPreviewRequest,
@@ -91,7 +95,9 @@ export function loadDeferredData({ context, request }: LoaderFunctionArgs) {
   return {
     isLoggedIn,
     cart: cart.get(),
-    wishlist: loadCustomerWishlist(request, customerAccount, isLoggedIn),
+    wishlist: themivoEnabled(context)
+      ? readThemivoHearts(context)
+      : loadCustomerWishlist(request, customerAccount, isLoggedIn),
     loyalty: loadLoyaltyBalance({ env, customerAccount, isLoggedIn }),
   };
 }

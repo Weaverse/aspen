@@ -26,14 +26,21 @@ import { ProgressBar } from "~/components/progress-bar";
 import { ScrollArea } from "~/components/scroll-area";
 import { Skeleton } from "~/components/skeleton";
 import { SellingPlanSelector } from "~/components/subscriptions/selling-plan-selector";
-import { ProductCardWishlistButton } from "~/components/wishlist/product-card-wishlist-button";
+import { ProductWishlistButton } from "~/components/wishlist/product-wishlist-button";
+import { useProductWishlist } from "~/components/wishlist/use-product-wishlist";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import { useQuickViewScrollbar } from "~/hooks/use-quick-view-scrollbar";
 import { useTranslatedThemeSettings } from "~/hooks/use-translated-theme-settings";
 import type { ProductData } from "~/routes/($locale).api.product";
-import { MEDIA_MOBILE } from "~/utils/breakpoints";
 import { QuickShopFade } from "./quick-shop-fade";
-import { QUICK_SHOP_MOBILE_FRAME_CLASS } from "./quick-shop-frame";
+import {
+  QUICK_SHOP_DESKTOP_FRAME_CLASS,
+  QUICK_SHOP_DESKTOP_SURFACE_CLASS,
+  QUICK_SHOP_MOBILE_FRAME_CLASS,
+  QUICK_SHOP_MOBILE_SURFACE_CLASS,
+  QUICK_SHOP_OVERLAY_CLASS,
+  useQuickShopMobile,
+} from "./quick-shop-frame";
 import { VariantPrices } from "./variant-prices";
 
 const LOW_STOCK_THRESHOLD = 10;
@@ -87,6 +94,13 @@ export function QuickShop({
   const { t } = useTranslation();
   const themeSettings = useTranslatedThemeSettings();
   const { product, storeDomain } = data || {};
+  const {
+    showWishlist,
+    wishlistOnImage,
+    imagePosition,
+    useAspenImageAppearance,
+    wishlistBelowCart,
+  } = useProductWishlist(undefined, "image");
 
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
     product?.selectedOrFirstAvailableVariant?.id || null,
@@ -143,7 +157,7 @@ export function QuickShop({
         } as React.CSSProperties
       }
     >
-      <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-gray-100">
+      <div className="group/wishlist-host relative aspect-square w-full overflow-hidden rounded-xl bg-gray-100">
         <div className="[&_.swiper]:!h-full [&_.swiper-slide]:!h-full [&_.swiper-wrapper]:!h-full [&_img]:!h-full [&_img]:!w-full [&_img]:!rounded-xl [&_img]:!object-cover absolute inset-0">
           <ProductMedia
             mediaLayout="slider"
@@ -167,12 +181,14 @@ export function QuickShop({
             }
           />
         </div>
-        {product?.id && (
-          <ProductCardWishlistButton
+        {wishlistOnImage && (
+          <ProductWishlistButton
             productId={product.id}
-            productTitle={title}
-            showOnMobile={!isDesktop}
-            showOnTablet
+            variantId={selectedVariant?.id}
+            productTitle={product.title}
+            onImage
+            useAspenAppearance={useAspenImageAppearance}
+            className={clsx("absolute z-20", imagePosition)}
           />
         )}
       </div>
@@ -261,6 +277,21 @@ export function QuickShop({
             >
               {atcText}
             </AddToCartButton>
+            {showWishlist && !wishlistOnImage && (
+              <div
+                className={clsx(
+                  "empty:hidden",
+                  wishlistBelowCart && "basis-full",
+                )}
+              >
+                <ProductWishlistButton
+                  productId={product.id}
+                  variantId={selectedVariant?.id}
+                  productTitle={product.title}
+                  compact={!wishlistBelowCart}
+                />
+              </div>
+            )}
           </div>
           {selectedVariant?.availableForSale && (
             <ShopPayButton
@@ -340,7 +371,7 @@ export function QuickShopTrigger({
   const open = controlledOpen ?? internalOpen;
   useQuickViewScrollbar(open);
   const setOpen = onOpenChange ?? setInternalOpen;
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useQuickShopMobile();
   const cartHandoff = useRef<"idle" | "closing" | "complete">("idle");
 
   useEffect(() => {
@@ -349,13 +380,6 @@ export function QuickShopTrigger({
     }
   }, [open]);
 
-  useEffect(() => {
-    const query = window.matchMedia(MEDIA_MOBILE);
-    const update = () => setIsMobile(query.matches);
-    update();
-    query.addEventListener("change", update);
-    return () => query.removeEventListener("change", update);
-  }, []);
   const [loadedPath, setLoadedPath] = useState<string | null>(null);
   const [pendingPath, setPendingPath] = useState<string | null>(null);
   const { load, data, state } = useFetcher<ProductData>();
@@ -475,7 +499,7 @@ export function QuickShopTrigger({
           {open && (
             <>
               <Dialog.Overlay forceMount>
-                <QuickShopFade className="fixed inset-0 z-10 bg-black/50 backdrop-blur-xs" />
+                <QuickShopFade className={QUICK_SHOP_OVERLAY_CLASS} />
               </Dialog.Overlay>
               {/* Mount only the active dialog so hidden focus traps cannot dismiss it. */}
               {isMobile && (
@@ -486,7 +510,7 @@ export function QuickShopTrigger({
                   className={clsx("fixed z-10", QUICK_SHOP_MOBILE_FRAME_CLASS)}
                   aria-describedby={undefined}
                 >
-                  <QuickShopFade className="h-full w-full overflow-hidden rounded-(--radius-md) bg-background">
+                  <QuickShopFade className={QUICK_SHOP_MOBILE_SURFACE_CLASS}>
                     <div className="relative flex h-full flex-col">
                       <Dialog.Title asChild>
                         <span className="sr-only">
@@ -530,10 +554,10 @@ export function QuickShopTrigger({
                   forceMount
                   onCloseAutoFocus={handleCloseAutoFocus}
                   data-quick-view-dialog=""
-                  className="fixed top-1/2 left-[calc((100%-var(--quick-view-locked-gap,0px))/2)] z-10 w-[calc(100%-var(--quick-view-locked-gap,0px)-48px)] max-w-[1375px] -translate-x-1/2 -translate-y-1/2"
+                  className={clsx("fixed z-10", QUICK_SHOP_DESKTOP_FRAME_CLASS)}
                   aria-describedby={undefined}
                 >
-                  <QuickShopFade className="relative max-h-[calc(100dvh-48px)] w-full overflow-y-auto rounded-xl bg-background p-6">
+                  <QuickShopFade className={QUICK_SHOP_DESKTOP_SURFACE_CLASS}>
                     <Dialog.Title asChild>
                       <span className="sr-only">{t("product.quickShop")}</span>
                     </Dialog.Title>

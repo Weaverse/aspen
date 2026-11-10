@@ -11,6 +11,7 @@ import {
 import { useEffect } from "react";
 import { useRouteLoaderData } from "react-router";
 import type { RootLoader } from "~/root";
+import { isPrivateWishlistPath } from "~/utils/themivo-script-preview";
 
 export function CustomAnalytics() {
   const { subscribe, canTrack } = useAnalytics();
@@ -26,6 +27,13 @@ export function CustomAnalytics() {
     let dataToSentToGTM: any = {};
     // Standard events
     subscribe(AnalyticsEvent.PAGE_VIEWED, (data: PageViewPayload) => {
+      if (
+        isPrivateWishlistPath(
+          new URL(data.url, window.location.origin).pathname,
+        )
+      ) {
+        return;
+      }
       console.log("CustomAnalytics - Page viewed:", data);
       dataToSentToGTM = {
         event: "page_viewed",

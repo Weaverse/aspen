@@ -10,6 +10,8 @@ import {
   switchLocalePath,
 } from "../app/utils/locale.ts";
 import {
+  isWishlistShareAction,
+  revalidateWishlistAfterMutation,
   skipPageRevalidationForStorefrontActions,
   skipRootRevalidationForStorefrontActions,
 } from "../app/utils/revalidation.ts";
@@ -255,4 +257,58 @@ test("same-locale cart actions still skip unnecessary revalidation", () => {
 
   assert.equal(skipRootRevalidationForStorefrontActions(args), false);
   assert.equal(skipPageRevalidationForStorefrontActions(args), false);
+});
+
+test("wishlist share actions refresh the wishlist without reloading the surrounding page", () => {
+  const formData = new FormData();
+  const url = new URL("https://example.com/fr-fr/products/chair");
+  const args = {
+    currentUrl: url,
+    nextUrl: url,
+    defaultShouldRevalidate: true,
+    formAction: "/fr-fr/wishlist.data",
+    formMethod: "POST",
+    formData,
+  } as Parameters<typeof skipRootRevalidationForStorefrontActions>[0];
+
+  for (const intent of ["share", "revoke"]) {
+    formData.set("intent", intent);
+    assert.equal(isWishlistShareAction(args), true);
+    assert.equal(skipRootRevalidationForStorefrontActions(args), false);
+    assert.equal(skipPageRevalidationForStorefrontActions(args), false);
+    assert.equal(revalidateWishlistAfterMutation(args), true);
+  }
+
+  formData.set("intent", "remove");
+  assert.equal(isWishlistShareAction(args), false);
+  assert.equal(skipRootRevalidationForStorefrontActions(args), true);
+});
+
+test("a localized wishlist toggle refreshes the list only after a successful action", () => {
+  const url = new URL("https://example.com/fr-fr/wishlist");
+  const args = {
+    currentUrl: url,
+    nextUrl: url,
+    defaultShouldRevalidate: true,
+    formAction: "/fr-fr/api/wishlist.data",
+    formMethod: "POST",
+  } as Parameters<typeof revalidateWishlistAfterMutation>[0];
+
+  assert.equal(revalidateWishlistAfterMutation(args), true);
+  assert.equal(skipRootRevalidationForStorefrontActions(args), false);
+  assert.equal(skipPageRevalidationForStorefrontActions(args), false);
+  assert.equal(
+    revalidateWishlistAfterMutation({
+      ...args,
+      defaultShouldRevalidate: false,
+    }),
+    false,
+  );
+  assert.equal(
+    revalidateWishlistAfterMutation({
+      ...args,
+      formAction: "/fr-fr/api/wishlist/saved-cart.data",
+    }),
+    false,
+  );
 });

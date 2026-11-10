@@ -12,6 +12,7 @@ import { CartBestSellers } from "./cart-best-sellers";
 import { CartCodeForm } from "./cart-code-form";
 import { CartLineItem, PriceLoadingSpinner } from "./cart-line-item";
 import { CartPageNote } from "./cart-page-note";
+import { CartSavedForLater } from "./cart-saved-for-later";
 import {
   AppliedCartCodes,
   CartCheckoutActions,
@@ -249,6 +250,7 @@ export function CartDetails({
               lines={cart.lines.nodes}
               layout={layout}
             />
+            <CartSavedForLater layout="drawer" />
           </div>
           <CartSummary layout={layout} className="mt-auto">
             <AppliedCartCodes
@@ -433,6 +435,7 @@ export function CartEmpty({
           </Link>
         )}
       </div>
+      {layout === "drawer" && !hidden && <CartSavedForLater layout="drawer" />}
       {enableCartBestSellers && layout === "drawer" && (
         <div className="grid gap-4">
           <CartBestSellers
