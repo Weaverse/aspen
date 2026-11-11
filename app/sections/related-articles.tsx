@@ -8,6 +8,7 @@ import { Link } from "~/components/link";
 import { layoutInputs, Section, type SectionProps } from "~/components/section";
 import { useLocale } from "~/hooks/use-locale";
 import { useTranslatedText } from "~/hooks/use-translated-text";
+import { articlePath } from "~/utils/blog-path";
 import { minWidthQuery, TABLET_MIN_PX } from "~/utils/breakpoints";
 import { cn } from "~/utils/cn";
 import { calculateAspectRatio, getImageLoadingPriority } from "~/utils/image";
@@ -97,7 +98,7 @@ const RelatedArticles = forwardRef<HTMLElement, RelatedArticlesProps>(
               <div key={article.id} className="flex flex-col gap-4">
                 <article className="flex min-w-0 flex-col items-start gap-3 self-stretch font-dm-sans text-[#343231] md:block">
                   <Link
-                    to={`/blogs/${article.handle}`}
+                    to={articlePath(article.handle, article.blog?.handle)}
                     prefetch="intent"
                     className="flex min-w-0 flex-col items-start justify-start gap-3 self-stretch md:block xl:flex xl:gap-5"
                   >

@@ -51,6 +51,7 @@ export default hydrogenRoutes([
         "routes/($locale).api.review.$productHandle.ts",
       ),
     ]),
+    route("blog/:blogHandle", "routes/($locale).blog.$blogHandle.tsx"),
     ...prefix("blogs", [
       index("routes/($locale).blogs._index.tsx"),
       route(":articleHandle", "routes/($locale).blogs.$articleHandle.tsx"),

@@ -8,6 +8,7 @@ import type {
 import invariant from "tiny-invariant";
 import type { EnhancedMenu } from "~/types/menu";
 import type { WishlistApiResponse } from "~/types/wishlist";
+import { articlePath, blogPath } from "~/utils/blog-path";
 import { sanitizeFooterTheme } from "~/utils/footer-rich-text.server";
 import { getLocaleSegment, localeCode } from "~/utils/locale";
 import { loadLoyaltyBalance } from "~/utils/loyalty.server";
@@ -143,8 +144,8 @@ async function getLayoutData({ storefront, env }: AppLoadContext) {
       Modify specific links/routes (optional)
       @see: https://shopify.dev/api/storefront/unstable/enums/MenuItemType
       e.g here we map:
-        - /blogs/news -> /news
-        - /blog/news/blog-post -> /news/blog-post
+        - /blogs/news -> /blogs?blog=news
+        - /blogs/news/blog-post -> /blogs/blog-post?blog=news
         - /collections/all -> /products
     */
   const customPrefixes = { CATALOG: "products" };
@@ -254,16 +255,28 @@ function parseItem(primaryDomain: string, env: Env, customPrefixes = {}) {
     }
 
     // extract path from url because we don't need the origin on internal to attributes
-    const { host, pathname } = new URL(item.url);
+    const { host, pathname, search, hash } = new URL(item.url);
     const isInternalLink =
       host === new URL(primaryDomain).host || host === env.PUBLIC_STORE_DOMAIN;
+    let to = isInternalLink
+      ? resolveToFromType({ type: item.type, customPrefixes, pathname })
+      : item.url;
+    if (isInternalLink && /\/blogs(?:\/|$)/.test(pathname)) {
+      const destination = new URL(to, item.url);
+      for (const [key, value] of new URLSearchParams(search)) {
+        if (key !== "blog" || !destination.searchParams.has("blog")) {
+          destination.searchParams.append(key, value);
+        }
+      }
+      to = destination.pathname + destination.search + hash;
+    }
     const parsedItem = isInternalLink
       ? // internal links
         {
           ...item,
           isExternal: false,
           target: "_self",
-          to: resolveToFromType({ type: item.type, customPrefixes, pathname }),
+          to,
         }
       : // external links
         {
@@ -319,7 +332,10 @@ function resolveToFromType(
     SHOP_POLICY: "policies",
   };
 
-  const pathParts = pathname.split("/");
+  if (type === "HTTP" && /\/blogs(?:\/|$)/.test(pathname)) {
+    return pathname;
+  }
+  const pathParts = pathname.split("/").filter(Boolean);
   const handle = pathParts.pop() || "";
   if (type === "PAGE" && handle === "contact") {
     return "/contact";
@@ -335,12 +351,13 @@ function resolveToFromType(
     case type === "FRONTPAGE":
       return "/";
     case type === "ARTICLE": {
-      return routePrefix.BLOG
-        ? `/${routePrefix.BLOG}/${handle}/`
-        : `/${handle}/`;
+      return articlePath(
+        decodeURIComponent(handle),
+        decodeURIComponent(pathParts.at(-1) ?? ""),
+      );
     }
     case type === "BLOG":
-      return `/${routePrefix.BLOG}`;
+      return blogPath(decodeURIComponent(handle));
     case type === "COLLECTIONS":
       return `/${routePrefix.COLLECTIONS}`;
     case type === "SEARCH":
