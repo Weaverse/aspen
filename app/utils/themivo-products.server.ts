@@ -3,6 +3,8 @@ import type { ThemivoWishlistProductsQuery } from "storefront-api.generated";
 import type { ThemivoItem } from "~/types/wishlist";
 import { productGid, variantGid } from "./themivo-wishlist.server";
 
+const MAX_NODES_PER_QUERY = 250;
+
 export async function hydrateThemivoItems(
   storefront: AppLoadContext["storefront"],
   items: ThemivoItem[],
@@ -19,17 +21,21 @@ export async function hydrateThemivoItems(
       ]),
     ),
   ];
-  const { nodes } = await storefront.query<ThemivoWishlistProductsQuery>(
-    WISHLIST_PRODUCTS,
-    {
-      variables: {
-        ids,
-        country: storefront.i18n.country,
-        language: storefront.i18n.language,
+  const nodes: ThemivoWishlistProductsQuery["nodes"] = [];
+  for (let start = 0; start < ids.length; start += MAX_NODES_PER_QUERY) {
+    const batch = await storefront.query<ThemivoWishlistProductsQuery>(
+      WISHLIST_PRODUCTS,
+      {
+        variables: {
+          ids: ids.slice(start, start + MAX_NODES_PER_QUERY),
+          country: storefront.i18n.country,
+          language: storefront.i18n.language,
+        },
+        cache: storefront.CacheShort(),
       },
-      cache: storefront.CacheShort(),
-    },
-  );
+    );
+    nodes.push(...batch.nodes);
+  }
   const byId = new Map(
     nodes.flatMap((node) => (node ? [[node.id, node] as const] : [])),
   );
