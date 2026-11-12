@@ -1,11 +1,11 @@
 import {
   type BasicInput,
   createSchema,
-  type HydrogenComponentProps,
   IMAGES_PLACEHOLDERS,
   useTranslation,
+  type WeaverseComponentProps,
   type WeaverseImage,
-} from "@weaverse/hydrogen";
+} from "@weaverse/hydrogen/react-router";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import { type CSSProperties, forwardRef, useContext } from "react";
@@ -45,7 +45,7 @@ const variants = cva("h-auto w-full", {
 
 export interface ImageWithTextImageProps
   extends VariantProps<typeof variants>,
-    Partial<HydrogenComponentProps> {
+    Partial<WeaverseComponentProps> {
   image?: WeaverseImage | string;
   imageAspectRatio?: ImageAspectRatio;
   objectFit?: "cover" | "contain" | null;

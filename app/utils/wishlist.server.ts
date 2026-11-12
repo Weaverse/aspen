@@ -1,8 +1,9 @@
-import type { CustomerAccount } from "@shopify/hydrogen";
+import { gql } from "@shopify/hydrogen/customer-account";
+import type { CustomerAccount } from "~/.server/customer-account";
 import type {
   WishlistCustomerQuery,
   WishlistUpdateMutation,
-} from "customer-account-api.generated";
+} from "~/graphql/customer-types";
 
 export const WISHLIST_PRODUCT_ID_PATTERN = /^gid:\/\/shopify\/Product\/\d+$/;
 export const MAX_WISHLIST_SIZE = 100;
@@ -27,7 +28,7 @@ export async function readWishlist(
   customerAccount: CustomerAccount,
 ): Promise<WishlistRecord> {
   const { data: result, errors } =
-    await customerAccount.query<WishlistCustomerQuery>(WISHLIST_QUERY);
+    await customerAccount.graphql(WISHLIST_QUERY);
 
   if (errors?.length) {
     throw new Error(errors[0].message);
@@ -49,24 +50,23 @@ export async function writeWishlist(
   wishlist: WishlistRecord,
   productIds: string[],
 ) {
-  const { data: result, errors } =
-    await customerAccount.mutate<WishlistUpdateMutation>(
-      WISHLIST_UPDATE_MUTATION,
-      {
-        variables: {
-          metafields: [
-            {
-              ownerId: wishlist.customerId,
-              namespace: "custom",
-              key: "aspen_wishlist",
-              type: "list.single_line_text_field",
-              value: JSON.stringify(productIds),
-              compareDigest: wishlist.compareDigest,
-            },
-          ],
-        },
+  const { data: result, errors } = await customerAccount.graphql(
+    WISHLIST_UPDATE_MUTATION,
+    {
+      variables: {
+        metafields: [
+          {
+            ownerId: wishlist.customerId,
+            namespace: "custom",
+            key: "aspen_wishlist",
+            type: "list.single_line_text_field",
+            value: JSON.stringify(productIds),
+            compareDigest: wishlist.compareDigest,
+          },
+        ],
       },
-    );
+    },
+  );
 
   if (errors?.length) {
     return {
@@ -149,35 +149,29 @@ export function parseWishlist(value?: string | null) {
   }
 }
 
-const WISHLIST_QUERY = `#graphql
-  query WishlistCustomer {
-    customer {
-      id
-      wishlist: metafield(
-        namespace: "custom"
-        key: "aspen_wishlist"
-      ) {
-        value
-        compareDigest
-      }
+export const WISHLIST_QUERY = gql(`query WishlistCustomer {
+  customer {
+    id
+    wishlist: metafield(namespace: "custom", key: "aspen_wishlist") {
+      value
+      compareDigest
     }
   }
-` as const;
+}`);
 
-const WISHLIST_UPDATE_MUTATION = `#graphql
-  mutation WishlistUpdate($metafields: [MetafieldsSetInput!]!) {
-    metafieldsSet(metafields: $metafields) {
-      metafields {
-        key
-        namespace
-        value
-        compareDigest
-      }
-      userErrors {
-        code
-        field
-        message
-      }
+export const WISHLIST_UPDATE_MUTATION =
+  gql(`mutation WishlistUpdate($metafields: [MetafieldsSetInput!]!) {
+  metafieldsSet(metafields: $metafields) {
+    metafields {
+      key
+      namespace
+      value
+      compareDigest
+    }
+    userErrors {
+      code
+      field
+      message
     }
   }
-` as const;
+}`);

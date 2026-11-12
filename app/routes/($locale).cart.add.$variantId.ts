@@ -22,7 +22,7 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
     const cartId = result.cart.id;
     session.set("cartId", cartId);
     const headers = new Headers();
-    headers.set("Set-Cookie", await session.commit());
+    headers.set("Set-Cookie", (await session.commit())?.["Set-Cookie"] || "");
     headers.set("Location", "/cart");
 
     const { cart: cartResult, errors, userErrors } = result;

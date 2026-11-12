@@ -1,9 +1,12 @@
-import { useTranslation } from "@weaverse/hydrogen";
+import { gql } from "@shopify/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import { type LoaderFunctionArgs, redirect } from "react-router";
-import type { GetShopPrimaryDomainQuery } from "storefront-api.generated";
 import invariant from "tiny-invariant";
 import { Button } from "~/components/button";
 import { Section } from "~/components/section";
+import type { GetShopPrimaryDomainQuery } from "~/graphql/storefront-types";
+import { CACHE_DEFAULT, CacheLong } from "~/utils/cache";
+import { unwrapStorefront } from "~/utils/storefront";
 
 /*
  If your online store had active orders before you launched your Hydrogen storefront,
@@ -17,10 +20,9 @@ export async function loader({
   context: { storefront },
 }: LoaderFunctionArgs) {
   const { origin } = new URL(request.url);
-  const { shop } = await storefront.query<GetShopPrimaryDomainQuery>(
-    SHOP_PRIMARY_DOMAIN_QUERY,
-    { cache: storefront.CacheLong() },
-  );
+  const { shop } = await storefront
+    .graphql(SHOP_PRIMARY_DOMAIN_QUERY, { cache: CacheLong() })
+    .then(unwrapStorefront);
   invariant(shop, "Error redirecting to the order status URL");
   return redirect(request.url.replace(origin, shop.primaryDomain.url));
 }
@@ -45,12 +47,10 @@ export function ErrorBoundary() {
   );
 }
 
-const SHOP_PRIMARY_DOMAIN_QUERY = `#graphql
-  query getShopPrimaryDomain {
-    shop {
-      primaryDomain {
-        url
-      }
+export const SHOP_PRIMARY_DOMAIN_QUERY = gql(`query getShopPrimaryDomain {
+  shop {
+    primaryDomain {
+      url
     }
   }
-`;
+}`);

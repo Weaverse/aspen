@@ -1,13 +1,13 @@
 import { MinusIcon, PlusIcon } from "@phosphor-icons/react";
 import * as Accordion from "@radix-ui/react-accordion";
 import type { Filter } from "@shopify/hydrogen/storefront-api-types";
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import clsx from "clsx";
 import { useRef, useState } from "react";
 import { useLoaderData } from "react-router";
-import type { CollectionQuery } from "storefront-api.generated";
 import { OPTIONS_AS_SWATCH } from "~/components/product/product-option-values";
 import { ScrollArea } from "~/components/scroll-area";
+import type { CollectionQuery } from "~/graphql/storefront-types";
 import { useClosestWeaverseItem } from "~/hooks/use-closest-weaverse-item";
 import { cn } from "~/utils/cn";
 import type { AppliedFilter } from "~/utils/filter";

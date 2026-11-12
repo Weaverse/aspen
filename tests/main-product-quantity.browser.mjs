@@ -42,16 +42,20 @@ const bundle = await build({
   bundle: true,
   write: false,
   format: "iife",
+  define: { "import.meta.env.DEV": "false" },
   jsx: "automatic",
   alias: { "~": `${root}app` },
   plugins: [
     {
       name: "quantity-fixture",
       setup(builder) {
-        builder.onResolve({ filter: /^@weaverse\/hydrogen$/ }, () => ({
-          path: "translation",
-          namespace: "fixture",
-        }));
+        builder.onResolve(
+          { filter: /^@weaverse\/hydrogen(?:\/react-router)?$/ },
+          () => ({
+            path: "translation",
+            namespace: "fixture",
+          }),
+        );
         builder.onLoad({ filter: /./, namespace: "fixture" }, () => ({
           contents: "export const useTranslation = () => ({t: key => key});",
           loader: "js",
@@ -69,9 +73,17 @@ test("All product purchase surfaces disable quantity from the selected variant a
   ]) {
     const source = await readFile(`${root}app/${file}`, "utf8");
     const quantity = source.match(/<Quantity\s[\s\S]*?\/>/)?.[0];
-    expect(quantity, file).toContain(
-      `disabled={!${selected}?.availableForSale}`,
-    );
+    if (file.startsWith("sections/single-product")) {
+      expect(quantity, file).toContain("disabled={!canPurchase");
+      expect(source, file).toContain("!currentVariant?.availableForSale");
+      expect(source, file).toContain(
+        "const canPurchase = !soldOut && !policyPending",
+      );
+    } else {
+      expect(quantity?.replace(/\s+/g, ""), file).toContain(
+        `disabled={!${selected}?.availableForSale`,
+      );
+    }
   }
 });
 

@@ -1,11 +1,13 @@
-import { flattenConnection } from "@shopify/hydrogen";
+import { flattenConnection, gql } from "@shopify/hydrogen";
 import type { ProductSortKeys } from "@shopify/hydrogen/storefront-api-types";
 import { data, type LoaderFunctionArgs } from "react-router";
-import type { ApiAllProductsQuery } from "storefront-api.generated";
 import invariant from "tiny-invariant";
 import { PRODUCT_CARD_FRAGMENT } from "~/graphql/fragments";
+import type { ApiAllProductsQuery } from "~/graphql/storefront-types";
+import { CACHE_DEFAULT, CacheLong } from "~/utils/cache";
 import { maybeFilterOutCombinedListingsQuery } from "~/utils/combined-listings";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
+import { unwrapStorefront } from "~/utils/storefront";
 
 export const shouldRevalidate = skipPageRevalidationForStorefrontActions;
 
@@ -52,40 +54,166 @@ export async function loader({
     .filter(Boolean)
     .join(" ");
 
-  const { products } = await storefront.query<ApiAllProductsQuery>(
-    API_ALL_PRODUCTS_QUERY,
-    {
-      variables: {
-        count,
-        query: combinedQuery,
-        reverse,
-        sortKey,
-        country: storefront.i18n.country,
-        language: storefront.i18n.language,
-      },
-      cache: storefront.CacheLong(),
-    },
-  );
+  const { products } = await storefront
+    .graphql(API_ALL_PRODUCTS_QUERY, {
+      variables: { count, query: combinedQuery, reverse, sortKey },
+      cache: CacheLong(),
+    })
+    .then(unwrapStorefront);
 
   invariant(products, "No data returned from top products query");
 
   return data({ products: flattenConnection(products) });
 }
 
-const API_ALL_PRODUCTS_QUERY = `#graphql
-  query ApiAllProducts(
-    $query: String
-    $count: Int
-    $reverse: Boolean
-    $country: CountryCode
-    $language: LanguageCode
-    $sortKey: ProductSortKeys
-  ) @inContext(country: $country, language: $language) {
-    products(first: $count, sortKey: $sortKey, reverse: $reverse, query: $query) {
-      nodes {
-        ...ProductCard
+export const API_ALL_PRODUCTS_QUERY =
+  gql(`query ApiAllProducts($query: String, $count: Int, $reverse: Boolean, $country: CountryCode, $language: LanguageCode, $sortKey: ProductSortKeys) @inContext(country: $country, language: $language) {
+  products(first: $count, sortKey: $sortKey, reverse: $reverse, query: $query) {
+    nodes {
+      ...ProductCard
+    }
+  }
+}
+
+fragment ProductCard on Product {
+  id
+  title
+  publishedAt
+  handle
+  vendor
+  productType
+  tags
+  reviewRating: metafield(namespace: "reviews", key: "rating") {
+    value
+  }
+  reviewRatingCount: metafield(namespace: "reviews", key: "rating_count") {
+    value
+  }
+  images(first: 50) {
+    nodes {
+      id
+      url
+      altText
+      width
+      height
+    }
+  }
+  options {
+    ...ProductOption
+  }
+  badges: metafields(identifiers: [{namespace: "custom", key: "best_seller"}]) {
+    key
+    namespace
+    value
+  }
+  priceRange {
+    maxVariantPrice {
+      amount
+      currencyCode
+    }
+    minVariantPrice {
+      amount
+      currencyCode
+    }
+  }
+  selectedOrFirstAvailableVariant(
+    selectedOptions: []
+    ignoreUnknownOptions: true
+    caseInsensitiveMatch: true
+  ) {
+    ...ProductVariant
+  }
+  isBundle: selectedOrFirstAvailableVariant(
+    ignoreUnknownOptions: true
+    selectedOptions: {name: "", value: ""}
+  ) {
+    ... on ProductVariant {
+      requiresComponents
+    }
+  }
+}
+
+fragment ProductOption on ProductOption {
+  name
+  optionValues {
+    name
+    firstSelectableVariant {
+      ...ProductVariant
+    }
+    swatch {
+      color
+      image {
+        previewImage {
+          url
+          altText
+        }
       }
     }
   }
-  ${PRODUCT_CARD_FRAGMENT}
-` as const;
+}
+
+fragment ProductVariant on ProductVariant {
+  currentlyNotInStock
+  requiresShipping
+  quantityRule {
+    minimum
+    maximum
+    increment
+  }
+  id
+  availableForSale
+  quantityAvailable
+  selectedOptions {
+    name
+    value
+  }
+  image {
+    id
+    url
+    altText
+    width
+    height
+  }
+  price {
+    amount
+    currencyCode
+  }
+  compareAtPrice {
+    amount
+    currencyCode
+  }
+  sku
+  title
+  unitPrice {
+    amount
+    currencyCode
+  }
+  product {
+    id
+    vendor
+    title
+    handle
+  }
+  requiresComponents
+  components(first: 10) {
+    nodes {
+      productVariant {
+        id
+        title
+        product {
+          handle
+        }
+      }
+      quantity
+    }
+  }
+  groupedBy(first: 10) {
+    nodes {
+      id
+      title
+      product {
+        handle
+      }
+    }
+  }
+}`);

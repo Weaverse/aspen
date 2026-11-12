@@ -1,14 +1,16 @@
-import { CacheCustom, type Storefront } from "@shopify/hydrogen";
+import { gql } from "@shopify/hydrogen";
 import type {
   CountryCode,
   CurrencyCode,
   LanguageCode,
 } from "@shopify/hydrogen/storefront-api-types";
+import type { Storefront } from "~/.server/storefront";
 import type {
   CurrencyOption,
   I18nLocale,
   StoreLocalization,
 } from "~/types/locale";
+import { CACHE_DEFAULT, CacheCustom } from "~/utils/cache";
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from "~/utils/const";
 import {
   getLocaleSegment,
@@ -17,6 +19,7 @@ import {
   localePathPrefix,
   selectSupportedLiveLocales,
 } from "~/utils/locale";
+import { unwrapStorefront } from "~/utils/storefront";
 
 type LocalizationQueryData = {
   localization: {
@@ -61,16 +64,12 @@ export async function loadStoreLocalization(
   request: Request,
 ): Promise<StoreLocalization> {
   try {
-    const { localization } = await storefront.query<LocalizationQueryData>(
-      LOCALIZATION_QUERY,
-      {
+    const { localization } = await storefront
+      .graphql(LOCALIZATION_QUERY, {
         cache: CacheCustom({ maxAge: 10, staleWhileRevalidate: 0 }),
-        variables: {
-          country: storefront.i18n.country,
-          language: storefront.i18n.language,
-        },
-      },
-    );
+        variables: {},
+      })
+      .then(unwrapStorefront);
 
     const liveLocales = localization.availableCountries.flatMap((country) => {
       const countryLanguages =
@@ -83,11 +82,11 @@ export async function loadStoreLocalization(
 
       return countryLanguages.map<I18nLocale>((language) => ({
         label: `${country.name} · ${language.endonymName || language.name} · ${country.currency.isoCode}`,
-        language: language.isoCode,
+        language: language.isoCode as I18nLocale["language"],
         country: country.isoCode,
         currency: country.currency.isoCode,
         pathPrefix: localePathPrefix({
-          language: language.isoCode,
+          language: language.isoCode as I18nLocale["language"],
           country: country.isoCode,
         }),
         countryName: country.name,
@@ -274,43 +273,41 @@ export function getRequestI18n(
     : languageLocale;
 }
 
-const LOCALIZATION_QUERY = `#graphql
-  query StoreLocalization($country: CountryCode!, $language: LanguageCode!)
-    @inContext(country: $country, language: $language) {
-    localization {
-      country {
+export const LOCALIZATION_QUERY =
+  gql(`query StoreLocalization($country: CountryCode!, $language: LanguageCode!) @inContext(country: $country, language: $language) {
+  localization {
+    country {
+      isoCode
+      name
+      currency {
         isoCode
         name
-        currency {
-          isoCode
-          name
-          symbol
-        }
+        symbol
       }
-      language {
+    }
+    language {
+      isoCode
+      name
+      endonymName
+    }
+    availableLanguages {
+      isoCode
+      name
+      endonymName
+    }
+    availableCountries {
+      isoCode
+      name
+      currency {
         isoCode
         name
-        endonymName
+        symbol
       }
       availableLanguages {
         isoCode
         name
         endonymName
       }
-      availableCountries {
-        isoCode
-        name
-        currency {
-          isoCode
-          name
-          symbol
-        }
-        availableLanguages {
-          isoCode
-          name
-          endonymName
-        }
-      }
     }
   }
-` as const;
+}`);

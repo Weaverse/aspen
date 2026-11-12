@@ -5,12 +5,12 @@ import {
 } from "@phosphor-icons/react";
 import * as Accordion from "@radix-ui/react-accordion";
 import {
-  type HydrogenComponentSchema,
   useChildInstances,
   useItemInstance,
   useParentInstance,
   useTranslation,
-} from "@weaverse/hydrogen";
+  type WeaverseComponentSchema,
+} from "@weaverse/hydrogen/react-router";
 import {
   type CSSProperties,
   forwardRef,
@@ -207,7 +207,7 @@ const Address = forwardRef<HTMLDivElement, AddressProps>((props, ref) => {
 
 export default Address;
 
-export const schema: HydrogenComponentSchema = {
+export const schema: WeaverseComponentSchema = {
   type: "address-item",
   title: "Store address",
   settings: [

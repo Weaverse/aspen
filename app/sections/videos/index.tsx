@@ -1,4 +1,4 @@
-import type { HydrogenComponent } from "@weaverse/hydrogen";
+import type { WeaverseComponent } from "@weaverse/hydrogen/react-router";
 import { type CSSProperties, forwardRef, type ReactNode } from "react";
 import {
   Section,
@@ -72,7 +72,7 @@ let Videos = forwardRef<HTMLElement, VideosProps>((props, ref) => {
   );
 });
 
-export let schema: HydrogenComponent["schema"] = {
+export let schema: WeaverseComponent["schema"] = {
   title: "Videos",
   type: "videos",
   settings: [

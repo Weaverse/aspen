@@ -32,7 +32,7 @@ const bundle = await build({
       name: "back-in-stock-fixture",
       setup(builder) {
         const stubs = {
-          "@weaverse/hydrogen":
+          "@weaverse/hydrogen/react-router":
             "const t=key=>key; export const useTranslation=()=>({t});",
           "react-router":
             "export const useFetcher=()=>({state:'idle',Form:'form'}); export const useRouteLoaderData=()=>({integrations:{klaviyo:window.klaviyoConfigured}});",

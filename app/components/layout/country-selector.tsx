@@ -1,6 +1,6 @@
 import { CaretDownIcon, CheckCircleIcon } from "@phosphor-icons/react";
 import * as Popover from "@radix-ui/react-popover";
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import { useState } from "react";
 import ReactCountryFlag from "react-country-flag";
 import { Link } from "react-router";

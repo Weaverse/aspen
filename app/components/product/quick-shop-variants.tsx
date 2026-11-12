@@ -1,4 +1,4 @@
-import type { MappedProductOptions } from "@shopify/hydrogen";
+import type { MappedProductOptions } from "~/components/product/product-form";
 import { QuickShopOptionValues } from "./quick-shop-option-values";
 
 export function QuickShopVariants({

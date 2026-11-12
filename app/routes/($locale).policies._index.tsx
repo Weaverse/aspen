@@ -1,16 +1,18 @@
 import { FileTextIcon } from "@phosphor-icons/react";
-import type { SeoConfig } from "@shopify/hydrogen";
-import { useTranslation } from "@weaverse/hydrogen";
+import { gql } from "@shopify/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import type { LoaderFunctionArgs, MetaFunction } from "react-router";
 import { useLoaderData } from "react-router";
-import type { PoliciesIndexQuery } from "storefront-api.generated";
 import invariant from "tiny-invariant";
 import { BreadCrumb } from "~/components/breadcrumb";
 import { Link } from "~/components/link";
 import { Section } from "~/components/section";
-import { routeHeaders } from "~/utils/cache";
+import type { PoliciesIndexQuery } from "~/graphql/storefront-types";
+import { CACHE_DEFAULT, routeHeaders } from "~/utils/cache";
 import { seoPayload } from "~/utils/seo.server";
+import type { SeoConfig } from "~/utils/seo-meta";
 import { localizedSeoMeta } from "~/utils/seo-translation";
+import { unwrapStorefront } from "~/utils/storefront";
 
 export const headers = routeHeaders;
 
@@ -22,7 +24,9 @@ export async function loader({
   request,
   context: { storefront },
 }: LoaderFunctionArgs) {
-  const data = await storefront.query<PoliciesIndexQuery>(POLICIES_QUERY);
+  const data = await storefront
+    .graphql(POLICIES_QUERY, { cache: CACHE_DEFAULT })
+    .then(unwrapStorefront);
 
   invariant(data, "No data returned from Shopify API");
 
@@ -77,32 +81,37 @@ export default function Policies() {
   );
 }
 
-const POLICIES_QUERY = `#graphql
-  fragment PolicyIndex on ShopPolicy {
-    id
-    title
-    handle
-  }
+export const POLICIES_QUERY_PolicyIndex =
+  gql(`fragment PolicyIndex on ShopPolicy {
+  id
+  title
+  handle
+}`);
 
-  query PoliciesIndex {
-    shop {
-      privacyPolicy {
-        ...PolicyIndex
-      }
-      shippingPolicy {
-        ...PolicyIndex
-      }
-      termsOfService {
-        ...PolicyIndex
-      }
-      refundPolicy {
-        ...PolicyIndex
-      }
-      subscriptionPolicy {
-        id
-        title
-        handle
-      }
+export const POLICIES_QUERY = gql(`query PoliciesIndex {
+  shop {
+    privacyPolicy {
+      ...PolicyIndex
+    }
+    shippingPolicy {
+      ...PolicyIndex
+    }
+    termsOfService {
+      ...PolicyIndex
+    }
+    refundPolicy {
+      ...PolicyIndex
+    }
+    subscriptionPolicy {
+      id
+      title
+      handle
     }
   }
-`;
+}
+
+fragment PolicyIndex on ShopPolicy {
+  id
+  title
+  handle
+}`);

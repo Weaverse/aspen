@@ -1,14 +1,14 @@
-import { Image } from "@shopify/hydrogen";
 import {
-  type HydrogenComponentProps,
-  type HydrogenComponentSchema,
   IMAGES_PLACEHOLDERS,
   useTranslation,
+  type WeaverseComponentProps,
+  type WeaverseComponentSchema,
   type WeaverseImage,
-} from "@weaverse/hydrogen";
+} from "@weaverse/hydrogen/react-router";
 import clsx from "clsx";
 import type { CSSProperties, KeyboardEvent, PointerEvent } from "react";
 import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
+import { Image } from "~/components/shopify-image";
 import { MEDIA_FROM_TABLET } from "~/utils/breakpoints";
 import { sectionImage } from "~/utils/section-placeholder";
 
@@ -29,7 +29,7 @@ export interface BeforeAfterSettings {
 }
 
 interface BeforeAndAfterProps
-  extends Partial<HydrogenComponentProps>,
+  extends Partial<WeaverseComponentProps>,
     BeforeAfterSettings {}
 
 const clampPosition = (position: number) =>
@@ -259,7 +259,7 @@ const BeforeAndAfter = forwardRef<HTMLDivElement, BeforeAndAfterProps>(
 
 export default BeforeAndAfter;
 
-export let schema: HydrogenComponentSchema = {
+export let schema: WeaverseComponentSchema = {
   type: "before-after-slider",
   title: "Slider",
   limit: 1,

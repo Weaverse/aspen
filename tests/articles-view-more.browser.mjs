@@ -43,7 +43,7 @@ const bundle = await build({
         );
         builder.onLoad({ filter: /.*/, namespace: "fixture" }, ({ path }) => {
           let contents;
-          if (path === "@weaverse/hydrogen") {
+          if (path === "@weaverse/hydrogen/react-router") {
             contents =
               "export const createSchema = (schema) => schema; export const IMAGES_PLACEHOLDERS = {}; export const useThemeSettings = () => ({revealElementsOnScroll:false}); export const useTranslation = () => ({ t: (key) => key });";
           } else if (path === "./overlay-and-background") {

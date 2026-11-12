@@ -1,74 +1,22 @@
-import * as remixBuild from "virtual:react-router/server-build"; // Virtual entry point for the app
-import type { HydrogenSession } from "@shopify/hydrogen";
-import { createHydrogenContext, storefrontRedirect } from "@shopify/hydrogen";
-import { createRequestHandler } from "@shopify/hydrogen/oxygen";
-import { WeaverseClient } from "@weaverse/hydrogen";
+import * as serverBuild from "virtual:react-router/server-build";
+import { handleShopifyRedirects, handleShopifyRoutes } from "@shopify/hydrogen";
+import { createRequestHandler, RouterContextProvider } from "react-router";
+import { cartHandlers } from "~/.server/cart";
+import { createAppLoadContext } from "~/.server/context";
+import { getCustomerAccountHandlers } from "~/.server/customer-account";
+import { marketAwareRedirect } from "~/.server/market-redirect";
 import {
-  createCookieSessionStorage,
-  type Session,
-  type SessionStorage,
-} from "react-router";
-import { getCanonicalLocaleRedirect } from "~/utils/locale";
-import {
-  getRequestI18n,
-  loadStoreLocalization,
-} from "~/utils/localization.server";
+  getCanonicalLocaleRedirect,
+  getLocaleSegment,
+  localeCode,
+  stripLocalePrefix,
+} from "~/utils/locale";
+import { routeTemplates } from "~/utils/route-templates";
 import { defaultTranslation } from "~/utils/translation";
-import { components } from "~/weaverse/components";
-import { getThemeSchema } from "~/weaverse/schema.server";
 
-// React Router v7 Headers polyfill for getSetCookie compatibility
-if (typeof Headers !== "undefined" && !Headers.prototype.getSetCookie) {
-  Headers.prototype.getSetCookie = function () {
-    const setCookieValues: string[] = [];
-    for (const [key, value] of this.entries()) {
-      if (key.toLowerCase() === "set-cookie") {
-        setCookieValues.push(value);
-      }
-    }
-    return setCookieValues;
-  };
-}
+export { createAppLoadContext };
 
-// Additional polyfill to ensure Headers has proper Set-Cookie handling methods
-if (typeof Headers !== "undefined") {
-  const originalSet = Headers.prototype.set;
-  const originalAppend = Headers.prototype.append;
-  const originalGet = Headers.prototype.get;
-
-  Headers.prototype.set = function (name, value) {
-    if (name.toLowerCase() === "set-cookie") {
-      // Store set-cookie values for later retrieval
-      if (!this._setCookies) {
-        this._setCookies = [];
-      }
-      this._setCookies = [value];
-    }
-    return originalSet.call(this, name, value);
-  };
-
-  Headers.prototype.append = function (name, value) {
-    if (name.toLowerCase() === "set-cookie") {
-      // Store set-cookie values for later retrieval
-      if (!this._setCookies) {
-        this._setCookies = [];
-      }
-      this._setCookies.push(value);
-    }
-    return originalAppend.call(this, name, value);
-  };
-
-  // Ensure getSetCookie always works
-  if (!Headers.prototype.getSetCookie) {
-    Headers.prototype.getSetCookie = function () {
-      return this._setCookies || [];
-    };
-  }
-}
-
-/**
- * Export a fetch handler in module format.
- */
+const handleRequest = createRequestHandler(serverBuild, process.env.NODE_ENV);
 export default {
   async fetch(
     request: Request,
@@ -76,53 +24,97 @@ export default {
     executionContext: ExecutionContext,
   ): Promise<Response> {
     try {
-      const appLoadContext = await createAppLoadContext(
+      const url = new URL(request.url);
+      if (
+        url.protocol === "http:" &&
+        request.headers.get("x-forwarded-proto") === "https"
+      ) {
+        url.protocol = "https:";
+        request = new Request(url, request);
+      }
+      if (
+        (request.method === "GET" || request.method === "HEAD") &&
+        request.body
+      )
+        return new Response("Invalid request body", { status: 400 });
+      if (url.pathname.includes("//"))
+        return Response.redirect(
+          new URL(url.pathname.replace(/\/{2,}/g, "/") + url.search, url),
+          301,
+        );
+      const context = await createAppLoadContext(
         request,
         env,
         executionContext,
       );
-      const localeRedirect = getCanonicalLocaleRedirect(
+      const canonical = getCanonicalLocaleRedirect(
         request,
-        appLoadContext.localization,
+        context.localization,
       );
-      if (localeRedirect) {
-        return Response.redirect(new URL(localeRedirect, request.url), 302);
-      }
-
-      /**
-       * Create a Remix request handler and pass
-       * Hydrogen's Storefront client to the loader context.
-       */
-      const handleRequest = createRequestHandler({
-        build: remixBuild,
-        mode: process.env.NODE_ENV,
-        getLoadContext: () => appLoadContext,
-      });
-
-      const response = await handleRequest(request);
-
-      if (appLoadContext.session.isPending) {
-        response.headers.set(
-          "Set-Cookie",
-          await appLoadContext.session.commit(),
+      if (canonical)
+        return Response.redirect(new URL(canonical, request.url), 302);
+      const market = getLocaleSegment(url.pathname);
+      const unsupportedMarket = Boolean(
+        market &&
+          !context.localization.availableLocales.some(
+            (locale) => localeCode(locale) === market,
+          ),
+      );
+      const neutralPath = stripLocalePrefix(url.pathname);
+      const resourcePath =
+        /^\/(?:api\/|sitemap(?:\/|\.xml)|discount\/|cart\/|account\/(?:login|authorize|refresh|logout))/.test(
+          neutralPath,
         );
+      if (
+        unsupportedMarket &&
+        (resourcePath || !["GET", "HEAD"].includes(request.method))
+      )
+        return new Response(null, { status: 404 });
+      const { storefront, session } = context;
+      const isCartPermalink =
+        /^\/cart\/[^/]+:\d+/.test(url.pathname) &&
+        !url.searchParams.has("payment");
+      const owned = isCartPermalink
+        ? null
+        : handleShopifyRoutes({
+            request,
+            requestContext: storefront.requestContext,
+            storefrontClient: storefront,
+            sessionManager: session,
+            routeTemplates,
+            handlers: [cartHandlers, getCustomerAccountHandlers(env)],
+          });
+      let response = owned
+        ? await owned
+        : await handleRequest(
+            request,
+            Object.assign(new RouterContextProvider(), context),
+          );
+      if (response.status === 404 && !unsupportedMarket) {
+        const redirected = await marketAwareRedirect(request, (lookupRequest) =>
+          handleShopifyRedirects({
+            request: lookupRequest,
+            storefrontClient: storefront,
+            routeTemplates,
+          }),
+        );
+        if (redirected) response = redirected;
       }
 
-      if (response.status === 404) {
-        /**
-         * Check for redirects only when there's a 404 from the app.
-         * If the redirect doesn't exist, then `storefrontRedirect`
-         * will pass through the 404 response.
-         */
-        return storefrontRedirect({
-          request,
-          response,
-          storefront: appLoadContext.storefront,
-        });
+      const headers = new Headers((await session.commit()) ?? undefined);
+      for (const [name, value] of headers) response.headers.append(name, value);
+      storefront.requestContext.applyResponseHeaders(response.headers);
+      // Aspen still streams cart/wishlist/account data from the root loader.
+      // Those documents and currency-session responses must stay private.
+      if (
+        /(?:^|;\s*)(?:cart|session)=/.test(request.headers.get("Cookie") || "")
+      ) {
+        response.headers.set("Cache-Control", "private, no-store");
+        response.headers.set("Oxygen-Cache-Control", "no-store");
       }
-
       return response;
     } catch (error) {
+      if (error instanceof Response) return error;
       console.error(error);
       return new Response(defaultTranslation("errors.unexpected"), {
         status: 500,
@@ -130,357 +122,3 @@ export default {
     }
   },
 };
-
-export async function createAppLoadContext(
-  request: Request,
-  env: Env,
-  executionContext: ExecutionContext,
-) {
-  /**
-   * Open a cache instance in the worker and a custom session instance.
-   */
-  if (!env?.SESSION_SECRET) {
-    throw new Error("SESSION_SECRET environment variable is not set");
-  }
-
-  const waitUntil = executionContext.waitUntil.bind(executionContext);
-  const [cache, session] = await Promise.all([
-    caches.open("hydrogen"),
-    AppSession.init(request, [env.SESSION_SECRET]),
-  ]);
-  const selectedMarketCountry = session.get("marketCountry");
-  const i18n = getRequestI18n(
-    request,
-    typeof selectedMarketCountry === "string"
-      ? selectedMarketCountry
-      : undefined,
-  );
-
-  const hydrogenContext = createHydrogenContext(
-    {
-      env,
-      request,
-      cache,
-      waitUntil,
-      session,
-      i18n,
-      buyerIdentity: { countryCode: i18n.country },
-      cart: {
-        queryFragment: CART_QUERY_FRAGMENT,
-        mutateFragment: CART_MUTATE_FRAGMENT,
-      },
-    },
-    {},
-  );
-
-  const localization = await loadStoreLocalization(
-    hydrogenContext.storefront,
-    request,
-  );
-
-  const weaverse = new WeaverseClient({
-    ...hydrogenContext,
-    request,
-    cache,
-    themeSchema: getThemeSchema(localization),
-    components,
-  });
-
-  // `createHydrogenContext` returns React Router's context provider. Keep that
-  // instance intact: spreading it creates a plain object that middleware rejects.
-  return Object.assign(hydrogenContext, { cache, weaverse, localization });
-}
-
-class AppSession implements HydrogenSession {
-  isPending = false;
-  readonly #sessionStorage: SessionStorage;
-  readonly #session: Session;
-
-  constructor(sessionStorage: SessionStorage, session: Session) {
-    this.#sessionStorage = sessionStorage;
-    this.#session = session;
-  }
-
-  static async init(request: Request, secrets: string[]) {
-    const storage = createCookieSessionStorage({
-      cookie: {
-        name: "session",
-        httpOnly: true,
-        path: "/",
-        sameSite: "lax",
-        secrets,
-      },
-    });
-
-    const session = await storage
-      .getSession(request.headers.get("Cookie"))
-      .catch(() => storage.getSession());
-
-    return new AppSession(storage, session);
-  }
-
-  get has() {
-    return this.#session.has;
-  }
-
-  get get() {
-    return this.#session.get;
-  }
-
-  get flash() {
-    return this.#session.flash;
-  }
-
-  get unset() {
-    this.isPending = true;
-    return this.#session.unset;
-  }
-
-  get set() {
-    this.isPending = true;
-    return this.#session.set;
-  }
-
-  destroy() {
-    return this.#sessionStorage.destroySession(this.#session);
-  }
-
-  commit() {
-    this.isPending = false;
-    return this.#sessionStorage.commitSession(this.#session);
-  }
-}
-
-const CART_QUERY_FRAGMENT = `#graphql
-  fragment Money on MoneyV2 {
-    currencyCode
-    amount
-  }
-  fragment CartLine on CartLine {
-    id
-    quantity
-    attributes {
-      key
-      value
-    }
-    discountAllocations {
-      discountedAmount {
-        ...Money
-      }
-      ... on CartCodeDiscountAllocation {
-        code
-      }
-      ... on CartAutomaticDiscountAllocation {
-        title
-      }
-      ... on CartCustomDiscountAllocation {
-        title
-      }
-    }
-    cost {
-      totalAmount {
-        ...Money
-      }
-      amountPerQuantity {
-        ...Money
-      }
-      compareAtAmountPerQuantity {
-        ...Money
-      }
-    }
-    sellingPlanAllocation {
-      sellingPlan {
-        id
-        name
-        description
-        recurringDeliveries
-        options {
-          name
-          value
-        }
-      }
-    }
-    merchandise {
-      ... on ProductVariant {
-        id
-        availableForSale
-        quantityAvailable
-        currentlyNotInStock
-        quantityRule {
-          minimum
-          maximum
-          increment
-        }
-        compareAtPrice {
-          ...Money
-        }
-        price {
-          ...Money
-        }
-        requiresShipping
-        title
-        image {
-          id
-          url
-          altText
-          width
-          height
-
-        }
-        product {
-          handle
-          title
-          id
-          vendor
-        }
-        selectedOptions {
-          name
-          value
-        }
-      }
-    }
-  }
-  fragment CartLineComponent on ComponentizableCartLine {
-    id
-    quantity
-    attributes {
-      key
-      value
-    }
-    discountAllocations {
-      discountedAmount {
-        ...Money
-      }
-      ... on CartCodeDiscountAllocation {
-        code
-      }
-      ... on CartAutomaticDiscountAllocation {
-        title
-      }
-      ... on CartCustomDiscountAllocation {
-        title
-      }
-    }
-    cost {
-      totalAmount {
-        ...Money
-      }
-      amountPerQuantity {
-        ...Money
-      }
-      compareAtAmountPerQuantity {
-        ...Money
-      }
-    }
-    merchandise {
-      ... on ProductVariant {
-        id
-        availableForSale
-        quantityAvailable
-        currentlyNotInStock
-        quantityRule {
-          minimum
-          maximum
-          increment
-        }
-        compareAtPrice {
-          ...Money
-        }
-        price {
-          ...Money
-        }
-        requiresShipping
-        title
-        image {
-          id
-          url
-          altText
-          width
-          height
-        }
-        product {
-          handle
-          title
-          id
-          vendor
-        }
-        selectedOptions {
-          name
-          value
-        }
-        requiresComponents
-        components(first: 10) {
-          nodes {
-            productVariant {
-              id
-              title
-              product {
-                handle
-              }
-            }
-            quantity
-          }
-        }
-      }
-    }
-  }
-  fragment CartApiQuery on Cart {
-    updatedAt
-    id
-    appliedGiftCards {
-      id
-      lastCharacters
-      amountUsed {
-        ...Money
-      }
-    }
-    checkoutUrl
-    totalQuantity
-    buyerIdentity {
-      countryCode
-      customer {
-        id
-        email
-        firstName
-        lastName
-        displayName
-      }
-      email
-      phone
-    }
-    lines(first: $numCartLines) {
-      nodes {
-        ...CartLine
-        ...CartLineComponent
-      }
-    }
-    cost {
-      subtotalAmount {
-        ...Money
-      }
-      totalAmount {
-        ...Money
-      }
-      totalDutyAmount {
-        ...Money
-      }
-      totalTaxAmount {
-        ...Money
-      }
-    }
-    note
-    attributes {
-      key
-      value
-    }
-    discountCodes {
-      code
-      applicable
-    }
-  }
-` as const;
-
-const CART_MUTATE_FRAGMENT = CART_QUERY_FRAGMENT.replace(
-  "fragment CartApiQuery on Cart",
-  "fragment CartApiMutation on Cart",
-).replace("lines(first: $numCartLines)", "lines(first: 250)");

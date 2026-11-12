@@ -1,5 +1,5 @@
 import * as Popover from "@radix-ui/react-popover";
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import {
   type ComponentProps,
   type CSSProperties,

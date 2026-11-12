@@ -1,6 +1,6 @@
 import { CaretDownIcon } from "@phosphor-icons/react";
 import * as Select from "@radix-ui/react-select";
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import { useId, useState } from "react";
 import { useRouteLoaderData } from "react-router";
 import { useLocale } from "~/hooks/use-locale";

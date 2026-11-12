@@ -1,9 +1,12 @@
 import { flattenConnection } from "@shopify/hydrogen";
-import { type TranslateFunction, useTranslation } from "@weaverse/hydrogen";
-import type { OrderCardFragment } from "customer-account-api.generated";
+import {
+  type TranslateFunction,
+  useTranslation,
+} from "@weaverse/hydrogen/react-router";
 import type { HTMLAttributes } from "react";
 import { Image } from "~/components/image";
 import Link from "~/components/link";
+import type { OrderCardFragment } from "~/graphql/customer-types";
 import { useLocale } from "~/hooks/use-locale";
 import { cn } from "~/utils/cn";
 import { formatDate } from "~/utils/locale";

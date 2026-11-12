@@ -1,5 +1,8 @@
 import { UserIcon } from "@phosphor-icons/react";
-import { useThemeSettings, useTranslation } from "@weaverse/hydrogen";
+import {
+  useThemeSettings,
+  useTranslation,
+} from "@weaverse/hydrogen/react-router";
 import { cva } from "class-variance-authority";
 import clsx from "clsx";
 import { Suspense, useState } from "react";

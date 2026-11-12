@@ -1,13 +1,17 @@
+import { ShopifyScripts } from "@shopify/hydrogen/react";
+import { useNavigate } from "react-router";
+import { CartLibrarySync } from "~/components/cart/cart-library-sync";
+import { CartProvider } from "~/components/cart/cart-store";
+import { PageView, ShopifyMarketSync } from "~/components/root/analytics-views";
 import { useTranslatedThemeSettings } from "~/hooks/use-translated-theme-settings";
+import { routeTemplates } from "~/utils/route-templates";
 import { localizedSeoMeta } from "~/utils/seo-translation";
 import "@fontsource/tenor-sans/index.css";
 import "@fontsource-variable/dm-sans/index.css";
 import tenorSansWoff2Url from "@fontsource/tenor-sans/files/tenor-sans-latin-400-normal.woff2?url";
 import dmSansVarWoff2Url from "@fontsource-variable/dm-sans/files/dm-sans-latin-wght-normal.woff2?url";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import type { CartReturn, SeoConfig } from "@shopify/hydrogen";
-import { Analytics, useNonce } from "@shopify/hydrogen";
-import { useTranslation, withWeaverse } from "@weaverse/hydrogen";
+import { useTranslation, withWeaverse } from "@weaverse/hydrogen/react-router";
 import type { CSSProperties } from "react";
 import {
   isRouteErrorResponse,
@@ -22,6 +26,8 @@ import {
   useRouteError,
   useRouteLoaderData,
 } from "react-router";
+import { useNonce } from "~/utils/csp";
+import type { SeoConfig } from "~/utils/seo-meta";
 import { CartStoreSync } from "./components/cart/cart-sync";
 import { useCartStore } from "./components/cart/store";
 import { Footer } from "./components/layout/footer";
@@ -124,6 +130,7 @@ export function ErrorBoundary() {
 
 function RootLayout({ children }: { children?: React.ReactNode }) {
   const nonce = useNonce();
+  const navigate = useNavigate();
   const { t } = useTranslation();
   const data = useRouteLoaderData<RootLoader>("root");
   const locale = data?.selectedLocale ?? DEFAULT_LOCALE;
@@ -140,6 +147,19 @@ function RootLayout({ children }: { children?: React.ReactNode }) {
       lang={`${locale.language.toLowerCase()}-${locale.country.toUpperCase()}`}
     >
       <head>
+        {data && (
+          <ShopifyScripts
+            nonce={nonce}
+            shop={data.shopifyScripts.shop}
+            i18n={data.shopifyScripts.i18n}
+            analytics={{ channel: data.shopifyScripts.channel }}
+            shopifyAnalytics={data.shopifyScripts.shopifyAnalytics}
+            consent={{ mode: "no-banner" }}
+            routes={routeTemplates}
+            navigate={navigate}
+          />
+        )}
+
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
         <link rel="stylesheet" href={styles} />
@@ -160,11 +180,10 @@ function RootLayout({ children }: { children?: React.ReactNode }) {
         className="bg-background text-body antialiased opacity-100! transition-opacity duration-300"
       >
         {data ? (
-          <Analytics.Provider
-            cart={cartResolved ? (serverCart as CartReturn) : data.cart}
-            shop={data.shop}
-            consent={data.consent}
-          >
+          <CartProvider>
+            <ShopifyMarketSync {...data.shopifyScripts.i18n} />
+            <CartLibrarySync />
+            <PageView />
             <CartStoreSync initialCart={data.cart} />
             <WishlistProvider initialWishlist={data.wishlist}>
               <TooltipProvider disableHoverableContent>
@@ -188,7 +207,7 @@ function RootLayout({ children }: { children?: React.ReactNode }) {
                 <CustomAnalytics />
               </TooltipProvider>
             </WishlistProvider>
-          </Analytics.Provider>
+          </CartProvider>
         ) : (
           children
         )}

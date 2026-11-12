@@ -1,5 +1,5 @@
 import { StarIcon } from "@phosphor-icons/react";
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import { ProgressBar } from "~/components/progress-bar";
 
 export function ReviewBar(review: {

@@ -1,4 +1,7 @@
-import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
+import {
+  createSchema,
+  type WeaverseComponentProps,
+} from "@weaverse/hydrogen/react-router";
 import { cva, type VariantProps } from "class-variance-authority";
 import { forwardRef } from "react";
 import { cn } from "~/utils/cn";
@@ -30,7 +33,7 @@ const variants = cva("", {
 
 interface ContentInformationProps
   extends VariantProps<typeof variants>,
-    HydrogenComponentProps {}
+    WeaverseComponentProps {}
 
 const ContentInformation = forwardRef<HTMLDivElement, ContentInformationProps>(
   (props, ref) => {

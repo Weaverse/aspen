@@ -1,4 +1,4 @@
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import { Suspense } from "react";
 import { Await, useRouteLoaderData } from "react-router";
 import { Link } from "~/components/link";

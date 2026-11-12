@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { chromium, expect } from "@playwright/test";
 import { compile } from "@tailwindcss/node";
 import { Scanner } from "@tailwindcss/oxide";
-import { generateDataFromSchema } from "@weaverse/hydrogen";
+import { generateDataFromSchema } from "@weaverse/hydrogen/react-router";
 import { build } from "esbuild";
 
 // Real parent/slider and theme CSS; CMS, outer Section and image adapters only are mocked.

@@ -29,7 +29,7 @@ const bundle = await build({
         );
         builder.onLoad({ filter: /.*/, namespace: "fixture" }, ({ path }) => ({
           contents:
-            path === "@weaverse/hydrogen"
+            path === "@weaverse/hydrogen/react-router"
               ? `export const useTranslation=()=>({t:key=>key});`
               : path.includes("use-localization-selector")
                 ? `export const useLocalizationSelector=()=>({selectedLabel:'United States - USD',selectedMarketCountry:'US',selectorOptions:[{key:'US',type:'country',country:'US',label:'United States - USD',isSelected:true},{key:'EUR',type:'country',country:'ES',label:'Euro - EUR'}],selectCurrency:()=>{},isChangingCurrency:false});`

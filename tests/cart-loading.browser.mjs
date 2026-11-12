@@ -35,6 +35,7 @@ const bundle = await build({
   bundle: true,
   write: false,
   format: "iife",
+  define: { "import.meta.env.DEV": "false" },
   jsx: "automatic",
   alias: { "~": `${root}app` },
   plugins: [
@@ -44,7 +45,7 @@ const bundle = await build({
         builder.onResolve(
           {
             filter:
-              /^@shopify\/hydrogen$|^@weaverse\/hydrogen$|^react-router$|^react-use\/esm\/useScroll$|^~\/(hooks|utils|components\/(button|link|image|loyalty|subscriptions))|^\.\/cart-(best-sellers|line-qty-adjust|sync|summary-actions)$|^\.\/store$|^\.\.\/layout\/cart-drawer$/,
+              /^~\/components\/(money|shopify-image)$|^@shopify\/hydrogen$|^@weaverse\/hydrogen(?:\/react-router)?$|^react-router$|^react-use\/esm\/useScroll$|^~\/(hooks|utils|components\/(button|link|image|loyalty|subscriptions))|^\.\/cart-(best-sellers|line-qty-adjust|sync|summary-actions)$|^\.\/store$|^\.\.\/layout\/cart-drawer$/,
           },
           ({ path }) =>
             path === "~/utils/cart-code" || path === "~/utils/cn"
@@ -53,9 +54,9 @@ const bundle = await build({
         );
         builder.onLoad({ filter: /.*/, namespace: "fixture" }, ({ path }) => {
           let contents;
-          if (path === "@shopify/hydrogen") {
+          if (path === "@shopify/hydrogen" || path === "~/components/money") {
             contents = `import React from "react"; export const Money = ({data,as:Tag="span",className}) => <Tag className={className}>{data.currencyCode} {data.amount}</Tag>; export const CartForm = () => null; CartForm.ACTIONS = {};`;
-          } else if (path === "@weaverse/hydrogen") {
+          } else if (path === "@weaverse/hydrogen/react-router") {
             contents = `export const useTranslation = () => ({t:(key,vars) => key === "cart.freeShippingRemaining" ? "Spend " + vars.amount + " for free shipping" : key === "cart.loading" ? "Loading…" : key});`;
           } else if (path.includes("useScroll")) {
             contents = "export default () => ({y:0});";
@@ -144,7 +145,10 @@ test("Cart drawer summary removes only bottom padding at every breakpoint and pr
         expect(gap).toBe(0);
         await page.evaluate(() => window.renderSummary("page"));
         await expect(summary).toHaveCSS("padding-bottom", "24px");
-        await expect(summary).toHaveCSS("row-gap", "24px");
+        await expect(summary).toHaveCSS(
+          "row-gap",
+          width < 1280 ? "24px" : "20px",
+        );
       }
     }
   } finally {

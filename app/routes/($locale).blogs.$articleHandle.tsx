@@ -1,15 +1,17 @@
-import type { SeoConfig } from "@shopify/hydrogen";
-import type { RouteLoaderArgs } from "@weaverse/hydrogen";
+import { gql } from "@shopify/hydrogen";
+import type { RouteLoaderArgs } from "@weaverse/hydrogen/react-router";
 import type { MetaFunction } from "react-router";
 import { redirect } from "react-router";
-import type { ArticleQuery } from "storefront-api.generated";
 import invariant from "tiny-invariant";
-import { routeHeaders } from "~/utils/cache";
+import type { ArticleQuery } from "~/graphql/storefront-types";
+import { CACHE_DEFAULT, routeHeaders } from "~/utils/cache";
 import { DEFAULT_BLOG_HANDLE } from "~/utils/const";
 import { redirectIfHandleIsLocalized } from "~/utils/redirect";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 import { seoPayload } from "~/utils/seo.server";
+import type { SeoConfig } from "~/utils/seo-meta";
 import { localizedSeoMeta } from "~/utils/seo-translation";
+import { unwrapStorefront } from "~/utils/storefront";
 import { WeaverseContent } from "~/weaverse";
 
 export const headers = routeHeaders;
@@ -29,13 +31,12 @@ export async function loader(args: RouteLoaderArgs) {
   }
 
   const [{ blog }, weaverseData] = await Promise.all([
-    storefront.query<ArticleQuery>(ARTICLE_QUERY, {
-      variables: {
-        blogHandle: DEFAULT_BLOG_HANDLE,
-        articleHandle,
-        language,
-      },
-    }),
+    storefront
+      .graphql(ARTICLE_QUERY, {
+        variables: { blogHandle: DEFAULT_BLOG_HANDLE, articleHandle },
+        cache: CACHE_DEFAULT,
+      })
+      .then(unwrapStorefront),
     context.weaverse.loadPage({
       type: "ARTICLE",
       handle: articleHandle,
@@ -84,61 +85,78 @@ export default function Article() {
   return <WeaverseContent />;
 }
 
-const ARTICLE_QUERY = `#graphql
-  query article(
-    $language: LanguageCode
-    $blogHandle: String!
-    $articleHandle: String!
-  ) @inContext(language: $language) {
-    blog(handle: $blogHandle) {
+export const ARTICLE_QUERY_Article = gql(`fragment Article on Article {
+  tags
+  author: authorV2 {
+    name
+  }
+  contentHtml
+  excerpt
+  excerptHtml
+  handle
+  id
+  image {
+    id
+    altText
+    url
+    width
+    height
+  }
+  publishedAt
+  title
+}`);
+
+export const ARTICLE_QUERY =
+  gql(`query article($language: LanguageCode, $blogHandle: String!, $articleHandle: String!) @inContext(language: $language) {
+  blog(handle: $blogHandle) {
+    title
+    handle
+    articleByHandle(handle: $articleHandle) {
       title
       handle
-      articleByHandle(handle: $articleHandle) {
+      contentHtml
+      publishedAt
+      tags
+      author: authorV2 {
+        name
+      }
+      image {
+        id
+        altText
+        url
+        width
+        height
+      }
+      seo {
+        description
         title
-        handle
-        contentHtml
-        publishedAt
-        tags
-        author: authorV2 {
-          name
-        }
-        image {
-          id
-          altText
-          url
-          width
-          height
-        }
-        seo {
-          description
-          title
-        }
       }
-      articles(first: 20) {
-        nodes {
-          ...Article
-        }
+    }
+    articles(first: 20) {
+      nodes {
+        ...Article
       }
     }
   }
-  fragment Article on Article {
-    tags
-    author: authorV2 {
-      name
-    }
-    contentHtml
-    excerpt
-    excerptHtml
-    handle
+}
+
+fragment Article on Article {
+  tags
+  author: authorV2 {
+    name
+  }
+  contentHtml
+  excerpt
+  excerptHtml
+  handle
+  id
+  image {
     id
-    image {
-      id
-      altText
-      url
-      width
-      height
-    }
-    publishedAt
-    title
+    altText
+    url
+    width
+    height
   }
-` as const;
+  publishedAt
+  title
+}`);

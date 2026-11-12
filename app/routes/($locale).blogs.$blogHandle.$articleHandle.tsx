@@ -1,4 +1,4 @@
-import type { RouteLoaderArgs } from "@weaverse/hydrogen";
+import type { RouteLoaderArgs } from "@weaverse/hydrogen/react-router";
 import { redirect } from "react-router";
 import invariant from "tiny-invariant";
 import { routeHeaders } from "~/utils/cache";

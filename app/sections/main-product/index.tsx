@@ -1,11 +1,4 @@
 import { PackageIcon } from "@phosphor-icons/react";
-import {
-  getAdjacentAndFirstAvailableVariants,
-  getProductOptions,
-  Money,
-  ShopPayButton,
-  useOptimisticVariant,
-} from "@shopify/hydrogen";
 import type {
   MoneyV2,
   ProductVariantComponent,
@@ -14,23 +7,30 @@ import {
   createSchema,
   useTranslation,
   type WeaverseImage,
-} from "@weaverse/hydrogen";
+} from "@weaverse/hydrogen/react-router";
 import clsx from "clsx";
 import { forwardRef, useEffect, useState } from "react";
 import { useLoaderData } from "react-router";
 import { useCanAddVariant } from "~/components/cart/store";
 import Link from "~/components/link";
 import { LoyaltyPointsHint } from "~/components/loyalty/loyalty-points-hint";
+import { Money } from "~/components/money";
 import { AddToCartButton } from "~/components/product/add-to-cart-button";
 import { BackInStockForm } from "~/components/product/back-in-stock-form";
 import { ProductBadges } from "~/components/product/badges";
 import { BundledVariants } from "~/components/product/bundled-variants";
 import { ProductRating } from "~/components/product/judgeme-review";
 import {
+  getAdjacentAndFirstAvailableVariants,
+  getProductOptions,
+  useSelectedVariant,
+} from "~/components/product/product-form";
+import {
   ProductMedia,
   type ProductMediaProps,
 } from "~/components/product/product-media";
 import { Quantity } from "~/components/product/quantity";
+import { ShopPayButton } from "~/components/product/shop-pay-button";
 import {
   ProductCompareAtPrice,
   VariantPrices,
@@ -91,10 +91,7 @@ const ProductInformation = forwardRef<
   const { product, storeDomain } = useLoaderData<typeof productRouteLoader>();
 
   // Optimistically selects a variant with given available variant information
-  const selectedVariant = useOptimisticVariant(
-    product?.selectedOrFirstAvailableVariant,
-    getAdjacentAndFirstAvailableVariants(product),
-  );
+  const selectedVariant = useSelectedVariant(product);
 
   // Get the product options array
   const productOptions = getProductOptions({
@@ -271,8 +268,16 @@ const ProductInformation = forwardRef<
                         id: product.featuredImage.id,
                         mediaContentType: "IMAGE",
                         alt: product.featuredImage.altText,
-                        previewImage: product.featuredImage,
-                        image: product.featuredImage,
+                        previewImage: {
+                          ...product.featuredImage,
+                          width: null,
+                          height: null,
+                        },
+                        image: {
+                          ...product.featuredImage,
+                          width: null,
+                          height: null,
+                        },
                       },
                       ...(product?.media?.nodes || []),
                     ]

@@ -2,34 +2,31 @@
 
 ## Unreleased
 
-### Technical baseline refresh
+### Hydrogen 2026.10 and Weaverse v6
 
-- Aligned Hydrogen, React Router, React, TypeScript, Tailwind CSS, Vite, Shopify
-  CLI/Oxygen tooling, Biome, and Weaverse SDK versions with Pilot's July 2026
-  baseline.
-- Migrated route declarations from `@react-router/fs-routes` to React Router's
-  programmatic route config while preserving existing public URLs.
-- Replaced `@shopify/remix-oxygen` application imports with current
-  `react-router` and `@shopify/hydrogen/oxygen` entry points.
-- Migrated Weaverse component schema keys from deprecated `inspector` to
-  `settings`, removed duplicate component registrations, and updated the
-  Hydrogen router context integration.
-- Upgraded React Player to v3 and excluded its browser-only media stack from
-  the Oxygen worker bundle while preserving lazy client-side loading.
-- Node.js 22.12 or newer is now required.
-
-### Follow-up
-
-- The approved React Router 7.16 baseline and an upstream GraphQL Codegen
-  dependency currently retain high-severity npm advisories. Moving React Router
-  to 7.18.2 or newer requires a separately approved baseline update; the Lodash
-  advisory requires an upstream-compatible Codegen release.
-- Hydrogen/Vite currently emit upstream deprecation warnings for `envFile` and
-  `transformWithEsbuild`; neither API is configured directly by Aspen.
-- The homepage dev smoke test still reports legacy missing-schema/unknown DOM
-  property warnings from existing section data and prop forwarding. These do
-  not block rendering (HTTP 200) but should be cleaned up section by section in
-  a separate, behavior-focused change.
+- Updated the storefront foundation to Hydrogen 2026.10 and Weaverse v6 while
+  retaining Aspen's page sections, theme settings, navigation and commerce UI.
+- Migrated product selection, cart handlers, customer account queries, analytics
+  and section data loading to the new APIs. Preserved Aspen's queued cart
+  updates, inventory checks, discounts, gift cards and order notes.
+- Reconciled cart buyer identity after Customer Account authorization, refresh
+  and logout; signed-out mutations explicitly clear old customer tokens, and
+  failed logout detachment expires the cart cookie. Account login redirects keep
+  order keys and other page parameters while stripping React Router metadata.
+  Temporary account refresh failures retain customer identity and allow cart
+  mutations to be retried.
+- Moved collection browsing to Hydrogen's collection store. Existing filter and
+  sort links redirect to the new URL format; pagination supports forward and
+  backward navigation. Default collection ordering, combined category/facet
+  selections and missing-collection cursor recovery are preserved.
+- Preserved locale-aware price formatting, translated merchant content, SEO,
+  image rendering and Studio component settings.
+- Local development uses Vite/MiniOxygen, with HTTPS available through
+  `npm run dev:https`. Builds use React Router; `npm run typecheck` now checks
+  GraphQL documents as well as TypeScript. Node requirements remain
+  `^22.18.0 || ^24.11.0`.
+- See [migration and verification notes](docs/hydrogen-2026-10-migration.md)
+  before deploying. Oxygen deploy and a published release remain outstanding.
 
 ## 5.1.8
 

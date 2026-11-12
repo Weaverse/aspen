@@ -7,8 +7,10 @@ import {
   TwitterLogo,
 } from "@phosphor-icons/react";
 import * as Accordion from "@radix-ui/react-accordion";
-import { Image } from "@shopify/hydrogen";
-import { useThemeSettings, useTranslation } from "@weaverse/hydrogen";
+import {
+  useThemeSettings,
+  useTranslation,
+} from "@weaverse/hydrogen/react-router";
 import clsx from "clsx";
 import type React from "react";
 import { useEffect, useState } from "react";
@@ -16,6 +18,7 @@ import type { FetcherWithComponents } from "react-router";
 import { useFetcher } from "react-router";
 import { Link } from "~/components/link";
 import { AspenWordmark } from "~/components/logo";
+import { Image } from "~/components/shopify-image";
 import { useFooterRichText } from "~/hooks/use-footer-rich-text";
 import { useGlobalThemeText } from "~/hooks/use-global-theme-text";
 import { useShopMenu } from "~/hooks/use-shop-menu";

@@ -32,6 +32,7 @@ const bundle = await build({
   bundle: true,
   write: false,
   format: "iife",
+  define: { "import.meta.env.DEV": "false" },
   jsx: "automatic",
   alias: { "~": `${root}app` },
   plugins: [
@@ -39,7 +40,7 @@ const bundle = await build({
       name: "gallery-fixture",
       setup(builder) {
         const stubs = {
-          "@weaverse/hydrogen":
+          "@weaverse/hydrogen/react-router":
             "export const useTranslation = () => ({t: (key, value) => value ? 'Slide ' + value.index : key});",
           "./media-zoom": "export const ZoomModal = () => null;",
           "~/components/image":

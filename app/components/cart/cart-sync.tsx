@@ -1,7 +1,7 @@
-import { CartForm } from "@shopify/hydrogen";
 import { useEffect, useRef } from "react";
 import { type Fetcher, useFetcher, useFetchers } from "react-router";
-import type { CartApiQueryFragment } from "storefront-api.generated";
+import { CartForm } from "~/components/cart/cart-action-form";
+import type { CartApiQueryFragment } from "~/graphql/storefront-types";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import { CART_ERROR_KEYS } from "~/utils/cart-error";
 import {

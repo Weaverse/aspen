@@ -1,9 +1,12 @@
-import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
+import {
+  createSchema,
+  type WeaverseComponentProps,
+} from "@weaverse/hydrogen/react-router";
 import { AccountDetails } from "~/components/customer/account-details";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import { useAccountSectionData } from ".";
 
-interface AccountDetailsBlockProps extends Partial<HydrogenComponentProps> {
+interface AccountDetailsBlockProps extends Partial<WeaverseComponentProps> {
   heading?: string;
   editText?: string;
 }

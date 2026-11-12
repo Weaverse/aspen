@@ -1,7 +1,10 @@
-import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
+import {
+  createSchema,
+  type WeaverseComponentProps,
+} from "@weaverse/hydrogen/react-router";
 import { forwardRef } from "react";
 
-interface InstagramGridProps extends HydrogenComponentProps {}
+interface InstagramGridProps extends WeaverseComponentProps {}
 
 const InstagramGrid = forwardRef<HTMLDivElement, InstagramGridProps>(
   ({ children, ...rest }, ref) => {

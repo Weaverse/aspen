@@ -1,5 +1,8 @@
 import { ArrowRightIcon } from "@phosphor-icons/react";
-import { createSchema, type WeaverseImage } from "@weaverse/hydrogen";
+import {
+  createSchema,
+  type WeaverseImage,
+} from "@weaverse/hydrogen/react-router";
 import { createContext, forwardRef, useContext } from "react";
 import { useRouteLoaderData } from "react-router";
 import { sectionBackgroundInputs } from "~/components/background-image";

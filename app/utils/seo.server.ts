@@ -1,4 +1,3 @@
-import type { SeoConfig } from "@shopify/hydrogen";
 import type {
   Article,
   Blog,
@@ -9,7 +8,8 @@ import type {
   ShopPolicy,
 } from "@shopify/hydrogen/storefront-api-types";
 import type { BreadcrumbList, CollectionPage, Offer } from "schema-dts";
-import type { ProductQuery, ShopFragment } from "storefront-api.generated";
+import type { ProductQuery, ShopFragment } from "~/graphql/storefront-types";
+import type { SeoConfig } from "~/utils/seo-meta";
 
 function root({
   shop,

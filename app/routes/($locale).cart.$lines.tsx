@@ -59,7 +59,7 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
    */
   session.set("cartId", cartResult.id);
   const headers = new Headers();
-  headers.set("Set-Cookie", await session.commit());
+  headers.set("Set-Cookie", (await session.commit())?.["Set-Cookie"] || "");
 
   //! redirect to checkout
   if (cartResult.checkoutUrl) {

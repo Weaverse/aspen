@@ -7,9 +7,11 @@ import {
   useRef,
   useState,
 } from "react";
-import { useFetcher, useLocation, useNavigate } from "react-router";
+import { useFetcher, useLocation } from "react-router";
+import { useLocale } from "~/hooks/use-locale";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import type { WishlistApiResponse } from "~/types/wishlist";
+import { customerAccountLoginPath } from "~/utils/customer-account";
 
 type WishlistContextValue = {
   authenticated: boolean;
@@ -31,10 +33,9 @@ export function WishlistProvider({
   initialWishlist: Promise<WishlistApiResponse> | WishlistApiResponse;
 }) {
   const apiPath = usePrefixPathWithLocale("/api/wishlist");
-  const loginPath = usePrefixPathWithLocale("/account/login");
+  const locale = useLocale();
   const fetcher = useFetcher<WishlistApiResponse>({ key: "account-wishlist" });
   const location = useLocation();
-  const navigate = useNavigate();
   const pendingProductId = useRef<string | null>(null);
   const [authenticated, setAuthenticated] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
@@ -97,9 +98,9 @@ export function WishlistProvider({
 
     if (!fetcher.data.authenticated && attemptedToggle) {
       const returnTo = `${location.pathname}${location.search}`;
-      navigate(`${loginPath}?return_to=${encodeURIComponent(returnTo)}`);
+      window.location.assign(customerAccountLoginPath(returnTo, locale));
     }
-  }, [fetcher.data, location.pathname, location.search, loginPath, navigate]);
+  }, [fetcher.data, location.pathname, location.search, locale]);
 
   const toggle = useCallback(
     (productId: string) => {
@@ -109,7 +110,7 @@ export function WishlistProvider({
 
       if (!authenticated) {
         const returnTo = `${location.pathname}${location.search}`;
-        navigate(`${loginPath}?return_to=${encodeURIComponent(returnTo)}`);
+        window.location.assign(customerAccountLoginPath(returnTo, locale));
         return;
       }
 
@@ -137,8 +138,7 @@ export function WishlistProvider({
       hasLoaded,
       location.pathname,
       location.search,
-      loginPath,
-      navigate,
+      locale,
       productIds,
     ],
   );

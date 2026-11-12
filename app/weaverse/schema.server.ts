@@ -1,11 +1,11 @@
-import type { HydrogenThemeSchema } from "@weaverse/hydrogen";
+import type { WeaverseThemeSchema } from "@weaverse/hydrogen/react-router";
 import enUS from "~/locales/en-us.json";
 import navigationLocales from "~/locales/navigation.json";
 import type { StoreLocalization } from "~/types/locale";
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from "~/utils/const";
 import pkg from "../../package.json";
 
-export const themeSchema: HydrogenThemeSchema = {
+export const themeSchema: WeaverseThemeSchema = {
   info: {
     version: pkg.version,
     author: "Weaverse",
@@ -1777,7 +1777,7 @@ export function getThemeSchema({
   availableLocales,
   defaultLocale,
   selectedLocale,
-}: StoreLocalization): HydrogenThemeSchema {
+}: StoreLocalization): WeaverseThemeSchema {
   const localizedNavigation =
     navigationLocales[
       selectedLocale.language as keyof typeof navigationLocales

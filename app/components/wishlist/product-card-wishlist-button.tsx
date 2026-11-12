@@ -1,5 +1,5 @@
 import { HeartIcon } from "@phosphor-icons/react";
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import { cn } from "~/utils/cn";
 import { translateError } from "~/utils/translated-error";
 import { useWishlist } from "./wishlist-provider";

@@ -1,5 +1,5 @@
 import { XIcon } from "@phosphor-icons/react";
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import { useLocation, useSearchParams } from "react-router";
 import Link from "~/components/link";
 import { cn } from "~/utils/cn";

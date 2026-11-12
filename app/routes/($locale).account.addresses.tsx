@@ -1,9 +1,5 @@
 import type { CustomerAddressInput } from "@shopify/hydrogen/customer-account-api-types";
-import { useTranslation } from "@weaverse/hydrogen";
-import type {
-  AddressPartialFragment,
-  CustomerDetailsFragment,
-} from "customer-account-api.generated";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import {
   type ActionFunctionArgs,
   data,
@@ -15,6 +11,11 @@ import {
   useNavigation,
   useOutletContext,
 } from "react-router";
+import type {
+  AddressPartialFragment,
+  CustomerDetailsFragment,
+} from "~/graphql/customer-types";
+import { setAddressValue } from "~/utils/customer-address";
 import { getMetaTranslator } from "~/utils/seo-translation";
 import { translateError } from "~/utils/translated-error";
 import {
@@ -75,7 +76,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       "address2",
       "city",
       "company",
-      "territoryCode",
+      "countryCode",
       "firstName",
       "lastName",
       "phoneNumber",
@@ -86,7 +87,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     for (const key of keys) {
       const value = form.get(key);
       if (typeof value === "string") {
-        address[key] = value;
+        setAddressValue(address, key, value);
       }
     }
 
@@ -94,7 +95,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       case "POST": {
         // handle new address creation
         try {
-          const { data: createData, errors } = await customerAccount.mutate(
+          const { data: createData, errors } = await customerAccount.graphql(
             CREATE_ADDRESS_MUTATION,
             {
               variables: { address, defaultAddress },
@@ -141,7 +142,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       case "PUT": {
         // handle address updates
         try {
-          const { data: updateData, errors } = await customerAccount.mutate(
+          const { data: updateData, errors } = await customerAccount.graphql(
             UPDATE_ADDRESS_MUTATION,
             {
               variables: {
@@ -192,7 +193,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       case "DELETE": {
         // handles address deletion
         try {
-          const { data: delateData, errors } = await customerAccount.mutate(
+          const { data: delateData, errors } = await customerAccount.graphql(
             DELETE_ADDRESS_MUTATION,
             {
               variables: { addressId: decodeURIComponent(addressId) },
@@ -298,7 +299,7 @@ function NewAddressForm() {
     address2: "",
     city: "",
     company: "",
-    territoryCode: "",
+    countryCode: undefined,
     firstName: "",
     id: "new",
     lastName: "",
@@ -481,13 +482,13 @@ export function AddressForm({
           required
           type="text"
         />
-        <label htmlFor="territoryCode">{t("account.countryCode")}*</label>
+        <label htmlFor="countryCode">{t("account.countryCode")}*</label>
         <input
           aria-label={t("account.countryCode")}
           autoComplete="country"
-          defaultValue={address?.territoryCode ?? ""}
-          id="territoryCode"
-          name="territoryCode"
+          defaultValue={address?.countryCode ?? ""}
+          id="countryCode"
+          name="countryCode"
           placeholder={t("account.country")}
           required
           type="text"

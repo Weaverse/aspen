@@ -1,9 +1,5 @@
-import {
-  CacheNone,
-  flattenConnection,
-  generateCacheControlHeader,
-} from "@shopify/hydrogen";
-import type { OrderFragment, OrderQuery } from "customer-account-api.generated";
+import { flattenConnection } from "@shopify/hydrogen";
+import { gql } from "@shopify/hydrogen/customer-account";
 import {
   type LoaderFunctionArgs,
   type MetaFunction,
@@ -11,12 +7,14 @@ import {
   data as routeData,
   useLoaderData,
 } from "react-router";
+import type { OrderFragment, OrderQuery } from "~/graphql/customer-types";
 import OrderDetailsSection from "~/sections/order-details";
 import {
   accountPath,
   accountPreviewOrderDetails,
   isAccountPreviewRequest,
 } from "~/utils/account-preview.server";
+import { CacheNone, generateCacheControlHeader } from "~/utils/cache";
 import { getMetaTranslator } from "~/utils/seo-translation";
 import { WeaverseContent } from "~/weaverse";
 
@@ -63,7 +61,7 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
       : `gid://shopify/Order/${params.id}`;
 
     const { data: customerData, errors } =
-      await context.customerAccount.query<OrderQuery>(CUSTOMER_ORDER_QUERY, {
+      await context.customerAccount.graphql(CUSTOMER_ORDER_QUERY, {
         variables: { orderId },
       });
 
@@ -111,104 +109,290 @@ function getOrderDetailsData(order: OrderFragment) {
 }
 
 // NOTE: https://shopify.dev/docs/api/customer/latest/queries/order
-const CUSTOMER_ORDER_QUERY = `#graphql
-  fragment OrderMoney on MoneyV2 {
-    amount
-    currencyCode
-  }
-  fragment DiscountApplication on DiscountApplication {
-    ... on AutomaticDiscountApplication {
-      title
-    }
-    ... on DiscountCodeApplication {
-      code
-    }
-    value {
-      __typename
-      ... on MoneyV2 {
-        ...OrderMoney
-      }
-      ... on PricingPercentageValue {
-        percentage
-      }
-    }
-  }
-  fragment OrderLineItemFull on LineItem {
-    id
+export const CUSTOMER_ORDER_QUERY_OrderMoney =
+  gql(`fragment OrderMoney on MoneyV2 {
+  amount
+  currencyCode
+}`);
+
+export const CUSTOMER_ORDER_QUERY_DiscountApplication =
+  gql(`fragment DiscountApplication on DiscountApplication {
+  ... on AutomaticDiscountApplication {
     title
-    quantity
-    price {
-      ...OrderMoney
-    }
-    currentTotalPrice {
-      ...OrderMoney
-    }
-    totalPrice {
-      ...OrderMoney
-    }
-    discountAllocations {
-      allocatedAmount {
-        ...OrderMoney
-      }
-      discountApplication {
-        ...DiscountApplication
-      }
-    }
-    totalDiscount {
-      ...OrderMoney
-    }
-    image {
-      altText
-      height
-      url
-      id
-      width
-    }
-    variantTitle
   }
-  fragment Order on Order {
+  ... on DiscountCodeApplication {
+    code
+  }
+  value {
+    __typename
+    ... on MoneyV2 {
+      ...OrderMoney
+    }
+    ... on PricingPercentageValue {
+      percentage
+    }
+  }
+}
+
+fragment OrderMoney on MoneyV2 {
+  amount
+  currencyCode
+}`);
+
+export const CUSTOMER_ORDER_QUERY_OrderLineItemFull =
+  gql(`fragment OrderLineItemFull on LineItem {
+  id
+  title
+  quantity
+  price {
+    ...OrderMoney
+  }
+  currentTotalPrice {
+    ...OrderMoney
+  }
+  totalPrice {
+    ...OrderMoney
+  }
+  discountAllocations {
+    allocatedAmount {
+      ...OrderMoney
+    }
+    discountApplication {
+      ...DiscountApplication
+    }
+  }
+  totalDiscount {
+    ...OrderMoney
+  }
+  image {
+    altText
+    height
+    url
     id
+    width
+  }
+  variantTitle
+}
+
+fragment OrderMoney on MoneyV2 {
+  amount
+  currencyCode
+}
+
+fragment DiscountApplication on DiscountApplication {
+  ... on AutomaticDiscountApplication {
+    title
+  }
+  ... on DiscountCodeApplication {
+    code
+  }
+  value {
+    __typename
+    ... on MoneyV2 {
+      ...OrderMoney
+    }
+    ... on PricingPercentageValue {
+      percentage
+    }
+  }
+}`);
+
+export const CUSTOMER_ORDER_QUERY_Order = gql(`fragment Order on Order {
+  id
+  name
+  statusPageUrl
+  processedAt
+  fulfillments(first: 1) {
+    nodes {
+      status
+    }
+  }
+  totalTax {
+    ...OrderMoney
+  }
+  totalPrice {
+    ...OrderMoney
+  }
+  subtotal {
+    ...OrderMoney
+  }
+  totalShipping {
+    ...OrderMoney
+  }
+  shippingAddress {
     name
-    statusPageUrl
-    processedAt
-    fulfillments(first: 1) {
-      nodes {
-        status
-      }
-    }
-    totalTax {
-      ...OrderMoney
-    }
-    totalPrice {
-      ...OrderMoney
-    }
-    subtotal {
-      ...OrderMoney
-    }
-    totalShipping {
-      ...OrderMoney
-    }
-    shippingAddress {
-      name
-      formatted(withName: false)
-      formattedArea
-    }
-    discountApplications(first: 100) {
-      nodes {
-        ...DiscountApplication
-      }
-    }
-    lineItems(first: 100) {
-      nodes {
-        ...OrderLineItemFull
-      }
+    formatted(withName: false)
+    formattedArea
+  }
+  discountApplications(first: 100) {
+    nodes {
+      ...DiscountApplication
     }
   }
-  query Order($orderId: ID!) {
-    order(id: $orderId) {
-      ... on Order {
-        ...Order
-      }
+  lineItems(first: 100) {
+    nodes {
+      ...OrderLineItemFull
     }
   }
-` as const;
+}
+
+fragment OrderMoney on MoneyV2 {
+  amount
+  currencyCode
+}
+
+fragment DiscountApplication on DiscountApplication {
+  ... on AutomaticDiscountApplication {
+    title
+  }
+  ... on DiscountCodeApplication {
+    code
+  }
+  value {
+    __typename
+    ... on MoneyV2 {
+      ...OrderMoney
+    }
+    ... on PricingPercentageValue {
+      percentage
+    }
+  }
+}
+
+fragment OrderLineItemFull on LineItem {
+  id
+  title
+  quantity
+  price {
+    ...OrderMoney
+  }
+  currentTotalPrice {
+    ...OrderMoney
+  }
+  totalPrice {
+    ...OrderMoney
+  }
+  discountAllocations {
+    allocatedAmount {
+      ...OrderMoney
+    }
+    discountApplication {
+      ...DiscountApplication
+    }
+  }
+  totalDiscount {
+    ...OrderMoney
+  }
+  image {
+    altText
+    height
+    url
+    id
+    width
+  }
+  variantTitle
+}`);
+
+export const CUSTOMER_ORDER_QUERY = gql(`query Order($orderId: ID!) {
+  order(id: $orderId) {
+    ... on Order {
+      ...Order
+    }
+  }
+}
+
+fragment Order on Order {
+  id
+  name
+  statusPageUrl
+  processedAt
+  fulfillments(first: 1) {
+    nodes {
+      status
+    }
+  }
+  totalTax {
+    ...OrderMoney
+  }
+  totalPrice {
+    ...OrderMoney
+  }
+  subtotal {
+    ...OrderMoney
+  }
+  totalShipping {
+    ...OrderMoney
+  }
+  shippingAddress {
+    name
+    formatted(withName: false)
+    formattedArea
+  }
+  discountApplications(first: 100) {
+    nodes {
+      ...DiscountApplication
+    }
+  }
+  lineItems(first: 100) {
+    nodes {
+      ...OrderLineItemFull
+    }
+  }
+}
+
+fragment OrderMoney on MoneyV2 {
+  amount
+  currencyCode
+}
+
+fragment DiscountApplication on DiscountApplication {
+  ... on AutomaticDiscountApplication {
+    title
+  }
+  ... on DiscountCodeApplication {
+    code
+  }
+  value {
+    __typename
+    ... on MoneyV2 {
+      ...OrderMoney
+    }
+    ... on PricingPercentageValue {
+      percentage
+    }
+  }
+}
+
+fragment OrderLineItemFull on LineItem {
+  id
+  title
+  quantity
+  price {
+    ...OrderMoney
+  }
+  currentTotalPrice {
+    ...OrderMoney
+  }
+  totalPrice {
+    ...OrderMoney
+  }
+  discountAllocations {
+    allocatedAmount {
+      ...OrderMoney
+    }
+    discountApplication {
+      ...DiscountApplication
+    }
+  }
+  totalDiscount {
+    ...OrderMoney
+  }
+  image {
+    altText
+    height
+    url
+    id
+    width
+  }
+  variantTitle
+}`);

@@ -1,8 +1,8 @@
 import {
   createSchema,
-  type HydrogenComponentProps,
   useTranslation,
-} from "@weaverse/hydrogen";
+  type WeaverseComponentProps,
+} from "@weaverse/hydrogen/react-router";
 import clsx from "clsx";
 import type { CSSProperties } from "react";
 import { forwardRef } from "react";
@@ -14,7 +14,7 @@ import { cn } from "~/utils/cn";
 // Newsletter signups go to Klaviyo; see docs/integrations.md.
 type KlaviyoApiPayload = { ok: boolean; error?: string };
 
-interface NewsletterFormProps extends HydrogenComponentProps {
+interface NewsletterFormProps extends WeaverseComponentProps {
   style?: CSSProperties;
   width?: number;
   placeholder?: string;

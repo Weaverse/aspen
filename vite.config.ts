@@ -1,5 +1,5 @@
 import { reactRouter } from "@react-router/dev/vite";
-import { hydrogen } from "@shopify/hydrogen/vite";
+import { localHttps } from "@shopify/hydrogen/vite";
 import { oxygen } from "@shopify/mini-oxygen/vite";
 import tailwindcss from "@tailwindcss/vite";
 import { fileURLToPath } from "node:url";
@@ -27,8 +27,8 @@ function ssrStubClientOnlyModules(): Plugin {
 
 export default defineConfig(({ isSsrBuild }) => ({
   plugins: [
-    hydrogen(),
-    oxygen(),
+    localHttps({ enabled: ["dev:https", "dev:ca"].includes(process.env.npm_lifecycle_event || "") }),
+    ...oxygen(process.env.ASPEN_RUNTIME_PROBE === "1" ? {entry:fileURLToPath(new URL("./scripts/fixtures/runtime-worker.ts",import.meta.url))} : undefined),
     reactRouter(),
     tailwindcss(),
     ssrStubClientOnlyModules(),
@@ -67,6 +67,7 @@ export default defineConfig(({ isSsrBuild }) => ({
   ssr: {
     optimizeDeps: {
       include: [
+        "react", "react/jsx-runtime", "react/jsx-dev-runtime", "react-dom", "react-dom/server", "react-router", "react-router > cookie", "react-router > set-cookie-parser",
         "sanitize-html",
         "@radix-ui/react-primitive",
         "jsonp",

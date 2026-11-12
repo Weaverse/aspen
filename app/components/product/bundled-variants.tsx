@@ -2,7 +2,7 @@ import type {
   ProductVariantComponent,
   Image as ShopifyImage,
 } from "@shopify/hydrogen/storefront-api-types";
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import { Image } from "~/components/image";
 import Link from "~/components/link";
 

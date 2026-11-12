@@ -1,4 +1,4 @@
-import { useThemeSettings } from "@weaverse/hydrogen";
+import { useThemeSettings } from "@weaverse/hydrogen/react-router";
 import { forwardRef } from "react";
 import {
   NavLink as RemixNavLink,

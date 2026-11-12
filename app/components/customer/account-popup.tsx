@@ -1,11 +1,11 @@
 import { XIcon } from "@phosphor-icons/react";
 import * as Dialog from "@radix-ui/react-dialog";
 import type { CustomerAddress } from "@shopify/hydrogen/customer-account-api-types";
-import { useTranslation } from "@weaverse/hydrogen";
-import type { CustomerDetailsFragment } from "customer-account-api.generated";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import { type ReactNode, useEffect, useState } from "react";
 import { createPath, useFetcher } from "react-router";
 import { useHrefWithLocale } from "~/components/link";
+import type { CustomerDetailsFragment } from "~/graphql/customer-types";
 import { translateError } from "~/utils/translated-error";
 
 export function AccountPopup({
@@ -124,9 +124,9 @@ function AccountPopupContent({
             autoComplete: "address-level1",
           },
           {
-            name: "territoryCode",
+            name: "countryCode",
             label: "account.countryCode",
-            value: address?.territoryCode,
+            value: address?.countryCode,
             autoComplete: "country",
           },
           {
@@ -204,7 +204,7 @@ function AccountPopupContent({
                   "lastName",
                   "address1",
                   "city",
-                  "territoryCode",
+                  "countryCode",
                   "zip",
                 ].includes(field.name)
               }

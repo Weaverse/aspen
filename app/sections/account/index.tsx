@@ -1,10 +1,9 @@
 import { flattenConnection } from "@shopify/hydrogen";
 import type { CustomerAddress } from "@shopify/hydrogen/customer-account-api-types";
-import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
-import type {
-  CustomerDetailsFragment,
-  OrderCardFragment,
-} from "customer-account-api.generated";
+import {
+  createSchema,
+  type WeaverseComponentProps,
+} from "@weaverse/hydrogen/react-router";
 import {
   type CSSProperties,
   createContext,
@@ -13,6 +12,10 @@ import {
   useContext,
 } from "react";
 import { useLoaderData } from "react-router";
+import type {
+  CustomerDetailsFragment,
+  OrderCardFragment,
+} from "~/graphql/customer-types";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import { cn } from "~/utils/cn";
 
@@ -33,7 +36,7 @@ export function useAccountSectionData() {
 }
 
 interface AccountSectionProps
-  extends Partial<Omit<HydrogenComponentProps, "children">> {
+  extends Partial<Omit<WeaverseComponentProps, "children">> {
   customer?: CustomerDetailsFragment;
   heading?: string;
   backgroundColor?: string;

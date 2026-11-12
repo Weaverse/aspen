@@ -1,22 +1,25 @@
 import { ArrowRight } from "@phosphor-icons/react";
+import { gql } from "@shopify/hydrogen";
 import {
-  type ComponentLoaderArgs,
-  type HydrogenComponentProps,
-  type HydrogenComponentSchema,
   IMAGES_PLACEHOLDERS,
   useTranslation,
   type WeaverseCollection,
-} from "@weaverse/hydrogen";
+  type WeaverseComponentLoaderArgs,
+  type WeaverseComponentProps,
+  type WeaverseComponentSchema,
+} from "@weaverse/hydrogen/react-router";
 import clsx from "clsx";
 import { forwardRef, useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
 import { Swiper, SwiperSlide } from "swiper/react";
+import { CACHE_DEFAULT } from "~/utils/cache";
 import { translatePreview } from "~/utils/preview-translation";
 import { sectionImage } from "~/utils/section-placeholder";
+import { unwrapStorefront } from "~/utils/storefront";
 import "swiper/css";
-import type { CollectionByIdsQuery } from "storefront-api.generated";
 import { Image } from "~/components/image";
 import Link from "~/components/link";
+import type { CollectionByIdsQuery } from "~/graphql/storefront-types";
 import { useAnimation } from "~/hooks/use-animation";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import {
@@ -62,7 +65,7 @@ interface CollectionItemsData {
 const MAX_COLLECTIONS = 250;
 
 interface CollectionItemsProps
-  extends HydrogenComponentProps<CollectionItemsLoaderData>,
+  extends WeaverseComponentProps<CollectionItemsLoaderData>,
     CollectionItemsData {
   collectionNameColor: string;
   collectionBackgroundColor: string;
@@ -357,51 +360,45 @@ const COLLECTION_PLACEHOLDERS: CollectionWithProducts[] = [
 CollectionItems.displayName = "CollectionItems";
 
 export default CollectionItems;
-let COLLECTIONS_QUERY = `#graphql
-  query collectionByIds($country: CountryCode, $language: LanguageCode, $ids: [ID!]!)
-  @inContext(country: $country, language: $language) {
-    nodes(ids: $ids) {
-      ... on Collection {
+export let COLLECTIONS_QUERY =
+  gql(`query collectionByIds($country: CountryCode, $language: LanguageCode, $ids: [ID!]!) @inContext(country: $country, language: $language) {
+  nodes(ids: $ids) {
+    ... on Collection {
+      id
+      title
+      handle
+      onlineStoreUrl
+      description
+      image {
         id
-        title
-        handle
-        onlineStoreUrl
-        description
-        image {
-          id
-          altText
-          width
-          height
-          url
-        }
+        altText
+        width
+        height
+        url
       }
     }
   }
-` as const;
+}`);
 
 export type CollectionItemsLoaderData = Awaited<ReturnType<typeof loader>>;
 
 export let loader = async ({
   data,
   weaverse,
-}: ComponentLoaderArgs<CollectionItemsData>) => {
+}: WeaverseComponentLoaderArgs<CollectionItemsData>) => {
   let { language, country } = weaverse.storefront.i18n;
   let ids = data.collections
     ?.filter((collection) => Boolean(collection?.id))
     ?.slice(0, MAX_COLLECTIONS)
     .map((collection) => `gid://shopify/Collection/${collection.id}`);
   if (ids?.length) {
-    let { nodes } = await weaverse.storefront.query<CollectionByIdsQuery>(
-      COLLECTIONS_QUERY,
-      {
-        variables: {
-          country,
-          language,
-          ids,
-        },
-      },
+    let { nodes } = await weaverse.storefront
+      .graphql(COLLECTIONS_QUERY, { variables: { ids }, cache: CACHE_DEFAULT })
+      .then(unwrapStorefront);
+    return nodes.filter(
+      (node): node is Extract<NonNullable<typeof node>, { id: string }> =>
+        Boolean(node && "id" in node),
     );
-    return nodes.filter(Boolean);
   }
   return [];
 };
@@ -478,7 +475,7 @@ function SliderCollectionCard({
   );
 }
 
-export let schema: HydrogenComponentSchema = {
+export let schema: WeaverseComponentSchema = {
   type: "collection-list-dynamic-items",
   title: "Collection items",
   settings: [

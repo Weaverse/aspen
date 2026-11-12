@@ -2,7 +2,7 @@ import {
   createSchema,
   IMAGES_PLACEHOLDERS,
   useThemeSettings,
-} from "@weaverse/hydrogen";
+} from "@weaverse/hydrogen/react-router";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import { Children, forwardRef } from "react";

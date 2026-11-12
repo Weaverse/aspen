@@ -6,21 +6,21 @@ import {
   MagnifyingGlassPlusIcon,
   VideoCameraIcon,
 } from "@phosphor-icons/react";
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import { cva, type VariantProps } from "class-variance-authority";
 import clsx from "clsx";
 import { useEffect, useState } from "react";
-import type {
-  Media_MediaImage_Fragment,
-  Media_Video_Fragment,
-  MediaFragment,
-  ProductVariantFragment,
-} from "storefront-api.generated";
 import { FreeMode, Navigation, Pagination, Thumbs } from "swiper/modules";
 import { Swiper, type SwiperClass, SwiperSlide } from "swiper/react";
 import { ArrowButton } from "~/components/arrow-button";
 import { Image } from "~/components/image";
 import { SegmentedProgressBar } from "~/components/progress-bar";
+import type {
+  Media_MediaImage_Fragment,
+  Media_Video_Fragment,
+  MediaFragment,
+  ProductVariantFragment,
+} from "~/graphql/storefront-types";
 import type { ImageAspectRatio } from "~/types/image";
 import { DESKTOP_MIN_PX, minWidthQuery } from "~/utils/breakpoints";
 import { cn } from "~/utils/cn";

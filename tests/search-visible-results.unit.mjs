@@ -40,22 +40,26 @@ test("hidden matches are excluded before counting and slicing, with reversible c
   const calls = [];
   const storefront = {
     CacheShort: () => ({ maxAge: 1 }),
-    async query(document, options) {
+    async graphql(document, options) {
       calls.push(options);
       if (document.includes("SearchVisibleIndex")) {
         return {
-          products: {
-            nodes: index,
-            filters: [],
-            pageInfo: { hasNextPage: false },
+          data: {
+            products: {
+              nodes: index,
+              filters: [],
+              pageInfo: { hasNextPage: false },
+            },
           },
         };
       }
       // Node hydration need not preserve order; helper must preserve search order.
       return {
-        nodes: options.variables.ids
-          .map((id) => index.find((p) => p.id === id))
-          .reverse(),
+        data: {
+          nodes: options.variables.ids
+            .map((id) => index.find((p) => p.id === id))
+            .reverse(),
+        },
       };
     },
   };
@@ -100,13 +104,15 @@ test("all-hidden matches produce an empty state without loading cards", async ()
   const result = await searchVisibleProducts(
     {
       CacheShort: () => ({}),
-      query: async () => {
+      graphql: async () => {
         calls += 1;
         return {
-          products: {
-            nodes: [product(1, true)],
-            filters: [],
-            pageInfo: { hasNextPage: false },
+          data: {
+            products: {
+              nodes: [product(1, true)],
+              filters: [],
+              pageInfo: { hasNextPage: false },
+            },
           },
         };
       },
@@ -129,18 +135,22 @@ test("metadata pagination is bounded by Shopify's 1000-result limit", async () =
   const result = await searchVisibleProducts(
     {
       CacheShort: () => ({}),
-      query: async (document, { variables }) => {
+      graphql: async (document, { variables }) => {
         if (!document.includes("SearchVisibleIndex")) {
-          return { nodes: variables.ids.map((id) => ({ ...product(1), id })) };
+          return {
+            data: { nodes: variables.ids.map((id) => ({ ...product(1), id })) },
+          };
         }
         calls += 1;
         return {
-          products: {
-            nodes: Array.from({ length: 250 }, (_, i) =>
-              product((calls - 1) * 250 + i),
-            ),
-            filters: [],
-            pageInfo: { hasNextPage: true, endCursor: `${calls}` },
+          data: {
+            products: {
+              nodes: Array.from({ length: 250 }, (_, i) =>
+                product((calls - 1) * 250 + i),
+              ),
+              filters: [],
+              pageInfo: { hasNextPage: true, endCursor: `${calls}` },
+            },
           },
         };
       },
@@ -175,15 +185,17 @@ test("price bounds remain independent of filters and use maximum variant price",
   const result = await searchVisibleProducts(
     {
       CacheShort: () => ({}),
-      query: async (document, { variables }) => {
+      graphql: async (document, { variables }) => {
         if (!document.includes("SearchVisibleIndex")) {
-          return { nodes: [high] };
+          return { data: { nodes: [high] } };
         }
         return {
-          products: {
-            nodes: variables.filters.length ? [high] : [low, high],
-            filters: [],
-            pageInfo: { hasNextPage: false },
+          data: {
+            products: {
+              nodes: variables.filters.length ? [high] : [low, high],
+              filters: [],
+              pageInfo: { hasNextPage: false },
+            },
           },
         };
       },
@@ -219,30 +231,34 @@ function facetStorefront() {
   return {
     calls,
     CacheShort: () => ({}),
-    async query(document, { variables }) {
+    async graphql(document, { variables }) {
       if (document.includes("SearchVisibleFacetCounts")) {
         calls.push(variables);
-        return Object.fromEntries(
-          Object.keys(variables)
-            .filter((key) => key.startsWith("filters"))
-            .map((key) => {
-              const color = variables[key].find(
-                (filter) => filter.variantOption,
-              )?.variantOption.value;
-              return [
-                key.replace("filters", "facet"),
-                {
-                  nodes: catalog.filter(
-                    (item) => !color || item.color === color,
-                  ),
-                  pageInfo: { hasNextPage: false },
-                },
-              ];
-            }),
-        );
+        return {
+          data: Object.fromEntries(
+            Object.keys(variables)
+              .filter((key) => key.startsWith("filters"))
+              .map((key) => {
+                const color = variables[key].find(
+                  (filter) => filter.variantOption,
+                )?.variantOption.value;
+                return [
+                  key.replace("filters", "facet"),
+                  {
+                    nodes: catalog.filter(
+                      (item) => !color || item.color === color,
+                    ),
+                    pageInfo: { hasNextPage: false },
+                  },
+                ];
+              }),
+          ),
+        };
       }
       if (!document.includes("SearchVisibleIndex")) {
-        return { nodes: catalog.filter((p) => variables.ids.includes(p.id)) };
+        return {
+          data: { nodes: catalog.filter((p) => variables.ids.includes(p.id)) },
+        };
       }
       calls.push(variables);
       const candidates = catalog;
@@ -250,26 +266,28 @@ function facetStorefront() {
         f.variantOption?.name === "Color" ? [f.variantOption.value] : [],
       );
       return {
-        products: {
-          nodes: candidates.filter(
-            (p) => !colors.length || colors.includes(p.color),
-          ),
-          filters: [
-            {
-              id: "filter.v.option.color",
-              label: "Color",
-              type: "LIST",
-              values: ["Red", "Blue", "Green"].map((color) => ({
-                id: color,
-                label: color,
-                count: candidates.filter((p) => p.color === color).length,
-                input: JSON.stringify({
-                  variantOption: { name: "Color", value: color },
-                }),
-              })),
-            },
-          ],
-          pageInfo: { hasNextPage: false },
+        data: {
+          products: {
+            nodes: candidates.filter(
+              (p) => !colors.length || colors.includes(p.color),
+            ),
+            filters: [
+              {
+                id: "filter.v.option.color",
+                label: "Color",
+                type: "LIST",
+                values: ["Red", "Blue", "Green"].map((color) => ({
+                  id: color,
+                  label: color,
+                  count: candidates.filter((p) => p.color === color).length,
+                  input: JSON.stringify({
+                    variantOption: { name: "Color", value: color },
+                  }),
+                })),
+              },
+            ],
+            pageInfo: { hasNextPage: false },
+          },
         },
       };
     },
@@ -341,15 +359,17 @@ test("a zero-match keyword remains unchanged and never loads unrelated cards", a
   const result = await searchVisibleProducts(
     {
       CacheShort: () => ({}),
-      query: async (document, { variables }) => {
+      graphql: async (document, { variables }) => {
         calls += 1;
         assert.ok(document.includes("SearchVisibleIndex"));
         assert.equal(variables.searchTerm, term);
         return {
-          products: {
-            nodes: [],
-            filters: [],
-            pageInfo: { hasNextPage: false },
+          data: {
+            products: {
+              nodes: [],
+              filters: [],
+              pageInfo: { hasNextPage: false },
+            },
           },
         };
       },
@@ -377,62 +397,68 @@ test("facet batches preserve other selected groups and paginate independently", 
   const result = await searchVisibleProducts(
     {
       CacheShort: () => ({}),
-      query: async (document, { variables }) => {
+      graphql: async (document, { variables }) => {
         assert.ok(!variables.searchTerm || variables.searchTerm === "chair");
         if (document.includes("SearchVisibleFacetCounts")) {
           facetCalls.push(variables);
-          return Object.fromEntries(
-            Object.keys(variables)
-              .filter((key) => key.startsWith("filters"))
-              .map((key) => {
-                const filters = variables[key];
-                assert.ok(filters.some((filter) => filter.available === true));
-                assert.ok(
-                  filters.some(
-                    (filter) =>
-                      filter.variantOption?.name === "Size" &&
-                      filter.variantOption.value === "Large",
-                  ),
-                );
-                const colors = filters.filter(
-                  (filter) => filter.variantOption?.name === "Color",
-                );
-                assert.equal(colors.length, 1);
-                const cursor = variables[key.replace("filters", "after")];
-                const hasNextPage =
-                  colors[0].variantOption.value === "Red" && !cursor;
-                return [
-                  key.replace("filters", "facet"),
-                  {
-                    nodes:
-                      colors[0].variantOption.value === "Red"
-                        ? [product(1), product(2, true)]
-                        : [product(2, true)],
-                    pageInfo: {
-                      hasNextPage,
-                      endCursor: hasNextPage ? "second" : null,
+          return {
+            data: Object.fromEntries(
+              Object.keys(variables)
+                .filter((key) => key.startsWith("filters"))
+                .map((key) => {
+                  const filters = variables[key];
+                  assert.ok(
+                    filters.some((filter) => filter.available === true),
+                  );
+                  assert.ok(
+                    filters.some(
+                      (filter) =>
+                        filter.variantOption?.name === "Size" &&
+                        filter.variantOption.value === "Large",
+                    ),
+                  );
+                  const colors = filters.filter(
+                    (filter) => filter.variantOption?.name === "Color",
+                  );
+                  assert.equal(colors.length, 1);
+                  const cursor = variables[key.replace("filters", "after")];
+                  const hasNextPage =
+                    colors[0].variantOption.value === "Red" && !cursor;
+                  return [
+                    key.replace("filters", "facet"),
+                    {
+                      nodes:
+                        colors[0].variantOption.value === "Red"
+                          ? [product(1), product(2, true)]
+                          : [product(2, true)],
+                      pageInfo: {
+                        hasNextPage,
+                        endCursor: hasNextPage ? "second" : null,
+                      },
                     },
-                  },
-                ];
-              }),
-          );
+                  ];
+                }),
+            ),
+          };
         }
         if (document.includes("SearchVisibleIndex")) {
           return {
-            products: {
-              nodes: [product(1), product(2, true)],
-              filters: [
-                {
-                  id: "color",
-                  type: "LIST",
-                  values: [value("Red"), value("Blue")],
-                },
-              ],
-              pageInfo: { hasNextPage: false },
+            data: {
+              products: {
+                nodes: [product(1), product(2, true)],
+                filters: [
+                  {
+                    id: "color",
+                    type: "LIST",
+                    values: [value("Red"), value("Blue")],
+                  },
+                ],
+                pageInfo: { hasNextPage: false },
+              },
             },
           };
         }
-        return { nodes: [product(1)] };
+        return { data: { nodes: [product(1)] } };
       },
     },
     {
@@ -461,11 +487,13 @@ for (const selected of [false, true]) {
     const result = await searchVisibleProducts(
       {
         CacheShort: () => ({}),
-        query: async (document, { variables }) => {
+        graphql: async (document, { variables }) => {
           if (document.includes("SearchVisibleFacetCounts")) {
             facetCalls += 1;
             return {
-              facet0: { nodes: [hidden], pageInfo: { hasNextPage: false } },
+              data: {
+                facet0: { nodes: [hidden], pageInfo: { hasNextPage: false } },
+              },
             };
           }
           if (document.includes("SearchVisibleIndex")) {
@@ -475,35 +503,39 @@ for (const selected of [false, true]) {
             const offset = Number(variables.after || 0);
             const end = offset + variables.first;
             return {
-              products: {
-                nodes: candidates.slice(offset, end),
-                filters: [
-                  {
-                    id: "color",
-                    type: "LIST",
-                    values: [
-                      {
-                        id: "blue",
-                        label: "Blue",
-                        count: 1,
-                        input: JSON.stringify({
-                          variantOption: { name: "Color", value: "Blue" },
-                        }),
-                      },
-                    ],
+              data: {
+                products: {
+                  nodes: candidates.slice(offset, end),
+                  filters: [
+                    {
+                      id: "color",
+                      type: "LIST",
+                      values: [
+                        {
+                          id: "blue",
+                          label: "Blue",
+                          count: 1,
+                          input: JSON.stringify({
+                            variantOption: { name: "Color", value: "Blue" },
+                          }),
+                        },
+                      ],
+                    },
+                  ],
+                  pageInfo: {
+                    hasNextPage: end < candidates.length,
+                    endCursor: `${end}`,
                   },
-                ],
-                pageInfo: {
-                  hasNextPage: end < candidates.length,
-                  endCursor: `${end}`,
                 },
               },
             };
           }
           return {
-            nodes: variables.ids.map((id) =>
-              visible.find((item) => item.id === id),
-            ),
+            data: {
+              nodes: variables.ids.map((id) =>
+                visible.find((item) => item.id === id),
+              ),
+            },
           };
         },
       },
@@ -535,7 +567,7 @@ for (const reverse of [false, true]) {
     const result = await searchVisibleProducts(
       {
         CacheShort: () => ({}),
-        query: async (document, { variables }) => {
+        graphql: async (document, { variables }) => {
           if (document.includes("SearchVisibleFacetCounts")) {
             facetPages += 1;
             const usesPriceOrder =
@@ -546,11 +578,13 @@ for (const reverse of [false, true]) {
             const candidates = usesPriceOrder ? priceOrder : relevanceOrder;
             const offset = Number(variables.after0 || 0);
             return {
-              facet0: {
-                nodes: candidates.slice(offset, offset + 100),
-                pageInfo: {
-                  hasNextPage: offset + 100 < candidates.length,
-                  endCursor: `${offset + 100}`,
+              data: {
+                facet0: {
+                  nodes: candidates.slice(offset, offset + 100),
+                  pageInfo: {
+                    hasNextPage: offset + 100 < candidates.length,
+                    endCursor: `${offset + 100}`,
+                  },
                 },
               },
             };
@@ -558,35 +592,39 @@ for (const reverse of [false, true]) {
           if (document.includes("SearchVisibleIndex")) {
             const offset = Number(variables.after || 0);
             return {
-              products: {
-                nodes: priceOrder.slice(offset, offset + variables.first),
-                filters: [
-                  {
-                    id: "color",
-                    type: "LIST",
-                    values: [
-                      {
-                        id: "blue",
-                        label: "Blue",
-                        count: 1999,
-                        input: JSON.stringify({
-                          variantOption: { name: "Color", value: "Blue" },
-                        }),
-                      },
-                    ],
+              data: {
+                products: {
+                  nodes: priceOrder.slice(offset, offset + variables.first),
+                  filters: [
+                    {
+                      id: "color",
+                      type: "LIST",
+                      values: [
+                        {
+                          id: "blue",
+                          label: "Blue",
+                          count: 1999,
+                          input: JSON.stringify({
+                            variantOption: { name: "Color", value: "Blue" },
+                          }),
+                        },
+                      ],
+                    },
+                  ],
+                  pageInfo: {
+                    hasNextPage: true,
+                    endCursor: `${offset + variables.first}`,
                   },
-                ],
-                pageInfo: {
-                  hasNextPage: true,
-                  endCursor: `${offset + variables.first}`,
                 },
               },
             };
           }
           return {
-            nodes: variables.ids.map((id) =>
-              visible.find((item) => item.id === id),
-            ),
+            data: {
+              nodes: variables.ids.map((id) =>
+                visible.find((item) => item.id === id),
+              ),
+            },
           };
         },
       },
@@ -605,39 +643,43 @@ test("a complete 1000-product index without hidden listings needs no facet probe
   const result = await searchVisibleProducts(
     {
       CacheShort: () => ({}),
-      query: async (document, { variables }) => {
+      graphql: async (document, { variables }) => {
         assert.ok(!document.includes("SearchVisibleFacetCounts"));
         if (document.includes("SearchVisibleIndex")) {
           indexCalls += 1;
           const offset = Number(variables.after || 0);
           const end = offset + variables.first;
           return {
-            products: {
-              nodes: catalog.slice(offset, end),
-              filters: [
-                {
-                  id: "stock",
-                  type: "BOOLEAN",
-                  values: [
-                    {
-                      id: "available",
-                      count: 1000,
-                      input: JSON.stringify({ available: true }),
-                    },
-                  ],
+            data: {
+              products: {
+                nodes: catalog.slice(offset, end),
+                filters: [
+                  {
+                    id: "stock",
+                    type: "BOOLEAN",
+                    values: [
+                      {
+                        id: "available",
+                        count: 1000,
+                        input: JSON.stringify({ available: true }),
+                      },
+                    ],
+                  },
+                ],
+                pageInfo: {
+                  hasNextPage: end < catalog.length,
+                  endCursor: `${end}`,
                 },
-              ],
-              pageInfo: {
-                hasNextPage: end < catalog.length,
-                endCursor: `${end}`,
               },
             },
           };
         }
         return {
-          nodes: variables.ids.map((id) =>
-            catalog.find((item) => item.id === id),
-          ),
+          data: {
+            nodes: variables.ids.map((id) =>
+              catalog.find((item) => item.id === id),
+            ),
+          },
         };
       },
     },

@@ -1,16 +1,16 @@
 import { InstagramLogo } from "@phosphor-icons/react";
 import {
   createSchema,
-  type HydrogenComponentProps,
+  type WeaverseComponentProps,
   type WeaverseImage,
-} from "@weaverse/hydrogen";
+} from "@weaverse/hydrogen/react-router";
 import { forwardRef } from "react";
 import { Link as RemixLink } from "react-router";
 import { Image } from "~/components/image";
 import { useHrefWithLocale } from "~/components/link";
 import { sectionImage } from "~/utils/section-placeholder";
 
-interface InstagramImageProps extends HydrogenComponentProps {
+interface InstagramImageProps extends WeaverseComponentProps {
   image?: WeaverseImage | string;
   altText?: string;
   to?: string;

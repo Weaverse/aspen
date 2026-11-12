@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import type { OptimisticCartLineInput } from "@shopify/hydrogen";
 import {
   canApplyNullCart,
   getCartMutationEpoch,
@@ -14,6 +13,7 @@ import {
   settlePendingLineUpdate,
   stagePendingLineUpdate,
 } from "../app/components/cart/cart-line-queue.ts";
+import type { OptimisticCartLineInput } from "../app/components/cart/cart-types";
 import {
   applyOptimisticMutations,
   buildOptimisticAddCart,
@@ -62,7 +62,7 @@ function createCart(quantity: number, updatedAt: string) {
     lines: {
       ...cart.lines,
       nodes: cart.lines.nodes.map((line) => ({
-        ...line,
+        ...(line as Extract<typeof line, { __typename?: "CartLine" }>),
         id: "gid://shopify/CartLine/1",
         isOptimistic: false,
       })),

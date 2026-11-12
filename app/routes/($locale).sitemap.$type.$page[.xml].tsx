@@ -1,5 +1,5 @@
-import { getSitemap } from "@shopify/hydrogen";
 import type { LoaderFunctionArgs } from "react-router";
+import { getSitemap } from "~/.server/sitemap";
 
 export async function loader({
   request,

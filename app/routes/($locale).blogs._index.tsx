@@ -1,13 +1,14 @@
-import type { SeoConfig } from "@shopify/hydrogen";
-import { flattenConnection } from "@shopify/hydrogen";
+import { flattenConnection, gql } from "@shopify/hydrogen";
 import type { MetaFunction } from "react-router";
 import { data, type LoaderFunctionArgs } from "react-router";
-import type { BlogsIndexQuery } from "storefront-api.generated";
-import { routeHeaders } from "~/utils/cache";
+import type { BlogsIndexQuery } from "~/graphql/storefront-types";
+import { CACHE_DEFAULT, routeHeaders } from "~/utils/cache";
 import { DEFAULT_BLOG_HANDLE, PAGINATION_SIZE } from "~/utils/const";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 import { seoPayload } from "~/utils/seo.server";
+import type { SeoConfig } from "~/utils/seo-meta";
 import { localizedSeoMeta } from "~/utils/seo-translation";
+import { unwrapStorefront } from "~/utils/storefront";
 import { WeaverseContent } from "~/weaverse";
 
 export const headers = routeHeaders;
@@ -16,13 +17,12 @@ export const shouldRevalidate = skipPageRevalidationForStorefrontActions;
 export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   const storefront = context.storefront;
   const { language, country } = storefront.i18n;
-  const { blog } = await storefront.query<BlogsIndexQuery>(BLOGS_INDEX_QUERY, {
-    variables: {
-      blogHandle: DEFAULT_BLOG_HANDLE,
-      pageBy: PAGINATION_SIZE,
-      language,
-    },
-  });
+  const { blog } = await storefront
+    .graphql(BLOGS_INDEX_QUERY, {
+      variables: { blogHandle: DEFAULT_BLOG_HANDLE, pageBy: PAGINATION_SIZE },
+      cache: CACHE_DEFAULT,
+    })
+    .then(unwrapStorefront);
 
   if (!blog) {
     throw new Response("Not found", { status: 404 });
@@ -60,48 +60,64 @@ export default function BlogsIndex() {
   return <WeaverseContent />;
 }
 
-const BLOGS_INDEX_QUERY = `#graphql
-  query blogsIndex(
-    $language: LanguageCode
-    $blogHandle: String!
-    $pageBy: Int!
-    $cursor: String
-  ) @inContext(language: $language) {
-    blog(handle: $blogHandle) {
+export const BLOGS_INDEX_QUERY_BlogArticle =
+  gql(`fragment BlogArticle on Article {
+  author: authorV2 {
+    name
+  }
+  contentHtml
+  excerpt
+  excerptHtml
+  handle
+  id
+  image {
+    id
+    altText
+    url
+    width
+    height
+  }
+  publishedAt
+  tags
+  title
+}`);
+
+export const BLOGS_INDEX_QUERY =
+  gql(`query blogsIndex($language: LanguageCode, $blogHandle: String!, $pageBy: Int!, $cursor: String) @inContext(language: $language) {
+  blog(handle: $blogHandle) {
+    title
+    handle
+    seo {
       title
-      handle
-      seo {
-        title
-        description
-      }
-      articles(first: $pageBy, after: $cursor) {
-        edges {
-          node {
-            ...BlogArticle
-          }
+      description
+    }
+    articles(first: $pageBy, after: $cursor) {
+      edges {
+        node {
+          ...BlogArticle
         }
       }
     }
   }
+}
 
-  fragment BlogArticle on Article {
-    author: authorV2 {
-      name
-    }
-    contentHtml
-    excerpt
-    excerptHtml
-    handle
-    id
-    image {
-      id
-      altText
-      url
-      width
-      height
-    }
-    publishedAt
-    tags
-    title
+fragment BlogArticle on Article {
+  author: authorV2 {
+    name
   }
-` as const;
+  contentHtml
+  excerpt
+  excerptHtml
+  handle
+  id
+  image {
+    id
+    altText
+    url
+    width
+    height
+  }
+  publishedAt
+  tags
+  title
+}`);

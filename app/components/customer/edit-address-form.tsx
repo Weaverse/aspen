@@ -2,7 +2,7 @@ import { CheckIcon } from "@phosphor-icons/react";
 import * as Checkbox from "@radix-ui/react-checkbox";
 import * as Dialog from "@radix-ui/react-dialog";
 import { flattenConnection } from "@shopify/hydrogen";
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import clsx from "clsx";
 import {
   Form,
@@ -139,14 +139,14 @@ export function AccountEditAddressForm() {
         />
         <input
           className="w-full appearance-none border border-line p-3 focus:outline-hidden"
-          id="territoryCode"
-          name="territoryCode"
+          id="countryCode"
+          name="countryCode"
           type="text"
           autoComplete="country"
           placeholder={t("account.countryCode")}
           required
           aria-label={t("account.countryCode")}
-          defaultValue={address?.territoryCode ?? ""}
+          defaultValue={address?.countryCode ?? ""}
         />
         <input
           className="w-full appearance-none border border-line p-3 focus:outline-hidden"

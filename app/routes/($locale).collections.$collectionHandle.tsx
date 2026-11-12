@@ -1,7 +1,7 @@
 import {
-  Analytics,
   flattenConnection,
-  getPaginationVariables,
+  gql,
+  parseCollectionParams,
 } from "@shopify/hydrogen";
 import type {
   ProductCollectionSortKeys,
@@ -13,17 +13,24 @@ import {
   redirect,
   useLoaderData,
 } from "react-router";
+import invariant from "tiny-invariant";
+import {
+  CollectionBrowseProvider,
+  parseCategoryFilters,
+} from "~/components/collection/browse";
+import { Analytics } from "~/components/root/analytics";
+import { PRODUCT_CARD_FRAGMENT } from "~/graphql/fragments";
 import type {
   CollectionQuery,
   CollectionSaleProductScanQuery,
   SaleProductCardsQuery,
-} from "storefront-api.generated";
-import invariant from "tiny-invariant";
-import { PRODUCT_CARD_FRAGMENT } from "~/graphql/fragments";
+} from "~/graphql/storefront-types";
 import type { I18nLocale } from "~/types/locale";
-import { routeHeaders } from "~/utils/cache";
+import { CACHE_DEFAULT, routeHeaders } from "~/utils/cache";
+import { getLegacyBrowseRedirect } from "~/utils/collection-browse";
 import { PAGINATION_SIZE } from "~/utils/const";
 import { FILTER_URL_PREFIX, type SortParam } from "~/utils/filter";
+import { getPaginationVariables } from "~/utils/pagination";
 import { redirectIfHandleIsLocalized } from "~/utils/redirect";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 import {
@@ -32,12 +39,15 @@ import {
 } from "~/utils/sale-pagination.server";
 import { seoPayload } from "~/utils/seo.server";
 import { localizedSeoMeta } from "~/utils/seo-translation";
+import { unwrapStorefront } from "~/utils/storefront";
 import { WeaverseContent } from "~/weaverse";
 
 export const headers = routeHeaders;
 export const shouldRevalidate = skipPageRevalidationForStorefrontActions;
 
 export async function loader({ params, request, context }: LoaderFunctionArgs) {
+  const legacyRedirect = getLegacyBrowseRedirect(new URL(request.url));
+  if (legacyRedirect) throw redirect(legacyRedirect, 301);
   const paginationVariables = getPaginationVariables(request, {
     pageBy: PAGINATION_SIZE,
   });
@@ -48,21 +58,20 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
   invariant(collectionHandle, "Missing collectionHandle param");
 
   const searchParams = new URL(request.url).searchParams;
-  const { sortKey, reverse } = getSortValuesFromParam(
-    searchParams.get("sort") as SortParam,
-  );
-  const filters = [...searchParams.entries()].reduce((flt, [key, value]) => {
-    if (key.startsWith(FILTER_URL_PREFIX)) {
-      const filterKey = key.substring(FILTER_URL_PREFIX.length);
-      const parsedValue = parseFilterParam(value);
-      if (parsedValue !== undefined) {
-        flt.push({
-          [filterKey]: parsedValue,
-        } as ProductFilter);
-      }
-    }
-    return flt;
-  }, [] as ProductFilter[]);
+  const browse = parseCollectionParams(searchParams);
+  const { sortKey = "COLLECTION_DEFAULT", reverse } = browse;
+  const filters: ProductFilter[] = [
+    ...browse.filters,
+    ...parseCategoryFilters(searchParams),
+  ]
+    .filter(
+      (filter) =>
+        (!filter.variantMetafield ||
+          typeof filter.variantMetafield.value === "string") &&
+        (!filter.productMetafield ||
+          typeof filter.productMetafield.value === "string"),
+    )
+    .map((filter) => filter as ProductFilter);
 
   const { CUSTOM_COLLECTION_BANNER_METAFIELD = "" } = env;
   const [bannerNamespace = "", bannerKey = ""] =
@@ -70,20 +79,20 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
 
   // Load collection data and weaverseData in parallel
   const [{ collection, collections }, weaverseData] = await Promise.all([
-    storefront.query<CollectionQuery>(COLLECTION_QUERY, {
-      variables: {
-        ...paginationVariables,
-        handle: collectionHandle,
-        filters,
-        sortKey,
-        reverse,
-        country: storefront.i18n.country,
-        language: storefront.i18n.language,
-        // Query custom banner stored in Shopify's collection metafields
-        customBannerNamespace: bannerNamespace,
-        customBannerKey: bannerKey,
-      },
-    }),
+    storefront
+      .graphql(COLLECTION_QUERY, {
+        variables: {
+          ...paginationVariables,
+          handle: collectionHandle,
+          filters,
+          sortKey,
+          reverse,
+          customBannerNamespace: bannerNamespace,
+          customBannerKey: bannerKey,
+        },
+        cache: CACHE_DEFAULT,
+      })
+      .then(unwrapStorefront),
     context.weaverse.loadPage({
       type: "COLLECTION",
       handle: collectionHandle,
@@ -95,6 +104,8 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     if (paginationVariables.startCursor || paginationVariables.endCursor) {
       // remove the cursor from the url
       const url = new URL(request.url);
+      url.searchParams.delete("after");
+      url.searchParams.delete("before");
       url.searchParams.delete("cursor");
       url.searchParams.delete("direction");
       throw redirect(url.toString());
@@ -112,37 +123,34 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
       collection.products,
       paginationVariables,
       async (page) => {
-        const next = await storefront.query<CollectionSaleProductScanQuery>(
-          COLLECTION_SALE_PRODUCT_SCAN_QUERY,
-          {
+        const next = await storefront
+          .graphql(COLLECTION_SALE_PRODUCT_SCAN_QUERY, {
             variables: {
               ...page,
               handle: collectionHandle,
               filters,
               sortKey,
               reverse,
-              country: storefront.i18n.country,
-              language: storefront.i18n.language,
             },
-          },
-        );
+            cache: CACHE_DEFAULT,
+          })
+          .then(unwrapStorefront);
         if (!next.collection) {
           throw new Response("collection", { status: 404 });
         }
         return next.collection.products;
       },
       async (ids) => {
-        const { nodes } = await storefront.query<SaleProductCardsQuery>(
-          SALE_PRODUCT_CARDS_QUERY,
-          {
-            variables: {
-              ids,
-              country: storefront.i18n.country,
-              language: storefront.i18n.language,
-            },
-          },
+        const { nodes } = await storefront
+          .graphql(SALE_PRODUCT_CARDS_QUERY, {
+            variables: { ids },
+            cache: CACHE_DEFAULT,
+          })
+          .then(unwrapStorefront);
+        return nodes.filter(
+          (node): node is Extract<NonNullable<typeof node>, { id: string }> =>
+            Boolean(node && "id" in node),
         );
-        return nodes.filter((node) => node && "id" in node);
       },
     );
   }
@@ -188,7 +196,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
 
       if (foundValue.id === "filter.v.price") {
         // Special case for price, we want to show the min and max values as the label.
-        const input = JSON.parse(foundValue.input as string) as ProductFilter;
+        const input = filter;
         const min = parseAsCurrency(input.price?.min ?? 0, locale);
         const max = input.price?.max
           ? parseAsCurrency(input.price.max, locale)
@@ -209,6 +217,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
 
   return {
     collection,
+    dataSearch: new URL(request.url).search,
     appliedFilters,
     collections: flattenConnection(collections),
     seo,
@@ -224,10 +233,15 @@ export const meta = ({ matches }: MetaArgs<typeof loader>) => {
 };
 
 export default function Collection() {
-  const { collection } = useLoaderData<typeof loader>();
+  const { collection, dataSearch } = useLoaderData<typeof loader>();
   return (
     <>
-      <WeaverseContent />
+      <CollectionBrowseProvider
+        handle={collection.handle}
+        dataSearch={dataSearch}
+      >
+        <WeaverseContent />
+      </CollectionBrowseProvider>
       <Analytics.CollectionView
         data={{
           collection: {
@@ -293,171 +307,295 @@ function parseAsCurrency(value: number, locale: I18nLocale) {
   }).format(value);
 }
 
-const COLLECTION_QUERY = `#graphql
-  query collection(
-    $handle: String!
-    $country: CountryCode
-    $language: LanguageCode
-    $filters: [ProductFilter!]
-    $sortKey: ProductCollectionSortKeys!
-    $reverse: Boolean
-    $first: Int
-    $last: Int
-    $startCursor: String
-    $endCursor: String
-    $customBannerNamespace: String!
-    $customBannerKey: String!
-  ) @inContext(country: $country, language: $language) {
-    collection(handle: $handle) {
-      id
-      handle
-      title
+export const COLLECTION_QUERY =
+  gql(`query collection($handle: String!, $country: CountryCode, $language: LanguageCode, $filters: [ProductFilter!], $sortKey: ProductCollectionSortKeys!, $reverse: Boolean, $first: Int, $last: Int, $startCursor: String, $endCursor: String, $customBannerNamespace: String!, $customBannerKey: String!) @inContext(country: $country, language: $language) {
+  collection(handle: $handle) {
+    id
+    handle
+    title
+    description
+    seo {
       description
-      seo {
-        description
-        title
-      }
-      metafield(namespace: $customBannerNamespace, key: $customBannerKey) {
-        id
-        type
-        description
-        value
-        reference {
-          ... on MediaImage {
-            image {
-              id
-              url
-            }
+      title
+    }
+    metafield(namespace: $customBannerNamespace, key: $customBannerKey) {
+      id
+      type
+      description
+      value
+      reference {
+        ... on MediaImage {
+          image {
+            id
+            url
           }
         }
       }
-      image {
+    }
+    image {
+      id
+      url
+      width
+      height
+      altText
+    }
+    products(
+      first: $first
+      last: $last
+      before: $startCursor
+      after: $endCursor
+      filters: $filters
+      sortKey: $sortKey
+      reverse: $reverse
+    ) {
+      filters {
         id
-        url
-        width
-        height
-        altText
-      }
-      products(
-        first: $first,
-        last: $last,
-        before: $startCursor,
-        after: $endCursor,
-        filters: $filters,
-        sortKey: $sortKey,
-        reverse: $reverse
-      ) {
-        filters {
+        label
+        type
+        values {
           id
           label
-          type
-          values {
-            id
-            label
-            count
-            input
-          }
-        }
-        edges { cursor }
-        nodes {
-          ...ProductCard
-        }
-        pageInfo {
-          hasPreviousPage
-          hasNextPage
-          endCursor
-          startCursor
+          count
+          input
         }
       }
-      highestPriceProduct: products(first: 1, sortKey: PRICE, reverse: true) {
-        nodes {
-          id
-          title
-          handle
-          priceRange {
-            minVariantPrice {
-              amount
-              currencyCode
-            }
-            maxVariantPrice {
-              amount
-              currencyCode
-            }
-          }
-        }
-      }
-      lowestPriceProduct: products(first: 1, sortKey: PRICE) {
-        nodes {
-          id
-          title
-          handle
-          priceRange {
-            minVariantPrice {
-              amount
-              currencyCode
-            }
-            maxVariantPrice {
-              amount
-              currencyCode
-            }
-          }
-        }
-      }
-    }
-    collections(first: 100) {
       edges {
-        node {
-          title
+        cursor
+      }
+      nodes {
+        ...ProductCard
+      }
+      pageInfo {
+        hasPreviousPage
+        hasNextPage
+        endCursor
+        startCursor
+      }
+    }
+    highestPriceProduct: products(first: 1, sortKey: PRICE, reverse: true) {
+      nodes {
+        id
+        title
+        handle
+        priceRange {
+          minVariantPrice {
+            amount
+            currencyCode
+          }
+          maxVariantPrice {
+            amount
+            currencyCode
+          }
+        }
+      }
+    }
+    lowestPriceProduct: products(first: 1, sortKey: PRICE) {
+      nodes {
+        id
+        title
+        handle
+        priceRange {
+          minVariantPrice {
+            amount
+            currencyCode
+          }
+          maxVariantPrice {
+            amount
+            currencyCode
+          }
+        }
+      }
+    }
+  }
+  collections(first: 100) {
+    edges {
+      node {
+        title
+        handle
+      }
+    }
+  }
+}
+
+fragment ProductCard on Product {
+  id
+  title
+  publishedAt
+  handle
+  vendor
+  productType
+  tags
+  reviewRating: metafield(namespace: "reviews", key: "rating") {
+    value
+  }
+  reviewRatingCount: metafield(namespace: "reviews", key: "rating_count") {
+    value
+  }
+  images(first: 50) {
+    nodes {
+      id
+      url
+      altText
+      width
+      height
+    }
+  }
+  options {
+    ...ProductOption
+  }
+  badges: metafields(identifiers: [{namespace: "custom", key: "best_seller"}]) {
+    key
+    namespace
+    value
+  }
+  priceRange {
+    maxVariantPrice {
+      amount
+      currencyCode
+    }
+    minVariantPrice {
+      amount
+      currencyCode
+    }
+  }
+  selectedOrFirstAvailableVariant(
+    selectedOptions: []
+    ignoreUnknownOptions: true
+    caseInsensitiveMatch: true
+  ) {
+    ...ProductVariant
+  }
+  isBundle: selectedOrFirstAvailableVariant(
+    ignoreUnknownOptions: true
+    selectedOptions: {name: "", value: ""}
+  ) {
+    ... on ProductVariant {
+      requiresComponents
+    }
+  }
+}
+
+fragment ProductOption on ProductOption {
+  name
+  optionValues {
+    name
+    firstSelectableVariant {
+      ...ProductVariant
+    }
+    swatch {
+      color
+      image {
+        previewImage {
+          url
+          altText
+        }
+      }
+    }
+  }
+}
+
+fragment ProductVariant on ProductVariant {
+  currentlyNotInStock
+  requiresShipping
+  quantityRule {
+    minimum
+    maximum
+    increment
+  }
+  id
+  availableForSale
+  quantityAvailable
+  selectedOptions {
+    name
+    value
+  }
+  image {
+    id
+    url
+    altText
+    width
+    height
+  }
+  price {
+    amount
+    currencyCode
+  }
+  compareAtPrice {
+    amount
+    currencyCode
+  }
+  sku
+  title
+  unitPrice {
+    amount
+    currencyCode
+  }
+  product {
+    id
+    vendor
+    title
+    handle
+  }
+  requiresComponents
+  components(first: 10) {
+    nodes {
+      productVariant {
+        id
+        title
+        product {
           handle
         }
       }
+      quantity
     }
   }
-  ${PRODUCT_CARD_FRAGMENT}
-` as const;
-
-const COLLECTION_SALE_PRODUCT_SCAN_QUERY = `#graphql
-  query collectionSaleProductScan(
-    $handle: String!
-    $country: CountryCode
-    $language: LanguageCode
-    $filters: [ProductFilter!]
-    $sortKey: ProductCollectionSortKeys!
-    $reverse: Boolean
-    $first: Int
-    $last: Int
-    $startCursor: String
-    $endCursor: String
-  ) @inContext(country: $country, language: $language) {
-    collection(handle: $handle) {
-      products(
-        first: $first
-        last: $last
-        before: $startCursor
-        after: $endCursor
-        filters: $filters
-        sortKey: $sortKey
-        reverse: $reverse
-      ) {
-        edges { cursor }
-        nodes {
-          id
-          selectedOrFirstAvailableVariant(
-            selectedOptions: []
-            ignoreUnknownOptions: true
-            caseInsensitiveMatch: true
-          ) {
-            price { amount }
-            compareAtPrice { amount }
-          }
-        }
-        pageInfo {
-          hasPreviousPage
-          hasNextPage
-          startCursor
-          endCursor
-        }
+  groupedBy(first: 10) {
+    nodes {
+      id
+      title
+      product {
+        handle
       }
     }
   }
-` as const;
+}`);
+
+export const COLLECTION_SALE_PRODUCT_SCAN_QUERY =
+  gql(`query collectionSaleProductScan($handle: String!, $country: CountryCode, $language: LanguageCode, $filters: [ProductFilter!], $sortKey: ProductCollectionSortKeys!, $reverse: Boolean, $first: Int, $last: Int, $startCursor: String, $endCursor: String) @inContext(country: $country, language: $language) {
+  collection(handle: $handle) {
+    products(
+      first: $first
+      last: $last
+      before: $startCursor
+      after: $endCursor
+      filters: $filters
+      sortKey: $sortKey
+      reverse: $reverse
+    ) {
+      edges {
+        cursor
+      }
+      nodes {
+        id
+        selectedOrFirstAvailableVariant(
+          selectedOptions: []
+          ignoreUnknownOptions: true
+          caseInsensitiveMatch: true
+        ) {
+          price {
+            amount
+          }
+          compareAtPrice {
+            amount
+          }
+        }
+      }
+      pageInfo {
+        hasPreviousPage
+        hasNextPage
+        startCursor
+        endCursor
+      }
+    }
+  }
+}`);

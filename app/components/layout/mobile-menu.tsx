@@ -6,7 +6,7 @@ import {
 } from "@phosphor-icons/react";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import * as Dialog from "@radix-ui/react-dialog";
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { type Ref, useRef, useState } from "react";
 import { Image } from "~/components/image";

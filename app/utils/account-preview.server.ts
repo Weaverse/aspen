@@ -1,8 +1,8 @@
+import { createCookie, data, redirect } from "react-router";
 import type {
   CustomerDetailsFragment,
   OrderFragment,
-} from "customer-account-api.generated";
-import { createCookie, data, redirect } from "react-router";
+} from "~/graphql/customer-types";
 
 export function accountFormSuccess(
   request: Request,
@@ -41,7 +41,7 @@ const DEFAULT_ADDRESSES = [
     company: "Marina Complex",
     address1: "Marina Complex",
     address2: null,
-    territoryCode: "US",
+    countryCode: "US",
     zoneCode: "CA",
     city: "Inglewood",
     zip: "90301",
@@ -55,7 +55,7 @@ const DEFAULT_ADDRESSES = [
     company: "Marina Complex",
     address1: "Marina Complex",
     address2: null,
-    territoryCode: "US",
+    countryCode: "US",
     zoneCode: "CA",
     city: "Inglewood",
     zip: "90301",
@@ -73,7 +73,11 @@ export function isAccountPreviewRequest(request: Request) {
     url.searchParams.get("isDesignMode") === "true" ||
     url.searchParams.has("weaverseHost");
 
-  return import.meta.env.DEV && (isLocalhost || isDesignMode);
+  // HTTP localhost keeps the theme's UI fixtures; HTTPS exercises real OAuth.
+  return (
+    import.meta.env.DEV &&
+    ((isLocalhost && url.protocol === "http:") || isDesignMode)
+  );
 }
 
 export async function readAccountPreviewState(

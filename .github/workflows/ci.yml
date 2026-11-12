@@ -27,8 +27,6 @@ jobs:
         run: npm ci --engine-strict --no-audit --no-fund
       - name: Check source with Biome
         run: npm run biome
-      - name: Generate GraphQL types
-        run: npm run codegen
       - name: Check types
         run: npm run typecheck
       - name: Check localization

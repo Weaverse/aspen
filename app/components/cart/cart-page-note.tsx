@@ -1,5 +1,4 @@
-import { CartForm, Image } from "@shopify/hydrogen";
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import {
   AnimatePresence,
   motion,
@@ -9,6 +8,8 @@ import {
 import { type ReactNode, useEffect, useId, useRef, useState } from "react";
 import { useFetcher } from "react-router";
 import { Button } from "~/components/button";
+import { CartForm } from "~/components/cart/cart-action-form";
+import { Image } from "~/components/shopify-image";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import { getCartMutationError } from "~/utils/cart-error";
 import { CART_ACTION_DESKTOP_HOVER } from "./cart-action-styles";

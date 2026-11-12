@@ -1,11 +1,11 @@
 import * as Dialog from "@radix-ui/react-dialog";
-import { Money } from "@shopify/hydrogen";
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import clsx from "clsx";
 import { useRef, useState } from "react";
 import useScroll from "react-use/esm/useScroll";
-import type { CartApiQueryFragment } from "storefront-api.generated";
 import { Link } from "~/components/link";
+import { Money } from "~/components/money";
+import type { CartApiQueryFragment } from "~/graphql/storefront-types";
 import { useTranslatedThemeSettings } from "~/hooks/use-translated-theme-settings";
 import { getCartMutationError } from "~/utils/cart-error";
 import { CartBestSellers } from "./cart-best-sellers";

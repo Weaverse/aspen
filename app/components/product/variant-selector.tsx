@@ -1,9 +1,9 @@
-import { getProductOptions } from "@shopify/hydrogen";
+import { getProductOptions } from "~/components/product/product-form";
+import { ProductOptionValues } from "~/components/product/product-option-values";
 import type {
   ProductQuery,
   ProductVariantFragment,
-} from "storefront-api.generated";
-import { ProductOptionValues } from "~/components/product/product-option-values";
+} from "~/graphql/storefront-types";
 import { hasOnlyDefaultVariant } from "~/utils/product";
 
 export function VariantSelector({

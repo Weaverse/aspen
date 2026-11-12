@@ -1,13 +1,17 @@
 import { CaretDownIcon, CaretUpIcon, CheckIcon } from "@phosphor-icons/react";
 import * as Select from "@radix-ui/react-select";
-import { Image, type MappedProductOptions } from "@shopify/hydrogen";
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import clsx from "clsx";
+import {
+  type MappedProductOptions,
+  useProductForm,
+} from "~/components/product/product-form";
 import {
   SwatchFill,
   SwatchPreview,
   swatchFrameClassName,
 } from "~/components/product/swatch";
+import { Image } from "~/components/shopify-image";
 
 /*
  * Configure which options should show color swatches beside the dropdown
@@ -25,6 +29,7 @@ export function QuickShopOptionValues({
   layout?: "select" | "buttons";
 }) {
   const { t } = useTranslation();
+  const { selectOption } = useProductForm();
   const { name: optionName, optionValues } = option || {};
 
   if (!optionName) {
@@ -143,6 +148,7 @@ export function QuickShopOptionValues({
         onValueChange={(v) => {
           const found = optionValues.find(({ name: value }) => value === v);
           if (found?.firstSelectableVariant?.id) {
+            selectOption(optionName, found.name);
             onVariantChange(found.firstSelectableVariant.id);
           }
         }}

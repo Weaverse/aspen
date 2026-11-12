@@ -5,14 +5,8 @@ import {
   XIcon,
 } from "@phosphor-icons/react";
 import * as Dialog from "@radix-ui/react-dialog";
-import {
-  Analytics,
-  getPaginationVariables,
-  Pagination,
-  type SeoConfig,
-} from "@shopify/hydrogen";
 import type { ProductFilter } from "@shopify/hydrogen/storefront-api-types";
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import clsx from "clsx";
 import { useEffect, useId, useState } from "react";
 import type { LoaderFunctionArgs, MetaArgs } from "react-router";
@@ -23,15 +17,17 @@ import {
   useNavigate,
   useSearchParams,
 } from "react-router";
-import type { ProductCardFragment } from "storefront-api.generated";
 import { AnimatedDrawer } from "~/components/animate-drawer";
 import { Button } from "~/components/button";
 import { Image } from "~/components/image";
 import Link, { variants } from "~/components/link";
+import { Pagination } from "~/components/pagination";
 import { ProductCard } from "~/components/product/product-card";
+import { Analytics } from "~/components/root/analytics";
 import { StorefrontError } from "~/components/root/storefront-error";
 import { ScrollArea } from "~/components/scroll-area";
 import { Section } from "~/components/section";
+import type { ProductCardFragment } from "~/graphql/storefront-types";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import { useTranslatedThemeSettings } from "~/hooks/use-translated-theme-settings";
 import { AppliedFilterTags } from "~/sections/collection-filters/applied-filter-tags";
@@ -48,12 +44,14 @@ import {
   FILTER_URL_PREFIX,
   type SortParam,
 } from "~/utils/filter";
+import { getPaginationVariables } from "~/utils/pagination";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 import {
   type SearchConnection,
   searchVisibleProducts,
 } from "~/utils/search-results.server";
 import { seoPayload } from "~/utils/seo.server";
+import type { SeoConfig } from "~/utils/seo-meta";
 import { getMetaTranslator, localizedSeoMeta } from "~/utils/seo-translation";
 
 export const shouldRevalidate = skipPageRevalidationForStorefrontActions;

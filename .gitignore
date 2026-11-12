@@ -24,3 +24,7 @@ pnpm-lock.yaml
 /scripts/get_weaverse_page.mjs
 /scripts/search_shopify_docs.mjs
 /scripts/search_weaverse_docs.mjs
+
+# Hydrogen GraphQL schema environments
+storefront-graphql-env.d.ts
+customer-account-graphql-env.d.ts
