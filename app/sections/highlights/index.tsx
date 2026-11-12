@@ -95,7 +95,7 @@ export let schema = createSchema({
         weight: "400",
         description: "Describe a highlight of your store.",
         linkText: "Explore More",
-        linkTo: "/collections/all",
+        linkTo: "/products",
       },
       {
         type: "highlights-badge",
@@ -108,7 +108,7 @@ export let schema = createSchema({
         weight: "400",
         description: "Describe a highlight of your store.",
         linkText: "Explore More",
-        linkTo: "/collections/all",
+        linkTo: "/products",
       },
       {
         type: "highlights-badge",
@@ -121,7 +121,7 @@ export let schema = createSchema({
         weight: "400",
         description: "Describe a highlight of your store.",
         linkText: "Explore More",
-        linkTo: "/collections/all",
+        linkTo: "/products",
       },
     ],
   },

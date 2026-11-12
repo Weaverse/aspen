@@ -32,12 +32,22 @@ import {
 } from "~/utils/sale-pagination.server";
 import { seoPayload } from "~/utils/seo.server";
 import { localizedSeoMeta } from "~/utils/seo-translation";
+import { canonicalStorefrontPathname } from "~/utils/storefront-path";
 import { WeaverseContent } from "~/weaverse";
 
 export const headers = routeHeaders;
 export const shouldRevalidate = skipPageRevalidationForStorefrontActions;
 
 export async function loader({ params, request, context }: LoaderFunctionArgs) {
+  const requestUrl = new URL(request.url);
+  const canonicalPath = canonicalStorefrontPathname(requestUrl.pathname);
+  if (
+    params.collectionHandle === "all" &&
+    canonicalPath !== requestUrl.pathname
+  ) {
+    throw redirect(`${canonicalPath}${requestUrl.search}`, 301);
+  }
+
   const paginationVariables = getPaginationVariables(request, {
     pageBy: PAGINATION_SIZE,
   });

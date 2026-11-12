@@ -1,4 +1,6 @@
 import { type LoaderFunctionArgs, redirect } from "react-router";
+import { prefixPathWithLocale } from "~/utils/locale";
+import { canonicalStorefrontPathname } from "~/utils/storefront-path";
 
 /**
  * Automatically applies a discount found on the url
@@ -19,18 +21,41 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
 
   const url = new URL(request.url);
   const searchParams = new URLSearchParams(url.search);
-  let redirectParam =
-    searchParams.get("redirect") || searchParams.get("return_to") || "/";
-
-  if (redirectParam.includes("//")) {
-    // Avoid redirecting to external URLs to prevent phishing attacks
-    redirectParam = "/";
+  const fallback = prefixPathWithLocale(
+    "/",
+    context.localization.selectedLocale,
+  );
+  const redirectParam =
+    searchParams.get("redirect") || searchParams.get("return_to") || fallback;
+  let destination = new URL(fallback, url.origin);
+  // Only accept local paths, including when URL parsing normalizes backslashes
+  // or control characters into a different origin.
+  if (redirectParam.startsWith("/") && !redirectParam.startsWith("//")) {
+    try {
+      const candidate = new URL(redirectParam, url.origin);
+      if (
+        candidate.origin === url.origin &&
+        !candidate.pathname.startsWith("//")
+      ) {
+        destination = candidate;
+      }
+    } catch {
+      // Keep the localized home page for an invalid destination.
+    }
   }
 
   searchParams.delete("redirect");
   searchParams.delete("return_to");
 
-  const redirectUrl = `${redirectParam}?${searchParams}`;
+  destination.pathname = prefixPathWithLocale(
+    canonicalStorefrontPathname(destination.pathname),
+    context.localization.selectedLocale,
+  );
+  for (const [key, value] of searchParams) {
+    destination.searchParams.append(key, value);
+  }
+  const redirectUrl =
+    destination.pathname + destination.search + destination.hash;
 
   if (!code) {
     return redirect(redirectUrl);

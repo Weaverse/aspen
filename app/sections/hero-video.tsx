@@ -468,7 +468,7 @@ export const schema = createSchema({
       {
         type: "button",
         text: "EXPLORE NOW",
-        to: "/collections/all",
+        to: "/products",
         variant: "decor",
         textColorDecor: "#FEF4EB",
       },
