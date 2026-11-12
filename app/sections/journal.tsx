@@ -11,6 +11,7 @@ import Link from "~/components/link";
 import { Section, type SectionProps } from "~/components/section";
 import { useLocale } from "~/hooks/use-locale";
 import { useTranslatedText } from "~/hooks/use-translated-text";
+import { articlePath } from "~/utils/blog-path";
 import {
   DESKTOP_MIN_PX,
   minWidthQuery,
@@ -216,7 +217,7 @@ function FeaturedArticle({
         <ArticleCategory article={article} visible={showCategory} />
         <h2 className="mt-3 font-heading font-normal text-[32px] text-(--journal-accent) leading-[1.1] tracking-[-0.02em] xl:text-[53px] xl:tracking-[-0.03em] xl:leading-[1.1]">
           <Link
-            to={`/blogs/${article.handle}`}
+            to={articlePath(article.handle, article.blog?.handle)}
             style={{ font: "inherit", letterSpacing: "inherit" }}
             className="line-clamp-3 rounded-none transition-opacity hover:opacity-70"
           >
@@ -261,7 +262,7 @@ function JournalCard({
         <ArticleCategory article={article} visible={showCategory} />
         <h3 className="mt-2 font-heading font-normal text-[24px] text-(--journal-accent) leading-[1.1] tracking-[-0.02em] md:text-[26px] lg:mt-3">
           <Link
-            to={`/blogs/${article.handle}`}
+            to={articlePath(article.handle, article.blog?.handle)}
             style={{ font: "inherit", letterSpacing: "inherit" }}
             className="line-clamp-2 rounded-none transition-opacity hover:opacity-70 md:line-clamp-3 lg:line-clamp-2"
           >
@@ -297,7 +298,7 @@ function ArticleImage({
 }: ArticleImageProps) {
   return (
     <Link
-      to={`/blogs/${article.handle}`}
+      to={articlePath(article.handle, article.blog?.handle)}
       className={cn(
         "block aspect-video w-full overflow-hidden rounded-(--journal-radius) bg-(--color-background-subtle)",
         featured
@@ -399,7 +400,7 @@ function ReadMoreLink({
   }
   return (
     <Link
-      to={`/blogs/${article.handle}`}
+      to={articlePath(article.handle, article.blog?.handle)}
       className={`inline-flex items-center gap-2 font-body font-semibold text-(--journal-link) text-sm leading-none tracking-[0.02em] transition-opacity hover:opacity-70 ${className || ""}`}
     >
       {text}

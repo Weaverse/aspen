@@ -22,6 +22,11 @@ export const themeSchema: HydrogenThemeSchema = {
     staticContent: enUS,
     translation: true,
   },
+  // Studio substitutes only whole-segment parameters; query-based short URLs
+  // remain canonical on the storefront. ARTICLE uses Shopify's default pattern.
+  routes: {
+    BLOG: "/blog/:handle",
+  },
   settings: [
     {
       group: "Layout",

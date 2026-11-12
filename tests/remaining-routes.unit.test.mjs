@@ -417,6 +417,18 @@ test("menu parsing preserves nested HTTP destinations, locale, query/hash and ex
       type: "CATALOG",
       url: "https://shop.example/collections/all?sort=price-high-low&filter.productVendor=%22Acme%22",
     },
+    {
+      type: "BLOG",
+      url: "https://shop.example/fr-fr/blogs/news?blog=wrong&utm_source=menu#latest",
+    },
+    {
+      type: "ARTICLE",
+      url: "https://shop.example/fr-fr/blogs/journal/same?blog=wrong&utm_source=menu#story",
+    },
+    {
+      type: "HTTP",
+      url: "https://shop.example/fr-fr/blogs/same?blog=news&utm_source=menu#story",
+    },
     { type: "HTTP", url: "https://other.example/products/chair?q=red#top" },
   ].map((item, index) => ({ ...item, id: String(index), items: [] }));
   const args = fixture("/");
@@ -447,6 +459,9 @@ test("menu parsing preserves nested HTTP destinations, locale, query/hash and ex
     "/fr-fr/contact?source=menu",
     "/products/lily?Color=Blue",
     "/collections/all?sort=price-high-low&filter.productVendor=%22Acme%22",
+    "/fr-fr/blogs?blog=news&utm_source=menu#latest",
+    "/fr-fr/blogs/same?blog=journal&utm_source=menu#story",
+    "/fr-fr/blogs/same?blog=news&utm_source=menu#story",
     "https://other.example/products/chair?q=red#top",
   ];
   for (const parsed of [layout.headerMenu, layout.footerMenu]) {
@@ -672,4 +687,21 @@ test("section presets use the primary all-products route", () => {
     );
     assert.doesNotMatch(source, /["']\/collections\/all["']/);
   }
+});
+
+test("blog sitemap preserves merchant blog identity with published locale prefixes", async () => {
+  const args = fixture("/sitemap/blogs/1.xml");
+  args.params = { type: "blogs", page: "1" };
+  args.context.localization.availableLocales = SUPPORTED_LOCALES.slice(0, 2);
+  args.context.storefront.query = async () => ({
+    sitemap: {
+      resources: { items: [{ handle: "journal", updatedAt: "2026-11-01" }] },
+    },
+  });
+  const xml = await (await sitemap(args)).text();
+  assert.ok(xml.includes("<loc>https://shop.example/blogs?blog=journal</loc>"));
+  assert.ok(
+    xml.includes('href="https://shop.example/fr-fr/blogs?blog=journal"'),
+  );
+  assert.doesNotMatch(xml, /FR-CA|EN-CA|es-es|\/en-us\//);
 });

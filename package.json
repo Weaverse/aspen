@@ -49,7 +49,7 @@
     "@react-router/dev": "7.18.2",
     "@shopify/hydrogen": "~2026.4.4",
     "@tailwindcss/vite": "^4.3.3",
-    "@weaverse/hydrogen": "^5.19.2",
+    "@weaverse/hydrogen": "5.23.0",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
     "colord": "2.9.3",
