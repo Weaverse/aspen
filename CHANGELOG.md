@@ -10,8 +10,8 @@ discovery and cart reliability.
 
 - Refreshed the header, navigation, footer, product cards, and customer account
   layouts, with improved spacing and behavior on mobile and tablet screens.
-- Added a legacy design preset for stores that prefer Aspen's earlier visual
-  style alongside the refreshed design.
+- Added an Aspen 2026 design preset, with a Custom option for stores that want
+  to use their own theme design settings.
 - Expanded Weaverse Studio controls for section backgrounds, image fit and
   alignment, borders, corner radii, and responsive layouts. Fixed cases where
   saved settings, cleared colors, or older section defaults were not respected.
