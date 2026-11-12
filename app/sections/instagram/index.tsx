@@ -42,7 +42,7 @@ const Instagram = forwardRef<HTMLElement, InstagramProps>((props, ref) => {
       width="full"
       className="instagram-section"
     >
-      <div className="instagram-row mx-auto flex w-full max-w-[1440px] flex-col gap-5 px-5 min-[744px]:grid min-[744px]:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] min-[744px]:items-stretch min-[744px]:gap-6 min-[744px]:px-8 min-[744px]:[&>*:only-child]:col-span-full lg:flex lg:flex-row lg:px-0">
+      <div className="instagram-row mx-auto flex w-full max-w-[1440px] flex-col gap-5 px-5 md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] md:items-stretch md:gap-4 md:px-8 md:[&>*:only-child]:col-span-full lg:gap-6 lg:flex lg:flex-row lg:px-0">
         {children}
       </div>
     </Section>
