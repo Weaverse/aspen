@@ -14,8 +14,6 @@ import { forwardRef, useEffect, useState } from "react";
 import type { ProductQuery } from "storefront-api.generated";
 import { sectionBackgroundInputs } from "~/components/background-image";
 import { Button } from "~/components/button";
-import { useCanAddVariant } from "~/components/cart/store";
-import { useVariantInventoryPolicy } from "~/components/cart/use-cart-inventory-policy";
 import { Image } from "~/components/image";
 import Link from "~/components/link";
 import { AddToCartButton } from "~/components/product/add-to-cart-button";
@@ -31,6 +29,7 @@ import { layoutInputs, Section } from "~/components/section";
 import { SellingPlanSelector } from "~/components/subscriptions/selling-plan-selector";
 import { ProductCardWishlistButton } from "~/components/wishlist/product-card-wishlist-button";
 import { PRODUCT_QUERY } from "~/graphql/queries";
+import { useProductQuantity } from "~/hooks/use-product-quantity";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import { isDiscounted } from "~/utils/product";
 import { ProductVariants } from "../main-product/variants";
@@ -117,7 +116,6 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
       "themeContent.sectionsSingleProductIndex.heading",
     );
     const { storeDomain, product } = loaderData || {};
-    const [quantity, setQuantity] = useState<number>(1);
     const [selectedVariant, setSelectedVariant] = useState(
       product?.selectedOrFirstAvailableVariant,
     );
@@ -128,25 +126,13 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
       selectedVariant?.product?.handle === product?.handle
         ? selectedVariant
         : product?.selectedOrFirstAvailableVariant;
-    const zeroStock =
-      typeof currentVariant?.quantityAvailable === "number" &&
-      currentVariant.quantityAvailable <= 0;
-    const canAddVariant = useCanAddVariant(
-      currentVariant?.id,
-      selectedSellingPlanId,
-    );
-    const { policy, pending: policyPending } = useVariantInventoryPolicy(
-      currentVariant?.id,
-      Boolean(zeroStock && currentVariant?.availableForSale),
-    );
-    const soldOut =
-      !currentVariant?.availableForSale || (zeroStock && policy === "DENY");
-    const canPurchase = !soldOut && !policyPending;
+    const { quantity, setQuantity, maxQuantity, canPurchase, soldOut } =
+      useProductQuantity(currentVariant, selectedSellingPlanId);
     useEffect(() => {
       setSelectedVariant(product?.selectedOrFirstAvailableVariant);
       setSelectedSellingPlanId(null);
       setQuantity(1);
-    }, [product?.selectedOrFirstAvailableVariant]);
+    }, [product?.selectedOrFirstAvailableVariant, setQuantity]);
 
     // Get price range for when no variant is selected
     const priceRange = product?.priceRange;
@@ -359,8 +345,8 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
                     <Quantity
                       value={quantity}
                       onChange={setQuantity}
-                      disabled={!canPurchase || !canAddVariant}
-                      variant="stepper"
+                      maxQuantity={maxQuantity}
+                      disabled={!canPurchase}
                       className="w-1/3 min-w-0 [&_button]:w-1/4"
                     />
                     <AddToCartButton

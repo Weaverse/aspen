@@ -16,9 +16,8 @@ import {
   type WeaverseImage,
 } from "@weaverse/hydrogen";
 import clsx from "clsx";
-import { forwardRef, useEffect, useState } from "react";
+import { forwardRef, useState } from "react";
 import { useLoaderData } from "react-router";
-import { useCanAddVariant } from "~/components/cart/store";
 import Link from "~/components/link";
 import { LoyaltyPointsHint } from "~/components/loyalty/loyalty-points-hint";
 import { AddToCartButton } from "~/components/product/add-to-cart-button";
@@ -39,6 +38,7 @@ import { ProgressBar } from "~/components/progress-bar";
 import { layoutInputs, Section, type SectionProps } from "~/components/section";
 import { SellingPlanSelector } from "~/components/subscriptions/selling-plan-selector";
 import { ProductWishlistButton } from "~/components/wishlist/product-wishlist-button";
+import { useProductQuantity } from "~/hooks/use-product-quantity";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import type { loader as productRouteLoader } from "~/routes/($locale).products.$productHandle";
 import ReviewIndex from "~/sections/judgeme-reviews/review-index";
@@ -189,24 +189,11 @@ const ProductInformation = forwardRef<
     rawI18nLowInventoryText,
     "themeContent.sectionsMainProductIndex.lowInventoryText",
   );
-  const [quantity, setQuantity] = useState<number>(1);
   const [selectedSellingPlanId, setSelectedSellingPlanId] = useState<
     string | null
   >(null);
-  const canAddVariant = useCanAddVariant(
-    selectedVariant?.id,
-    selectedSellingPlanId,
-  );
-  const availableQuantity = selectedVariant?.quantityAvailable;
-  const quantityLimit =
-    availableQuantity && availableQuantity > 0
-      ? Math.max(1, Math.min(10, availableQuantity))
-      : 10;
-
-  useEffect(() => {
-    setQuantity((current) => Math.min(current, quantityLimit));
-  }, [quantityLimit]);
-
+  const { quantity, setQuantity, maxQuantity, canPurchase, soldOut } =
+    useProductQuantity(selectedVariant, selectedSellingPlanId);
   if (!product || !selectedVariant) {
     return null;
   }
@@ -230,9 +217,8 @@ const ProductInformation = forwardRef<
         quantityAvailable > 0 &&
         quantityAvailable <= inventoryThreshold,
     );
-    const maxQuantity = quantityLimit;
     let atcButtonText = t("product.addToCart");
-    if (selectedVariant.availableForSale) {
+    if (!soldOut) {
       atcButtonText = isBundle ? addBundleToCartText : addToCartText;
     } else {
       atcButtonText = soldOutText;
@@ -440,17 +426,14 @@ const ProductInformation = forwardRef<
                     <Quantity
                       value={quantity}
                       onChange={setQuantity}
-                      disabled={
-                        !selectedVariant?.availableForSale || !canAddVariant
-                      }
+                      disabled={!canPurchase}
                       maxQuantity={maxQuantity}
-                      variant="stepper"
                       className="col-span-full shrink-0"
                     />
                     <AddToCartButton
                       width="auto"
                       containerClassName="min-w-0 md:flex-1"
-                      disabled={!selectedVariant?.availableForSale}
+                      disabled={!canPurchase}
                       lines={[
                         {
                           merchandiseId: selectedVariant?.id,
@@ -494,7 +477,7 @@ const ProductInformation = forwardRef<
                       />
                     )}
                   </div>
-                  {selectedVariant?.availableForSale && (
+                  {canPurchase && (
                     <ShopPayButton
                       width="100%"
                       variantIdsAndQuantities={[
@@ -526,7 +509,7 @@ const ProductInformation = forwardRef<
                   )}
                   <BackInStockForm
                     variantId={selectedVariant?.id}
-                    availableForSale={selectedVariant?.availableForSale}
+                    availableForSale={!soldOut}
                     enabled={showBackInStockForm}
                   />
                 </div>

@@ -6,6 +6,17 @@ import { useCartStore } from "./store";
 type Policy = "DENY" | "CONTINUE" | null;
 const requests = new Map<string, Promise<Record<string, Policy>>>();
 
+function storeInventoryPolicies(policies: Record<string, Policy>) {
+  useCartStore.setState((state) => {
+    const inventoryPolicies = new Map(state.inventoryPolicies);
+    for (const [id, policy] of Object.entries(policies)) {
+      // An unavailable lookup must not erase previously confirmed metadata.
+      inventoryPolicies.set(id, policy ?? inventoryPolicies.get(id) ?? null);
+    }
+    return { inventoryPolicies };
+  });
+}
+
 export function loadCartInventoryPolicies(path: string, ids: string[]) {
   const params = new URLSearchParams(ids.map((id) => ["id", id]));
   const key = `${path}?${params}`;
@@ -50,12 +61,7 @@ export function useCartInventoryPolicy(cart: CartWithOptimistic | null) {
     for (let start = 0; start < ids.length; start += 20) {
       loadCartInventoryPolicies(path, ids.slice(start, start + 20)).then(
         (policies) => {
-          useCartStore.setState((state) => ({
-            inventoryPolicies: new Map([
-              ...state.inventoryPolicies,
-              ...Object.entries(policies),
-            ]),
-          }));
+          storeInventoryPolicies(policies);
         },
       );
     }
@@ -80,7 +86,11 @@ export function useVariantInventoryPolicy(
     let active = true;
     loadCartInventoryPolicies(path, [id]).then((policies) => {
       if (active) {
-        setState({ key, policy: policies[id] ?? null });
+        storeInventoryPolicies(policies);
+        setState({
+          key,
+          policy: useCartStore.getState().inventoryPolicies.get(id) ?? null,
+        });
       }
     });
     return () => {
