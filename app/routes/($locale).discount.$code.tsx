@@ -47,13 +47,13 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   searchParams.delete("redirect");
   searchParams.delete("return_to");
 
-  destination.pathname = prefixPathWithLocale(
-    canonicalStorefrontPathname(destination.pathname),
-    context.localization.selectedLocale,
-  );
   for (const [key, value] of searchParams) {
     destination.searchParams.append(key, value);
   }
+  destination.pathname = prefixPathWithLocale(
+    canonicalStorefrontPathname(destination.pathname, destination.searchParams),
+    context.localization.selectedLocale,
+  );
   const redirectUrl =
     destination.pathname + destination.search + destination.hash;
 

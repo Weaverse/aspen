@@ -13,7 +13,10 @@ import { getLocaleSegment, localeCode } from "~/utils/locale";
 import { loadLoyaltyBalance } from "~/utils/loyalty.server";
 import { isLoyaltyLionConfigured } from "~/utils/loyaltylion.server";
 import { seoPayload } from "~/utils/seo.server";
-import { canonicalStorefrontPathname } from "~/utils/storefront-path";
+import {
+  canonicalStorefrontPathname,
+  isFilteredAllProductsPath,
+} from "~/utils/storefront-path";
 import { readWishlist } from "~/utils/wishlist.server";
 import {
   isWishlistPreviewRequest,
@@ -264,11 +267,13 @@ function parseItem(primaryDomain: string, env: Env, customPrefixes = {}) {
       ? pathname.replace(/^\/{2,}/, "/")
       : pathname;
     const resolvedPath = isInternalLink
-      ? resolveToFromType({
-          type: item.type,
-          customPrefixes,
-          pathname: normalizedPathname,
-        })
+      ? isFilteredAllProductsPath(normalizedPathname, search)
+        ? normalizedPathname
+        : resolveToFromType({
+            type: item.type,
+            customPrefixes,
+            pathname: normalizedPathname,
+          })
       : "";
     const locale = getLocaleSegment(normalizedPathname);
     const localizedPath =
@@ -281,7 +286,7 @@ function parseItem(primaryDomain: string, env: Env, customPrefixes = {}) {
           ...item,
           isExternal: false,
           target: "_self",
-          to: `${canonicalStorefrontPathname(localizedPath)}${search}${hash}`,
+          to: `${canonicalStorefrontPathname(localizedPath, search)}${search}${hash}`,
         }
       : // external links
         {

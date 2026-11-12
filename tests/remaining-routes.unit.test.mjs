@@ -7,7 +7,7 @@ import { build } from "esbuild";
 const stubs = {
   "~/weaverse": "export const WeaverseContent = () => null;",
   "~/utils/seo.server":
-    "export const seoPayload = {page: x => x, root: x => x};",
+    "export const seoPayload = {page: x => x, root: x => x, collection: x => x};",
   "~/utils/seo-translation": "export const localizedSeoMeta = () => [];",
   "~/hooks/use-predictive-search":
     "export const NO_PREDICTIVE_SEARCH_RESULTS = [];",
@@ -16,6 +16,7 @@ const bundle = await build({
   stdin: {
     contents: `export {loader as page} from './app/routes/($locale).pages.$pageHandle';
       export {loader as collection} from './app/routes/($locale).collections.$collectionHandle';
+      export {loader as allProducts} from './app/routes/($locale).products._index';
       export {loader as contact} from './app/routes/($locale).contact';
       export {loader as sitemap} from './app/routes/($locale).sitemap.$type.$page[.xml]';
       export {loader as discount} from './app/routes/($locale).discount.$code';
@@ -59,6 +60,7 @@ const bundle = await build({
 const {
   page,
   collection,
+  allProducts,
   contact,
   sitemap,
   discount,
@@ -141,19 +143,117 @@ async function thrownRedirect(loader, args, expected) {
 
 for (const locale of SUPPORTED_LOCALES) {
   const prefix = locale.pathPrefix;
+  test(`${locale.language}: filtered/sorted all-products URLs keep the real collection query`, async () => {
+    const controls = [
+      [
+        "sort=price-high-low&filter.productVendor=%22Acme%22",
+        [{ productVendor: "Acme" }],
+        "PRICE",
+        true,
+      ],
+      ["sort=price-high-low", [], "PRICE", true],
+      [
+        "filter.productVendor=%22Acme%22",
+        [{ productVendor: "Acme" }],
+        "MANUAL",
+        false,
+      ],
+      [
+        "sort=price-low-high&filter.productVendor=%22Acme%22&filter.available=true",
+        [{ productVendor: "Acme" }, { available: true }],
+        "PRICE",
+        false,
+      ],
+    ];
+    for (const suffix of ["", ".data"]) {
+      for (const [search, filters, sortKey, reverse] of controls) {
+        const args = fixture(
+          `${prefix}/collections/all${suffix}?${search}`,
+          locale,
+        );
+        args.params.collectionHandle = "all";
+        const queries = [];
+        args.context.storefront.query = async (_query, { variables }) => {
+          queries.push(variables);
+          return {
+            collection: {
+              id: "all",
+              title: "All",
+              handle: "all",
+              products: { nodes: [], filters: [] },
+            },
+            collections: { edges: [] },
+          };
+        };
+        const result = await collection(args);
+        assert.equal(result.collection.handle, "all");
+        assert.equal(queries.length, 1);
+        assert.equal(queries[0].handle, "all");
+        assert.deepEqual(queries[0].filters, filters);
+        assert.equal(queries[0].sortKey, sortKey);
+        assert.equal(queries[0].reverse, reverse);
+        assert.equal(queries[0].country, locale.country);
+        assert.deepEqual(args.calls, [
+          ["cms", { type: "COLLECTION", handle: "all" }],
+        ]);
+      }
+    }
+  });
+
+  test(`${locale.language}: unfiltered alias redirect reaches the real all-products loader`, async () => {
+    const args = fixture(`${prefix}/collections/all?utm_source=footer`, locale);
+    args.params.collectionHandle = "all";
+    let redirectResponse;
+    try {
+      await collection(args);
+    } catch (response) {
+      redirectResponse = response;
+    }
+    assert.equal(redirectResponse.status, 301);
+    const destination = new URL(
+      redirectResponse.headers.get("Location"),
+      args.request.url,
+    );
+    assert.equal(destination.pathname, `${prefix}/products`);
+    assert.equal(destination.searchParams.get("utm_source"), "footer");
+    const queries = [];
+    args.context.storefront.query = async (query, { variables }) => {
+      queries.push({ query, variables });
+      return {
+        products: {
+          nodes: [],
+          edges: [],
+          pageInfo: { hasNextPage: false, hasPreviousPage: false },
+        },
+      };
+    };
+    const result = await allProducts({
+      ...args,
+      request: new Request(destination),
+      params: {},
+    });
+    assert.deepEqual(result.products.nodes, []);
+    assert.equal(queries.length, 1);
+    assert.match(queries[0].query, /query allProducts\(/);
+    assert.equal(queries[0].variables.country, locale.country);
+    assert.equal(queries[0].variables.language, locale.language);
+    assert.equal(queries[0].variables.handle, undefined);
+    assert.deepEqual(args.calls, [["cms", { type: "ALL_PRODUCTS" }]]);
+  });
+
   test(`${locale.language}: Shopify contact and catalog aliases preserve query and locale`, async () => {
     const args = fixture(`${prefix}/pages/contact?from=footer`, locale);
     args.params.pageHandle = "contact";
     await thrownRedirect(page, args, `${prefix}/contact?from=footer`);
     const catalog = fixture(
-      `${prefix}/collections/all?sort=price&filter.v.availability=1`,
+      `${prefix}/collections/all?utm_source=footer`,
       locale,
     );
     catalog.params.collectionHandle = "all";
     await thrownRedirect(
       collection,
       catalog,
-      `${prefix}/products?sort=price&filter.v.availability=1`,
+      `${prefix}/products?utm_source=footer`,
     );
     assert.deepEqual(args.calls, []);
     assert.deepEqual(catalog.calls, []);
@@ -168,14 +268,14 @@ for (const locale of SUPPORTED_LOCALES) {
       args.params.pageHandle = "contact";
       await thrownRedirect(page, args, `${prefix}/contact?from=footer`);
       const catalog = fixture(
-        `${prefix}/collections/all${suffix}?sort=price`,
+        `${prefix}/collections/all${suffix}?utm_source=footer`,
         locale,
       );
       catalog.params.collectionHandle = "all";
       await thrownRedirect(
         collection,
         catalog,
-        `${prefix}/products?sort=price`,
+        `${prefix}/products?utm_source=footer`,
       );
     }
   });
@@ -313,6 +413,10 @@ test("menu parsing preserves nested HTTP destinations, locale, query/hash and ex
       url: "https://shop.example/fr-fr/pages/contact?source=menu",
     },
     { type: "PRODUCT", url: "https://shop.example/products/lily?Color=Blue" },
+    {
+      type: "CATALOG",
+      url: "https://shop.example/collections/all?sort=price-high-low&filter.productVendor=%22Acme%22",
+    },
     { type: "HTTP", url: "https://other.example/products/chair?q=red#top" },
   ].map((item, index) => ({ ...item, id: String(index), items: [] }));
   const args = fixture("/");
@@ -339,9 +443,10 @@ test("menu parsing preserves nested HTTP destinations, locale, query/hash and ex
     "/fr-fr/products/lily?Color=Blue#details",
     "/search?q=chair",
     "/contact?source=menu#form",
-    "/products?sort=price",
+    "/collections/all?sort=price",
     "/fr-fr/contact?source=menu",
     "/products/lily?Color=Blue",
+    "/collections/all?sort=price-high-low&filter.productVendor=%22Acme%22",
     "https://other.example/products/chair?q=red#top",
   ];
   for (const parsed of [layout.headerMenu, layout.footerMenu]) {
@@ -350,8 +455,8 @@ test("menu parsing preserves nested HTTP destinations, locale, query/hash and ex
       expected,
     );
     assert.equal(parsed.items[0].items[0].to, expected[1]);
-    assert.equal(parsed.items[7].isExternal, true);
-    assert.equal(parsed.items[7].target, "_blank");
+    assert.equal(parsed.items.at(-1).isExternal, true);
+    assert.equal(parsed.items.at(-1).target, "_blank");
   }
 });
 
@@ -367,7 +472,7 @@ test("internal menu URLs with repeated leading slashes cannot change browser ori
     ],
     [
       "https://shop.myshopify.com//collections/all?sort=price",
-      "/products?sort=price",
+      "/collections/all?sort=price",
     ],
     [
       "https://shop.example//pages/contact?source=menu#form",
@@ -500,7 +605,8 @@ test("discount redirects reject external/normalized external targets and keep lo
 test("discount return_to preserves an explicit destination locale and canonicalizes aliases", async () => {
   for (const [target, expected] of [
     ["/es-es/products?Color=Blue#image", "/es-es/products?Color=Blue#image"],
-    ["/collections/all?sort=price", "/fr-fr/products?sort=price"],
+    ["/collections/all?sort=price", "/fr-fr/collections/all?sort=price"],
+    ["/collections/all", "/fr-fr/products"],
     ["/pages/contact", "/fr-fr/contact"],
   ]) {
     const args = fixture(
@@ -510,6 +616,35 @@ test("discount return_to preserves an explicit destination locale and canonicali
     const response = await discount(args);
     assert.equal(response.headers.get("Location"), expected);
   }
+});
+
+test("discount tracking query cannot bypass collection filter/sort preservation", async () => {
+  const args = fixture(
+    "/fr-fr/discount/TEST?return_to=%2Fcollections%2Fall&sort=price-high-low&filter.productVendor=%22Acme%22",
+    SUPPORTED_LOCALES[1],
+  );
+  const response = await discount(args);
+  const destination = new URL(
+    response.headers.get("Location"),
+    args.request.url,
+  );
+  assert.equal(destination.pathname, "/fr-fr/collections/all");
+  const queries = [];
+  args.context.storefront.query = async (_query, { variables }) => {
+    queries.push(variables);
+    return {
+      collection: { handle: "all", products: { nodes: [], filters: [] } },
+      collections: { edges: [] },
+    };
+  };
+  await collection({
+    ...args,
+    request: new Request(destination),
+    params: { collectionHandle: "all" },
+  });
+  assert.deepEqual(queries[0].filters, [{ productVendor: "Acme" }]);
+  assert.equal(queries[0].sortKey, "PRICE");
+  assert.equal(queries[0].reverse, true);
 });
 
 test("login preview fallback retains locale; production login still delegates OAuth", async () => {

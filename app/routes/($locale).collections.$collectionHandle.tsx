@@ -40,7 +40,10 @@ export const shouldRevalidate = skipPageRevalidationForStorefrontActions;
 
 export async function loader({ params, request, context }: LoaderFunctionArgs) {
   const requestUrl = new URL(request.url);
-  const canonicalPath = canonicalStorefrontPathname(requestUrl.pathname);
+  const canonicalPath = canonicalStorefrontPathname(
+    requestUrl.pathname,
+    requestUrl.searchParams,
+  );
   if (
     params.collectionHandle === "all" &&
     canonicalPath !== requestUrl.pathname
