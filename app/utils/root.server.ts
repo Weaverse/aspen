@@ -8,6 +8,7 @@ import type {
 import invariant from "tiny-invariant";
 import type { EnhancedMenu } from "~/types/menu";
 import type { WishlistApiResponse } from "~/types/wishlist";
+import { articlePath, blogPath } from "~/utils/blog-path";
 import { sanitizeFooterTheme } from "~/utils/footer-rich-text.server";
 import { getLocaleSegment, localeCode } from "~/utils/locale";
 import { loadLoyaltyBalance } from "~/utils/loyalty.server";
@@ -147,8 +148,8 @@ async function getLayoutData({ storefront, env }: AppLoadContext) {
       Modify specific links/routes (optional)
       @see: https://shopify.dev/api/storefront/unstable/enums/MenuItemType
       e.g here we map:
-        - /blogs/news -> /news
-        - /blog/news/blog-post -> /news/blog-post
+        - /blogs/news -> /blogs?blog=news
+        - /blogs/news/blog-post -> /blogs/blog-post?blog=news
         - /collections/all -> /products
     */
   const customPrefixes = { CATALOG: "products" };
@@ -280,13 +281,20 @@ function parseItem(primaryDomain: string, env: Env, customPrefixes = {}) {
       locale && !getLocaleSegment(resolvedPath)
         ? `/${locale}${resolvedPath === "/" ? "" : resolvedPath}`
         : resolvedPath;
+    const destination = new URL(localizedPath, item.url);
+    for (const [key, value] of new URLSearchParams(search)) {
+      // The typed Shopify blog/article URL determines resource identity.
+      if (key !== "blog" || !destination.searchParams.has("blog")) {
+        destination.searchParams.append(key, value);
+      }
+    }
     const parsedItem = isInternalLink
       ? // internal links
         {
           ...item,
           isExternal: false,
           target: "_self",
-          to: `${canonicalStorefrontPathname(localizedPath, search)}${search}${hash}`,
+          to: `${canonicalStorefrontPathname(destination.pathname, destination.search)}${destination.search}${hash}`,
         }
       : // external links
         {
@@ -362,12 +370,13 @@ function resolveToFromType(
     case type === "FRONTPAGE":
       return "/";
     case type === "ARTICLE": {
-      return routePrefix.BLOG
-        ? `/${routePrefix.BLOG}/${handle}/`
-        : `/${handle}/`;
+      return articlePath(
+        decodeURIComponent(handle),
+        decodeURIComponent(pathParts.at(-1) ?? ""),
+      );
     }
     case type === "BLOG":
-      return `/${routePrefix.BLOG}`;
+      return blogPath(decodeURIComponent(handle));
     case type === "COLLECTIONS":
       return `/${routePrefix.COLLECTIONS}`;
     case type === "SEARCH":

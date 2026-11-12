@@ -13,6 +13,7 @@ import type {
   NormalizedPredictiveSearch,
   NormalizedPredictiveSearchResults,
 } from "~/types/predictive-search";
+import { articlePath } from "~/utils/blog-path";
 import {
   COMBINED_LISTINGS_CONFIGS,
   isCombinedListing,
@@ -311,7 +312,7 @@ function normalizePredictiveSearchResults(
       id: article.id,
       image: article.image,
       title: article.title,
-      url: `${localePrefix}/blogs/${article.handle}${createSearchParams(article)}`,
+      url: `${localePrefix}${articlePath(article.handle)}${createSearchParams(article, new URLSearchParams({ blog: article.blog.handle }))}`,
     })),
     ...predictiveSearch.pages.map((page) => ({
       __typename: page.__typename,

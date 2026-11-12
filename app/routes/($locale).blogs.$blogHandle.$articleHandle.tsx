@@ -1,15 +1,16 @@
-import type { RouteLoaderArgs } from "@weaverse/hydrogen";
-import { redirect } from "react-router";
+import type { LoaderFunctionArgs } from "react-router";
 import invariant from "tiny-invariant";
-import { routeHeaders } from "~/utils/cache";
-import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
+import { loader as loadArticle } from "./($locale).blogs.$articleHandle";
 
-export const headers = routeHeaders;
-export const shouldRevalidate = skipPageRevalidationForStorefrontActions;
+export {
+  default,
+  headers,
+  meta,
+  shouldRevalidate,
+} from "./($locale).blogs.$articleHandle";
 
-export async function loader(args: RouteLoaderArgs) {
-  const { params } = args;
-  invariant(params.articleHandle, "Missing article handle");
-  const localePrefix = params.locale ? `/${params.locale}` : "";
-  return redirect(`${localePrefix}/blogs/${params.articleHandle}`, 301);
+/** Shopify/Studio URLs carry the parent explicitly and load without a redirect. */
+export function loader(args: LoaderFunctionArgs) {
+  invariant(args.params.blogHandle, "Missing blog handle");
+  return loadArticle(args);
 }

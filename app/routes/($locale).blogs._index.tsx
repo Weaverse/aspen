@@ -3,8 +3,10 @@ import { flattenConnection } from "@shopify/hydrogen";
 import type { MetaFunction } from "react-router";
 import { data, type LoaderFunctionArgs } from "react-router";
 import type { BlogsIndexQuery } from "storefront-api.generated";
+import { resolveListingBlog } from "~/utils/blog.server";
+import { blogPath, blogSeoMeta } from "~/utils/blog-path";
 import { routeHeaders } from "~/utils/cache";
-import { DEFAULT_BLOG_HANDLE, PAGINATION_SIZE } from "~/utils/const";
+import { PAGINATION_SIZE } from "~/utils/const";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 import { seoPayload } from "~/utils/seo.server";
 import { localizedSeoMeta } from "~/utils/seo-translation";
@@ -13,12 +15,23 @@ import { WeaverseContent } from "~/weaverse";
 export const headers = routeHeaders;
 export const shouldRevalidate = skipPageRevalidationForStorefrontActions;
 
-export const loader = async ({ request, context }: LoaderFunctionArgs) => {
+export const loader = async ({
+  request,
+  context,
+  params,
+}: LoaderFunctionArgs) => {
   const storefront = context.storefront;
   const { language, country } = storefront.i18n;
+  const blogHandle = await resolveListingBlog(
+    storefront,
+    params.blogHandle ?? new URL(request.url).searchParams.get("blog"),
+  );
+  if (!blogHandle) {
+    throw new Response("Not found", { status: 404 });
+  }
   const { blog } = await storefront.query<BlogsIndexQuery>(BLOGS_INDEX_QUERY, {
     variables: {
-      blogHandle: DEFAULT_BLOG_HANDLE,
+      blogHandle,
       pageBy: PAGINATION_SIZE,
       language,
     },
@@ -44,7 +57,13 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
       }).format(new Date(publishedAt)),
     };
   });
-  const seo = seoPayload.blog({ blog, url: request.url });
+  const canonical = new URL(request.url);
+  if (params.blogHandle) {
+    const path = new URL(blogPath(blog.handle), request.url);
+    canonical.pathname = `${params.locale ? `/${params.locale}` : ""}${path.pathname}`;
+    canonical.search = path.search;
+  }
+  const seo = seoPayload.blog({ blog, url: canonical.toString() });
 
   return data({ blog, articles, seo, weaverseData });
 };
@@ -53,7 +72,10 @@ export const meta: MetaFunction<typeof loader> = ({
   data: loaderData,
   matches,
 }) => {
-  return localizedSeoMeta(matches, loaderData?.seo as SeoConfig);
+  return blogSeoMeta(
+    localizedSeoMeta(matches, loaderData?.seo as SeoConfig),
+    loaderData?.seo?.url,
+  );
 };
 
 export default function BlogsIndex() {
@@ -85,6 +107,7 @@ const BLOGS_INDEX_QUERY = `#graphql
   }
 
   fragment BlogArticle on Article {
+    blog { handle }
     author: authorV2 {
       name
     }
