@@ -170,7 +170,7 @@ export const schema = createSchema({
       {
         type: "button",
         text: "SHOP NOW",
-        to: "/collections/all",
+        to: "/products",
         variant: "secondary",
       },
     ],

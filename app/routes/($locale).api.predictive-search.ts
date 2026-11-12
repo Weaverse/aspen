@@ -19,6 +19,7 @@ import {
 } from "~/utils/combined-listings";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 import { normalizeSearchStyledText } from "~/utils/search-highlight";
+import { shopifyPagePath } from "~/utils/storefront-path";
 
 export const shouldRevalidate = skipPageRevalidationForStorefrontActions;
 
@@ -318,7 +319,7 @@ function normalizePredictiveSearchResults(
       id: page.id,
       image: undefined,
       title: page.title,
-      url: `${localePrefix}/pages/${page.handle}${createSearchParams(page)}`,
+      url: `${localePrefix}${shopifyPagePath(page.handle)}${createSearchParams(page)}`,
     })),
   ];
 

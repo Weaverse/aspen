@@ -1,21 +1,29 @@
 import { getSitemap } from "@shopify/hydrogen";
 import type { LoaderFunctionArgs } from "react-router";
+import { localeCode } from "~/utils/locale";
+import { canonicalStorefrontPathname } from "~/utils/storefront-path";
 
 export async function loader({
   request,
   params,
-  context: { storefront },
+  context: { storefront, localization },
 }: LoaderFunctionArgs) {
   const response = await getSitemap({
     storefront,
     request,
     params,
-    locales: ["EN-US", "EN-CA", "FR-CA"],
+    locales: localization.availableLocales.map((locale) =>
+      localeCode(locale).toUpperCase(),
+    ),
     getLink: ({ type, baseUrl, handle, locale }) => {
-      if (!locale) {
-        return `${baseUrl}/${type}/${handle}`;
-      }
-      return `${baseUrl}/${locale}/${type}/${handle}`;
+      const prefix =
+        localization.availableLocales.find(
+          (candidate) => localeCode(candidate) === locale?.toLowerCase(),
+        )?.pathPrefix ?? "";
+      const pathname = canonicalStorefrontPathname(
+        `${prefix}/${type}/${handle}`,
+      );
+      return `${baseUrl}${pathname}`;
     },
   });
 
