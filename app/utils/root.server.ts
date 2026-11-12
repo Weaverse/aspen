@@ -13,6 +13,10 @@ import { getLocaleSegment, localeCode } from "~/utils/locale";
 import { loadLoyaltyBalance } from "~/utils/loyalty.server";
 import { isLoyaltyLionConfigured } from "~/utils/loyaltylion.server";
 import { seoPayload } from "~/utils/seo.server";
+import {
+  canonicalStorefrontPathname,
+  isFilteredAllProductsPath,
+} from "~/utils/storefront-path";
 import { readWishlist } from "~/utils/wishlist.server";
 import {
   isWishlistPreviewRequest,
@@ -254,16 +258,35 @@ function parseItem(primaryDomain: string, env: Env, customPrefixes = {}) {
     }
 
     // extract path from url because we don't need the origin on internal to attributes
-    const { host, pathname } = new URL(item.url);
+    const { host, pathname, search, hash } = new URL(item.url);
     const isInternalLink =
       host === new URL(primaryDomain).host || host === env.PUBLIC_STORE_DOMAIN;
+    // A repeated leading slash must not become a protocol-relative link when
+    // the storefront origin is removed from an internal menu URL.
+    const normalizedPathname = isInternalLink
+      ? pathname.replace(/^\/{2,}/, "/")
+      : pathname;
+    const resolvedPath = isInternalLink
+      ? isFilteredAllProductsPath(normalizedPathname, search)
+        ? normalizedPathname
+        : resolveToFromType({
+            type: item.type,
+            customPrefixes,
+            pathname: normalizedPathname,
+          })
+      : "";
+    const locale = getLocaleSegment(normalizedPathname);
+    const localizedPath =
+      locale && !getLocaleSegment(resolvedPath)
+        ? `/${locale}${resolvedPath === "/" ? "" : resolvedPath}`
+        : resolvedPath;
     const parsedItem = isInternalLink
       ? // internal links
         {
           ...item,
           isExternal: false,
           target: "_self",
-          to: resolveToFromType({ type: item.type, customPrefixes, pathname }),
+          to: `${canonicalStorefrontPathname(localizedPath, search)}${search}${hash}`,
         }
       : // external links
         {
@@ -302,6 +325,10 @@ function resolveToFromType(
     return "";
   }
 
+  if (type === "HTTP") {
+    return pathname;
+  }
+
   /*
     MenuItemType enum
     @see: https://shopify.dev/api/storefront/unstable/enums/MenuItemType
@@ -319,7 +346,7 @@ function resolveToFromType(
     SHOP_POLICY: "policies",
   };
 
-  const pathParts = pathname.split("/");
+  const pathParts = pathname.split("/").filter(Boolean);
   const handle = pathParts.pop() || "";
   if (type === "PAGE" && handle === "contact") {
     return "/contact";

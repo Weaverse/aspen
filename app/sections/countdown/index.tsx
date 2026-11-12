@@ -282,7 +282,7 @@ export const schema = createSchema({
         type: "button--countdown",
         text: "DISCOVER NOW",
         style2Text: "Shop Now",
-        to: "/collections/all",
+        to: "/products",
         alignment: "left",
         style2Alignment: "center",
         variant: "custom",
