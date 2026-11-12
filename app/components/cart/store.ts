@@ -121,7 +121,9 @@ export function canAddCartLines(
     const existing = cart?.lines.nodes.find(
       (node) => node.merchandise.id === id,
     );
-    const variant = existing?.merchandise;
+    const variant =
+      existing?.merchandise ??
+      (line.selectedVariant as Partial<CartLine["merchandise"]> | undefined);
     const total = (quantities.get(id) ?? 0) + (line.quantity ?? 1);
     const stock = variant?.quantityAvailable;
     const policy = state.inventoryPolicies.get(id);
@@ -146,7 +148,7 @@ export function canAddCartLines(
       }
     }
     if (
-      existing &&
+      (existing || policy === "DENY") &&
       typeof stock === "number" &&
       stock >= 0 &&
       !variant?.currentlyNotInStock &&

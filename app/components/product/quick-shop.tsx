@@ -12,7 +12,7 @@ import { AnimatePresence } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useFetcher } from "react-router";
 import type { ProductVariantFragment } from "storefront-api.generated";
-import { useCanAddVariant, useCartStore } from "~/components/cart/store";
+import { useCartStore } from "~/components/cart/store";
 import Link from "~/components/link";
 import { LoyaltyPointsHint } from "~/components/loyalty/loyalty-points-hint";
 import { AddToCartButton } from "~/components/product/add-to-cart-button";
@@ -28,6 +28,7 @@ import { Skeleton } from "~/components/skeleton";
 import { SellingPlanSelector } from "~/components/subscriptions/selling-plan-selector";
 import { ProductCardWishlistButton } from "~/components/wishlist/product-card-wishlist-button";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
+import { useProductQuantity } from "~/hooks/use-product-quantity";
 import { useQuickViewScrollbar } from "~/hooks/use-quick-view-scrollbar";
 import { useTranslatedThemeSettings } from "~/hooks/use-translated-theme-settings";
 import type { ProductData } from "~/routes/($locale).api.product";
@@ -102,14 +103,11 @@ export function QuickShop({
     selectedOrFirstAvailableVariant: selectedVariant,
   });
 
-  const [quantity, setQuantity] = useState<number>(1);
   const [selectedSellingPlanId, setSelectedSellingPlanId] = useState<
     string | null
   >(null);
-  const canAddVariant = useCanAddVariant(
-    selectedVariant?.id,
-    selectedSellingPlanId,
-  );
+  const { quantity, setQuantity, maxQuantity, canPurchase, soldOut } =
+    useProductQuantity(selectedVariant, selectedSellingPlanId);
   const {
     addToCartText,
     soldOutText,
@@ -122,7 +120,7 @@ export function QuickShop({
   } = themeSettings;
 
   const { title } = product;
-  const atcText = selectedVariant?.availableForSale
+  const atcText = !soldOut
     ? addToCartText
     : selectedVariant?.quantityAvailable === -1
       ? unavailableText
@@ -235,14 +233,14 @@ export function QuickShop({
             <Quantity
               value={quantity}
               onChange={setQuantity}
-              disabled={!selectedVariant?.availableForSale || !canAddVariant}
-              variant="stepper"
+              maxQuantity={maxQuantity}
+              disabled={!canPurchase}
               className="min-w-24"
             />
             <AddToCartButton
               width="auto"
               containerClassName="min-w-fit flex-1"
-              disabled={!selectedVariant?.availableForSale}
+              disabled={!canPurchase}
               onAdded={onCloseAll}
               cartOpenTiming={cartOpenTiming}
               lines={[
@@ -262,7 +260,7 @@ export function QuickShop({
               {atcText}
             </AddToCartButton>
           </div>
-          {selectedVariant?.availableForSale && (
+          {canPurchase && (
             <ShopPayButton
               width="100%"
               variantIdsAndQuantities={[
@@ -287,7 +285,7 @@ export function QuickShop({
           )}
           <BackInStockForm
             variantId={selectedVariant?.id}
-            availableForSale={selectedVariant?.availableForSale}
+            availableForSale={!soldOut}
             enabled={enableQuickShopBackInStock}
           />
         </div>
