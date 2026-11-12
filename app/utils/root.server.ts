@@ -14,6 +14,10 @@ import { getLocaleSegment, localeCode } from "~/utils/locale";
 import { loadLoyaltyBalance } from "~/utils/loyalty.server";
 import { isLoyaltyLionConfigured } from "~/utils/loyaltylion.server";
 import { seoPayload } from "~/utils/seo.server";
+import {
+  canonicalStorefrontPathname,
+  isFilteredAllProductsPath,
+} from "~/utils/storefront-path";
 import { readWishlist } from "~/utils/wishlist.server";
 import {
   isWishlistPreviewRequest,
@@ -258,17 +262,31 @@ function parseItem(primaryDomain: string, env: Env, customPrefixes = {}) {
     const { host, pathname, search, hash } = new URL(item.url);
     const isInternalLink =
       host === new URL(primaryDomain).host || host === env.PUBLIC_STORE_DOMAIN;
-    let to = isInternalLink
-      ? resolveToFromType({ type: item.type, customPrefixes, pathname })
-      : item.url;
-    if (isInternalLink && /\/blogs(?:\/|$)/.test(pathname)) {
-      const destination = new URL(to, item.url);
-      for (const [key, value] of new URLSearchParams(search)) {
-        if (key !== "blog" || !destination.searchParams.has("blog")) {
-          destination.searchParams.append(key, value);
-        }
+    // A repeated leading slash must not become a protocol-relative link when
+    // the storefront origin is removed from an internal menu URL.
+    const normalizedPathname = isInternalLink
+      ? pathname.replace(/^\/{2,}/, "/")
+      : pathname;
+    const resolvedPath = isInternalLink
+      ? isFilteredAllProductsPath(normalizedPathname, search)
+        ? normalizedPathname
+        : resolveToFromType({
+            type: item.type,
+            customPrefixes,
+            pathname: normalizedPathname,
+          })
+      : "";
+    const locale = getLocaleSegment(normalizedPathname);
+    const localizedPath =
+      locale && !getLocaleSegment(resolvedPath)
+        ? `/${locale}${resolvedPath === "/" ? "" : resolvedPath}`
+        : resolvedPath;
+    const destination = new URL(localizedPath, item.url);
+    for (const [key, value] of new URLSearchParams(search)) {
+      // The typed Shopify blog/article URL determines resource identity.
+      if (key !== "blog" || !destination.searchParams.has("blog")) {
+        destination.searchParams.append(key, value);
       }
-      to = destination.pathname + destination.search + hash;
     }
     const parsedItem = isInternalLink
       ? // internal links
@@ -276,7 +294,7 @@ function parseItem(primaryDomain: string, env: Env, customPrefixes = {}) {
           ...item,
           isExternal: false,
           target: "_self",
-          to,
+          to: `${canonicalStorefrontPathname(destination.pathname, destination.search)}${destination.search}${hash}`,
         }
       : // external links
         {
@@ -315,6 +333,10 @@ function resolveToFromType(
     return "";
   }
 
+  if (type === "HTTP") {
+    return pathname;
+  }
+
   /*
     MenuItemType enum
     @see: https://shopify.dev/api/storefront/unstable/enums/MenuItemType
@@ -332,9 +354,6 @@ function resolveToFromType(
     SHOP_POLICY: "policies",
   };
 
-  if (type === "HTTP" && /\/blogs(?:\/|$)/.test(pathname)) {
-    return pathname;
-  }
   const pathParts = pathname.split("/").filter(Boolean);
   const handle = pathParts.pop() || "";
   if (type === "PAGE" && handle === "contact") {

@@ -294,7 +294,7 @@ export let schema = createSchema({
           type: "url",
           name: "linkTo",
           label: "Link to",
-          defaultValue: "/collections/all",
+          defaultValue: "/products",
           condition: "linkText.ne.empty",
         },
       ],
@@ -308,6 +308,6 @@ export let schema = createSchema({
     color: "#29231E",
     description: "Describe a highlight of your store.",
     linkText: "Explore More",
-    linkTo: "/collections/all",
+    linkTo: "/products",
   },
 });

@@ -487,7 +487,15 @@ test("sitemap XML omits unknown lastmod, retaining unique dates and valid respon
   const response = await sitemap({
     request: new Request("https://store.test/sitemap/articles/1.xml"),
     params: { type: "articles", page: "1" },
-    context: { storefront: api },
+    context: {
+      storefront: api,
+      localization: {
+        availableLocales: [
+          { language: "EN", country: "US", pathPrefix: "" },
+          { language: "FR", country: "FR", pathPrefix: "/fr-fr" },
+        ],
+      },
+    },
   });
   const xml = await response.text();
   assert.equal(response.status, 200);
@@ -500,4 +508,11 @@ test("sitemap XML omits unknown lastmod, retaining unique dates and valid respon
   assert.equal((xml.match(/<lastmod>/g) ?? []).length, 1);
   assert.match(xml, /<lastmod>2026-10-01T00:00:00Z<\/lastmod>/);
   assert.ok(!xml.includes("undefined"));
+  assert.ok(
+    xml.includes('href="https://store.test/fr-fr/blogs/same?blog=news"'),
+  );
+  assert.ok(
+    xml.includes('href="https://store.test/fr-fr/blogs/same?blog=journal"'),
+  );
+  assert.doesNotMatch(xml, /FR-CA|EN-CA|\/en-us\//);
 });

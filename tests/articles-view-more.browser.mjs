@@ -20,7 +20,7 @@ const bundle = await build({
       window.schema = schema;
       window.relatedSchema = relatedSchema;
       window.renderRelated = (props = {}) => root.render(<RelatedArticles heading="Related articles" {...props} />);
-      window.renderArticles = (props = {}) => root.render(<Articles articlePerRow={3} loaderData={{blog: {articles: {nodes: [{title: "Article title", handle: "journal/article"}]}}}} {...props} />);
+      window.renderArticles = (props = {}) => root.render(<Articles articlePerRow={3} loaderData={{blog: {articles: {nodes: [{title: "Article title", handle: "article", blog: { handle: "journal" }}]}}}} {...props} />);
     `,
     loader: "tsx",
     resolveDir: root,
@@ -50,7 +50,7 @@ const bundle = await build({
             contents = "export const OverlayAndBackground = () => null;";
           } else if (path === "react-router") {
             contents =
-              'export const useLoaderData = () => ({ relatedArticles: [{ id: "article", title: "Article title", handle: "journal/article" }] });';
+              'export const useLoaderData = () => ({ relatedArticles: [{ id: "article", title: "Article title", handle: "article", blog: { handle: "journal" } }] });';
           } else if (path.includes("use-translated-text")) {
             contents = `import { translateThemeText } from "./app/utils/translation"; import en from "./app/locales/en-us.json"; export const useTranslatedText = () => (value, key) => translateThemeText((key) => key.split(".").reduce((obj, part) => obj[part], en), value, key);`;
           } else if (path.includes("use-locale")) {
@@ -230,7 +230,7 @@ test("Articles and Related Articles View More default off and use body-base toke
       await expect(label).toHaveCSS("font-family", '"DM Sans", sans-serif');
       await expect(page.locator("article > a")).toHaveAttribute(
         "href",
-        "/blogs/journal/article",
+        "/blogs/article?blog=journal",
       );
       await page.evaluate(() =>
         window.renderArticles({

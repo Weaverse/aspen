@@ -2,6 +2,8 @@ import { getSitemap, type Storefront } from "@shopify/hydrogen";
 import type { LoaderFunctionArgs } from "react-router";
 import { articlePath, blogPath } from "~/utils/blog-path";
 import { qualifyArticleSitemapItems } from "~/utils/blog-sitemap.server";
+import { localeCode } from "~/utils/locale";
+import { canonicalStorefrontPathname } from "~/utils/storefront-path";
 
 type SitemapQueryData = {
   sitemap?: {
@@ -12,7 +14,7 @@ type SitemapQueryData = {
 export async function loader({
   request,
   params,
-  context: { storefront },
+  context: { storefront, localization },
 }: LoaderFunctionArgs) {
   const storefrontClient: Storefront = storefront;
   const sitemapStorefront = {
@@ -44,9 +46,14 @@ export async function loader({
     storefront: sitemapStorefront,
     request,
     params,
-    locales: ["EN-US", "EN-CA", "FR-CA"],
+    locales: localization.availableLocales.map((locale) =>
+      localeCode(locale).toUpperCase(),
+    ),
     getLink: ({ type, baseUrl, handle, locale }) => {
-      const prefix = locale ? `/${locale.toLowerCase()}` : "";
+      const prefix =
+        localization.availableLocales.find(
+          (candidate) => localeCode(candidate) === locale?.toLowerCase(),
+        )?.pathPrefix ?? "";
       if (type === "blogs") {
         return `${baseUrl}${prefix}${blogPath(handle)}`;
       }
@@ -54,10 +61,10 @@ export async function loader({
         const [blogHandle, ...articleHandle] = handle.split("/");
         return `${baseUrl}${prefix}${articlePath(articleHandle.join("/"), blogHandle)}`;
       }
-      if (!locale) {
-        return `${baseUrl}/${type}/${handle}`;
-      }
-      return `${baseUrl}/${locale}/${type}/${handle}`;
+      const pathname = canonicalStorefrontPathname(
+        `${prefix}/${type}/${handle}`,
+      );
+      return `${baseUrl}${pathname}`;
     },
   });
 
