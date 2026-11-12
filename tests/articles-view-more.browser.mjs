@@ -84,6 +84,55 @@ const css = stylesheet.build(
   }).scan(),
 );
 
+test("Articles View All keeps the selected blog instead of the store's first blog", async () => {
+  const browser = await chromium.launch();
+  try {
+    const page = await browser.newPage();
+    await page.setContent('<div id="root"></div>');
+    await page.addScriptTag({ content: bundle.outputFiles[0].text });
+    // Store order is news, then journal; selecting journal must not link to /blogs.
+    for (const handle of ["news", "journal"]) {
+      await page.evaluate(
+        (selectedBlog) =>
+          window.renderArticles({
+            blogs: { handle: selectedBlog },
+            viewAllText: "View All",
+            loaderData: {
+              blog: {
+                handle: selectedBlog,
+                articles: {
+                  nodes: [
+                    {
+                      title: "Welcome",
+                      handle: "welcome",
+                      blog: { handle: selectedBlog },
+                    },
+                  ],
+                },
+              },
+            },
+          }),
+        handle,
+      );
+      await expect(
+        page.getByRole("link", { name: "View All", exact: true }),
+      ).toHaveAttribute("href", `/blogs?blog=${handle}`);
+      await expect(page.locator("article > a")).toHaveAttribute(
+        "href",
+        `/blogs/welcome?blog=${handle}`,
+      );
+    }
+    await page.evaluate(() =>
+      window.renderArticles({ blogs: undefined, viewAllText: "View All" }),
+    );
+    await expect(
+      page.getByRole("link", { name: "View All", exact: true }),
+    ).toHaveAttribute("href", "#");
+  } finally {
+    await browser.close();
+  }
+});
+
 test("Articles tablet spacing matches design without changing other breakpoints or custom vertical padding", async () => {
   const browser = await chromium.launch();
   try {
