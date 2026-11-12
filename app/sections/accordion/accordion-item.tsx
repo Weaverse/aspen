@@ -55,7 +55,7 @@ const AccordionItem = forwardRef<HTMLDivElement, AccordionItemProps>(
       if (isSvgString(icon)) {
         return (
           <span
-            className="h-5 w-5"
+            className="flex size-5 shrink-0 items-center justify-center [&>svg]:block [&>svg]:size-full"
             dangerouslySetInnerHTML={{ __html: icon }}
           />
         );
@@ -64,7 +64,7 @@ const AccordionItem = forwardRef<HTMLDivElement, AccordionItemProps>(
       return (
         <Image
           src={icon}
-          className="h-5 w-5"
+          className="block size-5 shrink-0 object-contain"
           alt={title}
           width={20}
           height={20}
@@ -101,10 +101,10 @@ const AccordionItem = forwardRef<HTMLDivElement, AccordionItemProps>(
             )}
           >
             {renderIcon()}
-            <span className="flex-1 font-body font-normal text-base leading-[1.4] tracking-[0.02em]">
+            <span className="min-w-0 flex-1 font-body font-normal text-base leading-[1.4] tracking-[0.02em]">
               {title}
             </span>
-            <div className="relative ml-auto size-4 flex-shrink-0">
+            <div className="relative ml-auto aspect-square size-6 shrink-0 -rotate-180">
               <PlusCircle
                 className="absolute inset-0 h-full w-full transition-opacity duration-200 group-data-[state=open]:opacity-0"
                 color="currentColor"

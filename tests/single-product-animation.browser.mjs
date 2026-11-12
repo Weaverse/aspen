@@ -34,7 +34,7 @@ const fixtures = {
     }];
   `,
   "~/hooks/use-translated-text": `export const useTranslatedText = () => (value) => value;`,
-  "~/components/cart/store": `export const useCanAddVariant = () => true;`,
+  "~/components/cart/store": `export const useCartStore = selector => selector({}); export const canAddCartLines = () => true;`,
   "~/components/product/product-media": `export const ProductMedia = () => null;`,
   "~/components/product/product-card-rating": `export const ProductCardRating = () => null;`,
   "~/components/product/badges": `export const ProductBadges = () => null; export const SoldOutBadge = () => null;`,

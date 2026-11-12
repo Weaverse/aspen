@@ -648,3 +648,57 @@ test("a complete 1000-product index without hidden listings needs no facet probe
   assert.equal(result.products.filters[0].values[0].count, 1000);
   assert.equal(indexCalls, 4);
 });
+
+for (const [term, expected] of [
+  ["s", "s*"],
+  ["7", "7*"],
+  ["é", "é*"],
+  ["沙", "沙*"],
+  ["sofa", "sofa"],
+  ["s*", "s*"],
+  ["*", "*"],
+  ["-", "-"],
+]) {
+  test(`single-character prefix search preserves pagination and filters: ${term}`, async () => {
+    const matches = Array.from({ length: 12 }, (_, index) => product(index));
+    const input = {
+      searchTerm: term,
+      filters: [{ available: true }],
+      sortKey: "PRICE",
+      reverse: true,
+    };
+    const storefront = {
+      CacheShort: () => ({}),
+      query: async (document, { variables }) => {
+        if (document.includes("SearchVisibleIndex")) {
+          assert.equal(variables.searchTerm, expected);
+          assert.equal(variables.sortKey, "PRICE");
+          assert.equal(variables.reverse, true);
+          assert.ok(
+            variables.filters.length === 0 || variables.filters[0].available,
+          );
+          return {
+            products: {
+              nodes: matches,
+              filters: [],
+              pageInfo: { hasNextPage: false },
+            },
+          };
+        }
+        return {
+          nodes: matches.filter((item) => variables.ids.includes(item.id)),
+        };
+      },
+    };
+    const first = await searchVisibleProducts(storefront, input, { first: 8 });
+    assert.equal(first.products.totalCount, 12);
+    assert.equal(first.products.nodes.length, 8);
+    const second = await searchVisibleProducts(storefront, input, {
+      first: 8,
+      endCursor: first.products.pageInfo.endCursor,
+    });
+    assert.equal(second.products.nodes.length, 4);
+    assert.equal(second.products.pageInfo.hasNextPage, false);
+    assert.equal(input.searchTerm, term);
+  });
+}

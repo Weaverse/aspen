@@ -62,7 +62,7 @@ export function paginateSearch<T>(
 
 export async function searchVisibleProducts(
   storefront: Storefront<I18nLocale>,
-  variables: {
+  input: {
     searchTerm: string;
     filters: ProductFilter[];
     sortKey: "PRICE" | "RELEVANCE";
@@ -70,6 +70,15 @@ export async function searchVisibleProducts(
   },
   pagination: Parameters<typeof paginateSearch>[1],
 ) {
+  // Explicit prefix matching avoids Shopify dropping single-character terms.
+  // Keep longer queries and search syntax intact, and use the same term for
+  // results, price bounds, and facet counts without changing the displayed query.
+  const variables = {
+    ...input,
+    searchTerm: /^[\p{L}\p{N}]$/u.test(input.searchTerm)
+      ? `${input.searchTerm}*`
+      : input.searchTerm,
+  };
   const index = await readSearchIndex(storefront, variables);
   const { nodes, filters } = index;
   const visible = nodes.filter(

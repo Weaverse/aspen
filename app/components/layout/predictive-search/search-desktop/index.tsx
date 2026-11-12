@@ -27,6 +27,7 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
   const { t } = useTranslation();
   const searchRoute = usePrefixPathWithLocale("/search");
   const [open, setOpen] = useState(false);
+  const [emptyResults, setEmptyResults] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const location = useLocation();
@@ -69,6 +70,7 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
     clearSearchDebounce();
     pendingQueryRef.current = null;
     previousRequestRef.current = undefined;
+    setEmptyResults(false);
     setHasSearched(false);
     setIsSearching(false);
   }
@@ -133,7 +135,12 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
                   animate={{ y: 0 }}
                   exit={{ y: "-100%" }}
                   transition={{ type: "spring", damping: 25, stiffness: 150 }}
-                  className="max-h-[calc(100vh-var(--height-nav)-var(--topbar-height))] w-full overflow-y-auto border-line-subtle border-t bg-(--color-header-bg) [scrollbar-gutter:stable]"
+                  className={clsx(
+                    "max-h-[calc(100vh-var(--height-nav)-var(--topbar-height))] w-full overflow-y-auto border-line-subtle bg-(--color-header-bg)",
+                    emptyResults
+                      ? "rounded-b-xl shadow-[0_4px_4px_#211f1c14]"
+                      : "border-t [scrollbar-gutter:stable]",
+                  )}
                 >
                   <VisuallyHidden.Root asChild>
                     <Dialog.Title>{t("search.predictiveTitle")}</Dialog.Title>
@@ -143,10 +150,20 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
                     limit={10}
                   >
                     {({ fetchResults, inputRef }) => (
-                      <div className="mx-auto flex h-[73px] w-[calc(100%-4rem)] max-w-[1360px] items-center gap-3 border-[#9D9D9D] border-b">
+                      <div
+                        className={clsx(
+                          "mx-auto flex h-[73px] w-[calc(100%-4rem)] max-w-[1360px] border-[#9D9D9D] border-b",
+                          emptyResults
+                            ? "items-start gap-2.5 pt-10 pb-4"
+                            : "items-center gap-3",
+                        )}
+                      >
                         <button
                           type="button"
-                          className="flex size-5 shrink-0 items-center justify-start focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body"
+                          className={clsx(
+                            "flex shrink-0 items-center justify-start focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body",
+                            emptyResults ? "size-4" : "size-5",
+                          )}
                           aria-label={t("search.title")}
                           onClick={() => {
                             const value = inputRef.current?.value.trim() || "";
@@ -203,13 +220,19 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
                           placeholder={t("search.placeholder")}
                           ref={inputRef}
                           autoComplete="off"
-                          className="h-full min-w-0 flex-1 !rounded-none !border-0 !bg-transparent px-0 text-[#343231] text-sm shadow-none outline-none focus-visible:!border-0 focus-visible:!shadow-none"
+                          className={clsx(
+                            "h-full min-w-0 flex-1 !rounded-none !border-0 !bg-transparent px-0 text-[#343231] text-sm shadow-none outline-none focus-visible:!border-0 focus-visible:!shadow-none",
+                            emptyResults && "leading-none tracking-[0.02em]",
+                          )}
                         />
                       </div>
                     )}
                   </PredictiveSearchForm>
                   <div className="mx-auto w-[calc(100%-4rem)] max-w-[1360px]">
-                    <SearchResultsPanel loading={loading}>
+                    <SearchResultsPanel
+                      loading={loading}
+                      onEmptyChange={setEmptyResults}
+                    >
                       {!(hasSearched || loading) && (
                         <div className="py-7">
                           <PopularSearch
@@ -248,9 +271,11 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
 function SearchResultsPanel({
   children,
   loading,
+  onEmptyChange,
 }: {
   children: ReactNode;
   loading: boolean;
+  onEmptyChange: (empty: boolean) => void;
 }) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState<number>();
@@ -261,12 +286,15 @@ function SearchResultsPanel({
     if (!content || loading) {
       return;
     }
-    const measure = () => setHeight(content.offsetHeight);
+    const measure = () => {
+      setHeight(content.offsetHeight);
+      onEmptyChange(Boolean(content.querySelector("[data-search-empty]")));
+    };
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(content);
     return () => observer.disconnect();
-  }, [loading]);
+  }, [loading, onEmptyChange]);
 
   return (
     <motion.div
@@ -314,6 +342,12 @@ function PredictiveSearchResults() {
     return <NoResults queries={queries?.items} searchTerm={searchTermValue} />;
   }
 
+  const activeItems = {
+    products: products?.items,
+    collections: collectionItems,
+    pages: pages?.items,
+  }[activeType];
+  const empty = !activeItems?.length;
   const minHeight = {
     products: "min-h-[598px]",
     collections: "min-h-[359px]",
@@ -323,14 +357,26 @@ function PredictiveSearchResults() {
   return (
     <div
       className={clsx(
-        "grid grid-cols-[258px_minmax(0,1fr)] gap-5 pt-7",
-        minHeight,
-        activeType === "pages" && "pb-6",
+        "grid gap-5",
+        empty
+          ? "grid-cols-[258.4px_minmax(0,1fr)]"
+          : "grid-cols-[258px_minmax(0,1fr)]",
+        empty ? "pt-6 pb-12" : "pt-7",
+        !empty && minHeight,
+        !empty && activeType === "pages" && "pb-6",
       )}
+      data-search-empty={empty ? "" : undefined}
     >
-      <SuggestionsPanel items={queries?.items} fallbackTerm={searchTermValue} />
-      <main className={clsx("min-w-0", activeType === "pages" && "pb-6")}>
+      <SuggestionsPanel
+        items={queries?.items}
+        fallbackTerm={searchTermValue}
+        compact={empty}
+      />
+      <main
+        className={clsx("min-w-0", !empty && activeType === "pages" && "pb-6")}
+      >
         <ResourceTabs
+          compact={empty}
           activeType={activeType}
           counts={{
             products: products?.items.length || 0,
@@ -340,19 +386,24 @@ function PredictiveSearchResults() {
           onChange={setActiveType}
         />
         <div className="pt-5">
-          {activeType === "products" && (
+          {empty && (
+            <p className="py-2.5 text-body text-sm leading-none tracking-[0.02em]">
+              {t("search.noResults", { term: searchTermValue })}
+            </p>
+          )}
+          {!empty && activeType === "products" && (
             <PredictiveSearchResult
               type="products"
               items={products?.items.slice(0, 4)}
             />
           )}
-          {activeType === "collections" && (
+          {!empty && activeType === "collections" && (
             <PredictiveSearchResult
               type="collections"
               items={collectionItems.slice(0, 4)}
             />
           )}
-          {activeType === "pages" && (
+          {!empty && activeType === "pages" && (
             <PredictiveSearchResult
               type="pages"
               items={pages?.items.slice(0, 8)}
@@ -377,20 +428,25 @@ function PredictiveSearchResults() {
 function SuggestionsPanel({
   items,
   fallbackTerm,
+  compact = false,
 }: {
   items?: NormalizedPredictiveSearchResultItem[];
   fallbackTerm: string;
+  compact?: boolean;
 }) {
   const { t } = useTranslation();
   return (
     <aside aria-labelledby="desktop-search-suggestions">
       <h2
         id="desktop-search-suggestions"
-        className="flex h-7 items-start border-[#D8D8D8] border-b font-body font-semibold text-[14px] uppercase leading-[160%] tracking-[0.28px] text-[var(--color-text-subtle,#524B46)]"
+        className={clsx(
+          "flex items-start border-[#D8D8D8] border-b font-body font-semibold text-[14px] uppercase leading-[160%] tracking-[0.28px] text-[var(--color-text-subtle,#524B46)]",
+          compact ? "h-[31px]" : "h-7",
+        )}
       >
         {t("search.suggestions")}
       </h2>
-      <div className="pt-[22px]">
+      <div className={compact ? "pt-5" : "pt-[22px]"}>
         {items?.length ? (
           <PredictiveSearchResult type="queries" items={items.slice(0, 5)} />
         ) : fallbackTerm ? (
@@ -410,22 +466,34 @@ function ResourceTabs({
   activeType,
   counts,
   onChange,
+  compact = false,
 }: {
+  compact?: boolean;
   activeType: ResourceType;
   counts: Record<ResourceType, number>;
   onChange: (type: ResourceType) => void;
 }) {
   const { t } = useTranslation();
   return (
-    <div className="flex h-7 gap-10 border-[#D8D8D8] border-b">
+    <div
+      className={clsx(
+        "flex gap-10 border-[#D8D8D8] border-b",
+        compact ? "h-[31px]" : "h-7",
+      )}
+    >
       {(["products", "collections", "pages"] as const).map((type) => (
         <button
           type="button"
           key={type}
           className={clsx(
-            "relative h-7 pb-3 font-semibold text-sm uppercase leading-5 outline-none transition-colors after:absolute after:right-0 after:-bottom-px after:left-0 after:h-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body",
+            "relative font-semibold text-sm uppercase outline-none transition-colors after:absolute after:right-0 after:-bottom-px after:left-0 after:h-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body",
+            compact
+              ? "h-[31px] pb-2 leading-[1.6] tracking-[0.02em]"
+              : "h-7 pb-3 leading-5",
             activeType === type
-              ? "text-[#343231] after:bg-[#9D9D9D]"
+              ? compact
+                ? "text-(--color-text-subtle) after:bg-[#9D9D9D]"
+                : "text-[#343231] after:bg-[#9D9D9D]"
               : "text-[#979797] after:bg-transparent",
           )}
           onClick={() => onChange(type)}
@@ -452,19 +520,20 @@ function NoResults({
 
   return (
     <div
-      className="grid min-h-[165px] grid-cols-[258px_minmax(0,1fr)] gap-5 pt-7 text-sm"
+      className="grid grid-cols-[258.4px_minmax(0,1fr)] gap-5 pt-6 pb-12 text-sm"
+      data-search-empty=""
       role="status"
       aria-live="polite"
       aria-atomic="true"
     >
-      <SuggestionsPanel items={queries} fallbackTerm={searchTerm} />
+      <SuggestionsPanel items={queries} fallbackTerm={searchTerm} compact />
       <div>
-        <div className="flex h-7 border-[#D8D8D8] border-b">
-          <p className="relative h-7 pb-3 font-semibold text-[#524B46] uppercase leading-5 after:absolute after:right-0 after:-bottom-px after:left-0 after:h-px after:bg-[#9D9D9D]">
+        <div className="flex h-[31px] border-[#D8D8D8] border-b">
+          <p className="relative h-[31px] pb-2 font-semibold text-[#524B46] uppercase leading-[1.6] tracking-[0.02em] after:absolute after:right-0 after:-bottom-px after:left-0 after:h-px after:bg-[#9D9D9D]">
             {t("search.products")}
           </p>
         </div>
-        <p className="pt-[27px] text-[#524B46]">
+        <p className="mt-5 py-2.5 text-body leading-none tracking-[0.02em]">
           {t("search.noResults", { term: searchTerm })}
         </p>
       </div>

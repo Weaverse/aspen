@@ -87,8 +87,7 @@ test("Instagram real content keeps long merchant handles inside the card", async
   try {
     for (const width of [
       390,
-      743,
-      744,
+      767,
       768,
       820,
       TABLET_MAX_PX,
@@ -153,6 +152,8 @@ test("Instagram tablet keeps content beside a usable horizontal image grid", asy
       744,
       820,
       834,
+      1023,
+      1024,
       TABLET_MAX_PX,
       DESKTOP_MIN_PX,
       1440,
@@ -178,6 +179,10 @@ test("Instagram tablet keeps content beside a usable horizontal image grid", asy
           columns: getComputedStyle(
             row.querySelector(".instagram-grid"),
           ).gridTemplateColumns.split(" ").length,
+          rowGap: Number.parseFloat(style.gap),
+          imageGap: Number.parseFloat(
+            getComputedStyle(row.querySelector(".instagram-grid")).gap,
+          ),
           tiles: [...row.querySelectorAll(".instagram-tile")].map((tile) => ({
             width: tile.getBoundingClientRect().width,
             height: tile.getBoundingClientRect().height,
@@ -186,11 +191,16 @@ test("Instagram tablet keeps content beside a usable horizontal image grid", asy
         };
       });
       assert.equal(geometry.overflow, false);
-      assert.equal(geometry.columns, width < 744 ? 2 : 4);
+      assert.equal(geometry.columns, width < 768 ? 2 : 4);
+      assert.equal(
+        geometry.rowGap,
+        width < 768 ? 20 : width < DESKTOP_MIN_PX ? 16 : 24,
+      );
+      assert.equal(geometry.imageGap, width < DESKTOP_MIN_PX ? 8 : 20);
       for (const tile of geometry.tiles) {
         assert.ok(Math.abs(tile.width - tile.height) < 1);
       }
-      if (width < 744) {
+      if (width < 768) {
         assert.equal(
           geometry.grid.width,
           geometry.innerWidth,

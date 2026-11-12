@@ -75,7 +75,7 @@ const bundle = await build({
             export function fetchResults(term){const request=++version;
               if(!term){value={...value,searchState:'idle',searchTermValue:''};emit();return;}
               setTimeout(()=>{if(request!==version)return;value={...value,searchState:'loading',searchTermValue:term,searchRequest:request};emit()},80);
-              setTimeout(()=>{if(request!==version)return;value={...value,searchState:'idle',results:term==='zzz'?[]:['products','collections','pages'].map(type=>({type,items:Array.from({length:10},(_,i)=>({id:type+i,title:type+i,url:'/'}))}))};emit()},600);
+              setTimeout(()=>{if(request!==version)return;value={...value,searchState:'idle',results:term==='zzz'?[]:['products','collections','pages'].map(type=>({type,items:Array.from({length:term==='empty-products' && type==='products'?0:10},(_,i)=>({id:type+i,title:type+i,url:'/'}))}))};emit()},600);
             }`;
           } else if (path.includes("use-predictive-search")) {
             contents = `export {usePredictiveSearch} from 'fixture-predictive';`;
@@ -680,6 +680,55 @@ test("Opening and closing search keep the page in place and retain results throu
     await expect(
       page.getByText("Popular searches", { exact: true }),
     ).toBeVisible();
+  } finally {
+    await browser.close();
+  }
+});
+
+test("Desktop empty product results match the 230px Figma popover and retain other tabs", async () => {
+  const browser = await chromium.launch();
+  try {
+    for (const width of [1440, 1728]) {
+      const page = await browser.newPage({ viewport: { width, height: 900 } });
+      await mount(page);
+      const input = page.getByPlaceholder("Enter a keyword");
+      for (const term of ["empty-products", "zzz"]) {
+        await input.fill(term);
+        await expect(
+          page.getByText("search.noResults", { exact: true }),
+        ).toBeVisible();
+        await expect
+          .poll(async () =>
+            Math.round((await page.getByRole("dialog").boundingBox()).height),
+          )
+          .toBe(230);
+        const panel = page.getByRole("dialog").locator(":scope > div");
+        await expect(panel).toHaveCSS("border-bottom-left-radius", "12px");
+        await expect(panel).toHaveCSS("border-bottom-right-radius", "12px");
+        if (term === "empty-products") {
+          await page
+            .getByRole("button", { name: "search.collections (10)" })
+            .click();
+          await expect(
+            page.getByText("collections0", { exact: true }),
+          ).toBeVisible();
+          await expect
+            .poll(async () =>
+              Math.round((await page.getByRole("dialog").boundingBox()).height),
+            )
+            .toBeGreaterThan(230);
+          await page
+            .getByRole("button", { name: "search.products (0)" })
+            .click();
+          await expect
+            .poll(async () =>
+              Math.round((await page.getByRole("dialog").boundingBox()).height),
+            )
+            .toBe(230);
+        }
+      }
+      await page.close();
+    }
   } finally {
     await browser.close();
   }
