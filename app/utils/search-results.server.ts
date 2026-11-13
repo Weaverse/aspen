@@ -1,13 +1,11 @@
 import { gql } from "@shopify/hydrogen";
 import type { ProductFilter } from "@shopify/hydrogen/storefront-api-types";
 import type { Storefront } from "~/.server/storefront";
-import { PRODUCT_CARD_FRAGMENT } from "~/graphql/fragments";
 import type {
   ProductCardFragment,
   SearchVisibleIndexQuery,
 } from "~/graphql/storefront-types";
-import type { I18nLocale } from "~/types/locale";
-import { CACHE_DEFAULT, CacheShort } from "~/utils/cache";
+import { CacheShort } from "~/utils/cache";
 import { unwrapStorefront } from "~/utils/storefront";
 import {
   COMBINED_LISTINGS_CONFIGS,
@@ -65,7 +63,7 @@ export function paginateSearch<T>(
 
 export async function searchVisibleProducts(
   storefront: Storefront,
-  variables: {
+  input: {
     searchTerm: string;
     filters: ProductFilter[];
     sortKey: "PRICE" | "RELEVANCE";
@@ -73,6 +71,15 @@ export async function searchVisibleProducts(
   },
   pagination: Parameters<typeof paginateSearch>[1],
 ) {
+  // Explicit prefix matching avoids Shopify dropping single-character terms.
+  // Keep longer queries and search syntax intact, and use the same term for
+  // results, price bounds, and facet counts without changing the displayed query.
+  const variables = {
+    ...input,
+    searchTerm: /^[\p{L}\p{N}]$/u.test(input.searchTerm)
+      ? `${input.searchTerm}*`
+      : input.searchTerm,
+  };
   const index = await readSearchIndex(storefront, variables);
   const { nodes, filters } = index;
   const visible = nodes.filter(

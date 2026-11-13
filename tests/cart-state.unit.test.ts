@@ -238,6 +238,35 @@ test("Add to Cart respects quantity rules and Shopify-confirmed limits independe
   );
 });
 
+test("the first add checks incoming stock and duplicate variants before a cart exists", () => {
+  const input = createInput(3);
+  Object.assign(input.selectedVariant ?? {}, { quantityAvailable: 2 });
+  useCartStore.setState({
+    inventoryPolicies: new Map([[variantId, "DENY"]]),
+  });
+  assert.equal(canAddCartLines(useCartStore.getState(), [input]), false);
+  assert.equal(
+    canAddCartLines(useCartStore.getState(), [
+      { ...input, quantity: 2 },
+      { ...input, quantity: 1, sellingPlanId: "subscription" },
+    ]),
+    false,
+  );
+  assert.equal(
+    canAddCartLines(useCartStore.getState(), [{ ...input, quantity: 2 }]),
+    true,
+  );
+  for (const policy of ["CONTINUE", null] as const) {
+    useCartStore.setState({
+      inventoryPolicies: new Map([[variantId, policy]]),
+    });
+    assert.equal(canAddCartLines(useCartStore.getState(), [input]), true);
+  }
+  // Direct quick-add callers may not have loaded policy before the first add.
+  useCartStore.setState({ inventoryPolicies: new Map() });
+  assert.equal(canAddCartLines(useCartStore.getState(), [input]), true);
+});
+
 test("Add to Cart reserves pending additions and groups duplicate variants in a batch", () => {
   const cart = createCart(1, "2026-11-03T10:00:00.000Z");
   cart.lines.nodes[0].merchandise.quantityAvailable = 2;

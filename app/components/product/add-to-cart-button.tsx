@@ -1,7 +1,6 @@
 import { useTranslation } from "@weaverse/hydrogen/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { FetcherWithComponents } from "react-router";
-import { useMatches } from "react-router";
 import { Button } from "~/components/button";
 import { CartForm } from "~/components/cart/cart-action-form";
 import { useCartFetcherSync } from "~/components/cart/cart-sync";
@@ -10,7 +9,6 @@ import { canAddCartLines, useCartStore } from "~/components/cart/store";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import { getCartMutationError } from "~/utils/cart-error";
 import { cn } from "~/utils/cn";
-import { DEFAULT_LOCALE } from "~/utils/const";
 
 export function AddToCartButton({
   children,
@@ -47,6 +45,10 @@ export function AddToCartButton({
   const cartRoute = usePrefixPathWithLocale("/cart");
   const pendingToken = useRef<string | null>(null);
   const submitted = useRef(false);
+  const [submittedLines, setSubmittedLines] = useState<
+    OptimisticCartLineInput[] | null
+  >(null);
+  const handleSettled = useCallback(() => setSubmittedLines(null), []);
   const [isHydrated, setIsHydrated] = useState(false);
   const canAdd = useCartStore((state) => canAddCartLines(state, lines));
   const hasValidLines =
@@ -76,6 +78,9 @@ export function AddToCartButton({
           event.preventDefault();
           return;
         }
+        // Reservations can immediately change the caller's selected quantity.
+        // Keep this request's payload stable until its fetcher settles.
+        setSubmittedLines(lines);
         submitted.current = true;
         pendingToken.current = useCartStore.getState().stagePendingAdd(lines);
         const tokenInput = (event.target as HTMLFormElement).elements.namedItem(
@@ -91,7 +96,7 @@ export function AddToCartButton({
     >
       <CartForm
         route={cartRoute}
-        inputs={{ lines }}
+        inputs={{ lines: submittedLines ?? lines }}
         action={CartForm.ACTIONS.LinesAdd}
       >
         {(fetcher: FetcherWithComponents<any>) => {
@@ -106,6 +111,7 @@ export function AddToCartButton({
               hasError={Boolean(errorMessage)}
               pendingToken={pendingToken}
               submitted={submitted}
+              onSettled={handleSettled}
             >
               <input type="hidden" name="cartStageToken" defaultValue="" />
               <input
@@ -192,6 +198,7 @@ function AddToCartAnalytics({
   cartOpenTiming,
   onMutationStateChange,
   hasError,
+  onSettled,
 }: {
   fetcher: FetcherWithComponents<any>;
   children: React.ReactNode;
@@ -204,6 +211,7 @@ function AddToCartAnalytics({
     hasError: boolean;
   }) => void;
   hasError: boolean;
+  onSettled: () => void;
 }) {
   useCartFetcherSync(fetcher);
   useEffect(() => {
@@ -217,11 +225,12 @@ function AddToCartAnalytics({
       return;
     }
     submitted.current = false;
+    onSettled();
     if (pendingToken.current) {
       useCartStore.getState().clearPendingAdd(pendingToken.current);
       pendingToken.current = null;
     }
-  }, [fetcher.state, pendingToken, submitted]);
+  }, [fetcher.state, pendingToken, submitted, onSettled]);
   // biome-ignore lint/correctness/useExhaustiveDependencies: Read the latest token only on owner unmount.
   useEffect(
     () => () => {

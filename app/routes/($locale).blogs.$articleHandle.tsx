@@ -1,12 +1,11 @@
 import { gql } from "@shopify/hydrogen";
-import type { RouteLoaderArgs } from "@weaverse/hydrogen/react-router";
-import type { MetaFunction } from "react-router";
+import type { LoaderFunctionArgs, MetaFunction } from "react-router";
 import { redirect } from "react-router";
 import invariant from "tiny-invariant";
-import type { ArticleQuery } from "~/graphql/storefront-types";
+import { loadArticlePage } from "~/utils/article-page.server";
+import { resolveArticleBlog } from "~/utils/blog.server";
+import { articlePath, blogPath, blogSeoMeta } from "~/utils/blog-path";
 import { CACHE_DEFAULT, routeHeaders } from "~/utils/cache";
-import { DEFAULT_BLOG_HANDLE } from "~/utils/const";
-import { redirectIfHandleIsLocalized } from "~/utils/redirect";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 import { seoPayload } from "~/utils/seo.server";
 import type { SeoConfig } from "~/utils/seo-meta";
@@ -17,29 +16,54 @@ import { WeaverseContent } from "~/weaverse";
 export const headers = routeHeaders;
 export const shouldRevalidate = skipPageRevalidationForStorefrontActions;
 
-export async function loader(args: RouteLoaderArgs) {
+export async function loader(args: LoaderFunctionArgs) {
   const { request, params, context } = args;
-  const { storefront } = context.weaverse;
+  const { storefront } = context;
   const { language, country } = storefront.i18n;
 
   invariant(params.articleHandle, "Missing article handle");
 
   const { articleHandle } = params;
-  if (articleHandle === DEFAULT_BLOG_HANDLE) {
-    const localePrefix = params.locale ? `/${params.locale}` : "";
-    return redirect(`${localePrefix}/blogs`, 301);
+  const url = new URL(request.url);
+  const requestedBlog = params.blogHandle ?? url.searchParams.get("blog");
+  const blogHandle = await resolveArticleBlog(
+    storefront,
+    articleHandle,
+    requestedBlog,
+  );
+  if (!blogHandle) {
+    // Shopify's /blogs/:blogHandle listing aliases share the short article path.
+    const { blog: listing } = await storefront
+      .graphql(BLOG_ALIAS_QUERY, {
+        variables: { handle: articleHandle },
+        cache: CACHE_DEFAULT,
+      })
+      .then(unwrapStorefront);
+    if (!requestedBlog && listing) {
+      const destination = new URL(blogPath(listing.handle), url);
+      url.searchParams.set("blog", listing.handle);
+      return redirect(
+        `${params.locale ? `/${params.locale}` : ""}${destination.pathname}?${url.searchParams}`,
+        301,
+      );
+    }
+    throw new Response(null, { status: 404 });
   }
 
   const [{ blog }, weaverseData] = await Promise.all([
     storefront
       .graphql(ARTICLE_QUERY, {
-        variables: { blogHandle: DEFAULT_BLOG_HANDLE, articleHandle },
+        variables: {
+          blogHandle,
+          articleHandle,
+        },
         cache: CACHE_DEFAULT,
       })
       .then(unwrapStorefront),
-    context.weaverse.loadPage({
-      type: "ARTICLE",
-      handle: articleHandle,
+    loadArticlePage(context, {
+      blogHandle,
+      articleHandle,
+      locale: params.locale,
     }),
   ]);
 
@@ -47,10 +71,15 @@ export async function loader(args: RouteLoaderArgs) {
     throw new Response(null, { status: 404 });
   }
 
-  redirectIfHandleIsLocalized(request, {
-    handle: articleHandle,
-    data: blog.articleByHandle,
-  });
+  if (articleHandle !== blog.articleByHandle.handle) {
+    // Replace the article segment only: its text may also occur in the locale
+    // or parent blog. Keep Studio's full path and the request's query intact.
+    const segments = url.pathname.split("/");
+    const articleIndex = segments.length - (url.pathname.endsWith("/") ? 2 : 1);
+    segments[articleIndex] = encodeURIComponent(blog.articleByHandle.handle);
+    url.pathname = segments.join("/");
+    throw redirect(url.toString());
+  }
 
   const article = blog.articleByHandle;
   const relatedArticles = blog.articles.nodes.filter(
@@ -63,12 +92,18 @@ export async function loader(args: RouteLoaderArgs) {
     day: "numeric",
   }).format(new Date(article.publishedAt));
 
-  const seo = seoPayload.article({ article, url: request.url });
+  // Include the parent in canonical/share URLs, including legacy short requests.
+  const articleUrl = new URL(
+    articlePath(article.handle, blog.handle),
+    request.url,
+  );
+  articleUrl.pathname = `${params.locale ? `/${params.locale}` : ""}${articleUrl.pathname}`;
+  const seo = seoPayload.article({ article, url: articleUrl.toString() });
 
   return {
     article,
     blog: {
-      handle: DEFAULT_BLOG_HANDLE,
+      handle: blog.handle,
     },
     relatedArticles,
     formattedDate,
@@ -78,85 +113,101 @@ export async function loader(args: RouteLoaderArgs) {
 }
 
 export const meta: MetaFunction<typeof loader> = ({ data, matches }) => {
-  return localizedSeoMeta(matches, data?.seo as SeoConfig);
+  return blogSeoMeta(
+    localizedSeoMeta(matches, data?.seo as SeoConfig),
+    data?.seo?.url,
+  );
 };
 
 export default function Article() {
   return <WeaverseContent />;
 }
 
-export const ARTICLE_QUERY_Article = gql(`fragment Article on Article {
-  tags
-  author: authorV2 {
-    name
-  }
-  contentHtml
-  excerpt
-  excerptHtml
-  handle
-  id
-  image {
-    id
-    altText
-    url
-    width
-    height
-  }
-  publishedAt
-  title
-}`);
-
-export const ARTICLE_QUERY =
-  gql(`query article($language: LanguageCode, $blogHandle: String!, $articleHandle: String!) @inContext(language: $language) {
-  blog(handle: $blogHandle) {
-    title
-    handle
-    articleByHandle(handle: $articleHandle) {
+export const ARTICLE_QUERY = gql(`
+  query article(
+    $language: LanguageCode
+    $blogHandle: String!
+    $articleHandle: String!
+  ) @inContext(language: $language) {
+    blog(handle: $blogHandle) {
       title
       handle
-      contentHtml
-      publishedAt
-      tags
-      author: authorV2 {
-        name
-      }
-      image {
-        id
-        altText
-        url
-        width
-        height
-      }
-      seo {
-        description
+      articleByHandle(handle: $articleHandle) {
         title
+        handle
+        contentHtml
+        publishedAt
+        tags
+        author: authorV2 {
+          name
+        }
+        image {
+          id
+          altText
+          url
+          width
+          height
+        }
+        seo {
+          description
+          title
+        }
       }
-    }
-    articles(first: 20) {
-      nodes {
-        ...Article
+      articles(first: 20) {
+        nodes {
+          ...Article
+        }
       }
     }
   }
-}
-
-fragment Article on Article {
-  tags
-  author: authorV2 {
-    name
-  }
-  contentHtml
-  excerpt
-  excerptHtml
-  handle
-  id
-  image {
+  fragment Article on Article {
+    blog { handle }
+    tags
+    author: authorV2 {
+      name
+    }
+    contentHtml
+    excerpt
+    excerptHtml
+    handle
     id
-    altText
-    url
-    width
-    height
+    image {
+      id
+      altText
+      url
+      width
+      height
+    }
+    publishedAt
+    title
   }
-  publishedAt
-  title
-}`);
+`);
+
+export const BLOG_ALIAS_QUERY = gql(`
+  query MerchantBlogAlias($handle: String!, $language: LanguageCode) @inContext(language: $language) {
+    blog(handle: $handle) { handle }
+  }
+`);
+
+export const ARTICLE_QUERY_Article = gql(`fragment Article on Article {
+    blog { handle }
+    tags
+    author: authorV2 {
+      name
+    }
+    contentHtml
+    excerpt
+    excerptHtml
+    handle
+    id
+    image {
+      id
+      altText
+      url
+      width
+      height
+    }
+    publishedAt
+    title
+  }
+`);

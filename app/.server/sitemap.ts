@@ -1,5 +1,6 @@
 import { gql } from "@shopify/hydrogen";
 import type { Storefront } from "~/.server/storefront";
+import { qualifyArticleSitemapItems } from "~/utils/blog-sitemap.server";
 import { CACHE_DEFAULT } from "~/utils/cache";
 import { unwrapStorefront } from "~/utils/storefront";
 
@@ -68,7 +69,7 @@ type GetLinkArgs = {
   locale?: string;
 };
 
-type SitemapItem = { handle: string; updatedAt: string; type?: string };
+type SitemapItem = { handle: string; updatedAt?: string; type?: string };
 
 export async function getSitemap({
   storefront,
@@ -139,6 +140,13 @@ async function fetchSitemapItems(
 ): Promise<SitemapItem[] | undefined> {
   let options = { variables: { page }, cache: CACHE_DEFAULT };
   switch (type) {
+    case "articles":
+      return qualifyArticleSitemapItems(
+        storefront,
+        unwrapStorefront(
+          await storefront.graphql(ARTICLE_SITEMAP_QUERY, options),
+        ).sitemap.resources?.items ?? [],
+      );
     case "products":
       return (
         unwrapStorefront(
@@ -191,7 +199,7 @@ function renderUrlTag({
   handle,
 }: {
   url: string;
-  updatedAt: string;
+  updatedAt?: string;
   locales: string[];
   type: string;
   getLink: (args: GetLinkArgs) => string;
@@ -200,7 +208,7 @@ function renderUrlTag({
 }) {
   return `<url>
   <loc>${url}</loc>
-  <lastmod>${updatedAt}</lastmod>
+  ${updatedAt ? `<lastmod>${updatedAt}</lastmod>` : ""}
   <changefreq>weekly</changefreq>
 ${locales
   .map((locale) =>
@@ -305,3 +313,7 @@ const METAOBJECT_SITEMAP_QUERY = gql(`query SitemapMetaobjects($page: Int!) {
     }
   }
 }`);
+
+const ARTICLE_SITEMAP_QUERY = gql(
+  `query SitemapArticles($page: Int!) { sitemap(type: ARTICLE) { resources(page: $page) { items { ... on SitemapResourceInterface { handle updatedAt } } } } }`,
+);

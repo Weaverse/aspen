@@ -1,5 +1,6 @@
 import type { LoaderFunctionArgs } from "react-router";
 import { data } from "react-router";
+import { prefixPathWithLocale } from "~/utils/locale";
 
 export async function loader({ params, context }: LoaderFunctionArgs) {
   const { cart, session } = context;
@@ -23,7 +24,10 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
     session.set("cartId", cartId);
     const headers = new Headers();
     headers.set("Set-Cookie", (await session.commit())?.["Set-Cookie"] || "");
-    headers.set("Location", "/cart");
+    headers.set(
+      "Location",
+      prefixPathWithLocale("/cart", context.localization.selectedLocale),
+    );
 
     const { cart: cartResult, errors, userErrors } = result;
 

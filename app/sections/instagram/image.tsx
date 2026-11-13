@@ -8,6 +8,7 @@ import { forwardRef } from "react";
 import { Link as RemixLink } from "react-router";
 import { Image } from "~/components/image";
 import { useHrefWithLocale } from "~/components/link";
+import { MEDIA_DESKTOP, MEDIA_FROM_TABLET } from "~/utils/breakpoints";
 import { sectionImage } from "~/utils/section-placeholder";
 
 interface InstagramImageProps extends WeaverseComponentProps {
@@ -29,7 +30,7 @@ const InstagramImage = forwardRef<HTMLDivElement, InstagramImageProps>(
           data={imageData}
           alt={altText || imageData.altText || ""}
           className="h-full w-full"
-          sizes="(min-width: 64rem) 260px, (min-width: 744px) 22vw, calc((100vw - 48px) / 2)"
+          sizes={`${MEDIA_DESKTOP} 260px, ${MEDIA_FROM_TABLET} 22vw, calc((100vw - 48px) / 2)`}
         />
         <span className="pointer-events-none absolute inset-0 bg-black/30 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100 group-active:opacity-100" />
         <InstagramLogo className="-translate-x-1/2 -translate-y-1/2 pointer-events-none absolute top-1/2 left-1/2 z-1 size-8 text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100 group-active:opacity-100" />

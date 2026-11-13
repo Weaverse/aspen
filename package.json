@@ -2,7 +2,7 @@
   "name": "@weaverse/aspen",
   "private": true,
   "sideEffects": false,
-  "version": "1.0.0",
+  "version": "2026.11.12",
   "type": "module",
   "author": "Weaverse",
   "scripts": {

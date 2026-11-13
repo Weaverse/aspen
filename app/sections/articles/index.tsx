@@ -21,6 +21,7 @@ import Link from "~/components/link";
 import { layoutInputs, Section, type SectionProps } from "~/components/section";
 import { useLocale } from "~/hooks/use-locale";
 import { useTranslatedText } from "~/hooks/use-translated-text";
+import { articlePath, blogPath } from "~/utils/blog-path";
 import { DESKTOP_MIN_PX, minWidthQuery } from "~/utils/breakpoints";
 import { CACHE_DEFAULT } from "~/utils/cache";
 import { formatDate } from "~/utils/locale";
@@ -233,7 +234,7 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
           )}
           {viewAllText && (
             <Link
-              to={blogs?.handle ? "/blogs" : "#"}
+              to={blogs?.handle ? blogPath(blogs.handle) : "#"}
               className="flex cursor-pointer items-center justify-center gap-2 font-normal text-(--accent-color) text-[10px] uppercase tracking-[0.08em] transition-opacity hover:opacity-70 lg:text-xs"
             >
               {viewAllText}
@@ -261,7 +262,9 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
           {visibleArticles?.map((idx, i) => (
             <article key={i} className="group">
               <Link
-                to={idx.handle ? `/blogs/${idx.handle}` : "#"}
+                to={
+                  idx.handle ? articlePath(idx.handle, idx.blog?.handle) : "#"
+                }
                 data-motion="slide-in"
                 className="block h-full cursor-pointer"
               >

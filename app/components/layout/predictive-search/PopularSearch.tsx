@@ -77,7 +77,7 @@ export function PopularSearch({
           headingClassName,
         )}
       >
-        {t("search.popular")}
+        {t("search.recent")}
       </span>
       <ul className="flex flex-col gap-2">
         {displaySearches.map((search) => (

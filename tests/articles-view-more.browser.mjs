@@ -20,7 +20,7 @@ const bundle = await build({
       window.schema = schema;
       window.relatedSchema = relatedSchema;
       window.renderRelated = (props = {}) => root.render(<RelatedArticles heading="Related articles" {...props} />);
-      window.renderArticles = (props = {}) => root.render(<Articles articlePerRow={3} loaderData={{blog: {articles: {nodes: [{title: "Article title", handle: "journal/article"}]}}}} {...props} />);
+      window.renderArticles = (props = {}) => root.render(<Articles articlePerRow={3} loaderData={{blog: {articles: {nodes: [{title: "Article title", handle: "article", blog: { handle: "journal" }}]}}}} {...props} />);
     `,
     loader: "tsx",
     resolveDir: root,
@@ -50,7 +50,7 @@ const bundle = await build({
             contents = "export const OverlayAndBackground = () => null;";
           } else if (path === "react-router") {
             contents =
-              'export const useLoaderData = () => ({ relatedArticles: [{ id: "article", title: "Article title", handle: "journal/article" }] });';
+              'export const useLoaderData = () => ({ relatedArticles: [{ id: "article", title: "Article title", handle: "article", blog: { handle: "journal" } }] });';
           } else if (path.includes("use-translated-text")) {
             contents = `import { translateThemeText } from "./app/utils/translation"; import en from "./app/locales/en-us.json"; export const useTranslatedText = () => (value, key) => translateThemeText((key) => key.split(".").reduce((obj, part) => obj[part], en), value, key);`;
           } else if (path.includes("use-locale")) {
@@ -83,6 +83,55 @@ const css = stylesheet.build(
     sources: [{ base: `${root}app`, pattern: "**/*.{ts,tsx}", negated: false }],
   }).scan(),
 );
+
+test("Articles View All keeps the selected blog instead of the store's first blog", async () => {
+  const browser = await chromium.launch();
+  try {
+    const page = await browser.newPage();
+    await page.setContent('<div id="root"></div>');
+    await page.addScriptTag({ content: bundle.outputFiles[0].text });
+    // Store order is news, then journal; selecting journal must not link to /blogs.
+    for (const handle of ["news", "journal"]) {
+      await page.evaluate(
+        (selectedBlog) =>
+          window.renderArticles({
+            blogs: { handle: selectedBlog },
+            viewAllText: "View All",
+            loaderData: {
+              blog: {
+                handle: selectedBlog,
+                articles: {
+                  nodes: [
+                    {
+                      title: "Welcome",
+                      handle: "welcome",
+                      blog: { handle: selectedBlog },
+                    },
+                  ],
+                },
+              },
+            },
+          }),
+        handle,
+      );
+      await expect(
+        page.getByRole("link", { name: "View All", exact: true }),
+      ).toHaveAttribute("href", `/blogs?blog=${handle}`);
+      await expect(page.locator("article > a")).toHaveAttribute(
+        "href",
+        `/blogs/welcome?blog=${handle}`,
+      );
+    }
+    await page.evaluate(() =>
+      window.renderArticles({ blogs: undefined, viewAllText: "View All" }),
+    );
+    await expect(
+      page.getByRole("link", { name: "View All", exact: true }),
+    ).toHaveAttribute("href", "#");
+  } finally {
+    await browser.close();
+  }
+});
 
 test("Articles tablet spacing matches design without changing other breakpoints or custom vertical padding", async () => {
   const browser = await chromium.launch();
@@ -181,7 +230,7 @@ test("Articles and Related Articles View More default off and use body-base toke
       await expect(label).toHaveCSS("font-family", '"DM Sans", sans-serif');
       await expect(page.locator("article > a")).toHaveAttribute(
         "href",
-        "/blogs/journal/article",
+        "/blogs/article?blog=journal",
       );
       await page.evaluate(() =>
         window.renderArticles({

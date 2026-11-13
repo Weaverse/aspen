@@ -15,22 +15,22 @@ const bundle = await build({
       import {createRoot} from 'react-dom/client';
       import {Quantity} from './app/components/product/quantity';
       import {Button} from './app/components/button';
-      function Fixture({variant, className, disabled}) {
+      function Fixture({className, disabled}) {
         const [value, onChange] = useState(1);
-        return <Quantity value={value} onChange={onChange} maxQuantity={3} variant={variant} className={className} disabled={disabled}/>;
+        return <Quantity value={value} onChange={onChange} maxQuantity={3} className={className} disabled={disabled}/>;
       }
       const root = createRoot(document.getElementById('root'));
-      window.renderQuantity = (variant = 'stepper') => root.render(<Fixture variant={variant}/>);
+      window.renderQuantity = () => root.render(<Fixture/>);
       window.renderQuickQuantity = props => root.render(<Fixture {...props}/>);
-      window.renderQuickRow = ({variant, quantityClass, rowClass, containerClass, buttonClass, quantity = 1, label = 'ADD TO CART', pending = false}) => root.render(
+      window.renderQuickRow = ({quantityClass, rowClass, containerClass, buttonClass, quantity = 1, label = 'ADD TO CART', pending = false}) => root.render(
         <div className={rowClass}>
-          <Quantity value={quantity} onChange={()=>{}} variant={variant} className={quantityClass}/>
+          <Quantity value={quantity} onChange={()=>{}} className={quantityClass}/>
           <div className={containerClass}><form><Button animate={false} className={buttonClass} loading={pending}>{label}</Button></form></div>
         </div>
       );
       window.renderPurchaseRow = ({rowClass, quantityClass, containerClass, buttonClass, wishlistClass, wishlist, label, pending}) => root.render(
         <div className={rowClass}>
-          <Quantity value={1} onChange={() => {}} variant='stepper' className={quantityClass}/>
+          <Quantity value={1} onChange={() => {}} className={quantityClass}/>
           <div className={containerClass}><form><Button animate={false} type='button' className={buttonClass} loading={pending}>{label}</Button></form></div>
           {wishlist && <button type='button' aria-label='Wishlist' className={'size-[54px] shrink-0 ' + wishlistClass}>♡</button>}
         </div>
@@ -42,20 +42,16 @@ const bundle = await build({
   bundle: true,
   write: false,
   format: "iife",
-  define: { "import.meta.env.DEV": "false" },
   jsx: "automatic",
   alias: { "~": `${root}app` },
   plugins: [
     {
       name: "quantity-fixture",
       setup(builder) {
-        builder.onResolve(
-          { filter: /^@weaverse\/hydrogen(?:\/react-router)?$/ },
-          () => ({
-            path: "translation",
-            namespace: "fixture",
-          }),
-        );
+        builder.onResolve({ filter: /^@weaverse\/hydrogen$/ }, () => ({
+          path: "translation",
+          namespace: "fixture",
+        }));
         builder.onLoad({ filter: /./, namespace: "fixture" }, () => ({
           contents: "export const useTranslation = () => ({t: key => key});",
           loader: "js",
@@ -65,7 +61,7 @@ const bundle = await build({
   ],
 });
 
-test("All product purchase surfaces disable quantity from the selected variant availability", async () => {
+test("All product purchase surfaces share availability-aware quantity controls", async () => {
   for (const [file, selected] of [
     ["components/product/quick-shop.tsx", "selectedVariant"],
     ["sections/main-product/index.tsx", "selectedVariant"],
@@ -73,17 +69,10 @@ test("All product purchase surfaces disable quantity from the selected variant a
   ]) {
     const source = await readFile(`${root}app/${file}`, "utf8");
     const quantity = source.match(/<Quantity\s[\s\S]*?\/>/)?.[0];
-    if (file.startsWith("sections/single-product")) {
-      expect(quantity, file).toContain("disabled={!canPurchase");
-      expect(source, file).toContain("!currentVariant?.availableForSale");
-      expect(source, file).toContain(
-        "const canPurchase = !soldOut && !policyPending",
-      );
-    } else {
-      expect(quantity?.replace(/\s+/g, ""), file).toContain(
-        `disabled={!${selected}?.availableForSale`,
-      );
-    }
+    expect(source, file).toContain(
+      `useProductQuantity(${selected}, selectedSellingPlanId)`,
+    );
+    expect(quantity, file).toContain("disabled={!canPurchase}");
   }
 });
 
@@ -91,61 +80,37 @@ test("Sold-out quantity controls lock and recover without changing their value o
   const browser = await chromium.launch();
   try {
     for (const width of [390, 834, 1440]) {
-      for (const variant of ["stepper", "select"]) {
-        const page = await browser.newPage({
-          viewport: { width, height: 800 },
+      const page = await browser.newPage({ viewport: { width, height: 800 } });
+      await page.setContent('<div id="root"></div>');
+      await page.addScriptTag({ content: bundle.outputFiles[0].text });
+      const render = (disabled) =>
+        page.evaluate((props) => window.renderQuickQuantity(props), {
+          disabled,
         });
-        await page.setContent('<div id="root"></div>');
-        await page.addScriptTag({ content: bundle.outputFiles[0].text });
-        const render = (disabled) =>
-          page.evaluate((props) => window.renderQuickQuantity(props), {
-            variant,
-            disabled,
-          });
-        await render(false);
-        const minus = page.getByRole("button", {
-          name: "product.decreaseQuantity",
-        });
-        const plus = page.getByRole("button", {
-          name: "product.increaseQuantity",
-        });
-        const select = page.getByRole("combobox", {
-          name: "product.selectQuantity",
-        });
-        if (variant === "stepper") {
-          await plus.click();
-          await expect(page.locator("output")).toHaveText("2");
-        } else {
-          await select.click();
-          await page.getByRole("option", { name: "2", exact: true }).click();
-        }
-        await render(true);
-        if (variant === "stepper") {
-          await expect(minus).toBeDisabled();
-          await expect(plus).toBeDisabled();
-          await expect(page.locator("output")).toHaveText("2");
-        } else {
-          await expect(select).toBeDisabled();
-          await expect(select).toHaveText("2");
-        }
-        await render(false);
-        if (variant === "stepper") {
-          await expect(minus).toBeEnabled();
-          await plus.click();
-          await expect(page.locator("output")).toHaveText("3");
-          await expect(plus).toBeDisabled();
-          await minus.click();
-          await minus.click();
-          await expect(page.locator("output")).toHaveText("1");
-          await expect(minus).toBeDisabled();
-        } else {
-          await expect(select).toBeEnabled();
-          await select.click();
-          await page.getByRole("option", { name: "3", exact: true }).click();
-          await expect(select).toHaveText("3");
-        }
-        await page.close();
-      }
+      await render(false);
+      const minus = page.getByRole("button", {
+        name: "product.decreaseQuantity",
+      });
+      const plus = page.getByRole("button", {
+        name: "product.increaseQuantity",
+      });
+      await expect(page.getByRole("combobox")).toHaveCount(0);
+      await plus.click();
+      await expect(page.locator("output")).toHaveText("2");
+      await render(true);
+      await expect(minus).toBeDisabled();
+      await expect(plus).toBeDisabled();
+      await expect(page.locator("output")).toHaveText("2");
+      await render(false);
+      await expect(minus).toBeEnabled();
+      await plus.click();
+      await expect(page.locator("output")).toHaveText("3");
+      await expect(plus).toBeDisabled();
+      await minus.click();
+      await minus.click();
+      await expect(page.locator("output")).toHaveText("1");
+      await expect(minus).toBeDisabled();
+      await page.close();
     }
   } finally {
     await browser.close();
@@ -166,18 +131,7 @@ test("Quick View quantity matches inspected typography and frame while preservin
     `${root}app/components/product/quick-shop.tsx`,
     "utf8",
   );
-  const variant = source.match(/<Quantity[\s\S]*?variant="([^"]+)"/)?.[1];
   const className = source.match(/<Quantity[\s\S]*?className="([^"]+)"/)?.[1];
-  expect(variant).toBe("stepper");
-  for (const path of ["main-product", "single-product"]) {
-    const section = await readFile(
-      `${root}app/sections/${path}/index.tsx`,
-      "utf8",
-    );
-    expect(section.match(/<Quantity[\s\S]*?variant="([^"]+)"/)?.[1]).toBe(
-      variant,
-    );
-  }
   const browser = await chromium.launch();
   try {
     for (const width of [390, 834, 1440]) {
@@ -187,7 +141,6 @@ test("Quick View quantity matches inspected typography and frame while preservin
       );
       await page.addScriptTag({ content: bundle.outputFiles[0].text });
       await page.evaluate((props) => window.renderQuickQuantity(props), {
-        variant,
         className,
       });
       const group = page.getByRole("group", { name: "product.quantity" });
@@ -225,7 +178,7 @@ test("Quick View quantity matches inspected typography and frame while preservin
       }
       await expect(output).toHaveCSS("flex-direction", "column");
       await expect(minus).toBeDisabled();
-      await expect(minus).toHaveCSS("opacity", "1");
+      await expect(minus).toHaveCSS("opacity", "0.4");
       for (const button of [minus, plus]) {
         await expect(button.locator("span")).toHaveCSS("font-size", "20px");
         await expect(button.locator("span")).toHaveCSS("font-weight", "600");
@@ -246,13 +199,14 @@ test("Quick View quantity matches inspected typography and frame while preservin
       await expect(output).toHaveCSS("color", "rgb(52, 50, 49)");
       await plus.click();
       await expect(output).toHaveText("2");
+      await expect(minus).toHaveCSS("opacity", "1");
       await minus.press("Enter");
       await expect(output).toHaveText("1");
       await plus.click();
       await plus.click();
       await expect(output).toHaveText("3");
       await expect(plus).toBeDisabled();
-      await expect(plus).toHaveCSS("opacity", "1");
+      await expect(plus).toHaveCSS("opacity", "0.4");
       await page.close();
     }
   } finally {
@@ -266,7 +220,6 @@ test("Quick View purchase row keeps its preferred quantity width without overflo
     "utf8",
   );
   const settings = {
-    variant: source.match(/<Quantity[\s\S]*?variant="([^"]+)"/)?.[1],
     quantityClass: source.match(/<Quantity[\s\S]*?className="([^"]+)"/)?.[1],
     rowClass: source.match(/<div className="([^"]+)">\s*<Quantity/)?.[1],
     containerClass: source.match(
@@ -338,7 +291,6 @@ test("Featured Product quantity occupies one third of its purchase row at every 
     "utf8",
   );
   const settings = {
-    variant: source.match(/<Quantity[\s\S]*?variant="([^"]+)"/)?.[1],
     quantityClass: source.match(/<Quantity[\s\S]*?className="([^"]+)"/)?.[1],
     rowClass: source.match(/<div className="([^"]+)">\s*<Quantity/)?.[1],
     containerClass: source.match(

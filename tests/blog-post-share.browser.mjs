@@ -43,7 +43,7 @@ const bundle = await build({
             path === "@weaverse/hydrogen/react-router"
               ? 'export const createSchema = (schema) => schema; export const isBrowser = false; export const useTranslation = () => ({ t: (key) => key === "blog.share" ? "Share" : key });'
               : path === "react-router"
-                ? `export const useRouteLoaderData = () => ({ layout: {shop: {primaryDomain: {url: "https://example.com"}}}}); export const useLoaderData = () => ({ blog: { handle: "journal" }, article: {title: "Article", handle: "article", contentHtml: "<p>Article body</p>" + "<p>Paragraph</p>".repeat(90), tags: [], author: {}}, formattedDate: "" });`
+                ? `export const useRouteLoaderData = () => ({ layout: {shop: {primaryDomain: {url: "https://example.com"}}}}); export const useLoaderData = () => ({ blog: { handle: "journal" }, seo: {url: "https://example.com/blogs/article?blog=journal"}, article: {title: "Article", handle: "article", contentHtml: "<p>Article body</p>" + "<p>Paragraph</p>".repeat(90), tags: [], author: {}}, formattedDate: "" });`
                 : 'import React from "react"; export const layoutInputs = []; export const Image = () => null; export const Section = React.forwardRef(({children}, ref) => <section ref={ref}>{children}</section>);';
           return { contents, loader: "tsx", resolveDir: root };
         });
@@ -184,7 +184,7 @@ test("Article desktop Share tracks the content column with a 40px gap and preser
       );
       assert.equal(
         await page.evaluate(() => window.copiedUrl),
-        "https://example.com/blogs/journal/article",
+        "https://example.com/blogs/article?blog=journal",
       );
       await panel
         .getByRole("button", { name: "blog.closeShare", exact: true })

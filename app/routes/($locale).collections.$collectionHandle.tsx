@@ -19,17 +19,11 @@ import {
   parseCategoryFilters,
 } from "~/components/collection/browse";
 import { Analytics } from "~/components/root/analytics";
-import { PRODUCT_CARD_FRAGMENT } from "~/graphql/fragments";
-import type {
-  CollectionQuery,
-  CollectionSaleProductScanQuery,
-  SaleProductCardsQuery,
-} from "~/graphql/storefront-types";
 import type { I18nLocale } from "~/types/locale";
 import { CACHE_DEFAULT, routeHeaders } from "~/utils/cache";
 import { getLegacyBrowseRedirect } from "~/utils/collection-browse";
 import { PAGINATION_SIZE } from "~/utils/const";
-import { FILTER_URL_PREFIX, type SortParam } from "~/utils/filter";
+import type { SortParam } from "~/utils/filter";
 import { getPaginationVariables } from "~/utils/pagination";
 import { redirectIfHandleIsLocalized } from "~/utils/redirect";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
@@ -40,6 +34,7 @@ import {
 import { seoPayload } from "~/utils/seo.server";
 import { localizedSeoMeta } from "~/utils/seo-translation";
 import { unwrapStorefront } from "~/utils/storefront";
+import { canonicalStorefrontPathname } from "~/utils/storefront-path";
 import { WeaverseContent } from "~/weaverse";
 
 export const headers = routeHeaders;
@@ -47,7 +42,21 @@ export const shouldRevalidate = skipPageRevalidationForStorefrontActions;
 
 export async function loader({ params, request, context }: LoaderFunctionArgs) {
   const legacyRedirect = getLegacyBrowseRedirect(new URL(request.url));
-  if (legacyRedirect) throw redirect(legacyRedirect, 301);
+  if (legacyRedirect) {
+    throw redirect(legacyRedirect, 301);
+  }
+  const requestUrl = new URL(request.url);
+  const canonicalPath = canonicalStorefrontPathname(
+    requestUrl.pathname,
+    requestUrl.searchParams,
+  );
+  if (
+    params.collectionHandle === "all" &&
+    canonicalPath !== requestUrl.pathname
+  ) {
+    throw redirect(`${canonicalPath}${requestUrl.search}`, 301);
+  }
+
   const paginationVariables = getPaginationVariables(request, {
     pageBy: PAGINATION_SIZE,
   });

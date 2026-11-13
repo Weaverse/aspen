@@ -16,6 +16,7 @@ import type {
 import { useLocale } from "~/hooks/use-locale";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import type { ImageAspectRatio } from "~/types/image";
+import { articlePath } from "~/utils/blog-path";
 import { minWidthQuery, TABLET_MIN_PX } from "~/utils/breakpoints";
 import { calculateAspectRatio, getImageLoadingPriority } from "~/utils/image";
 import { formatDate } from "~/utils/locale";
@@ -175,7 +176,7 @@ export function ArticleCard({
   return (
     <article className={`group ${className || ""}`}>
       <Link
-        to={`/blogs/${article.handle}`}
+        to={articlePath(article.handle, article.blog?.handle)}
         className="block h-full cursor-pointer"
       >
         <div className="flex h-full w-full flex-col gap-4">

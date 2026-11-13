@@ -279,3 +279,75 @@ test("new item presets start at 12px without injecting defaults into existing it
     await browser.close();
   }
 });
+
+test("new accordion items center SVG and image icons beside wrapped text with 24px toggles", async () => {
+  const browser = await chromium.launch();
+  const title =
+    "A long customer service question that wraps across multiple lines on narrow screens";
+  const svg =
+    '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"><path d="M2 12h20"/></svg>';
+  try {
+    for (const width of [390, 767, 768, 1032, 1033, 1440]) {
+      const page = await fixture(browser, width);
+      for (const layout of ["row", "column"]) {
+        for (const icon of [
+          svg,
+          `data:image/svg+xml,${encodeURIComponent(svg)}`,
+        ]) {
+          const itemTitle = `${title} (${layout}, ${icon === svg ? "SVG" : "image"})`;
+          await page.evaluate((settings) => window.renderAccordion(settings), {
+            layout,
+            itemSettings: [{ title: itemTitle, icon }],
+          });
+          const trigger = page
+            .getByRole("button")
+            .filter({ hasText: itemTitle })
+            .filter({ visible: true });
+          await expect(trigger).toBeVisible();
+          const geometry = await trigger.evaluate((button) => {
+            const [iconElement, text, toggle] = button.children;
+            const bounds = (element) => {
+              const rect = element.getBoundingClientRect();
+              return {
+                width: rect.width,
+                height: rect.height,
+                center: rect.y + rect.height / 2,
+              };
+            };
+            return {
+              icon: bounds(iconElement),
+              graphic: bounds(iconElement.querySelector("svg") || iconElement),
+              text: bounds(text),
+              toggle: bounds(toggle),
+              overflow: button.scrollWidth > button.clientWidth,
+            };
+          });
+          expect(geometry.icon.width).toBe(20);
+          expect(geometry.icon.height).toBe(20);
+          expect(geometry.graphic.width).toBe(20);
+          expect(geometry.graphic.height).toBe(20);
+          expect(geometry.toggle.width).toBe(24);
+          expect(geometry.toggle.height).toBe(24);
+          expect(
+            Math.abs(geometry.icon.center - geometry.text.center),
+          ).toBeLessThan(1);
+          expect(
+            Math.abs(geometry.toggle.center - geometry.text.center),
+          ).toBeLessThan(1);
+          expect(geometry.overflow).toBe(false);
+          const initialState = await trigger.getAttribute("data-state");
+          await trigger.click();
+          await expect(trigger).toHaveAttribute(
+            "data-state",
+            initialState === "open" ? "closed" : "open",
+          );
+          await trigger.click();
+          await expect(trigger).toHaveAttribute("data-state", initialState);
+        }
+      }
+      await page.close();
+    }
+  } finally {
+    await browser.close();
+  }
+});
