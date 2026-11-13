@@ -39,88 +39,27 @@ sort use the library store and Liquid-compatible parameters; old browse URLs
 redirect while preserving unrelated campaign parameters. Search keeps Aspen's
 visible-listing pagination and bounded facet probes.
 
-## Verification record
+## Validation
 
-Verified locally on 2026-11-12 with Node 22.23.0:
+- Typecheck, GraphQL validation and production build pass on supported Node 22.
+- 186 TypeScript unit tests and 52 merchant-blog/CMS/route tests pass.
+- The three product quantity/stock browser suites pass all 22 tests, covering
+  pending submissions, rejected adds, inventory limits and variant changes.
+- Oxygen Preview build, upload and routability verification pass after merging
+  the latest main and including the local cart-link fixes.
+- Live French Customer Account OAuth passes OTP login, callback, session
+  persistence after reload and logout returning to the correct market.
+- Live cart add, inventory-limit locking, persistence after reload and removal
+  pass on the same Preview deployment. No checkout order was placed.
+- Studio draft selection, editing, save, revalidation and reload persistence
+  were verified locally against the migrated checkout.
 
-- A clean `npm ci --engine-strict --no-audit --no-fund` using npm 10.9.8.
-- `npm run typecheck`, including GraphQL validation, and `npm run build`.
-- Biome with no errors (non-blocking lint warnings remain), and `git diff --check`.
-- All 30 TypeScript unit files: 179 tests, including the added cart-removal
-  regression. Separate search tests (17) and sanitizer runtime tests (3) pass.
-- Vite/MiniOxygen dev startup, worker SSR, client transforms and dependency
-  optimization, including the missing-session-secret guard.
-- Production-preview browser checks at desktop (1440px) and mobile (390px):
-  product add, quantity update, persistence after reload, removal, private page
-  cache headers with a cart cookie, and no client exceptions.
-- Eleven focused browser suites (66 tests) pass. They cover product quantity,
-  swatches and galleries;
-  cart quantity, loading, nested dialogs and shared-inventory races; featured
-  products; video Quick Add; Quick Shop/cart handoff; and collection controls.
-  Fixtures use the v6 entry points and local replacement helpers. Collection
-  assertions use `sort_by`/`filter.v.*`; search assertions retain Aspen's URL
-  contract.
-- Client navigation to the French market updates Shopify's locale, country,
-  currency and route root. Home, search, all-products and collections respond
-  successfully; unsupported-market pages/resources answer 404, and old sort
-  URLs redirect with campaign parameters preserved.
+For new Shopify storefront credentials, enable inventory read access for
+`quantityAvailable` queries. Register the HTTPS OAuth callback and required
+localized logout URLs for the deployment being tested.
 
-The cart-removal regression was first reproduced against the incorrect gateway
-payload, then passed after mapping removals to zero-quantity `lines`, as required
-by Hydrogen's JSON cart handler.
-
-Additional account and Studio verification:
-
-- Eleven account integration tests cover HTTPS OAuth login, PKCE, signed
-  cookies, safe return URLs, callback state rejection, callback token exchange,
-  refresh, same-origin logout protection, cart customer-identity reconciliation and
-  preservation of order keys through login redirects. HTTPS local account pages
-  exercise real authentication; automatic fixture previews stay on HTTP localhost
-  and in Studio design mode.
-  Shopify token responses are fixtures; these tests do not represent a live OTP
-  sign-in. Transient refresh failures preserve the cart; definitive failures and
-  logout detach the customer, expiring the cart cookie if detachment fails.
-- A queued cart mutation sends an explicit `customerAccessToken: null` when
-  signed out, instead of leaving the previous customer's buyer identity attached.
-- The actual Aspen project in Weaverse Studio was tested against this checkout
-  on port 3460: section selection, inspector settings, heading updates, draft save,
-  revalidation and persistence across a full Studio reload. The original heading
-  `ACCOUNT` was restored and saved. Nothing was published. The active preview was
-  restored to `http://localhost:3456`; an inactive `Migration QA (temporary)`
-  preview pointing to `http://localhost:3460` remains available for review.
-- A dev-worker HTTP check confirms that plain HTTP localhost still renders the
-  account fixture, while forwarded HTTPS redirects an order deep link to login
-  with its order key preserved. This verifies routing, not a live OTP sign-in.
-- Live Shopify sign-in was deferred at the user's request. It still needs a
-  registered HTTPS origin and a customer OTP.
-  Plain HTTP is rejected by the SDK; an HTTP preflight with forwarded HTTPS
-  generated the correct authorization redirect and signed cookie, but Shopify
-  answered 406 to the scripted authorization request. This does not establish
-  whether the callback is registered or whether live sign-in succeeds.
-
-Post-review regressions are covered by the loader and account integration tests:
-
-- Collection loaders always supply `COLLECTION_DEFAULT` when `sort_by` is absent
-  or unsupported, including subsequent sale-page scans. Explicit sorts keep
-  their original direction.
-- Adding another facet retains category selections, campaign parameters and a
-  single sort value. Category removal affects only the selected category.
-- Missing-collection redirects remove modern and legacy cursors and terminate
-  at 404 instead of redirecting to themselves.
-- Cart token resolution distinguishes signed-out (`null`) from temporarily
-  unavailable (`undefined`). Queued standard mutations and cart creation return
-  a structured, translated retry error before changing the cart when refreshing
-  fails transiently; they retain the customer binding and can succeed on retry.
-- Real dev-worker requests now return 200 for `/collections/chairs`, its sale
-  view and explicit sorting. Missing collections with either cursor redirect to
-  a cursor-free URL and then return 404.
-
-An Oxygen deployment was explicitly skipped at the user's request. No release
-or tag has been created.
-Before treating the issue as complete, verify an Aspen Oxygen Preview deployment,
-Customer Account OAuth against its registered HTTPS origin, then publish a
-release with these migration notes. Studio draft editing and persistence have
-been verified locally against the migrated checkout, as recorded above.
+Spanish OAuth has not been tested with a fresh OTP session. A version/tag and
+GitHub Release still need to be published after merge to complete the issue.
 
 ## References
 

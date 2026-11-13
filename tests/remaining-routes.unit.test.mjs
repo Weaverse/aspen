@@ -84,9 +84,11 @@ function fixture(path, locale = SUPPORTED_LOCALES[0]) {
     env: { PUBLIC_STORE_DOMAIN: "shop.myshopify.com" },
     session: {
       set: (...args) => calls.push(["session", ...args]),
-      commit: async () => ({"Set-Cookie": "cartId=cart-1; HttpOnly"}),
+      commit: async () => ({ "Set-Cookie": "cartId=cart-1; HttpOnly" }),
     },
     cart: {
+      getCartId: () => "cart-1",
+      setCartId: (id) => new Headers({ "Set-Cookie": `cart=${id}; HttpOnly` }),
       addLines: async (lines) => {
         calls.push(["add", lines]);
         return { cart: { id: "cart-1" } };
@@ -200,7 +202,10 @@ for (const locale of SUPPORTED_LOCALES) {
         assert.equal(result.collection.handle, "all");
         assert.equal(queries.length, 1);
         assert.equal(queries[0].handle, "all");
-        assert.deepEqual(queries[0].filters.map(x => JSON.stringify(x)).sort(), filters.map(x => JSON.stringify(x)).sort());
+        assert.deepEqual(
+          queries[0].filters.map((x) => JSON.stringify(x)).sort(),
+          filters.map((x) => JSON.stringify(x)).sort(),
+        );
         assert.equal(queries[0].sortKey, sortKey);
         assert.equal(queries[0].reverse, reverse);
         assert.equal(queries[0].country, locale.country);
@@ -300,7 +305,7 @@ for (const locale of SUPPORTED_LOCALES) {
     const cart = await cartAdd(args);
     assert.equal(cart.init.status, 303);
     assert.equal(cart.init.headers.get("Location"), `${prefix}/cart`);
-    assert.match(cart.init.headers.get("Set-Cookie"), /cartId=cart-1/);
+    assert.match(cart.init.headers.get("Set-Cookie"), /cart=cart-1/);
     assert.deepEqual(args.calls[1], [
       "add",
       [{ merchandiseId: "gid://shopify/ProductVariant/123", quantity: 1 }],
@@ -326,7 +331,7 @@ for (const locale of SUPPORTED_LOCALES) {
     assert.equal(destination.searchParams.get("utm_source"), "email");
     assert.equal(destination.searchParams.has("redirect"), false);
     assert.equal(destination.hash, "#results");
-    assert.match(response.headers.get("Set-Cookie"), /cartId=cart-1/);
+    assert.match(response.headers.get("Set-Cookie"), /cart=cart-1/);
     assert.deepEqual(args.calls[0], ["discount", ["TEST"]]);
     const home = await discount({
       ...args,
@@ -718,7 +723,7 @@ test("blog sitemap preserves merchant blog identity with published locale prefix
 });
 
 async function collectionFollowingLegacyRedirects(args) {
-  for (let attempt = 0; attempt < 3; attempt++) {
+  for (let attempt = 0; attempt < 3; attempt += 1) {
     try {
       return await collection(args);
     } catch (response) {
