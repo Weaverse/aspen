@@ -23,7 +23,7 @@ page composition and theme-setting values.
 
 Install or obtain:
 
-- Node.js **22.12.0 or newer** (`node --version`)
+- Node.js **`^22.18.0 || ^24.11.0`** (use a current patched release in either supported major) (`node --version`)
 - npm, which is included with Node (`npm --version`)
 - Git (`git --version`)
 - access to a Shopify store with the Hydrogen or Headless sales channel
@@ -32,6 +32,47 @@ Install or obtain:
 
 Aspen tracks `package-lock.json`; use npm and `npm ci` for reproducible installs.
 Do not add a second lockfile.
+
+### Node compatibility
+
+Aspen supports `^22.18.0 || ^24.11.0`, aligned with Pilot. Node 22.0.0,
+older unsupported minors, odd majors, and Node 26 are not acceptance targets.
+Prefer an up-to-date patched Node 22 or 24 release within this policy.
+
+The repository uses published upstream MiniOxygen 4.2.3 and sanitize-html
+2.18.1; no compatibility forks or `file:` dependencies are required.
+Shopify CLI 4.6.0, Vite 8.2.0 and GraphQL Code Generator 7.2.0 replace pins
+introduced solely for the obsolete Node 22.0.0 floor. `vite-node` 6.0.0
+runs the existing TypeScript localization/footer tests on the same Vite major.
+Keep the exact committed lockfile and dependency security overrides.
+CLI 4.6.0 already depends on patched esbuild 0.28.1, so the old CLI-specific
+esbuild override is redundant. The obsolete relay optimizer floor pin and
+vite-node/Vite override are also removed; the native dependency graph now
+passes strict engine checks at the supported minimums.
+
+Routine CI runs one Ubuntu job on Node 22.18.0 for pull requests and pushes
+to main. It installs from the lockfile with strict engine checks and runs
+Biome, codegen, typechecking, focused tests and the production build. Run
+the **Node compatibility** workflow manually for the wider Linux, macOS and
+Windows matrix at both minimums and the current patches. It also verifies the
+selected dependency graph and exercises dev startup, worker SSR and client
+optimization. See the [validation record](node-support-validation.md) for
+completed runs and outstanding acceptance.
+
+See [upstream security comparison](node-upstream-security.md) for gaps that
+remain after removing the forks. The security regression suite intentionally
+continues to expose unresolved upstream differences; do not interpret a
+successful install/build as security acceptance.
+
+Catalog routes and Studio edit/revalidation/publish/reload/reconnect must be
+verified against the approved disposable project on the final candidate.
+Prior results are retained in [historical evidence](node-support-history.md),
+with the original commit/runtime, and do not establish acceptance here.
+
+Fresh onboarding must use a published Weaverse CLI release that preserves
+`package-lock.json`. [Weaverse/weaverse#565](https://github.com/Weaverse/weaverse/issues/565)
+is still separate and unresolved: CLI 5.8.0 deletes the lockfile. Repository
+`npm ci` checks do not substitute for that published-CLI acceptance.
 
 Oxygen is available through Shopify's Hydrogen sales channel. A development
 store can be used for development, although its Oxygen deployment URLs are

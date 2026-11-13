@@ -37,7 +37,6 @@ export default defineConfig(({ isSsrBuild }) => ({
     alias: {
       "~": fileURLToPath(new URL("./app", import.meta.url)),
     },
-    tsconfigPaths: true,
   },
   build: {
     // Allow a strict Content-Security-Policy

@@ -46,7 +46,7 @@ the [Aspen setup and usage guide](docs/setup.md).
 
 **Requirements:**
 
-- Node.js version 22.12.0 or higher
+- Node.js `^22.18.0 || ^24.11.0`; prefer a current patched release (see [Node compatibility](docs/setup.md#node-compatibility))
 - npm package manager
 
 **Follow these steps to get started with Aspen and begin crafting your furniture store:**

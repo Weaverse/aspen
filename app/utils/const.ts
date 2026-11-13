@@ -2,8 +2,6 @@ import type { I18nLocale } from "~/types/locale";
 
 export const PAGINATION_SIZE = 16;
 
-export const DEFAULT_BLOG_HANDLE = "aspen-blogs";
-
 export const DEFAULT_LOCALE: I18nLocale = Object.freeze({
   label: "United States · English · USD",
   language: "EN",

@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Check Aspen
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SHOPIFY_CLI_NO_ANALYTICS: "1"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22.18.0"
+          cache: npm
+      - name: Use the audited npm version
+        run: npm install --global npm@10.9.8 --no-audit --no-fund
+      - name: Install from the committed lockfile
+        run: npm ci --engine-strict --no-audit --no-fund
+      - name: Check source with Biome
+        run: npm run biome
+      - name: Generate GraphQL types
+        run: npm run codegen
+      - name: Check types
+        run: npm run typecheck
+      - name: Check localization
+        run: npm run locale:check && npm run i18n:test
+      - name: Check sanitizer regressions
+        run: node --test tests/sanitizer-runtime.unit.test.mjs
+      - name: Check footer sanitization
+        run: npx --no-install vite-node tests/footer-rich-text.unit.test.ts
+      - name: Build storefront
+        run: npm run build

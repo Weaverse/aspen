@@ -8,11 +8,16 @@ import type {
 import invariant from "tiny-invariant";
 import type { EnhancedMenu } from "~/types/menu";
 import type { WishlistApiResponse } from "~/types/wishlist";
+import { articlePath, blogPath } from "~/utils/blog-path";
 import { sanitizeFooterTheme } from "~/utils/footer-rich-text.server";
 import { getLocaleSegment, localeCode } from "~/utils/locale";
 import { loadLoyaltyBalance } from "~/utils/loyalty.server";
 import { isLoyaltyLionConfigured } from "~/utils/loyaltylion.server";
 import { seoPayload } from "~/utils/seo.server";
+import {
+  canonicalStorefrontPathname,
+  isFilteredAllProductsPath,
+} from "~/utils/storefront-path";
 import {
   readThemivoHearts,
   themivoEnabled,
@@ -149,8 +154,8 @@ async function getLayoutData({ storefront, env }: AppLoadContext) {
       Modify specific links/routes (optional)
       @see: https://shopify.dev/api/storefront/unstable/enums/MenuItemType
       e.g here we map:
-        - /blogs/news -> /news
-        - /blog/news/blog-post -> /news/blog-post
+        - /blogs/news -> /blogs?blog=news
+        - /blogs/news/blog-post -> /blogs/blog-post?blog=news
         - /collections/all -> /products
     */
   const customPrefixes = { CATALOG: "products" };
@@ -260,16 +265,42 @@ function parseItem(primaryDomain: string, env: Env, customPrefixes = {}) {
     }
 
     // extract path from url because we don't need the origin on internal to attributes
-    const { host, pathname } = new URL(item.url);
+    const { host, pathname, search, hash } = new URL(item.url);
     const isInternalLink =
       host === new URL(primaryDomain).host || host === env.PUBLIC_STORE_DOMAIN;
+    // A repeated leading slash must not become a protocol-relative link when
+    // the storefront origin is removed from an internal menu URL.
+    const normalizedPathname = isInternalLink
+      ? pathname.replace(/^\/{2,}/, "/")
+      : pathname;
+    const resolvedPath = isInternalLink
+      ? isFilteredAllProductsPath(normalizedPathname, search)
+        ? normalizedPathname
+        : resolveToFromType({
+            type: item.type,
+            customPrefixes,
+            pathname: normalizedPathname,
+          })
+      : "";
+    const locale = getLocaleSegment(normalizedPathname);
+    const localizedPath =
+      locale && !getLocaleSegment(resolvedPath)
+        ? `/${locale}${resolvedPath === "/" ? "" : resolvedPath}`
+        : resolvedPath;
+    const destination = new URL(localizedPath, item.url);
+    for (const [key, value] of new URLSearchParams(search)) {
+      // The typed Shopify blog/article URL determines resource identity.
+      if (key !== "blog" || !destination.searchParams.has("blog")) {
+        destination.searchParams.append(key, value);
+      }
+    }
     const parsedItem = isInternalLink
       ? // internal links
         {
           ...item,
           isExternal: false,
           target: "_self",
-          to: resolveToFromType({ type: item.type, customPrefixes, pathname }),
+          to: `${canonicalStorefrontPathname(destination.pathname, destination.search)}${destination.search}${hash}`,
         }
       : // external links
         {
@@ -308,6 +339,10 @@ function resolveToFromType(
     return "";
   }
 
+  if (type === "HTTP") {
+    return pathname;
+  }
+
   /*
     MenuItemType enum
     @see: https://shopify.dev/api/storefront/unstable/enums/MenuItemType
@@ -325,7 +360,7 @@ function resolveToFromType(
     SHOP_POLICY: "policies",
   };
 
-  const pathParts = pathname.split("/");
+  const pathParts = pathname.split("/").filter(Boolean);
   const handle = pathParts.pop() || "";
   if (type === "PAGE" && handle === "contact") {
     return "/contact";
@@ -341,12 +376,13 @@ function resolveToFromType(
     case type === "FRONTPAGE":
       return "/";
     case type === "ARTICLE": {
-      return routePrefix.BLOG
-        ? `/${routePrefix.BLOG}/${handle}/`
-        : `/${handle}/`;
+      return articlePath(
+        decodeURIComponent(handle),
+        decodeURIComponent(pathParts.at(-1) ?? ""),
+      );
     }
     case type === "BLOG":
-      return `/${routePrefix.BLOG}`;
+      return blogPath(decodeURIComponent(handle));
     case type === "COLLECTIONS":
       return `/${routePrefix.COLLECTIONS}`;
     case type === "SEARCH":

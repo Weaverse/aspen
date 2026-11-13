@@ -5,10 +5,10 @@ import {
   TwitterLogoIcon,
   XCircleIcon,
 } from "@phosphor-icons/react";
-import { createSchema, isBrowser, useTranslation } from "@weaverse/hydrogen";
+import { createSchema, useTranslation } from "@weaverse/hydrogen";
 import { forwardRef, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { useLoaderData, useRouteLoaderData } from "react-router";
+import { useLoaderData } from "react-router";
 import {
   FacebookShareButton,
   LinkedinShareButton,
@@ -17,7 +17,6 @@ import {
 import type { ArticleQuery } from "storefront-api.generated";
 import { Image } from "~/components/image";
 import { layoutInputs, Section, type SectionProps } from "~/components/section";
-import type { RootLoader } from "~/root";
 import { cn } from "~/utils/cn";
 
 interface BlogPostProps extends SectionProps {
@@ -184,24 +183,14 @@ const BlogPost = forwardRef<HTMLElement, BlogPostProps>((props, ref) => {
     showShareLinkedIn = false,
     ...rest
   } = props;
-  const { layout } = useRouteLoaderData<RootLoader>("root");
-  const { article, blog, formattedDate } = useLoaderData<{
+  const { article, seo, formattedDate } = useLoaderData<{
     article: ArticleQuery["blog"]["articleByHandle"];
-    blog: ArticleQuery["blog"];
+    seo: { url: string };
     formattedDate: string;
   }>();
-  const { title, handle, image, contentHtml, author, tags } = article;
+  const { title, image, contentHtml, author, tags } = article;
   if (article) {
-    let domain = layout.shop.primaryDomain.url;
-    if (isBrowser) {
-      const origin = window.location.origin;
-      if (!origin.includes("localhost")) {
-        domain = origin;
-      }
-    }
-    const articleUrl = isBrowser
-      ? `${domain}${window.location.pathname}`
-      : `${domain}/blogs/${blog.handle}/${handle}`;
+    const articleUrl = seo.url;
     const readMinutes = estimateReadMinutes(contentHtml || "");
     const category = tags?.[0];
 
