@@ -29,6 +29,7 @@ declare global {
     KLAVIYO_PRIVATE_API_TOKEN: string;
     LOYALTYLION_SITE_ID: string;
     LOYALTYLION_API_KEY: string;
+    WISHLIST_API_KEY?: string;
     PUBLIC_SHOPIFY_INBOX_SHOP_ID: string;
     WEAVERSE_HOST?: string;
   }
@@ -60,7 +61,7 @@ declare module "react-router" {
   }
 
   interface SessionData extends HydrogenSessionData {
-    // declare local additions to the Remix session data here
+    themivoGuest?: string;
   }
 }
 

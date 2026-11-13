@@ -292,7 +292,9 @@ test("Featured Product quantity occupies one third of its purchase row at every 
   );
   const settings = {
     quantityClass: source.match(/<Quantity[\s\S]*?className="([^"]+)"/)?.[1],
-    rowClass: source.match(/<div className="([^"]+)">\s*<Quantity/)?.[1],
+    rowClass: source.match(
+      /<div\s+className=\{clsx\(\s*"([^"]+)",[^)]*\)\}\s*>\s*<Quantity/,
+    )?.[1],
     containerClass: source.match(
       /<AddToCartButton\s+width="auto"\s+containerClassName="([^"]+)"/,
     )?.[1],
@@ -417,7 +419,9 @@ test("complete purchase row keeps quantity, CTA content and wishlist inside narr
     `${root}app/sections/main-product/index.tsx`,
     "utf8",
   );
-  const rowClass = source.match(/<div className="([^"]+)">\s*<Quantity/)?.[1];
+  const rowClass = source.match(
+    /<div\s+className=\{clsx\(\s*"([^"]+)",[^)]*\)\}\s*>\s*<Quantity/,
+  )?.[1];
   const quantityClass = source.match(
     /<Quantity[\s\S]*?className="([^"]+)"/,
   )?.[1];

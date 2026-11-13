@@ -80,6 +80,7 @@ const bundle = await build({
           export const useTranslatedThemeSettings=()=>({addToCartText:'Add to cart'});
           export const usePrefixPathWithLocale=path=>path;
           export const useQuickViewScrollbar=()=>{};
+          export const useProductWishlist=()=>({showWishlist:false,wishlistOnImage:false,wishlistBelowCart:false,useAspenImageAppearance:true,formClassName:'',imagePosition:''});
           export const useFetcher=()=>({});
           export const useFetchers=()=>[];
           export const CartForm={ACTIONS:{LinesAdd:"LinesAdd",LinesUpdate:"LinesUpdate",LinesRemove:"LinesRemove"}};

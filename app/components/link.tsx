@@ -15,6 +15,7 @@ import { useTranslatedText } from "~/hooks/use-translated-text";
 import type { RootLoader } from "~/root";
 import { cn } from "~/utils/cn";
 import { prefixPathWithLocale } from "~/utils/locale";
+import { preserveThemivoPreview } from "~/utils/themivo-script-preview";
 
 export const variants = cva(
   [
@@ -141,7 +142,13 @@ export const Link = forwardRef(
     } = props;
     const text = translateText(rawI18nText, "themeContent.componentsLink.text");
     const { enableViewTransition } = useThemeSettings();
-    const href = useHrefWithLocale(to);
+    const localizedHref = useHrefWithLocale(to);
+    const previewShop =
+      useRouteLoaderData<RootLoader>("root")?.themivoScriptShop;
+    const href =
+      previewShop && typeof localizedHref === "string"
+        ? preserveThemivoPreview(localizedHref)
+        : localizedHref;
 
     if (variant === "custom") {
       style = {

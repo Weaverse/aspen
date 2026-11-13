@@ -13,6 +13,7 @@ import {
   getRequestI18n,
   loadStoreLocalization,
 } from "~/utils/localization.server";
+import { isPrivateWishlistPath } from "~/utils/themivo-script-preview";
 import { defaultTranslation } from "~/utils/translation";
 import { components } from "~/weaverse/components";
 import { getThemeSchema } from "~/weaverse/schema.server";
@@ -100,6 +101,19 @@ export default {
       });
 
       const response = await handleRequest(request);
+
+      if (
+        env.WISHLIST_API_KEY?.trim() &&
+        (response.headers.get("Content-Type")?.includes("text/html") ||
+          new URL(request.url).pathname.endsWith(".data"))
+      ) {
+        response.headers.set("Cache-Control", "private, no-store");
+      }
+
+      if (isPrivateWishlistPath(new URL(request.url).pathname)) {
+        response.headers.set("Referrer-Policy", "no-referrer");
+        response.headers.set("X-Robots-Tag", "noindex");
+      }
 
       if (appLoadContext.session.isPending) {
         response.headers.set(

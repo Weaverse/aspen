@@ -12,6 +12,7 @@ import {
 import useWindowScroll from "react-use/esm/useWindowScroll";
 import Link from "~/components/link";
 import { Logo } from "~/components/logo";
+import { ThemivoWishlistEntry } from "~/components/wishlist/themivo-wishlist-entry";
 import type { RootLoader } from "~/root";
 import { cn } from "~/utils/cn";
 import { DEFAULT_LOCALE } from "~/utils/const";
@@ -145,6 +146,7 @@ export function Header() {
           {!isCompactDesktop ? (
             <PredictiveSearchButtonDesktop setIsSearchOpen={setIsSearchOpen} />
           ) : null}
+          <ThemivoWishlistEntry />
           <AccountLink className="relative flex size-5 items-center justify-center before:absolute before:-inset-2" />
           <CartDrawer />
         </div>

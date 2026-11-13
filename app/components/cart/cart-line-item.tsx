@@ -9,7 +9,15 @@ import { SubscriptionLineItem } from "~/components/subscriptions/subscription-li
 import { calculateAspectRatio } from "~/utils/image";
 import { toggleCartDrawer } from "../layout/cart-drawer";
 import { CartLineQuantityAdjust } from "./cart-line-qty-adjust";
+import { SaveCartLineForLater } from "./cart-saved-for-later";
 import type { CartLayout, CartLine } from "./cart-types";
+import {
+  DRAWER_LINE_BODY_CLASS,
+  DRAWER_LINE_CLASS,
+  DRAWER_LINE_IMAGE_CLASS,
+  DRAWER_LINE_MEDIA_CLASS,
+  DRAWER_LINE_TITLE_CLASS,
+} from "./drawer-frame";
 import { useCartStore } from "./store";
 
 const cartCodeBadgeClassName =
@@ -51,7 +59,7 @@ export function CartLineItem({
       className={clsx(
         "relative transition-all duration-300",
         layout === "drawer"
-          ? "flex gap-4 max-md:min-w-0 max-md:w-full"
+          ? DRAWER_LINE_CLASS
           : "flex h-full flex-col items-center overflow-hidden rounded-(--radius-md) md:flex-row",
         isOptimistic && "opacity-70",
         id.startsWith("optimistic-") && "pointer-events-none",
@@ -61,7 +69,7 @@ export function CartLineItem({
       <div
         className={clsx(
           layout === "drawer"
-            ? "shrink-0 rounded-(--radius-md) bg-(--color-background-subtle)/50 max-xl:w-[clamp(100px,32.56vw,140px)] max-md:relative max-md:h-[140px] max-md:min-w-0 max-md:flex-[1_0_0] max-md:self-start max-md:overflow-hidden"
+            ? DRAWER_LINE_MEDIA_CLASS
             : "aspect-square w-full md:h-[360px] md:w-[360px] md:shrink-0",
         )}
       >
@@ -73,7 +81,7 @@ export function CartLineItem({
             className={clsx(
               "!object-cover",
               layout === "drawer"
-                ? "h-auto w-[140px] rounded-xl max-xl:aspect-square max-xl:h-full max-xl:max-h-[140px] max-xl:w-full max-md:absolute max-md:inset-0 max-md:aspect-auto max-md:max-h-none max-md:rounded-(--radius-md)"
+                ? DRAWER_LINE_IMAGE_CLASS
                 : "h-full w-full rounded",
             )}
             alt={title}
@@ -87,7 +95,7 @@ export function CartLineItem({
         className={clsx(
           "flex flex-col",
           layout === "drawer"
-            ? "min-w-0 grow justify-between gap-4 max-xl:min-h-[140px] max-xl:text-sm max-md:min-w-min max-md:basis-3/5 max-md:grow-0 max-md:shrink-0 max-md:gap-2 max-md:wrap-anywhere"
+            ? DRAWER_LINE_BODY_CLASS
             : "h-full w-full bg-[var(--Background-Background,#FFF)] p-6 md:h-[360px]",
         )}
       >
@@ -130,6 +138,8 @@ export function CartLineItem({
               />
               <SubscriptionLineItem line={line as any} />
 
+              <SaveCartLineForLater line={line} />
+
               {/* Quantity and Pricing */}
               <div className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-1">
                 <CartLineQuantityAdjust line={line} />
@@ -158,12 +168,12 @@ export function CartLineItem({
                     className="w-full justify-start text-left max-xl:leading-5"
                     onClick={() => toggleCartDrawer(false)}
                   >
-                    <span className="max-xl:line-clamp-2 xl:line-clamp-1 font-semibold uppercase max-md:line-clamp-1">
+                    <span className={DRAWER_LINE_TITLE_CLASS}>
                       {product?.title || ""}
                     </span>
                   </Link>
                 ) : (
-                  <p className="max-xl:line-clamp-2 xl:line-clamp-1 font-semibold uppercase max-md:line-clamp-1">
+                  <p className={DRAWER_LINE_TITLE_CLASS}>
                     {product?.title || ""}
                   </p>
                 )}
