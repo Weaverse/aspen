@@ -1,23 +1,34 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { getProductOptions } from "@shopify/hydrogen";
 import { build } from "esbuild";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const bundle = await build({
   stdin: {
     contents:
-      'export {getCombinedListingTarget} from "./app/sections/main-product/combined-listing-target";',
+      'export {getCombinedListingTarget} from "./app/sections/main-product/combined-listing-target"; export {getProductOptions} from "./app/components/product/product-form";',
     resolveDir: root,
     loader: "ts",
   },
+  plugins: [
+    {
+      name: "production-dependencies",
+      setup(builder) {
+        builder.onResolve({ filter: /^[^./~]/ }, ({ path }) => ({
+          path: import.meta.resolve(path),
+          external: true,
+        }));
+      },
+    },
+  ],
+  platform: "node",
   bundle: true,
   write: false,
   format: "esm",
   alias: { "~": `${root}app` },
 });
-const { getCombinedListingTarget } = await import(
+const { getCombinedListingTarget, getProductOptions } = await import(
   `data:text/javascript,${encodeURIComponent(bundle.outputFiles[0].text)}`
 );
 
@@ -68,7 +79,7 @@ test("target handle and query both follow the real Hydrogen resolved variant", (
   const options = getProductOptions(data);
   assert.equal(options[0].optionValues[0].handle, "child-b");
   assert.equal(
-    options[0].optionValues[0].firstSelectableVariant.product.handle,
+    data.options[0].optionValues[0].firstSelectableVariant.product.handle,
     "child-a",
   );
   assert.equal(
@@ -102,4 +113,32 @@ test("untagged products do not become combined parents", () => {
   const data = product();
   data.tags = [];
   assert.equal(getCombinedListingTarget(data, getProductOptions(data)), null);
+});
+
+test("selected values keep the selected child's handle and option tuple together", () => {
+  const data = product();
+  const options = getProductOptions(data);
+  for (const option of options) {
+    const selected = option.optionValues.find((value) => value.selected);
+    assert.equal(selected.handle, "child-b");
+    assert.equal(selected.variant.product.handle, "child-b");
+    assert.equal(selected.variantUriQuery, "Size=Large&Color=Red");
+    assert.equal(selected.isDifferentProduct, true);
+  }
+  const blue = options[1].optionValues.find((value) => value.name === "Blue");
+  assert.equal(blue.handle, "child-a");
+  assert.equal(blue.variantUriQuery, "Size=Large&Color=Blue");
+});
+
+test("switching the selected child to Blue does not retain the Red target", () => {
+  const data = product(variant("variant-b", "child-b", "Red"));
+  data.selectedOrFirstAvailableVariant = variant(
+    "variant-a",
+    "child-a",
+    "Blue",
+  );
+  assert.equal(
+    getCombinedListingTarget(data, getProductOptions(data)),
+    "/products/child-a?Size=Large&Color=Blue",
+  );
 });

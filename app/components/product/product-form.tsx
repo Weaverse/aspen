@@ -28,19 +28,34 @@ export type MappedProductOptions = {
 export function getProductOptions(
   product: ProductFormData,
 ): MappedProductOptions[] {
-  if (!product) return [];
+  if (!product) {
+    return [];
+  }
   const cart = createCartStore();
   const form = createProductFormStore(product, cart);
   const options = form.getState().options.map((option) => ({
     name: option.name,
-    optionValues: option.values.map((value) => ({
-      ...value,
-      firstSelectableVariant: value.variant,
-      isDifferentProduct: value.handle !== product.handle,
-      variantUriQuery: new URLSearchParams(
-        value.selectedOptions.map((o) => [o.name, o.value]),
-      ).toString(),
-    })),
+    optionValues: option.values.map((value) => {
+      // Selected values can expose the current product's handle even when
+      // Hydrogen resolved a combined-listing child. Keep identity and options
+      // from that same resolved variant; retain the store's unresolved fallback.
+      const variant = value.selected
+        ? (product.selectedOrFirstAvailableVariant ?? value.variant)
+        : value.variant;
+      const handle = variant?.product?.handle ?? value.handle;
+      const selectedOptions = variant?.selectedOptions ?? value.selectedOptions;
+      return {
+        ...value,
+        handle,
+        variant,
+        selectedOptions,
+        firstSelectableVariant: variant,
+        isDifferentProduct: handle !== product.handle,
+        variantUriQuery: new URLSearchParams(
+          selectedOptions.map((o) => [o.name, o.value]),
+        ).toString(),
+      };
+    }),
   }));
   form.destroy();
   cart.destroy();

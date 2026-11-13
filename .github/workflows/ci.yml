@@ -29,6 +29,8 @@ jobs:
         run: npm run biome
       - name: Check types
         run: npm run typecheck
+      - name: Check combined-listing targets
+        run: node --test tests/combined-listing-target.unit.test.mjs
       - name: Check localization
         run: npm run locale:check && npm run i18n:test
       - name: Check sanitizer regressions
