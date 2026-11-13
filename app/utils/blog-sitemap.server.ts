@@ -1,4 +1,4 @@
-import { type StorefrontApi, gql } from "@shopify/hydrogen";
+import { gql, type StorefrontApi } from "@shopify/hydrogen";
 import type { Storefront } from "~/.server/storefront";
 import { CacheLong } from "~/utils/cache";
 import { unwrapStorefront } from "~/utils/storefront";
