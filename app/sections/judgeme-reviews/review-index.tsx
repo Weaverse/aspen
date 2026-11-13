@@ -1,4 +1,4 @@
-import { createSchema } from "@weaverse/hydrogen";
+import { createSchema } from "@weaverse/hydrogen/react-router";
 import { forwardRef, type HTMLAttributes } from "react";
 import { useLoaderData } from "react-router";
 import { PRODUCT_REVIEWS_ATTRIBUTE } from "~/components/product/judgeme-review";

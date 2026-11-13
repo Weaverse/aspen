@@ -1,7 +1,10 @@
 import { XIcon } from "@phosphor-icons/react";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
-import { useThemeSettings, useTranslation } from "@weaverse/hydrogen";
+import {
+  useThemeSettings,
+  useTranslation,
+} from "@weaverse/hydrogen/react-router";
 import { useEffect, useState } from "react";
 import { useFetcher, useLocation, useRouteLoaderData } from "react-router";
 import { Button } from "~/components/button";

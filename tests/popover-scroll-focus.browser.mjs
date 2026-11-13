@@ -52,7 +52,7 @@ const bundle = await build({
         );
         builder.onLoad({ filter: /.*/, namespace: "fixture" }, ({ path }) => ({
           contents:
-            path === "@weaverse/hydrogen"
+            path === "@weaverse/hydrogen/react-router"
               ? `export const useTranslation=()=>({t:(key,args)=>({'accessibility.openMenu':'Open menu','accessibility.closeMenu':'Close menu','navigation.menu':'Menu','accessibility.openSubmenu':'Open '+args?.item+' submenu','accessibility.backToMainMenu':'Back to main menu'}[key]||key)});`
               : path.includes("use-header-menu")
                 ? `export const useHeaderMenu=()=>[{id:'home',title:'Home',to:'/',items:[]},{id:'collections',title:'Collections',to:'/collections',items:[{id:'tables',title:'Tables',to:'/collections/tables',items:[]}]}];`

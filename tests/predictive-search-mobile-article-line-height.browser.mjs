@@ -35,7 +35,7 @@ const bundle = await build({
               resolveDir: root,
             };
           }
-          if (path === "@weaverse/hydrogen") {
+          if (path === "@weaverse/hydrogen/react-router") {
             return {
               contents: "export const useTranslation=()=>({t:key=>key});",
               loader: "js",

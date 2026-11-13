@@ -1,6 +1,7 @@
 import { type LoaderFunctionArgs, redirect } from "react-router";
 import { prefixPathWithLocale } from "~/utils/locale";
 import { canonicalStorefrontPathname } from "~/utils/storefront-path";
+import { defaultTranslation } from "~/utils/translation";
 
 /**
  * Automatically applies a discount found on the url
@@ -15,7 +16,7 @@ import { canonicalStorefrontPathname } from "~/utils/storefront-path";
  * @preserve
  */
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
-  const { cart, session } = context;
+  const { cart } = context;
   // N.B. This route will probably be removed in the future.
   const { code } = params;
 
@@ -61,18 +62,15 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
     return redirect(redirectUrl);
   }
 
-  const result = await cart.updateDiscountCodes([code]);
-
-  /**
-   * Manual workaround for React Router v7 compatibility issue with cart.setCartId()
-   */
-  session.set("cartId", result.cart.id);
-  const headers = new Headers();
-  headers.set("Set-Cookie", await session.commit());
-
-  // Using set-cookie on a 303 redirect will not work if the domain origin have port number (:3000)
-  // If there is no cart id and a new cart id is created in the progress, it will not be set in the cookie
-  // on localhost:3000
+  const result = cart.getCartId()
+    ? await cart.updateDiscountCodes([code])
+    : await cart.create({ discountCodes: [code] });
+  if (!result.cart || result.errors?.length || result.userErrors?.length) {
+    throw new Response(defaultTranslation("errors.generic"), {
+      status: result.errors?.length ? 502 : 400,
+    });
+  }
+  const headers = cart.setCartId(result.cart.id);
   return redirect(redirectUrl, {
     status: 303,
     headers,

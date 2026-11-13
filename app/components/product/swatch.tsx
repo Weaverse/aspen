@@ -1,5 +1,5 @@
-import { Image } from "@shopify/hydrogen";
 import type { ComponentProps } from "react";
+import { Image } from "~/components/shopify-image";
 import { cn } from "~/utils/cn";
 import { isLightColor, isValidColor } from "~/utils/misc";
 

@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { chromium } from "@playwright/test";
 import { compile } from "@tailwindcss/node";
 import { Scanner } from "@tailwindcss/oxide";
-import { IMAGES_PLACEHOLDERS } from "@weaverse/hydrogen";
+import { IMAGES_PLACEHOLDERS } from "@weaverse/hydrogen/react-router";
 import { build } from "esbuild";
 import { DESKTOP_MIN_PX, TABLET_MAX_PX } from "./responsive-test-widths.mjs";
 
@@ -66,10 +66,13 @@ const bundle = await build({
     {
       name: "cms-fixture",
       setup(builder) {
-        builder.onResolve({ filter: /^@weaverse\/hydrogen$/ }, () => ({
-          path: "cms",
-          namespace: "fixture",
-        }));
+        builder.onResolve(
+          { filter: /^@weaverse\/hydrogen(?:\/react-router)?$/ },
+          () => ({
+            path: "cms",
+            namespace: "fixture",
+          }),
+        );
         builder.onResolve({ filter: /use-translated-text$/ }, () => ({
           path: "translation",
           namespace: "fixture",

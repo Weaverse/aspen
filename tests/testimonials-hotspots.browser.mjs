@@ -54,7 +54,7 @@ const bundle = await build({
           resolveDir: root,
           loader: "tsx",
           contents:
-            path === "@weaverse/hydrogen"
+            path === "@weaverse/hydrogen/react-router"
               ? `export const createSchema=v=>v;export const IMAGES_PLACEHOLDERS={};export const useThemeSettings=()=>window.settings;export const useParentInstance=()=>null;export const useTranslation=()=>({t:key=>key});`
               : path.endsWith("use-translated-text")
                 ? `export const useTranslatedText=()=>v=>v;`

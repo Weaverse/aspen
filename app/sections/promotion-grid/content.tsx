@@ -1,9 +1,12 @@
-import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
+import {
+  createSchema,
+  type WeaverseComponentProps,
+} from "@weaverse/hydrogen/react-router";
 import { cva, type VariantProps } from "class-variance-authority";
 import { forwardRef } from "react";
 
 interface PromotionGridProps
-  extends HydrogenComponentProps,
+  extends WeaverseComponentProps,
     VariantProps<typeof variants> {}
 
 // Legacy instances stay registered so old project data can still load, but the

@@ -1,14 +1,14 @@
 import { ArrowRight } from "@phosphor-icons/react";
-import { createSchema, useTranslation } from "@weaverse/hydrogen";
+import { createSchema, useTranslation } from "@weaverse/hydrogen/react-router";
 import { type CSSProperties, forwardRef, useEffect, useState } from "react";
 import { useLoaderData } from "react-router";
-import type {
-  BlogArticleFragment,
-  BlogsIndexQuery,
-} from "storefront-api.generated";
 import { Image } from "~/components/image";
 import Link from "~/components/link";
 import { Section, type SectionProps } from "~/components/section";
+import type {
+  BlogArticleFragment,
+  BlogsIndexQuery,
+} from "~/graphql/storefront-types";
 import { useLocale } from "~/hooks/use-locale";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import { articlePath } from "~/utils/blog-path";

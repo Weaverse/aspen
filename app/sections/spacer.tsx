@@ -1,4 +1,7 @@
-import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
+import {
+  createSchema,
+  type WeaverseComponentProps,
+} from "@weaverse/hydrogen/react-router";
 import { forwardRef } from "react";
 
 interface SpacerData {
@@ -9,7 +12,7 @@ interface SpacerData {
   separatorColor: string;
 }
 
-const Spacer = forwardRef<HTMLDivElement, SpacerData & HydrogenComponentProps>(
+const Spacer = forwardRef<HTMLDivElement, SpacerData & WeaverseComponentProps>(
   (props, ref) => {
     const {
       mobileHeight,

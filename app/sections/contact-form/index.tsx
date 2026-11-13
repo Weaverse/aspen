@@ -1,4 +1,4 @@
-import { createSchema, useTranslation } from "@weaverse/hydrogen";
+import { createSchema, useTranslation } from "@weaverse/hydrogen/react-router";
 import { forwardRef } from "react";
 import { useFetcher } from "react-router";
 import { Button } from "~/components/button";

@@ -1,12 +1,12 @@
-import { createSchema, useTranslation } from "@weaverse/hydrogen";
+import { createSchema, useTranslation } from "@weaverse/hydrogen/react-router";
 import clsx from "clsx";
 import { forwardRef, useEffect, useState } from "react";
 import { useLoaderData } from "react-router";
-import type { CollectionQuery } from "storefront-api.generated";
 import { BreadCrumb } from "~/components/breadcrumb";
 import { CollectionEditorialPromo } from "~/components/editorial-promo";
 import { Image } from "~/components/image";
 import { layoutInputs, Section, type SectionProps } from "~/components/section";
+import type { CollectionQuery } from "~/graphql/storefront-types";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import { Filters } from "./filters";
 import { ProductsPagination } from "./products-pagination";
@@ -99,7 +99,10 @@ const CollectionFilters = forwardRef<HTMLElement, CollectionFiltersProps>(
 
     if (collection?.products && collections) {
       const banner = collection.metafield
-        ? collection.metafield.reference.image
+        ? collection.metafield.reference &&
+          "image" in collection.metafield.reference
+          ? collection.metafield.reference.image
+          : collection.image
         : collection.image;
       return (
         <Section ref={ref} {...rest} overflow="unset">

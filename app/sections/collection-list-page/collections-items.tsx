@@ -1,14 +1,14 @@
-import { Pagination } from "@shopify/hydrogen";
 import type { Collection } from "@shopify/hydrogen/storefront-api-types";
-import { createSchema, useTranslation } from "@weaverse/hydrogen";
+import { createSchema, useTranslation } from "@weaverse/hydrogen/react-router";
 import clsx from "clsx";
 import { forwardRef, useEffect, useState } from "react";
 import { useLoaderData } from "react-router";
 import { Swiper, SwiperSlide } from "swiper/react";
+import { Pagination } from "~/components/pagination";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import "swiper/css";
-import type { CollectionsQuery } from "storefront-api.generated";
 import { variants } from "~/components/link";
+import type { CollectionsQuery } from "~/graphql/storefront-types";
 import { useAnimation } from "~/hooks/use-animation";
 import { DESKTOP_MIN_PX, TABLET_MIN_PX } from "~/utils/breakpoints";
 import { cn } from "~/utils/cn";

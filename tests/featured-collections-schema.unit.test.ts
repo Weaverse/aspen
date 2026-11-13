@@ -4,11 +4,11 @@ import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import {
-  generateDataFromSchema,
-  registerComponent,
-  WeaverseHydrogen,
-  WeaverseHydrogenItem,
-} from "@weaverse/hydrogen";
+  registerElement as registerComponent,
+  Weaverse as WeaverseHydrogen,
+  WeaverseItemStore as WeaverseHydrogenItem,
+} from "@weaverse/core";
+import { generateDataFromSchema } from "@weaverse/hydrogen/react-router";
 import { schema as accordionSchema } from "~/sections/accordion";
 import CollectionListDynamic, {
   resolveCollectionListLayout,
@@ -91,22 +91,10 @@ for (const legacyLayout of ["slider", "showcase"] as const) {
     const parentId = `spacing-parent-${legacyLayout}`;
     const childId = `spacing-child-${legacyLayout}`;
     const runtime = new WeaverseHydrogen({
-      pageId: "spacing-page",
       projectId: "spacing-project",
-      internal: {},
       isDesignMode: true,
-      weaverseHost: "https://studio.weaverse.io",
-      weaverseApiBase: "https://api.weaverse.io",
-      weaverseApiKey: "",
-      requestInfo: {
-        search: "",
-        pathname: "/",
-        queries: {},
-        i18n: { country: "US", language: "EN" },
-      },
       data: {
         id: "spacing-page",
-        name: "Spacing fixture",
         rootId: parentId,
         items: [
           {
@@ -307,12 +295,12 @@ test("the server loader keeps the collection selection bounded", async () => {
     weaverse: {
       storefront: {
         i18n: { country: "US", language: "EN" },
-        query: async (
+        graphql: async (
           _query: string,
           options: { variables: { ids: string[] } },
         ) => {
           queriedIds = options.variables.ids;
-          return { nodes: [] };
+          return { data: { nodes: [] } };
         },
       },
     },

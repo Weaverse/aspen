@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import type { CustomerAccount } from "@shopify/hydrogen";
+import type { CustomerAccount } from "../app/.server/customer-account";
 import { safeReturnTo } from "../app/utils/return-to.ts";
 import {
   parseWishlist,
@@ -16,7 +16,7 @@ const wishlist = {
 
 function customerAccountWithMutationResult(result: unknown) {
   return {
-    mutate: async () => result,
+    graphql: async () => result,
   } as unknown as CustomerAccount;
 }
 

@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { getSchema } from "@shopify/hydrogen-codegen";
 import { build } from "esbuild";
 import { buildClientSchema, parse, validate } from "graphql";
 
@@ -16,7 +15,7 @@ const stubs = {
     "export const seoPayload = { article: x => ({url:x.url}), blog: x => ({url:x.url}) };",
   "~/utils/seo-translation": "export const localizedSeoMeta = () => [];",
   "@shopify/hydrogen": `export const flattenConnection = x => x.edges.map(e => e.node);
-     export {getSitemap} from '${import.meta.resolve("@shopify/hydrogen")}';`,
+     export * from '${import.meta.resolve("@shopify/hydrogen")}';`,
 };
 const bundle = await build({
   stdin: {
@@ -79,6 +78,9 @@ function fixture(blogs, path = "/blogs", params = {}, batchSize = 50) {
   const storefront = {
     i18n: { language: "EN", country: "US" },
     CacheShort: () => ({}),
+    async graphql(...args) {
+      return { data: await this.query(...args), headers: new Headers() };
+    },
     async query(query, { variables = {} } = {}) {
       calls.push({ query, variables });
       if (query.includes("query FirstMerchantBlog")) {
@@ -320,13 +322,24 @@ test("canonical and sharing metadata keep blog identity but drop tracking", () =
 });
 
 const storefrontSchema = buildClientSchema(
-  JSON.parse(readFileSync(getSchema("storefront"), "utf8")),
+  JSON.parse(
+    readFileSync(
+      new URL(
+        "../storefront.schema.json",
+        import.meta.resolve("@shopify/hydrogen"),
+      ),
+      "utf8",
+    ),
+  ),
 );
 function sitemapApi(blogPages) {
   const calls = [];
   return {
     calls,
     CacheLong: () => ({}),
+    async graphql(...args) {
+      return { data: await this.query(...args), headers: new Headers() };
+    },
     async query(document, { variables }) {
       assert.deepEqual(validate(storefrontSchema, parse(document)), []);
       calls.push({ document, variables });
@@ -417,8 +430,9 @@ test("sitemap queries only requested handles in bounded batches, not the article
     10,
   );
   assert.equal(
-    Object.keys(api.calls[1].variables).filter((x) => x.startsWith("handle"))
-      .length,
+    Object.keys(api.calls[1].variables).filter(
+      (x) => x.startsWith("handle") && api.calls[1].variables[x],
+    ).length,
     1,
   );
   assert.ok(api.calls.every((x) => !/\barticles\s*\(/.test(x.document)));

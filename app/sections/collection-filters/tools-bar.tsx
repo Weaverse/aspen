@@ -1,12 +1,12 @@
 import { SlidersIcon, XIcon } from "@phosphor-icons/react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import { useState } from "react";
 import { useLoaderData } from "react-router";
-import type { CollectionQuery } from "storefront-api.generated";
 import { AnimatedDrawer } from "~/components/animate-drawer";
 import { Button } from "~/components/button";
 import { ScrollArea } from "~/components/scroll-area";
+import type { CollectionQuery } from "~/graphql/storefront-types";
 import { cn } from "~/utils/cn";
 import type { AppliedFilter } from "~/utils/filter";
 import { Filters } from "./filters";

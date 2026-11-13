@@ -2,11 +2,8 @@ import { useEffect, useState } from "react";
 import { canAddCartLines, useCartStore } from "~/components/cart/store";
 import { useVariantInventoryPolicy } from "~/components/cart/use-cart-inventory-policy";
 
-type QuantityVariant = {
-  id: string;
-  availableForSale: boolean;
-  quantityAvailable?: number | null;
-};
+type QuantityVariant =
+  import("~/graphql/storefront-types").ProductVariantFragment;
 
 export function useProductQuantity(
   variant?: QuantityVariant | null,

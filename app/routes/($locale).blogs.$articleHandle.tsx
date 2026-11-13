@@ -1,15 +1,16 @@
-import type { SeoConfig } from "@shopify/hydrogen";
+import { gql } from "@shopify/hydrogen";
 import type { LoaderFunctionArgs, MetaFunction } from "react-router";
 import { redirect } from "react-router";
-import type { ArticleQuery } from "storefront-api.generated";
 import invariant from "tiny-invariant";
 import { loadArticlePage } from "~/utils/article-page.server";
 import { resolveArticleBlog } from "~/utils/blog.server";
 import { articlePath, blogPath, blogSeoMeta } from "~/utils/blog-path";
-import { routeHeaders } from "~/utils/cache";
+import { CACHE_DEFAULT, routeHeaders } from "~/utils/cache";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 import { seoPayload } from "~/utils/seo.server";
+import type { SeoConfig } from "~/utils/seo-meta";
 import { localizedSeoMeta } from "~/utils/seo-translation";
+import { unwrapStorefront } from "~/utils/storefront";
 import { WeaverseContent } from "~/weaverse";
 
 export const headers = routeHeaders;
@@ -17,7 +18,7 @@ export const shouldRevalidate = skipPageRevalidationForStorefrontActions;
 
 export async function loader(args: LoaderFunctionArgs) {
   const { request, params, context } = args;
-  const { storefront } = context.weaverse;
+  const { storefront } = context;
   const { language, country } = storefront.i18n;
 
   invariant(params.articleHandle, "Missing article handle");
@@ -32,9 +33,12 @@ export async function loader(args: LoaderFunctionArgs) {
   );
   if (!blogHandle) {
     // Shopify's /blogs/:blogHandle listing aliases share the short article path.
-    const { blog: listing } = await storefront.query(BLOG_ALIAS_QUERY, {
-      variables: { handle: articleHandle, language },
-    });
+    const { blog: listing } = await storefront
+      .graphql(BLOG_ALIAS_QUERY, {
+        variables: { handle: articleHandle },
+        cache: CACHE_DEFAULT,
+      })
+      .then(unwrapStorefront);
     if (!requestedBlog && listing) {
       const destination = new URL(blogPath(listing.handle), url);
       url.searchParams.set("blog", listing.handle);
@@ -47,13 +51,15 @@ export async function loader(args: LoaderFunctionArgs) {
   }
 
   const [{ blog }, weaverseData] = await Promise.all([
-    storefront.query<ArticleQuery>(ARTICLE_QUERY, {
-      variables: {
-        blogHandle,
-        articleHandle,
-        language,
-      },
-    }),
+    storefront
+      .graphql(ARTICLE_QUERY, {
+        variables: {
+          blogHandle,
+          articleHandle,
+        },
+        cache: CACHE_DEFAULT,
+      })
+      .then(unwrapStorefront),
     loadArticlePage(context, {
       blogHandle,
       articleHandle,
@@ -117,7 +123,7 @@ export default function Article() {
   return <WeaverseContent />;
 }
 
-const ARTICLE_QUERY = `#graphql
+export const ARTICLE_QUERY = gql(`
   query article(
     $language: LanguageCode
     $blogHandle: String!
@@ -175,10 +181,33 @@ const ARTICLE_QUERY = `#graphql
     publishedAt
     title
   }
-` as const;
+`);
 
-const BLOG_ALIAS_QUERY = `#graphql
+export const BLOG_ALIAS_QUERY = gql(`
   query MerchantBlogAlias($handle: String!, $language: LanguageCode) @inContext(language: $language) {
     blog(handle: $handle) { handle }
   }
-` as const;
+`);
+
+export const ARTICLE_QUERY_Article = gql(`fragment Article on Article {
+    blog { handle }
+    tags
+    author: authorV2 {
+      name
+    }
+    contentHtml
+    excerpt
+    excerptHtml
+    handle
+    id
+    image {
+      id
+      altText
+      url
+      width
+      height
+    }
+    publishedAt
+    title
+  }
+`);

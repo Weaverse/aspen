@@ -1,9 +1,9 @@
 import {
   createSchema,
-  type HydrogenComponentProps,
   useParentInstance,
   useTranslation,
-} from "@weaverse/hydrogen";
+  type WeaverseComponentProps,
+} from "@weaverse/hydrogen/react-router";
 import { forwardRef } from "react";
 import { StarRating } from "~/components/star-rating";
 import { useTranslatedText } from "~/hooks/use-translated-text";
@@ -22,7 +22,7 @@ type AliReviewsData = ReviewItemData & {
 
 const ReviewList = forwardRef<
   HTMLDivElement,
-  AliReviewsData & HydrogenComponentProps
+  AliReviewsData & WeaverseComponentProps
 >((props, ref) => {
   const translateText = useTranslatedText();
 

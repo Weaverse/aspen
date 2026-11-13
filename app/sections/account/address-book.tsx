@@ -1,9 +1,12 @@
-import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
+import {
+  createSchema,
+  type WeaverseComponentProps,
+} from "@weaverse/hydrogen/react-router";
 import { AccountAddressBook } from "~/components/customer/address-book";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import { useAccountSectionData } from ".";
 
-interface AccountAddressBookBlockProps extends Partial<HydrogenComponentProps> {
+interface AccountAddressBookBlockProps extends Partial<WeaverseComponentProps> {
   heading?: string;
   addAddressText?: string;
   editText?: string;

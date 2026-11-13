@@ -1,12 +1,13 @@
 import { ArrowRight } from "@phosphor-icons/react";
+import { gql } from "@shopify/hydrogen";
 import {
-  type ComponentLoaderArgs,
-  type HydrogenComponentProps,
-  type HydrogenComponentSchema,
   IMAGES_PLACEHOLDERS,
   useTranslation,
   type WeaverseBlog,
-} from "@weaverse/hydrogen";
+  type WeaverseComponentLoaderArgs,
+  type WeaverseComponentProps,
+  type WeaverseComponentSchema,
+} from "@weaverse/hydrogen/react-router";
 import clsx from "clsx";
 import { type CSSProperties, forwardRef, useState } from "react";
 import { backgroundInputs } from "~/components/background-image";
@@ -22,7 +23,9 @@ import { useLocale } from "~/hooks/use-locale";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import { articlePath, blogPath } from "~/utils/blog-path";
 import { DESKTOP_MIN_PX, minWidthQuery } from "~/utils/breakpoints";
+import { CACHE_DEFAULT } from "~/utils/cache";
 import { formatDate } from "~/utils/locale";
+import { unwrapStorefront } from "~/utils/storefront";
 
 type ArticleData = {
   verticalPadding?: SectionProps["verticalPadding"];
@@ -49,7 +52,7 @@ type ArticleData = {
 };
 
 export interface ArticlesProps
-  extends HydrogenComponentProps<Awaited<ReturnType<typeof loader>>>,
+  extends WeaverseComponentProps<Awaited<ReturnType<typeof loader>>>,
     ArticleData,
     Omit<HeadingProps, "content"> {}
 
@@ -331,55 +334,52 @@ const Blogs = forwardRef<HTMLElement, ArticlesProps>((props, ref) => {
 
 export default Blogs;
 
-export let loader = async (args: ComponentLoaderArgs<ArticleData>) => {
+export let loader = async (args: WeaverseComponentLoaderArgs<ArticleData>) => {
   let { weaverse, data } = args;
   let { storefront, request } = weaverse;
   if (data.blogs?.handle?.trim()) {
-    const res = await storefront.query(BLOG_QUERY, {
-      variables: {
-        blogHandle: data.blogs.handle,
-      },
-    });
+    const res = await storefront
+      .graphql(BLOG_QUERY, {
+        variables: { blogHandle: data.blogs.handle },
+        cache: CACHE_DEFAULT,
+      })
+      .then(unwrapStorefront);
     return res;
   }
 };
 
-const BLOG_QUERY = `#graphql
-query BlogSingle(
-    $language: LanguageCode
-    $blogHandle: String!
-  ) @inContext(language: $language) {
-    blog(handle: $blogHandle) {
-      articles(first: 10) {
-        nodes {
-          author: authorV2 {
-            name
-          }
-          contentHtml
-          excerpt
-          excerptHtml
-          handle
+export const BLOG_QUERY =
+  gql(`query BlogSingle($language: LanguageCode, $blogHandle: String!) @inContext(language: $language) {
+  blog(handle: $blogHandle) {
+    articles(first: 10) {
+      nodes {
+        author: authorV2 {
+          name
+        }
+        contentHtml
+        excerpt
+        excerptHtml
+        handle
+        id
+        image {
           id
-          image {
-            id
-            altText
-            url
-            width
-            height
-          }
-          tags
-          publishedAt
-          title
-          blog {
-            handle
-          }
+          altText
+          url
+          width
+          height
+        }
+        tags
+        publishedAt
+        title
+        blog {
+          handle
         }
       }
     }
   }
-` as const;
+}`);
 
-export const schema: HydrogenComponentSchema = {
+export const schema: WeaverseComponentSchema = {
   type: "articles-list",
   title: "Articles",
   settings: [

@@ -1,7 +1,7 @@
-import type { OptimisticCartLineInput } from "@shopify/hydrogen";
 import { type Fetcher, useFetchers } from "react-router";
-import type { CartApiQueryFragment } from "storefront-api.generated";
 import { create } from "zustand";
+import type { OptimisticCartLineInput } from "~/components/cart/cart-types";
+import type { CartApiQueryFragment } from "~/graphql/storefront-types";
 import { resolveBaselineCart } from "./cart-baseline";
 import {
   getLineQuantityRules,

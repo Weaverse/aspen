@@ -81,7 +81,7 @@ const bundle = await build({
             contents = `export {usePredictiveSearch} from 'fixture-predictive';`;
           } else if (path.includes("types/predictive-search")) {
             contents = `export const PREDICTIVE_SEARCH_FETCHER_KEY='fixture-search';`;
-          } else if (path === "@weaverse/hydrogen") {
+          } else if (path === "@weaverse/hydrogen/react-router") {
             contents = `export const useThemeSettings=()=>({designSystemPreset:new URLSearchParams(location.search).get('transparent')?'custom':'aspen',enableTransparentHeader:location.search.includes('transparent'),headerLayout:'inline',headerWidth:'stretch'});export const useTranslation=()=>({t:k=>({'accessibility.openSearch':'Open search','search.placeholder':'Enter a keyword','search.searching':'Searching','search.predictiveTitle':'Predictive search',...window.fixtureTranslations}[k]||k)});`;
           } else if (path === "react-router") {
             contents = `import React from 'react';export {useFixtureFetcher as useFetcher} from 'fixture-predictive';const route={pathname:'/'};export const useParams=()=>({});export const useLocation=()=>route;export const useNavigate=()=>url=>{window.fixtureNavigation=url};export const useRouteError=()=>null;export const useRouteLoaderData=()=>({});export const Await=({children,resolve})=>children(resolve);`;

@@ -1,3 +1,4 @@
+import { gql } from "@shopify/hydrogen";
 import { PRODUCT_CARD_FRAGMENT } from "~/graphql/fragments";
 
 export type SaleProduct = {
@@ -29,20 +30,157 @@ export type ProductConnection<T> = {
 const SALE_SCAN_PAGE_SIZE = 250;
 const MAX_SALE_SCAN_REQUESTS = 4;
 
-export const SALE_PRODUCT_CARDS_QUERY = `#graphql
-  query saleProductCards(
-    $country: CountryCode
-    $language: LanguageCode
-    $ids: [ID!]!
-  ) @inContext(country: $country, language: $language) {
-    nodes(ids: $ids) {
-      ... on Product {
-        ...ProductCard
+export const SALE_PRODUCT_CARDS_QUERY =
+  gql(`query saleProductCards($country: CountryCode, $language: LanguageCode, $ids: [ID!]!) @inContext(country: $country, language: $language) {
+  nodes(ids: $ids) {
+    ... on Product {
+      ...ProductCard
+    }
+  }
+}
+
+fragment ProductCard on Product {
+  id
+  title
+  publishedAt
+  handle
+  vendor
+  productType
+  tags
+  reviewRating: metafield(namespace: "reviews", key: "rating") {
+    value
+  }
+  reviewRatingCount: metafield(namespace: "reviews", key: "rating_count") {
+    value
+  }
+  images(first: 50) {
+    nodes {
+      id
+      url
+      altText
+      width
+      height
+    }
+  }
+  options {
+    ...ProductOption
+  }
+  badges: metafields(identifiers: [{namespace: "custom", key: "best_seller"}]) {
+    key
+    namespace
+    value
+  }
+  priceRange {
+    maxVariantPrice {
+      amount
+      currencyCode
+    }
+    minVariantPrice {
+      amount
+      currencyCode
+    }
+  }
+  selectedOrFirstAvailableVariant(
+    selectedOptions: []
+    ignoreUnknownOptions: true
+    caseInsensitiveMatch: true
+  ) {
+    ...ProductVariant
+  }
+  isBundle: selectedOrFirstAvailableVariant(
+    ignoreUnknownOptions: true
+    selectedOptions: {name: "", value: ""}
+  ) {
+    ... on ProductVariant {
+      requiresComponents
+    }
+  }
+}
+
+fragment ProductOption on ProductOption {
+  name
+  optionValues {
+    name
+    firstSelectableVariant {
+      ...ProductVariant
+    }
+    swatch {
+      color
+      image {
+        previewImage {
+          url
+          altText
+        }
       }
     }
   }
-  ${PRODUCT_CARD_FRAGMENT}
-` as const;
+}
+
+fragment ProductVariant on ProductVariant {
+  currentlyNotInStock
+  requiresShipping
+  quantityRule {
+    minimum
+    maximum
+    increment
+  }
+  id
+  availableForSale
+  quantityAvailable
+  selectedOptions {
+    name
+    value
+  }
+  image {
+    id
+    url
+    altText
+    width
+    height
+  }
+  price {
+    amount
+    currencyCode
+  }
+  compareAtPrice {
+    amount
+    currencyCode
+  }
+  sku
+  title
+  unitPrice {
+    amount
+    currencyCode
+  }
+  product {
+    id
+    vendor
+    title
+    handle
+  }
+  requiresComponents
+  components(first: 10) {
+    nodes {
+      productVariant {
+        id
+        title
+        product {
+          handle
+        }
+      }
+      quantity
+    }
+  }
+  groupedBy(first: 10) {
+    nodes {
+      id
+      title
+      product {
+        handle
+      }
+    }
+  }
+}`);
 
 // Match the variant whose price is shown on the product card.
 export function isSaleProduct(product: SaleProduct) {

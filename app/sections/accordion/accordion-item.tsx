@@ -1,17 +1,17 @@
 import { MinusCircle, PlusCircle } from "@phosphor-icons/react";
 import * as Accordion from "@radix-ui/react-accordion";
-import { Image } from "@shopify/hydrogen";
 import type {
-  HydrogenComponentProps,
-  HydrogenComponentSchema,
-} from "@weaverse/hydrogen";
+  WeaverseComponentProps,
+  WeaverseComponentSchema,
+} from "@weaverse/hydrogen/react-router";
 import type React from "react";
 import { forwardRef } from "react";
+import { Image } from "~/components/shopify-image";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import { cn } from "~/utils/cn";
 import { useAccordionContext } from "./index";
 
-interface AccordionItemProps extends HydrogenComponentProps {
+interface AccordionItemProps extends WeaverseComponentProps {
   title: string;
   content: string;
   icon: string;
@@ -153,7 +153,7 @@ const AccordionItem = forwardRef<HTMLDivElement, AccordionItemProps>(
 
 export default AccordionItem;
 
-export const schema: HydrogenComponentSchema = {
+export const schema: WeaverseComponentSchema = {
   type: "accordion--item",
   title: "Accordion Item",
   settings: [

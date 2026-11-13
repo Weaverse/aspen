@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { WeaverseClient } from "@weaverse/hydrogen";
+import { WeaverseClient } from "@weaverse/hydrogen/react-router";
 import { build } from "esbuild";
 
 // Keep the actual SDK, normalization and Hydrogen cache implementation in this test.

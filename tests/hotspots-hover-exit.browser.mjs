@@ -32,7 +32,7 @@ const bundle = await build({
         );
         builder.onLoad({ filter: /.*/, namespace: "fixture" }, ({ path }) => ({
           contents:
-            path === "@weaverse/hydrogen"
+            path === "@weaverse/hydrogen/react-router"
               ? `export const useTranslation=()=>({t:()=>"View Fixture"});`
               : `import React from "react";export const ProductPopup=({onQuickAdd})=><div style={{width:200,height:100,background:"white"}}>Popup<button onClick={()=>onQuickAdd([])}>Select options</button><a href="#details">Details</a></div>;`,
           loader: "tsx",

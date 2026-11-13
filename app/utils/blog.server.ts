@@ -1,4 +1,7 @@
-import type { Storefront } from "@shopify/hydrogen";
+import { gql } from "@shopify/hydrogen";
+import type { Storefront } from "~/.server/storefront";
+import { CacheShort } from "~/utils/cache";
+import { unwrapStorefront } from "~/utils/storefront";
 
 /** An unqualified listing uses Shopify's first blog, never a theme/demo handle. */
 export async function resolveListingBlog(
@@ -8,9 +11,11 @@ export async function resolveListingBlog(
   if (requested) {
     return requested;
   }
-  const { blogs } = await storefront.query(FIRST_BLOG_QUERY, {
-    cache: storefront.CacheShort(),
-  });
+  const { blogs } = await storefront
+    .graphql(FIRST_BLOG_QUERY, {
+      cache: CacheShort(),
+    })
+    .then(unwrapStorefront);
   return blogs.nodes[0]?.handle ?? null;
 }
 
@@ -26,10 +31,15 @@ export async function resolveArticleBlog(
   let cursor: string | null = null;
   let match: string | null = null;
   do {
-    const { blogs } = await storefront.query(ARTICLE_BLOGS_QUERY, {
-      variables: { articleHandle, cursor, language: storefront.i18n.language },
-      cache: storefront.CacheShort(),
-    });
+    const { blogs } = await storefront
+      .graphql(ARTICLE_BLOGS_QUERY, {
+        variables: {
+          articleHandle,
+          cursor,
+        },
+        cache: CacheShort(),
+      })
+      .then(unwrapStorefront);
     for (const blog of blogs.nodes) {
       if (blog.articleByHandle) {
         if (match !== null) {
@@ -44,13 +54,13 @@ export async function resolveArticleBlog(
   return match;
 }
 
-const FIRST_BLOG_QUERY = `#graphql
+export const FIRST_BLOG_QUERY = gql(`
   query FirstMerchantBlog {
     blogs(first: 1) { nodes { handle } }
   }
-` as const;
+`);
 
-const ARTICLE_BLOGS_QUERY = `#graphql
+export const ARTICLE_BLOGS_QUERY = gql(`
   query ArticleParentBlogs($articleHandle: String!, $cursor: String, $language: LanguageCode)
   @inContext(language: $language) {
     blogs(first: 50, after: $cursor) {
@@ -58,4 +68,4 @@ const ARTICLE_BLOGS_QUERY = `#graphql
       pageInfo { hasNextPage endCursor }
     }
   }
-` as const;
+`);

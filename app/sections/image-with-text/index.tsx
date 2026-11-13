@@ -1,4 +1,7 @@
-import { createSchema, IMAGES_PLACEHOLDERS } from "@weaverse/hydrogen";
+import {
+  createSchema,
+  IMAGES_PLACEHOLDERS,
+} from "@weaverse/hydrogen/react-router";
 import { forwardRef, useState } from "react";
 import { sectionBackgroundInputs } from "~/components/background-image";
 import type { SectionProps } from "~/components/section";

@@ -1,4 +1,5 @@
-import type { CustomerAccount } from "@shopify/hydrogen";
+import { gql } from "@shopify/hydrogen/customer-account";
+import type { CustomerAccount } from "~/.server/customer-account";
 import type { LoyaltyBalance } from "~/types/loyalty";
 import {
   fetchLoyaltyLionCustomerPoints,
@@ -12,16 +13,14 @@ type LoyaltyCustomerQuery = {
   } | null;
 };
 
-const LOYALTY_CUSTOMER_QUERY = `#graphql
-  query LoyaltyCustomer {
-    customer {
-      id
-      emailAddress {
-        emailAddress
-      }
+export const LOYALTY_CUSTOMER_QUERY = gql(`query LoyaltyCustomer {
+  customer {
+    id
+    emailAddress {
+      emailAddress
     }
   }
-` as const;
+}`);
 
 export async function loadLoyaltyBalance({
   env,
@@ -41,7 +40,7 @@ export async function loadLoyaltyBalance({
   }
 
   try {
-    const { data, errors } = await customerAccount.query<LoyaltyCustomerQuery>(
+    const { data, errors } = await customerAccount.graphql(
       LOYALTY_CUSTOMER_QUERY,
     );
 

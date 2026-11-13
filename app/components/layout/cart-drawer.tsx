@@ -1,7 +1,7 @@
 import { ShoppingBagIcon, XIcon } from "@phosphor-icons/react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { useAnalytics } from "@shopify/hydrogen";
-import { useTranslation } from "@weaverse/hydrogen";
+
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import { Cart } from "~/components/cart/cart";
 import { useCart, useCartStore } from "~/components/cart/store";
 import { AnimatedDrawer } from "../animate-drawer";
@@ -26,7 +26,8 @@ export function useCartDrawerState() {
 export function CartDrawer() {
   const { t } = useTranslation();
   const cart = useCart();
-  const { publish } = useAnalytics();
+  const publish = (event: string, data: unknown) =>
+    window.dataLayer?.push({ event, data });
   const { isOpen, closeCartDrawer } = useCartDrawerState();
 
   return (

@@ -13,7 +13,7 @@ import { DESKTOP_MIN_PX, TABLET_MAX_PX } from "./responsive-test-widths.mjs";
 const root = fileURLToPath(new URL("../", import.meta.url));
 const fixtures = {
   "~/components/cart/use-cart-inventory-policy": `export const useVariantInventoryPolicy = () => ({policy: window.testPolicy ?? null, pending: window.testPolicyPending ?? false});`,
-  "@weaverse/hydrogen": `
+  "@weaverse/hydrogen/react-router": `
     export const createSchema = (value) => value;
     export const IMAGES_PLACEHOLDERS = { product_2: "fixture.png" };
     export const useThemeSettings = () => ({ revealElementsOnScroll: window.reveal });
@@ -88,12 +88,26 @@ const bundle = await build({
   bundle: true,
   write: false,
   format: "iife",
+  define: { "import.meta.env.DEV": "false" },
   jsx: "automatic",
   alias: { "~": `${root}app` },
   plugins: [
     {
       name: "product-fixture",
       setup(builder) {
+        for (const path of [
+          "~/components/money",
+          "~/components/shopify-image",
+          "~/components/product/shop-pay-button",
+        ])
+          fixtures[path] = fixtures["@shopify/hydrogen"];
+        fixtures["~/components/product/product-form"] =
+          fixtures["@shopify/hydrogen"] +
+          `export const ProductProvider=({children})=>children; export const useProductForm=()=>({selectOption:()=>({status:'unresolved'})});`;
+        fixtures["~/utils/cache"] = "export const CACHE_DEFAULT={};";
+        fixtures["~/graphql/queries"] = "export const PRODUCT_QUERY='fixture';";
+        fixtures["~/utils/product"] =
+          "export const isDiscounted=(price,compare)=>Number(compare?.amount)>Number(price?.amount); export const hasOnlyDefaultVariant=()=>false;";
         builder.onResolve({ filter: /.*/ }, ({ path }) =>
           path in fixtures ? { path, namespace: "fixture" } : undefined,
         );

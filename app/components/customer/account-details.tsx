@@ -1,6 +1,6 @@
-import { useTranslation } from "@weaverse/hydrogen";
-import type { CustomerDetailsFragment } from "customer-account-api.generated";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import type { HTMLAttributes } from "react";
+import type { CustomerDetailsFragment } from "~/graphql/customer-types";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import { cn } from "~/utils/cn";
 import { AccountPopup } from "./account-popup";

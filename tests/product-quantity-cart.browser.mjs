@@ -13,7 +13,7 @@ const bundle = await build({
       import React from 'react';
       import {createRoot} from 'react-dom/client';
       import {createMemoryRouter,RouterProvider} from 'react-router';
-      import {CartForm} from '@shopify/hydrogen';
+      import {CartForm} from './app/components/cart/cart-action-form';
       import {useProductQuantity} from './app/hooks/use-product-quantity';
       import {Quantity} from './app/components/product/quantity';
       import {AddToCartButton} from './app/components/product/add-to-cart-button';
@@ -50,10 +50,13 @@ const bundle = await build({
     {
       name: "translation-only",
       setup(builder) {
-        builder.onResolve({ filter: /^@weaverse\/hydrogen$/ }, () => ({
-          path: "translation",
-          namespace: "fixture",
-        }));
+        builder.onResolve(
+          { filter: /^@weaverse\/hydrogen\/react-router$/ },
+          () => ({
+            path: "translation",
+            namespace: "fixture",
+          }),
+        );
         builder.onLoad({ filter: /.*/, namespace: "fixture" }, () => ({
           loader: "js",
           contents: "export const useTranslation=()=>({t:key=>key});",

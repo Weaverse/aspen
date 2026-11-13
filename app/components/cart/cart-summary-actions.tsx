@@ -1,12 +1,12 @@
 import { XIcon } from "@phosphor-icons/react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { CartForm } from "@shopify/hydrogen";
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useFetcher } from "react-router";
-import type { CartApiQueryFragment } from "storefront-api.generated";
 import { Button } from "~/components/button";
+import { CartForm } from "~/components/cart/cart-action-form";
+import type { CartApiQueryFragment } from "~/graphql/storefront-types";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import { uppercaseCartCode } from "~/utils/cart-code";
 import { getCartMutationError } from "~/utils/cart-error";

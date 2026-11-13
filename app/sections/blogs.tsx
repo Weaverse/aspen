@@ -1,10 +1,6 @@
-import { createSchema, useTranslation } from "@weaverse/hydrogen";
+import { createSchema, useTranslation } from "@weaverse/hydrogen/react-router";
 import { type CSSProperties, forwardRef, useState } from "react";
 import { useLoaderData } from "react-router";
-import type {
-  ArticleFragment,
-  BlogsIndexQuery,
-} from "storefront-api.generated";
 import { Button } from "~/components/button";
 import Heading, {
   type HeadingProps,
@@ -13,6 +9,10 @@ import Heading, {
 import { Image } from "~/components/image";
 import { Link } from "~/components/link";
 import { layoutInputs, Section, type SectionProps } from "~/components/section";
+import type {
+  ArticleFragment,
+  BlogsIndexQuery,
+} from "~/graphql/storefront-types";
 import { useLocale } from "~/hooks/use-locale";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import type { ImageAspectRatio } from "~/types/image";

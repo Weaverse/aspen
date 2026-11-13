@@ -1,4 +1,4 @@
-import { createSchema, useTranslation } from "@weaverse/hydrogen";
+import { createSchema, useTranslation } from "@weaverse/hydrogen/react-router";
 import { cva, type VariantProps } from "class-variance-authority";
 import clsx from "clsx";
 import { forwardRef } from "react";

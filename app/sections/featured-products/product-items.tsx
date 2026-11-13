@@ -1,12 +1,13 @@
 import { ArrowLeft, ArrowRight } from "@phosphor-icons/react";
+import { gql } from "@shopify/hydrogen";
 import {
-  type ComponentLoaderArgs,
   createSchema,
-  type HydrogenComponentProps,
   IMAGES_PLACEHOLDERS,
   useTranslation,
   type WeaverseCollection,
-} from "@weaverse/hydrogen";
+  type WeaverseComponentLoaderArgs,
+  type WeaverseComponentProps,
+} from "@weaverse/hydrogen/react-router";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import clsx from "clsx";
@@ -15,7 +16,10 @@ import { Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { ArrowButton } from "~/components/arrow-button";
 import { ProductCard } from "~/components/product/product-card";
+import type { ProductCardFragment } from "~/graphql/storefront-types";
+import { CACHE_DEFAULT } from "~/utils/cache";
 import { translatePreview } from "~/utils/preview-translation";
+import { unwrapStorefront } from "~/utils/storefront";
 import "swiper/css";
 import "swiper/css/navigation";
 import Link from "~/components/link";
@@ -117,7 +121,7 @@ const productItemsVariants = cva("", {
 
 interface ProductItemsProps
   extends VariantProps<typeof productItemsVariants>,
-    HydrogenComponentProps<Awaited<ReturnType<typeof loader>>> {
+    WeaverseComponentProps<Awaited<ReturnType<typeof loader>>> {
   collection: WeaverseCollection;
   layout?: "grid" | "carousel";
   slidesPerView?: number;
@@ -449,18 +453,17 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
   },
 );
 
-const PRODUCT_PLACEHOLDER = {
+const PRODUCT_PLACEHOLDER: ProductCardFragment = {
+  badges: null,
+  productType: "",
+  tags: [],
+  reviewRating: null,
+  reviewRatingCount: null,
+  isBundle: null,
   id: "gid://shopify/Product/placeholder",
   title: "Product Title",
   handle: "product-placeholder",
   vendor: "Vendor",
-  featuredImage: {
-    id: "gid://shopify/ProductImage/placeholder",
-    url: IMAGES_PLACEHOLDERS.product_1,
-    altText: "Product placeholder",
-    width: 1000,
-    height: 1000,
-  },
   images: {
     nodes: [
       {
@@ -472,7 +475,6 @@ const PRODUCT_PLACEHOLDER = {
       },
     ],
   },
-  badges: [],
   publishedAt: new Date().toISOString(),
   options: [],
   priceRange: {
@@ -485,22 +487,18 @@ const PRODUCT_PLACEHOLDER = {
       currencyCode: "USD",
     },
   },
-  compareAtPriceRange: {
-    minVariantPrice: {
-      amount: "0.00",
-      currencyCode: "USD",
-    },
-    maxVariantPrice: {
-      amount: "0.00",
-      currencyCode: "USD",
-    },
-  },
-  variants: {
-    nodes: [],
-  },
   selectedOrFirstAvailableVariant: {
     id: "gid://shopify/ProductVariant/placeholder",
     title: "Default",
+    sku: "",
+    unitPrice: null,
+    quantityAvailable: 1,
+    currentlyNotInStock: false,
+    requiresShipping: true,
+    quantityRule: { minimum: 1, maximum: null, increment: 1 },
+    requiresComponents: false,
+    components: { nodes: [] },
+    groupedBy: { nodes: [] },
     availableForSale: true,
     selectedOptions: [],
     image: {
@@ -516,6 +514,8 @@ const PRODUCT_PLACEHOLDER = {
     },
     compareAtPrice: null,
     product: {
+      id: "gid://shopify/Product/placeholder",
+      vendor: "",
       title: "Product Title",
       handle: "product-placeholder",
     },
@@ -524,28 +524,167 @@ const PRODUCT_PLACEHOLDER = {
 
 export default ProductItems;
 
-const PRODUCTS_BY_COLLECTION_QUERY = `#graphql
-  query productsByCollection(
-    $handle: String!,
-    $country: CountryCode,
-    $language: LanguageCode
-  )
-  @inContext(country: $country, language: $language) {
-    collection(handle: $handle) {
+export const PRODUCTS_BY_COLLECTION_QUERY =
+  gql(`query productsByCollection($handle: String!, $country: CountryCode, $language: LanguageCode) @inContext(country: $country, language: $language) {
+  collection(handle: $handle) {
+    id
+    title
+    handle
+    products(first: 16) {
+      nodes {
+        ...ProductCard
+      }
+    }
+  }
+}
+
+fragment ProductCard on Product {
+  id
+  title
+  publishedAt
+  handle
+  vendor
+  productType
+  tags
+  reviewRating: metafield(namespace: "reviews", key: "rating") {
+    value
+  }
+  reviewRatingCount: metafield(namespace: "reviews", key: "rating_count") {
+    value
+  }
+  images(first: 50) {
+    nodes {
       id
-      title
-      handle
-      products(first: 16) {
-        nodes {
-          ...ProductCard
+      url
+      altText
+      width
+      height
+    }
+  }
+  options {
+    ...ProductOption
+  }
+  badges: metafields(identifiers: [{namespace: "custom", key: "best_seller"}]) {
+    key
+    namespace
+    value
+  }
+  priceRange {
+    maxVariantPrice {
+      amount
+      currencyCode
+    }
+    minVariantPrice {
+      amount
+      currencyCode
+    }
+  }
+  selectedOrFirstAvailableVariant(
+    selectedOptions: []
+    ignoreUnknownOptions: true
+    caseInsensitiveMatch: true
+  ) {
+    ...ProductVariant
+  }
+  isBundle: selectedOrFirstAvailableVariant(
+    ignoreUnknownOptions: true
+    selectedOptions: {name: "", value: ""}
+  ) {
+    ... on ProductVariant {
+      requiresComponents
+    }
+  }
+}
+
+fragment ProductOption on ProductOption {
+  name
+  optionValues {
+    name
+    firstSelectableVariant {
+      ...ProductVariant
+    }
+    swatch {
+      color
+      image {
+        previewImage {
+          url
+          altText
         }
       }
     }
   }
-  ${PRODUCT_CARD_FRAGMENT}
-`;
+}
 
-export const loader = async ({ weaverse, data }: ComponentLoaderArgs) => {
+fragment ProductVariant on ProductVariant {
+  currentlyNotInStock
+  requiresShipping
+  quantityRule {
+    minimum
+    maximum
+    increment
+  }
+  id
+  availableForSale
+  quantityAvailable
+  selectedOptions {
+    name
+    value
+  }
+  image {
+    id
+    url
+    altText
+    width
+    height
+  }
+  price {
+    amount
+    currencyCode
+  }
+  compareAtPrice {
+    amount
+    currencyCode
+  }
+  sku
+  title
+  unitPrice {
+    amount
+    currencyCode
+  }
+  product {
+    id
+    vendor
+    title
+    handle
+  }
+  requiresComponents
+  components(first: 10) {
+    nodes {
+      productVariant {
+        id
+        title
+        product {
+          handle
+        }
+      }
+      quantity
+    }
+  }
+  groupedBy(first: 10) {
+    nodes {
+      id
+      title
+      product {
+        handle
+      }
+    }
+  }
+}`);
+
+export const loader = async ({
+  weaverse,
+  data,
+}: WeaverseComponentLoaderArgs) => {
   const { language, country } = weaverse.storefront.i18n;
   const collectionHandle = data.collection?.handle;
 
@@ -554,13 +693,12 @@ export const loader = async ({ weaverse, data }: ComponentLoaderArgs) => {
     return { collection: data.collection, products: [] };
   }
 
-  const res = await weaverse.storefront.query(PRODUCTS_BY_COLLECTION_QUERY, {
-    variables: {
-      handle: collectionHandle,
-      country,
-      language,
-    },
-  });
+  const res = await weaverse.storefront
+    .graphql(PRODUCTS_BY_COLLECTION_QUERY, {
+      variables: { handle: collectionHandle },
+      cache: CACHE_DEFAULT,
+    })
+    .then(unwrapStorefront);
   const products = res?.collection?.products?.nodes ?? [];
   return { collection: data.collection, products };
 };

@@ -1,4 +1,4 @@
-import { createSchema } from "@weaverse/hydrogen";
+import { createSchema } from "@weaverse/hydrogen/react-router";
 import { forwardRef, type HTMLAttributes } from "react";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import { schema as addressSchema } from "~/sections/map/address";

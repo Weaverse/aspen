@@ -4,9 +4,8 @@ import {
   type RouteConfig,
   route,
 } from "@react-router/dev/routes";
-import { hydrogenRoutes } from "@shopify/hydrogen";
 
-export default hydrogenRoutes([
+export default [
   route("robots.txt", "routes/[robots.txt].tsx"),
   ...prefix(":locale?", [
     index("routes/($locale)._index.tsx"),
@@ -96,4 +95,4 @@ export default hydrogenRoutes([
     ]),
     route("*", "routes/($locale).$.tsx"),
   ]),
-]) satisfies RouteConfig;
+] satisfies RouteConfig;

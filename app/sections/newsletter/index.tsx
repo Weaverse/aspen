@@ -1,4 +1,4 @@
-import { createSchema } from "@weaverse/hydrogen";
+import { createSchema } from "@weaverse/hydrogen/react-router";
 import type { CSSProperties } from "react";
 import { forwardRef } from "react";
 import { useRouteLoaderData } from "react-router";

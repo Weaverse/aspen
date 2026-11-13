@@ -1,10 +1,10 @@
 import { ArrowLeftIcon, TagIcon } from "@phosphor-icons/react";
-import { Money } from "@shopify/hydrogen";
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import clsx from "clsx";
 import { useLoaderData } from "react-router";
 import { Image } from "~/components/image";
 import { Link } from "~/components/link";
+import { Money } from "~/components/money";
 import { Section } from "~/components/section";
 import { useLocale } from "~/hooks/use-locale";
 import type { loader as orderDetailsLoader } from "~/routes/($locale).account.orders.$id";

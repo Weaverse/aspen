@@ -5,7 +5,7 @@ import {
   TwitterLogoIcon,
   XCircleIcon,
 } from "@phosphor-icons/react";
-import { createSchema, useTranslation } from "@weaverse/hydrogen";
+import { createSchema, useTranslation } from "@weaverse/hydrogen/react-router";
 import { forwardRef, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useLoaderData } from "react-router";
@@ -14,9 +14,9 @@ import {
   LinkedinShareButton,
   XShareButton,
 } from "react-share";
-import type { ArticleQuery } from "storefront-api.generated";
 import { Image } from "~/components/image";
 import { layoutInputs, Section, type SectionProps } from "~/components/section";
+import type { ArticleQuery } from "~/graphql/storefront-types";
 import { cn } from "~/utils/cn";
 
 interface BlogPostProps extends SectionProps {

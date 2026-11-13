@@ -35,21 +35,13 @@ const log = createWriteStream(logPath, { mode: 0o600 });
 const child = spawn(
   process.execPath,
   [
-    "node_modules/@shopify/cli/bin/run.js",
-    "hydrogen",
-    "dev",
-    "--codegen",
-    "--disable-version-check",
-    "--entry",
-    resolve("scripts/fixtures/runtime-worker.ts"),
-    "--env-file",
-    envPath,
+    "node_modules/vite/bin/vite.js",
     "--port",
     String(port),
   ],
   {
     detached: process.platform !== "win32",
-    env: { ...process.env, SHOPIFY_CLI_NO_ANALYTICS: "1" },
+    env: { ...process.env, ASPEN_RUNTIME_PROBE: "1", SHOPIFY_CLI_NO_ANALYTICS: "1" },
     stdio: ["ignore", "pipe", "pipe"],
   },
 );

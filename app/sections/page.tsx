@@ -1,9 +1,9 @@
-import { createSchema, useTranslation } from "@weaverse/hydrogen";
+import { createSchema, useTranslation } from "@weaverse/hydrogen/react-router";
 import { forwardRef } from "react";
 import { useLoaderData } from "react-router";
-import type { PageDetailsQuery } from "storefront-api.generated";
 import { Link } from "~/components/link";
 import { layoutInputs, Section, type SectionProps } from "~/components/section";
+import type { PageDetailsQuery } from "~/graphql/storefront-types";
 
 interface PageProps extends SectionProps {}
 

@@ -1,6 +1,8 @@
-import { CacheLong, createWithCache } from "@shopify/hydrogen";
+import { createRunWithCache, gql } from "@shopify/hydrogen";
 import type { MoneyV2 } from "@shopify/hydrogen/storefront-api-types";
 import { data, type LoaderFunctionArgs } from "react-router";
+import { CACHE_DEFAULT, CacheLong } from "~/utils/cache";
+import { unwrapStorefront } from "~/utils/storefront";
 
 type PriceRange = { minVariantPrice: MoneyV2; maxVariantPrice: MoneyV2 };
 type AdminProduct = {
@@ -46,20 +48,18 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   try {
     const groups = new Map<string, string[]>();
-    const withCache = createWithCache({
+    const withCache = createRunWithCache({
       cache: context.cache,
       waitUntil: context.waitUntil,
-      request,
     });
     const groupEntries = await Promise.all(
       ids.map(async (id) => {
-        const childIds = await withCache.run<string[] | null>(
+        const { data: childIds } = await withCache(
           {
-            cacheKey: ["combined-listing-children", id],
-            cacheStrategy: CacheLong(),
-            shouldCacheResult: () => true,
+            key: ["combined-listing-children", id],
+            strategy: CacheLong(),
           },
-          async ({ addDebugData }) => {
+          async () => {
             const adminResponse = await fetch(ADMIN_GRAPHQL_URL, {
               method: "POST",
               headers: {
@@ -71,10 +71,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
                 variables: { id },
               }),
               signal: AbortSignal.timeout(8000),
-            });
-            addDebugData({
-              displayName: "Combined listing children",
-              response: adminResponse,
             });
             if (!adminResponse.ok) {
               throw new Error("Combined listing children unavailable");
@@ -92,10 +88,13 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
               adminData.node.combinedListing?.combinedListingChildren.nodes.map(
                 (node) => node.product.id,
               );
-            return children?.length ? children : null;
+            return {
+              data: { children: children?.length ? children : null },
+              shouldCache: true,
+            };
           },
         );
-        return [id, childIds] as const;
+        return [id, childIds.children] as const;
       }),
     );
 
@@ -113,31 +112,28 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     }
 
     const childIds = [...new Set([...groups.values()].flat())];
-    const { nodes } = await context.storefront.query<{
-      nodes: Array<StorefrontProduct | null>;
-    }>(
-      `#graphql
-        query CombinedChildPrices($ids: [ID!]!, $country: CountryCode, $language: LanguageCode)
-        @inContext(country: $country, language: $language) {
-          nodes(ids: $ids) {
-            ... on Product {
-              id
-              priceRange {
-                minVariantPrice { amount currencyCode }
-                maxVariantPrice { amount currencyCode }
-              }
-            }
-          }
+    const { nodes } = await context.storefront
+      .graphql(
+        gql(`query CombinedChildPrices($ids: [ID!]!, $country: CountryCode, $language: LanguageCode) @inContext(country: $country, language: $language) {
+  nodes(ids: $ids) {
+    ... on Product {
+      id
+      priceRange {
+        minVariantPrice {
+          amount
+          currencyCode
         }
-      `,
-      {
-        variables: {
-          ids: childIds,
-          country: context.storefront.i18n.country,
-          language: context.storefront.i18n.language,
-        },
-      },
-    );
+        maxVariantPrice {
+          amount
+          currencyCode
+        }
+      }
+    }
+  }
+}`),
+        { variables: { ids: childIds }, cache: CACHE_DEFAULT },
+      )
+      .then(unwrapStorefront);
 
     const childPrices = new Map(
       nodes

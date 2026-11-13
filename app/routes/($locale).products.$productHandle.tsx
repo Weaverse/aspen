@@ -1,20 +1,21 @@
-import {
-  Analytics,
-  getAdjacentAndFirstAvailableVariants,
-  useOptimisticVariant,
-} from "@shopify/hydrogen";
-import { getSelectedProductOptions } from "@weaverse/hydrogen";
+import { getSelectedProductOptions } from "@weaverse/hydrogen/react-router";
 import { useEffect } from "react";
 import type {
   ActionFunctionArgs,
   LoaderFunctionArgs,
   MetaArgs,
 } from "react-router";
-import { data, useLoaderData } from "react-router";
-import type { ProductQuery } from "storefront-api.generated";
+import { data, useLoaderData, useNavigate } from "react-router";
 import invariant from "tiny-invariant";
+import {
+  getAdjacentAndFirstAvailableVariants,
+  ProductProvider,
+  useSelectedVariant,
+} from "~/components/product/product-form";
+import { Analytics } from "~/components/root/analytics";
 import { PRODUCT_QUERY } from "~/graphql/queries";
-import { routeHeaders } from "~/utils/cache";
+import type { ProductQuery } from "~/graphql/storefront-types";
+import { CACHE_DEFAULT, routeHeaders } from "~/utils/cache";
 import {
   COMBINED_LISTINGS_CONFIGS,
   isCombinedListing,
@@ -28,6 +29,7 @@ import {
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 import { seoPayload } from "~/utils/seo.server";
 import { localizedSeoMeta } from "~/utils/seo-translation";
+import { unwrapStorefront } from "~/utils/storefront";
 import { WeaverseContent } from "~/weaverse";
 
 export const headers = routeHeaders;
@@ -41,14 +43,12 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
   const { storefront, weaverse } = context;
   const selectedOptions = getSelectedProductOptions(request);
   const [{ shop, product }, weaverseData, productReviews] = await Promise.all([
-    storefront.query<ProductQuery>(PRODUCT_QUERY, {
-      variables: {
-        handle,
-        selectedOptions,
-        country: storefront.i18n.country,
-        language: storefront.i18n.language,
-      },
-    }),
+    storefront
+      .graphql(PRODUCT_QUERY, {
+        variables: { handle, selectedOptions },
+        cache: CACHE_DEFAULT,
+      })
+      .then(unwrapStorefront),
     weaverse.loadPage({ type: "PRODUCT", handle }),
     getJudgeMeProductReviews({ context, handle }),
     // Add other queries here, so that they are loaded in parallel
@@ -108,13 +108,31 @@ export const meta = ({ matches }: MetaArgs<typeof loader>) => {
 
 export default function Product() {
   const { product } = useLoaderData<typeof loader>();
+  const navigate = useNavigate();
+  return (
+    <ProductProvider
+      product={product}
+      onSelect={(result) => {
+        const params = new URLSearchParams(window.location.search);
+        params.delete("variant");
+        for (const option of result.selectedOptions)
+          params.set(option.name, option.value);
+        const to = `${window.location.pathname}?${params}`;
+        if (result.status === "unresolved")
+          navigate(to, { replace: true, preventScrollReset: true });
+        else window.history.replaceState(window.history.state, "", to);
+      }}
+    >
+      <ProductContent />
+    </ProductProvider>
+  );
+}
+function ProductContent() {
+  const { product } = useLoaderData<typeof loader>();
   const combinedListing = isCombinedListing(product);
 
   // Optimistically selects a variant with given available variant information
-  const selectedVariant = useOptimisticVariant(
-    product.selectedOrFirstAvailableVariant,
-    getAdjacentAndFirstAvailableVariants(product),
-  );
+  const selectedVariant = useSelectedVariant(product);
 
   // Sets the search param to the selected variant without navigation
   // when no search params are set or when variant options don't match
@@ -170,7 +188,7 @@ export default function Product() {
               {
                 id: product.id,
                 title: product.title,
-                price: selectedVariant?.price.amount || "0",
+                price: selectedVariant.price,
                 vendor: product.vendor,
                 variantId: selectedVariant?.id || "",
                 variantTitle: selectedVariant?.title || "",

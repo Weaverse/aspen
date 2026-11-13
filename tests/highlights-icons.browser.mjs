@@ -40,7 +40,7 @@ const bundle = await build({
         );
         builder.onLoad({ filter: /.*/, namespace: "fixture" }, ({ path }) => ({
           contents:
-            path === "@weaverse/hydrogen"
+            path === "@weaverse/hydrogen/react-router"
               ? "export const createSchema = (schema) => schema; export const useTranslation = () => ({ t: (key) => key });"
               : path.includes("use-animation")
                 ? "export const useAnimation = (ref) => [ref];"

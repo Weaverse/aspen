@@ -1,26 +1,30 @@
 import { PackageIcon } from "@phosphor-icons/react";
-import { getProductOptions, Money, ShopPayButton } from "@shopify/hydrogen";
 import type { MoneyV2 } from "@shopify/hydrogen/storefront-api-types";
 import {
-  type ComponentLoaderArgs,
   createSchema,
-  type HydrogenComponentProps,
   IMAGES_PLACEHOLDERS,
   useTranslation,
+  type WeaverseComponentLoaderArgs,
+  type WeaverseComponentProps,
   type WeaverseProduct,
-} from "@weaverse/hydrogen";
+} from "@weaverse/hydrogen/react-router";
 import clsx from "clsx";
 import { forwardRef, useEffect, useState } from "react";
-import type { ProductQuery } from "storefront-api.generated";
 import { sectionBackgroundInputs } from "~/components/background-image";
 import { Button } from "~/components/button";
 import { Image } from "~/components/image";
 import Link from "~/components/link";
+import { Money } from "~/components/money";
 import { AddToCartButton } from "~/components/product/add-to-cart-button";
 import { ProductBadges, SoldOutBadge } from "~/components/product/badges";
 import { ProductCardRating } from "~/components/product/product-card-rating";
+import {
+  getProductOptions,
+  ProductProvider,
+} from "~/components/product/product-form";
 import { ProductMedia } from "~/components/product/product-media";
 import { Quantity } from "~/components/product/quantity";
+import { ShopPayButton } from "~/components/product/shop-pay-button";
 import {
   ProductCompareAtPrice,
   SpacedMoney,
@@ -31,7 +35,9 @@ import { ProductCardWishlistButton } from "~/components/wishlist/product-card-wi
 import { PRODUCT_QUERY } from "~/graphql/queries";
 import { useProductQuantity } from "~/hooks/use-product-quantity";
 import { useTranslatedText } from "~/hooks/use-translated-text";
+import { CACHE_DEFAULT } from "~/utils/cache";
 import { isDiscounted } from "~/utils/product";
+import { unwrapStorefront } from "~/utils/storefront";
 import { ProductVariants } from "../main-product/variants";
 
 interface SingleProductData {
@@ -61,12 +67,12 @@ interface SingleProductData {
   estimatedDeliveryText: string;
 }
 
-type SingleProductProps = HydrogenComponentProps<
+type SingleProductProps = WeaverseComponentProps<
   Awaited<ReturnType<typeof loader>>
 > &
   SingleProductData;
 
-const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
+const SingleProductContent = forwardRef<HTMLElement, SingleProductProps>(
   (props, ref) => {
     const translateText = useTranslatedText();
 
@@ -409,24 +415,21 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
   },
 );
 
-export const loader = async (args: ComponentLoaderArgs<SingleProductData>) => {
+export const loader = async (
+  args: WeaverseComponentLoaderArgs<SingleProductData>,
+) => {
   const { weaverse, data } = args;
   const { storefront } = weaverse;
   if (!data?.product?.handle?.trim()) {
     return null;
   }
   const productHandle = data.product.handle;
-  const { product, shop } = await storefront.query<ProductQuery>(
-    PRODUCT_QUERY,
-    {
-      variables: {
-        handle: productHandle,
-        selectedOptions: [],
-        language: storefront.i18n.language,
-        country: storefront.i18n.country,
-      },
-    },
-  );
+  const { product, shop } = await storefront
+    .graphql(PRODUCT_QUERY, {
+      variables: { handle: productHandle, selectedOptions: [] },
+      cache: CACHE_DEFAULT,
+    })
+    .then(unwrapStorefront);
 
   return {
     product,
@@ -700,4 +703,15 @@ export const schema = createSchema({
   },
 });
 
+const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
+  (props, ref) => {
+    const product = props.loaderData?.product;
+    const content = <SingleProductContent {...props} ref={ref} />;
+    return product ? (
+      <ProductProvider product={product}>{content}</ProductProvider>
+    ) : (
+      content
+    );
+  },
+);
 export default SingleProduct;

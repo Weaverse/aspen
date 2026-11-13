@@ -2,8 +2,7 @@ import type {
   Customer,
   CustomerUpdateInput,
 } from "@shopify/hydrogen/customer-account-api-types";
-import { useTranslation } from "@weaverse/hydrogen";
-import type { CustomerUpdateMutation } from "customer-account-api.generated";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import {
   type ActionFunction,
   data,
@@ -15,6 +14,7 @@ import {
 import invariant from "tiny-invariant";
 import { Button } from "~/components/button";
 import Link from "~/components/link";
+import type { CustomerUpdateMutation } from "~/graphql/customer-types";
 import {
   accountFormSuccess,
   commitAccountPreviewState,
@@ -94,15 +94,12 @@ export const action: ActionFunction = async ({ request, context, params }) => {
       customer.lastName = formData.get("lastName") as string;
     }
 
-    const { data: updateData, errors } =
-      await context.customerAccount.mutate<CustomerUpdateMutation>(
-        CUSTOMER_UPDATE_MUTATION,
-        {
-          variables: {
-            customer,
-          },
-        },
-      );
+    const { data: updateData, errors } = await context.customerAccount.graphql(
+      CUSTOMER_UPDATE_MUTATION,
+      {
+        variables: { customer },
+      },
+    );
 
     invariant(!errors?.length, errors?.[0]?.message);
 

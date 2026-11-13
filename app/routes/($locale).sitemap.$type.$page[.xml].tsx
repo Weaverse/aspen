@@ -1,7 +1,6 @@
-import { getSitemap, type Storefront } from "@shopify/hydrogen";
 import type { LoaderFunctionArgs } from "react-router";
+import { getSitemap } from "~/.server/sitemap";
 import { articlePath, blogPath } from "~/utils/blog-path";
-import { qualifyArticleSitemapItems } from "~/utils/blog-sitemap.server";
 import { localeCode } from "~/utils/locale";
 import { canonicalStorefrontPathname } from "~/utils/storefront-path";
 
@@ -16,34 +15,8 @@ export async function loader({
   params,
   context: { storefront, localization },
 }: LoaderFunctionArgs) {
-  const storefrontClient: Storefront = storefront;
-  const sitemapStorefront = {
-    ...storefront,
-    query: (async (query, options) => {
-      const result = await storefrontClient.query<SitemapQueryData>(
-        query,
-        options,
-      );
-      if (params.type === "articles" && result?.sitemap?.resources?.items) {
-        return {
-          ...result,
-          sitemap: {
-            ...result.sitemap,
-            resources: {
-              ...result.sitemap.resources,
-              items: await qualifyArticleSitemapItems(
-                storefrontClient,
-                result.sitemap.resources.items,
-              ),
-            },
-          },
-        };
-      }
-      return result;
-    }) as Storefront["query"],
-  };
   const response = await getSitemap({
-    storefront: sitemapStorefront,
+    storefront,
     request,
     params,
     locales: localization.availableLocales.map((locale) =>

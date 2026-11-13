@@ -1,5 +1,5 @@
-import { getSeoMeta, type SeoConfig } from "@shopify/hydrogen";
 import type { MetaDescriptor } from "react-router";
+import { getSeoMeta, type SeoConfig } from "~/utils/seo-meta";
 import enUS from "../locales/en-us.json";
 
 type Match = { data?: unknown };

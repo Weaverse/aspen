@@ -1,10 +1,10 @@
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
 import {
-  type HydrogenComponentSchema,
   IMAGES_PLACEHOLDERS,
   useChildInstances,
   useTranslation,
-} from "@weaverse/hydrogen";
+  type WeaverseComponentSchema,
+} from "@weaverse/hydrogen/react-router";
 import { createContext, forwardRef, useEffect, useMemo, useState } from "react";
 import { sectionBackgroundInputs } from "~/components/background-image";
 import Heading from "~/components/heading";
@@ -237,7 +237,7 @@ const MapSection = forwardRef<HTMLElement, MapSectionProps>((props, ref) => {
 
 export default MapSection;
 
-export const schema: HydrogenComponentSchema = {
+export const schema: WeaverseComponentSchema = {
   type: "map",
   title: "Map",
   childTypes: ["address-item"],

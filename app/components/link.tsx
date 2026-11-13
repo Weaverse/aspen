@@ -1,9 +1,9 @@
 import {
   createSchema,
-  type HydrogenComponentProps,
   type InspectorGroup,
   useThemeSettings,
-} from "@weaverse/hydrogen";
+  type WeaverseComponentProps,
+} from "@weaverse/hydrogen/react-router";
 import { cva, type VariantProps } from "class-variance-authority";
 import { forwardRef, type HTMLAttributes } from "react";
 import {
@@ -91,7 +91,7 @@ export interface LinkData
 
 export interface LinkProps
   extends HTMLAttributes<HTMLAnchorElement>,
-    Partial<Omit<HydrogenComponentProps, "children">>,
+    Partial<Omit<WeaverseComponentProps, "children">>,
     LinkData {}
 
 export function useHrefWithLocale(href: LinkProps["to"]) {

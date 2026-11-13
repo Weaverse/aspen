@@ -1,12 +1,15 @@
 import { InstagramLogo } from "@phosphor-icons/react";
-import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
+import {
+  createSchema,
+  type WeaverseComponentProps,
+} from "@weaverse/hydrogen/react-router";
 import { forwardRef } from "react";
 import Heading from "~/components/heading";
 import Link, { type LinkProps, linkInputs } from "~/components/link";
 import Paragraph from "~/components/paragraph";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 
-interface InstagramContentProps extends HydrogenComponentProps {
+interface InstagramContentProps extends WeaverseComponentProps {
   // Heading props
   headingContent?: string;
   headingTagName?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6";

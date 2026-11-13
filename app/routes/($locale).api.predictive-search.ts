@@ -1,5 +1,6 @@
-import { mapSelectedProductOptionToObject } from "@shopify/hydrogen";
+import { gql } from "@shopify/hydrogen";
 import { data, type LoaderFunctionArgs } from "react-router";
+import { mapSelectedProductOptionToObject } from "~/components/product/product-form";
 import type {
   PredictiveArticleFragment,
   PredictiveCollectionFragment,
@@ -7,19 +8,21 @@ import type {
   PredictiveProductFragment,
   PredictiveQueryFragment,
   PredictiveSearchQuery,
-} from "storefront-api.generated";
+} from "~/graphql/storefront-types";
 import { NO_PREDICTIVE_SEARCH_RESULTS } from "~/hooks/use-predictive-search";
 import type {
   NormalizedPredictiveSearch,
   NormalizedPredictiveSearchResults,
 } from "~/types/predictive-search";
 import { articlePath } from "~/utils/blog-path";
+import { CACHE_DEFAULT } from "~/utils/cache";
 import {
   COMBINED_LISTINGS_CONFIGS,
   isCombinedListing,
 } from "~/utils/combined-listings";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 import { normalizeSearchStyledText } from "~/utils/search-highlight";
+import { unwrapStorefront } from "~/utils/storefront";
 import { shopifyPagePath } from "~/utils/storefront-path";
 
 export const shouldRevalidate = skipPageRevalidationForStorefrontActions;
@@ -139,14 +142,12 @@ async function fetchPredictiveSearchResults({
     };
   }
 
-  const searchData = await context.storefront.query(PREDICTIVE_SEARCH_QUERY, {
-    variables: {
-      limit,
-      limitScope: "EACH",
-      searchTerm,
-      types: searchTypes,
-    },
-  });
+  const searchData = await context.storefront
+    .graphql(PREDICTIVE_SEARCH_QUERY, {
+      variables: { limit, limitScope: "EACH", searchTerm, types: searchTypes },
+      cache: CACHE_DEFAULT,
+    })
+    .then(unwrapStorefront);
 
   if (!searchData) {
     throw new Error("No data returned from Shopify API");
@@ -356,133 +357,237 @@ function escapeHtml(value: string) {
   );
 }
 
-const PREDICTIVE_SEARCH_QUERY = `#graphql
-  fragment PredictiveArticle on Article {
-    __typename
-    id
-    title
+export const PREDICTIVE_SEARCH_QUERY_PredictiveArticle =
+  gql(`fragment PredictiveArticle on Article {
+  __typename
+  id
+  title
+  handle
+  blog {
     handle
-    blog {
-      handle
-    }
-    image {
-      url
-      altText
-      width
-      height
-    }
-    trackingParameters
   }
-  fragment PredictiveCollection on Collection {
-    __typename
-    id
-    title
-    handle
-    image {
-      url
-      altText
-      width
-      height
-    }
-    trackingParameters
+  image {
+    url
+    altText
+    width
+    height
   }
-  fragment PredictivePage on Page {
-    __typename
-    id
-    title
-    handle
-    trackingParameters
+  trackingParameters
+}`);
+
+export const PREDICTIVE_SEARCH_QUERY_PredictiveCollection =
+  gql(`fragment PredictiveCollection on Collection {
+  __typename
+  id
+  title
+  handle
+  image {
+    url
+    altText
+    width
+    height
   }
-  fragment PredictiveProduct on Product {
-    __typename
-    id
-    tags
-    title
-    handle
-    trackingParameters
-    vendor
-    reviewRating: metafield(namespace: "reviews", key: "rating") {
-      value
-    }
-    reviewRatingCount: metafield(namespace: "reviews", key: "rating_count") {
-      value
-    }
-    featuredImage {
-      url
-      altText
-      width
-      height
-    }
-    options {
+  trackingParameters
+}`);
+
+export const PREDICTIVE_SEARCH_QUERY_PredictivePage =
+  gql(`fragment PredictivePage on Page {
+  __typename
+  id
+  title
+  handle
+  trackingParameters
+}`);
+
+export const PREDICTIVE_SEARCH_QUERY_PredictiveProduct =
+  gql(`fragment PredictiveProduct on Product {
+  __typename
+  id
+  tags
+  title
+  handle
+  trackingParameters
+  vendor
+  reviewRating: metafield(namespace: "reviews", key: "rating") {
+    value
+  }
+  reviewRatingCount: metafield(namespace: "reviews", key: "rating_count") {
+    value
+  }
+  featuredImage {
+    url
+    altText
+    width
+    height
+  }
+  options {
+    name
+    optionValues {
       name
-      optionValues {
-        name
-        swatch {
-          color
-          image {
-            previewImage {
-              url
-              altText
-            }
+      swatch {
+        color
+        image {
+          previewImage {
+            url
+            altText
           }
         }
       }
     }
-    selectedOrFirstAvailableVariant(
-      selectedOptions: []
-      ignoreUnknownOptions: true
-      caseInsensitiveMatch: true
-    ) {
-      id
-      price {
-        amount
-        currencyCode
-      }
-      compareAtPrice {
-        amount
-        currencyCode
-      }
-      selectedOptions {
-        name
-        value
+  }
+  selectedOrFirstAvailableVariant(
+    selectedOptions: []
+    ignoreUnknownOptions: true
+    caseInsensitiveMatch: true
+  ) {
+    id
+    price {
+      amount
+      currencyCode
+    }
+    compareAtPrice {
+      amount
+      currencyCode
+    }
+    selectedOptions {
+      name
+      value
+    }
+  }
+}`);
+
+export const PREDICTIVE_SEARCH_QUERY_PredictiveQuery =
+  gql(`fragment PredictiveQuery on SearchQuerySuggestion {
+  __typename
+  text
+  styledText
+  trackingParameters
+}`);
+
+export const PREDICTIVE_SEARCH_QUERY =
+  gql(`query predictiveSearch($country: CountryCode, $language: LanguageCode, $limit: Int!, $limitScope: PredictiveSearchLimitScope!, $searchTerm: String!, $types: [PredictiveSearchType!]) @inContext(country: $country, language: $language) {
+  predictiveSearch(
+    limit: $limit
+    limitScope: $limitScope
+    query: $searchTerm
+    types: $types
+  ) {
+    articles {
+      ...PredictiveArticle
+    }
+    collections {
+      ...PredictiveCollection
+    }
+    pages {
+      ...PredictivePage
+    }
+    products {
+      ...PredictiveProduct
+    }
+    queries {
+      ...PredictiveQuery
+    }
+  }
+}
+
+fragment PredictiveArticle on Article {
+  __typename
+  id
+  title
+  handle
+  blog {
+    handle
+  }
+  image {
+    url
+    altText
+    width
+    height
+  }
+  trackingParameters
+}
+
+fragment PredictiveCollection on Collection {
+  __typename
+  id
+  title
+  handle
+  image {
+    url
+    altText
+    width
+    height
+  }
+  trackingParameters
+}
+
+fragment PredictivePage on Page {
+  __typename
+  id
+  title
+  handle
+  trackingParameters
+}
+
+fragment PredictiveProduct on Product {
+  __typename
+  id
+  tags
+  title
+  handle
+  trackingParameters
+  vendor
+  reviewRating: metafield(namespace: "reviews", key: "rating") {
+    value
+  }
+  reviewRatingCount: metafield(namespace: "reviews", key: "rating_count") {
+    value
+  }
+  featuredImage {
+    url
+    altText
+    width
+    height
+  }
+  options {
+    name
+    optionValues {
+      name
+      swatch {
+        color
+        image {
+          previewImage {
+            url
+            altText
+          }
+        }
       }
     }
   }
-  fragment PredictiveQuery on SearchQuerySuggestion {
-    __typename
-    text
-    styledText
-    trackingParameters
-  }
-  query predictiveSearch(
-    $country: CountryCode
-    $language: LanguageCode
-    $limit: Int!
-    $limitScope: PredictiveSearchLimitScope!
-    $searchTerm: String!
-    $types: [PredictiveSearchType!]
-  ) @inContext(country: $country, language: $language) {
-    predictiveSearch(
-      limit: $limit,
-      limitScope: $limitScope,
-      query: $searchTerm,
-      types: $types,
-    ) {
-      articles {
-        ...PredictiveArticle
-      }
-      collections {
-        ...PredictiveCollection
-      }
-      pages {
-        ...PredictivePage
-      }
-      products {
-        ...PredictiveProduct
-      }
-      queries {
-        ...PredictiveQuery
-      }
+  selectedOrFirstAvailableVariant(
+    selectedOptions: []
+    ignoreUnknownOptions: true
+    caseInsensitiveMatch: true
+  ) {
+    id
+    price {
+      amount
+      currencyCode
+    }
+    compareAtPrice {
+      amount
+      currencyCode
+    }
+    selectedOptions {
+      name
+      value
     }
   }
-` as const;
+}
+
+fragment PredictiveQuery on SearchQuerySuggestion {
+  __typename
+  text
+  styledText
+  trackingParameters
+}`);

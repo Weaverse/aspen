@@ -1,12 +1,15 @@
 import { CaretDownIcon, CheckIcon, XIcon } from "@phosphor-icons/react";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { useTranslation } from "@weaverse/hydrogen";
+import { parseCollectionParams, parseSortByValue } from "@shopify/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import { useState } from "react";
 import { useLocation, useSearchParams } from "react-router";
 import { AnimatedDrawer } from "~/components/animate-drawer";
+import { useOptionalCollectionBrowse } from "~/components/collection/browse";
 import Link from "~/components/link";
 import { cn } from "~/utils/cn";
+import { BROWSE_SORT_BY } from "~/utils/collection-browse";
 import type { SortParam } from "~/utils/filter";
 
 const SORT_LIST: { labelKey: string; key: SortParam }[] = [
@@ -32,11 +35,19 @@ export function Sort({
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const location = useLocation();
+  const browse = useOptionalCollectionBrowse();
   const sortList = options?.length
     ? SORT_LIST.filter(({ key }) => options.includes(key))
     : SORT_LIST;
   const currentSort =
-    sortList.find(({ key }) => key === searchParams.get("sort")) ||
+    sortList.find(
+      ({ key }) =>
+        key ===
+        (searchParams.get("sort") ||
+          Object.entries(BROWSE_SORT_BY).find(
+            ([, value]) => value === searchParams.get("sort_by"),
+          )?.[0]),
+    ) ||
     sortList.find(({ key }) => key === defaultSort) ||
     sortList[0];
 
@@ -75,6 +86,13 @@ export function Sort({
                   key,
                   resetPagination,
                 )}
+                onClick={(event) => {
+                  if (browse) {
+                    event.preventDefault();
+                    const next = parseSortByValue(BROWSE_SORT_BY[key]);
+                    browse.setSortKey(next.sortKey, next.reverse);
+                  }
+                }}
                 aria-current={currentSort.key === key ? "true" : undefined}
                 className={cn(
                   "-my-1.5 flex items-center justify-start self-stretch py-1.5 text-left font-body text-sm font-normal text-body uppercase leading-[1.6] tracking-[0.01em] outline-hidden hover:bg-gray-50 focus:bg-gray-50",
@@ -105,6 +123,7 @@ function SortDrawer({
 }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+  const browse = useOptionalCollectionBrowse();
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
@@ -139,6 +158,13 @@ function SortDrawer({
                 <Link
                   to={getSortUrl(pathname, searchParams, key)}
                   preventScrollReset
+                  onClick={(event) => {
+                    if (browse) {
+                      event.preventDefault();
+                      const next = parseSortByValue(BROWSE_SORT_BY[key]);
+                      browse.setSortKey(next.sortKey, next.reverse);
+                    }
+                  }}
                   aria-current={currentSort.key === key ? "true" : undefined}
                   className={cn(
                     "flex min-h-[62px] items-center justify-between gap-3 py-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body",
@@ -166,7 +192,12 @@ function getSortUrl(
   resetPagination = false,
 ) {
   const params = new URLSearchParams(searchParams);
-  params.set("sort", sort);
+  if (!/\/search$/.test(pathname)) {
+    params.delete("sort");
+    params.set("sort_by", BROWSE_SORT_BY[sort]);
+    params.delete("after");
+    params.delete("before");
+  } else params.set("sort", sort);
   if (resetPagination) {
     params.delete("cursor");
     params.delete("direction");

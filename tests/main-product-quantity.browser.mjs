@@ -48,10 +48,13 @@ const bundle = await build({
     {
       name: "quantity-fixture",
       setup(builder) {
-        builder.onResolve({ filter: /^@weaverse\/hydrogen$/ }, () => ({
-          path: "translation",
-          namespace: "fixture",
-        }));
+        builder.onResolve(
+          { filter: /^@weaverse\/hydrogen\/react-router$/ },
+          () => ({
+            path: "translation",
+            namespace: "fixture",
+          }),
+        );
         builder.onLoad({ filter: /./, namespace: "fixture" }, () => ({
           contents: "export const useTranslation = () => ({t: key => key});",
           loader: "js",

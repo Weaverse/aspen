@@ -1,4 +1,4 @@
-import type { HydrogenComponent } from "@weaverse/hydrogen";
+import type { WeaverseComponent } from "@weaverse/hydrogen/react-router";
 import * as Heading from "~/components/heading";
 import * as Link from "~/components/link";
 import * as Paragraph from "~/components/paragraph";
@@ -94,7 +94,7 @@ import * as Videos from "~/sections/videos";
 import * as VideoItems from "~/sections/videos/items";
 import * as VideoItem from "~/sections/videos/video";
 
-export const components: HydrogenComponent[] = [
+export const components: WeaverseComponent[] = [
   SubHeading,
   Heading,
   Paragraph,

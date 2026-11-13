@@ -1,4 +1,4 @@
-import type { ThemeSettingsResponse } from "@weaverse/hydrogen";
+import type { WeaverseThemeSettingsResponse } from "@weaverse/hydrogen/react-router";
 import sanitizeHtml from "sanitize-html";
 import {
   FOOTER_ALLOWED_LINK_ATTRIBUTES,
@@ -71,8 +71,8 @@ const TRANSLATION_HTML_PATHS = [
 
 /** Sanitize footer HTML once before root-loader data reaches React or the browser. */
 export function sanitizeFooterTheme(
-  response: ThemeSettingsResponse,
-): ThemeSettingsResponse {
+  response: WeaverseThemeSettingsResponse,
+): WeaverseThemeSettingsResponse {
   return {
     ...response,
     theme: sanitizePaths(response.theme, THEME_HTML_PATHS),

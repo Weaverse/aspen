@@ -40,7 +40,7 @@ const bundle = await build({
         );
         builder.onLoad({ filter: /.*/, namespace: "fixture" }, ({ path }) => {
           const contents =
-            path === "@weaverse/hydrogen"
+            path === "@weaverse/hydrogen/react-router"
               ? 'export const createSchema = (schema) => schema; export const isBrowser = false; export const useTranslation = () => ({ t: (key) => key === "blog.share" ? "Share" : key });'
               : path === "react-router"
                 ? `export const useRouteLoaderData = () => ({ layout: {shop: {primaryDomain: {url: "https://example.com"}}}}); export const useLoaderData = () => ({ blog: { handle: "journal" }, seo: {url: "https://example.com/blogs/article?blog=journal"}, article: {title: "Article", handle: "article", contentHtml: "<p>Article body</p>" + "<p>Paragraph</p>".repeat(90), tags: [], author: {}}, formattedDate: "" });`

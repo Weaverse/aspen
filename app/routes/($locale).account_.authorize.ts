@@ -1,5 +1,4 @@
-import type { LoaderFunctionArgs } from "react-router";
-
-export async function loader({ context }: LoaderFunctionArgs) {
-  return context.customerAccount.authorize();
+import { type LoaderFunctionArgs, redirectDocument } from "react-router";
+export function loader({ request }: LoaderFunctionArgs) {
+  return redirectDocument("/account/authorize" + new URL(request.url).search);
 }

@@ -40,12 +40,10 @@ jobs:
       - name: Install from the committed lockfile
         run: npm ci --engine-strict --no-audit --no-fund
       - name: Verify the resolved dependency graph
-        run: npm ls @shopify/mini-oxygen sanitize-html @shopify/cli @graphql-codegen/cli vite-node body-parser undici vite esbuild framer-motion motion-dom motion-utils --all
+        run: npm ls @shopify/mini-oxygen sanitize-html @shopify/cli vite-node body-parser undici vite esbuild framer-motion motion-dom motion-utils --all
       # Repository scripts must resolve the tested local CLI.
       - name: Verify onboarding uses the pinned local CLI
         run: node -e "const assert = require('node:assert/strict'); const pinned = require('./package.json').devDependencies['@shopify/cli']; const resolved = require('./node_modules/@shopify/cli/package.json').version; console.log({pinned, resolved}); assert.equal(resolved, pinned, 'Onboarding must resolve the local pinned CLI, not a fetched one');"
-      - name: Generate GraphQL types
-        run: npm run codegen
       - name: Check types
         run: npm run typecheck
       - name: Check localization

@@ -1,5 +1,5 @@
-import { CacheShort, generateCacheControlHeader } from "@shopify/hydrogen";
 import { data, type LoaderFunctionArgs } from "react-router";
+import { CacheShort, generateCacheControlHeader } from "~/utils/cache";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 
 export const shouldRevalidate = skipPageRevalidationForStorefrontActions;

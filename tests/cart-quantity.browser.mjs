@@ -36,6 +36,7 @@ const bundle = await build({
   bundle: true,
   write: false,
   format: "iife",
+  define: { "import.meta.env.DEV": "false" },
   jsx: "automatic",
   alias: { "~": `${root}app` },
   plugins: [
@@ -45,13 +46,13 @@ const bundle = await build({
         builder.onResolve(
           {
             filter:
-              /^@shopify\/hydrogen$|^@weaverse\/hydrogen$|^~\/components\/(image|link)$|^~\/utils\/image$|^\.\/store$|^\.\.\/layout\/cart-drawer$/,
+              /^~\/components\/(money|shopify-image)$|^@shopify\/hydrogen$|^@weaverse\/hydrogen(?:\/react-router)?$|^~\/components\/(image|link)$|^~\/utils\/image$|^\.\/store$|^\.\.\/layout\/cart-drawer$/,
           },
           ({ path }) => ({ path, namespace: "fixture" }),
         );
         builder.onLoad({ filter: /.*/, namespace: "fixture" }, ({ path }) => ({
           contents:
-            path === "@weaverse/hydrogen"
+            path === "@weaverse/hydrogen/react-router"
               ? `export const useTranslation=()=>({t:(key,vars)=>key==="product.quantityValue"?"Quantity, "+vars.quantity:key==="subscription.week_other"?"Deliver every "+vars.count+" weeks":key});`
               : `import React from "react";
           export const Money=({data,as:Tag="span",className})=><Tag className={className}>{data.amount}</Tag>;
