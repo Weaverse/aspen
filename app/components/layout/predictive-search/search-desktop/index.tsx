@@ -16,6 +16,7 @@ import Link from "~/components/link";
 import { usePredictiveSearch } from "~/hooks/use-predictive-search";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import type { NormalizedPredictiveSearchResultItem } from "~/types/predictive-search";
+import { MEDIA_NAVBAR_DESKTOP } from "~/utils/breakpoints";
 import { PopularSearch } from "../PopularSearch";
 import { withPinnedCollections } from "../pinned-collections";
 import { PredictiveSearchForm } from "../search-form";
@@ -59,6 +60,20 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
     return clearSearchDebounce;
   }, [location]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: reset only when crossing the navbar boundary
+  useEffect(() => {
+    const desktop = window.matchMedia(MEDIA_NAVBAR_DESKTOP);
+    const closeOnModeChange = () => {
+      if (!desktop.matches) {
+        setOpen(false);
+        setIsSearchOpen(false);
+        resetSearchState();
+      }
+    };
+    desktop.addEventListener("change", closeOnModeChange);
+    return () => desktop.removeEventListener("change", closeOnModeChange);
+  }, [setIsSearchOpen]);
+
   function clearSearchDebounce() {
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
@@ -99,7 +114,7 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
     >
       <Dialog.Trigger
         asChild
-        className="relative hidden size-5 items-center justify-center focus-visible:outline-hidden before:absolute before:-inset-2 xl:flex"
+        className="relative hidden size-5 items-center justify-center focus-visible:outline-hidden before:absolute before:-inset-2 navbar:flex"
       >
         <button type="button" aria-label={t("accessibility.openSearch")}>
           <MagnifyingGlassIcon aria-hidden="true" className="size-5" />
@@ -236,8 +251,8 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
                       {!(hasSearched || loading) && (
                         <div className="py-7">
                           <PopularSearch
-                            className="mx-0 w-[258px] max-w-full pb-6"
-                            headingClassName="flex h-7 w-full items-start gap-2 self-stretch border-[#D8D8D8] border-b"
+                            className="mx-0 w-[258px] max-w-full gap-5 pb-6"
+                            headingClassName="block w-full"
                             itemClassName="font-normal text-sm tracking-[0.01em]"
                             useSearchHistory
                           />

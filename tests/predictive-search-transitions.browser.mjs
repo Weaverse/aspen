@@ -60,6 +60,9 @@ const bundle = await build({
             if (importer === mobileSearch && path === "../search-form") {
               return { path: form };
             }
+            if (path === "~/utils/breakpoints") {
+              return { path: `${root}app/utils/breakpoints.ts` };
+            }
             return { path, namespace: "fixture" };
           },
         );
@@ -133,7 +136,7 @@ async function mount(page, transparent = false) {
 test("Scrolled Search retains sticky navigation and page geometry throughout scroll lock", async () => {
   const browser = await chromium.launch();
   try {
-    for (const width of [1440, 390, 768, 1032, 1033, 1280, 2560]) {
+    for (const width of [1440, 390, 768, 1023, 1024, 1032, 1033, 1280, 2560]) {
       for (const scroll of [900, 0, 40]) {
         const page = await browser.newPage({
           viewport: { width, height: 844 },
@@ -174,7 +177,7 @@ test("Scrolled Search retains sticky navigation and page geometry throughout scr
         );
         await expect(page.locator("body")).toHaveCSS("overflow", "hidden");
         expect(await measure()).toEqual(before);
-        if (width >= 1280) {
+        if (width >= 1024) {
           const popup = await page.getByRole("dialog").boundingBox();
           expect(
             Math.abs(popup.y - (before.headerY + before.headerHeight)),
@@ -293,7 +296,7 @@ test("Resubmitting the same query does not hand loading to the older request or 
 test("Mobile Search input meets the iOS focus-zoom font floor and preserves larger theme fonts", async () => {
   const browser = await chromium.launch();
   try {
-    for (const width of [320, 390, 768, 1032]) {
+    for (const width of [320, 390, 768, 1023]) {
       for (const bodySize of [12, 14, 20]) {
         const page = await browser.newPage({
           viewport: { width, height: 844 },
@@ -343,12 +346,12 @@ test("Mobile Search input meets the iOS focus-zoom font floor and preserves larg
 test("Search resource tabs keep 40px gaps and align the active underline", async () => {
   const browser = await chromium.launch();
   try {
-    for (const width of [390, 768, 1032, 1279, 1280, 1440]) {
+    for (const width of [390, 768, 1023, 1024, 1032, 1279, 1280, 1440]) {
       const page = await browser.newPage({ viewport: { width, height: 844 } });
       await mount(page);
       await page.getByPlaceholder("Enter a keyword").fill("chair");
       const labels =
-        width < 1280
+        width < 1024
           ? ["search.products", "search.collections", "search.page"]
           : [
               "search.products (10)",
@@ -386,7 +389,7 @@ test("Search resource tabs keep 40px gaps and align the active underline", async
 test("Mobile Search tabs isolate horizontal overflow and remain keyboard-accessible with merchant fonts and translated labels", async () => {
   const browser = await chromium.launch();
   try {
-    for (const width of [320, 375, 390, 768, 1032]) {
+    for (const width of [320, 375, 390, 768, 1023]) {
       for (const size of [14, 20, 22, 48]) {
         const page = await browser.newPage({
           viewport: { width, height: 844 },
@@ -727,6 +730,37 @@ test("Desktop empty product results match the 230px Figma popover and retain oth
             .toBe(230);
         }
       }
+      await page.close();
+    }
+  } finally {
+    await browser.close();
+  }
+});
+
+test("Search closes and releases scroll lock when crossing the navbar-only 1024px boundary", async () => {
+  const browser = await chromium.launch();
+  try {
+    for (const [from, to] of [
+      [1023, 1024],
+      [1024, 1023],
+    ]) {
+      const page = await browser.newPage({
+        viewport: { width: from, height: 900 },
+      });
+      await mount(page);
+      await expect(page.getByRole("dialog")).toBeVisible();
+      await expect(page.locator("body")).toHaveAttribute(
+        "data-scroll-locked",
+        "1",
+      );
+      await page.setViewportSize({ width: to, height: 900 });
+      await expect(page.getByRole("dialog")).toHaveCount(0);
+      await expect(page.locator("body")).not.toHaveAttribute(
+        "data-scroll-locked",
+      );
+      await expect(
+        page.getByRole("button", { name: "Open search", exact: true }),
+      ).toBeVisible();
       await page.close();
     }
   } finally {

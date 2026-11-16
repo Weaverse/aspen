@@ -53,10 +53,10 @@ const bundle = await build({
               "@phosphor-icons/react": `export const UserIcon=props=><svg {...props}/>;`,
               "@shopify/hydrogen": `export const Image=({data,sizes,...props})=><img src={data.url} {...props}/>;`,
               "./cart-drawer": `export const CartDrawer=()=> <button aria-label="Open cart" className="size-5"/>;`,
-              "./desktop-menu": `export const DesktopMenu=()=> <nav aria-label="Desktop menu"/>;`,
+              "./desktop-menu": `export const DesktopMenu=()=> <nav aria-label="Desktop menu">Menu</nav>;`,
               "./mobile-menu": `export const MobileMenu=()=> <button aria-label="Open menu" className="size-5"/>;`,
-              "./predictive-search/search-mobile": `export const PredictiveSearchButtonMobile=()=> <button aria-label="Open search" className="size-5 xl:hidden"/>;`,
-              "./predictive-search/search-desktop": `export const PredictiveSearchButtonDesktop=()=> <button aria-label="Desktop search" className="hidden size-5 xl:block"/>;`,
+              "./predictive-search/search-mobile": `export const PredictiveSearchButtonMobile=()=> <button aria-label="Open search" className="size-5 navbar:hidden"/>;`,
+              "./predictive-search/search-desktop": `export const PredictiveSearchButtonDesktop=()=> <button aria-label="Desktop search" className="hidden size-5 navbar:block"/>;`,
             };
             return {
               contents: `import React from 'react';${modules[path]}`,
@@ -92,17 +92,31 @@ test("Real Header matches Figma navbar geometry without changing Custom or deskt
           [512, 84],
           [768, 84],
           [834, 84],
-          [1032, 84],
-          [1033, 89],
+          [1023, 84],
+          [1024, 82],
+          [1032, 82],
+          [1033, 82],
           [1280, 82],
           [1440, 82],
         ]) {
           await page.setViewportSize({ width, height: 900 });
+          await expect(
+            page.getByRole("navigation", { name: "Desktop menu" }),
+          ).toBeVisible({ visible: width >= 1024 });
+          await expect(
+            page.getByRole("button", { name: "Open menu" }),
+          ).toBeVisible({ visible: width < 1024 });
+          await expect(
+            page.getByRole("button", { name: "Desktop search" }),
+          ).toBeVisible({ visible: width >= 1024 });
+          await expect(
+            page.getByRole("button", { name: "Open search" }),
+          ).toBeVisible({ visible: width < 1024 });
           const expected =
             preset === "custom"
               ? width < 512
                 ? 65
-                : width < 1280
+                : width < 1024
                   ? 81
                   : 97
               : height;
@@ -141,6 +155,40 @@ test("Real Header matches Figma navbar geometry without changing Custom or deskt
           }
         }
       }
+    }
+  } finally {
+    await browser.close();
+  }
+});
+
+test("compact navbar keeps hamburger and centered logo with desktop search at 1024px", async () => {
+  const browser = await chromium.launch();
+  try {
+    const page = await browser.newPage();
+    await page.setContent(`<style>${css}</style><div id="root"></div>`);
+    await page.addScriptTag({ content: bundle.outputFiles[0].text });
+    await page.evaluate((settings) => window.renderHeader(settings), {
+      designSystemPreset: "aspen-2026",
+      headerLayout: "compact",
+      headerWidth: "stretch",
+    });
+    for (const width of [1023, 1024, 1033, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      await expect(
+        page.getByRole("button", { name: "Open menu" }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("navigation", { name: "Desktop menu" }),
+      ).toHaveCount(0);
+      await expect(
+        page.getByRole("button", { name: "Desktop search" }),
+      ).toBeVisible({ visible: width >= 1024 });
+      const offset = await page.locator("header").evaluate((header) => {
+        const logo = header.querySelector("a svg").getBoundingClientRect();
+        const bounds = header.getBoundingClientRect();
+        return Math.abs(logo.x + logo.width / 2 - bounds.x - bounds.width / 2);
+      });
+      expect(offset).toBeLessThan(1);
     }
   } finally {
     await browser.close();

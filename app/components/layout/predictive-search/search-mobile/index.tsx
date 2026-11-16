@@ -9,6 +9,7 @@ import { useLocation, useNavigate } from "react-router";
 import Link from "~/components/link";
 import { usePredictiveSearch } from "~/hooks/use-predictive-search";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
+import { MEDIA_NAVBAR_DESKTOP } from "~/utils/breakpoints";
 import { PopularSearch } from "../PopularSearch";
 import { withPinnedCollections } from "../pinned-collections";
 import { PredictiveSearchForm } from "../search-form";
@@ -31,6 +32,20 @@ export function PredictiveSearchButtonMobile({ setIsSearchOpen }) {
     setIsSearchOpen(false);
     resetSearchState();
   }, [location]);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: reset only when crossing the navbar boundary
+  useEffect(() => {
+    const desktop = window.matchMedia(MEDIA_NAVBAR_DESKTOP);
+    const closeOnModeChange = () => {
+      if (desktop.matches) {
+        setOpen(false);
+        setIsSearchOpen(false);
+        resetSearchState();
+      }
+    };
+    desktop.addEventListener("change", closeOnModeChange);
+    return () => desktop.removeEventListener("change", closeOnModeChange);
+  }, [setIsSearchOpen]);
 
   function resetSearchState() {
     if (debounceRef.current) {
@@ -63,7 +78,7 @@ export function PredictiveSearchButtonMobile({ setIsSearchOpen }) {
     >
       <Dialog.Trigger
         asChild
-        className="relative flex size-5 items-center justify-center focus-visible:outline-none before:absolute before:-inset-2 xl:hidden"
+        className="relative flex size-5 items-center justify-center focus-visible:outline-none before:absolute before:-inset-2 navbar:hidden"
       >
         <button type="button" aria-label={t("accessibility.openSearch")}>
           <MagnifyingGlass aria-hidden="true" className="size-5" />
@@ -192,7 +207,7 @@ export function PredictiveSearchButtonMobile({ setIsSearchOpen }) {
                             {!hasSearched && !loading ? (
                               <PopularSearch
                                 className="mx-0 w-full max-w-none"
-                                headingClassName="block w-full border-[#D8D8D8] border-b pb-[11px] font-body font-semibold text-[14px] uppercase leading-[160%] tracking-[0.28px] text-[var(--color-text-subtle,#524B46)]"
+                                headingClassName="block w-full pb-[11px]"
                                 itemClassName="font-normal text-sm"
                               />
                             ) : loading ? (
