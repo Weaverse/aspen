@@ -178,7 +178,7 @@ export function QuickShop({
       <div
         className={clsx(
           "flex min-w-0 flex-col text-sm",
-          isDesktop ? "gap-8" : "gap-6",
+          isDesktop ? "gap-6 lg:gap-8" : "gap-6",
         )}
       >
         <div className="flex flex-col gap-4">
@@ -210,7 +210,12 @@ export function QuickShop({
           quantityAvailable={selectedVariant?.quantityAvailable}
         />
 
-        <div className={clsx("flex flex-col", isDesktop ? "gap-7" : "gap-6")}>
+        <div
+          className={clsx(
+            "flex flex-col",
+            isDesktop ? "gap-6 lg:gap-7" : "gap-6",
+          )}
+        >
           {productOptions && productOptions.length > 0 && (
             <QuickShopVariants
               productOptions={productOptions}
@@ -501,7 +506,7 @@ export function QuickShopTrigger({
                       </button>
 
                       <ScrollArea rootClassName="min-h-0 flex-1" size="sm">
-                        <div className="px-5 pt-10 pb-8">
+                        <div className="p-5">
                           {productLoading ? (
                             <QuickShopSkeleton />
                           ) : data ? (
@@ -528,10 +533,10 @@ export function QuickShopTrigger({
                   forceMount
                   onCloseAutoFocus={handleCloseAutoFocus}
                   data-quick-view-dialog=""
-                  className="fixed top-1/2 left-[calc((100%-var(--quick-view-locked-gap,0px))/2)] z-10 w-[calc(100%-var(--quick-view-locked-gap,0px)-48px)] max-w-[1375px] -translate-x-1/2 -translate-y-1/2"
+                  className="fixed top-1/2 left-[calc((100%-var(--quick-view-locked-gap,0px))/2)] z-10 w-[calc(100%-var(--quick-view-locked-gap,0px)-var(--spacing)*12)] max-w-[801px] -translate-x-1/2 -translate-y-1/2 lg:max-w-[1375px]"
                   aria-describedby={undefined}
                 >
-                  <QuickShopFade className="relative max-h-[calc(100dvh-48px)] w-full overflow-y-auto rounded-xl bg-background p-6">
+                  <QuickShopFade className="relative h-[min(783px,calc(100dvh-var(--spacing)*12))] max-h-[calc(100dvh-var(--spacing)*12)] w-full overflow-y-auto rounded-xl bg-background p-6 lg:h-auto">
                     <Dialog.Title asChild>
                       <span className="sr-only">{t("product.quickShop")}</span>
                     </Dialog.Title>
