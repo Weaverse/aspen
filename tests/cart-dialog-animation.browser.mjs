@@ -281,13 +281,30 @@ test("All cart action sheets share the cart bounds and token-based square-right 
             .filter((element) => getComputedStyle(element).zIndex === "60")
             .map((element) => {
               const rect = element.getBoundingClientRect();
-              return { x: rect.x, width: rect.width };
+              const style = getComputedStyle(element);
+              return {
+                x: rect.x,
+                width: rect.width,
+                topLeft: style.borderTopLeftRadius,
+                bottomLeft: style.borderBottomLeftRadius,
+                topRight: style.borderTopRightRadius,
+                bottomRight: style.borderBottomRightRadius,
+              };
             }),
         );
         assert.deepEqual(
           overlayBounds,
-          [{ x: cartBounds.x, width: cartBounds.width }],
-          `${width}px ${name}: nested backdrop must stay within the cart frame`,
+          [
+            {
+              x: cartBounds.x,
+              width: cartBounds.width,
+              topLeft: "18px",
+              bottomLeft: "18px",
+              topRight: "0px",
+              bottomRight: "0px",
+            },
+          ],
+          `${width}px ${name}: nested backdrop must match the cart frame and corners`,
         );
         await page.keyboard.press("Escape");
         await expect(dialog).toHaveCount(0);
