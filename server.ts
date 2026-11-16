@@ -1,7 +1,7 @@
 import * as serverBuild from "virtual:react-router/server-build";
 import { handleShopifyRedirects, handleShopifyRoutes } from "@shopify/hydrogen";
 import { createRequestHandler, RouterContextProvider } from "react-router";
-import { cartHandlers } from "~/.server/cart";
+import { getCartHandlers } from "~/.server/cart";
 import { createAppLoadContext } from "~/.server/context";
 import { getCustomerAccountHandlers } from "~/.server/customer-account";
 import { marketAwareRedirect } from "~/.server/market-redirect";
@@ -82,7 +82,7 @@ export default {
             storefrontClient: storefront,
             sessionManager: session,
             routeTemplates,
-            handlers: [cartHandlers, getCustomerAccountHandlers(env)],
+            handlers: [getCartHandlers(env), getCustomerAccountHandlers(env)],
           });
       let response = owned
         ? await owned

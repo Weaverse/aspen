@@ -31,6 +31,10 @@ jobs:
         run: npm run typecheck
       - name: Check combined-listing targets
         run: node --test tests/combined-listing-target.unit.test.mjs
+      - name: Check authenticated cart handoff and Studio schema regressions
+        run: |
+          npx --no-install vite-node tests/cart-checkout-handoff.unit.test.ts
+          npx --no-install vite-node tests/featured-collections-schema.unit.test.ts
       - name: Check localization
         run: npm run locale:check && npm run i18n:test
       - name: Check sanitizer regressions

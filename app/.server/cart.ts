@@ -1,4 +1,5 @@
 import { createCartServerHandlers, gql } from "@shopify/hydrogen";
+import { getCustomerSession } from "./customer-account";
 
 export const CART_FRAGMENT = gql(`fragment CartFragment on Cart {
   updatedAt
@@ -235,3 +236,11 @@ fragment AspenCartLineComponent on ComponentizableCartLine {
 export const cartHandlers = createCartServerHandlers({
   fragment: CART_FRAGMENT,
 });
+
+/** Reuse the account session so /api/cart preserves authenticated checkout. */
+export function getCartHandlers(env: Env) {
+  return createCartServerHandlers({
+    fragment: CART_FRAGMENT,
+    customerSession: getCustomerSession(env)?.session,
+  });
+}

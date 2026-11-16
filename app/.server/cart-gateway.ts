@@ -108,7 +108,13 @@ export function createAspenCart({
     });
     if (result.data.errors?.length)
       throw new Error(result.data.errors[0].message);
-    return result.data.cart as CartApiQueryFragment | null;
+    const cart = result.data.cart as CartApiQueryFragment | null;
+    if (!cart?.checkoutUrl || !(await getCustomerAccessToken())) {
+      return cart;
+    }
+    const checkoutUrl = new URL(cart.checkoutUrl);
+    checkoutUrl.searchParams.set("logged_in", "true");
+    return { ...cart, checkoutUrl: checkoutUrl.toString() };
   }
   async function updateBuyerIdentity(
     buyerIdentity: CartBuyerIdentityInput,

@@ -42,7 +42,7 @@ let cached:
  * configured. `createCustomerSession` throws on a missing shop ID or client
  * ID, and a storefront without accounts must keep serving pages.
  */
-function getCustomerSession(env: Env) {
+export function getCustomerSession(env: Env) {
   if (!hasCustomerAccounts(env)) return undefined;
   const key = `${env.SHOP_ID}:${env.PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID}`;
   if (cached?.key !== key) {

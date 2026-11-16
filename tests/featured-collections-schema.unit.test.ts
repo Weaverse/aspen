@@ -4,10 +4,10 @@ import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import {
-  registerElement as registerComponent,
-  Weaverse as WeaverseHydrogen,
-  WeaverseItemStore as WeaverseHydrogenItem,
-} from "@weaverse/core";
+  registerComponent,
+  WeaverseHydrogen,
+  WeaverseHydrogenItem,
+} from "@weaverse/hydrogen/internal";
 import { generateDataFromSchema } from "@weaverse/hydrogen/react-router";
 import { schema as accordionSchema } from "~/sections/accordion";
 import CollectionListDynamic, {
@@ -92,9 +92,21 @@ for (const legacyLayout of ["slider", "showcase"] as const) {
     const childId = `spacing-child-${legacyLayout}`;
     const runtime = new WeaverseHydrogen({
       projectId: "spacing-project",
+      pageId: "spacing-page",
+      weaverseApiBase: "https://weaverse.example/api",
+      weaverseHost: "https://weaverse.example",
+      weaverseApiKey: "spacing-test-key",
+      internal: {},
+      requestInfo: {
+        pathname: "/",
+        search: "",
+        queries: {},
+        i18n: { language: "EN", country: "US" },
+      },
       isDesignMode: true,
       data: {
         id: "spacing-page",
+        name: "Spacing regression",
         rootId: parentId,
         items: [
           {
