@@ -1,9 +1,12 @@
-import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
+import {
+  createSchema,
+  type WeaverseComponentProps,
+} from "@weaverse/hydrogen/react-router";
 import { createContext, forwardRef, useContext } from "react";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import { cn } from "~/utils/cn";
 
-interface ItemProps extends Partial<HydrogenComponentProps> {
+interface ItemProps extends Partial<WeaverseComponentProps> {
   content: string;
   icon?: string;
 }

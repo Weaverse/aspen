@@ -1,4 +1,4 @@
-import { useThemeSettings } from "@weaverse/hydrogen";
+import { useThemeSettings } from "@weaverse/hydrogen/react-router";
 import { DESKTOP_MIN_PX } from "~/utils/breakpoints";
 import {
   type DesignTokenSettings,

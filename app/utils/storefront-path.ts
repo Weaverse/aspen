@@ -23,6 +23,7 @@ export function isFilteredAllProductsPath(
   const params = new URLSearchParams(search);
   return (
     params.has("sort") ||
+    params.has("sort_by") ||
     [...params.keys()].some((key) => key.startsWith(FILTER_URL_PREFIX))
   );
 }

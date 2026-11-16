@@ -3,7 +3,7 @@ import {
   IMAGES_PLACEHOLDERS,
   useChildInstances,
   useTranslation,
-} from "@weaverse/hydrogen";
+} from "@weaverse/hydrogen/react-router";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import { useReducedMotion } from "framer-motion";

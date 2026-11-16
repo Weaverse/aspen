@@ -1,8 +1,8 @@
 import {
   createSchema,
-  type HydrogenComponentProps,
   IMAGES_PLACEHOLDERS,
-} from "@weaverse/hydrogen";
+  type WeaverseComponentProps,
+} from "@weaverse/hydrogen/react-router";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import type { CSSProperties } from "react";
@@ -32,7 +32,7 @@ const variants = cva("flex flex-col sm:grid sm:grid-cols-4", {
 });
 
 interface ImageGalleyItemsProps
-  extends HydrogenComponentProps,
+  extends WeaverseComponentProps,
     VariantProps<typeof variants> {
   height: number;
 }

@@ -18,10 +18,13 @@ const bundle = await build({
     {
       name: "theme-settings-fixture",
       setup(builder) {
-        builder.onResolve({ filter: /^@weaverse\/hydrogen$/ }, () => ({
-          path: "settings",
-          namespace: "fixture",
-        }));
+        builder.onResolve(
+          { filter: /^@weaverse\/hydrogen(?:\/react-router)?$/ },
+          () => ({
+            path: "settings",
+            namespace: "fixture",
+          }),
+        );
         builder.onLoad({ filter: /.*/, namespace: "fixture" }, () => ({
           contents: `export const useThemeSettings=()=>window.settings;`,
         }));

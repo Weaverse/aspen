@@ -1,8 +1,8 @@
 import {
   createSchema,
-  type HydrogenComponentProps,
   useTranslation,
-} from "@weaverse/hydrogen";
+  type WeaverseComponentProps,
+} from "@weaverse/hydrogen/react-router";
 import { forwardRef, useEffect, useState } from "react";
 import Heading, {
   type HeadingProps,
@@ -12,7 +12,7 @@ import Link from "~/components/link";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 
 export interface HighlightsBadgeProps
-  extends HydrogenComponentProps,
+  extends WeaverseComponentProps,
     Omit<HeadingProps, "content"> {
   iconType?: string;
   showIcon?: boolean;

@@ -1,9 +1,9 @@
 import {
   createSchema,
-  type HydrogenComponentProps,
   useParentInstance,
   useTranslation,
-} from "@weaverse/hydrogen";
+  type WeaverseComponentProps,
+} from "@weaverse/hydrogen/react-router";
 import type { CSSProperties } from "react";
 import { forwardRef, useEffect, useState } from "react";
 import { cn } from "~/utils/cn";
@@ -49,7 +49,7 @@ type CountDownTimerData = {
 
 const CountdownTimer = forwardRef<
   HTMLDivElement,
-  CountDownTimerData & HydrogenComponentProps
+  CountDownTimerData & WeaverseComponentProps
 >((props, ref) => {
   const { t } = useTranslation();
   const {

@@ -1,4 +1,4 @@
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import { translateGlobalThemeText } from "~/utils/translation";
 
 export function useGlobalThemeText() {

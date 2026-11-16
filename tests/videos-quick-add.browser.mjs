@@ -74,12 +74,26 @@ const bundle = await build({
   write: false,
   outfile: "fixture.js",
   format: "iife",
+  define: { "import.meta.env.DEV": "false" },
   jsx: "automatic",
   alias: { "~": `${root}app` },
   plugins: [
     {
       name: "cms-fixture",
       setup(builder) {
+        builder.onResolve(
+          { filter: /^~\/components\/product\/product-form$/ },
+          () => ({ path: "product-form", namespace: "product-form-fixture" }),
+        );
+        builder.onLoad(
+          { filter: /.*/, namespace: "product-form-fixture" },
+          () => ({
+            loader: "js",
+            resolveDir: root,
+            contents: `export {getProductOptions,getAdjacentAndFirstAvailableVariants,mapSelectedProductOptionToObject} from "${root}app/components/product/product-form.tsx"; export const ProductProvider=({children})=>children; export const useProductForm=()=>({selectOption:()=>({status:'unresolved'})});`,
+          }),
+        );
+
         // Optional baseline run proves these assertions catch the old behavior.
         if (process.env.TEST_BASELINE_REF) {
           builder.onLoad(
@@ -99,10 +113,13 @@ const bundle = await build({
             }),
           );
         }
-        builder.onResolve({ filter: /^@weaverse\/hydrogen$/ }, () => ({
-          path: "cms",
-          namespace: "fixture",
-        }));
+        builder.onResolve(
+          { filter: /^@weaverse\/hydrogen(?:\/react-router)?$/ },
+          () => ({
+            path: "cms",
+            namespace: "fixture",
+          }),
+        );
         builder.onResolve({ filter: /use-translated-text$/ }, () => ({
           path: "translation",
           namespace: "fixture",

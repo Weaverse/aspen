@@ -1,9 +1,9 @@
 import {
   createSchema,
-  type HydrogenComponentProps,
   IMAGES_PLACEHOLDERS,
+  type WeaverseComponentProps,
   type WeaverseImage,
-} from "@weaverse/hydrogen";
+} from "@weaverse/hydrogen/react-router";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import { forwardRef } from "react";
@@ -75,7 +75,7 @@ const variants = cva("flex h-full w-full items-end", {
 
 export interface SlideProps
   extends VariantProps<typeof variants>,
-    HydrogenComponentProps,
+    WeaverseComponentProps,
     OverlayAndBackgroundProps,
     Omit<HeadingProps, "content"> {
   // Heading props

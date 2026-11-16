@@ -1,5 +1,6 @@
 import { CheckIcon } from "@phosphor-icons/react";
 import * as Checkbox from "@radix-ui/react-checkbox";
+import { isFilterInputActive } from "@shopify/hydrogen";
 import type { Filter } from "@shopify/hydrogen/storefront-api-types";
 import { useId } from "react";
 import {
@@ -8,6 +9,7 @@ import {
   useRouteLoaderData,
   useSearchParams,
 } from "react-router";
+import { useOptionalCollectionBrowse } from "~/components/collection/browse";
 import { SwatchFill, swatchFrameClassName } from "~/components/product/swatch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "~/components/tooltip";
 import type { RootLoader } from "~/root";
@@ -41,7 +43,11 @@ export function FilterItem({
     (flt) => JSON.stringify(flt.filter) === option.input,
   );
 
-  const checked = Boolean(filter);
+  const browse = useOptionalCollectionBrowse();
+  const checked =
+    browse && !String(option.input).includes("category")
+      ? isFilterInputActive(browse.filters, String(option.input))
+      : Boolean(filter);
 
   function handleCheckedChange(newChecked: boolean) {
     if (newChecked) {

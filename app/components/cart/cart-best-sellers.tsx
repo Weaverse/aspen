@@ -3,15 +3,15 @@ import type {
   Product,
   ProductSortKeys,
 } from "@shopify/hydrogen/storefront-api-types";
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import clsx from "clsx";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useFetcher } from "react-router";
-import type { ProductCardFragment } from "storefront-api.generated";
 import { ArrowButton } from "~/components/arrow-button";
 import { Link } from "~/components/link";
 import { ProductCard } from "~/components/product/product-card";
 import { Skeleton } from "~/components/skeleton";
+import type { ProductCardFragment } from "~/graphql/storefront-types";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 

@@ -1,4 +1,7 @@
-import { IMAGES_PLACEHOLDERS, type WeaverseImage } from "@weaverse/hydrogen";
+import {
+  IMAGES_PLACEHOLDERS,
+  type WeaverseImage,
+} from "@weaverse/hydrogen/react-router";
 
 /** Resolve only empty section image selections, never replace merchant media. */
 export function sectionImageSource<T extends Partial<WeaverseImage>>(

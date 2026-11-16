@@ -3,7 +3,7 @@ import { data } from "react-router";
 import { prefixPathWithLocale } from "~/utils/locale";
 
 export async function loader({ params, context }: LoaderFunctionArgs) {
-  const { cart, session } = context;
+  const { cart } = context;
 
   try {
     const variantId = params.variantId;
@@ -16,14 +16,13 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
     ];
     const result = await cart.addLines(inputLines);
 
-    /**
-     * The Cart ID may change after each mutation. We need to update it each time in the session.
-     * Manual workaround for React Router v7 compatibility issue with cart.setCartId()
-     */
-    const cartId = result.cart.id;
-    session.set("cartId", cartId);
-    const headers = new Headers();
-    headers.set("Set-Cookie", await session.commit());
+    if (!result.cart) {
+      return data(
+        { errors: result.errors, userErrors: result.userErrors },
+        { status: result.errors?.length ? 502 : 400 },
+      );
+    }
+    const headers = cart.setCartId(result.cart.id);
     headers.set(
       "Location",
       prefixPathWithLocale("/cart", context.localization.selectedLocale),

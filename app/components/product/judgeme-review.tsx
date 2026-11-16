@@ -1,9 +1,9 @@
 import {
   createSchema,
-  type HydrogenComponentProps,
   useParentInstance,
   useTranslation,
-} from "@weaverse/hydrogen";
+  type WeaverseComponentProps,
+} from "@weaverse/hydrogen/react-router";
 import { type ComponentProps, forwardRef, useEffect } from "react";
 import { useFetcher, useLoaderData } from "react-router";
 import { StarRating } from "~/components/star-rating";
@@ -120,7 +120,7 @@ export function ProductRating({
   );
 }
 
-const JudgemeReview = forwardRef<HTMLDivElement, HydrogenComponentProps>(
+const JudgemeReview = forwardRef<HTMLDivElement, WeaverseComponentProps>(
   (props, ref) => <ProductRating {...props} ref={ref} />,
 );
 

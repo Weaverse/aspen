@@ -1,13 +1,14 @@
+import { gql } from "@shopify/hydrogen/customer-account";
 import type { CustomerAddressInput } from "@shopify/hydrogen/customer-account-api-types";
-import type {
-  CustomerAddressCreateMutation,
-  CustomerAddressDeleteMutation,
-  CustomerAddressUpdateMutation,
-} from "customer-account-api.generated";
 import { type ActionFunction, data } from "react-router";
 import invariant from "tiny-invariant";
 // biome-ignore lint/style/noExportedImports: <explanation> --- IGNORE ---
 import { AccountEditAddressForm } from "~/components/customer/edit-address-form";
+import type {
+  CustomerAddressCreateMutation,
+  CustomerAddressDeleteMutation,
+  CustomerAddressUpdateMutation,
+} from "~/graphql/customer-types";
 import {
   type AccountPreviewAddress,
   accountFormSuccess,
@@ -15,6 +16,7 @@ import {
   isAccountPreviewRequest,
   readAccountPreviewState,
 } from "~/utils/account-preview.server";
+import { setAddressValue } from "~/utils/customer-address";
 import { doLogout } from "./($locale).account_.logout";
 
 export const handle = {
@@ -40,11 +42,10 @@ export const action: ActionFunction = async ({ request, context, params }) => {
 
   if (request.method === "DELETE") {
     try {
-      const { data: deleteData, errors } =
-        await customerAccount.mutate<CustomerAddressDeleteMutation>(
-          DELETE_ADDRESS_MUTATION,
-          { variables: { addressId } },
-        );
+      const { data: deleteData, errors } = await customerAccount.graphql(
+        DELETE_ADDRESS_MUTATION,
+        { variables: { addressId } },
+      );
 
       invariant(!errors?.length, errors?.[0]?.message);
 
@@ -78,7 +79,7 @@ export const action: ActionFunction = async ({ request, context, params }) => {
     "address2",
     "city",
     "zoneCode",
-    "territoryCode",
+    "countryCode",
     "zip",
     "phoneNumber",
     "company",
@@ -87,7 +88,7 @@ export const action: ActionFunction = async ({ request, context, params }) => {
   for (const key of keys) {
     const value = formData.get(key);
     if (typeof value === "string") {
-      address[key] = value;
+      setAddressValue(address, key, value);
     }
   }
 
@@ -97,11 +98,10 @@ export const action: ActionFunction = async ({ request, context, params }) => {
 
   if (addressId === "add") {
     try {
-      const { data: createData, errors } =
-        await customerAccount.mutate<CustomerAddressCreateMutation>(
-          CREATE_ADDRESS_MUTATION,
-          { variables: { address, defaultAddress } },
-        );
+      const { data: createData, errors } = await customerAccount.graphql(
+        CREATE_ADDRESS_MUTATION,
+        { variables: { address, defaultAddress } },
+      );
 
       invariant(!errors?.length, errors?.[0]?.message);
 
@@ -126,17 +126,12 @@ export const action: ActionFunction = async ({ request, context, params }) => {
     }
   } else {
     try {
-      const { data: updateData, errors } =
-        await customerAccount.mutate<CustomerAddressUpdateMutation>(
-          UPDATE_ADDRESS_MUTATION,
-          {
-            variables: {
-              address,
-              addressId,
-              defaultAddress,
-            },
-          },
-        );
+      const { data: updateData, errors } = await customerAccount.graphql(
+        UPDATE_ADDRESS_MUTATION,
+        {
+          variables: { address, addressId, defaultAddress },
+        },
+      );
 
       invariant(!errors?.length, errors?.[0]?.message);
 
@@ -218,7 +213,7 @@ function previewAddressFromForm(
   const city = formValue(formData, "city");
   const zoneCode = formValue(formData, "zoneCode");
   const zip = formValue(formData, "zip");
-  const territoryCode = formValue(formData, "territoryCode");
+  const countryCode = formValue(formData, "countryCode");
   const phoneNumber = formValue(formData, "phoneNumber");
   const fullName = `${firstName} ${lastName}`.trim();
   const cityLine = [city, zoneCode].filter(Boolean).join(", ");
@@ -239,8 +234,7 @@ function previewAddressFromForm(
     company: company || null,
     address1: address1 || null,
     address2: address2 || null,
-    territoryCode: (territoryCode ||
-      "US") as AccountPreviewAddress["territoryCode"],
+    countryCode: (countryCode || "US") as AccountPreviewAddress["countryCode"],
     zoneCode: zoneCode || null,
     city: city || null,
     zip: zip || null,
@@ -256,60 +250,45 @@ function formValue(formData: FormData, name: string) {
 export default AccountEditAddressForm;
 
 // NOTE: https://shopify.dev/docs/api/customer/latest/mutations/customerAddressUpdate
-export const UPDATE_ADDRESS_MUTATION = `#graphql
-  mutation customerAddressUpdate(
-    $address: CustomerAddressInput!
-    $addressId: ID!
-    $defaultAddress: Boolean
- ) {
-    customerAddressUpdate(
-      address: $address
-      addressId: $addressId
-      defaultAddress: $defaultAddress
-    ) {
-      userErrors {
-        code
-        field
-        message
-      }
+export const UPDATE_ADDRESS_MUTATION =
+  gql(`mutation customerAddressUpdate($address: CustomerAddressInput!, $addressId: ID!, $defaultAddress: Boolean) {
+  customerAddressUpdate(
+    address: $address
+    addressId: $addressId
+    defaultAddress: $defaultAddress
+  ) {
+    userErrors {
+      code
+      field
+      message
     }
   }
-` as const;
+}`);
 
 // NOTE: https://shopify.dev/docs/api/customer/latest/mutations/customerAddressDelete
-export const DELETE_ADDRESS_MUTATION = `#graphql
-  mutation customerAddressDelete(
-    $addressId: ID!,
-  ) {
-    customerAddressDelete(addressId: $addressId) {
-      deletedAddressId
-      userErrors {
-        code
-        field
-        message
-      }
+export const DELETE_ADDRESS_MUTATION =
+  gql(`mutation customerAddressDelete($addressId: ID!) {
+  customerAddressDelete(addressId: $addressId) {
+    deletedAddressId
+    userErrors {
+      code
+      field
+      message
     }
   }
-` as const;
+}`);
 
 // NOTE: https://shopify.dev/docs/api/customer/latest/mutations/customerAddressCreate
-export const CREATE_ADDRESS_MUTATION = `#graphql
-  mutation customerAddressCreate(
-    $address: CustomerAddressInput!
-    $defaultAddress: Boolean
-  ) {
-    customerAddressCreate(
-      address: $address
-      defaultAddress: $defaultAddress
-    ) {
-      customerAddress {
-        id
-      }
-      userErrors {
-        code
-        field
-        message
-      }
+export const CREATE_ADDRESS_MUTATION =
+  gql(`mutation customerAddressCreate($address: CustomerAddressInput!, $defaultAddress: Boolean) {
+  customerAddressCreate(address: $address, defaultAddress: $defaultAddress) {
+    customerAddress {
+      id
+    }
+    userErrors {
+      code
+      field
+      message
     }
   }
-` as const;
+}`);

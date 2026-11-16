@@ -1,9 +1,9 @@
 import {
   createSchema,
-  type HydrogenComponentProps,
   IMAGES_PLACEHOLDERS,
+  type WeaverseComponentProps,
   type WeaverseImage,
-} from "@weaverse/hydrogen";
+} from "@weaverse/hydrogen/react-router";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import clsx from "clsx";
@@ -48,7 +48,7 @@ const variants = cva("h-(--image-height)", {
 
 interface ImageGalleryItemProps
   extends VariantProps<typeof variants>,
-    HydrogenComponentProps {
+    WeaverseComponentProps {
   src: WeaverseImage;
 }
 

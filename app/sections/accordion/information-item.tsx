@@ -1,7 +1,10 @@
-import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
+import {
+  createSchema,
+  type WeaverseComponentProps,
+} from "@weaverse/hydrogen/react-router";
 import { forwardRef } from "react";
 
-interface InformationItemProps extends HydrogenComponentProps {
+interface InformationItemProps extends WeaverseComponentProps {
   // allowMultiple: boolean;
 }
 

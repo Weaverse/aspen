@@ -1,7 +1,6 @@
-import { createSchema } from "@weaverse/hydrogen";
+import { createSchema } from "@weaverse/hydrogen/react-router";
 import { forwardRef, Suspense } from "react";
 import { Await, useLoaderData } from "react-router";
-import type { ProductCardFragment } from "storefront-api.generated";
 import Heading, {
   type HeadingProps,
   headingInputs,
@@ -9,6 +8,7 @@ import Heading, {
 import { ProductCard } from "~/components/product/product-card";
 import { layoutInputs, Section, type SectionProps } from "~/components/section";
 import { Swimlane } from "~/components/swimlane";
+import type { ProductCardFragment } from "~/graphql/storefront-types";
 
 interface RelatedProductsProps
   extends Omit<SectionProps, "content">,

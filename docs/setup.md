@@ -39,25 +39,19 @@ Aspen supports `^22.18.0 || ^24.11.0`, aligned with Pilot. Node 22.0.0,
 older unsupported minors, odd majors, and Node 26 are not acceptance targets.
 Prefer an up-to-date patched Node 22 or 24 release within this policy.
 
-The repository uses published upstream MiniOxygen 4.2.3 and sanitize-html
-2.18.1; no compatibility forks or `file:` dependencies are required.
-Shopify CLI 4.6.0, Vite 8.2.0 and GraphQL Code Generator 7.2.0 replace pins
-introduced solely for the obsolete Node 22.0.0 floor. `vite-node` 6.0.0
-runs the existing TypeScript localization/footer tests on the same Vite major.
-Keep the exact committed lockfile and dependency security overrides.
-CLI 4.6.0 already depends on patched esbuild 0.28.1, so the old CLI-specific
-esbuild override is redundant. The obsolete relay optimizer floor pin and
-vite-node/Vite override are also removed; the native dependency graph now
-passes strict engine checks at the supported minimums.
+The storefront runs Hydrogen 2026.10 and Weaverse v6. Development uses Vite
+with MiniOxygen; production builds use React Router. Shopify CLI remains the
+link, environment and Oxygen deployment tool. Keep the committed npm lockfile
+and dependency security overrides.
+
+Queries use `gql()` and `storefront.graphql()` with explicit cache policies.
+`npm run typecheck` validates TypeScript and GraphQL documents against the
+bundled schemas; a separate GraphQL codegen command is no longer needed.
 
 Routine CI runs one Ubuntu job on Node 22.18.0 for pull requests and pushes
-to main. It installs from the lockfile with strict engine checks and runs
-Biome, codegen, typechecking, focused tests and the production build. Run
-the **Node compatibility** workflow manually for the wider Linux, macOS and
-Windows matrix at both minimums and the current patches. It also verifies the
-selected dependency graph and exercises dev startup, worker SSR and client
-optimization. See the [validation record](node-support-validation.md) for
-completed runs and outstanding acceptance.
+to main. It checks installation, Biome, types and GraphQL, focused regressions,
+and the production build. The **Node compatibility** workflow runs the wider
+platform/runtime matrix manually, including the Vite/MiniOxygen runtime probe.
 
 See [upstream security comparison](node-upstream-security.md) for gaps that
 remain after removing the forks. The security regression suite intentionally
@@ -103,7 +97,7 @@ npm run dev
 ```
 
 Open <http://localhost:3456>. The command runs React Router type generation,
-Shopify GraphQL codegen, and Hydrogen's local MiniOxygen runtime.
+Vite and MiniOxygen. Use `npm run dev:https` (or its `dev:ca` alias) for local HTTPS when testing Customer Account OAuth.
 
 ### Minimum values needed to render
 
@@ -143,7 +137,7 @@ additional variables from the table below.
 | --- | --- | --- | --- | --- |
 | `SESSION_SECRET` | Yes | Private | `<random-64-character-hex-string>` | Signs Hydrogen session cookies. Generate independently for local, Preview, and Production. |
 | `PUBLIC_STORE_DOMAIN` | Yes | Public identifier | `<store>.myshopify.com` | Shopify store domain from Hydrogen/Headless sales channel. Do not use a custom storefront domain here. |
-| `PUBLIC_STOREFRONT_API_TOKEN` | Yes | Public token | `<public-storefront-token>` | Public Storefront API token created by Shopify. |
+| `PUBLIC_STOREFRONT_API_TOKEN` | For the public client/fallback | Public token | `<public-storefront-token>` | Public Storefront API token created by Shopify. |
 | `PRIVATE_STOREFRONT_API_TOKEN` | Recommended in production | **Private** | `<private-storefront-token>` | Server-side Storefront API token. Oxygen normally provisions it. Never expose it in browser code. |
 | `WEAVERSE_PROJECT_ID` | Yes | Public identifier | `<weaverse-project-id>` | Weaverse Studio → Project settings, or the project URL/setup prompt. |
 | `WEAVERSE_API_KEY` | No for normal rendering | **Private** | `<weaverse-api-key>` | Content API/MCP or authenticated Weaverse operations. Do not commit or expose it. |
@@ -157,8 +151,7 @@ additional variables from the table below.
 | `PUBLIC_CHECKOUT_DOMAIN` | For checkout | Public identifier | `<store>.myshopify.com` | Domain used for Shopify checkout and CSP configuration. Usually provisioned by Hydrogen. |
 | `PUBLIC_STOREFRONT_ID` | For complete analytics | Public identifier | `<hydrogen-storefront-id>` | Numeric Hydrogen storefront ID used by Shopify analytics. |
 | `PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID` | For `/account` | Public client ID | `<customer-account-client-id>` | Customer Account API settings in Hydrogen/Headless channel. |
-| `PUBLIC_CUSTOMER_ACCOUNT_API_URL` | For custom account configuration | Public URL | `https://shopify.com/<shop-id>/account/customer/api` | Normally provisioned by Shopify; keep the pulled value. |
-| `SHOP_ID` | For customer accounts | Public identifier | `<shop-id>` | Shopify shop identifier used by Hydrogen's Customer Account client. |
+| `SHOP_ID` | For customer accounts | Public identifier | `<shop-id>` | Numeric Shopify shop ID used by Hydrogen 2026.10 to derive Customer Account endpoints. |
 | `PUBLIC_GOOGLE_GTM_ID` | No | Public identifier | `GTM-XXXXXXX` | Optional Google Tag Manager container ID. |
 | `PUBLIC_SHOPIFY_INBOX_SHOP_ID` | No | Public identifier | `<shopify-inbox-shop-id>` | Enables the optional Shopify Inbox integration. |
 
@@ -200,7 +193,7 @@ Use this path for stores that will deploy to Oxygen.
 5. Re-add or verify `SESSION_SECRET`, `WEAVERSE_PROJECT_ID`, and optional
    third-party variables after the pull. The CLI can replace `.env`; keep a
    secure backup of locally generated values outside Git.
-6. Run `npm run codegen`, restart `npm run dev`, and verify products,
+6. Run `npm run typecheck`, restart `npm run dev`, and verify products,
    collections, cart, and checkout.
 
 Shopify's current CLI command reference is available at
@@ -231,8 +224,10 @@ not authenticate against bare `localhost`. Use the project's helper command:
 npm run dev:ca
 ```
 
-Follow the Shopify CLI prompts for the development URL. If your store setup
-requires it, expose port 3456 through a stable HTTPS tunnel and add these URLs
+This starts Vite with local HTTPS. HTTP localhost retains Aspen's sample account
+preview; HTTPS uses real customer authentication. Studio design mode retains
+the sample account preview. If your store setup requires it, expose port 3456
+through a stable HTTPS tunnel and add these URLs
 in Shopify's Customer Account API application setup:
 
 ```text
@@ -327,14 +322,13 @@ Run focused checks while developing, then the complete pre-PR set:
 ```bash
 npm run biome
 npm run typecheck
-npm run routes-check
 npm run build
 ```
 
 For changes that affect GraphQL documents:
 
 ```bash
-npm run codegen
+npm run typecheck
 ```
 
 For visual or interactive changes:
@@ -411,7 +405,7 @@ Oxygen needs a separate value in each environment.
 
 ### GraphQL or generated TypeScript errors
 
-Run `npm run codegen`, then `npm run typecheck`. If codegen fails, fix the
+Run `npm run typecheck`. If GraphQL validation fails, fix the
 Shopify connection and API credentials before editing generated `.d.ts` files.
 
 ### Port 3456 is already in use

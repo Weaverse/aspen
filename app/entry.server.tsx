@@ -3,6 +3,7 @@ import { isbot } from "isbot";
 import { renderToReadableStream } from "react-dom/server";
 import type { AppLoadContext, EntryContext } from "react-router";
 import { ServerRouter } from "react-router";
+import { NonceProvider } from "~/utils/csp";
 
 import { getWeaverseCsp } from "~/weaverse/csp";
 
@@ -13,8 +14,8 @@ export default async function handleRequest(
   reactRouterContext: EntryContext,
   context: AppLoadContext,
 ) {
-  const { nonce, header, NonceProvider } = createContentSecurityPolicy({
-    ...getWeaverseCsp(request, context),
+  const { nonce, header } = createContentSecurityPolicy({
+    directives: getWeaverseCsp(request, context),
     shop: {
       checkoutDomain:
         context.env?.PUBLIC_CHECKOUT_DOMAIN || context.env?.PUBLIC_STORE_DOMAIN,
@@ -22,7 +23,7 @@ export default async function handleRequest(
     },
   });
   const body = await renderToReadableStream(
-    <NonceProvider>
+    <NonceProvider value={nonce}>
       <ServerRouter
         context={reactRouterContext}
         url={request.url}

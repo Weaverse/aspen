@@ -1,7 +1,7 @@
 import type {
-  HydrogenComponentProps,
   InspectorGroup,
-} from "@weaverse/hydrogen";
+  WeaverseComponentProps,
+} from "@weaverse/hydrogen/react-router";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import type React from "react";
@@ -22,7 +22,7 @@ export type BackgroundProps = BackgroundImageProps & {
 
 export interface SectionProps<T = any>
   extends Omit<VariantProps<typeof variants>, "padding">,
-    Partial<Omit<HydrogenComponentProps<T>, "children">>,
+    Partial<Omit<WeaverseComponentProps<T>, "children">>,
     Omit<HTMLAttributes<HTMLElement>, "children">,
     Partial<BackgroundProps>,
     Partial<OverlayProps> {

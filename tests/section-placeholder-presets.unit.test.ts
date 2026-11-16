@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { IMAGES_PLACEHOLDERS } from "@weaverse/hydrogen";
+import { IMAGES_PLACEHOLDERS } from "@weaverse/hydrogen/react-router";
 import { loader as articlesLoader } from "~/sections/articles";
 import { loader as collectionLoader } from "~/sections/collection-list-dynamic/collection-items";
 import { loader as featuredProductsLoader } from "~/sections/featured-products/product-items";
@@ -162,7 +162,7 @@ test("unselected product and collection sections never query real store data", a
     weaverse: {
       storefront: {
         i18n: { country: "US", language: "EN" },
-        query: async () => {
+        graphql: async () => {
           queries += 1;
           throw new Error("Unselected section queried Shopify");
         },
@@ -204,17 +204,19 @@ test("selected products, collections and blogs still load only the merchant sele
   const weaverse = {
     storefront: {
       i18n: { country: "US", language: "EN" },
-      query: async (
+      graphql: async (
         _query: string,
         { variables }: { variables: Record<string, unknown> },
       ) => {
         queries.push(variables);
         return {
-          product,
-          collection,
-          nodes: [collection],
-          shop: { primaryDomain: { url: "https://merchant.example" } },
-          blog: { articles: { nodes: [] } },
+          data: {
+            product,
+            collection,
+            nodes: [collection],
+            shop: { primaryDomain: { url: "https://merchant.example" } },
+            blog: { articles: { nodes: [] } },
+          },
         };
       },
     },

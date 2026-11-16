@@ -50,6 +50,7 @@ const bundle = await build({
   bundle: true,
   write: false,
   format: "iife",
+  define: { "import.meta.env.DEV": "false" },
   jsx: "automatic",
   alias: { "~": `${root}app` },
   plugins: [
@@ -59,7 +60,7 @@ const bundle = await build({
         builder.onResolve(
           {
             filter:
-              /^@weaverse\/hydrogen$|components\/(button|link|scroll-area|animate-drawer)$|^\.\/filters$/,
+              /^@weaverse\/hydrogen(?:\/react-router)?$|components\/(button|link|scroll-area|animate-drawer)$|^\.\/filters$/,
           },
           (args) => ({ path: args.path, namespace: "fixture" }),
         );
@@ -67,7 +68,7 @@ const bundle = await build({
           loader: "tsx",
           resolveDir: root,
           contents:
-            path === "@weaverse/hydrogen"
+            path === "@weaverse/hydrogen/react-router"
               ? `const locale = ${JSON.stringify(locale)}; export const useTranslation = () => ({t: (key, vars = {}) => key.split(".").reduce((value, part) => value?.[part], locale)?.replace(/{{(.*?)}}/g, (_, name) => vars[name.trim()] ?? "") || key});`
               : path.endsWith("/button")
                 ? `import React from "react"; export const Button = React.forwardRef(({animate, variant, ...props}, ref) => <button ref={ref} {...props}/>);`
@@ -160,7 +161,10 @@ test("mobile product count shares the Sort row below layout/filter controls", as
     const query = await page.evaluate(
       () => window.router.state.location.search,
     );
-    assert.equal(new URLSearchParams(query).get("sort"), "newest");
+    assert.equal(
+      new URLSearchParams(query).get("sort_by"),
+      "created-descending",
+    );
     assert.equal(
       new URLSearchParams(query).get("filter.v.option.color"),
       "Black",

@@ -1,4 +1,4 @@
-import type { MappedProductOptions } from "@shopify/hydrogen";
+import type { MappedProductOptions } from "~/components/product/product-form";
 import { isCombinedListing } from "~/utils/combined-listings";
 
 /** A tag alone does not prove that this page represents child products. */

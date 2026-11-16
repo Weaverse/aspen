@@ -1,4 +1,4 @@
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import { StorefrontError } from "~/components/root/storefront-error";
 
 export function NotFound({ type: _type = "page" }: { type?: string }) {

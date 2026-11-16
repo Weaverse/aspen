@@ -3,7 +3,7 @@ import { execFileSync } from "node:child_process";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { chromium, expect } from "@playwright/test";
-import { IMAGES_PLACEHOLDERS } from "@weaverse/hydrogen";
+import { IMAGES_PLACEHOLDERS } from "@weaverse/hydrogen/react-router";
 import { build } from "esbuild";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
@@ -94,7 +94,7 @@ const bundle = await build({
           loader: "tsx",
           resolveDir: root,
           contents:
-            path === "@weaverse/hydrogen"
+            path === "@weaverse/hydrogen/react-router"
               ? `export const IMAGES_PLACEHOLDERS=${JSON.stringify(IMAGES_PLACEHOLDERS)};export const createSchema=v=>v;export const useTranslation=()=>({t:key=>key});export const useThemeSettings=()=>({});export const useChildInstances=()=>[];export const useParentInstance=()=>null;export const useItemInstance=()=>null;export const useWeaverse=()=>({});`
               : path.endsWith("/image")
                 ? `import React from 'react';export const Image=React.forwardRef(({data,alt,...props},ref)=><img ref={ref} src={data?.url} alt={alt??data?.altText??''} data-width={data?.width}/>);`

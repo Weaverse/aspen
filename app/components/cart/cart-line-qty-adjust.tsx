@@ -1,4 +1,4 @@
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import type { CartLine } from "./cart-types";
 import { canAdjustLineQuantity, useCartStore } from "./store";
 

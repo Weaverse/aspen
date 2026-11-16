@@ -5,14 +5,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Development Commands
 
 ### Core Development
-- `npm run dev` - Start development server on port 3456 with codegen
-- `npm run dev:ca` - Start dev server with a tunnel and push its domain for the Customer Account API OAuth flow
-- `npm run build` - Build for production with codegen
+- `npm run dev` - Start Vite/MiniOxygen on port 3456
+- `npm run dev:ca` - Alias for local HTTPS development
+- `npm run build` - Build the React Router client and Oxygen worker
 - `npm run preview` - Preview production build
 - `npm run start` - Start production server
 - `npm run typecheck` - Generate React Router types and run TypeScript type checking
-- `npm run routes-check` - Verify all standard Shopify routes are configured
-- `npm run codegen` - Generate GraphQL types and schema
+- `npm run dev:https` - Start local HTTPS for Customer Account OAuth
+- `npm run deploy` - Deploy the built client and worker to Oxygen
 
 ### Code Quality
 - `npm run biome` - Run Biome checks and report errors and warnings
@@ -32,8 +32,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This is a **Shopify Hydrogen storefront** built with **React Router v7** (not Remix) and integrated with **Weaverse** for visual page building. Key architectural decisions:
 
 ### Framework Stack
-- **Hydrogen 2026.4** - Shopify's React framework for commerce
-- **React Router 7.16** - Programmatic route configuration (NOT Remix - see import rules below)
+- **Hydrogen 2026.10** - Shopify's React framework for commerce
+- **React Router 7.18** - Programmatic route configuration (NOT Remix - see import rules below)
 - **Weaverse** - Visual page builder with component system
 - **Vite** - Build tool and dev server
 - **Biome** - Linting and formatting (replaces ESLint/Prettier)
@@ -83,10 +83,10 @@ import { useLoaderData, Link, Form } from '@remix-run/react';
 
 ### GraphQL & Data Fetching
 - **Storefront API** for product/collection data
-- **Generated types** in `storefront-api.generated.d.ts` (DO NOT edit directly)
+- **Typed documents** use `gql()`; infer data from documents in `app/graphql/`
 - **Fragments** defined in `app/graphql/fragments.ts`
 - **Queries** in `app/graphql/queries.ts`
-- **Regenerate types** with `npm run codegen` after schema changes
+- **Validate documents** with `npm run typecheck` after GraphQL changes
 
 ### Testing Setup
 - **Playwright** for end-to-end testing
@@ -127,7 +127,7 @@ export let schema = createSchema({
 - `app/routes.ts` is the source of truth for the React Router route tree
 - Route modules live in `app/routes/` and must be explicitly referenced by `app/routes.ts`
 - Route filenames keep the established locale-aware naming convention, such as `($locale).products.$productHandle.tsx`
-- Run `npm run routes-check` after changing the route tree
+- Run `npm run typecheck` after changing the route tree
 
 ### Code Quality Standards
 - **TypeScript**: Strict mode disabled, but use types where beneficial
@@ -154,7 +154,7 @@ Required environment variables:
 
 ### Updating GraphQL Schema
 1. Modify queries in `app/graphql/`
-2. Run `npm run codegen`
+2. Run `npm run typecheck`
 3. Update TypeScript types as needed
 
 ### Adding Theme Settings
@@ -171,3 +171,15 @@ Required environment variables:
 - **Shopify Oxygen**: Native Hydrogen deployment platform
 - **Build command**: `npm run build`
 - **Environment**: Ensure all env vars are configured
+
+## Hydrogen 2026.10 migration contracts
+
+- Build request context in `app/.server/context.ts`; `server.ts` composes Shopify
+  handlers, React Router, session commit and response headers.
+- Import Weaverse React Router APIs from `@weaverse/hydrogen/react-router`.
+- Run Storefront queries with `storefront.graphql(gql(...), {variables, cache})`;
+  use `unwrapStorefront` where query errors should reach the route boundary.
+- Aspen's queued cart UI and native `/cart` forms use the app-owned cart gateway;
+  `CartLibrarySync` refreshes Hydrogen's store after these custom mutations.
+- Keep saved section types/settings, merchant content, responsive markup and
+  locale/currency behavior compatible. See `docs/hydrogen-2026-10-migration.md`.

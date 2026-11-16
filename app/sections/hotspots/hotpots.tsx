@@ -1,5 +1,5 @@
-import type { HydrogenComponentProps } from "@weaverse/hydrogen";
-import { createSchema } from "@weaverse/hydrogen";
+import type { WeaverseComponentProps } from "@weaverse/hydrogen/react-router";
+import { createSchema } from "@weaverse/hydrogen/react-router";
 import clsx from "clsx";
 import { Children, createContext, forwardRef, useContext } from "react";
 import type { ImageAspectRatio } from "~/types/image";
@@ -7,7 +7,7 @@ import { type HotspotsLayout, useHotspotsLayout } from ".";
 
 type HotspotsAspectRatio = ImageAspectRatio | "design";
 
-interface HotspotsProps extends HydrogenComponentProps {
+interface HotspotsProps extends WeaverseComponentProps {
   gap?: number;
   desktopGap?: number;
   aspectRatio?: HotspotsAspectRatio;

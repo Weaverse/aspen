@@ -1,80 +1,121 @@
-import {
-  flattenConnection,
-  getPaginationVariables,
-  Money,
-  Pagination,
-} from "@shopify/hydrogen";
-import { useTranslation } from "@weaverse/hydrogen";
-import type {
-  CustomerOrdersFragment,
-  OrderItemFragment,
-} from "customer-account-api.generated";
+import { flattenConnection } from "@shopify/hydrogen";
+import { gql } from "@shopify/hydrogen/customer-account";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import type * as React from "react";
 import type { LoaderFunctionArgs, MetaFunction } from "react-router";
 import { useLoaderData } from "react-router";
 import { Link } from "~/components/link";
+import { Money } from "~/components/money";
+import { Pagination } from "~/components/pagination";
+import type {
+  CustomerOrdersFragment,
+  OrderItemFragment,
+} from "~/graphql/customer-types";
 import { useLocale } from "~/hooks/use-locale";
 import { formatDate } from "~/utils/locale";
+import { getPaginationVariables } from "~/utils/pagination";
 import { getMetaTranslator } from "~/utils/seo-translation";
 
 // https://shopify.dev/docs/api/customer/latest/objects/Order
-const ORDER_ITEM_FRAGMENT = `#graphql
-  fragment OrderItem on Order {
-    totalPrice {
-      amount
-      currencyCode
-    }
-    financialStatus
-    fulfillments(first: 1) {
-      nodes {
-        status
-      }
-    }
-    id
-    number
-    processedAt
+export const ORDER_ITEM_FRAGMENT = gql(`fragment OrderItem on Order {
+  totalPrice {
+    amount
+    currencyCode
   }
-` as const;
+  financialStatus
+  fulfillments(first: 1) {
+    nodes {
+      status
+    }
+  }
+  id
+  number
+  processedAt
+}`);
 
 // https://shopify.dev/docs/api/customer/latest/objects/Customer
-const CUSTOMER_ORDERS_FRAGMENT = `#graphql
-  fragment CustomerOrders on Customer {
-    orders(
-      sortKey: PROCESSED_AT,
-      reverse: true,
-      first: $first,
-      last: $last,
-      before: $startCursor,
-      after: $endCursor
-    ) {
-      nodes {
-        ...OrderItem
-      }
-      pageInfo {
-        hasPreviousPage
-        hasNextPage
-        endCursor
-        startCursor
-      }
+export const CUSTOMER_ORDERS_FRAGMENT =
+  gql(`fragment CustomerOrders on Customer {
+  orders(
+    sortKey: PROCESSED_AT
+    reverse: true
+    first: $first
+    last: $last
+    before: $startCursor
+    after: $endCursor
+  ) {
+    nodes {
+      ...OrderItem
+    }
+    pageInfo {
+      hasPreviousPage
+      hasNextPage
+      endCursor
+      startCursor
     }
   }
-  ${ORDER_ITEM_FRAGMENT}
-` as const;
+}
+
+fragment OrderItem on Order {
+  totalPrice {
+    amount
+    currencyCode
+  }
+  financialStatus
+  fulfillments(first: 1) {
+    nodes {
+      status
+    }
+  }
+  id
+  number
+  processedAt
+}`);
 
 // https://shopify.dev/docs/api/customer/latest/queries/customer
-const CUSTOMER_ORDERS_QUERY = `#graphql
-  ${CUSTOMER_ORDERS_FRAGMENT}
-  query CustomerOrders(
-    $endCursor: String
-    $first: Int
-    $last: Int
-    $startCursor: String
+export const CUSTOMER_ORDERS_QUERY =
+  gql(`query CustomerOrders($endCursor: String, $first: Int, $last: Int, $startCursor: String) {
+  customer {
+    ...CustomerOrders
+  }
+}
+
+fragment CustomerOrders on Customer {
+  orders(
+    sortKey: PROCESSED_AT
+    reverse: true
+    first: $first
+    last: $last
+    before: $startCursor
+    after: $endCursor
   ) {
-    customer {
-      ...CustomerOrders
+    nodes {
+      ...OrderItem
+    }
+    pageInfo {
+      hasPreviousPage
+      hasNextPage
+      endCursor
+      startCursor
     }
   }
-` as const;
+}
+
+fragment OrderItem on Order {
+  totalPrice {
+    amount
+    currencyCode
+  }
+  financialStatus
+  fulfillments(first: 1) {
+    nodes {
+      status
+    }
+  }
+  id
+  number
+  processedAt
+}`);
 
 export const meta: MetaFunction = ({ matches }) => {
   return [{ title: getMetaTranslator(matches)("seo.orders") }];
@@ -85,12 +126,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     pageBy: 20,
   });
 
-  const { data, errors } = await context.customerAccount.query(
+  const { data, errors } = await context.customerAccount.graphql(
     CUSTOMER_ORDERS_QUERY,
     {
-      variables: {
-        ...paginationVariables,
-      },
+      variables: { ...paginationVariables },
     },
   );
 

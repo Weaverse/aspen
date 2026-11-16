@@ -50,6 +50,7 @@ const bundle = await build({
   write: false,
   outfile: "fixture.js",
   format: "iife",
+  define: { "import.meta.env.DEV": "false" },
   jsx: "automatic",
   alias: { "~": `${root}app` },
   plugins: [
@@ -57,15 +58,28 @@ const bundle = await build({
       name: "presentation-boundaries",
       setup(builder) {
         builder.onResolve(
+          { filter: /^~\/components\/product\/product-form$/ },
+          () => ({ path: "product-form", namespace: "product-form-fixture" }),
+        );
+        builder.onLoad(
+          { filter: /.*/, namespace: "product-form-fixture" },
+          () => ({
+            loader: "js",
+            resolveDir: root,
+            contents: `export {getProductOptions,getAdjacentAndFirstAvailableVariants,mapSelectedProductOptionToObject} from "${root}app/components/product/product-form.tsx"; export const ProductProvider=({children})=>children; export const useProductForm=()=>({selectOption:()=>({status:'unresolved'})});`,
+          }),
+        );
+
+        builder.onResolve(
           {
             filter:
-              /^@weaverse\/hydrogen$|use-translated-text$|^\.\/(cart-drawer|desktop-menu|mobile-menu|floating-hotspot|predictive-search\/search-mobile|predictive-search\/search-desktop)$|^~\/components\/(logo|product\/product-media|product\/back-in-stock-form|loyalty\/loyalty-points-hint)$/,
+              /^@weaverse\/hydrogen(?:\/react-router)?$|use-translated-text$|^\.\/(cart-drawer|desktop-menu|mobile-menu|floating-hotspot|predictive-search\/search-mobile|predictive-search\/search-desktop)$|^~\/components\/(logo|product\/product-media|product\/back-in-stock-form|loyalty\/loyalty-points-hint)$/,
           },
           ({ path }) => ({ path, namespace: "fixture" }),
         );
         builder.onLoad({ filter: /.*/, namespace: "fixture" }, ({ path }) => {
           let contents;
-          if (path === "@weaverse/hydrogen") {
+          if (path === "@weaverse/hydrogen/react-router") {
             contents = `export const createSchema=value=>value; export const useThemeSettings=()=>window.settings; export const useTranslation=()=>({t:key=>key});`;
           } else if (path.endsWith("use-translated-text")) {
             contents = `export const useTranslatedText=()=>value=>value;`;
@@ -114,6 +128,9 @@ async function render(width, options = {}, testBrowser = browser) {
     viewport: { width, height: 900 },
     reducedMotion: options.reducedMotion ? "reduce" : "no-preference",
   });
+  page.on("pageerror", (error) =>
+    console.error("Fixture page error:", error.message),
+  );
   page.setDefaultTimeout(5000);
   await page.setContent(
     `<!doctype html><style>${css}:root{--height-nav:80px;--topbar-height:0px;--initial-topbar-height:0px;--page-padding:20px;--radius-md:12px;--color-background:white;--btn-primary-bg:#434343;--btn-primary-text:white;} shop-pay-button{display:none}</style><div id="root"></div>`,

@@ -1,4 +1,4 @@
-import type { CartApiQueryFragment } from "storefront-api.generated";
+import type { CartApiQueryFragment } from "~/graphql/storefront-types";
 
 export type CartLayout = "page" | "drawer";
 
@@ -15,3 +15,8 @@ export type CartMutationResponse = {
   errors?: Array<{ message?: string }>;
   userErrors?: Array<{ message?: string }>;
 };
+
+export type OptimisticCartLineInput =
+  import("@shopify/hydrogen/storefront-api-types").CartLineInput & {
+    selectedVariant?: import("~/graphql/queries").ProductQuery["product"]["selectedOrFirstAvailableVariant"];
+  };

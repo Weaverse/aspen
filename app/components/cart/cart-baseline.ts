@@ -1,5 +1,5 @@
 import type { Fetcher } from "react-router";
-import type { CartApiQueryFragment } from "storefront-api.generated";
+import type { CartApiQueryFragment } from "~/graphql/storefront-types";
 import type { CartMutationResponse } from "./cart-types";
 
 let freshestFetcherCart: CartApiQueryFragment | null = null;

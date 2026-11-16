@@ -78,7 +78,7 @@ const bundle = await build({
           loader: "tsx",
           resolveDir: root,
           contents:
-            path === "@weaverse/hydrogen"
+            path === "@weaverse/hydrogen/react-router"
               ? `export const createSchema=v=>v;export const IMAGES_PLACEHOLDERS={};export const useTranslation=()=>({t:key=>key});export const useThemeSettings=()=>({});export const useChildInstances=()=>[];export const useParentInstance=()=>null;export const useItemInstance=()=>null;export const useWeaverse=()=>({});`
               : path.endsWith("use-animation")
                 ? `import {useRef} from 'react';export const useAnimation=ref=>[useRef(null)];`

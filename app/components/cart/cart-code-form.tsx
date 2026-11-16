@@ -1,8 +1,8 @@
-import { CartForm } from "@shopify/hydrogen";
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import { useId, useRef, useState } from "react";
 import { useFetcher } from "react-router";
 import { Button } from "~/components/button";
+import { CartForm } from "~/components/cart/cart-action-form";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import { CART_CODE_APPLY_ACTION, uppercaseCartCode } from "~/utils/cart-code";
 import { getCartMutationError } from "~/utils/cart-error";

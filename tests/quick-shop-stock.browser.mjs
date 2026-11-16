@@ -56,6 +56,8 @@ const bundle = await build({
               "~/utils/breakpoints",
               "~/components/cart/use-cart-inventory-policy",
               "~/hooks/use-product-quantity",
+              "~/utils/cache",
+              "~/utils/storefront",
             ].includes(path)
           ) {
             return;
@@ -65,7 +67,7 @@ const bundle = await build({
         builder.onResolve(
           {
             filter:
-              /^(\.\/(variant-prices|combined-listing-target|product-details|product-story|variants)|\.\.\/main-product\/variants|@shopify\/hydrogen|@weaverse\/hydrogen|react-router)$/,
+              /^(\.\/(variant-prices|combined-listing-target|product-details|product-story|variants)|\.\.\/main-product\/variants|@shopify\/hydrogen\/react|@weaverse\/hydrogen\/react-router|react-router)$/,
           },
           ({ path }) => ({ path, namespace: "fixture" }),
         );
@@ -85,6 +87,8 @@ const bundle = await build({
           export const CartForm={ACTIONS:{LinesAdd:"LinesAdd",LinesUpdate:"LinesUpdate",LinesRemove:"LinesRemove"}};
           export const useLoaderData=()=>window.fixture;
           export const useOptimisticVariant=v=>v;
+          export const ProductProvider=({children})=><>{children}</>;
+          export const useSelectedVariant=product=>product.selectedOrFirstAvailableVariant;
           export const createSchema=x=>x;
           export const useTranslatedText=()=>(value)=>value;
           export const sectionBackgroundInputs=()=>[];

@@ -1,10 +1,10 @@
 import {
   createSchema,
-  type HydrogenComponentProps,
   useChildInstances,
   useParentInstance,
   useTranslation,
-} from "@weaverse/hydrogen";
+  type WeaverseComponentProps,
+} from "@weaverse/hydrogen/react-router";
 import { cva, type VariantProps } from "class-variance-authority";
 import clsx from "clsx";
 import { forwardRef, useCallback, useSyncExternalStore } from "react";
@@ -22,7 +22,7 @@ import {
 } from ".";
 
 interface CollectionListDynamicProps
-  extends HydrogenComponentProps,
+  extends WeaverseComponentProps,
     VariantProps<typeof variants>,
     Omit<HeadingProps, "content"> {
   // Layout props

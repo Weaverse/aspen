@@ -1,17 +1,11 @@
 import { PackageIcon, XIcon } from "@phosphor-icons/react";
 import * as Dialog from "@radix-ui/react-dialog";
-import {
-  getAdjacentAndFirstAvailableVariants,
-  getProductOptions,
-  mapSelectedProductOptionToObject,
-  ShopPayButton,
-} from "@shopify/hydrogen";
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import clsx from "clsx";
 import { AnimatePresence } from "framer-motion";
+import type { ComponentProps } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useFetcher } from "react-router";
-import type { ProductVariantFragment } from "storefront-api.generated";
 import { useCartStore } from "~/components/cart/store";
 import Link from "~/components/link";
 import { LoyaltyPointsHint } from "~/components/loyalty/loyalty-points-hint";
@@ -19,14 +13,22 @@ import { AddToCartButton } from "~/components/product/add-to-cart-button";
 import { BackInStockForm } from "~/components/product/back-in-stock-form";
 import { ProductBadges } from "~/components/product/badges";
 import { ProductCardRating } from "~/components/product/product-card-rating";
+import {
+  getAdjacentAndFirstAvailableVariants,
+  getProductOptions,
+  mapSelectedProductOptionToObject,
+  ProductProvider,
+} from "~/components/product/product-form";
 import { ProductMedia } from "~/components/product/product-media";
 import { Quantity } from "~/components/product/quantity";
 import { QuickShopVariants } from "~/components/product/quick-shop-variants";
+import { ShopPayButton } from "~/components/product/shop-pay-button";
 import { ProgressBar } from "~/components/progress-bar";
 import { ScrollArea } from "~/components/scroll-area";
 import { Skeleton } from "~/components/skeleton";
 import { SellingPlanSelector } from "~/components/subscriptions/selling-plan-selector";
 import { ProductCardWishlistButton } from "~/components/wishlist/product-card-wishlist-button";
+import type { ProductVariantFragment } from "~/graphql/storefront-types";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import { useProductQuantity } from "~/hooks/use-product-quantity";
 import { useQuickViewScrollbar } from "~/hooks/use-quick-view-scrollbar";
@@ -72,7 +74,15 @@ function StockIndicator({
   );
 }
 
-export function QuickShop({
+export function QuickShop(props: ComponentProps<typeof QuickShopContent>) {
+  return props.data?.product ? (
+    <ProductProvider product={props.data.product}>
+      <QuickShopContent {...props} />
+    </ProductProvider>
+  ) : null;
+}
+
+function QuickShopContent({
   data,
   onCloseAll,
   layout = "mobile",

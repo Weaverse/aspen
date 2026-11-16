@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { chromium } from "@playwright/test";
 import { compile } from "@tailwindcss/node";
 import { Scanner } from "@tailwindcss/oxide";
-import { IMAGES_PLACEHOLDERS } from "@weaverse/hydrogen";
+import { IMAGES_PLACEHOLDERS } from "@weaverse/hydrogen/react-router";
 import { build } from "esbuild";
 import { DESKTOP_MIN_PX, TABLET_MAX_PX } from "./responsive-test-widths.mjs";
 
@@ -69,7 +69,7 @@ const sectionBundle = await build({
         );
         builder.onLoad({ filter: /.*/, namespace: "fixture" }, ({ path }) => ({
           contents:
-            path === "@weaverse/hydrogen"
+            path === "@weaverse/hydrogen/react-router"
               ? `export const IMAGES_PLACEHOLDERS=${JSON.stringify(IMAGES_PLACEHOLDERS)};export const useThemeSettings=()=>({revealElementsOnScroll:false});export const createSchema=value=>value;export const useTranslation=()=>({t:key=>key});`
               : path === "~/components/link"
                 ? `import React from "react";export default React.forwardRef(({to,children,...props},ref)=><a ref={ref} href={to} {...props}>{children}</a>);`

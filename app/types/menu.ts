@@ -2,7 +2,7 @@ import type {
   ChildMenuItemFragment,
   MenuFragment,
   ParentMenuItemFragment,
-} from "storefront-api.generated";
+} from "~/graphql/storefront-types";
 
 type EnhancedMenuItemProps = {
   to: string;

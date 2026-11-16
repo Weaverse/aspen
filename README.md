@@ -20,11 +20,11 @@ _Aspen is a sophisticated Shopify theme crafted specifically for home furniture 
 ![Weaverse + Hydrogen + Shopify](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/weaverse-x-hydrogen-x-shopify.png?v=1755245801)
 
 - React Router v7
-- Hydrogen 2026.4
+- Hydrogen 2026.10
 - Oxygen
 - Shopify CLI
 - Biome (ESLint, Prettier alternative)
-- GraphQL generator
+- Typed GraphQL documents with gql.tada
 - TypeScript and JavaScript flavors
 - Tailwind CSS v4 (via Vite)
 - Radix UI components
@@ -85,6 +85,8 @@ Aspen uses parallel data loading for optimal performance. Every route loads Weav
 
 ```ts:routes/($locale)._index.tsx
 import { data } from 'react-router';
+import { CACHE_DEFAULT } from '~/utils/cache';
+import { unwrapStorefront } from '~/utils/storefront';
 import { type LoaderFunctionArgs } from 'react-router';
 
 export async function loader({ context }: LoaderFunctionArgs) {
@@ -92,7 +94,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
 
   // Parallel data loading for best performance
   const [collections, weaverseData] = await Promise.all([
-    storefront.query(COLLECTIONS_QUERY),
+    storefront.graphql(COLLECTIONS_QUERY, {cache: CACHE_DEFAULT}).then(unwrapStorefront),
     weaverse.loadPage({ type: 'INDEX' }),
   ]);
 
@@ -105,43 +107,17 @@ export async function loader({ context }: LoaderFunctionArgs) {
 
 `weaverse` is a `WeaverseClient` instance that has been injected into the app context by Weaverse. It provides a set of methods to interact with the Weaverse API.
 
-```ts:app/lib/context.ts
-// app/lib/context.ts
-
-const hydrogenContext = createHydrogenContext(
-  {
-    env,
-    request,
-    cache,
-    waitUntil,
-    session,
-    i18n: getLocaleFromRequest(request),
-    cart: {
-      queryFragment: CART_QUERY_FRAGMENT,
-    },
-  },
-  {},
-);
-
-const weaverse = new WeaverseClient({
-  ...hydrogenContext,
-  request,
-  cache,
-  themeSchema,
-  components,
-});
-
-Object.assign(hydrogenContext, { weaverse });
-
-return hydrogenContext;
-```
+The request-scoped clients are created in `app/.server/context.ts`. `server.ts`
+composes Shopify handlers with React Router and applies the session and response
+headers. See [migration notes](docs/hydrogen-2026-10-migration.md) for the new
+request lifecycle.
 
 ### Rendering page content
 
 Weaverse pages is rendered using `<WeaverseContent />` component.
 
 ```tsx:app/weaverse/index.tsx
-import { WeaverseHydrogenRoot } from '@weaverse/hydrogen';
+import { WeaverseHydrogenRoot } from '@weaverse/hydrogen/react-router';
 import { GenericError } from '~/components/generic-error';
 import { components } from './components';
 
@@ -182,7 +158,7 @@ export async function loader({request, context}: RouteLoaderArgs) {
 And then you can use it in your components with `useThemeSettings` hook.
 
 ```tsx:app/weaverse/components/logo.tsx
-import { useThemeSettings } from '@weaverse/hydrogen';
+import { useThemeSettings } from '@weaverse/hydrogen/react-router';
 
 function Logo() {
   let {logo} = useThemeSettings();
@@ -198,7 +174,7 @@ function Logo() {
 The `App` component is wrapped with `withWeaverse` HoC in order to SSR the theme settings.
 
 ```tsx:root.tsx
-import { withWeaverse } from '@weaverse/hydrogen';
+import { withWeaverse } from '@weaverse/hydrogen/react-router';
 
 function App() {
   return (
@@ -215,16 +191,16 @@ export default withWeaverse(App);
 
 To create a section, you need to create a new file in [`app/sections`](app/sections) directory and register it in [`app/weaverse/components.ts`](app/weaverse/components.ts) file.
 
-**Important:** All Weaverse sections must use `forwardRef` and extend `HydrogenComponentProps`.
+**Important:** All Weaverse sections must use `forwardRef` and extend `WeaverseComponentProps`.
 
 ```tsx:app/sections/video/index.tsx
-import type {
-  HydrogenComponentProps,
+import {
+  type WeaverseComponentProps,
   createSchema,
-} from '@weaverse/hydrogen';
+} from '@weaverse/hydrogen/react-router';
 import { forwardRef } from 'react';
 
-interface VideoProps extends HydrogenComponentProps {
+interface VideoProps extends WeaverseComponentProps {
   heading: string;
   description: string;
   videoUrl: string;
@@ -300,16 +276,16 @@ What if your component needs to fetch data from Shopify API or any third-party A
 Just export a `loader` function from your component:
 
 ```tsx:app/sections/video/index.tsx (loader example)
-import type { ComponentLoaderArgs } from '@weaverse/hydrogen';
+import type { WeaverseComponentLoaderArgs } from '@weaverse/hydrogen/react-router';
+import { CACHE_DEFAULT } from '~/utils/cache';
+import { unwrapStorefront } from '~/utils/storefront';
 
-export const loader = async ({ weaverse, data }: ComponentLoaderArgs) => {
-  const result = await weaverse.storefront.query<SeoCollectionContentQuery>(
-    HOMEPAGE_SEO_QUERY,
-    {
-      variables: { handle: data.collection.handle || 'frontpage' },
-    },
-  );
-  return result.data;
+export const loader = async ({ weaverse, data }: WeaverseComponentLoaderArgs) => {
+  // HOMEPAGE_SEO_QUERY is a gql() document from @shopify/hydrogen.
+  return weaverse.storefront.graphql(HOMEPAGE_SEO_QUERY, {
+    variables: {handle: data.collection.handle},
+    cache: CACHE_DEFAULT,
+  }).then(unwrapStorefront);
 };
 ```
 
@@ -320,7 +296,7 @@ Don't forget to register your new section in `app/weaverse/components.ts`:
 ```typescript
 import * as Video from "~/sections/video";
 
-export const components: HydrogenComponent[] = [
+export const components: WeaverseComponent[] = [
   // ... existing components
   Video,
 ];
@@ -346,7 +322,7 @@ app/
 
 Key configuration files:
 - biome.json        # Code formatting and linting
-- codegen.ts       # GraphQL code generation
+- app/graphql/     # Typed gql() documents
 - react-router.config.ts # React Router configuration
 - vite.config.ts   # Vite bundler configuration
 ```
@@ -364,7 +340,7 @@ Before committing, always run:
 ```bash
 npm run biome:fix    # Fix linting/formatting
 npm run typecheck    # Check TypeScript types
-npm run codegen      # Update GraphQL types
+npm run typecheck    # Validate TypeScript and GraphQL documents
 ```
 
 ## References

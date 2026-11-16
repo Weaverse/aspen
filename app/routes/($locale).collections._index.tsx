@@ -1,12 +1,14 @@
-import type { SeoConfig } from "@shopify/hydrogen";
-import { getPaginationVariables } from "@shopify/hydrogen";
-import type { RouteLoaderArgs } from "@weaverse/hydrogen";
+import { gql } from "@shopify/hydrogen";
+import type { RouteLoaderArgs } from "@weaverse/hydrogen/react-router";
 import type { MetaFunction } from "react-router";
-import type { CollectionsQuery } from "storefront-api.generated";
-import { routeHeaders } from "~/utils/cache";
+import type { CollectionsQuery } from "~/graphql/storefront-types";
+import { CACHE_DEFAULT, routeHeaders } from "~/utils/cache";
+import { getPaginationVariables } from "~/utils/pagination";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 import { seoPayload } from "~/utils/seo.server";
+import type { SeoConfig } from "~/utils/seo-meta";
 import { localizedSeoMeta } from "~/utils/seo-translation";
+import { unwrapStorefront } from "~/utils/storefront";
 import { WeaverseContent } from "~/weaverse";
 
 const COLLECTIONS_PER_PAGE = 6;
@@ -26,13 +28,12 @@ export const loader = async (args: RouteLoaderArgs) => {
 
   // Load collections data and weaverseData in parallel
   const [{ collections }, weaverseData] = await Promise.all([
-    storefront.query<CollectionsQuery>(COLLECTIONS_QUERY, {
-      variables: {
-        ...variables,
-        country: storefront.i18n.country,
-        language: storefront.i18n.language,
-      },
-    }),
+    storefront
+      .graphql(COLLECTIONS_QUERY, {
+        variables: { ...variables },
+        cache: CACHE_DEFAULT,
+      })
+      .then(unwrapStorefront),
     weaverse.loadPage({
       type: "COLLECTION_LIST",
     }),
@@ -58,57 +59,49 @@ export default function Collections() {
   return <WeaverseContent />;
 }
 
-const COLLECTIONS_QUERY = `#graphql
-  query collections(
-    $country: CountryCode
-    $language: LanguageCode
-    $first: Int
-    $last: Int
-    $startCursor: String
-    $endCursor: String
-  ) @inContext(country: $country, language: $language) {
-    collections(first: $first, last: $last, before: $startCursor, after: $endCursor) {
-      nodes {
-        id
-        title
+export const COLLECTIONS_QUERY =
+  gql(`query collections($country: CountryCode, $language: LanguageCode, $first: Int, $last: Int, $startCursor: String, $endCursor: String) @inContext(country: $country, language: $language) {
+  collections(first: $first, last: $last, before: $startCursor, after: $endCursor) {
+    nodes {
+      id
+      title
+      description
+      handle
+      seo {
         description
-        handle
-        seo {
-          description
-          title
-        }
-        image {
+        title
+      }
+      image {
+        id
+        url
+        width
+        height
+        altText
+      }
+      products(first: 3) {
+        nodes {
           id
-          url
-          width
-          height
-          altText
-        }
-        products(first: 3) {
-          nodes {
-            id
-            title
-            handle
-            media(first: 1) {
-              nodes {
-                previewImage {
-                  id
-                  url
-                  width
-                  height
-                  altText
-                }
+          title
+          handle
+          media(first: 1) {
+            nodes {
+              previewImage {
+                id
+                url
+                width
+                height
+                altText
               }
             }
           }
         }
       }
-      pageInfo {
-        hasPreviousPage
-        hasNextPage
-        startCursor
-        endCursor
-      }
+    }
+    pageInfo {
+      hasPreviousPage
+      hasNextPage
+      startCursor
+      endCursor
     }
   }
-` as const;
+}`);

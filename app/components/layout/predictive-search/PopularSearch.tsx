@@ -1,4 +1,4 @@
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import { useEffect, useMemo, useState } from "react";
 import Link from "~/components/link";
 import { cn } from "~/utils/cn";

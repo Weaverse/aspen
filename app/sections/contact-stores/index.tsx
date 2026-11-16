@@ -1,4 +1,4 @@
-import { createSchema } from "@weaverse/hydrogen";
+import { createSchema } from "@weaverse/hydrogen/react-router";
 import { forwardRef } from "react";
 import { sectionBackgroundInputs } from "~/components/background-image";
 import { Section, type SectionProps } from "~/components/section";

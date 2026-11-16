@@ -1,21 +1,23 @@
 import { HandbagIcon, PlusIcon, TagIcon } from "@phosphor-icons/react";
 import {
-  type ComponentLoaderArgs,
   createSchema,
-  type HydrogenComponentProps,
   useTranslation,
+  type WeaverseComponentLoaderArgs,
+  type WeaverseComponentProps,
   type WeaverseProduct,
-} from "@weaverse/hydrogen";
+} from "@weaverse/hydrogen/react-router";
 import type { CSSProperties } from "react";
 import { forwardRef, useRef, useState } from "react";
+import { QuickShopTrigger } from "~/components/product/quick-shop";
+import { PRODUCT_QUERY } from "~/graphql/queries";
 import type {
   ProductQuery,
   ProductVariantFragment,
-} from "storefront-api.generated";
-import { QuickShopTrigger } from "~/components/product/quick-shop";
-import { PRODUCT_QUERY } from "~/graphql/queries";
+} from "~/graphql/storefront-types";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import { isDesktopWidth } from "~/utils/breakpoints";
+import { CACHE_DEFAULT } from "~/utils/cache";
+import { unwrapStorefront } from "~/utils/storefront";
 import { FloatingHotspot } from "./floating-hotspot";
 
 export interface HotspotsItemData {
@@ -30,7 +32,7 @@ export interface HotspotsItemData {
 }
 
 interface HotspotsItemProps
-  extends HydrogenComponentProps<Awaited<ReturnType<typeof loader>>>,
+  extends WeaverseComponentProps<Awaited<ReturnType<typeof loader>>>,
     HotspotsItemData {}
 
 // Matches the "Tag" marker component in Figma (node 364:16957): a 34x34
@@ -188,7 +190,9 @@ const HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>(
 
 export default HotspotsItem;
 
-export const loader = async (args: ComponentLoaderArgs<HotspotsItemData>) => {
+export const loader = async (
+  args: WeaverseComponentLoaderArgs<HotspotsItemData>,
+) => {
   const { weaverse, data } = args;
   const { storefront } = weaverse;
   if (!data?.product?.handle?.trim()) {
@@ -197,14 +201,12 @@ export const loader = async (args: ComponentLoaderArgs<HotspotsItemData>) => {
 
   try {
     const productHandle = data.product.handle;
-    const { product } = await storefront.query<ProductQuery>(PRODUCT_QUERY, {
-      variables: {
-        handle: productHandle,
-        selectedOptions: [],
-        language: storefront.i18n.language,
-        country: storefront.i18n.country,
-      },
-    });
+    const { product } = await storefront
+      .graphql(PRODUCT_QUERY, {
+        variables: { handle: productHandle, selectedOptions: [] },
+        cache: CACHE_DEFAULT,
+      })
+      .then(unwrapStorefront);
 
     return { product };
   } catch (error) {

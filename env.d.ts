@@ -4,11 +4,10 @@
 // Enhance TypeScript's built-in typings.
 import "@total-typescript/ts-reset";
 import type {
-  HydrogenEnv,
-  HydrogenSessionData,
-  Storefront as StorefrontBase,
-} from "@shopify/hydrogen";
-import type { WeaverseClient } from "@weaverse/hydrogen";
+  WeaverseClient,
+  WeaverseEnv,
+} from "@weaverse/hydrogen/react-router";
+import type { Storefront as StorefrontBase } from "./app/.server/storefront";
 import type { I18nLocale, StoreLocalization } from "./app/types/locale";
 import type { createAppLoadContext } from "./server";
 
@@ -16,9 +15,16 @@ declare global {
   /**
    * A global `process` object is only available during build to access NODE_ENV.
    */
-  const process: { env: { NODE_ENV: "production" | "development" } };
 
-  interface Env extends HydrogenEnv {
+  interface Env extends WeaverseEnv {
+    SESSION_SECRET: string;
+    PUBLIC_STORE_DOMAIN: string;
+    PUBLIC_STOREFRONT_API_TOKEN?: string;
+    PRIVATE_STOREFRONT_API_TOKEN?: string;
+    PUBLIC_STOREFRONT_ID?: string;
+    PUBLIC_CHECKOUT_DOMAIN?: string;
+    SHOP_ID?: string;
+    PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID?: string;
     // declare additional Env parameter use in the fetch handler and Remix loader context here
     PUBLIC_GOOGLE_GTM_ID: string;
     JUDGEME_PRIVATE_API_TOKEN: string;
@@ -43,9 +49,6 @@ declare module "react-router" {
   interface AppLoadContext
     extends Awaited<ReturnType<typeof createAppLoadContext>> {
     // to change context type, change the return of createAppLoadContext() instead
-    storefront: Omit<StorefrontBase, "i18n"> & {
-      i18n: I18nLocale;
-    };
     weaverse: WeaverseClient;
   }
 
@@ -59,7 +62,10 @@ declare module "react-router" {
     context: AppLoadContext;
   }
 
-  interface SessionData extends HydrogenSessionData {
+  interface RouterContextProvider
+    extends Awaited<ReturnType<typeof createAppLoadContext>> {}
+
+  interface SessionData {
     // declare local additions to the Remix session data here
   }
 }

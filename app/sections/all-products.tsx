@@ -1,14 +1,14 @@
-import { Pagination } from "@shopify/hydrogen";
-import { createSchema, useTranslation } from "@weaverse/hydrogen";
+import { createSchema, useTranslation } from "@weaverse/hydrogen/react-router";
 import clsx from "clsx";
 import { forwardRef } from "react";
 import { useLoaderData } from "react-router";
-import type { AllProductsQuery } from "storefront-api.generated";
 import { BreadCrumb } from "~/components/breadcrumb";
 import { variants } from "~/components/link";
+import { Pagination } from "~/components/pagination";
 import { ProductCard } from "~/components/product/product-card";
 import { SaleFilterStatus } from "~/components/sale-filter-status";
 import { layoutInputs, Section, type SectionProps } from "~/components/section";
+import type { AllProductsQuery } from "~/graphql/storefront-types";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import { cn } from "~/utils/cn";
 

@@ -1,8 +1,9 @@
-import type { MappedProductOptions } from "@shopify/hydrogen";
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import { useNavigate } from "react-router";
-import type { ProductVariantFragment } from "storefront-api.generated";
+import type { MappedProductOptions } from "~/components/product/product-form";
+import { useProductForm } from "~/components/product/product-form";
 import { SwatchFill, swatchFrameClassName } from "~/components/product/swatch";
+import type { ProductVariantFragment } from "~/graphql/storefront-types";
 import { cn } from "~/utils/cn";
 import { hasOnlyDefaultVariant } from "~/utils/product";
 
@@ -21,6 +22,7 @@ export function ProductVariants({
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { selectOption: selectProductOption } = useProductForm();
 
   if (hasOnlyDefaultVariant(productOptions)) {
     return null;
@@ -41,8 +43,10 @@ export function ProductVariants({
               return;
             }
 
-            if (onVariantChange && !value.isDifferentProduct) {
-              onVariantChange(value.firstSelectableVariant);
+            if (!value.isDifferentProduct) {
+              const result = selectProductOption(name, value.name);
+              if (result.status === "resolved")
+                onVariantChange?.(result.selectedVariant);
               return;
             }
 

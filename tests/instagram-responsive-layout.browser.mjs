@@ -44,7 +44,7 @@ const bundle = await build({
         builder.onLoad({ filter: /.*/, namespace: "fixture" }, ({ path }) => ({
           loader: "js",
           contents:
-            path === "@weaverse/hydrogen"
+            path === "@weaverse/hydrogen/react-router"
               ? "export const createSchema=v=>v;"
               : path.endsWith("use-translated-text")
                 ? "export const useTranslatedText=()=>v=>v;"

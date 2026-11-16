@@ -1,19 +1,17 @@
-import { getShopAnalytics } from "@shopify/hydrogen";
+import { gql } from "@shopify/hydrogen";
 import type { AppLoadContext, LoaderFunctionArgs } from "react-router";
-import type {
-  LayoutQuery,
-  MenuFragment,
-  SwatchesQuery,
-} from "storefront-api.generated";
 import invariant from "tiny-invariant";
+import type { MenuFragment } from "~/graphql/storefront-types";
 import type { EnhancedMenu } from "~/types/menu";
 import type { WishlistApiResponse } from "~/types/wishlist";
 import { articlePath, blogPath } from "~/utils/blog-path";
+import { CacheLong } from "~/utils/cache";
 import { sanitizeFooterTheme } from "~/utils/footer-rich-text.server";
 import { getLocaleSegment, localeCode } from "~/utils/locale";
 import { loadLoyaltyBalance } from "~/utils/loyalty.server";
 import { isLoyaltyLionConfigured } from "~/utils/loyaltylion.server";
 import { seoPayload } from "~/utils/seo.server";
+import { unwrapStorefront } from "~/utils/storefront";
 import {
   canonicalStorefrontPathname,
   isFilteredAllProductsPath,
@@ -57,10 +55,23 @@ export async function loadCriticalData({
   return {
     layout,
     seo,
-    shop: getShopAnalytics({
-      storefront,
-      publicStorefrontId: env.PUBLIC_STOREFRONT_ID,
-    }),
+    shopifyScripts: {
+      shop: {
+        shopId: layout.shop.id,
+        storefrontId: env.PUBLIC_STOREFRONT_ID || "",
+        myshopifyDomain: env.PUBLIC_STORE_DOMAIN,
+      },
+      i18n: {
+        country: storefront.i18n.country,
+        language: storefront.i18n.language,
+        pathPrefix: localization.selectedLocale.pathPrefix,
+        currency: localization.selectedLocale.currency,
+      },
+      channel: env.PUBLIC_STOREFRONT_ID
+        ? ("hydrogen" as const)
+        : ("headless" as const),
+      shopifyAnalytics: Boolean(env.PUBLIC_STOREFRONT_ID),
+    },
     consent: {
       checkoutDomain: env.PUBLIC_CHECKOUT_DOMAIN,
       storefrontAccessToken: env.PUBLIC_STOREFRONT_API_TOKEN,
@@ -132,14 +143,11 @@ async function loadCustomerWishlist(
 
 async function getLayoutData({ storefront, env }: AppLoadContext) {
   const data = await storefront
-    .query<LayoutQuery>(LAYOUT_QUERY, {
-      cache: storefront.CacheLong(),
-      variables: {
-        headerMenuHandle: "main-menu",
-        footerMenuHandle: "footer",
-        language: storefront.i18n.language,
-      },
+    .graphql(LAYOUT_QUERY, {
+      cache: CacheLong(),
+      variables: { headerMenuHandle: "main-menu", footerMenuHandle: "footer" },
     })
+    .then(unwrapStorefront)
     .catch(console.error);
 
   invariant(data, "No data returned from Shopify API");
@@ -191,10 +199,9 @@ async function getSwatchesConfigs(context: AppLoadContext) {
   if (!type) {
     return { colors: [], images: [] };
   }
-  const { metaobjects } = await context.storefront.query<SwatchesQuery>(
-    SWATCHES_QUERY,
-    { variables: { type }, cache: context.storefront.CacheLong() },
-  );
+  const { metaobjects } = await context.storefront
+    .graphql(SWATCHES_QUERY, { variables: { type }, cache: CacheLong() })
+    .then(unwrapStorefront);
   const colors: Swatch[] = [];
   const images: Swatch[] = [];
   // Shopify can omit `metaobjects` when the configured definition is missing
@@ -205,7 +212,7 @@ async function getSwatchesConfigs(context: AppLoadContext) {
     const { reference: imageRef } =
       fields.find(({ key }) => key === "image") || {};
     const { value: name } = fields.find(({ key }) => key === "label") || {};
-    if (imageRef) {
+    if (imageRef && "image" in imageRef) {
       const url = imageRef?.image?.url;
       if (url) {
         images.push({ id, name, value: url });
@@ -391,129 +398,424 @@ function resolveToFromType(
   }
 }
 
-const LAYOUT_QUERY = `#graphql
-  query layout(
-    $language: LanguageCode
-    $headerMenuHandle: String!
-    $footerMenuHandle: String!
-  ) @inContext(language: $language) {
-    shop {
-      ...Shop
-    }
-    headerMenu: menu(handle: $headerMenuHandle) {
-      ...Menu
-    }
-    footerMenu: menu(handle: $footerMenuHandle) {
-      ...Menu
-    }
-    paymentSettings {
-      acceptedCardBrands
-      supportedDigitalWallets
-    }
-  }
-  fragment Shop on Shop {
-    id
-    name
-    description
-    primaryDomain {
-      url
-    }
-    brand {
-      logo {
-        image {
-          url
-        }
-      }
-    }
-  }
-  fragment MenuItem on MenuItem {
-    id
-    resourceId
-    resource {
-      __typename
-      ... on Article {
-        articleTags: tags
-        publishedAt
-        authorV2 {
-          name
-        }
-        image {
-          altText
-          height
-          id
-          url
-          width
-        }
-      }
-      ... on Collection {
-        image {
-          altText
-          height
-          id
-          url
-          width
-        }
-      }
-      ... on Product {
-        image: featuredImage {
-          altText
-          height
-          id
-          url
-          width
-        }
-      }
-    }
-    tags
-    title
-    type
+export const LAYOUT_QUERY_Shop = gql(`fragment Shop on Shop {
+  id
+  name
+  description
+  primaryDomain {
     url
   }
+  brand {
+    logo {
+      image {
+        url
+      }
+    }
+  }
+}`);
 
-  fragment ChildMenuItem on MenuItem {
-    ...MenuItem
-  }
-  fragment ParentMenuItem2 on MenuItem {
-    ...MenuItem
-    items {
-      ...ChildMenuItem
-    }
-  }
-  fragment ParentMenuItem on MenuItem {
-    ...MenuItem
-    items {
-      ...ParentMenuItem2
-    }
-  }
-  fragment Menu on Menu {
-    id
-    items {
-      ...ParentMenuItem
-    }
-  }
-` as const;
-
-const SWATCHES_QUERY = `#graphql
-  query swatches($type: String!) {
-    metaobjects(first: 250, type: $type) {
-      nodes {
+export const LAYOUT_QUERY_MenuItem = gql(`fragment MenuItem on MenuItem {
+  id
+  resourceId
+  resource {
+    __typename
+    ... on Article {
+      articleTags: tags
+      publishedAt
+      authorV2 {
+        name
+      }
+      image {
+        altText
+        height
         id
-        fields {
-          key
-          value
-          reference {
-            ... on MediaImage {
-              image {
-                id
-                altText
-                url: url(transform: { maxWidth: 300 })
-                width
-                height
-              }
+        url
+        width
+      }
+    }
+    ... on Collection {
+      image {
+        altText
+        height
+        id
+        url
+        width
+      }
+    }
+    ... on Product {
+      image: featuredImage {
+        altText
+        height
+        id
+        url
+        width
+      }
+    }
+  }
+  tags
+  title
+  type
+  url
+}`);
+
+export const LAYOUT_QUERY_ChildMenuItem =
+  gql(`fragment ChildMenuItem on MenuItem {
+  ...MenuItem
+}
+
+fragment MenuItem on MenuItem {
+  id
+  resourceId
+  resource {
+    __typename
+    ... on Article {
+      articleTags: tags
+      publishedAt
+      authorV2 {
+        name
+      }
+      image {
+        altText
+        height
+        id
+        url
+        width
+      }
+    }
+    ... on Collection {
+      image {
+        altText
+        height
+        id
+        url
+        width
+      }
+    }
+    ... on Product {
+      image: featuredImage {
+        altText
+        height
+        id
+        url
+        width
+      }
+    }
+  }
+  tags
+  title
+  type
+  url
+}`);
+
+export const LAYOUT_QUERY_ParentMenuItem2 =
+  gql(`fragment ParentMenuItem2 on MenuItem {
+  ...MenuItem
+  items {
+    ...ChildMenuItem
+  }
+}
+
+fragment MenuItem on MenuItem {
+  id
+  resourceId
+  resource {
+    __typename
+    ... on Article {
+      articleTags: tags
+      publishedAt
+      authorV2 {
+        name
+      }
+      image {
+        altText
+        height
+        id
+        url
+        width
+      }
+    }
+    ... on Collection {
+      image {
+        altText
+        height
+        id
+        url
+        width
+      }
+    }
+    ... on Product {
+      image: featuredImage {
+        altText
+        height
+        id
+        url
+        width
+      }
+    }
+  }
+  tags
+  title
+  type
+  url
+}
+
+fragment ChildMenuItem on MenuItem {
+  ...MenuItem
+}`);
+
+export const LAYOUT_QUERY_ParentMenuItem =
+  gql(`fragment ParentMenuItem on MenuItem {
+  ...MenuItem
+  items {
+    ...ParentMenuItem2
+  }
+}
+
+fragment MenuItem on MenuItem {
+  id
+  resourceId
+  resource {
+    __typename
+    ... on Article {
+      articleTags: tags
+      publishedAt
+      authorV2 {
+        name
+      }
+      image {
+        altText
+        height
+        id
+        url
+        width
+      }
+    }
+    ... on Collection {
+      image {
+        altText
+        height
+        id
+        url
+        width
+      }
+    }
+    ... on Product {
+      image: featuredImage {
+        altText
+        height
+        id
+        url
+        width
+      }
+    }
+  }
+  tags
+  title
+  type
+  url
+}
+
+fragment ParentMenuItem2 on MenuItem {
+  ...MenuItem
+  items {
+    ...ChildMenuItem
+  }
+}
+
+fragment ChildMenuItem on MenuItem {
+  ...MenuItem
+}`);
+
+export const LAYOUT_QUERY_Menu = gql(`fragment Menu on Menu {
+  id
+  items {
+    ...ParentMenuItem
+  }
+}
+
+fragment ParentMenuItem on MenuItem {
+  ...MenuItem
+  items {
+    ...ParentMenuItem2
+  }
+}
+
+fragment MenuItem on MenuItem {
+  id
+  resourceId
+  resource {
+    __typename
+    ... on Article {
+      articleTags: tags
+      publishedAt
+      authorV2 {
+        name
+      }
+      image {
+        altText
+        height
+        id
+        url
+        width
+      }
+    }
+    ... on Collection {
+      image {
+        altText
+        height
+        id
+        url
+        width
+      }
+    }
+    ... on Product {
+      image: featuredImage {
+        altText
+        height
+        id
+        url
+        width
+      }
+    }
+  }
+  tags
+  title
+  type
+  url
+}
+
+fragment ParentMenuItem2 on MenuItem {
+  ...MenuItem
+  items {
+    ...ChildMenuItem
+  }
+}
+
+fragment ChildMenuItem on MenuItem {
+  ...MenuItem
+}`);
+
+export const LAYOUT_QUERY =
+  gql(`query layout($language: LanguageCode, $headerMenuHandle: String!, $footerMenuHandle: String!) @inContext(language: $language) {
+  shop {
+    ...Shop
+  }
+  headerMenu: menu(handle: $headerMenuHandle) {
+    ...Menu
+  }
+  footerMenu: menu(handle: $footerMenuHandle) {
+    ...Menu
+  }
+  paymentSettings {
+    acceptedCardBrands
+    supportedDigitalWallets
+  }
+}
+
+fragment Shop on Shop {
+  id
+  name
+  description
+  primaryDomain {
+    url
+  }
+  brand {
+    logo {
+      image {
+        url
+      }
+    }
+  }
+}
+
+fragment Menu on Menu {
+  id
+  items {
+    ...ParentMenuItem
+  }
+}
+
+fragment ParentMenuItem on MenuItem {
+  ...MenuItem
+  items {
+    ...ParentMenuItem2
+  }
+}
+
+fragment MenuItem on MenuItem {
+  id
+  resourceId
+  resource {
+    __typename
+    ... on Article {
+      articleTags: tags
+      publishedAt
+      authorV2 {
+        name
+      }
+      image {
+        altText
+        height
+        id
+        url
+        width
+      }
+    }
+    ... on Collection {
+      image {
+        altText
+        height
+        id
+        url
+        width
+      }
+    }
+    ... on Product {
+      image: featuredImage {
+        altText
+        height
+        id
+        url
+        width
+      }
+    }
+  }
+  tags
+  title
+  type
+  url
+}
+
+fragment ParentMenuItem2 on MenuItem {
+  ...MenuItem
+  items {
+    ...ChildMenuItem
+  }
+}
+
+fragment ChildMenuItem on MenuItem {
+  ...MenuItem
+}`);
+
+export const SWATCHES_QUERY = gql(`query swatches($type: String!) {
+  metaobjects(first: 250, type: $type) {
+    nodes {
+      id
+      fields {
+        key
+        value
+        reference {
+          ... on MediaImage {
+            image {
+              id
+              altText
+              url: url(transform: {maxWidth: 300})
+              width
+              height
             }
           }
         }
       }
     }
   }
-` as const;
+}`);

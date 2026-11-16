@@ -1,16 +1,16 @@
 import { TagIcon } from "@phosphor-icons/react";
-import { Money } from "@shopify/hydrogen";
 import {
   createSchema,
-  type HydrogenComponentProps,
   useTranslation,
-} from "@weaverse/hydrogen";
-import type { OrderFragment } from "customer-account-api.generated";
+  type WeaverseComponentProps,
+} from "@weaverse/hydrogen/react-router";
 import type { CSSProperties, ReactNode, Ref } from "react";
 import { useLoaderData } from "react-router";
 import { getOrderStatusLabel } from "~/components/customer/orders";
 import { Image } from "~/components/image";
 import Link from "~/components/link";
+import { Money } from "~/components/money";
+import type { OrderFragment } from "~/graphql/customer-types";
 import { useLocale } from "~/hooks/use-locale";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import type { I18nLocale } from "~/types/locale";
@@ -29,7 +29,7 @@ interface OrderDetailsRouteData {
 }
 
 interface OrderDetailsSectionProps
-  extends Partial<Omit<HydrogenComponentProps, "children">> {
+  extends Partial<Omit<WeaverseComponentProps, "children">> {
   heading?: string;
   backLabel?: string;
   orderNumberLabel?: string;

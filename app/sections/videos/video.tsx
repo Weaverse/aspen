@@ -1,25 +1,27 @@
 import { EyeIcon } from "@phosphor-icons/react";
 import {
-  type ComponentLoaderArgs,
   createSchema,
-  type HydrogenComponentProps,
   IMAGES_PLACEHOLDERS,
   useTranslation,
+  type WeaverseComponentLoaderArgs,
+  type WeaverseComponentProps,
   type WeaverseProduct,
   type WeaverseVideo,
-} from "@weaverse/hydrogen";
+} from "@weaverse/hydrogen/react-router";
 import { forwardRef, lazy, Suspense, useRef, useState } from "react";
-import type { ProductQuery } from "storefront-api.generated";
 import { Image } from "~/components/image";
 import { Link } from "~/components/link";
 import { AddToCartButton } from "~/components/product/add-to-cart-button";
 import { QuickShopTrigger } from "~/components/product/quick-shop";
 import { SpacedMoney } from "~/components/product/variant-prices";
 import { PRODUCT_QUERY } from "~/graphql/queries";
+import type { ProductQuery } from "~/graphql/storefront-types";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import { useTranslatedThemeSettings } from "~/hooks/use-translated-theme-settings";
+import { CACHE_DEFAULT } from "~/utils/cache";
 import { cn } from "~/utils/cn";
 import { useClientReady } from "~/utils/react-player";
+import { unwrapStorefront } from "~/utils/storefront";
 
 const ReactPlayer = lazy(() => import("react-player"));
 
@@ -47,7 +49,7 @@ interface VideoItemData {
 }
 
 interface VideoItemProps
-  extends HydrogenComponentProps<Awaited<ReturnType<typeof loader>>>,
+  extends WeaverseComponentProps<Awaited<ReturnType<typeof loader>>>,
     VideoItemData {}
 
 let VideoItem = forwardRef<HTMLDivElement, VideoItemProps>((props, ref) => {
@@ -245,7 +247,9 @@ let VideoItem = forwardRef<HTMLDivElement, VideoItemProps>((props, ref) => {
   );
 });
 
-export const loader = async (args: ComponentLoaderArgs<VideoItemData>) => {
+export const loader = async (
+  args: WeaverseComponentLoaderArgs<VideoItemData>,
+) => {
   const { weaverse, data } = args;
   const { storefront } = weaverse;
 
@@ -254,14 +258,12 @@ export const loader = async (args: ComponentLoaderArgs<VideoItemData>) => {
   }
 
   try {
-    const { product } = await storefront.query<ProductQuery>(PRODUCT_QUERY, {
-      variables: {
-        handle: data.product.handle,
-        selectedOptions: [],
-        language: storefront.i18n.language,
-        country: storefront.i18n.country,
-      },
-    });
+    const { product } = await storefront
+      .graphql(PRODUCT_QUERY, {
+        variables: { handle: data.product.handle, selectedOptions: [] },
+        cache: CACHE_DEFAULT,
+      })
+      .then(unwrapStorefront);
 
     return { product };
   } catch (error) {

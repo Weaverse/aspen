@@ -1,14 +1,9 @@
-import {
-  Analytics,
-  CartForm,
-  type CartQueryDataReturn,
-} from "@shopify/hydrogen";
 import type {
   CartBuyerIdentityInput,
   CartLineInput,
   CartLineUpdateInput,
 } from "@shopify/hydrogen/storefront-api-types";
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import {
   type ActionFunctionArgs,
   type AppLoadContext,
@@ -17,8 +12,11 @@ import {
   redirect,
 } from "react-router";
 import invariant from "tiny-invariant";
+import type { CartMutationResult as CartQueryDataReturn } from "~/.server/cart-gateway";
 import { Cart } from "~/components/cart/cart";
+import { CartForm } from "~/components/cart/cart-action-form";
 import { CartBestSellers } from "~/components/cart/cart-best-sellers";
+import { Analytics } from "~/components/root/analytics";
 import { Section } from "~/components/section";
 import { CART_CODE_APPLY_ACTION } from "~/utils/cart-code";
 import {
@@ -197,7 +195,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
           // the first cart is created with this request's market context.
           if (!cart.getCartId()) {
             const headers = new Headers();
-            headers.append("Set-Cookie", await session.commit());
+            headers.append(
+              "Set-Cookie",
+              (await session.commit())?.["Set-Cookie"] || "",
+            );
             return data(
               {
                 cart: null,
@@ -222,7 +223,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
    */
   const headers = result.cart ? cart.setCartId(result.cart.id) : new Headers();
   if (shouldCommitLocalizationSession) {
-    headers.append("Set-Cookie", await session.commit());
+    headers.append(
+      "Set-Cookie",
+      (await session.commit())?.["Set-Cookie"] || "",
+    );
   }
 
   const redirectTo = formData.get("redirectTo") ?? null;

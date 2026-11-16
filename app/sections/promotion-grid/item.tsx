@@ -1,9 +1,9 @@
 import {
   createSchema,
-  type HydrogenComponentProps,
   IMAGES_PLACEHOLDERS,
+  type WeaverseComponentProps,
   type WeaverseImage,
-} from "@weaverse/hydrogen";
+} from "@weaverse/hydrogen/react-router";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import { forwardRef } from "react";
@@ -70,7 +70,7 @@ const variants = cva(
 
 interface PromotionItemProps
   extends VariantProps<typeof variants>,
-    HydrogenComponentProps,
+    WeaverseComponentProps,
     OverlayProps,
     Omit<HeadingProps, "content"> {
   backgroundImage: WeaverseImage | string;

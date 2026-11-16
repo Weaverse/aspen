@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { chromium, expect } from "@playwright/test";
 import { compile } from "@tailwindcss/node";
 import { Scanner } from "@tailwindcss/oxide";
-import { IMAGES_PLACEHOLDERS } from "@weaverse/hydrogen";
+import { IMAGES_PLACEHOLDERS } from "@weaverse/hydrogen/react-router";
 import { build } from "esbuild";
 import {
   DESKTOP_MIN_PX,
@@ -84,10 +84,13 @@ const bundle = await build({
     {
       name: "countdown-subheading-fixture",
       setup(builder) {
-        builder.onResolve({ filter: /^@weaverse\/hydrogen$/ }, () => ({
-          path: "weaverse",
-          namespace: "fixture",
-        }));
+        builder.onResolve(
+          { filter: /^@weaverse\/hydrogen(?:\/react-router)?$/ },
+          () => ({
+            path: "weaverse",
+            namespace: "fixture",
+          }),
+        );
         builder.onResolve({ filter: /use-translated-text$/ }, () => ({
           path: "translation",
           namespace: "fixture",

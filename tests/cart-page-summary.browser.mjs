@@ -58,7 +58,7 @@ const bundle = await build({
         );
         builder.onLoad({ filter: /.*/, namespace: "fixture" }, ({ path }) => {
           let contents;
-          if (path === "@weaverse/hydrogen") {
+          if (path === "@weaverse/hydrogen/react-router") {
             contents = `export const useTranslation = () => ({t:key => key === "cart.code" ? "Gift card or discount code" : key === "cart.apply" ? "Apply" : key}); export const useThemeSettings = () => window.settings;`;
           } else if (path.includes("useScroll")) {
             contents = "export default () => ({y:0});";

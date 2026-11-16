@@ -7,10 +7,10 @@ import {
   Star,
 } from "@phosphor-icons/react";
 import {
-  type HydrogenComponentProps,
-  type HydrogenComponentSchema,
   useTranslation,
-} from "@weaverse/hydrogen";
+  type WeaverseComponentProps,
+  type WeaverseComponentSchema,
+} from "@weaverse/hydrogen/react-router";
 import { forwardRef } from "react";
 import { ArrowButton } from "~/components/arrow-button";
 import Heading, {
@@ -23,7 +23,7 @@ import { useTestimonialNavigation } from "./context";
 
 interface TestimonialContentProps
   extends Omit<HeadingProps, "as">,
-    Omit<HydrogenComponentProps, "content"> {
+    Omit<WeaverseComponentProps, "content"> {
   headingTagName?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
   description?: string;
   ratting?: number;
@@ -260,7 +260,7 @@ let TestimonialContent = forwardRef<HTMLDivElement, TestimonialContentProps>(
 
 export default TestimonialContent;
 
-export let schema: HydrogenComponentSchema = {
+export let schema: WeaverseComponentSchema = {
   type: "testimonial--content",
   title: "Content",
   limit: 1,

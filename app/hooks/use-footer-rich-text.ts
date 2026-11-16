@@ -1,4 +1,4 @@
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import { useMemo } from "react";
 import { sanitizeLiveFooterHtml } from "~/utils/footer-rich-text";
 import { translateGlobalThemeText } from "~/utils/translation";
