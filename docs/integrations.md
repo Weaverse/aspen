@@ -314,6 +314,9 @@ show a control that loses data.
 
 ### Themivo Wishlist & Alerts — optional
 
+For the integration file map, installation/removal recipes, native fallback,
+and verification steps, see the [Themivo cookbook](../.guides/cookbooks/themivo-wishlist.md).
+
 Aspen uses Themivo's server-side REST API and its own wishlist UI. The product
 cards, Quick View and product page continue using Aspen's existing hearts.
 
