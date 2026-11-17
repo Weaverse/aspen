@@ -379,9 +379,20 @@ to the separate saved cart list. The cart page and drawer both show saved
 items, and **Move to cart** restores the saved variant and quantity.
 Shopify subscription lines and lines with custom
 attributes stay in the cart because the Themivo item API stores variant and
-quantity. Each transfer writes the destination before removing the source.
-A private Shopify line attribute identifies a restore if the saved-item
-cleanup needs a retry. If saving succeeds but Shopify fails to remove the cart
+quantity. Saving writes the destination before removing the source.
+Restoring follows [Themivo's headless guide](https://wishlist.themivo.com/docs/headless#add-to-cart-and-orders):
+delete the exact saved variant from its list first, and mutate the cart only
+when Themivo returns `changed: true`. This claim is shared across workers;
+the in-memory queue only serializes requests in one worker. A losing request
+or a retry after removal does not add another cart line. A private Shopify
+line attribute recognizes partially or fully restored lines from earlier attempts.
+When Shopify confirms rejection or a partial quantity, Aspen re-saves only the
+quantity not accepted. Re-saving resets the saved date and price reference.
+An uncertain cart write or failed compensation reports an incomplete transfer;
+Aspen does not automatically replay an uncertain write. Themivo does not document
+a durable transfer/recovery API, so a process interruption between deletion and
+the cart write cannot be recovered automatically.
+If saving succeeds but Shopify fails to remove the cart
 line, Aspen can retry that line independently of other saves in the same
 session for up to 24 hours.
 

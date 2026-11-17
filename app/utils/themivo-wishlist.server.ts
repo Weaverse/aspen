@@ -877,6 +877,9 @@ async function restoreCartItem(
     (entry) => entry.productId === productId && entry.variantId === variantId,
   );
   if (!saved || !item) {
+    if (!discard) {
+      return { cart: await context.cart.get() };
+    }
     throw new ThemivoError("not_found", 404);
   }
   const remove = () =>
@@ -900,7 +903,7 @@ async function restoreCartItem(
 
   const { cart } = context;
   const marker = JSON.stringify([saved.id, productId, variantId, item.addedAt]);
-  const current = await cart.get();
+  let current = await cart.get();
   const findTransferredLine = (cartData: typeof current) =>
     cartData?.lines?.nodes?.find(({ attributes }) =>
       attributes?.some(
@@ -908,7 +911,7 @@ async function restoreCartItem(
           key === THEMIVO_CART_TRANSFER_ATTRIBUTE && value === marker,
       ),
     );
-  const alreadyAdded = findTransferredLine(current);
+  let alreadyAdded = findTransferredLine(current);
   const incomplete = (cartData: typeof current) => ({
     cart: cartData,
     wishlistError: "wishlist.cartTransferIncomplete",
@@ -916,35 +919,81 @@ async function restoreCartItem(
   if (alreadyAdded && alreadyAdded.quantity > item.quantity) {
     return incomplete(current);
   }
+  // Themivo serializes deletes across workers: only the winner may mutate the cart.
+  // A cart marker alone cannot prevent two workers from adding simultaneously.
+  const claim = (await remove()) as { changed?: boolean } | null;
+  if (claim?.changed === false) {
+    return { cart: await cart.get() };
+  }
+  if (claim?.changed !== true) {
+    return incomplete(current);
+  }
+  try {
+    // A previous worker may have re-saved a remainder after a partial add.
+    // Refresh after claiming so that stale list snapshots do not add it twice.
+    current = await cart.get();
+    alreadyAdded = findTransferredLine(current);
+  } catch {
+    return incomplete(current);
+  }
+  if (alreadyAdded && alreadyAdded.quantity > item.quantity) {
+    return incomplete(current);
+  }
   let updated = current;
   if (alreadyAdded?.quantity !== item.quantity) {
-    // Set the marked line to the saved total so retries never add the partial quantity twice.
-    const result = alreadyAdded
-      ? await cart.updateLines([
-          { id: alreadyAdded.id, quantity: item.quantity },
-        ])
-      : await cart.addLines([
-          {
-            merchandiseId: variantGid(variantId),
-            quantity: item.quantity,
-            attributes: [
-              { key: THEMIVO_CART_TRANSFER_ATTRIBUTE, value: marker },
-            ],
-          },
-        ]);
+    let result: Awaited<ReturnType<typeof cart.addLines>>;
+    try {
+      result = alreadyAdded
+        ? await cart.updateLines([
+            { id: alreadyAdded.id, quantity: item.quantity },
+          ])
+        : await cart.addLines([
+            {
+              merchandiseId: variantGid(variantId),
+              quantity: item.quantity,
+              attributes: [
+                { key: THEMIVO_CART_TRANSFER_ATTRIBUTE, value: marker },
+              ],
+            },
+          ]);
+    } catch {
+      // The write may have succeeded before the connection failed. Do not
+      // re-save an uncertain transfer and make another add possible.
+      return incomplete(current);
+    }
     updated = result.cart ?? current;
     if (
       result.errors?.length ||
       result.userErrors?.length ||
       findTransferredLine(updated)?.quantity !== item.quantity
     ) {
+      if (
+        result.cart ||
+        (result.userErrors?.length && !result.errors?.length)
+      ) {
+        // Keep only the unaccepted quantity saved when Shopify clips stock.
+        const accepted = result.cart
+          ? (findTransferredLine(result.cart)?.quantity ?? 0)
+          : (alreadyAdded?.quantity ?? 0);
+        const remaining = item.quantity - accepted;
+        if (remaining > 0) {
+          try {
+            await mutate(context, shopper, "/items", {
+              method: "POST",
+              body: {
+                listId: saved.id,
+                productId,
+                variantId,
+                quantity: remaining,
+              },
+            });
+          } catch {
+            return incomplete(updated);
+          }
+        }
+      }
       return incomplete(updated);
     }
-  }
-  try {
-    await remove();
-  } catch {
-    return incomplete(updated);
   }
   return { cart: updated };
 }

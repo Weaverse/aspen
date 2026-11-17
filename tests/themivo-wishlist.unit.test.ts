@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { AppLoadContext } from "react-router";
+import { THEMIVO_CART_TRANSFER_ATTRIBUTE } from "../app/types/wishlist.ts";
 import {
   changeThemivoList,
   checkThemivoPost,
@@ -537,77 +538,268 @@ test("save retries one line even after a different line has been saved", async (
   assert.equal(removal.mock.callCount(), 3);
 });
 
-test("restore fills a partial cart line and retries cleanup without adding it twice", async (t) => {
-  const ctx = context("cart-restore-key", false, guest);
-  const variantId = "gid://shopify/ProductVariant/123";
-  let lines: Array<{
-    id?: string;
-    quantity: number;
-    attributes: Array<{ key: string; value: string }>;
-  }> = [];
-  const cart = () => ({ id: "cart", lines: { nodes: lines } });
-  const addLines = t.mock.fn(async (items: typeof lines) => {
-    assert.equal(items[0].quantity, 2);
-    lines = items.map((item) => ({ ...item, id: "line", quantity: 1 }));
-    return { cart: cart() };
-  });
-  const updateLines = t.mock.fn(
-    async (items: Array<{ id: string; quantity: number }>) => {
-      assert.deepEqual(items, [{ id: "line", quantity: 2 }]);
-      lines = lines.map((line) => ({ ...line, quantity: 2 }));
-      return { cart: cart() };
-    },
-  );
-  Object.assign(ctx, {
-    cart: { get: async () => cart(), addLines, updateLines },
-  });
-  let cleanups = 0;
-  t.mock.method(globalThis, "fetch", async (url: string, init: RequestInit) => {
-    if (url.endsWith("/lists")) {
-      return Response.json({
-        lists: [
-          {
-            id: "l_cart",
-            kind: "saved_for_later",
-            role: "owner",
-            items: [
-              {
-                productId: "632910392",
-                variantId: "123",
-                quantity: 2,
-                addedAt: 123456,
-              },
-            ],
-          },
-        ],
-      });
-    }
-    assert.equal(init.method, "DELETE");
-    assert.deepEqual(JSON.parse(String(init.body)), {
-      listId: "l_cart",
+// Separate module URLs give each simulated worker its own cartTransfers map.
+async function restoreWorker(name: string) {
+  return (await import(
+    new URL(
+      `../app/utils/themivo-wishlist.server.ts?restore-worker=${name}`,
+      import.meta.url,
+    ).href
+  )) as typeof import("../app/utils/themivo-wishlist.server.ts");
+}
+
+for (const scenario of [
+  "concurrent",
+  "concurrent-partial",
+  "rejected",
+  "rejected-null",
+  "partial",
+  "throws",
+  "delete-fails",
+  "claim-lost",
+  "malformed",
+  "compensation-fails",
+  "legacy",
+] as const) {
+  test(`restore claims through Themivo before cart writes: ${scenario}`, async (t) => {
+    const workers = await Promise.all([
+      restoreWorker(`${scenario}-a`),
+      restoreWorker(`${scenario}-b`),
+    ]);
+    assert.notEqual(
+      workers[0].transferThemivoCartItem,
+      workers[1].transferThemivoCartItem,
+    );
+    const variantId = "gid://shopify/ProductVariant/123";
+    const item = {
       productId: "632910392",
       variantId: "123",
+      quantity: 2,
+      addedAt: 123456,
+    };
+    let saved: typeof item | null = { ...item };
+    const concurrent = scenario.startsWith("concurrent");
+    const partial = scenario === "partial" || scenario === "concurrent-partial";
+    let claimed = false;
+    let deletes = 0;
+    let releaseCompensation!: () => void;
+    const compensated = new Promise<void>((resolve) => {
+      releaseCompensation = resolve;
     });
-    cleanups += 1;
-    return cleanups === 1
-      ? new Response(null, { status: 503 })
-      : Response.json({ changed: true });
+    let reads = 0;
+    let release!: () => void;
+    const bothRead = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const events: string[] = [];
+    const marker = JSON.stringify([
+      "l_cart",
+      item.productId,
+      item.variantId,
+      item.addedAt,
+    ]);
+    let lines: Array<{
+      id: string;
+      quantity: number;
+      attributes: Array<{ key: string; value: string }>;
+    }> = [];
+    if (scenario === "legacy") {
+      lines = [
+        {
+          id: "line",
+          quantity: 2,
+          attributes: [{ key: THEMIVO_CART_TRANSFER_ATTRIBUTE, value: marker }],
+        },
+      ];
+    }
+    const cart = () => structuredClone({ id: "cart", lines: { nodes: lines } });
+    const addLines = t.mock.fn(
+      async (
+        items: Array<{
+          quantity: number;
+          attributes: Array<{ key: string; value: string }>;
+        }>,
+      ) => {
+        if (!concurrent) {
+          assert.equal(claimed, true);
+        }
+        events.push("add");
+        if (scenario === "throws") {
+          lines.push({ ...items[0], id: "line", quantity: items[0].quantity });
+          throw new Error("Connection lost after Shopify accepted the line");
+        }
+        if (scenario === "rejected-null") {
+          return { cart: null, userErrors: [{ message: "Invalid variant" }] };
+        }
+        if (scenario === "rejected" || scenario === "compensation-fails") {
+          return { cart: cart(), userErrors: [{ message: "Sold out" }] };
+        }
+        const accepted = partial ? 1 : items[0].quantity;
+        const existing = lines.find(
+          (line) =>
+            JSON.stringify(line.attributes) ===
+            JSON.stringify(items[0].attributes),
+        );
+        if (existing) {
+          existing.quantity += accepted;
+        } else {
+          lines.push({ ...items[0], id: "line", quantity: accepted });
+        }
+        return { cart: cart() };
+      },
+    );
+    const updateLines = t.mock.fn(
+      async ([update]: Array<{ id: string; quantity: number }>) => {
+        assert.equal(claimed, true);
+        const line = lines.find((entry) => entry.id === update.id);
+        assert.ok(line);
+        line.quantity = update.quantity;
+        return { cart: cart() };
+      },
+    );
+    const contexts = [
+      context(`restore-${scenario}`, false, guest),
+      context(`restore-${scenario}`, false, guest),
+    ];
+    for (const ctx of contexts) {
+      Object.assign(ctx, {
+        cart: { get: async () => cart(), addLines, updateLines },
+      });
+    }
+    t.mock.method(
+      globalThis,
+      "fetch",
+      async (url: string, init: RequestInit) => {
+        if (url.endsWith("/lists")) {
+          const snapshotItem = saved && { ...saved };
+          if (concurrent && reads < 2) {
+            reads += 1;
+            if (reads === 2) {
+              release();
+            }
+            await bothRead;
+          }
+          return Response.json({
+            lists: [
+              {
+                id: "l_cart",
+                kind: "saved_for_later",
+                role: "owner",
+                items: snapshotItem ? [snapshotItem] : [],
+              },
+            ],
+          });
+        }
+        assert.ok(url.endsWith("/items"));
+        const body = JSON.parse(String(init.body)) as {
+          listId: string;
+          productId: string;
+          variantId: string;
+          quantity?: number;
+        };
+        assert.deepEqual(
+          { ...body, quantity: undefined },
+          {
+            listId: "l_cart",
+            productId: item.productId,
+            variantId: item.variantId,
+            quantity: undefined,
+          },
+        );
+        if (init.method === "DELETE") {
+          events.push("delete");
+          deletes += 1;
+          if (scenario === "concurrent-partial" && deletes === 2) {
+            await compensated;
+          }
+          if (scenario === "delete-fails") {
+            return new Response(null, { status: 503 });
+          }
+          if (scenario === "malformed") {
+            return Response.json({});
+          }
+          const changed = scenario !== "claim-lost" && saved !== null;
+          if (changed) {
+            saved = null;
+            claimed = true;
+          }
+          return Response.json({ changed });
+        }
+        assert.equal(init.method, "POST");
+        events.push("compensate");
+        assert.equal(body.quantity, partial ? 1 : 2);
+        if (scenario === "compensation-fails") {
+          return new Response(null, { status: 503 });
+        }
+        saved = { ...item, quantity: body.quantity ?? 1, addedAt: 654321 };
+        releaseCompensation();
+        return Response.json({ changed: true });
+      },
+    );
+    const restore = (i: number) =>
+      workers[i].transferThemivoCartItem(
+        contexts[i],
+        "restore",
+        form({ productId, variantId }),
+      );
+    if (scenario === "delete-fails") {
+      await assert.rejects(
+        () => restore(0),
+        (e) => e instanceof Error && e.message === "unavailable",
+      );
+      assert.equal(addLines.mock.callCount(), 0);
+      assert.equal(saved?.quantity, 2);
+      return;
+    }
+    const results = concurrent
+      ? await Promise.all([restore(0), restore(1)])
+      : [await restore(0)];
+    if (concurrent || scenario === "legacy") {
+      assert.equal(lines[0]?.quantity, 2);
+      assert.equal(saved, null);
+      assert.equal(addLines.mock.callCount(), scenario === "legacy" ? 0 : 1);
+      if (scenario === "concurrent-partial") {
+        assert.equal(updateLines.mock.callCount(), 1);
+        assert.equal(
+          results.filter((result) => result.wishlistError).length,
+          1,
+        );
+      } else {
+        assert.ok(results.every((result) => !result.wishlistError));
+      }
+      await restore(0); // Retry after the saved entry is gone must not add again.
+      assert.equal(lines[0]?.quantity, 2);
+    } else if (scenario === "claim-lost" || scenario === "malformed") {
+      assert.equal(addLines.mock.callCount(), 0);
+      assert.equal(
+        results[0].wishlistError,
+        scenario === "malformed"
+          ? "wishlist.cartTransferIncomplete"
+          : undefined,
+      );
+    } else {
+      assert.equal(results[0].wishlistError, "wishlist.cartTransferIncomplete");
+      if (scenario === "throws" || scenario === "compensation-fails") {
+        assert.equal(saved, null);
+        if (scenario === "throws") {
+          assert.deepEqual(events, ["delete", "add"]);
+          assert.equal(lines[0].quantity, 2);
+          await restore(0);
+          assert.equal(addLines.mock.callCount(), 1);
+        }
+      } else {
+        assert.equal((lines[0]?.quantity ?? 0) + (saved?.quantity ?? 0), 2);
+        assert.deepEqual(events, ["delete", "add", "compensate"]);
+        // A new snapshot after compensation uses a fresh marker and only the remainder.
+        if (scenario === "partial") {
+          assert.equal((await restore(0)).wishlistError, undefined);
+          assert.equal(
+            lines.reduce((sum, line) => sum + line.quantity, 0),
+            2,
+          );
+          assert.equal(saved, null);
+        }
+      }
+    }
   });
-  const restore = () =>
-    transferThemivoCartItem(ctx, "restore", form({ productId, variantId }));
-  assert.equal(
-    (await restore()).wishlistError,
-    "wishlist.cartTransferIncomplete",
-  );
-  assert.equal(cleanups, 0);
-  assert.equal(lines[0]?.quantity, 1);
-  assert.equal(
-    (await restore()).wishlistError,
-    "wishlist.cartTransferIncomplete",
-  );
-  assert.equal(lines[0]?.quantity, 2);
-  assert.equal((await restore()).wishlistError, undefined);
-  assert.equal(updateLines.mock.callCount(), 1);
-  assert.equal(cleanups, 2);
-  assert.equal(addLines.mock.callCount(), 1);
-});
+}
