@@ -4,6 +4,18 @@ import {
   type LoaderFunctionArgs,
 } from "react-router";
 import type { WishlistApiResponse } from "~/types/wishlist";
+import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
+import { readThemivoAppearance } from "~/utils/themivo-appearance.server";
+import { themivoVariantBelongsToProduct } from "~/utils/themivo-products.server";
+import {
+  checkThemivoPost,
+  readThemivoHearts,
+  readThemivoProductCount,
+  ThemivoError,
+  themivoEnabled,
+  themivoErrorKey,
+  toggleThemivoHeart,
+} from "~/utils/themivo-wishlist.server";
 import {
   MAX_WISHLIST_SIZE,
   readWishlist,
@@ -22,7 +34,37 @@ const NO_STORE_HEADERS = {
 };
 const WISHLIST_WRITE_ATTEMPTS = 2;
 
+export const shouldRevalidate = skipPageRevalidationForStorefrontActions;
+
 export async function loader({ request, context }: LoaderFunctionArgs) {
+  if (themivoEnabled(context)) {
+    const url = new URL(request.url);
+    const countProduct = url.searchParams.get("countProduct");
+    if (countProduct !== null) {
+      try {
+        const appearance = await readThemivoAppearance(
+          context.env.PUBLIC_STORE_DOMAIN,
+          url.origin,
+          context.storefront.i18n,
+        );
+        return data(
+          {
+            productId: countProduct,
+            count: appearance?.productShowCount
+              ? await readThemivoProductCount(context, countProduct)
+              : null,
+          },
+          { headers: NO_STORE_HEADERS },
+        );
+      } catch {
+        return data(
+          { productId: countProduct, count: null },
+          { headers: NO_STORE_HEADERS },
+        );
+      }
+    }
+    return wishlistResponse(await readThemivoHearts(context));
+  }
   if (isWishlistPreviewRequest(request)) {
     return wishlistResponse({
       authenticated: true,
@@ -64,6 +106,60 @@ export async function action({ request, context }: ActionFunctionArgs) {
       },
       405,
     );
+  }
+
+  if (themivoEnabled(context)) {
+    try {
+      checkThemivoPost(request);
+      const form = await request.formData();
+      const productId = String(form.get("productId") ?? "");
+      const intent = form.get("intent");
+      const variantId = form.get("variantId");
+      if (
+        !WISHLIST_PRODUCT_ID_PATTERN.test(productId) ||
+        (intent !== "add" && intent !== "remove") ||
+        (variantId !== null &&
+          (typeof variantId !== "string" ||
+            !/^gid:\/\/shopify\/ProductVariant\/\d+$/.test(variantId)))
+      ) {
+        throw new ThemivoError("bad_request", 400);
+      }
+      if (
+        typeof variantId === "string" &&
+        !(await themivoVariantBelongsToProduct(
+          context.storefront,
+          variantId,
+          productId,
+        ))
+      ) {
+        throw new ThemivoError("bad_request", 400);
+      }
+      return wishlistResponse(
+        await toggleThemivoHeart(
+          context,
+          productId,
+          intent,
+          typeof variantId === "string" ? variantId : undefined,
+        ),
+      );
+    } catch (error) {
+      return wishlistResponse(
+        {
+          authenticated: false,
+          acceptsGuests: true,
+          loginRequired:
+            error instanceof ThemivoError && error.code === "login_required",
+          productIds: [],
+          error: themivoErrorKey(error),
+        },
+        error instanceof ThemivoError && error.status < 500
+          ? error.status
+          : 503,
+        error instanceof ThemivoError && error.retryAfter
+          ? { "Retry-After": error.retryAfter }
+          : undefined,
+      );
+    }
   }
 
   const formData = await request.formData();

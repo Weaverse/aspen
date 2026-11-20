@@ -1,5 +1,10 @@
 import type { AppLoadContext } from "react-router";
 
+import {
+  isThemivoScriptPreview,
+  THEMIVO_STOREFRONT_ORIGIN,
+} from "~/utils/themivo-script-preview";
+
 export function getWeaverseCsp(request: Request, context: AppLoadContext) {
   const url = new URL(request.url);
   // Get weaverse host from query params
@@ -9,6 +14,9 @@ export function getWeaverseCsp(request: Request, context: AppLoadContext) {
   if (weaverseHost) {
     weaverseHosts.push(weaverseHost);
   }
+  const themivoHosts = isThemivoScriptPreview(url)
+    ? [THEMIVO_STOREFRONT_ORIGIN]
+    : [];
   const updatedCsp: {
     [x: string]: string[] | string | boolean;
   } = {
@@ -24,8 +32,14 @@ export function getWeaverseCsp(request: Request, context: AppLoadContext) {
       "cdn.jsdelivr.net",
       "*.alicdn.com",
       ...weaverseHosts,
+      ...themivoHosts,
     ],
-    connectSrc: ["vimeo.com", "*.google-analytics.com", ...weaverseHosts],
+    connectSrc: [
+      "vimeo.com",
+      "*.google-analytics.com",
+      ...weaverseHosts,
+      ...themivoHosts,
+    ],
     styleSrc: weaverseHosts,
     // Studio navigation can omit weaverseHost; keep trusted embedding hosts allowed.
     frameAncestors: ["'self'", "https://weaverse.io", ...weaverseHosts],

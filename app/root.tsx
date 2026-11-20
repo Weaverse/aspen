@@ -19,9 +19,14 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLocation,
   useRouteError,
   useRouteLoaderData,
 } from "react-router";
+import {
+  hasThemivoGuest,
+  themivoEnabled,
+} from "~/utils/themivo-wishlist.server";
 import { CartStoreSync } from "./components/cart/cart-sync";
 import { useCartStore } from "./components/cart/store";
 import { Footer } from "./components/layout/footer";
@@ -35,11 +40,20 @@ import { CustomAnalytics } from "./components/root/custom-analytics";
 import { GenericError } from "./components/root/generic-error";
 import { GlobalLoading } from "./components/root/global-loading";
 import { NotFound } from "./components/root/not-found";
+import { ThemivoWishlistEntry } from "./components/wishlist/themivo-wishlist-entry";
 import { WishlistProvider } from "./components/wishlist/wishlist-provider";
 import styles from "./styles/app.css?url";
 import { DEFAULT_LOCALE } from "./utils/const";
+import { prefixPathWithLocale } from "./utils/locale";
 import { skipRootRevalidationForStorefrontActions } from "./utils/revalidation";
 import { loadCriticalData, loadDeferredData } from "./utils/root.server";
+import { readThemivoAppearance } from "./utils/themivo-appearance.server";
+import {
+  isPrivateWishlistPath,
+  isThemivoScriptPreview,
+  THEMIVO_PREVIEW_WISHLIST_PATH,
+  THEMIVO_STOREFRONT_ORIGIN,
+} from "./utils/themivo-script-preview";
 import { GlobalStyle } from "./weaverse/style";
 
 export type RootLoader = typeof loader;
@@ -80,11 +94,40 @@ export async function loader(args: LoaderFunctionArgs) {
   const deferredData = loadDeferredData(args);
 
   // Await the critical data required to render initial state of the page
-  const criticalData = await loadCriticalData(args);
+  const url = new URL(args.request.url);
+  const themivoScriptShop = isThemivoScriptPreview(url)
+    ? args.context.env.PUBLIC_STORE_DOMAIN
+    : null;
+  const usesThemivo = themivoEnabled(args.context);
+  const appearanceShop = usesThemivo
+    ? args.context.env.PUBLIC_STORE_DOMAIN
+    : themivoScriptShop;
+  const [criticalData, themivoAppearance] = await Promise.all([
+    loadCriticalData(args),
+    appearanceShop
+      ? readThemivoAppearance(
+          appearanceShop,
+          url.origin,
+          args.context.storefront.i18n,
+        )
+      : null,
+  ]);
+
+  // A successful guest merge mutates the session before the response is committed.
+  const wishlist =
+    usesThemivo &&
+    hasThemivoGuest(args.context) &&
+    (await deferredData.isLoggedIn.catch(() => false))
+      ? await deferredData.wishlist
+      : deferredData.wishlist;
 
   return {
     ...deferredData,
+    wishlist,
     ...criticalData,
+    themivoScriptShop,
+    themivoAppearance,
+    usesThemivo,
   };
 }
 
@@ -127,6 +170,7 @@ function RootLayout({ children }: { children?: React.ReactNode }) {
   const { t } = useTranslation();
   const data = useRouteLoaderData<RootLoader>("root");
   const locale = data?.selectedLocale ?? DEFAULT_LOCALE;
+  const privateWishlist = isPrivateWishlistPath(useLocation().pathname);
   const { designSystemPreset, topbarHeight, topbarText } =
     useTranslatedThemeSettings();
   const initialDesktopTopbarHeight =
@@ -164,6 +208,7 @@ function RootLayout({ children }: { children?: React.ReactNode }) {
             cart={cartResolved ? (serverCart as CartReturn) : data.cart}
             shop={data.shop}
             consent={data.consent}
+            canTrack={privateWishlist ? () => false : undefined}
           >
             <CartStoreSync initialCart={data.cart} />
             <WishlistProvider initialWishlist={data.wishlist}>
@@ -184,8 +229,9 @@ function RootLayout({ children }: { children?: React.ReactNode }) {
                   </main>
                   <Footer />
                 </div>
+                <ThemivoWishlistEntry floating />
                 {shouldShowNewsletterPopup && <NewsletterPopup />}
-                <CustomAnalytics />
+                {!privateWishlist && <CustomAnalytics />}
               </TooltipProvider>
             </WishlistProvider>
           </Analytics.Provider>
@@ -194,6 +240,19 @@ function RootLayout({ children }: { children?: React.ReactNode }) {
         )}
         <GlobalLoading />
         <ScrollRestoration nonce={nonce} />
+        {data?.themivoScriptShop && (
+          <script
+            nonce={nonce}
+            type="module"
+            src={`${THEMIVO_STOREFRONT_ORIGIN}/storefront/v1/wishlist.js`}
+            data-wishlist-shop={data.themivoScriptShop}
+            data-storefront-token={data.consent.storefrontAccessToken}
+            data-wishlist-url={prefixPathWithLocale(
+              THEMIVO_PREVIEW_WISHLIST_PATH,
+              locale,
+            )}
+          />
+        )}
         <Scripts nonce={nonce} />
       </body>
     </html>

@@ -17,6 +17,8 @@ import { useCartStore } from "./store";
 import { useCartInventoryPolicy } from "./use-cart-inventory-policy";
 
 const QUANTITY_FETCHER_PREFIX = "cart-line-quantity:";
+export const SAVED_CART_CHANGED = "aspen:saved-cart-changed";
+const notifiedSavedCartResponses = new WeakSet<object>();
 
 function getFormInput(fetcher: Fetcher<unknown>) {
   if (!fetcher.formData) {
@@ -31,6 +33,15 @@ function getFormInput(fetcher: Fetcher<unknown>) {
 
 function syncFetcherResponse(fetcher: Fetcher<unknown>) {
   const response = fetcher.data as CartMutationResponse | undefined;
+  if (
+    response &&
+    "savedCartChanged" in response &&
+    response.savedCartChanged === true &&
+    !notifiedSavedCartResponses.has(response)
+  ) {
+    notifiedSavedCartResponses.add(response);
+    window.dispatchEvent(new Event(SAVED_CART_CHANGED));
+  }
   const token = fetcher.formData?.get("cartStageToken");
   if (typeof token === "string" && response) {
     useCartStore.getState().clearPendingAdd(token);

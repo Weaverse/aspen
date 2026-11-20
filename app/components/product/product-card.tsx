@@ -18,18 +18,24 @@ import {
 import { isCombinedListing } from "~/utils/combined-listings";
 import { calculateAspectRatio } from "~/utils/image";
 import { ProductCardBadges } from "./badges";
+import {
+  CARD_BASE,
+  CARD_CONTENT,
+  CARD_CONTENT_HOVER,
+  CARD_HOVER,
+  CARD_IMAGE_FRAME,
+  CARD_IMAGE_HOVER,
+  CARD_IMAGE_ZOOM,
+  CARD_TITLE,
+  CONTENT_ALIGNMENT_CLASSES,
+  useProductCardAppearance,
+} from "./product-card-appearance";
 import { ProductCardOptions } from "./product-card-options";
 import { getProductCardPriceDisplay } from "./product-card-price";
 import { ProductCardRating } from "./product-card-rating";
 import { QuickShopTrigger } from "./quick-shop";
 import { useCombinedPriceRange } from "./use-combined-price-range";
 import { SpacedMoney, VariantPrices } from "./variant-prices";
-
-const CONTENT_ALIGNMENT_CLASSES = {
-  left: "items-start text-left",
-  center: "items-center text-center",
-  right: "items-end text-right",
-} as const;
 
 const CONTENT_JUSTIFY_CLASSES = {
   left: "justify-start",
@@ -67,18 +73,10 @@ export function ProductCard({
   const { t } = useTranslation();
   const {
     pcardTabletRatingLayout = "stacked",
-    pcardBackgroundColor,
     pcardImageRatio,
-    pcardHoverPadding = 20,
-    pcardImageZoom = true,
-    pcardHoverZoom = 105,
-    pcardFontSize = 14,
-    pcardContentGap = 12,
-    pcardImageContentGap = 20,
     pcardAlignment,
     pcardShowVendor,
     pcardEnableQuickShop,
-    pcardEnableWishlist,
     pcardBadgesPosition,
     pcardShowSaleBadges,
     pcardShowBestSellerBadges,
@@ -139,57 +137,31 @@ export function ProductCard({
   }[tabletRatingLayout as "split" | "inline" | "stacked"];
   const badgePosition = pcardBadgesPosition || "top-left";
   const primaryImage = selectedVariant?.image || images.nodes[0];
-  const hoverZoom = Number(pcardHoverZoom);
+  const { cardStyle, pcardImageZoom } = useProductCardAppearance(
+    calculateAspectRatio(primaryImage, pcardImageRatio),
+  );
   const productCardBorderRadius = "var(--pcard-radius)";
 
   return (
     <article
       className={clsx(
-        "group/product-card @container/product-card overflow-hidden bg-(--pcard-background) transition-colors duration-300",
+        CARD_BASE,
         flushHorizontalPadding ? "py-5" : "p-5",
-        !mobileLayout &&
-          "desktop:px-0 desktop:pt-0 desktop:gap-0 desktop:hover:bg-(--pcard-hover-background) desktop:focus-within:bg-(--pcard-hover-background)",
+        !mobileLayout && CARD_HOVER,
         className,
       )}
-      style={
-        {
-          "--pcard-background": pcardBackgroundColor || "transparent",
-          "--pcard-hover-background": "var(--pcard-hover-background-default)",
-          "--pcard-hover-padding": `${pcardHoverPadding}px`,
-          "--pcard-hover-zoom": Number.isFinite(hoverZoom)
-            ? Math.min(150, Math.max(100, hoverZoom)) / 100
-            : 1.05,
-          "--pcard-font-size": `${pcardFontSize}px`,
-          "--pcard-content-gap": `${pcardContentGap}px`,
-          "--pcard-image-content-gap": `${pcardImageContentGap}px`,
-          // Transfer image spacing below the info so hover cannot resize the card.
-          "--pcard-hover-info-top":
-            "max(0px, calc(var(--pcard-image-content-gap) - var(--pcard-hover-padding)))",
-          "--pcard-hover-info-bottom":
-            "min(var(--pcard-image-content-gap), var(--pcard-hover-padding))",
-          "--pcard-radius": "var(--pcard-border-radius-default)",
-          "--pcard-image-ratio": calculateAspectRatio(
-            primaryImage,
-            pcardImageRatio,
-          ),
-          borderRadius: productCardBorderRadius,
-        } as React.CSSProperties
-      }
+      style={cardStyle}
     >
       <div
         className={clsx(
-          "group relative aspect-(--pcard-image-ratio)",
+          "group group/wishlist-host relative aspect-(--pcard-image-ratio)",
           useTabletCoverImage && "md:w-full md:self-stretch lg:self-auto",
         )}
       >
         <div
           data-product-card-image-frame
           style={{ borderRadius: productCardBorderRadius }}
-          className={clsx(
-            "absolute inset-0 transition-[inset] duration-300",
-            !mobileLayout &&
-              "desktop:group-hover/product-card:inset-(--pcard-hover-padding) desktop:group-focus-within/product-card:inset-(--pcard-hover-padding)",
-          )}
+          className={clsx(CARD_IMAGE_FRAME, !mobileLayout && CARD_IMAGE_HOVER)}
         >
           <Link
             to={productPath}
@@ -208,9 +180,7 @@ export function ProductCard({
                   key={primaryImage.id}
                   className={clsx(
                     "h-full w-full [&>img]:transition-transform [&>img]:duration-300",
-                    pcardImageZoom &&
-                      !mobileLayout &&
-                      "desktop:group-hover/product-card:[&>img]:scale-(--pcard-hover-zoom) desktop:group-focus-within/product-card:[&>img]:scale-(--pcard-hover-zoom)",
+                    pcardImageZoom && !mobileLayout && CARD_IMAGE_ZOOM,
                   )}
                   sizes={`${minWidthQuery(DESKTOP_MIN_PX)} 25vw, ${minWidthQuery(TABLET_MIN_PX)} 30vw, 45vw`}
                   data={primaryImage}
@@ -234,13 +204,12 @@ export function ProductCard({
               </span>
             )}
           </Link>
-          {pcardEnableWishlist && (
-            <ProductCardWishlistButton
-              productId={product.id}
-              productTitle={product.title}
-              className="top-[13px]"
-            />
-          )}
+          <ProductCardWishlistButton
+            productId={product.id}
+            variantId={activeVariant?.id}
+            productTitle={product.title}
+            className="top-[13px]"
+          />
           <div
             className={clsx(
               "pointer-events-none absolute top-5 z-10 max-w-[calc(100%_-_2.5rem)] flex-wrap gap-1",
@@ -274,9 +243,8 @@ export function ProductCard({
       </div>
       <div
         className={clsx(
-          "flex flex-col gap-(--pcard-content-gap) pt-(--pcard-image-content-gap) pb-0",
-          !mobileLayout &&
-            "desktop:px-0 transition-[padding] duration-300 desktop:group-hover/product-card:px-5 desktop:group-focus-within/product-card:px-5 desktop:group-hover/product-card:pt-(--pcard-hover-info-top) desktop:group-hover/product-card:pb-(--pcard-hover-info-bottom) desktop:group-focus-within/product-card:pt-(--pcard-hover-info-top) desktop:group-focus-within/product-card:pb-(--pcard-hover-info-bottom)",
+          CARD_CONTENT,
+          !mobileLayout && CARD_CONTENT_HOVER,
           quickShopIconOnlyOnTablet && "self-stretch text-left",
           CONTENT_ALIGNMENT_CLASSES[
             alignment as keyof typeof CONTENT_ALIGNMENT_CLASSES
@@ -322,7 +290,7 @@ export function ProductCard({
               prefetch="intent"
               className={({ isTransitioning }) =>
                 clsx(
-                  "line-clamp-2 font-body font-normal text-(--color-text) text-sm uppercase text-(length:--pcard-font-size) leading-none tracking-[0.02em]",
+                  CARD_TITLE,
                   !mobileLayout && "desktop:min-w-0 desktop:flex-1",
                   isTransitioning && "[view-transition-name:product-image]",
                 )

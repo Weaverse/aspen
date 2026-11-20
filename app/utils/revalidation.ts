@@ -1,7 +1,22 @@
 import type { ShouldRevalidateFunctionArgs } from "react-router";
 
 const PAGE_INDEPENDENT_ACTION_PATH =
-  /(?:^|\/)(?:cart|api\/wishlist|api\/back-in-stock)$/;
+  /(?:^|\/)(?:cart|api\/wishlist(?:\/saved-cart)?|api\/back-in-stock)$/;
+
+export function revalidateWishlistAfterMutation(
+  args: ShouldRevalidateFunctionArgs,
+) {
+  const { currentUrl, formAction, formMethod } = args;
+  const isWishlistToggle =
+    formAction &&
+    formMethod?.toUpperCase() === "POST" &&
+    /\/api\/wishlist(?:\.data)?\/?$/.test(
+      new URL(formAction, currentUrl).pathname,
+    );
+  return isWishlistToggle || isWishlistShareAction(args)
+    ? args.defaultShouldRevalidate
+    : skipPageRevalidationForStorefrontActions(args);
+}
 
 /**
  * Cart mutations do not change CMS or catalog page data. Revalidating those
@@ -32,7 +47,10 @@ export function skipPageRevalidationForStorefrontActions({
     const actionUrl = new URL(formAction, currentUrl);
     const actionPath = actionUrl.pathname.replace(/\.data$/, "");
 
-    if (PAGE_INDEPENDENT_ACTION_PATH.test(actionPath)) {
+    if (
+      PAGE_INDEPENDENT_ACTION_PATH.test(actionPath) ||
+      isWishlistShareAction({ currentUrl, formAction, formData, formMethod })
+    ) {
       return false;
     }
   }
@@ -64,12 +82,35 @@ export function skipRootRevalidationForStorefrontActions({
     const actionUrl = new URL(formAction, currentUrl);
     const actionPath = actionUrl.pathname.replace(/\.data$/, "");
 
-    if (PAGE_INDEPENDENT_ACTION_PATH.test(actionPath)) {
+    if (
+      PAGE_INDEPENDENT_ACTION_PATH.test(actionPath) ||
+      isWishlistShareAction({ currentUrl, formAction, formData, formMethod })
+    ) {
       return false;
     }
   }
 
   return defaultShouldRevalidate;
+}
+
+export function isWishlistShareAction({
+  currentUrl,
+  formAction,
+  formData,
+  formMethod,
+}: Pick<
+  ShouldRevalidateFunctionArgs,
+  "currentUrl" | "formAction" | "formData" | "formMethod"
+>) {
+  const intent = formData?.get("intent");
+  return Boolean(
+    formAction &&
+      formMethod?.toUpperCase() === "POST" &&
+      (intent === "share" || intent === "revoke") &&
+      /^\/(?:[a-z]{2}-[a-z]{2}\/)?wishlist(?:\.data)?\/?$/i.test(
+        new URL(formAction, currentUrl).pathname,
+      ),
+  );
 }
 
 function hasLocalePathChange(currentUrl: URL, nextUrl: URL) {
