@@ -178,7 +178,6 @@ const LINT = {
     "no-func-assign": "error",
     "no-global-assign": "error",
     "no-implicit-coercion": "warn",
-    "no-implied-eval": "error",
     "no-import-assign": "error",
     "no-inner-declarations": [
       "error",
@@ -343,7 +342,6 @@ const LINT = {
     "unicorn/no-thenable": "error",
     "unicorn/prefer-at": "warn",
     "unicorn/prefer-date-now": "warn",
-    "unicorn/prefer-math-min-max": "warn",
     "unicorn/throw-new-error": "warn",
     "use-isnan": "error",
     "valid-typeof": "error",
