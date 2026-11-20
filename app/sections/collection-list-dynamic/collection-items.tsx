@@ -62,7 +62,8 @@ interface CollectionItemsData {
 const MAX_COLLECTIONS = 250;
 
 interface CollectionItemsProps
-  extends HydrogenComponentProps<CollectionItemsLoaderData>,
+  extends
+    HydrogenComponentProps<CollectionItemsLoaderData>,
     CollectionItemsData {
   collectionNameColor: string;
   collectionBackgroundColor: string;

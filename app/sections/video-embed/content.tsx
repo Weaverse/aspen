@@ -10,7 +10,8 @@ import Paragraph, { type ParagraphProps } from "~/components/paragraph";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 
 interface VideoEmbedContentProps
-  extends HydrogenComponentProps,
+  extends
+    HydrogenComponentProps,
     VariantProps<typeof variants>,
     Omit<HeadingProps, "content"> {
   // Layout props

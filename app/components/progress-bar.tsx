@@ -34,8 +34,10 @@ export function ProgressBar({
   );
 }
 
-interface SegmentedProgressBarProps
-  extends Omit<ComponentProps<"div">, "children"> {
+interface SegmentedProgressBarProps extends Omit<
+  ComponentProps<"div">,
+  "children"
+> {
   count: number;
   activeIndex: number;
   cumulative?: boolean;
