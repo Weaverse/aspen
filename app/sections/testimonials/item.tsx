@@ -12,7 +12,8 @@ export interface TestimonialHotspotsItemData extends HotspotsItemData {
 }
 
 interface TestimonialHotspotsItemProps
-  extends HydrogenComponentProps<Awaited<ReturnType<typeof loader>>>,
+  extends
+    HydrogenComponentProps<Awaited<ReturnType<typeof loader>>>,
     TestimonialHotspotsItemData {}
 
 const TestimonialHotspotsItem = forwardRef<

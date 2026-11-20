@@ -20,7 +20,7 @@ export const ScrollingTextContent = ({ content, icon }: ItemProps) => (
             dangerouslySetInnerHTML={{ __html: icon }}
           />
         ) : (
-          // biome-ignore lint/performance/noImgElement: Merchant icons are arbitrary URLs.
+          // oxlint-disable-next-line nextjs/no-img-element -- Merchant icons are arbitrary URLs.
           <img
             src={icon}
             alt=""

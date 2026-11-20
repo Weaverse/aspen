@@ -5,8 +5,7 @@ import { forwardRef } from "react";
 import { useHotspotsLayout } from ".";
 
 interface HotspotsProps
-  extends HydrogenComponentProps,
-    VariantProps<typeof variants> {}
+  extends HydrogenComponentProps, VariantProps<typeof variants> {}
 
 let variants = cva(
   "flex flex-col [&_.button]:font-bold [&_.paragraph]:mx-[unset]",

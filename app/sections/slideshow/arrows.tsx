@@ -35,8 +35,9 @@ const buttonVariants = cva(
   },
 );
 
-export interface SlideshowArrowsProps
-  extends VariantProps<typeof buttonVariants> {
+export interface SlideshowArrowsProps extends VariantProps<
+  typeof buttonVariants
+> {
   arrowsIcon: "caret" | "arrow";
   iconSize: number;
   showArrowsOnHover: boolean;

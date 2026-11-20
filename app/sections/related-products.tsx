@@ -11,8 +11,7 @@ import { layoutInputs, Section, type SectionProps } from "~/components/section";
 import { Swimlane } from "~/components/swimlane";
 
 interface RelatedProductsProps
-  extends Omit<SectionProps, "content">,
-    Omit<HeadingProps, "as"> {
+  extends Omit<SectionProps, "content">, Omit<HeadingProps, "as"> {
   headingTagName?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
 }
 

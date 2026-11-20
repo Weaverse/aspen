@@ -202,11 +202,11 @@ export function DiscountDialog({
   );
   const success = Boolean(
     submitted &&
-      fetcher.data?.cart?.discountCodes?.find(
-        (discount) =>
-          discount.code.toLowerCase() === submittedCode.toLowerCase() &&
-          discount.applicable,
-      ),
+    fetcher.data?.cart?.discountCodes?.find(
+      (discount) =>
+        discount.code.toLowerCase() === submittedCode.toLowerCase() &&
+        discount.applicable,
+    ),
   );
   const mutationError = getCartMutationError(fetcher.data, t);
   const error = submitted && !success;
