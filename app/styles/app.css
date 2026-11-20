@@ -19,6 +19,7 @@
   --breakpoint-md: 48em;
   /* Keep in sync with DESKTOP_MIN_PX in utils/breakpoints.ts. */
   --breakpoint-lg: 1033px;
+  --breakpoint-navbar: 1024px;
   --breakpoint-xl: 80em;
   --breakpoint-2xl: 96em;
   --breakpoint-desktop: 1033px;
@@ -300,8 +301,7 @@
 
 /* Featured Product (single-product): fill the row on tablet, no leftover right gap. */
 @media (width < 1033px) {
-  .featured-product-media,
-  div[class*="778px"].aspect-square {
+  .featured-product-media {
     max-width: 100% !important;
     width: 100% !important;
     margin-inline: auto !important;
