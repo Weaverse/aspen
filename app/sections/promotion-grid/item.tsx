@@ -69,7 +69,8 @@ const variants = cva(
 );
 
 interface PromotionItemProps
-  extends VariantProps<typeof variants>,
+  extends
+    VariantProps<typeof variants>,
     HydrogenComponentProps,
     OverlayProps,
     Omit<HeadingProps, "content"> {
@@ -184,9 +185,9 @@ const PromotionGridItem = forwardRef<HTMLDivElement, PromotionItemProps>(
     const SubheadingTag = subheadingTag;
     const hasTabContent = Boolean(
       _tabParagraphContent ||
-        _tabButtonContent ||
-        _tabOverlayColor ||
-        _tabOverlayOpacity,
+      _tabButtonContent ||
+      _tabOverlayColor ||
+      _tabOverlayOpacity,
     );
 
     return (

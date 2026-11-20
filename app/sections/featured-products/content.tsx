@@ -15,7 +15,8 @@ import { useTranslatedText } from "~/hooks/use-translated-text";
 import { useFeaturedProductsLayout } from ".";
 
 interface FeaturedProductsLoaderData
-  extends HydrogenComponentProps,
+  extends
+    HydrogenComponentProps,
     VariantProps<typeof variants>,
     Omit<HeadingProps, "content"> {
   // Layout props

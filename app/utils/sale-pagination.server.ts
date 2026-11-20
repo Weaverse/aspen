@@ -49,7 +49,7 @@ export function isSaleProduct(product: SaleProduct) {
   const variant = product.selectedOrFirstAvailableVariant;
   return Boolean(
     variant?.compareAtPrice &&
-      Number(variant.compareAtPrice.amount) > Number(variant.price.amount),
+    Number(variant.compareAtPrice.amount) > Number(variant.price.amount),
   );
 }
 

@@ -20,8 +20,10 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "~/components/tooltip";
 import { translatePreview } from "~/utils/preview-translation";
 import type { HotspotsItemData } from "./item";
 
-interface ProductPopupProps
-  extends Omit<HotspotsItemData, "icon" | "iconSize" | "product"> {
+interface ProductPopupProps extends Omit<
+  HotspotsItemData,
+  "icon" | "iconSize" | "product"
+> {
   product: ProductQuery["product"];
   floating?: boolean;
   onQuickAdd?: (

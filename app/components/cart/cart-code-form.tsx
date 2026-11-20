@@ -46,17 +46,17 @@ export function CartCodeForm({
   const mutationError = getCartMutationError(fetcher.data, t);
   const success = Boolean(
     !disabled &&
-      !requestFailed &&
-      submittedCode &&
-      fetcher.data?.cart &&
-      !mutationError &&
-      (fetcher.data.codeType === "gift-card"
-        ? fetcher.data.codeApplied === true
-        : fetcher.data.cart.discountCodes.some(
-            (discount) =>
-              discount.applicable &&
-              discount.code.toLowerCase() === submittedCode.toLowerCase(),
-          )),
+    !requestFailed &&
+    submittedCode &&
+    fetcher.data?.cart &&
+    !mutationError &&
+    (fetcher.data.codeType === "gift-card"
+      ? fetcher.data.codeApplied === true
+      : fetcher.data.cart.discountCodes.some(
+          (discount) =>
+            discount.applicable &&
+            discount.code.toLowerCase() === submittedCode.toLowerCase(),
+        )),
   );
   const showError =
     !disabled && submittedCode && !success && (fetcher.data || requestFailed);

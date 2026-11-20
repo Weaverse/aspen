@@ -22,7 +22,8 @@ import {
 } from ".";
 
 interface CollectionListDynamicProps
-  extends HydrogenComponentProps,
+  extends
+    HydrogenComponentProps,
     VariantProps<typeof variants>,
     Omit<HeadingProps, "content"> {
   // Layout props

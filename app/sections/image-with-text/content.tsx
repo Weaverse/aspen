@@ -40,8 +40,7 @@ const variants = cva("flex grow flex-col px-4 py-6 md:px-8 md:py-8", {
 });
 
 interface ImageWithTextContentProps
-  extends VariantProps<typeof variants>,
-    HydrogenComponentProps {
+  extends VariantProps<typeof variants>, HydrogenComponentProps {
   buttonAlignment?: "auto" | "left" | "center" | "right";
 }
 

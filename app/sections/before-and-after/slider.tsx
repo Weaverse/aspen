@@ -29,8 +29,7 @@ export interface BeforeAfterSettings {
 }
 
 interface BeforeAndAfterProps
-  extends Partial<HydrogenComponentProps>,
-    BeforeAfterSettings {}
+  extends Partial<HydrogenComponentProps>, BeforeAfterSettings {}
 
 const clampPosition = (position: number) =>
   Math.min(100, Math.max(0, position));

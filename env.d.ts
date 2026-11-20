@@ -40,8 +40,9 @@ declare global {
 }
 
 declare module "react-router" {
-  interface AppLoadContext
-    extends Awaited<ReturnType<typeof createAppLoadContext>> {
+  interface AppLoadContext extends Awaited<
+    ReturnType<typeof createAppLoadContext>
+  > {
     // to change context type, change the return of createAppLoadContext() instead
     storefront: Omit<StorefrontBase, "i18n"> & {
       i18n: I18nLocale;
