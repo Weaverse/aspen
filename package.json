@@ -18,10 +18,10 @@
     "clean": "rm -rf dist node_modules package-lock.json pnpm-lock.yaml .shopify .react-router",
     "e2e": "npx playwright test",
     "e2e:ui": "npx playwright test --ui",
-    "biome": "biome check",
-    "biome:fix": "biome check --write",
-    "format": "biome format --write",
-    "format:check": "biome format",
+    "check": "vp check .",
+    "check:fix": "vp check --fix .",
+    "format": "vp fmt --write .",
+    "format:check": "vp fmt --check .",
     "i18n:scan": "node scripts/check-hardcoded-translations.mjs",
     "i18n:check": "node scripts/check-translations.mjs && node scripts/check-hardcoded-translations.mjs",
     "locale:check": "vite-node tests/locale.unit.test.ts",
@@ -72,7 +72,6 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.5",
     "@playwright/test": "1.62.0",
     "@shopify/cli": "4.6.0",
     "@shopify/hydrogen-codegen": "0.3.3",
@@ -83,11 +82,11 @@
     "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
     "@types/sanitize-html": "^2.16.1",
-    "@weaverse/biome": "5.8.0",
     "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3",
     "vite": "8.2.0",
-    "vite-node": "6.0.0"
+    "vite-node": "6.0.0",
+    "vite-plus": "1.7.0"
   },
   "overrides": {
     "@graphql-codegen/add": "6.0.1",

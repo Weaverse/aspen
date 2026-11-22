@@ -72,7 +72,8 @@ export interface ButtonStyleProps {
 }
 
 export interface ButtonProps
-  extends VariantProps<typeof variants>,
+  extends
+    VariantProps<typeof variants>,
     Omit<HTMLAttributes<HTMLButtonElement>, "type">,
     Partial<ButtonStyleProps> {
   type?: "button" | "reset" | "submit";

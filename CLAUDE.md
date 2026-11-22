@@ -15,9 +15,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run codegen` - Generate GraphQL types and schema
 
 ### Code Quality
-- `npm run biome` - Run Biome checks and report errors and warnings
-- `npm run biome:fix` - Auto-fix linting issues
-- `npm run format` - Format code with Biome
+- `npm run check` - Run Oxfmt and Oxlint through `vp check`
+- `npm run check:fix` - Format and apply safe lint fixes
+- `npm run format` - Format code with Oxfmt
 - `npm run format:check` - Check formatting without changes
 
 ### Testing
@@ -36,7 +36,7 @@ This is a **Shopify Hydrogen storefront** built with **React Router v7** (not Re
 - **React Router 7.16** - Programmatic route configuration (NOT Remix - see import rules below)
 - **Weaverse** - Visual page builder with component system
 - **Vite** - Build tool and dev server
-- **Biome** - Linting and formatting (replaces ESLint/Prettier)
+- **Vite+** - Oxlint and Oxfmt, without changing the Vite build
 - **TailwindCSS v4** - Styling with CSS-in-JS approach
 
 ### Key Directory Structure
@@ -131,7 +131,7 @@ export let schema = createSchema({
 
 ### Code Quality Standards
 - **TypeScript**: Strict mode disabled, but use types where beneficial
-- **Linting**: Biome configuration in `biome.json` (extends `@weaverse/biome`)
+- **Linting**: Oxlint rules in the `lint` block of `vite.config.ts`
 - **Formatting**: Double quotes, semicolons required
 - **Imports**: Use `~/*` alias for app directory imports
 

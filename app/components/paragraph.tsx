@@ -6,8 +6,7 @@ import { useTranslatedText } from "~/hooks/use-translated-text";
 import { cn } from "~/utils/cn";
 
 export interface ParagraphProps
-  extends VariantProps<typeof variants>,
-    Partial<HydrogenComponentProps> {
+  extends VariantProps<typeof variants>, Partial<HydrogenComponentProps> {
   as?: "p" | "div";
   content: string;
   color?: string;

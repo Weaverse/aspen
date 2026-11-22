@@ -140,10 +140,10 @@ export function AddToCartButton({
                   className={cn(className, "!border-none px-6 py-5")}
                   disabled={Boolean(
                     disabled ||
-                      isAdding ||
-                      !hasValidLines ||
-                      !isHydrated ||
-                      !canAdd,
+                    isAdding ||
+                    !hasValidLines ||
+                    !isHydrated ||
+                    !canAdd,
                   )}
                   {...props}
                   title={!canAdd ? t("cart.quantityLimitReached") : props.title}
@@ -272,7 +272,7 @@ function AddToCartAnalytics({
       pendingToken.current = null;
     }
   }, [fetcher.state, pendingToken, submitted, onSettled]);
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Read the latest token only on owner unmount.
+  // Read the latest token only on owner unmount.
   useEffect(
     () => () => {
       if (pendingToken.current) {

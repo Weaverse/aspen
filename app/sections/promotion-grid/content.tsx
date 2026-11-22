@@ -3,8 +3,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { forwardRef } from "react";
 
 interface PromotionGridProps
-  extends HydrogenComponentProps,
-    VariantProps<typeof variants> {}
+  extends HydrogenComponentProps, VariantProps<typeof variants> {}
 
 // Legacy instances stay registered so old project data can still load, but the
 // block is no longer part of the Promotion Grid composition or editor schema.

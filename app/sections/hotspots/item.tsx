@@ -30,7 +30,8 @@ export interface HotspotsItemData {
 }
 
 interface HotspotsItemProps
-  extends HydrogenComponentProps<Awaited<ReturnType<typeof loader>>>,
+  extends
+    HydrogenComponentProps<Awaited<ReturnType<typeof loader>>>,
     HotspotsItemData {}
 
 // Matches the "Tag" marker component in Figma (node 364:16957): a 34x34

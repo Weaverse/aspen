@@ -47,7 +47,8 @@ interface VideoItemData {
 }
 
 interface VideoItemProps
-  extends HydrogenComponentProps<Awaited<ReturnType<typeof loader>>>,
+  extends
+    HydrogenComponentProps<Awaited<ReturnType<typeof loader>>>,
     VideoItemData {}
 
 let VideoItem = forwardRef<HTMLDivElement, VideoItemProps>((props, ref) => {

@@ -25,8 +25,7 @@ const variants = cva("subheading self-start", {
 });
 
 interface SubHeadingProps
-  extends VariantProps<typeof variants>,
-    HydrogenComponentProps {
+  extends VariantProps<typeof variants>, HydrogenComponentProps {
   as?: "h4" | "h5" | "h6" | "div" | "p";
   color?: string;
   backgroundColor?: string;

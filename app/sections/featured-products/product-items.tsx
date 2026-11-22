@@ -116,7 +116,8 @@ const productItemsVariants = cva("", {
 });
 
 interface ProductItemsProps
-  extends VariantProps<typeof productItemsVariants>,
+  extends
+    VariantProps<typeof productItemsVariants>,
     HydrogenComponentProps<Awaited<ReturnType<typeof loader>>> {
   collection: WeaverseCollection;
   layout?: "grid" | "carousel";
@@ -159,7 +160,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
     const designGap = isLegacyLayout ? gap : 16;
     const resolvedSlidesPerView = isProductPage ? 3 : slidesPerView;
 
-    // biome-ignore lint/correctness/useExhaustiveDependencies: Swiper must reset whenever its responsive layout inputs change.
+    // Swiper must reset whenever its responsive layout inputs change.
     useEffect(() => {
       setIsSwiperInitialized(false);
     }, [activeLayout, gap, slidesPerView, itemsPerRow]);

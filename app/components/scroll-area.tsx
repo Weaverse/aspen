@@ -19,8 +19,7 @@ const variants = cva("", {
 });
 
 interface ScrollAreaProps
-  extends RadixScrollAreaProps,
-    VariantProps<typeof variants> {
+  extends RadixScrollAreaProps, VariantProps<typeof variants> {
   style?: React.CSSProperties;
   rootClassName?: string;
   scrollbarClassName?: string;
