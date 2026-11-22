@@ -5,6 +5,7 @@ import {
   canApplyNullCart,
   getCartMutationEpoch,
   recordCartMutation,
+  recordCompletedCartAdd,
   resetCartBaselineForTests,
   resolveBaselineCart,
 } from "../app/components/cart/cart-baseline.ts";
@@ -737,6 +738,60 @@ test("does not replay an add already included in a loading fetcher cart", () => 
   );
 
   assert.equal(optimistic, null);
+});
+
+test("does not replay a completed add against a stale submitting fetcher snapshot", () => {
+  const baseline = createCart(5, "2026-11-16T10:00:02.000Z");
+  const formData = new FormData();
+  formData.set(
+    "cartFormInput",
+    JSON.stringify({ action: "LinesAdd", inputs: { lines: [createInput(5)] } }),
+  );
+  const fetchers = [{ state: "submitting", formData }] as Parameters<
+    typeof applyOptimisticMutations
+  >[1];
+  // The owner's action result has reached the store, while an ancestor still
+  // sees the previous Router context without that result.
+  recordCompletedCartAdd(formData);
+  assert.equal(
+    applyOptimisticMutations(baseline, fetchers, [], new Map()),
+    null,
+  );
+
+  const otherFormData = new FormData();
+  otherFormData.set("cartFormInput", formData.get("cartFormInput"));
+  const pending = applyOptimisticMutations(
+    baseline,
+    [
+      ...fetchers,
+      { state: "submitting", formData: otherFormData },
+    ] as typeof fetchers,
+    [],
+    new Map(),
+  );
+  assert.equal(pending?.totalQuantity, 10);
+});
+
+test("a rejected add does not reappear from a stale submitting snapshot", () => {
+  const baseline = createCart(2, "2026-11-16T10:00:00.000Z");
+  const formData = new FormData();
+  formData.set(
+    "cartFormInput",
+    JSON.stringify({ action: "LinesAdd", inputs: { lines: [createInput(3)] } }),
+  );
+  // Failed action responses also finish the optimistic addition.
+  recordCompletedCartAdd(formData);
+  assert.equal(
+    applyOptimisticMutations(
+      baseline,
+      [{ state: "submitting", formData }] as Parameters<
+        typeof applyOptimisticMutations
+      >[1],
+      [],
+      new Map(),
+    ),
+    null,
+  );
 });
 
 test("hides a removed line until an authoritative cart confirms removal", () => {

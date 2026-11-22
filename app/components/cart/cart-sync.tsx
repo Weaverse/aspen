@@ -11,6 +11,7 @@ import {
   getTimestampMs,
   hasCartResponseErrors,
   recordCartMutation,
+  recordCompletedCartAdd,
 } from "./cart-baseline";
 import type { CartMutationResponse } from "./cart-types";
 import { useCartStore } from "./store";
@@ -31,6 +32,15 @@ function getFormInput(fetcher: Fetcher<unknown>) {
 
 function syncFetcherResponse(fetcher: Fetcher<unknown>) {
   const response = fetcher.data as CartMutationResponse | undefined;
+  const formInput = getFormInput(fetcher);
+  if (
+    response &&
+    fetcher.formData &&
+    formInput?.action === CartForm.ACTIONS.LinesAdd
+  ) {
+    // The owner can receive its result before useFetchers leaves submitting.
+    recordCompletedCartAdd(fetcher.formData);
+  }
   const token = fetcher.formData?.get("cartStageToken");
   if (typeof token === "string" && response) {
     useCartStore.getState().clearPendingAdd(token);
@@ -44,7 +54,6 @@ function syncFetcherResponse(fetcher: Fetcher<unknown>) {
     }
   }
 
-  const formInput = getFormInput(fetcher);
   if (formInput?.action !== CartForm.ACTIONS.LinesUpdate) {
     return;
   }
