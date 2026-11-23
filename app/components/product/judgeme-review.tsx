@@ -36,12 +36,12 @@ function useProductReviews() {
   const handle = context?.data?.product?.handle;
   const api = usePrefixPathWithLocale(`/api/review/${handle}`);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: load is stable per fetcher.
   useEffect(() => {
     if (productReviews || !handle) {
       return;
     }
     load(api);
+    // oxlint-disable-next-line react/exhaustive-deps -- load is stable per fetcher.
   }, [handle, api]);
 
   return productReviews || fetchData;

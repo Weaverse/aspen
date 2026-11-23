@@ -11,8 +11,7 @@ import { Swimlane } from "~/components/swimlane";
 import type { ProductCardFragment } from "~/graphql/storefront-types";
 
 interface RelatedProductsProps
-  extends Omit<SectionProps, "content">,
-    Omit<HeadingProps, "as"> {
+  extends Omit<SectionProps, "content">, Omit<HeadingProps, "as"> {
   headingTagName?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
 }
 

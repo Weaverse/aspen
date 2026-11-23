@@ -32,8 +32,7 @@ const variants = cva("subheading", {
 });
 
 interface SubHeadingProps
-  extends VariantProps<typeof variants>,
-    WeaverseComponentProps {
+  extends VariantProps<typeof variants>, WeaverseComponentProps {
   as?: "h4" | "h5" | "h6" | "div" | "p";
   color?: string;
   content: string;

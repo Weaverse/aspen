@@ -23,7 +23,7 @@ _Aspen is a sophisticated Shopify theme crafted specifically for home furniture 
 - Hydrogen 2026.10
 - Oxygen
 - Shopify CLI
-- Biome (ESLint, Prettier alternative)
+- Vite+ checks (Oxlint and Oxfmt)
 - Typed GraphQL documents with gql.tada
 - TypeScript and JavaScript flavors
 - Tailwind CSS v4 (via Vite)
@@ -67,7 +67,7 @@ npm install
 npm run dev
 
 # Run code quality checks before committing
-npm run biome:fix
+npm run check:fix
 npm run typecheck
 
 # Build for production
@@ -321,10 +321,9 @@ app/
 └── weaverse/       # Weaverse configuration
 
 Key configuration files:
-- biome.json        # Code formatting and linting
 - app/graphql/     # Typed gql() documents
 - react-router.config.ts # React Router configuration
-- vite.config.ts   # Vite bundler configuration
+- vite.config.ts   # Vite bundler and Vite+ static checks
 ```
 
 ### Development Tools
@@ -338,7 +337,8 @@ Key configuration files:
 
 Before committing, always run:
 ```bash
-npm run biome:fix    # Fix linting/formatting
+npm run check        # Check lint and formatting
+npm run check:fix    # Format and apply safe lint fixes
 npm run typecheck    # Check TypeScript types
 npm run typecheck    # Validate TypeScript and GraphQL documents
 ```
@@ -350,7 +350,7 @@ npm run typecheck    # Validate TypeScript and GraphQL documents
 - [React Router](https://reactrouter.com/)
 - [Tailwind CSS v4](https://tailwindcss.com/)
 - [Radix UI](https://www.radix-ui.com/)
-- [Biome](https://biomejs.dev/)
+- [Vite+ checks](https://viteplus.dev/guide/check)
 
 ## License
 

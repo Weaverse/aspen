@@ -16,8 +16,7 @@ import { formatDate } from "~/utils/locale";
 import type { ArticleCardProps } from "./blogs";
 
 interface RelatedArticlesProps
-  extends Omit<ArticleCardProps, "article" | "loading">,
-    SectionProps {
+  extends Omit<ArticleCardProps, "article" | "loading">, SectionProps {
   heading: string;
   showViewAll?: boolean;
   showCategory?: boolean;

@@ -164,7 +164,7 @@ function inferMimeType(url: Maybe<string> | undefined) {
  */
 // A near-literal port of classic Hydrogen's `getSeoMeta`, kept in one piece so
 // its output stays byte-identical; split it only together with a parity test.
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Preserve the classic Hydrogen SEO output; covered by migration parity fixtures.
+// oxlint-disable-next-line weaverse/cognitive-complexity -- Preserve classic Hydrogen SEO output; covered by migration parity fixtures.
 export function getSeoMeta(
   ...seoInputs: (SeoConfig | null | undefined)[]
 ): MetaDescriptor[] {

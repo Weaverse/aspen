@@ -51,12 +51,12 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
     }
   }, [isSearching, searchState, searchTermValue, searchRequest]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: close the dialog after navigation
   useEffect(() => {
     setOpen(false);
     setIsSearchOpen(false);
     resetSearchState();
     return clearSearchDebounce;
+    // oxlint-disable-next-line react/exhaustive-deps -- close the dialog after navigation
   }, [location]);
 
   function clearSearchDebounce() {
@@ -333,7 +333,7 @@ function PredictiveSearchResults() {
     products?.items.length || collections?.items.length || pages?.items.length,
   );
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: reset to the product tab for each new query
+  // reset to the product tab for each new query.
   useEffect(() => {
     setActiveType("products");
   }, [searchTermValue]);

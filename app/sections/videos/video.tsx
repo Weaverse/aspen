@@ -49,7 +49,8 @@ interface VideoItemData {
 }
 
 interface VideoItemProps
-  extends WeaverseComponentProps<Awaited<ReturnType<typeof loader>>>,
+  extends
+    WeaverseComponentProps<Awaited<ReturnType<typeof loader>>>,
     VideoItemData {}
 
 let VideoItem = forwardRef<HTMLDivElement, VideoItemProps>((props, ref) => {

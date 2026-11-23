@@ -15,7 +15,8 @@ import { useTranslatedText } from "~/hooks/use-translated-text";
 import { useFeaturedProductsLayout } from ".";
 
 interface FeaturedProductsLoaderData
-  extends WeaverseComponentProps,
+  extends
+    WeaverseComponentProps,
     VariantProps<typeof variants>,
     Omit<HeadingProps, "content"> {
   // Layout props

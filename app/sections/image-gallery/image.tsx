@@ -47,8 +47,7 @@ const variants = cva("h-(--image-height)", {
 });
 
 interface ImageGalleryItemProps
-  extends VariantProps<typeof variants>,
-    WeaverseComponentProps {
+  extends VariantProps<typeof variants>, WeaverseComponentProps {
   src: WeaverseImage;
 }
 

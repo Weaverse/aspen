@@ -52,7 +52,8 @@ type ArticleData = {
 };
 
 export interface ArticlesProps
-  extends WeaverseComponentProps<Awaited<ReturnType<typeof loader>>>,
+  extends
+    WeaverseComponentProps<Awaited<ReturnType<typeof loader>>>,
     ArticleData,
     Omit<HeadingProps, "content"> {}
 

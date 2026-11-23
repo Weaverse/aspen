@@ -35,8 +35,9 @@ export function useAccountSectionData() {
   return value;
 }
 
-interface AccountSectionProps
-  extends Partial<Omit<WeaverseComponentProps, "children">> {
+interface AccountSectionProps extends Partial<
+  Omit<WeaverseComponentProps, "children">
+> {
   customer?: CustomerDetailsFragment;
   heading?: string;
   backgroundColor?: string;

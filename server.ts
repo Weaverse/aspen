@@ -56,9 +56,9 @@ export default {
       const market = getLocaleSegment(url.pathname);
       const unsupportedMarket = Boolean(
         market &&
-          !context.localization.availableLocales.some(
-            (locale) => localeCode(locale) === market,
-          ),
+        !context.localization.availableLocales.some(
+          (locale) => localeCode(locale) === market,
+        ),
       );
       const neutralPath = stripLocalePrefix(url.pathname);
       const resourcePath =

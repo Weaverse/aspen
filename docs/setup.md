@@ -49,7 +49,7 @@ Queries use `gql()` and `storefront.graphql()` with explicit cache policies.
 bundled schemas; a separate GraphQL codegen command is no longer needed.
 
 Routine CI runs one Ubuntu job on Node 22.18.0 for pull requests and pushes
-to main. It checks installation, Biome, types and GraphQL, focused regressions,
+to main. It checks installation, Vite+ static checks, types and GraphQL, focused regressions,
 and the production build. The **Node compatibility** workflow runs the wider
 platform/runtime matrix manually, including the Vite/MiniOxygen runtime probe.
 
@@ -320,7 +320,7 @@ When adding a Weaverse section:
 Run focused checks while developing, then the complete pre-PR set:
 
 ```bash
-npm run biome
+npm run check
 npm run typecheck
 npm run build
 ```

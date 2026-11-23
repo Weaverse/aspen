@@ -2,6 +2,7 @@ import type { Fetcher } from "react-router";
 import { CartForm } from "~/components/cart/cart-action-form";
 import type { OptimisticCartLineInput } from "~/components/cart/cart-types";
 import type { CartApiQueryFragment } from "~/graphql/storefront-types";
+import { isCompletedCartAdd } from "./cart-baseline";
 import { getOptimisticLineQuantity } from "./cart-line-quantity";
 import type {
   CartLine,
@@ -282,6 +283,11 @@ export function applyOptimisticMutations(
     }
 
     if (action === CartForm.ACTIONS.LinesAdd) {
+      // A store update can render against an older Router fetcher snapshot.
+      // Do not replay an add whose owner already received its action result.
+      if (isCompletedCartAdd(fetcher.formData)) {
+        continue;
+      }
       const lines = ((inputs.lines ?? []) as OptimisticCartLineInput[]).filter(
         (line) => !staged.handled.has(cartLineIdentity(line)),
       );

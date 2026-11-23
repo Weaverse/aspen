@@ -25,11 +25,11 @@ export function PredictiveSearchButtonMobile({ setIsSearchOpen }) {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: close the dialog after navigation
   useEffect(() => {
     setOpen(false);
     setIsSearchOpen(false);
     resetSearchState();
+    // oxlint-disable-next-line react/exhaustive-deps -- close the dialog after navigation
   }, [location]);
 
   function resetSearchState() {

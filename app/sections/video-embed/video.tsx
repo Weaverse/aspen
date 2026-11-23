@@ -48,8 +48,7 @@ const variants = cva("mx-auto aspect-video w-full", {
 });
 
 interface VideoItemProps
-  extends VariantProps<typeof variants>,
-    WeaverseComponentProps {
+  extends VariantProps<typeof variants>, WeaverseComponentProps {
   video: WeaverseVideo;
   videoUrl: string;
 }

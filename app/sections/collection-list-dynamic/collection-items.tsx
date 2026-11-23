@@ -65,7 +65,8 @@ interface CollectionItemsData {
 const MAX_COLLECTIONS = 250;
 
 interface CollectionItemsProps
-  extends WeaverseComponentProps<CollectionItemsLoaderData>,
+  extends
+    WeaverseComponentProps<CollectionItemsLoaderData>,
     CollectionItemsData {
   collectionNameColor: string;
   collectionBackgroundColor: string;

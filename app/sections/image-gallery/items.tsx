@@ -32,8 +32,7 @@ const variants = cva("flex flex-col sm:grid sm:grid-cols-4", {
 });
 
 interface ImageGalleyItemsProps
-  extends WeaverseComponentProps,
-    VariantProps<typeof variants> {
+  extends WeaverseComponentProps, VariantProps<typeof variants> {
   height: number;
 }
 

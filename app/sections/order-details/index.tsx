@@ -28,8 +28,9 @@ interface OrderDetailsRouteData {
   fulfillmentStatus?: string;
 }
 
-interface OrderDetailsSectionProps
-  extends Partial<Omit<WeaverseComponentProps, "children">> {
+interface OrderDetailsSectionProps extends Partial<
+  Omit<WeaverseComponentProps, "children">
+> {
   heading?: string;
   backLabel?: string;
   orderNumberLabel?: string;

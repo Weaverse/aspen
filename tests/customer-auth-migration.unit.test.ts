@@ -309,9 +309,8 @@ test("OAuth callback rejects a mismatched state and cannot create a customer ses
 });
 
 test("account sign-in preserves order keys while removing single-fetch metadata", async () => {
-  const { createCustomerAccount } = await import(
-    "../app/.server/customer-account"
-  );
+  const { createCustomerAccount } =
+    await import("../app/.server/customer-account");
   for (const [path, expected] of [
     [
       "/fr-fr/account/orders/123.data?key=fixture-order-key&_routes=root,order",
@@ -342,9 +341,8 @@ test("account sign-in preserves order keys while removing single-fetch metadata"
 });
 
 test("HTTPS local account pages use real OAuth while HTTP and Studio retain preview fixtures", async () => {
-  const { isAccountPreviewRequest } = await import(
-    "../app/utils/account-preview.server"
-  );
+  const { isAccountPreviewRequest } =
+    await import("../app/utils/account-preview.server");
   assert.equal(
     isAccountPreviewRequest(new Request("http://localhost:3456/account")),
     true,
@@ -370,9 +368,8 @@ test("queued cart changes preserve customer binding and settle with errors durin
   t.mock.method(globalThis, "fetch", async () =>
     Response.json({ error: "temporarily_unavailable" }, { status: 503 }),
   );
-  const { createCustomerAccount } = await import(
-    "../app/.server/customer-account"
-  );
+  const { createCustomerAccount } =
+    await import("../app/.server/customer-account");
   const f = await fixture(
     "/cart",
     { headers: { Cookie: "cart=test" } },

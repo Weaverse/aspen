@@ -5,8 +5,7 @@ import { forwardRef } from "react";
 import { useHotspotsLayout } from ".";
 
 interface HotspotsProps
-  extends WeaverseComponentProps,
-    VariantProps<typeof variants> {}
+  extends WeaverseComponentProps, VariantProps<typeof variants> {}
 
 let variants = cva(
   "flex flex-col [&_.button]:font-bold [&_.paragraph]:mx-[unset]",

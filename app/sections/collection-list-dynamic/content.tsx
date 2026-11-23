@@ -22,7 +22,8 @@ import {
 } from ".";
 
 interface CollectionListDynamicProps
-  extends WeaverseComponentProps,
+  extends
+    WeaverseComponentProps,
     VariantProps<typeof variants>,
     Omit<HeadingProps, "content"> {
   // Layout props

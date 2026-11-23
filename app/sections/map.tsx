@@ -29,7 +29,8 @@ const variants = cva("", {
 });
 
 interface MapSectionProps
-  extends Omit<SectionProps, "backgroundColor">,
+  extends
+    Omit<SectionProps, "backgroundColor">,
     VariantProps<typeof variants>,
     LinkStyles {
   address: string;

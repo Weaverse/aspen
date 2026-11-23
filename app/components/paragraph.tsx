@@ -9,8 +9,7 @@ import { useTranslatedText } from "~/hooks/use-translated-text";
 import { cn } from "~/utils/cn";
 
 export interface ParagraphProps
-  extends VariantProps<typeof variants>,
-    Partial<WeaverseComponentProps> {
+  extends VariantProps<typeof variants>, Partial<WeaverseComponentProps> {
   as?: "p" | "div";
   content: string;
   color?: string;

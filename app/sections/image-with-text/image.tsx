@@ -44,8 +44,7 @@ const variants = cva("h-auto w-full", {
 });
 
 export interface ImageWithTextImageProps
-  extends VariantProps<typeof variants>,
-    Partial<WeaverseComponentProps> {
+  extends VariantProps<typeof variants>, Partial<WeaverseComponentProps> {
   image?: WeaverseImage | string;
   imageAspectRatio?: ImageAspectRatio;
   objectFit?: "cover" | "contain" | null;

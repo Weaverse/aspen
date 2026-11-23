@@ -32,8 +32,7 @@ const variants = cva("", {
 });
 
 interface ContentInformationProps
-  extends VariantProps<typeof variants>,
-    WeaverseComponentProps {}
+  extends VariantProps<typeof variants>, WeaverseComponentProps {}
 
 const ContentInformation = forwardRef<HTMLDivElement, ContentInformationProps>(
   (props, ref) => {

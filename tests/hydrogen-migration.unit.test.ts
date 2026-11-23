@@ -137,9 +137,8 @@ test("ported SEO keeps title, canonical, description and JSON-LD output", () => 
 });
 
 test("Shopify redirects preserve market prefixes during single-fetch navigation", async () => {
-  const { marketAwareRedirect } = await import(
-    "../app/.server/market-redirect"
-  );
+  const { marketAwareRedirect } =
+    await import("../app/.server/market-redirect");
   let lookedUp = "";
   const result = await marketAwareRedirect(
     new Request("https://store.example/fr-fr/old.data"),

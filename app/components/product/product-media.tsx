@@ -132,7 +132,6 @@ export function ProductMedia(props: ProductMediaProps) {
   const [zoomModalOpen, setZoomModalOpen] = useState(false);
   const [activeSlide, setActiveSlide] = useState(0);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation> --- IGNORE ---
   useEffect(() => {
     if (selectedVariant && swiper) {
       const index = getSelectedVariantMediaIndex(media, selectedVariant);
@@ -140,6 +139,7 @@ export function ProductMedia(props: ProductMediaProps) {
         swiper.slideToLoop(index);
       }
     }
+    // oxlint-disable-next-line react/exhaustive-deps -- The slide follows the selected variant, not Swiper's current index.
   }, [selectedVariant]);
 
   // Swiper React normally handles teardown, but the stored instance can outlive

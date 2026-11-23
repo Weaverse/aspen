@@ -2,7 +2,6 @@ import { gql } from "@shopify/hydrogen/customer-account";
 import type { CustomerAddressInput } from "@shopify/hydrogen/customer-account-api-types";
 import { type ActionFunction, data } from "react-router";
 import invariant from "tiny-invariant";
-// biome-ignore lint/style/noExportedImports: <explanation> --- IGNORE ---
 import { AccountEditAddressForm } from "~/components/customer/edit-address-form";
 import type {
   CustomerAddressCreateMutation,

@@ -58,8 +58,7 @@ export function Footer() {
     footerSocialIconSize = 20,
     footerFontSize = 14,
     footerLineHeight = 1.55,
-    bio:
-      rawI18nBio = "<p>Modern furniture designed for living. Built for longevity, crafted with care.</p>",
+    bio: rawI18nBio = "<p>Modern furniture designed for living. Built for longevity, crafted with care.</p>",
     copyright:
       rawI18nCopyright = '<p>© 2026 Aspen Theme. <a href="https://www.shopify.com/?utm_campaign=poweredby&utm_medium=shopify&utm_source=onlinestore" target="_blank" rel="noopener noreferrer">Powered by Shopify</a></p>',
     addressTitle: rawI18nAddressTitle = "CONTACT",

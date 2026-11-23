@@ -25,8 +25,8 @@ jobs:
         run: npm install --global npm@10.9.8 --no-audit --no-fund
       - name: Install from the committed lockfile
         run: npm ci --engine-strict --no-audit --no-fund
-      - name: Check source with Biome
-        run: npm run biome
+      - name: Static checks
+        run: npm run check
       - name: Check types
         run: npm run typecheck
       - name: Check combined-listing targets

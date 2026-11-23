@@ -13,7 +13,8 @@ import Paragraph, { type ParagraphProps } from "~/components/paragraph";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 
 interface VideoEmbedContentProps
-  extends WeaverseComponentProps,
+  extends
+    WeaverseComponentProps,
     VariantProps<typeof variants>,
     Omit<HeadingProps, "content"> {
   // Layout props

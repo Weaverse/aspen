@@ -5,6 +5,15 @@ import type { CartMutationResponse } from "./cart-types";
 let freshestFetcherCart: CartApiQueryFragment | null = null;
 let cartMutationEpoch = 0;
 let recordedMutationCarts = new WeakSet<object>();
+let completedCartAdds = new WeakSet<FormData>();
+
+export function recordCompletedCartAdd(formData: FormData) {
+  completedCartAdds.add(formData);
+}
+
+export function isCompletedCartAdd(formData: FormData) {
+  return completedCartAdds.has(formData);
+}
 
 export function getTimestampMs(dateString: string | undefined): number {
   return dateString ? new Date(dateString).getTime() : 0;
@@ -81,6 +90,7 @@ export function resolveBaselineCart(
 }
 
 export function resetCartBaselineForTests() {
+  completedCartAdds = new WeakSet();
   freshestFetcherCart = null;
   cartMutationEpoch = 0;
   recordedMutationCarts = new WeakSet<object>();

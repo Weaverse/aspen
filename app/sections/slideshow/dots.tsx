@@ -21,8 +21,9 @@ const containerVariants = cva(
   },
 );
 
-export interface SlideshowDotsProps
-  extends VariantProps<typeof containerVariants> {
+export interface SlideshowDotsProps extends VariantProps<
+  typeof containerVariants
+> {
   className?: string;
   slidesCount?: number;
   dotsColor?: "light" | "dark";

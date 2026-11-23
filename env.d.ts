@@ -46,8 +46,9 @@ declare global {
 }
 
 declare module "react-router" {
-  interface AppLoadContext
-    extends Awaited<ReturnType<typeof createAppLoadContext>> {
+  interface AppLoadContext extends Awaited<
+    ReturnType<typeof createAppLoadContext>
+  > {
     // to change context type, change the return of createAppLoadContext() instead
     weaverse: WeaverseClient;
   }
@@ -62,12 +63,9 @@ declare module "react-router" {
     context: AppLoadContext;
   }
 
-  interface RouterContextProvider
-    extends Awaited<ReturnType<typeof createAppLoadContext>> {}
-
-  interface SessionData {
-    // declare local additions to the Remix session data here
-  }
+  interface RouterContextProvider extends Awaited<
+    ReturnType<typeof createAppLoadContext>
+  > {}
 }
 
 declare global {

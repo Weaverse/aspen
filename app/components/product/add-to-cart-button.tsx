@@ -44,6 +44,7 @@ export function AddToCartButton({
   const { t } = useTranslation();
   const cartRoute = usePrefixPathWithLocale("/cart");
   const pendingToken = useRef<string | null>(null);
+  const [stageToken, setStageToken] = useState("");
   const submitted = useRef(false);
   const [submittedLines, setSubmittedLines] = useState<
     OptimisticCartLineInput[] | null
@@ -83,6 +84,7 @@ export function AddToCartButton({
         setSubmittedLines(lines);
         submitted.current = true;
         pendingToken.current = useCartStore.getState().stagePendingAdd(lines);
+        setStageToken(pendingToken.current ?? "");
         const tokenInput = (event.target as HTMLFormElement).elements.namedItem(
           "cartStageToken",
         );
@@ -113,7 +115,8 @@ export function AddToCartButton({
               submitted={submitted}
               onSettled={handleSettled}
             >
-              <input type="hidden" name="cartStageToken" defaultValue="" />
+              {/* Preserve the token when staging the add rerenders this form. */}
+              <input type="hidden" name="cartStageToken" value={stageToken} />
               <input
                 type="hidden"
                 name="analytics"
@@ -126,10 +129,10 @@ export function AddToCartButton({
                   className={cn(className, "!border-none px-6 py-5")}
                   disabled={Boolean(
                     disabled ||
-                      isAdding ||
-                      !hasValidLines ||
-                      !isHydrated ||
-                      !canAdd,
+                    isAdding ||
+                    !hasValidLines ||
+                    !isHydrated ||
+                    !canAdd,
                   )}
                   {...props}
                   title={!canAdd ? t("cart.quantityLimitReached") : props.title}
@@ -231,7 +234,7 @@ function AddToCartAnalytics({
       pendingToken.current = null;
     }
   }, [fetcher.state, pendingToken, submitted, onSettled]);
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Read the latest token only on owner unmount.
+  // Read the latest token only on owner unmount.
   useEffect(
     () => () => {
       if (pendingToken.current) {

@@ -71,7 +71,7 @@ export function CartBestSellers({
   }, [load, productsApiPath]);
 
   // Re-measure replaced cards even when the rail's own dimensions stay unchanged.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Product and skeleton changes can alter scrollWidth without resizing the rail.
+  // Product and skeleton changes can alter scrollWidth without resizing the rail.
   useEffect(() => {
     const rail = railRef.current;
     if (layout !== "page" || !rail) {

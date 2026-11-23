@@ -33,8 +33,7 @@ function isValidScrollSpeed(value: number | undefined) {
 }
 
 export interface ScrollingProps
-  extends VariantProps<typeof variants>,
-    WeaverseComponentProps {
+  extends VariantProps<typeof variants>, WeaverseComponentProps {
   content: string;
   textSize?: string;
   textColor?: string;
