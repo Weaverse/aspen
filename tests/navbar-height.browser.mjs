@@ -47,9 +47,11 @@ test("Aspen navbar matches Figma mobile/tablet heights while desktop and Custom 
         [512, 84, 80],
         [768, 84, 80],
         [834, 84, 80],
-        [1032, 84, 80],
-        [1033, 88, 80],
-        [1279, 88, 80],
+        [1023, 84, 80],
+        [1024, 81, 96],
+        [1032, 81, 96],
+        [1033, 81, 96],
+        [1279, 81, 96],
         [1280, 81, 96],
       ]) {
         await page.setViewportSize({ width, height: 900 });

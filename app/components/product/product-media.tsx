@@ -132,7 +132,6 @@ export function ProductMedia(props: ProductMediaProps) {
   const [zoomModalOpen, setZoomModalOpen] = useState(false);
   const [activeSlide, setActiveSlide] = useState(0);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation> --- IGNORE ---
   useEffect(() => {
     if (selectedVariant && swiper) {
       const index = getSelectedVariantMediaIndex(media, selectedVariant);
@@ -140,6 +139,7 @@ export function ProductMedia(props: ProductMediaProps) {
         swiper.slideToLoop(index);
       }
     }
+    // oxlint-disable-next-line react/exhaustive-deps -- The slide follows the selected variant, not Swiper's current index.
   }, [selectedVariant]);
 
   // Swiper React normally handles teardown, but the stored instance can outlive
@@ -422,6 +422,9 @@ export function ProductMedia(props: ProductMediaProps) {
                     navigationVariant === "quick-shop" &&
                     "ml-[12.5px] size-12 !rounded-xl !border-transparent !bg-white/80 p-3 !text-body",
                   navigationVariant !== "quick-shop" && shapeClass(arrowsShape),
+                  navigationVariant === "product-page" &&
+                    navigationStyle === "sides" &&
+                    "max-lg:bg-white/80!",
                 )}
                 aria-label={t("product.previousMedia")}
               >
@@ -455,6 +458,9 @@ export function ProductMedia(props: ProductMediaProps) {
                     navigationVariant === "quick-shop" &&
                     "mr-[12.5px] size-12 !rounded-xl !border-transparent !bg-white/80 p-3 !text-body",
                   navigationVariant !== "quick-shop" && shapeClass(arrowsShape),
+                  navigationVariant === "product-page" &&
+                    navigationStyle === "sides" &&
+                    "max-lg:bg-white/80!",
                 )}
                 aria-label={t("product.nextMedia")}
               >

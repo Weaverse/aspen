@@ -529,7 +529,7 @@ test("Search does not remove the non-transparent header from document flow", asy
     await page
       .getByRole("button", {
         name:
-          width < 1280
+          width < 1024
             ? "PredictiveSearchButtonMobile"
             : "PredictiveSearchButtonDesktop",
         exact: true,
@@ -778,7 +778,7 @@ test("Testimonials' direct QuickShop caller retains automatic Cart opening", asy
 });
 test("Search preserves transparent header framing and scrolled sticky navigation", async () => {
   for (const transparent of [false, true]) {
-    const page = await render(1032, {
+    const page = await render(1023, {
       settings: {
         designSystemPreset: "custom",
         enableTransparentHeader: transparent,

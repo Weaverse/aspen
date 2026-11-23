@@ -48,8 +48,10 @@ import { ProductDetails } from "./product-details";
 import { ProductStory } from "./product-story";
 import { ProductVariants } from "./variants";
 
-interface ProductInformationData
-  extends Omit<ProductMediaProps, "selectedVariant" | "media"> {
+interface ProductInformationData extends Omit<
+  ProductMediaProps,
+  "selectedVariant" | "media"
+> {
   addToCartText: string;
   addBundleToCartText: string;
   soldOutText: string;
@@ -212,10 +214,10 @@ const ProductInformation = forwardRef<
     const inventoryThreshold = Math.max(1, lowInventoryThreshold || 10);
     const showLowInventory = Boolean(
       showInventoryStatus &&
-        selectedVariant.availableForSale &&
-        quantityAvailable &&
-        quantityAvailable > 0 &&
-        quantityAvailable <= inventoryThreshold,
+      selectedVariant.availableForSale &&
+      quantityAvailable &&
+      quantityAvailable > 0 &&
+      quantityAvailable <= inventoryThreshold,
     );
     let atcButtonText = t("product.addToCart");
     if (!soldOut) {
@@ -239,7 +241,7 @@ const ProductInformation = forwardRef<
         >
           <div
             className={clsx(
-              "relative h-[430px] min-w-0 flex-[1_0_0] overflow-hidden rounded-[4px] bg-[#d3d3d3] [&_.product-media-slider]:h-full [&_.swiper]:h-full [&_.swiper-slide]:h-full [&_.swiper-wrapper]:h-full [&_img]:object-cover md:aspect-square md:h-auto md:flex-[1_0_0] md:rounded-[4px] md:bg-[#d3d3d3] lg:aspect-square lg:h-auto lg:w-[778px] lg:max-w-[calc(100%-399px)] lg:flex-none lg:rounded-[var(--Radius-border-radius-md,12px)] lg:bg-transparent",
+              "relative aspect-square min-w-0 flex-[1_0_0] overflow-hidden rounded-[4px] bg-[#d3d3d3] [&_.product-media-slider]:h-full [&_.swiper]:h-full [&_.swiper-slide]:h-full [&_.swiper-wrapper]:h-full [&_img]:object-cover md:flex-[1_0_0] md:rounded-[4px] md:bg-[#d3d3d3] lg:w-[778px] lg:max-w-[calc(100%-399px)] lg:flex-none lg:rounded-[var(--Radius-border-radius-md,12px)] lg:bg-transparent",
               width !== "full" &&
                 "-mx-(--page-padding) w-[calc(100%+2*var(--page-padding))] lg:mx-0 lg:w-[778px]",
             )}
@@ -302,7 +304,7 @@ const ProductInformation = forwardRef<
               data-product-detail-content
               style={{ top: "calc(var(--height-nav) + 24px)" }}
             >
-              <div className="w-full space-y-8 md:space-y-4">
+              <div className="w-full space-y-8 lg:space-y-4">
                 <div className="flex flex-col gap-2">
                   {showVendor && vendor && (
                     <span className="text-body-subtle">{vendor}</span>
@@ -391,6 +393,7 @@ const ProductInformation = forwardRef<
                   productOptions={productOptions}
                   selectedVariant={selectedVariant}
                   combinedListing={combinedListing}
+                  optionButtonClassName="max-lg:min-h-10 max-lg:px-2.5 max-lg:py-1.5"
                 />
 
                 {!combinedListing && selectedVariant && (
@@ -422,17 +425,26 @@ const ProductInformation = forwardRef<
                     } as React.CSSProperties
                   }
                 >
-                  <div className="grid grid-cols-[minmax(0,1fr)] items-center gap-3 md:flex">
+                  <div
+                    className={clsx(
+                      "grid grid-cols-[122px_minmax(0,1fr)] items-center gap-3 md:flex",
+                      showWishlist && "max-md:grid-cols-[minmax(0,1fr)_auto]",
+                    )}
+                  >
                     <Quantity
                       value={quantity}
                       onChange={setQuantity}
                       disabled={!canPurchase}
                       maxQuantity={maxQuantity}
-                      className="col-span-full shrink-0"
+                      className="w-[122px] shrink-0 md:w-1/3 lg:w-[175px]"
                     />
                     <AddToCartButton
                       width="auto"
-                      containerClassName="min-w-0 md:flex-1"
+                      containerClassName={clsx(
+                        "min-w-0 md:flex-1",
+                        showWishlist &&
+                          "max-md:col-span-full max-md:row-start-2",
+                      )}
                       disabled={!canPurchase}
                       lines={[
                         {
@@ -445,7 +457,7 @@ const ProductInformation = forwardRef<
                         },
                       ]}
                       data-test="add-to-cart"
-                      className="min-h-[54px] w-full whitespace-normal rounded-[var(--Radius-border-radius-sm,8px)] bg-[var(--Primary-Background,#4D4946)] px-6 py-5 uppercase [overflow-wrap:anywhere]"
+                      className="min-h-[54px] w-full whitespace-normal rounded-[var(--Radius-border-radius-sm,8px)] bg-[var(--Primary-Background,#4D4946)] px-6 py-5 uppercase [overflow-wrap:anywhere] max-md:px-4"
                       onClick={() => {
                         if (
                           selectedSellingPlanId &&
@@ -473,7 +485,7 @@ const ProductInformation = forwardRef<
                       <ProductWishlistButton
                         productId={product.id}
                         productTitle={title}
-                        className="col-start-2 row-start-2"
+                        className="col-start-2 row-start-1"
                       />
                     )}
                   </div>

@@ -74,7 +74,8 @@ const variants = cva("flex h-full w-full items-end", {
 });
 
 export interface SlideProps
-  extends VariantProps<typeof variants>,
+  extends
+    VariantProps<typeof variants>,
     HydrogenComponentProps,
     OverlayAndBackgroundProps,
     Omit<HeadingProps, "content"> {

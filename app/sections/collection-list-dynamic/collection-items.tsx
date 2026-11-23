@@ -62,7 +62,8 @@ interface CollectionItemsData {
 const MAX_COLLECTIONS = 250;
 
 interface CollectionItemsProps
-  extends HydrogenComponentProps<CollectionItemsLoaderData>,
+  extends
+    HydrogenComponentProps<CollectionItemsLoaderData>,
     CollectionItemsData {
   collectionNameColor: string;
   collectionBackgroundColor: string;
@@ -320,7 +321,7 @@ let CollectionItems = forwardRef<HTMLDivElement, CollectionItemsProps>(
         {...rest}
         data-collection-layout="grid"
         className={clsx(
-          "grid w-full grid-cols-[repeat(2,minmax(0,187px))] justify-center gap-[var(--gap-mobile)] md:grid-cols-[repeat(3,minmax(0,246px))] lg:grid-cols-3 lg:gap-[var(--gap-desktop)]",
+          "grid w-full grid-cols-2 gap-[var(--gap-mobile)] md:grid-cols-3 lg:gap-[var(--gap-desktop)]",
         )}
         style={style}
       >

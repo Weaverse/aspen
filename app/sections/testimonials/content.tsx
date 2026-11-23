@@ -22,8 +22,7 @@ import { cn } from "~/utils/cn";
 import { useTestimonialNavigation } from "./context";
 
 interface TestimonialContentProps
-  extends Omit<HeadingProps, "as">,
-    Omit<HydrogenComponentProps, "content"> {
+  extends Omit<HeadingProps, "as">, Omit<HydrogenComponentProps, "content"> {
   headingTagName?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
   description?: string;
   ratting?: number;

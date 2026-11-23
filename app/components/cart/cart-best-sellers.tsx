@@ -71,7 +71,7 @@ export function CartBestSellers({
   }, [load, productsApiPath]);
 
   // Re-measure replaced cards even when the rail's own dimensions stay unchanged.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Product and skeleton changes can alter scrollWidth without resizing the rail.
+  // Product and skeleton changes can alter scrollWidth without resizing the rail.
   useEffect(() => {
     const rail = railRef.current;
     if (layout !== "page" || !rail) {
@@ -173,12 +173,12 @@ export function CartBestSellers({
             products={data?.products as Product[]}
           />
         </div>
-        <div className="flex justify-center gap-2">
+        <div className="flex select-none justify-center gap-2">
           <ArrowButton
             type="button"
             onClick={() => scrollRail(-1)}
             disabled={!canScroll.previous}
-            className="disabled:pointer-events-none disabled:text-(--color-text-light)"
+            className="disabled:text-(--color-text-light)"
             tone="neutral"
             aria-label={t("product.previousRecommendations")}
           >
@@ -188,7 +188,7 @@ export function CartBestSellers({
             type="button"
             onClick={() => scrollRail(1)}
             disabled={!canScroll.next}
-            className="disabled:pointer-events-none disabled:text-(--color-text-light)"
+            className="disabled:text-(--color-text-light)"
             tone="neutral"
             aria-label={t("product.nextRecommendations")}
           >

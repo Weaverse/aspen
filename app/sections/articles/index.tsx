@@ -49,7 +49,8 @@ type ArticleData = {
 };
 
 export interface ArticlesProps
-  extends HydrogenComponentProps<Awaited<ReturnType<typeof loader>>>,
+  extends
+    HydrogenComponentProps<Awaited<ReturnType<typeof loader>>>,
     ArticleData,
     Omit<HeadingProps, "content"> {}
 

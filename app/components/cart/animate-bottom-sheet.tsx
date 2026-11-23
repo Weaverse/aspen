@@ -30,6 +30,7 @@ export function AnimatedBottomSheet({ open, children }) {
                 className={clsx(
                   "fixed inset-y-0 right-0 z-[60] bg-black/50",
                   CART_DRAWER_WIDTH_CLASS,
+                  CART_DRAWER_RADIUS_CLASS,
                 )}
                 style={{ opacity: "var(--cart-sheet-progress)" }}
               />

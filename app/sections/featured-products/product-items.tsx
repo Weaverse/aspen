@@ -116,7 +116,8 @@ const productItemsVariants = cva("", {
 });
 
 interface ProductItemsProps
-  extends VariantProps<typeof productItemsVariants>,
+  extends
+    VariantProps<typeof productItemsVariants>,
     HydrogenComponentProps<Awaited<ReturnType<typeof loader>>> {
   collection: WeaverseCollection;
   layout?: "grid" | "carousel";
@@ -159,7 +160,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
     const designGap = isLegacyLayout ? gap : 16;
     const resolvedSlidesPerView = isProductPage ? 3 : slidesPerView;
 
-    // biome-ignore lint/correctness/useExhaustiveDependencies: Swiper must reset whenever its responsive layout inputs change.
+    // Swiper must reset whenever its responsive layout inputs change.
     useEffect(() => {
       setIsSwiperInitialized(false);
     }, [activeLayout, gap, slidesPerView, itemsPerRow]);
@@ -204,6 +205,8 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
             "hover:text-(--btn-featured-products-nav-text-hover)",
             "hover:bg-(--btn-featured-products-nav-bg-hover)",
             "hover:border-(--btn-featured-products-nav-bg-hover)",
+            "disabled:hover:bg-(--btn-featured-products-nav-bg)",
+            "disabled:hover:border-(--btn-featured-products-nav-bg)",
           ]
         : [
             "text-(--btn-primary-text)",
@@ -212,6 +215,8 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
             "hover:text-(--btn-primary-text-hover)",
             "hover:bg-(--btn-primary-bg-hover)",
             "hover:border-(--btn-primary-bg-hover)",
+            "disabled:hover:bg-(--btn-primary-bg)",
+            "disabled:hover:border-(--btn-primary-bg)",
           ];
     }, [arrowsColor]);
 
@@ -231,7 +236,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
         : "size-11 border-0 p-3 [&>svg]:size-4";
 
     const renderArrowControls = (classPrefix: string) => (
-      <div className="flex justify-center gap-2">
+      <div className="flex select-none justify-center gap-2">
         <ArrowButton
           tone="neutral"
           type="button"
@@ -240,7 +245,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
             arrowButtonClasses,
             arrowColorClasses,
             arrowShapeClasses,
-            "disabled:pointer-events-none disabled:text-(--color-text-light)",
+            "disabled:text-(--color-text-light) disabled:hover:text-(--color-text-light)",
           )}
           aria-label={t("product.previousProduct")}
         >
@@ -258,7 +263,7 @@ const ProductItems = forwardRef<HTMLDivElement, ProductItemsProps>(
             arrowButtonClasses,
             arrowColorClasses,
             arrowShapeClasses,
-            "disabled:pointer-events-none disabled:text-(--color-text-light)",
+            "disabled:text-(--color-text-light) disabled:hover:text-(--color-text-light)",
           )}
           aria-label={t("product.nextProduct")}
         >

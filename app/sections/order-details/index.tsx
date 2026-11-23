@@ -28,8 +28,9 @@ interface OrderDetailsRouteData {
   fulfillmentStatus?: string;
 }
 
-interface OrderDetailsSectionProps
-  extends Partial<Omit<HydrogenComponentProps, "children">> {
+interface OrderDetailsSectionProps extends Partial<
+  Omit<HydrogenComponentProps, "children">
+> {
   heading?: string;
   backLabel?: string;
   orderNumberLabel?: string;
