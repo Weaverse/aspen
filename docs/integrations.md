@@ -315,7 +315,7 @@ show a control that loses data.
 ### Themivo Wishlist & Alerts — optional
 
 For the integration file map, installation/removal recipes, native fallback,
-and verification steps, see the [Themivo cookbook](../.guides/cookbooks/themivo-wishlist.md).
+and verification steps, see the [Themivo cookbook](../guides/themivo-wishlist-cookbook-recipe.md).
 
 Aspen uses Themivo's server-side REST API and its own wishlist UI. The product
 cards, Quick View and product page continue using Aspen's existing hearts.
@@ -398,6 +398,13 @@ the cart write cannot be recovered automatically.
 If saving succeeds but Shopify fails to remove the cart
 line, Aspen can retry that line independently of other saves in the same
 session for up to 24 hours.
+
+Appearance config uses Hydrogen's shared cache with a five-second TTL, including
+failed reads. A cold read can still wait up to the 1.5-second upstream timeout.
+Guest additions require a successful config read: disabled guest wishlists return
+`login_required`; unavailable config returns a temporary error without creating a
+guest ID or writing an item. Signed-in additions and removing saved items do not
+depend on config availability.
 
 Aspen reads the dashboard's supported translations for the active storefront
 locale. Wishlist sharing exposes the configured social links, and the empty

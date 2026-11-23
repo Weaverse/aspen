@@ -19,7 +19,7 @@ Requirements: [#7](https://github.com/Weaverse/aspen/issues/7) and
   this cookbook does not establish a particular plan entitlement.
 - Working Storefront API credentials to hydrate products and variants, and
   Customer Account configuration for signed-in features. Follow
-  [Aspen's customer wishlist setup](../../docs/customer-wishlist-setup.md).
+  [Aspen's customer wishlist setup](../docs/customer-wishlist-setup.md).
 - A supported Node version and the package manager used by your checkout.
   The reference snapshot below uses Hydrogen 2026.4, Weaverse 5, and Node 22
   or 24. Read the target checkout's `package.json` before porting; this
@@ -123,7 +123,7 @@ both implementations as independent wishlist buttons.
 Shopify theme selectors, app blocks, and vendor custom CSS do not automatically
 apply to React UI. Sign in with Shop is not implemented as a separate identity
 flow here. Admin analytics, POS, email delivery, and notification templates are
-not storefront REST features. See [notification/domain checks](../../docs/integrations.md#themivo-wishlist--alerts--optional)
+not storefront REST features. See [notification/domain checks](../docs/integrations.md#themivo-wishlist--alerts--optional)
 for email links: verify links on the shop's primary domain and redirect there
 to Aspen if needed, preserving product handles and query parameters. Adding a
 redirect only on localhost cannot fix an email pointing to another host.
@@ -445,7 +445,7 @@ leave unperformed checks explicitly pending.
 
 ### Adding
 
-> Read `.guides/cookbooks/themivo-wishlist.md`, the current Themivo headless/REST
+> Read `guides/themivo-wishlist-cookbook-recipe.md`, the current Themivo headless/REST
 > docs and this checkout's dependencies. Add the server REST adapter behind the
 > existing provider/buttons, keeping native fallback and one wishlist button
 > per surface. Use the pinned implementation as a reference, porting shared

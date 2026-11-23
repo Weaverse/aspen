@@ -46,6 +46,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
           context.env.PUBLIC_STORE_DOMAIN,
           url.origin,
           context.storefront.i18n,
+          context,
         );
         return data(
           {
@@ -123,6 +124,21 @@ export async function action({ request, context }: ActionFunctionArgs) {
             !/^gid:\/\/shopify\/ProductVariant\/\d+$/.test(variantId)))
       ) {
         throw new ThemivoError("bad_request", 400);
+      }
+      if (intent === "add" && !(await context.customerAccount.isLoggedIn())) {
+        const appearance = await readThemivoAppearance(
+          context.env.PUBLIC_STORE_DOMAIN,
+          new URL(request.url).origin,
+          context.storefront.i18n,
+          context,
+        );
+        // An unavailable config cannot grant permission to create a guest list.
+        if (!appearance) {
+          throw new ThemivoError("unavailable", 503);
+        }
+        if (!appearance.guestWishlist) {
+          throw new ThemivoError("login_required", 401);
+        }
       }
       if (
         typeof variantId === "string" &&

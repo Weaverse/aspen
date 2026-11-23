@@ -265,17 +265,18 @@ export function WishlistProvider({
   return (
     <WishlistContext.Provider value={value}>
       {children}
-      {toast && toastPosition && (
-        <p
-          role="status"
-          className={cn(
-            "pointer-events-none fixed inset-x-4 z-50 mx-auto w-fit rounded-lg border border-line-subtle bg-background px-4 py-3 text-body shadow-lg",
-            toastPosition === "top" ? "top-4" : "bottom-4",
-          )}
-        >
-          {t(toast.saved ? "wishlist.savedToast" : "wishlist.removedToast")}
-        </p>
-      )}
+      <p
+        role="status"
+        className={cn(
+          "pointer-events-none fixed inset-x-4 z-50 mx-auto w-fit rounded-lg border border-line-subtle bg-background px-4 py-3 text-body shadow-lg",
+          toastPosition === "top" ? "top-4" : "bottom-4",
+          (!toast || !toastPosition) && "sr-only",
+        )}
+      >
+        {toast && toastPosition
+          ? t(toast.saved ? "wishlist.savedToast" : "wishlist.removedToast")
+          : ""}
+      </p>
     </WishlistContext.Provider>
   );
 }

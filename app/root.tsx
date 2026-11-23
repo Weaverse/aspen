@@ -109,6 +109,7 @@ export async function loader(args: LoaderFunctionArgs) {
           appearanceShop,
           url.origin,
           args.context.storefront.i18n,
+          args.context,
         )
       : null,
   ]);

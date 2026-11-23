@@ -1,6 +1,7 @@
 import { BookmarkSimpleIcon, HeartIcon, StarIcon } from "@phosphor-icons/react";
 import { useRouteLoaderData } from "react-router";
 import type { RootLoader } from "~/root";
+import { cn } from "~/utils/cn";
 
 export function WishlistIcon({
   className,
@@ -17,13 +18,13 @@ export function WishlistIcon({
   const appearance = useThemivoAppearance ? root?.themivoAppearance : null;
   if (appearance?.customIcon) {
     return (
-      // biome-ignore lint/performance/noImgElement: A data SVG is already local and must stay in an image context.
+      // oxlint-disable-next-line nextjs/no-img-element -- A data SVG is already local and must stay in an image context.
       <img
         alt=""
         width={24}
         height={24}
         aria-hidden="true"
-        className={className}
+        className={cn(className, saved === false && "opacity-40")}
         src={appearance.customIcon}
       />
     );

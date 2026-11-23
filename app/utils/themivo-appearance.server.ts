@@ -1,3 +1,5 @@
+import { createWithCache } from "@shopify/hydrogen";
+import type { AppLoadContext } from "react-router";
 import {
   THEMIVO_STOREFRONT_ORIGIN,
   type ThemivoCardPosition,
@@ -231,29 +233,15 @@ async function fetchAppearance(url: URL, origin: string) {
   return null;
 }
 
-const appearanceCache = new Map<
-  string,
-  {
-    expires: number;
-    value: NonNullable<Awaited<ReturnType<typeof fetchAppearance>>>;
-  }
->();
-
 export async function readThemivoAppearance(
   shop: string,
   origin: string,
-  locale?: { language: string; country: string },
+  locale: { language: string; country: string } | undefined,
+  context: Pick<AppLoadContext, "cache" | "waitUntil">,
 ) {
   const language =
     locale &&
     `${locale.language.toLowerCase()}-${locale.country.toUpperCase()}`;
-  const key = `${shop}|${origin}|${language ?? ""}`;
-  const now = Date.now();
-  const cached = appearanceCache.get(key);
-  if (cached && now < cached.expires) {
-    return cached.value;
-  }
-
   const url = new URL(
     `/storefront/v1/shops/${encodeURIComponent(shop)}/config`,
     THEMIVO_STOREFRONT_ORIGIN,
@@ -261,18 +249,18 @@ export async function readThemivoAppearance(
   if (language) {
     url.searchParams.set("locale", language);
   }
-  const value = await fetchAppearance(url, origin);
-  if (!value) {
-    return null;
-  }
-
-  appearanceCache.delete(key);
-  if (appearanceCache.size >= 32) {
-    const oldest = appearanceCache.keys().next();
-    if (!oldest.done) {
-      appearanceCache.delete(oldest.value);
-    }
-  }
-  appearanceCache.set(key, { expires: Date.now() + 30_000, value });
-  return value;
+  const withCache = createWithCache({
+    cache: context.cache,
+    waitUntil: context.waitUntil,
+    request: new Request(url, { headers: { Origin: origin } }),
+  });
+  return withCache.run<Awaited<ReturnType<typeof fetchAppearance>>>(
+    {
+      cacheKey: ["themivo-appearance-v1", shop, origin, language ?? ""],
+      // Cache failures too, without keeping a disabled feature stale for long.
+      cacheStrategy: { mode: "public", maxAge: 5, staleWhileRevalidate: 0 },
+      shouldCacheResult: () => true,
+    },
+    () => fetchAppearance(url, origin),
+  );
 }

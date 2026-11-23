@@ -67,7 +67,6 @@ function SavedCartItems({ layout }: { layout: CartLayout }) {
     window.addEventListener(SAVED_CART_CHANGED, refresh);
     return () => window.removeEventListener(SAVED_CART_CHANGED, refresh);
   }, []);
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Cart transfers trigger a fresh read even when the URL stays the same.
   useEffect(() => {
     const controller = new AbortController();
     // A failed optional list request must not reach the cart's route boundary.

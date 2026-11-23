@@ -56,6 +56,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
             context.env.PUBLIC_STORE_DOMAIN,
             new URL(request.url).origin,
             context.storefront.i18n,
+            context,
           )
         : null;
     const suggestions =

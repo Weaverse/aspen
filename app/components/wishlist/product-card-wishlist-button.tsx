@@ -14,11 +14,15 @@ export function ProductCardWishlistButton({
   variantId,
   productTitle,
   className,
+  showOnMobile = false,
+  showOnTablet = false,
 }: {
   productId: string;
   variantId?: string;
   productTitle: string;
   className?: string;
+  showOnMobile?: boolean;
+  showOnTablet?: boolean;
 }) {
   const { t } = useTranslation();
   const root = useRouteLoaderData<RootLoader>("root");
@@ -83,7 +87,12 @@ export function ProductCardWishlistButton({
       aria-label={label}
       aria-pressed={saved}
       className={cn(
-        "absolute z-20 flex size-9 items-center justify-center rounded-full text-body transition-[color,opacity,transform] hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body disabled:cursor-wait disabled:opacity-50",
+        "absolute z-20 size-9 items-center justify-center rounded-full text-body transition-[color,opacity,transform] hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-body disabled:cursor-wait disabled:opacity-50",
+        appearance || showOnMobile
+          ? "flex"
+          : showOnTablet
+            ? "hidden md:flex"
+            : "hidden lg:flex",
         position,
         appearance?.cardShowOnHover &&
           !saved &&

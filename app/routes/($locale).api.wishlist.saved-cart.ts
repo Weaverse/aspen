@@ -22,6 +22,7 @@ async function requireSavedCart({ context, request }: LoaderFunctionArgs) {
         context.env.PUBLIC_STORE_DOMAIN,
         new URL(request.url).origin,
         context.storefront.i18n,
+        context,
       )
     : null;
   if (!appearance?.saveForLater) {
