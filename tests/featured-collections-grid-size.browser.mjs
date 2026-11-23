@@ -261,7 +261,7 @@ test("Style 3 mobile/tablet stacks collections 0/2 beside tall collection 1 whil
   }
 });
 
-test("Style 1 respects mobile/tablet card sizes, narrow containers and merchant gaps", async () => {
+test("Style 1 fills mobile/tablet containers while preserving card heights and merchant gaps", async () => {
   const browser = await chromium.launch();
   try {
     for (const width of [
@@ -302,10 +302,7 @@ test("Style 1 respects mobile/tablet card sizes, narrow containers and merchant 
         const columns = width < 768 ? 2 : 3;
         const fluidWidth =
           (containerWidth - appliedGap * (columns - 1)) / columns;
-        const expectedWidth =
-          width >= DESKTOP_MIN_PX
-            ? fluidWidth
-            : Math.min(fluidWidth, width < 768 ? 187 : 246);
+        const expectedWidth = fluidWidth;
         const expectedHeight =
           width >= DESKTOP_MIN_PX
             ? (expectedWidth * 590.2) / 440
@@ -313,6 +310,14 @@ test("Style 1 respects mobile/tablet card sizes, narrow containers and merchant 
               ? 249.333
               : 391.107;
         assert.equal(cards.length, 6);
+        assert.ok(Math.abs(cards[0].x - (width - containerWidth) / 2) < 0.1);
+        assert.ok(
+          Math.abs(
+            cards[columns - 1].x +
+              cards[columns - 1].width -
+              (width + containerWidth) / 2,
+          ) < 0.1,
+        );
         for (const card of cards) {
           assert.ok(
             Math.abs(card.width - expectedWidth) < 0.1,
