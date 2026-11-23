@@ -26,3 +26,7 @@ export function isDesktopWidth(width: number) {
 export function minWidthQuery(px: number) {
   return `(min-width: ${px}px)`;
 }
+
+// Navbar switches independently; section/layout desktop remains 1033px.
+export const NAVBAR_DESKTOP_MIN_PX = 1024;
+export const MEDIA_NAVBAR_DESKTOP = `(min-width: ${NAVBAR_DESKTOP_MIN_PX}px)`;

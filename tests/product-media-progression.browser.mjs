@@ -15,9 +15,9 @@ const bundle = await build({
       import {createRoot} from 'react-dom/client';
       import {ProductMedia} from './app/components/product/product-media';
       const root = createRoot(document.getElementById('root'));
-      window.renderGallery = (count, variant = 'product-page') => root.render(
+      window.renderGallery = (count, variant = 'product-page', shape = 'rounded-sm') => root.render(
         React.createElement(ProductMedia, {
-          mediaLayout: 'slider', imageAspectRatio: '1/1', showThumbnails: false,
+          arrowsShape: shape, mediaLayout: 'slider', imageAspectRatio: '1/1', showThumbnails: false,
           showDots: true, navigationStyle: 'sides', navigationVariant: variant,
           media: Array.from({length: count}, (_, i) => ({
             id: String(i), __typename: 'MediaImage', mediaContentType: 'IMAGE',
@@ -70,14 +70,20 @@ const css = stylesheet.build(
   }).scan(),
 );
 
-async function render(page, count, variant = "product-page") {
+async function render(
+  page,
+  count,
+  variant = "product-page",
+  shape = "rounded-sm",
+) {
   await page.setContent(
     `<style>${css}:root {--radius-sm: 8px;} #root {width: 300px;}</style><div id="root"></div>`,
   );
   await page.addScriptTag({ content: bundle.outputFiles[0].text });
   await page.evaluate(
-    (settings) => window.renderGallery(settings.count, settings.variant),
-    { count, variant },
+    (settings) =>
+      window.renderGallery(settings.count, settings.variant, settings.shape),
+    { count, variant, shape },
   );
   await expect(
     page.getByRole("button", { name: "Slide 1", exact: true }),
@@ -243,6 +249,117 @@ test("product progression fills its track and uses the small radius token at eve
         await expect(first.locator("..")).toHaveCSS("overflow", "hidden");
         await page.addStyleTag({ content: ":root {--radius-sm: 10px;}" });
         await expect(first.locator("..")).toHaveCSS("border-radius", "10px");
+        await page.close();
+      }
+    }
+  } finally {
+    await browser.close();
+  }
+});
+
+test("Main Product frame stays square across mobile/tablet/desktop and image counts", async () => {
+  const source = await readFile(
+    `${root}app/sections/main-product/index.tsx`,
+    "utf8",
+  );
+  const frameClass = source.match(
+    /"([^"\n]*\[&_\.product-media-slider\][^"\n]*)"/,
+  )[1];
+  const browser = await chromium.launch();
+  try {
+    for (const width of [320, 390, 430, 767, 768, 1024, 1032, 1033, 1440]) {
+      const page = await browser.newPage({ viewport: { width, height: 1000 } });
+      await page.setContent(
+        `<style>${css}body{margin:0}#root{width:100%}</style><div class="${frameClass}" data-testid="main-product-frame"><div id="root"></div></div>`,
+      );
+      await page.addScriptTag({ content: bundle.outputFiles[0].text });
+      for (const count of [1, 3]) {
+        await page.evaluate((value) => window.renderGallery(value), count);
+        await expect(page.locator(".product-media-slider")).toBeVisible();
+        await expect
+          .poll(async () => {
+            const box = await page
+              .getByTestId("main-product-frame")
+              .boundingBox();
+            return Math.abs(box.width - box.height);
+          })
+          .toBeLessThan(1);
+      }
+      await page.close();
+    }
+  } finally {
+    await browser.close();
+  }
+});
+
+test("Main Product mobile/tablet gallery is square and flush with the viewport for padded section widths", async () => {
+  const source = await readFile(
+    `${root}app/sections/main-product/index.tsx`,
+    "utf8",
+  );
+  const frameClass = source.match(
+    /"([^"\n]*\[&_\.product-media-slider\][^"\n]*)"/,
+  )[1];
+  const bleedClass = source.match(/"(-mx-\(--page-padding\)[^"\n]*)"/)[1];
+  const browser = await chromium.launch();
+  try {
+    for (const width of [390, 430, 767, 768, 1024, 1032, 1033, 1440]) {
+      const page = await browser.newPage({ viewport: { width, height: 1000 } });
+      const padding = width < 512 ? 20 : width < 1033 ? 32 : 40;
+      for (const padded of [false, true]) {
+        await page.setContent(
+          `<style>${css}body{margin:0;--page-padding:${padding}px}#root{width:100%}</style><section style="padding-inline:${padded ? padding : 0}px"><div class="${frameClass} ${padded ? bleedClass : ""}" data-testid="frame"><div id="root"></div></div><p data-testid="details">Product details</p></section>`,
+        );
+        await page.addScriptTag({ content: bundle.outputFiles[0].text });
+        await page.evaluate(() => window.renderGallery(3));
+        await expect(page.locator(".product-media-slider")).toBeVisible();
+        const frame = await page.getByTestId("frame").boundingBox();
+        expect(Math.abs(frame.width - frame.height)).toBeLessThan(1);
+        if (width < 1033) {
+          expect(frame.x).toBe(0);
+          expect(frame.width).toBe(width);
+        }
+        const details = await page.getByTestId("details").boundingBox();
+        expect(details.x).toBe(padded ? padding : 0);
+        expect(
+          await page.evaluate(
+            () =>
+              document.documentElement.scrollWidth >
+              document.documentElement.clientWidth,
+          ),
+        ).toBe(false);
+      }
+      await page.close();
+    }
+  } finally {
+    await browser.close();
+  }
+});
+
+test("product-page media arrows respect merchant shape below and above desktop", async () => {
+  const browser = await chromium.launch();
+  try {
+    for (const width of [390, 768, 1024, TABLET_MAX_PX, DESKTOP_MIN_PX, 1440]) {
+      for (const shape of ["circle", "square"]) {
+        const page = await browser.newPage({
+          viewport: { width, height: 800 },
+        });
+        await render(page, 5, "product-page", shape);
+        for (const name of ["product.previousMedia", "product.nextMedia"]) {
+          const arrow = page.getByRole("button", { name, exact: true });
+          const radius = await arrow.evaluate((el) => {
+            const style = getComputedStyle(el);
+            return {
+              radius: parseFloat(style.borderTopLeftRadius),
+              width: el.getBoundingClientRect().width,
+            };
+          });
+          if (shape === "square") {
+            expect(radius.radius).toBe(0);
+          } else {
+            expect(radius.radius).toBeGreaterThanOrEqual(radius.width / 2);
+          }
+        }
         await page.close();
       }
     }

@@ -13,11 +13,13 @@ export function ProductVariants({
   selectedVariant,
   combinedListing,
   onVariantChange,
+  optionButtonClassName,
 }: {
   productOptions: MappedProductOptions[];
   selectedVariant: ProductVariantFragment;
   combinedListing?: boolean;
   onVariantChange?: (variant: ProductVariantFragment) => void;
+  optionButtonClassName?: string;
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -104,6 +106,7 @@ export function ProductVariants({
                       type="button"
                       className={cn(
                         "min-h-11 rounded-xl border px-4 py-2 text-sm transition-colors",
+                        optionButtonClassName,
                         isSelected
                           ? "border-body"
                           : "border-line-subtle hover:border-line",
