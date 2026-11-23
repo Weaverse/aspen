@@ -171,6 +171,7 @@ export function QuickShop({
             productTitle={title}
             showOnMobile={!isDesktop}
             showOnTablet
+            className="max-md:right-9"
           />
         )}
       </div>
@@ -500,7 +501,7 @@ export function QuickShopTrigger({
                         type="button"
                         onClick={closeAllDrawers}
                         aria-label={t("product.closeQuickShop")}
-                        className="absolute top-4 right-5 z-30 flex size-5 items-center justify-center"
+                        className="absolute top-1 right-2 z-30 flex size-11 items-center justify-center"
                       >
                         <XIcon className="size-5" />
                       </button>
