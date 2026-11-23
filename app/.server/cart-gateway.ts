@@ -95,6 +95,30 @@ export function createAspenCart({
     id = cartId;
     return new Headers({ "Set-Cookie": createCartCookie(cartId) });
   }
+  function withCheckoutHandoff(
+    cart: CartApiQueryFragment | null,
+    customerAccessToken: string | null | undefined,
+  ) {
+    if (!cart?.checkoutUrl || !customerAccessToken) {
+      return cart;
+    }
+    const checkoutUrl = new URL(cart.checkoutUrl);
+    checkoutUrl.searchParams.set("logged_in", "true");
+    return { ...cart, checkoutUrl: checkoutUrl.toString() };
+  }
+  // Mutation carts become the UI baseline without a root loader revalidation.
+  function mutationResult(
+    result: CartMutationResult,
+    customerAccessToken: string | null | undefined,
+  ): CartMutationResult {
+    if (!result.cart) {
+      return result;
+    }
+    return {
+      ...result,
+      cart: withCheckoutHandoff(result.cart, customerAccessToken),
+    };
+  }
   async function get() {
     const headers = new Headers(request.headers);
     const otherCookies = (headers.get("Cookie") || "")
@@ -109,21 +133,25 @@ export function createAspenCart({
     if (result.data.errors?.length)
       throw new Error(result.data.errors[0].message);
     const cart = result.data.cart as CartApiQueryFragment | null;
-    if (!cart?.checkoutUrl || !(await getCustomerAccessToken())) {
-      return cart;
-    }
-    const checkoutUrl = new URL(cart.checkoutUrl);
-    checkoutUrl.searchParams.set("logged_in", "true");
-    return { ...cart, checkoutUrl: checkoutUrl.toString() };
+    return withCheckoutHandoff(
+      cart,
+      cart?.checkoutUrl ? await getCustomerAccessToken() : null,
+    );
+  }
+  async function syncBuyerIdentity(
+    buyerIdentity: CartBuyerIdentityInput,
+  ): Promise<CartMutationResult> {
+    const result = await storefront.graphql(BUYER, {
+      variables: { cartId: id, buyerIdentity },
+    });
+    return { ...result.data?.cartBuyerIdentityUpdate, errors: result.errors };
   }
   async function updateBuyerIdentity(
     buyerIdentity: CartBuyerIdentityInput,
   ): Promise<CartMutationResult> {
     if (!id) return { cart: null, userErrors: [] };
-    const result = await storefront.graphql(BUYER, {
-      variables: { cartId: id, buyerIdentity },
-    });
-    return { ...result.data?.cartBuyerIdentityUpdate, errors: result.errors };
+    const token = await getCustomerAccessToken();
+    return mutationResult(await syncBuyerIdentity(buyerIdentity), token);
   }
   async function getBuyerIdentity(): Promise<
     CartBuyerIdentityInput | undefined
@@ -153,7 +181,10 @@ export function createAspenCart({
       },
     });
     if (result.data?.cartCreate?.cart?.id) id = result.data.cartCreate.cart.id;
-    return { ...result.data?.cartCreate, errors: result.errors };
+    return mutationResult(
+      { ...result.data?.cartCreate, errors: result.errors },
+      buyerIdentity.customerAccessToken,
+    );
   }
   async function mutate(
     body: Record<string, unknown>,
@@ -161,7 +192,7 @@ export function createAspenCart({
     const buyerIdentity = await getBuyerIdentity();
     if (!buyerIdentity) return accountUnavailable();
     if (id) {
-      const synced = await updateBuyerIdentity(buyerIdentity);
+      const synced = await syncBuyerIdentity(buyerIdentity);
       const missingCart =
         synced.userErrors?.length &&
         synced.userErrors.every(
@@ -171,7 +202,7 @@ export function createAspenCart({
       if (body.intent === "add" && missingCart && !synced.errors?.length)
         id = undefined;
       else if (synced.userErrors?.length || synced.errors?.length)
-        return synced;
+        return mutationResult(synced, buyerIdentity.customerAccessToken);
     }
     const headers = new Headers(request.headers);
     headers.set("Content-Type", "application/json");
@@ -194,9 +225,11 @@ export function createAspenCart({
     const payload = result.data as CartMutationResult;
     if (payload.cart?.id) {
       id = payload.cart.id;
-      if (body.intent === "add") await updateBuyerIdentity(buyerIdentity);
+      if (body.intent === "add") await syncBuyerIdentity(buyerIdentity);
     }
-    return payload;
+    // Reuse the token resolved before writes; a later lookup can fail after
+    // Shopify has already applied the mutation.
+    return mutationResult(payload, buyerIdentity.customerAccessToken);
   }
   return {
     get,
@@ -219,17 +252,25 @@ export function createAspenCart({
     updateNote: (note: string) => mutate({ intent: "note-update", note }),
     async addGiftCardCodes(codes: string[]): Promise<CartMutationResult> {
       if (!id) return { cart: null, userErrors: [] };
+      const token = await getCustomerAccessToken();
       const r = await storefront.graphql(GIFT_ADD, {
         variables: { cartId: id, codes },
       });
-      return { ...r.data?.cartGiftCardCodesAdd, errors: r.errors };
+      return mutationResult(
+        { ...r.data?.cartGiftCardCodesAdd, errors: r.errors },
+        token,
+      );
     },
     async removeGiftCardCodes(ids: string[]): Promise<CartMutationResult> {
       if (!id) return { cart: null, userErrors: [] };
+      const token = await getCustomerAccessToken();
       const r = await storefront.graphql(GIFT_REMOVE, {
         variables: { cartId: id, ids },
       });
-      return { ...r.data?.cartGiftCardCodesRemove, errors: r.errors };
+      return mutationResult(
+        { ...r.data?.cartGiftCardCodesRemove, errors: r.errors },
+        token,
+      );
     },
   };
 }
