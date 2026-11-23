@@ -15,9 +15,9 @@ const bundle = await build({
       import {createRoot} from 'react-dom/client';
       import {ProductMedia} from './app/components/product/product-media';
       const root = createRoot(document.getElementById('root'));
-      window.renderGallery = (count, variant = 'product-page') => root.render(
+      window.renderGallery = (count, variant = 'product-page', shape = 'rounded-sm') => root.render(
         React.createElement(ProductMedia, {
-          mediaLayout: 'slider', imageAspectRatio: '1/1', showThumbnails: false,
+          arrowsShape: shape, mediaLayout: 'slider', imageAspectRatio: '1/1', showThumbnails: false,
           showDots: true, navigationStyle: 'sides', navigationVariant: variant,
           media: Array.from({length: count}, (_, i) => ({
             id: String(i), __typename: 'MediaImage', mediaContentType: 'IMAGE',
@@ -70,14 +70,20 @@ const css = stylesheet.build(
   }).scan(),
 );
 
-async function render(page, count, variant = "product-page") {
+async function render(
+  page,
+  count,
+  variant = "product-page",
+  shape = "rounded-sm",
+) {
   await page.setContent(
     `<style>${css}:root {--radius-sm: 8px;} #root {width: 300px;}</style><div id="root"></div>`,
   );
   await page.addScriptTag({ content: bundle.outputFiles[0].text });
   await page.evaluate(
-    (settings) => window.renderGallery(settings.count, settings.variant),
-    { count, variant },
+    (settings) =>
+      window.renderGallery(settings.count, settings.variant, settings.shape),
+    { count, variant, shape },
   );
   await expect(
     page.getByRole("button", { name: "Slide 1", exact: true }),
@@ -324,6 +330,38 @@ test("Main Product mobile/tablet gallery is square and flush with the viewport f
         ).toBe(false);
       }
       await page.close();
+    }
+  } finally {
+    await browser.close();
+  }
+});
+
+test("product-page media arrows respect merchant shape below and above desktop", async () => {
+  const browser = await chromium.launch();
+  try {
+    for (const width of [390, 768, 1024, TABLET_MAX_PX, DESKTOP_MIN_PX, 1440]) {
+      for (const shape of ["circle", "square"]) {
+        const page = await browser.newPage({
+          viewport: { width, height: 800 },
+        });
+        await render(page, 5, "product-page", shape);
+        for (const name of ["product.previousMedia", "product.nextMedia"]) {
+          const arrow = page.getByRole("button", { name, exact: true });
+          const radius = await arrow.evaluate((el) => {
+            const style = getComputedStyle(el);
+            return {
+              radius: parseFloat(style.borderTopLeftRadius),
+              width: el.getBoundingClientRect().width,
+            };
+          });
+          if (shape === "square") {
+            expect(radius.radius).toBe(0);
+          } else {
+            expect(radius.radius).toBeGreaterThanOrEqual(radius.width / 2);
+          }
+        }
+        await page.close();
+      }
     }
   } finally {
     await browser.close();

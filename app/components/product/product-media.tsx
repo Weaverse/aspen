@@ -424,7 +424,7 @@ export function ProductMedia(props: ProductMediaProps) {
                   navigationVariant !== "quick-shop" && shapeClass(arrowsShape),
                   navigationVariant === "product-page" &&
                     navigationStyle === "sides" &&
-                    "max-lg:rounded-xl! max-lg:bg-white/80!",
+                    "max-lg:bg-white/80!",
                 )}
                 aria-label={t("product.previousMedia")}
               >
@@ -460,7 +460,7 @@ export function ProductMedia(props: ProductMediaProps) {
                   navigationVariant !== "quick-shop" && shapeClass(arrowsShape),
                   navigationVariant === "product-page" &&
                     navigationStyle === "sides" &&
-                    "max-lg:rounded-xl! max-lg:bg-white/80!",
+                    "max-lg:bg-white/80!",
                 )}
                 aria-label={t("product.nextMedia")}
               >

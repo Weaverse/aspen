@@ -31,8 +31,8 @@ const variants = cva("", {
     },
     padding: {
       full: "",
-      stretch: "px-4 md:px-8 navbar:px-10",
-      fixed: "mx-auto px-4 md:px-8 navbar:px-10",
+      stretch: "px-4 md:px-8 navbar:px-8 lg:px-10",
+      fixed: "mx-auto px-4 md:px-8 navbar:px-8 lg:px-10",
     },
   },
 });

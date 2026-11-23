@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { chromium, expect } from "@playwright/test";
 import { compile } from "@tailwindcss/node";
 import { build } from "esbuild";
+import { DESKTOP_MIN_PX } from "./responsive-test-widths.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const headerSource = await readFile(
@@ -124,6 +125,24 @@ test("Real Header matches Figma navbar geometry without changing Custom or deskt
             "height",
             `${expected}px`,
           );
+          if (headerWidth !== "full") {
+            const gutter =
+              preset !== "custom" && width >= 512 && width < 1024
+                ? 32
+                : width < 768
+                  ? 16
+                  : width < DESKTOP_MIN_PX
+                    ? 32
+                    : 40;
+            await expect(page.locator("header")).toHaveCSS(
+              "padding-left",
+              `${gutter}px`,
+            );
+            await expect(page.locator("header")).toHaveCSS(
+              "padding-right",
+              `${gutter}px`,
+            );
+          }
           if (preset !== "custom") {
             const geometry = await page.locator("header").evaluate((header) => {
               const rect = header.getBoundingClientRect();

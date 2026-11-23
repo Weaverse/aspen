@@ -19,6 +19,7 @@
   --breakpoint-md: 48em;
   /* Keep in sync with DESKTOP_MIN_PX in utils/breakpoints.ts. */
   --breakpoint-lg: 1033px;
+  /* Keep in sync with NAVBAR_DESKTOP_MIN_PX in utils/breakpoints.ts. */
   --breakpoint-navbar: 1024px;
   --breakpoint-xl: 80em;
   --breakpoint-2xl: 96em;

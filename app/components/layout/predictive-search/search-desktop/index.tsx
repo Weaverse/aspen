@@ -60,7 +60,6 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
     return clearSearchDebounce;
   }, [location]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: reset only when crossing the navbar boundary
   useEffect(() => {
     const desktop = window.matchMedia(MEDIA_NAVBAR_DESKTOP);
     const closeOnModeChange = () => {
@@ -72,6 +71,7 @@ export function PredictiveSearchButtonDesktop({ setIsSearchOpen }) {
     };
     desktop.addEventListener("change", closeOnModeChange);
     return () => desktop.removeEventListener("change", closeOnModeChange);
+    // oxlint-disable-next-line react/exhaustive-deps -- reset only when crossing the navbar boundary
   }, [setIsSearchOpen]);
 
   function clearSearchDebounce() {
