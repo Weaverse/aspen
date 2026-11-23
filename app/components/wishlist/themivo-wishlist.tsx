@@ -42,10 +42,10 @@ export function ThemivoWishlist({
   const canInvite = owner && canCreate && appearance?.collaborators !== false;
   const canManage = Boolean(
     canCreate ||
-      (selected && (!owner || !selected.isDefault || selected.shared)) ||
-      canRename ||
-      canShare ||
-      canInvite,
+    (selected && (!owner || !selected.isDefault || selected.shared)) ||
+    canRename ||
+    canShare ||
+    canInvite,
   );
   const destinations = lists.filter(
     (list) => list.id !== selected?.id && list.role !== "viewer",

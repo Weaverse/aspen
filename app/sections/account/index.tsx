@@ -32,8 +32,9 @@ export function useAccountSectionData() {
   return value;
 }
 
-interface AccountSectionProps
-  extends Partial<Omit<HydrogenComponentProps, "children">> {
+interface AccountSectionProps extends Partial<
+  Omit<HydrogenComponentProps, "children">
+> {
   customer?: CustomerDetailsFragment;
   heading?: string;
   backgroundColor?: string;

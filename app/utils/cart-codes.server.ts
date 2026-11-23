@@ -72,9 +72,7 @@ export async function applyCartCode<
     const result = await addGiftCardCodes(cart, [code]);
     const codeApplied = Boolean(
       !hasCartCodeErrors(result) &&
-        result.cart?.appliedGiftCards?.some(
-          (card) => !previousIds.has(card.id),
-        ),
+      result.cart?.appliedGiftCards?.some((card) => !previousIds.has(card.id)),
     );
     if (codeApplied || hasCartApiErrors(result) || !options.allowDiscountCode) {
       return { ...result, codeType: "gift-card", codeApplied };
@@ -86,11 +84,11 @@ export async function applyCartCode<
   const result = await updateDiscountCodes(cart, code);
   const codeApplied = Boolean(
     !hasCartCodeErrors(result) &&
-      result.cart?.discountCodes?.some(
-        (discount) =>
-          discount.applicable &&
-          discount.code.toLowerCase() === code.toLowerCase(),
-      ),
+    result.cart?.discountCodes?.some(
+      (discount) =>
+        discount.applicable &&
+        discount.code.toLowerCase() === code.toLowerCase(),
+    ),
   );
   const isNewProbe = !previousDiscountCodes.some(
     (discount) => discount.code.toLowerCase() === code.toLowerCase(),

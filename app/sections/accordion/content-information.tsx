@@ -29,8 +29,7 @@ const variants = cva("", {
 });
 
 interface ContentInformationProps
-  extends VariantProps<typeof variants>,
-    HydrogenComponentProps {}
+  extends VariantProps<typeof variants>, HydrogenComponentProps {}
 
 const ContentInformation = forwardRef<HTMLDivElement, ContentInformationProps>(
   (props, ref) => {

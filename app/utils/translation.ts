@@ -53,7 +53,7 @@ function hasTranslationOverride(
 ) {
   return Boolean(
     (designOverrides && Object.hasOwn(designOverrides, key)) ||
-      nestedString(merchantOverrides, key) !== undefined,
+    nestedString(merchantOverrides, key) !== undefined,
   );
 }
 

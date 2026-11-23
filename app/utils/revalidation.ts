@@ -105,11 +105,11 @@ export function isWishlistShareAction({
   const intent = formData?.get("intent");
   return Boolean(
     formAction &&
-      formMethod?.toUpperCase() === "POST" &&
-      (intent === "share" || intent === "revoke") &&
-      /^\/(?:[a-z]{2}-[a-z]{2}\/)?wishlist(?:\.data)?\/?$/i.test(
-        new URL(formAction, currentUrl).pathname,
-      ),
+    formMethod?.toUpperCase() === "POST" &&
+    (intent === "share" || intent === "revoke") &&
+    /^\/(?:[a-z]{2}-[a-z]{2}\/)?wishlist(?:\.data)?\/?$/i.test(
+      new URL(formAction, currentUrl).pathname,
+    ),
   );
 }
 

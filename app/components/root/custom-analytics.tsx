@@ -1,4 +1,3 @@
-/** biome-ignore-all lint/suspicious/noConsole: use console.log for debugging */
 import {
   AnalyticsEvent,
   type CartUpdatePayload,
@@ -18,7 +17,6 @@ export function CustomAnalytics() {
   const nonce = useNonce();
   const rootData = useRouteLoaderData<RootLoader>("root");
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation> --- IGNORE ---
   useEffect(() => {
     setTimeout(() => {
       const isTrackingAllowed = canTrack();

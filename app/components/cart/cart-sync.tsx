@@ -11,6 +11,7 @@ import {
   getTimestampMs,
   hasCartResponseErrors,
   recordCartMutation,
+  recordCompletedCartAdd,
 } from "./cart-baseline";
 import type { CartMutationResponse } from "./cart-types";
 import { useCartStore } from "./store";
@@ -42,6 +43,15 @@ function syncFetcherResponse(fetcher: Fetcher<unknown>) {
     notifiedSavedCartResponses.add(response);
     window.dispatchEvent(new Event(SAVED_CART_CHANGED));
   }
+  const formInput = getFormInput(fetcher);
+  if (
+    response &&
+    fetcher.formData &&
+    formInput?.action === CartForm.ACTIONS.LinesAdd
+  ) {
+    // The owner can receive its result before useFetchers leaves submitting.
+    recordCompletedCartAdd(fetcher.formData);
+  }
   const token = fetcher.formData?.get("cartStageToken");
   if (typeof token === "string" && response) {
     useCartStore.getState().clearPendingAdd(token);
@@ -55,7 +65,6 @@ function syncFetcherResponse(fetcher: Fetcher<unknown>) {
     }
   }
 
-  const formInput = getFormInput(fetcher);
   if (formInput?.action !== CartForm.ACTIONS.LinesUpdate) {
     return;
   }

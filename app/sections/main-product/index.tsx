@@ -49,8 +49,10 @@ import { ProductDetails } from "./product-details";
 import { ProductStory } from "./product-story";
 import { ProductVariants } from "./variants";
 
-interface ProductInformationData
-  extends Omit<ProductMediaProps, "selectedVariant" | "media"> {
+interface ProductInformationData extends Omit<
+  ProductMediaProps,
+  "selectedVariant" | "media"
+> {
   addToCartText: string;
   addBundleToCartText: string;
   soldOutText: string;
@@ -222,10 +224,10 @@ const ProductInformation = forwardRef<
     const inventoryThreshold = Math.max(1, lowInventoryThreshold || 10);
     const showLowInventory = Boolean(
       showInventoryStatus &&
-        selectedVariant.availableForSale &&
-        quantityAvailable &&
-        quantityAvailable > 0 &&
-        quantityAvailable <= inventoryThreshold,
+      selectedVariant.availableForSale &&
+      quantityAvailable &&
+      quantityAvailable > 0 &&
+      quantityAvailable <= inventoryThreshold,
     );
     let atcButtonText = t("product.addToCart");
     if (!soldOut) {

@@ -12,8 +12,7 @@ import Link from "~/components/link";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 
 export interface HighlightsBadgeProps
-  extends HydrogenComponentProps,
-    Omit<HeadingProps, "content"> {
+  extends HydrogenComponentProps, Omit<HeadingProps, "content"> {
   iconType?: string;
   showIcon?: boolean;
   customIcon?: string;
@@ -130,7 +129,7 @@ let HighlightsBadge = forwardRef<HTMLDivElement, HighlightsBadgeProps>(
           }
           return (
             <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center">
-              {/* biome-ignore lint/performance/noImgElement: Custom icons can be arbitrary external URLs or data URIs rather than Shopify image data. */}
+              {/* oxlint-disable-next-line nextjs/no-img-element -- Custom icons can be arbitrary external URLs or data URIs rather than Shopify image data. */}
               <img
                 src={customIcon}
                 alt={t("accessibility.customIcon")}

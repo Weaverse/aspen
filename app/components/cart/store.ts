@@ -292,12 +292,12 @@ export function canAdjustLineQuantity(
   const line = cart?.lines.nodes.find((node) => node.id === lineId);
   return Boolean(
     line &&
-      canStageLineQuantity(
-        state,
-        lineId,
-        getNextLineQuantity(line, direction),
-        cart,
-      ),
+    canStageLineQuantity(
+      state,
+      lineId,
+      getNextLineQuantity(line, direction),
+      cart,
+    ),
   );
 }
 

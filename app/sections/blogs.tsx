@@ -22,7 +22,8 @@ import { calculateAspectRatio, getImageLoadingPriority } from "~/utils/image";
 import { formatDate } from "~/utils/locale";
 
 interface BlogsProps
-  extends Omit<ArticleCardProps, "article" | "loading">,
+  extends
+    Omit<ArticleCardProps, "article" | "loading">,
     Omit<HeadingProps, "as" | "content">,
     SectionProps {
   layout: "blog" | "default";

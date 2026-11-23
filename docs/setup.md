@@ -52,7 +52,7 @@ passes strict engine checks at the supported minimums.
 
 Routine CI runs one Ubuntu job on Node 22.18.0 for pull requests and pushes
 to main. It installs from the lockfile with strict engine checks and runs
-Biome, codegen, typechecking, focused tests and the production build. Run
+Vite+ static checks, codegen, typechecking, focused tests and the production build. Run
 the **Node compatibility** workflow manually for the wider Linux, macOS and
 Windows matrix at both minimums and the current patches. It also verifies the
 selected dependency graph and exercises dev startup, worker SSR and client
@@ -325,7 +325,7 @@ When adding a Weaverse section:
 Run focused checks while developing, then the complete pre-PR set:
 
 ```bash
-npm run biome
+npm run check
 npm run typecheck
 npm run routes-check
 npm run build

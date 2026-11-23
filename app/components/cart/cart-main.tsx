@@ -428,7 +428,11 @@ export function CartEmpty({
         {buttonStartShopping && (
           <Link
             to={layout === "page" ? "/products" : ""}
-            className={clsx(layout === "drawer" ? "w-full" : "min-w-48")}
+            variant="primary"
+            className={clsx(
+              "uppercase",
+              layout === "drawer" ? "w-full" : "min-w-48",
+            )}
             onClick={onClose}
           >
             {buttonStartShopping}
