@@ -186,7 +186,11 @@ export function QuickShop({
             productTitle={product.title}
             onImage
             useAspenAppearance={useAspenImageAppearance}
-            className={clsx("absolute z-20", imagePosition)}
+            className={clsx(
+              "absolute z-20",
+              imagePosition,
+              useAspenImageAppearance && "max-md:right-9",
+            )}
           />
         )}
       </div>
@@ -194,7 +198,7 @@ export function QuickShop({
       <div
         className={clsx(
           "flex min-w-0 flex-col text-sm",
-          isDesktop ? "gap-8" : "gap-6",
+          isDesktop ? "gap-6 lg:gap-8" : "gap-6",
         )}
       >
         <div className="flex flex-col gap-4">
@@ -226,7 +230,12 @@ export function QuickShop({
           quantityAvailable={selectedVariant?.quantityAvailable}
         />
 
-        <div className={clsx("flex flex-col", isDesktop ? "gap-7" : "gap-6")}>
+        <div
+          className={clsx(
+            "flex flex-col",
+            isDesktop ? "gap-6 lg:gap-7" : "gap-6",
+          )}
+        >
           {productOptions && productOptions.length > 0 && (
             <QuickShopVariants
               productOptions={productOptions}
@@ -519,13 +528,13 @@ export function QuickShopTrigger({
                         type="button"
                         onClick={closeAllDrawers}
                         aria-label={t("product.closeQuickShop")}
-                        className="absolute top-4 right-5 z-30 flex size-5 items-center justify-center"
+                        className="absolute top-1 right-2 z-30 flex size-11 items-center justify-center"
                       >
                         <XIcon className="size-5" />
                       </button>
 
                       <ScrollArea rootClassName="min-h-0 flex-1" size="sm">
-                        <div className="px-5 pt-10 pb-8">
+                        <div className="p-5">
                           {productLoading ? (
                             <QuickShopSkeleton />
                           ) : data ? (

@@ -36,6 +36,6 @@ export function useProductWishlist(
       ],
     formClassName: wishlistBelowCart
       ? "col-span-full md:basis-full empty:hidden"
-      : "col-start-2 row-start-2 empty:hidden",
+      : "col-start-2 row-start-1 empty:hidden",
   };
 }

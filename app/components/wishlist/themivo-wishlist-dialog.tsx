@@ -8,10 +8,6 @@ import { useCartStore } from "~/components/cart/store";
 import { DrawerPanel } from "~/components/layout/drawer-panel";
 import { QuickShopFade } from "~/components/product/quick-shop-fade";
 import {
-  QUICK_SHOP_DESKTOP_FRAME_CLASS,
-  QUICK_SHOP_DESKTOP_SURFACE_CLASS,
-  QUICK_SHOP_MOBILE_FRAME_CLASS,
-  QUICK_SHOP_MOBILE_SURFACE_CLASS,
   QUICK_SHOP_OVERLAY_CLASS,
   useQuickShopMobile,
 } from "~/components/product/quick-shop-frame";
@@ -22,6 +18,12 @@ import { useThemivoTranslation } from "~/hooks/use-themivo-translation";
 import type { loader } from "~/routes/($locale).wishlist";
 import { cn } from "~/utils/cn";
 import { ThemivoWishlist } from "./themivo-wishlist";
+import {
+  WISHLIST_POPUP_DESKTOP_FRAME_CLASS,
+  WISHLIST_POPUP_DESKTOP_SURFACE_CLASS,
+  WISHLIST_POPUP_MOBILE_FRAME_CLASS,
+  WISHLIST_POPUP_MOBILE_SURFACE_CLASS,
+} from "./wishlist-popup-frame";
 
 export function ThemivoWishlistDialog({
   mode,
@@ -134,16 +136,16 @@ function WishlistPopup({
               className={cn(
                 "fixed z-10",
                 mobile
-                  ? QUICK_SHOP_MOBILE_FRAME_CLASS
-                  : QUICK_SHOP_DESKTOP_FRAME_CLASS,
+                  ? WISHLIST_POPUP_MOBILE_FRAME_CLASS
+                  : WISHLIST_POPUP_DESKTOP_FRAME_CLASS,
               )}
               onCloseAutoFocus={onCloseAutoFocus}
             >
               <QuickShopFade
                 className={
                   mobile
-                    ? QUICK_SHOP_MOBILE_SURFACE_CLASS
-                    : QUICK_SHOP_DESKTOP_SURFACE_CLASS
+                    ? WISHLIST_POPUP_MOBILE_SURFACE_CLASS
+                    : WISHLIST_POPUP_DESKTOP_SURFACE_CLASS
                 }
               >
                 <div

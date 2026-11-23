@@ -187,12 +187,12 @@ export function CartBestSellers({
             products={products}
           />
         </div>
-        <div className="flex justify-center gap-2">
+        <div className="flex select-none justify-center gap-2">
           <ArrowButton
             type="button"
             onClick={() => scrollRail(-1)}
             disabled={!canScroll.previous}
-            className="disabled:pointer-events-none disabled:text-(--color-text-light)"
+            className="disabled:text-(--color-text-light)"
             tone="neutral"
             aria-label={t("product.previousRecommendations")}
           >
@@ -202,7 +202,7 @@ export function CartBestSellers({
             type="button"
             onClick={() => scrollRail(1)}
             disabled={!canScroll.next}
-            className="disabled:pointer-events-none disabled:text-(--color-text-light)"
+            className="disabled:text-(--color-text-light)"
             tone="neutral"
             aria-label={t("product.nextRecommendations")}
           >
