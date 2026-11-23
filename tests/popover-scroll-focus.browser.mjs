@@ -33,7 +33,7 @@ const bundle = await build({
       const Filters=({className})=><div data-testid="filter-options" className={className} style={{height:1200}}>Filter options</div>;
       ${filterFunctions}
       function Drawer({filter=false}){const [open,setOpen]=useState(false);const title=filter?'Filter':'Cart';return <Dialog.Root open={open} onOpenChange={setOpen}><Dialog.Trigger>{title}</Dialog.Trigger><AnimatedDrawer open={open} filter={filter} flush={!filter}><Dialog.Title>{title}</Dialog.Title><Dialog.Close>Close {title}</Dialog.Close><p>Drawer content</p></AnimatedDrawer></Dialog.Root>}
-      createRoot(document.getElementById('root')).render(<div className="flex min-h-screen flex-col"><div style={{height:44}}>Announcement</div><header className="sticky top-0 flex items-center gap-4" style={{height:56,padding:'0 16px'}}><MobileMenu showOnDesktop/><Drawer/><Drawer filter/><section data-testid="collection-filter"><FiltersDrawer0 filtersPosition="drawer" appliedFiltersCount={0} disabled={false}/></section><section data-testid="search-filter"><FiltersDrawer1 appliedFiltersCount={0} disabled={false}/></section></header><main style={{height:2000}}>Page content</main></div>);`,
+      createRoot(document.getElementById('root')).render(<div className="flex min-h-screen flex-col"><div style={{height:44}}>Announcement</div><header className="sticky top-0 flex items-center gap-4" style={{height:56,padding:'0 16px'}}><MobileMenu showOnDesktop={!window.fixtureInlineMenu}/><Drawer/><Drawer filter/><section data-testid="collection-filter"><FiltersDrawer0 filtersPosition="drawer" appliedFiltersCount={0} disabled={false}/></section><section data-testid="search-filter"><FiltersDrawer1 appliedFiltersCount={0} disabled={false}/></section></header><main style={{height:2000}}>Page content</main></div>);`,
     resolveDir: root,
     loader: "tsx",
   },
@@ -46,9 +46,11 @@ const bundle = await build({
       name: "menu-fixture",
       setup(builder) {
         builder.onResolve(
-          { filter: /^@weaverse\/hydrogen$|^~\// },
+          { filter: /^@weaverse\/hydrogen\/react-router$|^~\// },
           ({ path, importer }) =>
-            importer === menu ? { path, namespace: "fixture" } : undefined,
+            importer === menu && path !== "~/utils/breakpoints"
+              ? { path, namespace: "fixture" }
+              : undefined,
         );
         builder.onLoad({ filter: /.*/, namespace: "fixture" }, ({ path }) => ({
           contents:
@@ -87,11 +89,14 @@ const css = stylesheet.build([
   "gap-4",
 ]);
 
-async function mount(page, width) {
+async function mount(page, width, inlineMenu = false) {
   await page.setViewportSize({ width, height: 900 });
   await page.setContent(
     `<style>${css}:root{--body-base-size:14px;--color-background:white;--radius-md:12px;--page-padding:20px}body{margin:0}header{flex-shrink:0}</style><div id="root"></div>`,
   );
+  await page.evaluate((value) => {
+    window.fixtureInlineMenu = value;
+  }, inlineMenu);
   await page.addScriptTag({ content: bundle.outputFiles[0].text });
   await expect(
     page.getByRole("button", { name: "Open menu", exact: true }),
@@ -399,6 +404,26 @@ test("Filter enters from the right, keeps a left overlay gutter, and uses left-o
       await page.keyboard.press("Escape");
       await expect(dialog).toHaveCount(0);
     }
+  } finally {
+    await browser.close();
+  }
+});
+
+test("inline navbar releases its mobile menu at 1024px", async () => {
+  const browser = await chromium.launch();
+  try {
+    const page = await browser.newPage();
+    await mount(page, 1023, true);
+    await pointerOpen(page, "Open menu");
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await page.setViewportSize({ width: 1024, height: 900 });
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect(page.locator("body")).not.toHaveAttribute(
+      "data-scroll-locked",
+    );
+    await expect(
+      page.getByRole("button", { name: "Open menu", exact: true }),
+    ).toBeHidden();
   } finally {
     await browser.close();
   }

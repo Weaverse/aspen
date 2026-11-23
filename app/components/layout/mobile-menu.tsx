@@ -8,11 +8,12 @@ import * as Collapsible from "@radix-ui/react-collapsible";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useTranslation } from "@weaverse/hydrogen/react-router";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { type Ref, useRef, useState } from "react";
+import { type Ref, useEffect, useRef, useState } from "react";
 import { Image } from "~/components/image";
 import Link from "~/components/link";
 import { useHeaderMenu } from "~/hooks/use-header-menu";
 import type { SingleMenuItem } from "~/types/menu";
+import { MEDIA_NAVBAR_DESKTOP } from "~/utils/breakpoints";
 import { cn } from "~/utils/cn";
 
 type HeaderMenuItem = ReturnType<typeof useHeaderMenu>[number];
@@ -31,9 +32,20 @@ export function MobileMenu({
   );
   const [open, setOpen] = useState(false);
 
+  useEffect(() => {
+    const desktop = window.matchMedia(MEDIA_NAVBAR_DESKTOP);
+    const closeOnDesktop = () => {
+      if (desktop.matches && !showOnDesktop) {
+        setOpen(false);
+      }
+    };
+    desktop.addEventListener("change", closeOnDesktop);
+    return () => desktop.removeEventListener("change", closeOnDesktop);
+  }, [showOnDesktop]);
+
   const triggerClassName = cn(
     "relative size-5 items-center justify-center focus-visible:outline-hidden before:absolute before:-inset-2",
-    showOnDesktop ? "flex" : "flex xl:hidden",
+    showOnDesktop ? "flex" : "flex navbar:hidden",
   );
 
   if (!menuItems.length) {

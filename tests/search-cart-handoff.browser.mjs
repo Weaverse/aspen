@@ -546,7 +546,7 @@ test("Search does not remove the non-transparent header from document flow", asy
     await page
       .getByRole("button", {
         name:
-          width < 1280
+          width < 1024
             ? "PredictiveSearchButtonMobile"
             : "PredictiveSearchButtonDesktop",
         exact: true,
@@ -598,9 +598,9 @@ test("Quick View fades without sliding or scaling and keeps a mobile overlay gut
     await expect(panel).toHaveCSS("opacity", "1");
     if (width < 768) {
       const bounds = await dialog.boundingBox();
-      assert.equal(bounds.width, width - 32);
-      assert.equal(bounds.height, 900 * 0.75);
-      assert.equal(bounds.x, 16);
+      assert.equal(bounds.width, Math.min(400, width - 32));
+      assert.equal(bounds.height, Math.min(872, 900 - 32));
+      assert.equal(bounds.x, (width - bounds.width) / 2);
       assert.equal(bounds.y, (900 - bounds.height) / 2);
       await expect(panel).toHaveCSS("border-radius", "12px");
     }
@@ -654,7 +654,7 @@ test("Mobile Quick View follows viewport height and tokens and dismisses through
   const bounds = await dialog.boundingBox();
   assert.equal(bounds.x, 24);
   assert.equal(bounds.width, 390 - 48);
-  assert.equal(bounds.height, 640 * 0.75);
+  assert.equal(bounds.height, 640 - 48);
   assert.equal(bounds.y, (640 - bounds.height) / 2);
   await page.mouse.click(bounds.x / 2, bounds.y + bounds.height / 2);
   await expect(dialog).toHaveCount(0);
@@ -665,6 +665,8 @@ test("Mobile Quick View follows viewport height and tokens and dismisses through
 test("Testimonials Quick View shares the standard responsive frame, fade, and focus flow", async () => {
   for (const width of [320, 390, 767, 768, 1032]) {
     const page = await render(width, { testimonial: true });
+    const height = width < 768 ? 640 : 900;
+    await page.setViewportSize({ width, height });
     await page.addStyleTag({
       content: ":root{--radius-md:18px;--spacing:6px}",
     });
@@ -683,16 +685,16 @@ test("Testimonials Quick View shares the standard responsive frame, fade, and fo
     await expect(panel).toHaveCSS("animation-name", "fade-in");
     const bounds = await dialog.boundingBox();
     if (width < 768) {
-      assert.equal(bounds.x, 24);
-      assert.equal(bounds.width, width - 48);
-      assert.equal(bounds.height, 900 * 0.75);
-      assert.equal(bounds.y, (900 - bounds.height) / 2);
+      assert.equal(bounds.x, (width - bounds.width) / 2);
+      assert.equal(bounds.width, Math.min(width - 48, 400));
+      assert.equal(bounds.height, Math.min(872, height - 48));
+      assert.equal(bounds.y, (height - bounds.height) / 2);
       await expect(panel).toHaveCSS("border-radius", "18px");
     } else {
-      assert.equal(bounds.width, width - 48);
-      assert.equal(bounds.x, 24);
-      assert.ok(bounds.height <= 900 - 48);
-      assert.equal(bounds.y, (900 - bounds.height) / 2);
+      assert.equal(bounds.width, Math.min(801, width - 72));
+      assert.equal(bounds.x, (width - bounds.width) / 2);
+      assert.ok(bounds.height <= Math.min(783, height - 72));
+      assert.equal(bounds.y, (height - bounds.height) / 2);
     }
     const add = page.getByRole("button", { name: "Add to Cart", exact: true });
     await expect(add).toBeEnabled();
@@ -721,6 +723,9 @@ test("Testimonials Quick View shares the standard responsive frame, fade, and fo
 test("Quick View reduced motion and mobile content scrolling retain dismissal and focus", async () => {
   for (const width of [390, 768, 1440]) {
     const page = await render(width, { reducedMotion: true, controlled: true });
+    if (width < 768) {
+      await page.setViewportSize({ width, height: 640 });
+    }
     const trigger = page.getByRole("button", {
       name: "product.selectOptions",
       exact: true,
@@ -795,7 +800,7 @@ test("Testimonials' direct QuickShop caller retains automatic Cart opening", asy
 });
 test("Search preserves transparent header framing and scrolled sticky navigation", async () => {
   for (const transparent of [false, true]) {
-    const page = await render(1032, {
+    const page = await render(1023, {
       settings: {
         designSystemPreset: "custom",
         enableTransparentHeader: transparent,

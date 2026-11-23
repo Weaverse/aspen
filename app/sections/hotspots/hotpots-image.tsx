@@ -43,7 +43,7 @@ let HotspotsImage = forwardRef<HTMLDivElement, HotspotsProps>((props, ref) => {
         "relative w-full overflow-hidden",
         layout === "single"
           ? "aspect-video"
-          : "rounded-(--radius-md) aspect-[335/417] md:aspect-[814/812]",
+          : "rounded-(--radius-md) aspect-[814/812]",
       )}
       style={
         usesDesignRatio

@@ -5,8 +5,10 @@ import {
   DESKTOP_MIN_PX,
   isDesktopWidth,
   MEDIA_DESKTOP,
+  MEDIA_NAVBAR_DESKTOP,
   MEDIA_UNTIL_DESKTOP,
   MOBILE_MAX_PX,
+  NAVBAR_DESKTOP_MIN_PX,
   TABLET_MAX_PX,
   TABLET_MIN_PX,
 } from "../app/utils/breakpoints.ts";
@@ -53,6 +55,17 @@ test("CSS and generated page padding share the JS desktop boundary", async () =>
     new URL("../app/weaverse/style.tsx", import.meta.url),
     "utf8",
   );
-  assert.ok(globalStyle.includes("import { DESKTOP_MIN_PX }"));
+  assert.ok(globalStyle.includes("DESKTOP_MIN_PX"));
   assert.match(globalStyle, /@media \(min-width: \$\{DESKTOP_MIN_PX\}px\)/);
+});
+
+test("navbar alone switches to desktop at 1024px", async () => {
+  assert.equal(NAVBAR_DESKTOP_MIN_PX, 1024);
+  assert.equal(MEDIA_NAVBAR_DESKTOP, "(min-width: 1024px)");
+  assert.equal(isDesktopWidth(1024), false);
+  const css = await readFile(
+    new URL("../app/styles/app.css", import.meta.url),
+    "utf8",
+  );
+  assert.ok(css.includes(`--breakpoint-navbar: ${NAVBAR_DESKTOP_MIN_PX}px;`));
 });

@@ -12,6 +12,7 @@ import Link from "~/components/link";
 import { useHeaderMenu } from "~/hooks/use-header-menu";
 import { useLocale } from "~/hooks/use-locale";
 import type { SingleMenuItem } from "~/types/menu";
+import { MEDIA_NAVBAR_DESKTOP } from "~/utils/breakpoints";
 import { cn } from "~/utils/cn";
 import { navigateToMenuItem } from "~/utils/menu-navigation";
 
@@ -44,7 +45,7 @@ export function DesktopMenu() {
   }, [location.key]);
 
   useEffect(() => {
-    const desktop = window.matchMedia("(min-width: 1280px)");
+    const desktop = window.matchMedia(MEDIA_NAVBAR_DESKTOP);
     const closeOnCompact = () => {
       if (!desktop.matches) {
         setValue("");
@@ -64,7 +65,7 @@ export function DesktopMenu() {
       skipDelayDuration={300}
       value={value}
       onValueChange={setValue}
-      className="hidden h-full xl:flex"
+      className="hidden h-full navbar:flex"
     >
       <NavigationMenu.List className="flex h-full items-center justify-center gap-8 pt-1">
         {menuItems.map((menuItem) => {

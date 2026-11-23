@@ -34,8 +34,8 @@ const variants = cva("", {
     },
     padding: {
       full: "",
-      stretch: "px-4 md:px-8 xl:px-10",
-      fixed: "mx-auto px-4 md:px-8 xl:px-10",
+      stretch: "px-4 md:px-8 navbar:px-8 lg:px-10",
+      fixed: "mx-auto px-4 md:px-8 navbar:px-8 lg:px-10",
     },
   },
 });
@@ -82,11 +82,11 @@ export function Header() {
         "bg-(--color-header-bg) hover:bg-(--color-header-bg-hover)",
         "text-(--color-header-text) hover:text-(--color-header-text)",
         "border-line-subtle border-b",
-        designSystemPreset !== "custom" && "max-desktop:h-(--height-nav)",
+        designSystemPreset !== "custom" && "max-navbar:h-(--height-nav)",
         variants({ padding: headerWidth }),
         designSystemPreset !== "custom" &&
           headerWidth !== "full" &&
-          "sm:max-desktop:px-8",
+          "sm:max-navbar:px-8",
         scrolled ? "shadow-none" : "shadow-none",
         headerPosition,
         isTransparent
@@ -111,15 +111,15 @@ export function Header() {
       <div
         className={cn(
           "grid grid-cols-[1fr_auto_1fr] items-center",
-          designSystemPreset !== "custom" && "max-desktop:gap-x-2.5",
+          designSystemPreset !== "custom" && "max-navbar:gap-x-2.5",
           variants({ width: headerWidth }),
-          designSystemPreset !== "custom" && "max-desktop:h-full",
+          designSystemPreset !== "custom" && "max-navbar:h-full",
         )}
       >
         <div
           className={cn(
             "col-start-1 row-start-1 flex items-center gap-4 justify-self-start",
-            !isCompactDesktop && "xl:hidden",
+            !isCompactDesktop && "navbar:hidden",
           )}
         >
           <MobileMenu showOnDesktop={isCompactDesktop} />
@@ -132,14 +132,14 @@ export function Header() {
         <div
           className={cn(
             "col-start-2 row-start-1 flex items-center justify-self-center",
-            !isCompactDesktop && "xl:col-start-1 xl:justify-self-start",
+            !isCompactDesktop && "navbar:col-start-1 navbar:justify-self-start",
           )}
         >
           <Logo />
         </div>
 
         {!isCompactDesktop ? (
-          <div className="col-start-2 row-start-1 hidden h-full justify-self-center xl:block">
+          <div className="col-start-2 row-start-1 hidden h-full justify-self-center navbar:block">
             <DesktopMenu />
           </div>
         ) : null}

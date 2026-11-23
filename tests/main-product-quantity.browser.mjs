@@ -420,20 +420,29 @@ test("complete purchase row keeps quantity, CTA content and wishlist inside narr
     `${root}app/sections/main-product/index.tsx`,
     "utf8",
   );
-  const rowClass = source.match(/<div className="([^"]+)">\s*<Quantity/)?.[1];
+  const beforeQuantity = source.slice(0, source.indexOf("<Quantity"));
+  const rowClasses = beforeQuantity
+    .slice(beforeQuantity.lastIndexOf("<div"))
+    .match(/className=\{clsx\(([\s\S]*?)\)\}/)?.[1]
+    .match(/"[^"]+"/g)
+    ?.map((value) => JSON.parse(value));
   const quantityClass = source.match(
     /<Quantity[\s\S]*?className="([^"]+)"/,
   )?.[1];
-  const containerClass = source.match(
-    /<AddToCartButton\s+width="auto"\s+containerClassName="([^"]+)"/,
-  )?.[1];
+  const containerClasses = source
+    .match(
+      /<AddToCartButton\s+width="auto"\s+containerClassName=\{clsx\(([\s\S]*?)\)\}/,
+    )?.[1]
+    .match(/"[^"]+"/g)
+    ?.map((value) => JSON.parse(value));
   const buttonClass = source.match(
     /data-test="add-to-cart"\s+className="([^"]+)"/,
   )?.[1];
   const wishlistClass = source.match(
     /<ProductWishlistButton\s+productId=\{product.id\}\s+productTitle=\{title\}\s+className="([^"]+)"/,
   )?.[1];
-  expect(rowClass).toBeTruthy();
+  expect(rowClasses?.length).toBe(2);
+  expect(containerClasses?.length).toBe(2);
   expect(quantityClass).toBeTruthy();
   expect(buttonClass).toBeTruthy();
   const browser = await chromium.launch();
@@ -463,9 +472,11 @@ test("complete purchase row keeps quantity, CTA content and wishlist inside narr
             await page.evaluate(
               (settings) => window.renderPurchaseRow(settings),
               {
-                rowClass,
+                rowClass: rowClasses.slice(0, wishlist ? 2 : 1).join(" "),
                 quantityClass,
-                containerClass,
+                containerClass: containerClasses
+                  .slice(0, wishlist ? 2 : 1)
+                  .join(" "),
                 buttonClass,
                 wishlistClass,
                 wishlist,
@@ -479,6 +490,7 @@ test("complete purchase row keeps quantity, CTA content and wishlist inside narr
               const rect = b.getBoundingClientRect();
               return {
                 width: rect.width,
+                height: rect.height,
                 client: b.clientWidth,
                 scroll: b.scrollWidth,
                 right: rect.right,
@@ -489,9 +501,22 @@ test("complete purchase row keeps quantity, CTA content and wishlist inside narr
             });
             expect(bounds.scroll).toBeLessThanOrEqual(bounds.client + 1);
             expect(bounds.right).toBeLessThanOrEqual(bounds.rootRight + 1);
-            await expect(
-              page.getByRole("group", { name: "product.quantity" }),
-            ).toHaveCSS("width", "175px");
+            const quantityWidth =
+              width >= DESKTOP_MIN_PX
+                ? 175
+                : width >= 768
+                  ? Math.min(width - 64, 543) / 3
+                  : 122;
+            const quantityBounds = await page
+              .getByRole("group", { name: "product.quantity" })
+              .boundingBox();
+            expect(Math.abs(quantityBounds.width - quantityWidth)).toBeLessThan(
+              1,
+            );
+            if (label === "Add to bag" && !pending) {
+              expect(bounds.height).toBe(54);
+              expect(bounds.width).toBeGreaterThanOrEqual(122);
+            }
             if (wishlist) {
               await expect(
                 page.getByRole("button", { name: "Wishlist" }),
@@ -502,8 +527,13 @@ test("complete purchase row keeps quantity, CTA content and wishlist inside narr
                   top: b.getBoundingClientRect().top,
                   ctaTop: b.previousElementSibling.getBoundingClientRect().top,
                 }));
-              // Taller translated CTA text may center the fixed-height wishlist.
-              expect(positions.top).toBeGreaterThanOrEqual(positions.ctaTop);
+              if (width < 768) {
+                expect(positions.top + 54).toBeLessThanOrEqual(
+                  positions.ctaTop,
+                );
+              } else {
+                expect(positions.top).toBeGreaterThanOrEqual(positions.ctaTop);
+              }
             }
           }
         }

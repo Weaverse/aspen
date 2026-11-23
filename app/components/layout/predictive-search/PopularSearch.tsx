@@ -73,7 +73,7 @@ export function PopularSearch({
     >
       <span
         className={cn(
-          "font-semibold text-xs uppercase tracking-[0.02em]",
+          "font-body font-semibold text-sm uppercase leading-[1.6] tracking-[0.02em] text-body-subtle",
           headingClassName,
         )}
       >

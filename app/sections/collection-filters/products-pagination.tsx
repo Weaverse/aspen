@@ -141,6 +141,7 @@ function ProductsLoadedOnScroll(props: ProductsLoadedOnScrollProps) {
             key={product.id}
             product={product}
             flushHorizontalPadding
+            className="max-desktop:py-0"
           />
         ))}
     </div>

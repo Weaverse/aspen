@@ -1,5 +1,5 @@
 import { useThemeSettings } from "@weaverse/hydrogen/react-router";
-import { DESKTOP_MIN_PX } from "~/utils/breakpoints";
+import { DESKTOP_MIN_PX, NAVBAR_DESKTOP_MIN_PX } from "~/utils/breakpoints";
 import {
   type DesignTokenSettings,
   getDesignSystemPreset,
@@ -214,16 +214,20 @@ export function GlobalStyle() {
             }
           }
 
+          @media (min-width: ${NAVBAR_DESKTOP_MIN_PX}px) {
+            :root {
+              --height-nav: ${designSystemPreset === "custom" ? `${navHeightDesktop}rem` : "81px"};
+            }
+          }
+
           @media (min-width: ${DESKTOP_MIN_PX}px) {
             :root {
-              --height-nav: ${designSystemPreset === "custom" ? `${navHeightTablet}rem` : "88px"};
               --page-padding: 40px;
             }
           }
 
           @media (min-width: 80em) {
             :root {
-              --height-nav: ${designSystemPreset === "custom" ? `${navHeightDesktop}rem` : "81px"};
               --footer-divider-color: ${footerDividerColorDesktop};
               --footer-input-bg: ${footerInputBackgroundDesktop};
               --footer-input-text: ${footerInputTextColorDesktop};
