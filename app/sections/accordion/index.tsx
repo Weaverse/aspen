@@ -1,4 +1,4 @@
-import type { HydrogenComponentSchema } from "@weaverse/hydrogen";
+import type { WeaverseComponentSchema } from "@weaverse/hydrogen/react-router";
 import clsx from "clsx";
 import { createContext, forwardRef, useContext, useMemo } from "react";
 import { sectionBackgroundInputs } from "~/components/background-image";
@@ -70,7 +70,7 @@ const AccordionSection = forwardRef<HTMLElement, AccordionSectionProps>(
 
 export default AccordionSection;
 
-export const schema: HydrogenComponentSchema = {
+export const schema: WeaverseComponentSchema = {
   type: "accordion",
   title: "Accordion",
   settings: [

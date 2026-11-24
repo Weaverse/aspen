@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { ProductCardFragment } from "storefront-api.generated";
+import type { ProductCardFragment } from "~/graphql/storefront-types";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 
 type PriceRange = ProductCardFragment["priceRange"];

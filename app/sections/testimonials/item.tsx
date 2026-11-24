@@ -1,4 +1,4 @@
-import type { HydrogenComponentProps } from "@weaverse/hydrogen";
+import type { WeaverseComponentProps } from "@weaverse/hydrogen/react-router";
 import { forwardRef } from "react";
 import HotspotsItem, {
   type HotspotsItemData,
@@ -13,7 +13,7 @@ export interface TestimonialHotspotsItemData extends HotspotsItemData {
 
 interface TestimonialHotspotsItemProps
   extends
-    HydrogenComponentProps<Awaited<ReturnType<typeof loader>>>,
+    WeaverseComponentProps<Awaited<ReturnType<typeof loader>>>,
     TestimonialHotspotsItemData {}
 
 const TestimonialHotspotsItem = forwardRef<

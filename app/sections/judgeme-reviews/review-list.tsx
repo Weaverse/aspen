@@ -1,5 +1,5 @@
 import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import { Fragment, useMemo, useState } from "react";
 import { StarRating } from "~/components/star-rating";
 import { useLocale } from "~/hooks/use-locale";

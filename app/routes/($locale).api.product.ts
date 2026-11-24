@@ -1,9 +1,11 @@
-import type { Storefront } from "@shopify/hydrogen";
 import type { LoaderFunction } from "react-router";
 import { data } from "react-router";
-import type { ProductQuery } from "storefront-api.generated";
+import type { Storefront } from "~/.server/storefront";
 import { PRODUCT_QUERY } from "~/graphql/queries";
+import type { ProductQuery } from "~/graphql/storefront-types";
+import { CACHE_DEFAULT } from "~/utils/cache";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
+import { unwrapStorefront } from "~/utils/storefront";
 
 export const shouldRevalidate = skipPageRevalidationForStorefrontActions;
 
@@ -32,17 +34,12 @@ async function getProductData(
   handle: string,
   selectedOptions: Array<{ name: string; value: string }>,
 ) {
-  const { product, shop } = await storefront.query<ProductQuery>(
-    PRODUCT_QUERY,
-    {
-      variables: {
-        handle,
-        selectedOptions,
-        language: storefront.i18n.language,
-        country: storefront.i18n.country,
-      },
-    },
-  );
+  const { product, shop } = await storefront
+    .graphql(PRODUCT_QUERY, {
+      variables: { handle, selectedOptions },
+      cache: CACHE_DEFAULT,
+    })
+    .then(unwrapStorefront);
   return {
     shop,
     product,

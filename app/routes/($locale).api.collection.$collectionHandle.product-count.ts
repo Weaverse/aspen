@@ -1,22 +1,24 @@
+import { gql } from "@shopify/hydrogen";
 import type { LoaderFunctionArgs } from "react-router";
-import type { CollectionProductCountQuery } from "storefront-api.generated";
+import type { CollectionProductCountQuery } from "~/graphql/storefront-types";
+import { CACHE_DEFAULT, CacheLong } from "~/utils/cache";
 import { countCollectionProducts } from "~/utils/collection-product-count.server";
+import { unwrapStorefront } from "~/utils/storefront";
 
-const COLLECTION_COUNT_QUERY = `#graphql
-  query collectionProductCount(
-    $country: CountryCode
-    $language: LanguageCode
-    $handle: String!
-    $after: String
-  ) @inContext(country: $country, language: $language) {
-    collection(handle: $handle) {
-      products(first: 250, after: $after) {
-        nodes { id }
-        pageInfo { hasNextPage endCursor }
+export const COLLECTION_COUNT_QUERY =
+  gql(`query collectionProductCount($country: CountryCode, $language: LanguageCode, $handle: String!, $after: String) @inContext(country: $country, language: $language) {
+  collection(handle: $handle) {
+    products(first: 250, after: $after) {
+      nodes {
+        id
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
       }
     }
   }
-` as const;
+}`);
 
 export async function loader({ params, context }: LoaderFunctionArgs) {
   const handle = params.collectionHandle;
@@ -27,13 +29,12 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
   const { storefront } = context;
   const { country, language } = storefront.i18n;
   const count = await countCollectionProducts(async (after) => {
-    const { collection } = await storefront.query<CollectionProductCountQuery>(
-      COLLECTION_COUNT_QUERY,
-      {
-        cache: storefront.CacheLong(),
-        variables: { country, language, handle, after },
-      },
-    );
+    const { collection } = await storefront
+      .graphql(COLLECTION_COUNT_QUERY, {
+        cache: CacheLong(),
+        variables: { handle, after },
+      })
+      .then(unwrapStorefront);
     if (!collection) {
       return null;
     }

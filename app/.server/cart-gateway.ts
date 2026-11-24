@@ -1,0 +1,282 @@
+import {
+  Cache,
+  type CartUpdatePayload,
+  createCartCookie,
+  getCartId,
+  gql,
+} from "@shopify/hydrogen";
+import type {
+  CartBuyerIdentityInput,
+  CartInput,
+} from "@shopify/hydrogen/storefront-api-types";
+import type { CartApiQueryFragment } from "~/graphql/storefront-types";
+import { CART_FRAGMENT, cartHandlers } from "./cart";
+import type { Storefront } from "./storefront";
+
+export type CartMutationResult = {
+  cart?: CartApiQueryFragment | null;
+  userErrors?: Array<{ message: string; code?: string; field?: string[] }>;
+  errors?: Array<{ message: string }>;
+};
+const BUYER = gql(
+  `mutation AspenCartBuyer($cartId: ID!, $buyerIdentity: CartBuyerIdentityInput!) {
+  cartBuyerIdentityUpdate(cartId: $cartId, buyerIdentity: $buyerIdentity) {
+    cart {
+      ...CartFragment
+    }
+    userErrors {
+      message
+      code
+      field
+    }
+  }
+}`,
+  [CART_FRAGMENT],
+);
+const GIFT_ADD = gql(
+  `mutation AspenCartGiftAdd($cartId: ID!, $codes: [String!]!) {
+  cartGiftCardCodesAdd(cartId: $cartId, giftCardCodes: $codes) {
+    cart {
+      ...CartFragment
+    }
+    userErrors {
+      message
+      code
+      field
+    }
+  }
+}`,
+  [CART_FRAGMENT],
+);
+const GIFT_REMOVE = gql(
+  `mutation AspenCartGiftRemove($cartId: ID!, $ids: [ID!]!) {
+  cartGiftCardCodesRemove(cartId: $cartId, appliedGiftCardIds: $ids) {
+    cart {
+      ...CartFragment
+    }
+    userErrors {
+      message
+      code
+      field
+    }
+  }
+}`,
+  [CART_FRAGMENT],
+);
+const CREATE = gql(
+  `mutation AspenCartCreate($input: CartInput!) {
+  cartCreate(input: $input) {
+    cart {
+      ...CartFragment
+    }
+    userErrors {
+      message
+      code
+      field
+    }
+  }
+}`,
+  [CART_FRAGMENT],
+);
+
+/** Server gateway for Aspen's application-owned cart actions and permalinks. */
+export function createAspenCart({
+  request,
+  storefront,
+  getCustomerAccessToken,
+}: {
+  request: Request;
+  storefront: Storefront;
+  /** null is signed out; undefined is a transient account failure. */
+  getCustomerAccessToken: () => Promise<string | null | undefined>;
+}) {
+  let id = getCartId(request);
+  function setCartId(cartId: string) {
+    id = cartId;
+    return new Headers({ "Set-Cookie": createCartCookie(cartId) });
+  }
+  function withCheckoutHandoff(
+    cart: CartApiQueryFragment | null,
+    customerAccessToken: string | null | undefined,
+  ) {
+    if (!cart?.checkoutUrl || !customerAccessToken) {
+      return cart;
+    }
+    const checkoutUrl = new URL(cart.checkoutUrl);
+    checkoutUrl.searchParams.set("logged_in", "true");
+    return { ...cart, checkoutUrl: checkoutUrl.toString() };
+  }
+  // Mutation carts become the UI baseline without a root loader revalidation.
+  function mutationResult(
+    result: CartMutationResult,
+    customerAccessToken: string | null | undefined,
+  ): CartMutationResult {
+    if (!result.cart) {
+      return result;
+    }
+    return {
+      ...result,
+      cart: withCheckoutHandoff(result.cart, customerAccessToken),
+    };
+  }
+  async function get() {
+    const headers = new Headers(request.headers);
+    const otherCookies = (headers.get("Cookie") || "")
+      .split(";")
+      .filter((cookie) => !cookie.trim().startsWith("cart="));
+    if (id) otherCookies.push(`cart=${id.replace("gid://shopify/Cart/", "")}`);
+    headers.set("Cookie", otherCookies.join(";"));
+    const result = await cartHandlers.get({
+      request: new Request(request.url, { headers }),
+      storefrontClient: storefront,
+    });
+    if (result.data.errors?.length)
+      throw new Error(result.data.errors[0].message);
+    const cart = result.data.cart as CartApiQueryFragment | null;
+    return withCheckoutHandoff(
+      cart,
+      cart?.checkoutUrl ? await getCustomerAccessToken() : null,
+    );
+  }
+  async function syncBuyerIdentity(
+    buyerIdentity: CartBuyerIdentityInput,
+  ): Promise<CartMutationResult> {
+    const result = await storefront.graphql(BUYER, {
+      variables: { cartId: id, buyerIdentity },
+    });
+    return { ...result.data?.cartBuyerIdentityUpdate, errors: result.errors };
+  }
+  async function updateBuyerIdentity(
+    buyerIdentity: CartBuyerIdentityInput,
+  ): Promise<CartMutationResult> {
+    if (!id) return { cart: null, userErrors: [] };
+    const token = await getCustomerAccessToken();
+    return mutationResult(await syncBuyerIdentity(buyerIdentity), token);
+  }
+  async function getBuyerIdentity(): Promise<
+    CartBuyerIdentityInput | undefined
+  > {
+    const token = await getCustomerAccessToken();
+    if (token === undefined) return undefined;
+    return {
+      countryCode: storefront.i18n.country,
+      customerAccessToken: token,
+    };
+  }
+  function accountUnavailable(): CartMutationResult {
+    return { errors: [{ message: "errors.generic" }] };
+  }
+  async function create(input: CartInput): Promise<CartMutationResult> {
+    const buyerIdentity = await getBuyerIdentity();
+    if (!buyerIdentity) return accountUnavailable();
+    const result = await storefront.graphql(CREATE, {
+      variables: {
+        input: {
+          ...input,
+          buyerIdentity: {
+            ...buyerIdentity,
+            ...input.buyerIdentity,
+          },
+        },
+      },
+    });
+    if (result.data?.cartCreate?.cart?.id) id = result.data.cartCreate.cart.id;
+    return mutationResult(
+      { ...result.data?.cartCreate, errors: result.errors },
+      buyerIdentity.customerAccessToken,
+    );
+  }
+  async function mutate(
+    body: Record<string, unknown>,
+  ): Promise<CartMutationResult> {
+    const buyerIdentity = await getBuyerIdentity();
+    if (!buyerIdentity) return accountUnavailable();
+    // Keep market/customer binding current on writes, including cross-market
+    // navigation and sign-in/out; Shopify does not infer these from the URL.
+    if (id) {
+      const synced = await syncBuyerIdentity(buyerIdentity);
+      const missingCart =
+        synced.userErrors?.length &&
+        synced.userErrors.every(
+          (error) =>
+            error.code === "INVALID" && error.field?.includes("cartId"),
+        );
+      if (body.intent === "add" && missingCart && !synced.errors?.length)
+        id = undefined;
+      else if (synced.userErrors?.length || synced.errors?.length)
+        return mutationResult(synced, buyerIdentity.customerAccessToken);
+    }
+    const headers = new Headers(request.headers);
+    headers.set("Content-Type", "application/json");
+    const otherCookies = (headers.get("Cookie") || "")
+      .split(";")
+      .filter((cookie) => !cookie.trim().startsWith("cart="));
+    if (id) otherCookies.push(`cart=${id.replace("gid://shopify/Cart/", "")}`);
+    headers.set("Cookie", otherCookies.join(";"));
+    const created = !id;
+    const result = await cartHandlers.post({
+      storefrontClient: storefront,
+      request: new Request(new URL("/api/cart", request.url), {
+        method: "POST",
+        headers,
+        body: JSON.stringify(body),
+      }),
+    });
+    if (result.type === "error")
+      return { userErrors: [{ message: result.error.message }] };
+    if (result.type !== "json") throw new Error("Unexpected cart redirect");
+    let payload = result.data as CartMutationResult;
+    if (payload.cart?.id) {
+      id = payload.cart.id;
+      if (created && body.intent === "add") {
+        const synced = await syncBuyerIdentity(buyerIdentity);
+        if (synced.cart) payload = { ...payload, cart: synced.cart };
+      }
+    }
+    // Reuse the token resolved before writes; a later lookup can fail after
+    // Shopify has already applied the mutation.
+    return mutationResult(payload, buyerIdentity.customerAccessToken);
+  }
+  return {
+    get,
+    getCartId: () => id,
+    setCartId,
+    create,
+    updateBuyerIdentity,
+    addLines: (lines: CartUpdatePayload["lines"]) =>
+      mutate({ intent: "add", lines }),
+    updateLines: (lines: CartUpdatePayload["lines"]) =>
+      mutate({ intent: "update", lines }),
+    removeLines: (lineIds: string[]) =>
+      mutate({
+        intent: "remove",
+        // The JSON handler infers removal from zero-quantity lines.
+        lines: lineIds.map((id) => ({ id, quantity: 0 })),
+      }),
+    updateDiscountCodes: (discountCodes: string[]) =>
+      mutate({ intent: "discount-update", discountCodes }),
+    updateNote: (note: string) => mutate({ intent: "note-update", note }),
+    async addGiftCardCodes(codes: string[]): Promise<CartMutationResult> {
+      if (!id) return { cart: null, userErrors: [] };
+      const token = await getCustomerAccessToken();
+      const r = await storefront.graphql(GIFT_ADD, {
+        variables: { cartId: id, codes },
+      });
+      return mutationResult(
+        { ...r.data?.cartGiftCardCodesAdd, errors: r.errors },
+        token,
+      );
+    },
+    async removeGiftCardCodes(ids: string[]): Promise<CartMutationResult> {
+      if (!id) return { cart: null, userErrors: [] };
+      const token = await getCustomerAccessToken();
+      const r = await storefront.graphql(GIFT_REMOVE, {
+        variables: { cartId: id, ids },
+      });
+      return mutationResult(
+        { ...r.data?.cartGiftCardCodesRemove, errors: r.errors },
+        token,
+      );
+    },
+  };
+}

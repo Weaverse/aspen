@@ -1,7 +1,7 @@
 import type {
-  HydrogenComponentProps,
-  HydrogenComponentSchema,
-} from "@weaverse/hydrogen";
+  WeaverseComponentProps,
+  WeaverseComponentSchema,
+} from "@weaverse/hydrogen/react-router";
 import { cva, type VariantProps } from "class-variance-authority";
 import {
   Children,
@@ -33,7 +33,7 @@ function isValidScrollSpeed(value: number | undefined) {
 }
 
 export interface ScrollingProps
-  extends VariantProps<typeof variants>, HydrogenComponentProps {
+  extends VariantProps<typeof variants>, WeaverseComponentProps {
   content: string;
   textSize?: string;
   textColor?: string;
@@ -207,7 +207,7 @@ const ScrollingText = forwardRef<HTMLElement, ScrollingProps>((props, ref) => {
 
 export default ScrollingText;
 
-export let schema: HydrogenComponentSchema = {
+export let schema: WeaverseComponentSchema = {
   type: "scrolling-text",
   title: "Scrolling Text",
   childTypes: ["scrolling-text--item"],

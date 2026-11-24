@@ -1,8 +1,16 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { CacheShort } from "../app/utils/cache";
 import type { AppLoadContext } from "react-router";
 import type { ThemivoItem } from "../app/types/wishlist.ts";
-import { hydrateThemivoItems } from "../app/utils/themivo-products.server.ts";
+import { parse } from "graphql";
+import { createRequestStorefront } from "../app/.server/storefront";
+import { InMemoryCache } from "./helpers/cache";
+import {
+  hydrateThemivoItems,
+  readThemivoSuggestions,
+  WISHLIST_PRODUCTS,
+} from "../app/utils/themivo-products.server.ts";
 
 function fixture(count: number) {
   const items = Array.from({ length: count }, (_, index) => ({
@@ -42,26 +50,26 @@ function fixture(count: number) {
   const storefront = {
     i18n: { country: "FR", language: "FR" },
     CacheShort: () => ({ maxAge: 1 }),
-    query: async (
+    graphql: async (
       _query: string,
       {
         variables,
         cache,
       }: {
-        variables: { ids: string[]; country: string; language: string };
+        variables: { ids: string[] };
         cache: object;
       },
     ) => {
       assert.ok(variables.ids.length <= 250);
-      assert.equal(variables.country, "FR");
-      assert.equal(variables.language, "FR");
-      assert.deepEqual(cache, { maxAge: 1 });
+      assert.deepEqual(cache, CacheShort());
       calls.push(variables.ids);
       // Shopify can return null nodes or nodes out of item order.
       return {
-        nodes: [...variables.ids]
-          .reverse()
-          .map((id) => products.get(id) ?? null),
+        data: {
+          nodes: [...variables.ids]
+            .reverse()
+            .map((id) => products.get(id) ?? null),
+        },
       };
     },
   } as unknown as AppLoadContext["storefront"];
@@ -123,9 +131,9 @@ test("empty lists do not query Shopify", async () => {
 
 test("a failed later batch does not return a misleading partial saved list", async () => {
   const { storefront, items } = fixture(126);
-  const originalQuery = storefront.query;
+  const originalQuery = storefront.graphql;
   let requests = 0;
-  storefront.query = (async (...args: Parameters<typeof originalQuery>) => {
+  storefront.graphql = (async (...args: Parameters<typeof originalQuery>) => {
     requests += 1;
     if (requests === 2) {
       throw new Error("Shopify unavailable");
@@ -138,3 +146,105 @@ test("a failed later batch does not return a misleading partial saved list", asy
   );
   assert.equal(requests, 2);
 });
+
+function assertMarketContext(source: string) {
+  const operation = parse(source).definitions.find(
+    (node) => node.kind === "OperationDefinition",
+  );
+  assert.ok(operation?.kind === "OperationDefinition");
+  for (const [name, type] of [
+    ["country", "CountryCode"],
+    ["language", "LanguageCode"],
+  ]) {
+    const variable = operation.variableDefinitions?.find(
+      (node) => node.variable.name.value === name,
+    );
+    assert.equal(variable?.type.kind, "NamedType");
+    assert.ok(variable?.type.kind === "NamedType");
+    assert.equal(variable.type.name.value, type);
+  }
+  const context = operation.directives?.find(
+    (node) => node.name.value === "inContext",
+  );
+  assert.ok(
+    context,
+    "Shopify requires @inContext to apply the shopper's market",
+  );
+  for (const name of ["country", "language"]) {
+    const argument = context.arguments?.find(
+      (node) => node.name.value === name,
+    );
+    assert.ok(argument?.value.kind === "Variable");
+    assert.equal(argument.value.name.value, name);
+  }
+}
+
+test("wishlist product document declares and applies market variables", () => {
+  assertMarketContext(WISHLIST_PRODUCTS);
+});
+
+test("wishlist suggestion document declares and applies market variables", async () => {
+  const storefront = {
+    graphql: async (source: string) => {
+      assertMarketContext(source);
+      return { data: { collection: null } };
+    },
+  } as unknown as AppLoadContext["storefront"];
+  assert.deepEqual(
+    await readThemivoSuggestions(
+      storefront,
+      "gid://shopify/Collection/1",
+      2,
+      [],
+    ),
+    [],
+  );
+});
+
+for (const [path, country, language] of [
+  ["/fr-fr/wishlist", "FR", "FR"],
+  ["/es-es/wishlist", "ES", "ES"],
+]) {
+  test(`SDK injects the request market into both Themivo queries on ${path}`, async () => {
+    const originalFetch = globalThis.fetch;
+    const requests: {
+      query: string;
+      variables: Record<string, unknown>;
+    }[] = [];
+    globalThis.fetch = async (_input, init) => {
+      const body = JSON.parse(String(init?.body)) as (typeof requests)[number];
+      requests.push(body);
+      return Response.json({
+        data: body.query.includes("ThemivoWishlistSuggestions")
+          ? { collection: { products: { nodes: [] } } }
+          : { nodes: [] },
+      });
+    };
+    try {
+      const storefront = createRequestStorefront({
+        request: new Request(`https://store.example${path}`),
+        env: {
+          PUBLIC_STORE_DOMAIN: "store.example",
+          PUBLIC_STOREFRONT_API_TOKEN: "test-public-token",
+        } as Env,
+        cache: new InMemoryCache(),
+        waitUntil: () => undefined,
+      });
+      await hydrateThemivoItems(storefront, fixture(1).items, []);
+      await readThemivoSuggestions(
+        storefront,
+        "gid://shopify/Collection/1",
+        2,
+        [],
+      );
+      assert.equal(requests.length, 2);
+      for (const request of requests) {
+        assertMarketContext(request.query);
+        assert.equal(request.variables.country, country);
+        assert.equal(request.variables.language, language);
+      }
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+}

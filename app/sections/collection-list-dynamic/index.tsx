@@ -1,4 +1,4 @@
-import type { HydrogenComponentSchema } from "@weaverse/hydrogen";
+import type { WeaverseComponentSchema } from "@weaverse/hydrogen/react-router";
 import { createContext, forwardRef, useContext } from "react";
 import { sectionBackgroundInputs } from "~/components/background-image";
 import type { SectionProps } from "~/components/section";
@@ -160,7 +160,7 @@ let CollectionListDynamic = forwardRef<HTMLElement, CollectionListDynamicProps>(
 
 export default CollectionListDynamic;
 
-export let schema: HydrogenComponentSchema = {
+export let schema: WeaverseComponentSchema = {
   type: "feature-collection",
   title: "Featured collections",
   childTypes: ["collection-content-dynamic", "collection-list-dynamic-items"],

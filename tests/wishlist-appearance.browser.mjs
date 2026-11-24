@@ -30,7 +30,7 @@ const bundle = await build({
       name: "wishlist-fixture",
       setup(builder) {
         const mocks = {
-          "@weaverse/hydrogen":
+          "@weaverse/hydrogen/react-router":
             "export const useThemeSettings=()=>window.settings;export const useTranslation=()=>({t:key=>key});",
           "react-router": "export const useRouteLoaderData=()=>window.data;",
           "./wishlist-provider":

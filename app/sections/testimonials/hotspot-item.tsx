@@ -1,15 +1,18 @@
 import type {
-  HydrogenComponentProps,
-  HydrogenComponentSchema,
+  WeaverseComponentProps,
+  WeaverseComponentSchema,
   WeaverseImage,
-} from "@weaverse/hydrogen";
-import { IMAGES_PLACEHOLDERS, useTranslation } from "@weaverse/hydrogen";
+} from "@weaverse/hydrogen/react-router";
+import {
+  IMAGES_PLACEHOLDERS,
+  useTranslation,
+} from "@weaverse/hydrogen/react-router";
 import { forwardRef } from "react";
 import { Image } from "~/components/image";
 import { cn } from "~/utils/cn";
 import { sectionImage } from "~/utils/section-placeholder";
 
-interface HotspotsTestimonialProps extends HydrogenComponentProps {
+interface HotspotsTestimonialProps extends WeaverseComponentProps {
   image: WeaverseImage | string;
   aspectRatio?: string;
 }
@@ -52,7 +55,7 @@ let HotspotsTestimonial = forwardRef<HTMLDivElement, HotspotsTestimonialProps>(
 
 export default HotspotsTestimonial;
 
-export let schema: HydrogenComponentSchema = {
+export let schema: WeaverseComponentSchema = {
   type: "testimonial--hotspots-item",
   title: "Hotspot",
   childTypes: ["testimonial-hot--item"],

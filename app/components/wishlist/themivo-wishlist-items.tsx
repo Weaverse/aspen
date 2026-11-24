@@ -1,5 +1,5 @@
-import { Image } from "@shopify/hydrogen";
-import { useThemeSettings } from "@weaverse/hydrogen";
+import { Image } from "~/components/shopify-image";
+import { useThemeSettings } from "@weaverse/hydrogen/react-router";
 import { type CSSProperties, type ReactNode, useEffect, useState } from "react";
 import { useRouteLoaderData } from "react-router";
 import {

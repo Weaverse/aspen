@@ -1,4 +1,7 @@
-import { useTranslation, type WeaverseImage } from "@weaverse/hydrogen";
+import {
+  useTranslation,
+  type WeaverseImage,
+} from "@weaverse/hydrogen/react-router";
 import { Image } from "~/components/image";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import {

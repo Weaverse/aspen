@@ -1,6 +1,9 @@
 import { ArrowRightIcon } from "@phosphor-icons/react";
 import * as NavigationMenu from "@radix-ui/react-navigation-menu";
-import { useThemeSettings, useTranslation } from "@weaverse/hydrogen";
+import {
+  useThemeSettings,
+  useTranslation,
+} from "@weaverse/hydrogen/react-router";
 import clsx from "clsx";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router";

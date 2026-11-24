@@ -1,17 +1,17 @@
 import { FunnelXIcon } from "@phosphor-icons/react";
-import { Pagination } from "@shopify/hydrogen";
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import clsx from "clsx";
 import { useEffect } from "react";
 import { useInView } from "react-intersection-observer";
 import { useLoaderData, useNavigate } from "react-router";
+import { variants } from "~/components/link";
+import { Pagination } from "~/components/pagination";
+import { ProductCard } from "~/components/product/product-card";
+import { SaleFilterStatus } from "~/components/sale-filter-status";
 import type {
   CollectionQuery,
   ProductCardFragment,
-} from "storefront-api.generated";
-import { variants } from "~/components/link";
-import { ProductCard } from "~/components/product/product-card";
-import { SaleFilterStatus } from "~/components/sale-filter-status";
+} from "~/graphql/storefront-types";
 import { cn } from "~/utils/cn";
 import {
   COMBINED_LISTINGS_CONFIGS,

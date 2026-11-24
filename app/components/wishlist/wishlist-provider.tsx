@@ -1,3 +1,5 @@
+import { useLocale } from "~/hooks/use-locale";
+import { customerAccountLoginPath } from "~/utils/customer-account";
 import {
   createContext,
   useCallback,
@@ -44,7 +46,7 @@ export function WishlistProvider({
     : root?.themivoAppearance?.toastPosition;
   const [toast, setToast] = useState<{ saved: boolean }>();
   const apiPath = usePrefixPathWithLocale("/api/wishlist");
-  const loginPath = usePrefixPathWithLocale("/account/login");
+  const locale = useLocale();
   const fetcher = useFetcher<WishlistApiResponse>({ key: "account-wishlist" });
   const location = useLocation();
   const pendingProductId = useRef<string | null>(null);
@@ -147,17 +149,9 @@ export function WishlistProvider({
         (!fetcher.data.acceptsGuests && !fetcher.data.authenticated))
     ) {
       const returnTo = `${location.pathname}${location.search}`;
-      window.location.assign(
-        `${loginPath}?return_to=${encodeURIComponent(returnTo)}`,
-      );
+      window.location.assign(customerAccountLoginPath(returnTo, locale));
     }
-  }, [
-    fetcher.data,
-    location.pathname,
-    location.search,
-    loginPath,
-    toastPosition,
-  ]);
+  }, [fetcher.data, location.pathname, location.search, locale, toastPosition]);
 
   useEffect(() => {
     if (!toast) {
@@ -181,9 +175,7 @@ export function WishlistProvider({
 
       if (!authenticated && (!acceptsGuests || (themivo && !guestEnabled))) {
         const returnTo = `${location.pathname}${location.search}`;
-        window.location.assign(
-          `${loginPath}?return_to=${encodeURIComponent(returnTo)}`,
-        );
+        window.location.assign(customerAccountLoginPath(returnTo, locale));
         return;
       }
 
@@ -224,7 +216,7 @@ export function WishlistProvider({
       hiddenProductIds,
       location.pathname,
       location.search,
-      loginPath,
+      locale,
       productIds,
       savedVariantIds,
       themivo,

@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
-import { InMemoryCache } from "@shopify/hydrogen";
 import type { LoaderFunctionArgs } from "react-router";
 import { loader } from "../app/routes/($locale).api.combined-prices";
+import { InMemoryCache } from "./helpers/cache";
 
 const originalFetch = globalThis.fetch;
 afterEach(() => {
@@ -19,7 +19,7 @@ function callLoader(
     cache = new InMemoryCache(),
     waitUntil = () => undefined,
   }: {
-    cache?: Cache;
+    cache?: InMemoryCache;
     waitUntil?: (promise: Promise<unknown>) => void;
   } = {},
 ) {
@@ -35,25 +35,30 @@ function callLoader(
       waitUntil,
       storefront: {
         i18n: { country: "FR", language: "FR" },
-        async query(_query: string, options: { variables: { ids: string[] } }) {
+        async graphql(
+          _query: string,
+          options: { variables: { ids: string[] } },
+        ) {
           assert.deepEqual(options.variables.ids, [child, sibling]);
           return {
-            nodes: [
-              {
-                id: child,
-                priceRange: {
-                  minVariantPrice: { amount: "469.0", currencyCode: "EUR" },
-                  maxVariantPrice: { amount: "469.0", currencyCode: "EUR" },
+            data: {
+              nodes: [
+                {
+                  id: child,
+                  priceRange: {
+                    minVariantPrice: { amount: "469.0", currencyCode: "EUR" },
+                    maxVariantPrice: { amount: "469.0", currencyCode: "EUR" },
+                  },
                 },
-              },
-              {
-                id: sibling,
-                priceRange: {
-                  minVariantPrice: { amount: "999.0", currencyCode: "EUR" },
-                  maxVariantPrice: { amount: "999.0", currencyCode: "EUR" },
+                {
+                  id: sibling,
+                  priceRange: {
+                    minVariantPrice: { amount: "999.0", currencyCode: "EUR" },
+                    maxVariantPrice: { amount: "999.0", currencyCode: "EUR" },
+                  },
                 },
-              },
-            ],
+              ],
+            },
           };
         },
       },
@@ -98,7 +103,7 @@ test("Hydrogen caches products without combined children", async () => {
         waitUntil: (promise: Promise<unknown>) => pending.push(promise),
         storefront: {
           i18n: { country: "US", language: "EN" },
-          async query() {
+          async graphql() {
             throw new Error("Storefront query should not run");
           },
         },

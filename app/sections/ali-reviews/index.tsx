@@ -1,4 +1,7 @@
-import { type ComponentLoaderArgs, createSchema } from "@weaverse/hydrogen";
+import {
+  createSchema,
+  type WeaverseComponentLoaderArgs,
+} from "@weaverse/hydrogen/react-router";
 import { forwardRef } from "react";
 import { backgroundInputs } from "~/components/background-image";
 import type { SectionProps } from "~/components/section";
@@ -33,7 +36,7 @@ type AliReviewsAPIPayload = {
 export const loader = async ({
   data: { aliReviewsApiKey = "" },
   weaverse,
-}: ComponentLoaderArgs<AliReviewsData>) => {
+}: WeaverseComponentLoaderArgs<AliReviewsData>) => {
   const res = await weaverse
     .fetchWithCache<AliReviewsAPIPayload>(
       "https://widget-hub-api.alireviews.io/api/public/reviews",

@@ -1,8 +1,9 @@
 import type { ProductFilter } from "@shopify/hydrogen/storefront-api-types";
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
-import type { CollectionQuery } from "storefront-api.generated";
+import { useOptionalCollectionBrowse } from "~/components/collection/browse";
+import type { CollectionQuery } from "~/graphql/storefront-types";
 import { useLocale } from "~/hooks/use-locale";
 import { cn } from "~/utils/cn";
 import { FILTER_URL_PREFIX, filterInputToParams } from "~/utils/filter";
@@ -22,6 +23,7 @@ export function PriceRangeFilter({
   const [params] = useSearchParams();
   const location = useLocation();
   const navigate = useNavigate();
+  const browse = useOptionalCollectionBrowse();
   const { minVariantPrice, maxVariantPrice, currencyCode } =
     getPricesRange(collection);
   const priceFromUrl = getPricesFromFilter(params);
@@ -56,6 +58,15 @@ export function PriceRangeFilter({
     setMinPrice(normalizedMin);
     setMaxPrice(normalizedMax);
 
+    if (browse) {
+      const others = browse.filters.filter((filter) => !filter.price);
+      browse.setFilters(
+        normalizedMin === undefined && normalizedMax === undefined
+          ? others
+          : [...others, { price: { min: normalizedMin, max: normalizedMax } }],
+      );
+      return;
+    }
     let paramsClone = new URLSearchParams(params);
     if (normalizedMin === undefined && normalizedMax === undefined) {
       paramsClone.delete(`${FILTER_URL_PREFIX}price`);
@@ -186,6 +197,15 @@ function getPricesRange(collection: CollectionQuery["collection"]) {
 }
 
 function getPricesFromFilter(params: URLSearchParams) {
+  if (params.has("filter.v.price.gte") || params.has("filter.v.price.lte"))
+    return {
+      min: params.has("filter.v.price.gte")
+        ? Number(params.get("filter.v.price.gte"))
+        : undefined,
+      max: params.has("filter.v.price.lte")
+        ? Number(params.get("filter.v.price.lte"))
+        : undefined,
+    };
   const priceFilter = params.get(`${FILTER_URL_PREFIX}price`);
   let price: ProductFilter["price"] | undefined;
   try {

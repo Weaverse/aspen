@@ -1,10 +1,10 @@
 import {
   createSchema,
-  type HydrogenComponentProps,
   IMAGES_PLACEHOLDERS,
   useTranslation,
+  type WeaverseComponentProps,
   type WeaverseImage,
-} from "@weaverse/hydrogen";
+} from "@weaverse/hydrogen/react-router";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import clsx from "clsx";
@@ -65,7 +65,7 @@ interface HeroVideoData extends OverlayProps, VariantProps<typeof gapVariants> {
   contentLayout?: ContentLayout;
 }
 
-export interface HeroVideoProps extends HeroVideoData, HydrogenComponentProps {}
+export interface HeroVideoProps extends HeroVideoData, WeaverseComponentProps {}
 
 const gapVariants = cva(
   "absolute inset-0 z-20 mx-auto flex max-w-screen flex-col items-center justify-center px-5",

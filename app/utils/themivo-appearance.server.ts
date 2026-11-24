@@ -1,4 +1,4 @@
-import { createWithCache } from "@shopify/hydrogen";
+import { createRunWithCache } from "@shopify/hydrogen";
 import type { AppLoadContext } from "react-router";
 import {
   THEMIVO_STOREFRONT_ORIGIN,
@@ -249,18 +249,20 @@ export async function readThemivoAppearance(
   if (language) {
     url.searchParams.set("locale", language);
   }
-  const withCache = createWithCache({
+  const withCache = createRunWithCache({
     cache: context.cache,
     waitUntil: context.waitUntil,
-    request: new Request(url, { headers: { Origin: origin } }),
   });
-  return withCache.run<Awaited<ReturnType<typeof fetchAppearance>>>(
+  const result = await withCache(
     {
-      cacheKey: ["themivo-appearance-v1", shop, origin, language ?? ""],
+      key: ["themivo-appearance-v1", shop, origin, language ?? ""],
       // Cache failures too, without keeping a disabled feature stale for long.
-      cacheStrategy: { mode: "public", maxAge: 5, staleWhileRevalidate: 0 },
-      shouldCacheResult: () => true,
+      strategy: { mode: "public", maxAge: 5, staleWhileRevalidate: 0 },
     },
-    () => fetchAppearance(url, origin),
+    async () => ({
+      data: { appearance: await fetchAppearance(url, origin) },
+      shouldCache: true,
+    }),
   );
+  return result.data.appearance;
 }

@@ -1,4 +1,4 @@
-import { useThemeSettings } from "@weaverse/hydrogen";
+import { useThemeSettings } from "@weaverse/hydrogen/react-router";
 import { animate, inView, useAnimate } from "framer-motion";
 import { type ForwardedRef, useEffect, useRef } from "react";
 

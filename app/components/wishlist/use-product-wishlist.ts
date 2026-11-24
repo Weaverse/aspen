@@ -1,4 +1,4 @@
-import { useThemeSettings } from "@weaverse/hydrogen";
+import { useThemeSettings } from "@weaverse/hydrogen/react-router";
 import { useRouteLoaderData } from "react-router";
 import type { RootLoader } from "~/root";
 import { WISHLIST_POSITION_CLASSES } from "./wishlist-position";

@@ -1,184 +1,337 @@
-export const PRODUCT_VARIANT_FRAGMENT = `#graphql
-  fragment ProductVariant on ProductVariant {
+import { gql } from "@shopify/hydrogen";
+export const PRODUCT_VARIANT_FRAGMENT =
+  gql(`fragment ProductVariant on ProductVariant {
+  currentlyNotInStock
+  requiresShipping
+  quantityRule {
+    minimum
+    maximum
+    increment
+  }
+  id
+  availableForSale
+  quantityAvailable
+  selectedOptions {
+    name
+    value
+  }
+  image {
     id
-    availableForSale
-    quantityAvailable
-    selectedOptions {
-      name
-      value
-    }
-    image {
-      id
-      url
-      altText
-      width
-      height
-    }
-    price {
-      amount
-      currencyCode
-    }
-    compareAtPrice {
-      amount
-      currencyCode
-    }
-    sku
+    url
+    altText
+    width
+    height
+  }
+  price {
+    amount
+    currencyCode
+  }
+  compareAtPrice {
+    amount
+    currencyCode
+  }
+  sku
+  title
+  unitPrice {
+    amount
+    currencyCode
+  }
+  product {
+    id
+    vendor
     title
-    unitPrice {
-      amount
-      currencyCode
-    }
-    product {
-      title
-      handle
-    }
-    requiresComponents
-    components(first: 10) {
-      nodes {
-        productVariant {
-          id
-          title
-          product {
-            handle
-          }
-        }
-        quantity
-      }
-    }
-    groupedBy(first: 10) {
-      nodes {
+    handle
+  }
+  requiresComponents
+  components(first: 10) {
+    nodes {
+      productVariant {
         id
         title
         product {
           handle
         }
       }
+      quantity
     }
-    }
-` as const;
-
-export const PRODUCT_OPTION_FRAGMENT = `#graphql
-  fragment ProductOption on ProductOption {
-    name
-    optionValues {
-      name
-      firstSelectableVariant {
-        ...ProductVariant
+  }
+  groupedBy(first: 10) {
+    nodes {
+      id
+      title
+      product {
+        handle
       }
-      swatch {
-        color
-        image {
-          previewImage {
-            url
-            altText
-          }
+    }
+  }
+}`);
+
+export const PRODUCT_OPTION_FRAGMENT =
+  gql(`fragment ProductOption on ProductOption {
+  name
+  optionValues {
+    name
+    firstSelectableVariant {
+      ...ProductVariant
+    }
+    swatch {
+      color
+      image {
+        previewImage {
+          url
+          altText
         }
       }
     }
   }
-  ${PRODUCT_VARIANT_FRAGMENT}
-` as const;
+}
 
-export const PRODUCT_CARD_FRAGMENT = `#graphql
-  fragment ProductCard on Product {
+fragment ProductVariant on ProductVariant {
+  currentlyNotInStock
+  requiresShipping
+  quantityRule {
+    minimum
+    maximum
+    increment
+  }
+  id
+  availableForSale
+  quantityAvailable
+  selectedOptions {
+    name
+    value
+  }
+  image {
     id
-    title
-    publishedAt
-    handle
+    url
+    altText
+    width
+    height
+  }
+  price {
+    amount
+    currencyCode
+  }
+  compareAtPrice {
+    amount
+    currencyCode
+  }
+  sku
+  title
+  unitPrice {
+    amount
+    currencyCode
+  }
+  product {
+    id
     vendor
-    productType
-    tags
-    reviewRating: metafield(namespace: "reviews", key: "rating") {
-      value
-    }
-    reviewRatingCount: metafield(namespace: "reviews", key: "rating_count") {
-      value
-    }
-    images(first: 50) {
-      nodes {
+    title
+    handle
+  }
+  requiresComponents
+  components(first: 10) {
+    nodes {
+      productVariant {
         id
-        url
-        altText
-        width
-        height
+        title
+        product {
+          handle
+        }
       }
+      quantity
     }
-    options {
-      ...ProductOption
-    }
-    badges: metafields(identifiers: [
-      { namespace: "custom", key: "best_seller" }
-    ]) {
-      key
-      namespace
-      value
-    }
-    priceRange {
-      maxVariantPrice {
-        amount
-        currencyCode
-      }
-      minVariantPrice {
-        amount
-        currencyCode
-      }
-    }
-    selectedOrFirstAvailableVariant(
-      selectedOptions: []
-      ignoreUnknownOptions: true
-      caseInsensitiveMatch: true
-    ) {
-      ...ProductVariant
-    }
-    # Check if the product is a bundle
-    isBundle: selectedOrFirstAvailableVariant(ignoreUnknownOptions: true, selectedOptions: { name: "", value: ""}) {
-      ...on ProductVariant {
-        requiresComponents
+  }
+  groupedBy(first: 10) {
+    nodes {
+      id
+      title
+      product {
+        handle
       }
     }
   }
-  ${PRODUCT_OPTION_FRAGMENT}
-`;
+}`);
 
-export const MEDIA_FRAGMENT = `#graphql
-  fragment Media on Media {
-    __typename
-    mediaContentType
-    alt
-    previewImage {
+export const PRODUCT_CARD_FRAGMENT = gql(`fragment ProductCard on Product {
+  id
+  title
+  publishedAt
+  handle
+  vendor
+  productType
+  tags
+  reviewRating: metafield(namespace: "reviews", key: "rating") {
+    value
+  }
+  reviewRatingCount: metafield(namespace: "reviews", key: "rating_count") {
+    value
+  }
+  images(first: 50) {
+    nodes {
       id
       url
       altText
       width
       height
     }
-    ... on MediaImage {
-      id
-      image {
-        id
-        url
-        width
-        height
-      }
+  }
+  options {
+    ...ProductOption
+  }
+  badges: metafields(identifiers: [{namespace: "custom", key: "best_seller"}]) {
+    key
+    namespace
+    value
+  }
+  priceRange {
+    maxVariantPrice {
+      amount
+      currencyCode
     }
-    ... on Video {
-      id
-      sources {
-        mimeType
-        url
-      }
-    }
-    ... on Model3d {
-      id
-      sources {
-        mimeType
-        url
-      }
-    }
-    ... on ExternalVideo {
-      id
-      embedUrl
-      host
+    minVariantPrice {
+      amount
+      currencyCode
     }
   }
-` as const;
+  selectedOrFirstAvailableVariant(
+    selectedOptions: []
+    ignoreUnknownOptions: true
+    caseInsensitiveMatch: true
+  ) {
+    ...ProductVariant
+  }
+  isBundle: selectedOrFirstAvailableVariant(
+    ignoreUnknownOptions: true
+    selectedOptions: {name: "", value: ""}
+  ) {
+    ... on ProductVariant {
+      requiresComponents
+    }
+  }
+}
+
+fragment ProductOption on ProductOption {
+  name
+  optionValues {
+    name
+    firstSelectableVariant {
+      ...ProductVariant
+    }
+    swatch {
+      color
+      image {
+        previewImage {
+          url
+          altText
+        }
+      }
+    }
+  }
+}
+
+fragment ProductVariant on ProductVariant {
+  currentlyNotInStock
+  requiresShipping
+  quantityRule {
+    minimum
+    maximum
+    increment
+  }
+  id
+  availableForSale
+  quantityAvailable
+  selectedOptions {
+    name
+    value
+  }
+  image {
+    id
+    url
+    altText
+    width
+    height
+  }
+  price {
+    amount
+    currencyCode
+  }
+  compareAtPrice {
+    amount
+    currencyCode
+  }
+  sku
+  title
+  unitPrice {
+    amount
+    currencyCode
+  }
+  product {
+    id
+    vendor
+    title
+    handle
+  }
+  requiresComponents
+  components(first: 10) {
+    nodes {
+      productVariant {
+        id
+        title
+        product {
+          handle
+        }
+      }
+      quantity
+    }
+  }
+  groupedBy(first: 10) {
+    nodes {
+      id
+      title
+      product {
+        handle
+      }
+    }
+  }
+}`);
+
+export const MEDIA_FRAGMENT = gql(`fragment Media on Media {
+  __typename
+  mediaContentType
+  alt
+  previewImage {
+    id
+    url
+    altText
+    width
+    height
+  }
+  ... on MediaImage {
+    id
+    image {
+      id
+      url
+      width
+      height
+    }
+  }
+  ... on Video {
+    id
+    sources {
+      mimeType
+      url
+    }
+  }
+  ... on Model3d {
+    id
+    sources {
+      mimeType
+      url
+    }
+  }
+  ... on ExternalVideo {
+    id
+    embedUrl
+    host
+  }
+}`);

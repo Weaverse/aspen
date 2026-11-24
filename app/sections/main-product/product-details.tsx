@@ -1,6 +1,6 @@
 import { MinusIcon, PlusIcon } from "@phosphor-icons/react";
 import * as Accordion from "@radix-ui/react-accordion";
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import clsx from "clsx";
 import { useRouteLoaderData } from "react-router";
 import { Link } from "~/components/link";

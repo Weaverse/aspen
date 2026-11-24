@@ -1,9 +1,12 @@
-import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
+import {
+  createSchema,
+  type WeaverseComponentProps,
+} from "@weaverse/hydrogen/react-router";
 import { AccountOrderHistory } from "~/components/customer/orders";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import { useAccountSectionData } from ".";
 
-interface AccountOrdersProps extends Partial<HydrogenComponentProps> {
+interface AccountOrdersProps extends Partial<WeaverseComponentProps> {
   heading?: string;
   maxOrders?: number;
 }

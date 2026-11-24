@@ -1,10 +1,15 @@
-import { parseGid } from "@shopify/hydrogen";
+import { gql } from "@shopify/hydrogen";
 import type { LoaderFunctionArgs } from "react-router";
+import { CACHE_DEFAULT } from "~/utils/cache";
+import { parseGid } from "~/utils/shopify";
+import { unwrapStorefront } from "~/utils/storefront";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const url = new URL(request.url);
 
-  const { shop } = await context.storefront.query(ROBOTS_QUERY);
+  const { shop } = await context.storefront
+    .graphql(ROBOTS_QUERY, { cache: CACHE_DEFAULT })
+    .then(unwrapStorefront);
 
   const shopId = parseGid(shop.id).id;
   const body = robotsTxtData({ url: url.origin, shopId });
@@ -107,11 +112,9 @@ Disallow: /.well-known/shopify/monorail
 ${sitemapUrl ? `Sitemap: ${sitemapUrl}` : ""}`;
 }
 
-const ROBOTS_QUERY = `#graphql
-  query StoreRobots($country: CountryCode, $language: LanguageCode)
-   @inContext(country: $country, language: $language) {
-    shop {
-      id
-    }
+export const ROBOTS_QUERY =
+  gql(`query StoreRobots($country: CountryCode, $language: LanguageCode) @inContext(country: $country, language: $language) {
+  shop {
+    id
   }
-` as const;
+}`);

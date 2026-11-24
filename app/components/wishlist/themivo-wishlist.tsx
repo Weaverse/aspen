@@ -1,4 +1,4 @@
-import { Image } from "@shopify/hydrogen";
+import { Image } from "~/components/shopify-image";
 import {
   type ComponentProps,
   type ReactNode,

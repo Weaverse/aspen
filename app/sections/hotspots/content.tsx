@@ -1,11 +1,11 @@
-import type { HydrogenComponentProps } from "@weaverse/hydrogen";
-import { createSchema } from "@weaverse/hydrogen";
+import type { WeaverseComponentProps } from "@weaverse/hydrogen/react-router";
+import { createSchema } from "@weaverse/hydrogen/react-router";
 import { cva, type VariantProps } from "class-variance-authority";
 import { forwardRef } from "react";
 import { useHotspotsLayout } from ".";
 
 interface HotspotsProps
-  extends HydrogenComponentProps, VariantProps<typeof variants> {}
+  extends WeaverseComponentProps, VariantProps<typeof variants> {}
 
 let variants = cva(
   "flex flex-col [&_.button]:font-bold [&_.paragraph]:mx-[unset]",

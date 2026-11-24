@@ -1,9 +1,5 @@
-import { CacheNone, generateCacheControlHeader } from "@shopify/hydrogen";
-import type { WeaverseLoaderData } from "@weaverse/hydrogen";
-import type {
-  CustomerDetailsFragment,
-  CustomerDetailsQuery,
-} from "customer-account-api.generated";
+import { gql } from "@shopify/hydrogen/customer-account";
+import type { WeaverseLoaderData } from "@weaverse/hydrogen/react-router";
 import {
   data,
   type LoaderFunctionArgs,
@@ -13,6 +9,10 @@ import {
   useOutlet,
 } from "react-router";
 import { OutletModal } from "~/components/customer/outlet-modal";
+import type {
+  CustomerDetailsFragment,
+  CustomerDetailsQuery,
+} from "~/graphql/customer-types";
 import AccountSection from "~/sections/account";
 import AccountAddressBookBlock from "~/sections/account/address-book";
 import AccountDetailsBlock from "~/sections/account/details";
@@ -22,7 +22,11 @@ import {
   isAccountPreviewRequest,
   readAccountPreviewState,
 } from "~/utils/account-preview.server";
-import { routeHeaders } from "~/utils/cache";
+import {
+  CacheNone,
+  generateCacheControlHeader,
+  routeHeaders,
+} from "~/utils/cache";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 import { WeaverseContent } from "~/weaverse";
 import { doLogout } from "./($locale).account_.logout";
@@ -40,9 +44,8 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
   );
   const isLocalPreview = isAccountPreviewRequest(request);
 
-  // Shopify Customer Account OAuth cannot run on localhost. Keep the account
-  // page editable in Weaverse Studio and previewable during local development;
-  // tunnel and production requests still use the authenticated customer.
+  // Keep the account page editable in Studio and previewable on HTTP localhost.
+  // HTTPS local development, tunnels and production use the real customer.
   if (isDesignMode || isLocalPreview) {
     const previewState = await readAccountPreviewState(request);
     return data(
@@ -54,10 +57,9 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
     );
   }
 
-  const { data: d, errors } =
-    await context.customerAccount.query<CustomerDetailsQuery>(
-      CUSTOMER_DETAILS_QUERY,
-    );
+  const { data: d, errors } = await context.customerAccount.graphql(
+    CUSTOMER_DETAILS_QUERY,
+  );
 
   /**
    * If the customer failed to load, we assume their access token is invalid.
@@ -134,81 +136,199 @@ function Account({ customer, weaverseData }: AccountType) {
 }
 
 // NOTE: https://shopify.dev/docs/api/customer/latest/queries/customer
-export const CUSTOMER_DETAILS_QUERY = `#graphql
-  query CustomerDetails {
-    customer {
-      ...CustomerDetails
+export const CUSTOMER_DETAILS_QUERY_OrderCard =
+  gql(`fragment OrderCard on Order {
+  id
+  number
+  processedAt
+  financialStatus
+  fulfillments(first: 1) {
+    nodes {
+      status
     }
   }
-  fragment OrderCard on Order {
-    id
-    number
-    processedAt
-    financialStatus
-    fulfillments(first: 1) {
-      nodes {
-        status
-      }
-    }
-    totalPrice {
-      amount
-      currencyCode
-    }
-    lineItems(first: 2) {
-      edges {
-        node {
-          title
-          image {
-            altText
-            height
-            url
-            width
-          }
+  totalPrice {
+    amount
+    currencyCode
+  }
+  lineItems(first: 2) {
+    edges {
+      node {
+        title
+        image {
+          altText
+          height
+          url
+          width
         }
       }
     }
   }
+}`);
 
-  fragment AddressPartial on CustomerAddress {
-    id
-    formatted
-    firstName
-    lastName
-    company
-    address1
-    address2
-    territoryCode
-    zoneCode
-    city
-    zip
+export const CUSTOMER_DETAILS_QUERY_AddressPartial =
+  gql(`fragment AddressPartial on CustomerAddress {
+  id
+  formatted
+  firstName
+  lastName
+  company
+  address1
+  address2
+  countryCode
+  zoneCode
+  city
+  zip
+  phoneNumber
+}`);
+
+export const CUSTOMER_DETAILS_QUERY_CustomerDetails =
+  gql(`fragment CustomerDetails on Customer {
+  firstName
+  lastName
+  phoneNumber {
     phoneNumber
   }
-
-  fragment CustomerDetails on Customer {
-    firstName
-    lastName
-    phoneNumber {
-      phoneNumber
-    }
-    emailAddress {
-      emailAddress
-    }
-    defaultAddress {
-      ...AddressPartial
-    }
-    addresses(first: 6) {
-      edges {
-        node {
-          ...AddressPartial
-        }
+  emailAddress {
+    emailAddress
+  }
+  defaultAddress {
+    ...AddressPartial
+  }
+  addresses(first: 6) {
+    edges {
+      node {
+        ...AddressPartial
       }
     }
-    orders(first: 250, sortKey: PROCESSED_AT, reverse: true) {
-      edges {
-        node {
-          ...OrderCard
+  }
+  orders(first: 250, sortKey: PROCESSED_AT, reverse: true) {
+    edges {
+      node {
+        ...OrderCard
+      }
+    }
+  }
+}
+
+fragment AddressPartial on CustomerAddress {
+  id
+  formatted
+  firstName
+  lastName
+  company
+  address1
+  address2
+  countryCode
+  zoneCode
+  city
+  zip
+  phoneNumber
+}
+
+fragment OrderCard on Order {
+  id
+  number
+  processedAt
+  financialStatus
+  fulfillments(first: 1) {
+    nodes {
+      status
+    }
+  }
+  totalPrice {
+    amount
+    currencyCode
+  }
+  lineItems(first: 2) {
+    edges {
+      node {
+        title
+        image {
+          altText
+          height
+          url
+          width
         }
       }
     }
   }
-` as const;
+}`);
+
+export const CUSTOMER_DETAILS_QUERY = gql(`query CustomerDetails {
+  customer {
+    ...CustomerDetails
+  }
+}
+
+fragment CustomerDetails on Customer {
+  firstName
+  lastName
+  phoneNumber {
+    phoneNumber
+  }
+  emailAddress {
+    emailAddress
+  }
+  defaultAddress {
+    ...AddressPartial
+  }
+  addresses(first: 6) {
+    edges {
+      node {
+        ...AddressPartial
+      }
+    }
+  }
+  orders(first: 250, sortKey: PROCESSED_AT, reverse: true) {
+    edges {
+      node {
+        ...OrderCard
+      }
+    }
+  }
+}
+
+fragment AddressPartial on CustomerAddress {
+  id
+  formatted
+  firstName
+  lastName
+  company
+  address1
+  address2
+  countryCode
+  zoneCode
+  city
+  zip
+  phoneNumber
+}
+
+fragment OrderCard on Order {
+  id
+  number
+  processedAt
+  financialStatus
+  fulfillments(first: 1) {
+    nodes {
+      status
+    }
+  }
+  totalPrice {
+    amount
+    currencyCode
+  }
+  lineItems(first: 2) {
+    edges {
+      node {
+        title
+        image {
+          altText
+          height
+          url
+          width
+        }
+      }
+    }
+  }
+}`);

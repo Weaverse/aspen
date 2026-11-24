@@ -1,4 +1,4 @@
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import clsx from "clsx";
 import { useId } from "react";
 import { useLocale } from "~/hooks/use-locale";

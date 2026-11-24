@@ -55,6 +55,7 @@ const bundle = await build({
   bundle: true,
   write: false,
   format: "iife",
+  define: { "import.meta.env.DEV": "false" },
   jsx: "automatic",
   alias: { "~": `${root}app` },
   plugins: [
@@ -64,7 +65,7 @@ const bundle = await build({
         builder.onResolve(
           {
             filter:
-              /^@shopify\/hydrogen$|^@weaverse\/hydrogen$|^react-router$|^~\/hooks\/use-prefix-path-with-locale$|^\.\/cart-sync$/,
+              /^@shopify\/hydrogen$|^@weaverse\/hydrogen(?:\/react-router)?$|^react-router$|^~\/hooks\/use-prefix-path-with-locale$|^\.\/cart-sync$/,
           },
           ({ path }) => ({ path, namespace: "fixture" }),
         );
@@ -72,7 +73,7 @@ const bundle = await build({
           let contents;
           if (path === "@shopify/hydrogen") {
             contents = `export const CartForm = {INPUT_NAME:"cartFormInput", ACTIONS:{NoteUpdate:"NoteUpdate", DiscountCodesUpdate:"DiscountCodesUpdate", GiftCardCodesAdd:"GiftCardCodesAdd"}};`;
-          } else if (path === "@weaverse/hydrogen") {
+          } else if (path === "@weaverse/hydrogen/react-router") {
             contents = `export const useTranslation = () => ({t:(key) => key});`;
           } else if (path === "react-router") {
             contents = `import {useEffect, useState} from "react";

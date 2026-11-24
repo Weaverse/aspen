@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
-import { InMemoryCache } from "@shopify/hydrogen";
 import type { LoaderFunctionArgs } from "react-router";
 import { loadCartInventoryPolicies } from "../app/components/cart/use-cart-inventory-policy";
 import { loader } from "../app/routes/($locale).api.cart-inventory-policy";
+import { InMemoryCache } from "./helpers/cache";
 
 const originalFetch = globalThis.fetch;
 afterEach(() => {

@@ -1,8 +1,8 @@
 import {
   createSchema,
-  type HydrogenComponentProps,
   useThemeSettings,
-} from "@weaverse/hydrogen";
+  type WeaverseComponentProps,
+} from "@weaverse/hydrogen/react-router";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import { forwardRef } from "react";
@@ -60,7 +60,7 @@ export interface SlideshowData
 
 const Slideshow = forwardRef<
   HTMLDivElement,
-  SlideshowData & HydrogenComponentProps
+  SlideshowData & WeaverseComponentProps
 >((props, ref) => {
   const {
     height,

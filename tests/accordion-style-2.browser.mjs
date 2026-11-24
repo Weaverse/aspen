@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { chromium, expect } from "@playwright/test";
 import { compile } from "@tailwindcss/node";
 import { Scanner } from "@tailwindcss/oxide";
-import { generateDataFromSchema } from "@weaverse/hydrogen";
+import { generateDataFromSchema } from "@weaverse/hydrogen/react-router";
 import { build } from "esbuild";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
@@ -42,7 +42,7 @@ const bundle = await build({
       name: "accordion-boundaries",
       setup(builder) {
         const stubs = {
-          "@weaverse/hydrogen":
+          "@weaverse/hydrogen/react-router":
             'export const IMAGES_PLACEHOLDERS={image:"/placeholder.svg"}; export const useTranslation=()=>({t:key=>key});',
           "@shopify/hydrogen":
             'import React from "react"; export const Image=props=><img {...props}/>;',

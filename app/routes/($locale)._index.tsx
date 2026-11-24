@@ -1,14 +1,18 @@
-import { AnalyticsPageType } from "@shopify/hydrogen";
-import { getWeaverseSeoMeta, type PageType } from "@weaverse/hydrogen";
+import { gql } from "@shopify/hydrogen";
+import {
+  getWeaverseSeoMeta,
+  type PageType,
+} from "@weaverse/hydrogen/react-router";
 import type { LoaderFunctionArgs, MetaArgs } from "react-router";
-import type { ShopQuery } from "storefront-api.generated";
-import { routeHeaders } from "~/utils/cache";
+import type { ShopQuery } from "~/graphql/storefront-types";
+import { CACHE_DEFAULT, CacheLong, routeHeaders } from "~/utils/cache";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 import { seoPayload } from "~/utils/seo.server";
 import {
   localizedSeoMetaFromMatches,
   withWeaverseSeo,
 } from "~/utils/seo-translation";
+import { unwrapStorefront } from "~/utils/storefront";
 import { validateWeaverseData, WeaverseContent } from "~/weaverse";
 
 export const headers = routeHeaders;
@@ -28,9 +32,9 @@ export async function loader(args: LoaderFunctionArgs) {
   // Load async data in parallel for better performance
   const [weaverseData, { shop }] = await Promise.all([
     context.weaverse.loadPage({ type }),
-    context.storefront.query<ShopQuery>(SHOP_QUERY, {
-      cache: context.storefront.CacheLong(),
-    }),
+    context.storefront
+      .graphql(SHOP_QUERY, { cache: CacheLong() })
+      .then(unwrapStorefront),
   ]);
 
   // Check weaverseData after parallel loading
@@ -44,7 +48,7 @@ export async function loader(args: LoaderFunctionArgs) {
     shop,
     weaverseData,
     analytics: {
-      pageType: AnalyticsPageType.home,
+      pageType: "home",
     },
     seo,
   };
@@ -60,12 +64,10 @@ export default function Homepage() {
   return <WeaverseContent />;
 }
 
-const SHOP_QUERY = `#graphql
-  query shop($country: CountryCode, $language: LanguageCode)
-  @inContext(country: $country, language: $language) {
-    shop {
-      name
-      description
-    }
+export const SHOP_QUERY =
+  gql(`query shop($country: CountryCode, $language: LanguageCode) @inContext(country: $country, language: $language) {
+  shop {
+    name
+    description
   }
-` as const;
+}`);

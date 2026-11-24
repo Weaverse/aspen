@@ -1,4 +1,4 @@
-import type { RouteLoaderArgs } from "@weaverse/hydrogen";
+import type { RouteLoaderArgs } from "@weaverse/hydrogen/react-router";
 import { loader as pageLoader } from "./($locale).pages.$pageHandle";
 
 export {

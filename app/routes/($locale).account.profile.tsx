@@ -1,6 +1,6 @@
+import { gql } from "@shopify/hydrogen/customer-account";
 import type { CustomerUpdateInput } from "@shopify/hydrogen/customer-account-api-types";
-import { useTranslation } from "@weaverse/hydrogen";
-import type { CustomerUpdateMutation } from "customer-account-api.generated";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import {
   type ActionFunctionArgs,
   data,
@@ -11,33 +11,31 @@ import {
   useNavigation,
   useOutletContext,
 } from "react-router";
+import type { CustomerUpdateMutation } from "~/graphql/customer-types";
 import { getMetaTranslator } from "~/utils/seo-translation";
 import { translateError } from "~/utils/translated-error";
 
 // https://shopify.dev/docs/api/customer/latest/mutations/customerUpdate
-export const CUSTOMER_UPDATE_MUTATION = `#graphql
-  mutation customerUpdate(
-    $customer: CustomerUpdateInput!
-  ){
-    customerUpdate(input: $customer) {
-      customer {
-        firstName
-        lastName
-        emailAddress {
-          emailAddress
-        }
-        phoneNumber {
-          phoneNumber
-        }
+export const CUSTOMER_UPDATE_MUTATION =
+  gql(`mutation customerUpdate($customer: CustomerUpdateInput!) {
+  customerUpdate(input: $customer) {
+    customer {
+      firstName
+      lastName
+      emailAddress {
+        emailAddress
       }
-      userErrors {
-        code
-        field
-        message
+      phoneNumber {
+        phoneNumber
       }
     }
+    userErrors {
+      code
+      field
+      message
+    }
   }
-` as const;
+}`);
 
 export type ActionResponse = {
   error: string | null;
@@ -76,12 +74,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
 
     // update customer and possibly password
-    const { data: updateData, errors } = await customerAccount.mutate(
+    const { data: updateData, errors } = await customerAccount.graphql(
       CUSTOMER_UPDATE_MUTATION,
       {
-        variables: {
-          customer,
-        },
+        variables: { customer },
       },
     );
 

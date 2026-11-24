@@ -1,4 +1,4 @@
-import { createSchema } from "@weaverse/hydrogen";
+import { createSchema } from "@weaverse/hydrogen/react-router";
 import { Children, forwardRef, useEffect, useRef, useState } from "react";
 import type { Swiper as SwiperType } from "swiper";
 import { EffectFade } from "swiper/modules";

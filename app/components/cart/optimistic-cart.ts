@@ -1,6 +1,7 @@
-import { CartForm, type OptimisticCartLineInput } from "@shopify/hydrogen";
 import type { Fetcher } from "react-router";
-import type { CartApiQueryFragment } from "storefront-api.generated";
+import { CartForm } from "~/components/cart/cart-action-form";
+import type { OptimisticCartLineInput } from "~/components/cart/cart-types";
+import type { CartApiQueryFragment } from "~/graphql/storefront-types";
 import { isCompletedCartAdd } from "./cart-baseline";
 import { getOptimisticLineQuantity } from "./cart-line-quantity";
 import type {
@@ -311,7 +312,10 @@ export function applyOptimisticMutations(
         captureCompletedLineUpdates(
           baseline,
           fetcher,
-          inputs.lines ?? [],
+          (inputs.lines ?? []).filter(
+            (line): line is typeof line & { id: string } =>
+              typeof line.id === "string",
+          ),
           adjustedQuantities,
         )
       ) {

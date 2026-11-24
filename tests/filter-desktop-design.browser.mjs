@@ -40,7 +40,7 @@ const bundle = await build({
       import {createRoot} from "react-dom/client";
       import * as Dialog from "@radix-ui/react-dialog";
       import {XIcon, SlidersIcon} from "@phosphor-icons/react";
-      import {useTranslation} from "@weaverse/hydrogen";
+      import {useTranslation} from "@weaverse/hydrogen/react-router";
       import {AnimatedDrawer} from "./app/components/animate-drawer";
       import {ScrollArea} from "./app/components/scroll-area";
       import {Filters} from "./app/sections/collection-filters/filters";
@@ -66,6 +66,7 @@ const bundle = await build({
   bundle: true,
   write: false,
   format: "iife",
+  define: { "import.meta.env.DEV": "false" },
   jsx: "automatic",
   alias: { "~": `${root}app` },
   plugins: [
@@ -75,19 +76,20 @@ const bundle = await build({
         builder.onResolve(
           {
             filter:
-              /^@(weaverse|shopify)\/hydrogen$|^react-router$|^~\/hooks\/(use-closest-weaverse-item|use-locale)$|^~\/components\/product\/product-option-values$/,
+              /^@(weaverse|shopify)\/hydrogen(?:\/react-router)?$|^react-router$|^~\/hooks\/(use-closest-weaverse-item|use-locale)$|^~\/components\/product\/product-option-values$/,
           },
           ({ path }) => ({ path, namespace: "fixture" }),
         );
         builder.onLoad({ filter: /.*/, namespace: "fixture" }, ({ path }) => ({
+          resolveDir: root,
           loader: "js",
           contents:
-            path === "@weaverse/hydrogen"
+            path === "@weaverse/hydrogen/react-router"
               ? `const locale=${JSON.stringify(locale)}; export const useTranslation=()=>({t:(key,vars={}) => key.split('.').reduce((v,k)=>v?.[k],locale)?.replace(/{{(.*?)}}/g,(_,k)=>vars[k.trim()]??"")||key});`
               : path === "@shopify/hydrogen"
-                ? "export const Image=()=>null;"
+                ? `export const Image=()=>null; export {parseCollectionParams, serializeCollectionParams, isFilterInputActive, getFilterRemovalUrl} from "${root}node_modules/@shopify/hydrogen/dist/core/collection/url.mjs";`
                 : path === "react-router"
-                  ? `export const useLoaderData=()=>window.fixture; export const useRouteLoaderData=()=>({selectedLocale:{language:"EN",country:"US"},swatchesConfigs:{colors:[],images:[]}}); export const useLocation=()=>({pathname:"/collections/fixture"});export const useSearchParams=()=>[new URLSearchParams()];export const useNavigate=()=>(url)=>window.navigations.push(url);`
+                  ? `export const useLoaderData=()=>window.fixture; export const useRouteLoaderData=()=>({selectedLocale:{language:"EN",country:"US"},swatchesConfigs:{colors:[],images:[]}}); export const useLocation=()=>({pathname:window.kind === "search" ? "/search" : "/collections/fixture"});export const useSearchParams=()=>[new URLSearchParams()];export const useNavigate=()=>(url)=>window.navigations.push(url);`
                   : path.includes("use-closest")
                     ? "export const useClosestWeaverseItem=()=>({data:{}});"
                     : path.includes("use-locale")
@@ -223,7 +225,7 @@ test("desktop Filter matches Figma frame, accordion rhythm, controls and typogra
         .getByRole("checkbox", { name: "Brown", exact: true })
         .click();
       expect(await page.evaluate(() => window.navigations.at(-1))).toContain(
-        "filter.variantOption=",
+        kind === "search" ? "filter.variantOption=" : "filter.v.option.Color=",
       );
       for (const width of [390, 834, 1032, 1033]) {
         await page.setViewportSize({ width, height: 1117 });

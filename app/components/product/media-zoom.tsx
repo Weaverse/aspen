@@ -7,21 +7,21 @@ import {
 } from "@phosphor-icons/react";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
-import { parseGid } from "@shopify/hydrogen";
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import clsx from "clsx";
 import { useEffect, useRef, useState } from "react";
-import type {
-  Media_MediaImage_Fragment,
-  Media_Video_Fragment,
-  MediaFragment,
-} from "storefront-api.generated";
 import { ArrowButton } from "~/components/arrow-button";
 import { Image } from "~/components/image";
 import { ScrollArea } from "~/components/scroll-area";
 import { Spinner } from "~/components/spinner";
+import type {
+  Media_MediaImage_Fragment,
+  Media_Video_Fragment,
+  MediaFragment,
+} from "~/graphql/storefront-types";
 import { cn } from "~/utils/cn";
 import { calculateAspectRatio } from "~/utils/image";
+import { parseGid } from "~/utils/shopify";
 
 export function ZoomModal({
   media,

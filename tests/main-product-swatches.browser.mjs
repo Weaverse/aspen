@@ -53,6 +53,7 @@ const bundle = await build({
   bundle: true,
   write: false,
   format: "iife",
+  define: { "import.meta.env.DEV": "false" },
   jsx: "automatic",
   alias: { "~": `${root}app` },
   plugins: [
@@ -60,7 +61,7 @@ const bundle = await build({
       name: "swatch-fixture",
       setup(builder) {
         const stubs = {
-          "@weaverse/hydrogen":
+          "@weaverse/hydrogen/react-router":
             "export const useTranslation = () => ({t: (_, value) => value.value});",
           "react-router": `export const useNavigate = () => to => {window.navigation=to};
             export const useLocation = () => ({pathname:"/collections/all"});
@@ -77,6 +78,13 @@ const bundle = await build({
           "@shopify/hydrogen":
             "import React from 'react'; export const Image = ({data,...props}) => React.createElement('img',{...props,src:data?.url});",
         };
+        stubs["~/components/shopify-image"] = stubs["@shopify/hydrogen"];
+        stubs["@shopify/hydrogen"] +=
+          `export {parseCollectionParams, serializeCollectionParams, isFilterInputActive, getFilterRemovalUrl} from "${root}node_modules/@shopify/hydrogen/dist/core/collection/url.mjs";`;
+        stubs["~/components/collection/browse"] =
+          "export const useOptionalCollectionBrowse=()=>null;";
+        stubs["~/components/product/product-form"] =
+          "export const useProductForm=()=>({selectOption:()=>({status:'unresolved'})});";
         builder.onResolve({ filter: /./ }, ({ path }) =>
           path in stubs ? { path, namespace: "fixture" } : undefined,
         );
@@ -258,7 +266,7 @@ test("Product Card and color Filter use canonical small/large styles without cha
     await filter.click();
     assert.match(
       await page.evaluate(() => window.navigation),
-      /filter\.variantOption=/,
+      /filter\.v\.option\.Color=/,
     );
   } finally {
     await browser.close();
