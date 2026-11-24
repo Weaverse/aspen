@@ -1,10 +1,12 @@
-import { ShoppingBagIcon, XIcon } from "@phosphor-icons/react";
+import { ShoppingBagIcon } from "@phosphor-icons/react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useAnalytics } from "@shopify/hydrogen";
 import { useTranslation } from "@weaverse/hydrogen";
 import { Cart } from "~/components/cart/cart";
 import { useCart, useCartStore } from "~/components/cart/store";
 import { AnimatedDrawer } from "../animate-drawer";
+import { DrawerPanel } from "./drawer-panel";
+import { NavbarCount } from "./navbar-count";
 
 export function toggleCartDrawer(open: boolean) {
   useCartStore.getState().toggle(open);
@@ -39,34 +41,15 @@ export function CartDrawer() {
         <span className="flex size-5 shrink-0 items-center justify-center">
           <ShoppingBagIcon className="size-5" />
         </span>
-        {cart && cart.totalQuantity > 0 && (
-          <span className="relative top-1 -translate-y-2/3 shrink-0 self-start whitespace-nowrap font-body font-normal text-xs leading-none tracking-[0.02em]">
-            {cart.totalQuantity}
-          </span>
-        )}
+        <NavbarCount count={cart?.totalQuantity ?? 0} />
       </Dialog.Trigger>
       <AnimatedDrawer open={isOpen} flush>
-        {/* Figma 512:13474 — the panel is the padded flex column:
-                  padding 12px 20px 24px, align-items flex-start, gap 16px. */}
-        <div className="flex h-full min-h-0 flex-col items-start gap-4 px-5 pt-3 pb-6 max-xl:pb-[max(24px,env(safe-area-inset-bottom))]">
-          <div className="flex h-[42px] w-full shrink-0 items-center justify-between gap-2">
-            <Dialog.Title asChild className="text-sm">
-              <span className="font-semibold uppercase tracking-[0.02em]">
-                {t("cart.title")}
-              </span>
-            </Dialog.Title>
-            <Dialog.Close asChild>
-              <button
-                type="button"
-                className="translate-x-2 p-2"
-                aria-label={t("accessibility.closeCart")}
-              >
-                <XIcon className="h-4 w-4" />
-              </button>
-            </Dialog.Close>
-          </div>
+        <DrawerPanel
+          title={t("cart.title")}
+          closeLabel={t("accessibility.closeCart")}
+        >
           <Cart layout="drawer" onClose={closeCartDrawer} />
-        </div>
+        </DrawerPanel>
       </AnimatedDrawer>
     </Dialog.Root>
   );

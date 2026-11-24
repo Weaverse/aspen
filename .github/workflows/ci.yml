@@ -31,6 +31,11 @@ jobs:
         run: npm run codegen
       - name: Check types
         run: npm run typecheck
+      - name: Check Themivo wishlist regressions
+        run: |
+          npx --no-install vite-node tests/themivo-wishlist.unit.test.ts
+          npx --no-install vite-node tests/themivo-products.unit.test.ts
+          npx --no-install vite-node tests/themivo-appearance.unit.test.ts
       - name: Check localization
         run: npm run locale:check && npm run i18n:test
       - name: Check sanitizer regressions
