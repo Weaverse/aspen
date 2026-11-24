@@ -1,5 +1,5 @@
 import type { ComponentProps } from "react";
-import { useCart } from "~/components/cart/cart-store";
+import { useLibraryCart } from "~/components/cart/cart-store";
 import * as Track from "./analytics-views";
 export const Analytics = {
   ProductView: ({
@@ -16,7 +16,7 @@ export const Analytics = {
     <Track.SearchView {...data} />
   ),
   CartView: () => {
-    const { data, loading } = useCart((state) => state);
+    const { data, loading } = useLibraryCart((state) => state);
     return <Track.CartView cart={data} ready={!loading} />;
   },
 };

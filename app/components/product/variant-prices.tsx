@@ -98,7 +98,7 @@ export function VariantPrices({
 }: {
   spacedCurrency?: boolean;
   variant:
-    | ProductVariantFragment
+    | Pick<ProductVariantFragment, "price" | "compareAtPrice">
     | { price: Pick<MoneyV2, "amount" | "currencyCode"> };
   showCompareAtPrice?: boolean;
   className?: string;

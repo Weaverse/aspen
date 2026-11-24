@@ -17,8 +17,8 @@ const CHECK_IGNORES = [
   ".wrangler",
   "icons",
   "patches",
-  "storefront-api.generated.d.ts",
-  "customer-account-api.generated.d.ts",
+  "storefront-graphql-env.d.ts",
+  "customer-account-graphql-env.d.ts",
   ".shopify",
   ".react-router",
   "app/utils/string-parser.ts",
@@ -375,12 +375,13 @@ function ssrStubClientOnlyModules(): Plugin {
   };
 }
 
-export default defineConfig(({ isSsrBuild }) => ({
+export function createAspenViteConfig(oxygenOptions?: Parameters<typeof oxygen>[0]) {
+return defineConfig(({ isSsrBuild }) => ({
   fmt: FMT,
   lint: LINT,
   plugins: [
     localHttps({ enabled: ["dev:https", "dev:ca"].includes(process.env.npm_lifecycle_event || "") }),
-    ...oxygen(process.env.ASPEN_RUNTIME_PROBE === "1" ? {entry:fileURLToPath(new URL("./scripts/fixtures/runtime-worker.ts",import.meta.url))} : undefined),
+    ...oxygen(oxygenOptions),
     reactRouter(),
     tailwindcss(),
     ssrStubClientOnlyModules(),
@@ -429,3 +430,5 @@ export default defineConfig(({ isSsrBuild }) => ({
     },
   },
 }));
+}
+export default createAspenViteConfig();

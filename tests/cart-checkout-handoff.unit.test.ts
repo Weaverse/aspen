@@ -277,3 +277,58 @@ test("a note mutation does not lose authenticated handoff to a later transient l
   );
   assert.equal(reads, 1);
 });
+
+for (const existing of [true, false]) {
+  test(`add synchronizes identity without a redundant round trip; existing=${existing}`, async () => {
+    const request = new Request(
+      "https://store.example/cart",
+      existing ? { headers: { Cookie: "cart=test?key=secret" } } : undefined,
+    );
+    let syncs = 0,
+      writes = 0;
+    const cart = {
+      id: "gid://shopify/Cart/test",
+      checkoutUrl: "https://checkout.example/cart?key=secret",
+      lines: { nodes: [] },
+      totalQuantity: 1,
+    };
+    const syncedCart = { ...cart, totalQuantity: 2 };
+    const storefront = {
+      i18n: { country: "FR", language: "FR" },
+      graphql: async (doc) => {
+        const sync = String(doc).includes("mutation AspenCartBuyer");
+        if (sync) {
+          syncs += 1;
+          return {
+            data: {
+              cartBuyerIdentityUpdate: { cart: syncedCart, userErrors: [] },
+            },
+          };
+        }
+        writes += 1;
+        return {
+          data: {
+            cartCreate: { cart, userErrors: [] },
+            cartLinesAdd: { cart, userErrors: [] },
+          },
+          headers: new Headers(),
+        };
+      },
+    } as unknown as Parameters<typeof createAspenCart>[0]["storefront"];
+    const gateway = createAspenCart({
+      request,
+      storefront,
+      getCustomerAccessToken: async () => "token",
+    });
+    const result = await gateway.addLines([
+      { merchandiseId: "gid://shopify/ProductVariant/1", quantity: 1 },
+    ]);
+    assert.equal(syncs, 1);
+    assert.equal(writes, 1);
+    assert.equal(result.cart.totalQuantity, existing ? 1 : 2);
+    assert.equal(
+      new URL(result.cart.checkoutUrl).searchParams.get("logged_in"),
+      "true",
+    );
+  });
+}

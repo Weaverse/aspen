@@ -60,15 +60,20 @@ export function getCustomerSession(env: Env) {
   return cached;
 }
 
+let warnedInvalidShopId = false;
+
 /** Whether this storefront has Customer Accounts configured. */
 export function hasCustomerAccounts(env: Env) {
   if (!env.SHOP_ID || !env.PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID) return false;
   // `createCustomerSession` throws on a non-numeric shop ID; a misconfigured
   // value must disable accounts, not take every page down with a 500.
   if (!/^\d+$/.test(env.SHOP_ID)) {
-    console.warn(
-      `[customer-account] SHOP_ID must be the numeric shop ID; got "${env.SHOP_ID}". Customer Accounts are disabled.`,
-    );
+    if (!warnedInvalidShopId) {
+      warnedInvalidShopId = true;
+      console.warn(
+        `[customer-account] SHOP_ID must be the numeric shop ID; got "${env.SHOP_ID}". Customer Accounts are disabled.`,
+      );
+    }
     return false;
   }
   return true;
@@ -107,7 +112,7 @@ function customerAccessTokenHandler(customerSession?: CustomerSession) {
 }
 
 /**
- * Pilot's Customer Account route handlers for `handleShopifyRoutes`:
+ * Aspen's Customer Account route handlers for `handleShopifyRoutes`:
  * Hydrogen's `/account/login`, `/account/authorize`, `/account/refresh` and
  * `/account/logout` (fixed and unprefixed; link to them with plain
  * `<a>`/`<form>`, never the router's `<Link>`/`<Form>`), plus the header's
@@ -187,13 +192,13 @@ type GraphqlRestParam<Doc extends AnyCustomerAccountDocument> =
     : [options: GraphqlOptions<Doc>];
 
 /**
- * The Customer Account API as Pilot's account routes use it.
+ * The Customer Account API as Aspen's account routes use it.
  *
  * `graphql` attaches the customer's access token, refreshing it when needed
  * (the refreshed tokens reach the browser because `server.ts` commits the
  * session on every response). Without a session it throws a redirect to the
  * login handler with a localized `return_to`, so a shopper bounced from
- * `/de-de/account` signs in and comes back to the German market.
+ * `/fr-fr/account` signs in and comes back to the French market.
  */
 export function createCustomerAccount({
   env,

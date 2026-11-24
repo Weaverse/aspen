@@ -339,7 +339,6 @@ Before committing, always run:
 ```bash
 npm run check        # Check lint and formatting
 npm run check:fix    # Format and apply safe lint fixes
-npm run typecheck    # Check TypeScript types
 npm run typecheck    # Validate TypeScript and GraphQL documents
 ```
 

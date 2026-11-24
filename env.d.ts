@@ -7,15 +7,10 @@ import type {
   WeaverseClient,
   WeaverseEnv,
 } from "@weaverse/hydrogen/react-router";
-import type { Storefront as StorefrontBase } from "./app/.server/storefront";
-import type { I18nLocale, StoreLocalization } from "./app/types/locale";
+import type { StoreLocalization } from "./app/types/locale";
 import type { createAppLoadContext } from "./server";
 
 declare global {
-  /**
-   * A global `process` object is only available during build to access NODE_ENV.
-   */
-
   interface Env extends WeaverseEnv {
     SESSION_SECRET: string;
     PUBLIC_STORE_DOMAIN: string;
@@ -35,17 +30,16 @@ declare global {
     KLAVIYO_PRIVATE_API_TOKEN: string;
     LOYALTYLION_SITE_ID: string;
     LOYALTYLION_API_KEY: string;
+    WISHLIST_API_KEY?: string;
     PUBLIC_SHOPIFY_INBOX_SHOP_ID: string;
     WEAVERSE_HOST?: string;
-  }
-
-  interface HydrogenAdditionalContext {
-    weaverse: WeaverseClient;
-    localization: StoreLocalization;
   }
 }
 
 declare module "react-router" {
+  interface SessionData {
+    themivoGuest?: string;
+  }
   interface AppLoadContext extends Awaited<
     ReturnType<typeof createAppLoadContext>
   > {

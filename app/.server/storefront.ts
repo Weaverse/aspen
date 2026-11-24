@@ -12,10 +12,9 @@ import { getRequestI18n } from "~/utils/localization.server";
 
 const resolveLocale = (pathname: string): Locale =>
   getRequestI18n(new Request(new URL(pathname, "https://aspen.local")));
-const providerLanguageFor = (locale: Locale) => locale.language;
 
 // The bare client types default their per-call options to `{}`, which drops
-// `cache` from `graphql()`. Every Pilot query passes one, so carry it here.
+// `cache` from `graphql()`. Every Aspen query passes one, so carry it here.
 type StorefrontCallOptions = { cache?: CachingStrategy };
 
 /** The request's market, with Shopify's provider language as `language`. */
@@ -38,7 +37,7 @@ const UNPREFIXED_HANDLER_PATH = /^\/(api\/|account\/(login|logout|refresh)$)/;
  * Page requests carry the market in their path. Hydrogen-owned endpoints
  * (`/api/cart`, `/api/predictive-search`, the Customer Account login and
  * logout) are always unprefixed, so for those the market is read from the
- * same-origin `Referer` instead, as Pilot's `/cart` action already did. A
+ * same-origin `Referer` instead, as Aspen's `/cart` action already did. A
  * missing or foreign `Referer` falls back to the default market.
  */
 export function resolveRequestLocale(request: Request): Locale {
@@ -88,7 +87,7 @@ function getBuyerIp(headers: Headers): string | undefined {
  * Oxygen injects `PRIVATE_STOREFRONT_API_TOKEN` for a linked storefront; the
  * private client then forwards the buyer's IP for Shopify's bot protection.
  * Without a private token, or without a trusted buyer IP, the public token is
- * used, so a merchant running Pilot locally with only the public token keeps a
+ * used, so a merchant running Aspen locally with only the public token keeps a
  * working store.
  */
 export function createRequestStorefront({
@@ -109,9 +108,8 @@ export function createRequestStorefront({
     new Request(new URL(resolved.pathPrefix || "/", request.url)),
     marketCountry,
   );
-  // Shopify gets the provider language (`ZH_TW`, not `ZH`); the rest of the
-  // market identity rides along for loaders that read it.
-  const i18n = { ...locale, language: providerLanguageFor(locale) };
+  // Keep the resolved market language and identity together for loaders.
+  const i18n = { ...locale, language: locale.language };
   const buyerIp = getBuyerIp(request.headers);
   const config = {
     storeDomain: env.PUBLIC_STORE_DOMAIN,

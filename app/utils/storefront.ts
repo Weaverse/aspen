@@ -5,7 +5,7 @@ import type { GraphQLFormattedError } from "@shopify/hydrogen";
  * GraphQL errors.
  *
  * Hydrogen 2026.10's `graphql()` returns `{ data, errors, headers }` instead of
- * throwing; classic `storefront.query()` threw on errors. Pilot's loaders were
+ * throwing; classic `storefront.query()` threw on errors. Aspen's loaders were
  * written against the throwing contract (a failed query becomes the route's
  * error boundary, never a half-rendered page), so they unwrap through this.
  * Loaders that can render with partial data read `result.data` directly.

@@ -8,9 +8,9 @@ import { unwrapStorefront } from "~/utils/storefront";
  * Local port of classic Hydrogen's `getSitemapIndex` / `getSitemap` (removed in
  * Hydrogen 2026.10). Same queries, same XML byte for byte and same headers;
  * queries run through `storefront.graphql` with the cache classic used
- * implicitly (`CACHE_DEFAULT`). Options Pilot never passed (`types`,
+ * implicitly (`CACHE_DEFAULT`). Options Aspen never passed (`types`,
  * `customChildSitemaps`, `getChangeFreq`) are not ported, and `articles` pages
- * are rendered by Pilot's own articles sitemap (see `routes/seo/sitemap-page`).
+ * are rendered by Aspen's own articles sitemap (see `routes/seo/sitemap-page`).
  */
 
 const SITEMAP_INDEX_PREFIX = `<?xml version="1.0" encoding="UTF-8"?>

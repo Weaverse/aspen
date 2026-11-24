@@ -1,8 +1,6 @@
 import type { I18nLocale as Locale } from "~/types/locale";
 import { prefixPathWithLocale as localizePath } from "~/utils/locale";
 
-const providerLanguageFor = (locale: Locale) => locale.language;
-
 /**
  * Customer Account URLs shared by the server and the browser.
  *
@@ -14,7 +12,7 @@ const providerLanguageFor = (locale: Locale) => locale.language;
  * client-side routing cannot follow.
  */
 
-/** Pilot's endpoint for the header account web component's token. */
+/** Aspen's endpoint for the header account web component's token. */
 export const CUSTOMER_ACCESS_TOKEN_PATH = "/api/account/token";
 
 /**
@@ -22,9 +20,7 @@ export const CUSTOMER_ACCESS_TOKEN_PATH = "/api/account/token";
  * Hydrogen built it from the request language: `de`, `zh-CN`, `pt-BR`.
  */
 function loginPageLocale(locale: Locale): string {
-  const [language, region] = providerLanguageFor(locale)
-    .toLowerCase()
-    .split("_");
+  const [language, region] = locale.language.toLowerCase().split("_");
   return region ? `${language}-${region.toUpperCase()}` : language;
 }
 
@@ -33,7 +29,7 @@ function loginPageLocale(locale: Locale): string {
  * market, with Shopify's login page in the market's language.
  *
  * `returnTo` is a same-origin path; it is localized here, so a market-neutral
- * path (`/account`) and an already-prefixed one (`/de-de/account`) both work.
+ * path (`/account`) and an already-prefixed one (`/fr-fr/account`) both work.
  */
 export function customerAccountLoginPath(
   returnTo: string,
@@ -44,17 +40,4 @@ export function customerAccountLoginPath(
     locale: loginPageLocale(locale),
   });
   return `/account/login?${query.toString()}`;
-}
-
-/**
- * The action of a sign-out `<form method="post">` that returns the shopper to
- * their market's home page.
- *
- * Shopify redirects to this page after clearing its own session, so every
- * market's home URL (`https://shop.example/de-de`, ...) must be registered as
- * an allowed logout URI in the Customer Account API settings.
- */
-export function customerAccountLogoutPath(locale: Locale): string {
-  const query = new URLSearchParams({ return_to: localizePath("/", locale) });
-  return `/account/logout?${query.toString()}`;
 }

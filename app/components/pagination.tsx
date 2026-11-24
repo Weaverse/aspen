@@ -113,7 +113,6 @@ export function Pagination<NodesType>({
   // Reset loading state once the transition state is idle
   useEffect(() => {
     if (transition.state === "idle") {
-      // oxlint-disable-next-line react/set-state-in-effect -- classic Hydrogen behavior
       setIsLoading(false);
     }
   }, [transition.state]);
@@ -353,7 +352,7 @@ function usePagination<NodesType>(
       });
     }
     // Classic Hydrogen runs this only when the URL or history state changes.
-    // oxlint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react/exhaustive-deps
   }, [pathname, search, state]);
 
   const previousPageUrl = useMemo(() => {

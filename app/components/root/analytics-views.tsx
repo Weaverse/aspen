@@ -9,6 +9,7 @@ import { useCartAnalytics } from "@shopify/hydrogen/react";
 import { useEffect } from "react";
 import { useLocation } from "react-router";
 import type { CartData } from "~/components/cart/cart-store";
+import { isPrivateWishlistPath } from "~/utils/themivo-script-preview";
 import { syncShopifyMarket } from "~/utils/shopify";
 
 /** ShopifyScripts bootstraps once; keep later market navigations in sync. */
@@ -35,9 +36,11 @@ export function ShopifyMarketSync(
 function usePublishOnLocation(publish: () => void, ready = true) {
   const { pathname, search } = useLocation();
   // Publish once per URL, not on every `publish` identity change.
-  // oxlint-disable-next-line react/exhaustive-deps
   useEffect(() => {
-    if (ready) publish();
+    if (ready && !isPrivateWishlistPath(pathname)) {
+      publish();
+    }
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, search, ready]);
 }
 
@@ -81,7 +84,9 @@ export function SearchView({
  * without an `id` (empty) is `null`.
  */
 export function toAnalyticsCart(cart: CartData | null): AnalyticsCart | null {
-  if (!cart?.id) return null;
+  if (!cart?.id) {
+    return null;
+  }
   return {
     id: cart.id,
     updatedAt: cart.updatedAt ?? new Date().toISOString(),
@@ -90,7 +95,9 @@ export function toAnalyticsCart(cart: CartData | null): AnalyticsCart | null {
       nodes: cart.lines.nodes.flatMap((line) => {
         const merchandise = line.merchandise;
         const product = merchandise?.product;
-        if (!merchandise?.id || !product?.id) return [];
+        if (!merchandise?.id || !product?.id) {
+          return [];
+        }
         return [
           {
             id: line.id,
@@ -150,6 +157,13 @@ export function PageView() {
  * the bus).
  */
 export function CartAnalytics() {
+  const { pathname } = useLocation();
+  // Keep cart reconciliation mounted; only unsubscribe analytics. On return,
+  // the SDK starts from the current cart rather than replaying private changes.
+  return isPrivateWishlistPath(pathname) ? null : <CartAnalyticsTracker />;
+}
+
+function CartAnalyticsTracker() {
   useCartAnalytics();
   return null;
 }

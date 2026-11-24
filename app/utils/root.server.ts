@@ -16,6 +16,10 @@ import {
   canonicalStorefrontPathname,
   isFilteredAllProductsPath,
 } from "~/utils/storefront-path";
+import {
+  readThemivoHearts,
+  themivoEnabled,
+} from "~/utils/themivo-wishlist.server";
 import { readWishlist } from "~/utils/wishlist.server";
 import {
   isWishlistPreviewRequest,
@@ -56,6 +60,7 @@ export async function loadCriticalData({
     layout,
     seo,
     shopifyScripts: {
+      storefrontAccessToken: env.PUBLIC_STOREFRONT_API_TOKEN,
       shop: {
         shopId: layout.shop.id,
         storefrontId: env.PUBLIC_STOREFRONT_ID || "",
@@ -71,14 +76,6 @@ export async function loadCriticalData({
         ? ("hydrogen" as const)
         : ("headless" as const),
       shopifyAnalytics: Boolean(env.PUBLIC_STOREFRONT_ID),
-    },
-    consent: {
-      checkoutDomain: env.PUBLIC_CHECKOUT_DOMAIN,
-      storefrontAccessToken: env.PUBLIC_STOREFRONT_API_TOKEN,
-      withPrivacyBanner: false,
-      // localize the privacy banner
-      country: storefront.i18n.country,
-      language: storefront.i18n.language,
     },
     selectedLocale: localization.selectedLocale,
     availableLocales: localization.availableLocales,
@@ -107,7 +104,9 @@ export function loadDeferredData({ context, request }: LoaderFunctionArgs) {
   return {
     isLoggedIn,
     cart: cart.get(),
-    wishlist: loadCustomerWishlist(request, customerAccount, isLoggedIn),
+    wishlist: themivoEnabled(context)
+      ? readThemivoHearts(context)
+      : loadCustomerWishlist(request, customerAccount, isLoggedIn),
     loyalty: loadLoyaltyBalance({ env, customerAccount, isLoggedIn }),
   };
 }
@@ -458,245 +457,45 @@ export const LAYOUT_QUERY_MenuItem = gql(`fragment MenuItem on MenuItem {
   url
 }`);
 
-export const LAYOUT_QUERY_ChildMenuItem =
-  gql(`fragment ChildMenuItem on MenuItem {
+export const LAYOUT_QUERY_ChildMenuItem = gql(
+  `fragment ChildMenuItem on MenuItem {
   ...MenuItem
-}
+}`,
+  [LAYOUT_QUERY_MenuItem] as const,
+);
 
-fragment MenuItem on MenuItem {
-  id
-  resourceId
-  resource {
-    __typename
-    ... on Article {
-      articleTags: tags
-      publishedAt
-      authorV2 {
-        name
-      }
-      image {
-        altText
-        height
-        id
-        url
-        width
-      }
-    }
-    ... on Collection {
-      image {
-        altText
-        height
-        id
-        url
-        width
-      }
-    }
-    ... on Product {
-      image: featuredImage {
-        altText
-        height
-        id
-        url
-        width
-      }
-    }
-  }
-  tags
-  title
-  type
-  url
-}`);
-
-export const LAYOUT_QUERY_ParentMenuItem2 =
-  gql(`fragment ParentMenuItem2 on MenuItem {
+export const LAYOUT_QUERY_ParentMenuItem2 = gql(
+  `fragment ParentMenuItem2 on MenuItem {
   ...MenuItem
   items {
     ...ChildMenuItem
   }
-}
+}`,
+  [LAYOUT_QUERY_ChildMenuItem] as const,
+);
 
-fragment MenuItem on MenuItem {
-  id
-  resourceId
-  resource {
-    __typename
-    ... on Article {
-      articleTags: tags
-      publishedAt
-      authorV2 {
-        name
-      }
-      image {
-        altText
-        height
-        id
-        url
-        width
-      }
-    }
-    ... on Collection {
-      image {
-        altText
-        height
-        id
-        url
-        width
-      }
-    }
-    ... on Product {
-      image: featuredImage {
-        altText
-        height
-        id
-        url
-        width
-      }
-    }
-  }
-  tags
-  title
-  type
-  url
-}
-
-fragment ChildMenuItem on MenuItem {
-  ...MenuItem
-}`);
-
-export const LAYOUT_QUERY_ParentMenuItem =
-  gql(`fragment ParentMenuItem on MenuItem {
+export const LAYOUT_QUERY_ParentMenuItem = gql(
+  `fragment ParentMenuItem on MenuItem {
   ...MenuItem
   items {
     ...ParentMenuItem2
   }
-}
+}`,
+  [LAYOUT_QUERY_ParentMenuItem2] as const,
+);
 
-fragment MenuItem on MenuItem {
-  id
-  resourceId
-  resource {
-    __typename
-    ... on Article {
-      articleTags: tags
-      publishedAt
-      authorV2 {
-        name
-      }
-      image {
-        altText
-        height
-        id
-        url
-        width
-      }
-    }
-    ... on Collection {
-      image {
-        altText
-        height
-        id
-        url
-        width
-      }
-    }
-    ... on Product {
-      image: featuredImage {
-        altText
-        height
-        id
-        url
-        width
-      }
-    }
-  }
-  tags
-  title
-  type
-  url
-}
-
-fragment ParentMenuItem2 on MenuItem {
-  ...MenuItem
-  items {
-    ...ChildMenuItem
-  }
-}
-
-fragment ChildMenuItem on MenuItem {
-  ...MenuItem
-}`);
-
-export const LAYOUT_QUERY_Menu = gql(`fragment Menu on Menu {
+export const LAYOUT_QUERY_Menu = gql(
+  `fragment Menu on Menu {
   id
   items {
     ...ParentMenuItem
   }
-}
+}`,
+  [LAYOUT_QUERY_ParentMenuItem] as const,
+);
 
-fragment ParentMenuItem on MenuItem {
-  ...MenuItem
-  items {
-    ...ParentMenuItem2
-  }
-}
-
-fragment MenuItem on MenuItem {
-  id
-  resourceId
-  resource {
-    __typename
-    ... on Article {
-      articleTags: tags
-      publishedAt
-      authorV2 {
-        name
-      }
-      image {
-        altText
-        height
-        id
-        url
-        width
-      }
-    }
-    ... on Collection {
-      image {
-        altText
-        height
-        id
-        url
-        width
-      }
-    }
-    ... on Product {
-      image: featuredImage {
-        altText
-        height
-        id
-        url
-        width
-      }
-    }
-  }
-  tags
-  title
-  type
-  url
-}
-
-fragment ParentMenuItem2 on MenuItem {
-  ...MenuItem
-  items {
-    ...ChildMenuItem
-  }
-}
-
-fragment ChildMenuItem on MenuItem {
-  ...MenuItem
-}`);
-
-export const LAYOUT_QUERY =
-  gql(`query layout($language: LanguageCode, $headerMenuHandle: String!, $footerMenuHandle: String!) @inContext(language: $language) {
+export const LAYOUT_QUERY = gql(
+  `query layout($language: LanguageCode, $headerMenuHandle: String!, $footerMenuHandle: String!) @inContext(language: $language) {
   shop {
     ...Shop
   }
@@ -710,92 +509,9 @@ export const LAYOUT_QUERY =
     acceptedCardBrands
     supportedDigitalWallets
   }
-}
-
-fragment Shop on Shop {
-  id
-  name
-  description
-  primaryDomain {
-    url
-  }
-  brand {
-    logo {
-      image {
-        url
-      }
-    }
-  }
-}
-
-fragment Menu on Menu {
-  id
-  items {
-    ...ParentMenuItem
-  }
-}
-
-fragment ParentMenuItem on MenuItem {
-  ...MenuItem
-  items {
-    ...ParentMenuItem2
-  }
-}
-
-fragment MenuItem on MenuItem {
-  id
-  resourceId
-  resource {
-    __typename
-    ... on Article {
-      articleTags: tags
-      publishedAt
-      authorV2 {
-        name
-      }
-      image {
-        altText
-        height
-        id
-        url
-        width
-      }
-    }
-    ... on Collection {
-      image {
-        altText
-        height
-        id
-        url
-        width
-      }
-    }
-    ... on Product {
-      image: featuredImage {
-        altText
-        height
-        id
-        url
-        width
-      }
-    }
-  }
-  tags
-  title
-  type
-  url
-}
-
-fragment ParentMenuItem2 on MenuItem {
-  ...MenuItem
-  items {
-    ...ChildMenuItem
-  }
-}
-
-fragment ChildMenuItem on MenuItem {
-  ...MenuItem
-}`);
+}`,
+  [LAYOUT_QUERY_Shop, LAYOUT_QUERY_Menu] as const,
+);
 
 export const SWATCHES_QUERY = gql(`query swatches($type: String!) {
   metaobjects(first: 250, type: $type) {

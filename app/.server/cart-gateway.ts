@@ -191,6 +191,8 @@ export function createAspenCart({
   ): Promise<CartMutationResult> {
     const buyerIdentity = await getBuyerIdentity();
     if (!buyerIdentity) return accountUnavailable();
+    // Keep market/customer binding current on writes, including cross-market
+    // navigation and sign-in/out; Shopify does not infer these from the URL.
     if (id) {
       const synced = await syncBuyerIdentity(buyerIdentity);
       const missingCart =
@@ -211,6 +213,7 @@ export function createAspenCart({
       .filter((cookie) => !cookie.trim().startsWith("cart="));
     if (id) otherCookies.push(`cart=${id.replace("gid://shopify/Cart/", "")}`);
     headers.set("Cookie", otherCookies.join(";"));
+    const created = !id;
     const result = await cartHandlers.post({
       storefrontClient: storefront,
       request: new Request(new URL("/api/cart", request.url), {
@@ -222,10 +225,13 @@ export function createAspenCart({
     if (result.type === "error")
       return { userErrors: [{ message: result.error.message }] };
     if (result.type !== "json") throw new Error("Unexpected cart redirect");
-    const payload = result.data as CartMutationResult;
+    let payload = result.data as CartMutationResult;
     if (payload.cart?.id) {
       id = payload.cart.id;
-      if (body.intent === "add") await syncBuyerIdentity(buyerIdentity);
+      if (created && body.intent === "add") {
+        const synced = await syncBuyerIdentity(buyerIdentity);
+        if (synced.cart) payload = { ...payload, cart: synced.cart };
+      }
     }
     // Reuse the token resolved before writes; a later lookup can fail after
     // Shopify has already applied the mutation.

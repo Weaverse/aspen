@@ -1,6 +1,7 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import clsx from "clsx";
 import { AnimatePresence, motion } from "framer-motion";
+import type { ComponentProps, ReactNode } from "react";
 import {
   CART_DRAWER_RADIUS_CLASS,
   CART_DRAWER_WIDTH_CLASS,
@@ -16,10 +17,19 @@ export function AnimatedDrawer({
   children,
   flush = false,
   filter = false,
+  onCloseAutoFocus = (event) => event.preventDefault(),
+  onExitComplete,
+}: {
+  open: boolean;
+  children: ReactNode;
+  flush?: boolean;
+  filter?: boolean;
+  onCloseAutoFocus?: ComponentProps<typeof Dialog.Content>["onCloseAutoFocus"];
+  onExitComplete?: () => void;
 }) {
   return (
     <Dialog.Portal forceMount>
-      <AnimatePresence>
+      <AnimatePresence onExitComplete={onExitComplete}>
         {open && (
           <>
             <Dialog.Overlay forceMount>
@@ -32,7 +42,7 @@ export function AnimatedDrawer({
             </Dialog.Overlay>
             <Dialog.Content
               forceMount
-              onCloseAutoFocus={(e) => e.preventDefault()}
+              onCloseAutoFocus={onCloseAutoFocus}
               className={clsx(
                 "fixed z-10",
                 filter || flush

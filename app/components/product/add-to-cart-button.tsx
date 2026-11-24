@@ -17,7 +17,6 @@ export function AddToCartButton({
   containerClassName,
   width = "full",
   disabled,
-  analytics,
   onAdded,
   loadingStyle = "overlay",
   cartOpenTiming = "submit",
@@ -30,7 +29,6 @@ export function AddToCartButton({
   containerClassName?: string;
   width?: "auto" | "full";
   disabled?: boolean;
-  analytics?: unknown;
   onAdded?: () => void;
   loadingStyle?: "inline" | "overlay";
   /** Manual lets a modal finish its exit before its owner opens the cart. */
@@ -117,11 +115,6 @@ export function AddToCartButton({
             >
               {/* Preserve the token when staging the add rerenders this form. */}
               <input type="hidden" name="cartStageToken" value={stageToken} />
-              <input
-                type="hidden"
-                name="analytics"
-                value={JSON.stringify(analytics)}
-              />
               <div className="space-y-2">
                 <Button
                   type="submit"
@@ -244,7 +237,6 @@ function AddToCartAnalytics({
     [],
   );
   const fetcherData = fetcher.data;
-  const formData = fetcher.formData;
   const handledData = useRef<unknown>(null);
 
   useEffect(() => {
@@ -254,22 +246,6 @@ function AddToCartAnalytics({
       handledData.current !== fetcherData
     ) {
       handledData.current = fetcherData;
-      const cartData: Record<string, unknown> = {};
-
-      if (formData) {
-        const cartInputs = CartForm.getFormInput(formData);
-        try {
-          if (cartInputs.inputs.analytics) {
-            const dataInForm: unknown = JSON.parse(
-              String(cartInputs.inputs.analytics),
-            );
-            Object.assign(cartData, dataInForm);
-          }
-        } catch {
-          // Analytics must never block the cart success state.
-        }
-      }
-
       // Open cart drawer after successful add to cart (regardless of analytics)
       if (
         fetcherData.cart &&
@@ -284,7 +260,7 @@ function AddToCartAnalytics({
 
       // Hydrogen's cart analytics tracker observes the reconciled cart store.
     }
-  }, [fetcher.state, fetcherData, formData, onAdded, cartOpenTiming]);
+  }, [fetcher.state, fetcherData, onAdded, cartOpenTiming]);
 
   return <>{children}</>;
 }

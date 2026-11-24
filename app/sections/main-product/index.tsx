@@ -38,6 +38,7 @@ import { ProgressBar } from "~/components/progress-bar";
 import { layoutInputs, Section, type SectionProps } from "~/components/section";
 import { SellingPlanSelector } from "~/components/subscriptions/selling-plan-selector";
 import { ProductWishlistButton } from "~/components/wishlist/product-wishlist-button";
+import { useProductWishlist } from "~/components/wishlist/use-product-wishlist";
 import { useProductQuantity } from "~/hooks/use-product-quantity";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import type { loader as productRouteLoader } from "~/routes/($locale).products.$productHandle";
@@ -111,7 +112,7 @@ const ProductInformation = forwardRef<
     showShippingPolicy,
     showRefundPolicy,
     showInventoryStatus = true,
-    showWishlist = true,
+    showWishlist: showAspenWishlist = true,
     showBackInStockForm = true,
     lowInventoryThreshold = 10,
     lowInventoryText:
@@ -152,6 +153,15 @@ const ProductInformation = forwardRef<
     width,
     ...rest
   } = props;
+  const {
+    showWishlist,
+    wishlistOnImage,
+    wishlistBelowCart,
+    formClassName,
+    imagePosition,
+    useAspenImageAppearance,
+  } = useProductWishlist(showAspenWishlist);
+
   const soldOutText = translateText(
     rawI18nSoldOutText,
     "themeContent.sectionsMainProductIndex.soldOutText",
@@ -243,6 +253,15 @@ const ProductInformation = forwardRef<
                 "-mx-(--page-padding) w-[calc(100%+2*var(--page-padding))] lg:mx-0 lg:w-[778px]",
             )}
           >
+            {wishlistOnImage && (
+              <ProductWishlistButton
+                productId={product.id}
+                variantId={selectedVariant?.id}
+                productTitle={title}
+                className={clsx("absolute z-20", imagePosition)}
+                useAspenAppearance={useAspenImageAppearance}
+              />
+            )}
             <ProductMedia
               key={handle}
               mediaLayout={mediaLayout}
@@ -411,7 +430,7 @@ const ProductInformation = forwardRef<
               </div>
 
               {combinedListingTarget && (
-                <div className="mt-8 w-full md:mt-0 lg:mt-8">
+                <div className="mt-8 w-full space-y-3 md:mt-0 lg:mt-8">
                   <Link
                     to={combinedListingTarget}
                     variant="primary"
@@ -419,6 +438,13 @@ const ProductInformation = forwardRef<
                   >
                     {t("product.selectOptions")}
                   </Link>
+                  {wishlistBelowCart && (
+                    <ProductWishlistButton
+                      productId={product.id}
+                      variantId={selectedVariant.id}
+                      productTitle={title}
+                    />
+                  )}
                 </div>
               )}
               {!combinedListing && (
@@ -433,7 +459,11 @@ const ProductInformation = forwardRef<
                   <div
                     className={clsx(
                       "grid grid-cols-[122px_minmax(0,1fr)] items-center gap-3 md:flex",
-                      showWishlist && "max-md:grid-cols-[minmax(0,1fr)_auto]",
+                      showWishlist &&
+                        !wishlistOnImage &&
+                        !wishlistBelowCart &&
+                        "max-md:grid-cols-[minmax(0,1fr)_auto]",
+                      wishlistBelowCart && "md:flex-wrap",
                     )}
                   >
                     <Quantity
@@ -448,6 +478,8 @@ const ProductInformation = forwardRef<
                       containerClassName={clsx(
                         "min-w-0 md:flex-1",
                         showWishlist &&
+                          !wishlistOnImage &&
+                          !wishlistBelowCart &&
                           "max-md:col-span-full max-md:row-start-2",
                       )}
                       disabled={!canPurchase}
@@ -486,12 +518,14 @@ const ProductInformation = forwardRef<
                     >
                       {atcButtonText}
                     </AddToCartButton>
-                    {showWishlist && (
-                      <ProductWishlistButton
-                        productId={product.id}
-                        productTitle={title}
-                        className="col-start-2 row-start-1"
-                      />
+                    {showWishlist && !wishlistOnImage && (
+                      <div className={formClassName}>
+                        <ProductWishlistButton
+                          productId={product.id}
+                          variantId={selectedVariant?.id}
+                          productTitle={title}
+                        />
+                      </div>
                     )}
                   </div>
                   {canPurchase && (

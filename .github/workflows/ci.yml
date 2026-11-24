@@ -34,7 +34,19 @@ jobs:
       - name: Check authenticated cart handoff and Studio schema regressions
         run: |
           npx --no-install vite-node tests/cart-checkout-handoff.unit.test.ts
+          npx --no-install vite-node tests/weaverse-csp.unit.test.ts
+          npx --no-install vite-node tests/layout-fragments.unit.test.ts
+          npx --no-install vite-node tests/customer-auth-migration.unit.test.ts
           npx --no-install vite-node tests/featured-collections-schema.unit.test.ts
+      - name: Check Themivo wishlist regressions
+        run: |
+          npx --no-install vite-node tests/themivo-wishlist.unit.test.ts
+          npx --no-install vite-node tests/themivo-products.unit.test.ts
+          npx --no-install vite-node tests/themivo-appearance.unit.test.ts
+      - name: Check private wishlist analytics
+        run: |
+          npx --no-install playwright install --with-deps chromium
+          node --test tests/private-wishlist-analytics.browser.mjs
       - name: Check localization
         run: npm run locale:check && npm run i18n:test
       - name: Check sanitizer regressions

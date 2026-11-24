@@ -1,3 +1,4 @@
+import { isPrivateWishlistPath } from "~/utils/themivo-script-preview";
 import * as serverBuild from "virtual:react-router/server-build";
 import { handleShopifyRedirects, handleShopifyRoutes } from "@shopify/hydrogen";
 import { createRequestHandler, RouterContextProvider } from "react-router";
@@ -101,6 +102,18 @@ export default {
         if (redirected) response = redirected;
       }
 
+      if (
+        env.WISHLIST_API_KEY?.trim() &&
+        (response.headers.get("Content-Type")?.includes("text/html") ||
+          url.pathname.endsWith(".data"))
+      ) {
+        response.headers.set("Cache-Control", "private, no-store");
+        response.headers.set("Oxygen-Cache-Control", "no-store");
+      }
+      if (isPrivateWishlistPath(url.pathname)) {
+        response.headers.set("Referrer-Policy", "no-referrer");
+        response.headers.set("X-Robots-Tag", "noindex");
+      }
       const headers = new Headers((await session.commit()) ?? undefined);
       for (const [name, value] of headers) response.headers.append(name, value);
       storefront.requestContext.applyResponseHeaders(response.headers);

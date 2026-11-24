@@ -1,3 +1,4 @@
+import { isPrivateWishlistPath } from "~/utils/themivo-script-preview";
 import { type AnalyticsCart, AnalyticsEvent } from "@shopify/hydrogen";
 import { useEffect } from "react";
 import { useRouteLoaderData } from "react-router";
@@ -22,8 +23,23 @@ function addGtmDestination() {
   gtmDestinationAdded = true;
   bus.addDestination({
     name: "gtm",
-    setup({ subscribe }) {
+    setup({ subscribe: subscribeToBus }) {
+      // Destinations outlive this component during client navigation. Check the
+      // active path at delivery time, not only when the destination is mounted.
+      const subscribe: typeof subscribeToBus = (event, listener) =>
+        subscribeToBus(event, (data, context) => {
+          if (!isPrivateWishlistPath(window.location.pathname)) {
+            listener(data, context);
+          }
+        });
       subscribe(AnalyticsEvent.PAGE_VIEWED, (data) => {
+        if (
+          isPrivateWishlistPath(
+            new URL(data.url, window.location.origin).pathname,
+          )
+        ) {
+          return;
+        }
         window.dataLayer?.push({
           event: "page_viewed",
           page_url: data.url,

@@ -36,12 +36,14 @@ const child = spawn(
   process.execPath,
   [
     "node_modules/vite/bin/vite.js",
+    "--config",
+    "scripts/fixtures/runtime.vite.config.ts",
     "--port",
     String(port),
   ],
   {
     detached: process.platform !== "win32",
-    env: { ...process.env, ASPEN_RUNTIME_PROBE: "1", SHOPIFY_CLI_NO_ANALYTICS: "1" },
+    env: { ...process.env, SHOPIFY_CLI_NO_ANALYTICS: "1" },
     stdio: ["ignore", "pipe", "pipe"],
   },
 );

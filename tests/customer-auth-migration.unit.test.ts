@@ -442,3 +442,17 @@ test("queued cart changes preserve customer binding and settle with errors durin
     "recovered-access",
   );
 });
+
+test("invalid SHOP_ID warns once per isolate instead of once per handler", async (t) => {
+  const { hasCustomerAccounts } =
+    await import("../app/.server/customer-account");
+  let warnings = 0;
+  t.mock.method(console, "warn", () => {
+    warnings += 1;
+  });
+  const invalid = { ...env, SHOP_ID: "not-numeric" };
+  for (let count = 0; count < 3; count += 1) {
+    assert.equal(hasCustomerAccounts(invalid), false);
+  }
+  assert.equal(warnings, 1);
+});

@@ -17,6 +17,7 @@ import { Cart } from "~/components/cart/cart";
 import { CartForm } from "~/components/cart/cart-action-form";
 import { CartBestSellers } from "~/components/cart/cart-best-sellers";
 import { Analytics } from "~/components/root/analytics";
+import { CartSavedForLater } from "~/components/cart/cart-saved-for-later";
 import { Section } from "~/components/section";
 import { CART_CODE_APPLY_ACTION } from "~/utils/cart-code";
 import {
@@ -265,6 +266,7 @@ export default function CartRoute() {
       >
         <h4 className="text-left font-normal uppercase">{t("cart.title")}</h4>
         <Cart layout="page" />
+        <CartSavedForLater />
       </Section>
       <Section
         width="fixed"

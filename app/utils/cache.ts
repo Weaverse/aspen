@@ -3,7 +3,7 @@ import { Cache, type CachingStrategy } from "@shopify/hydrogen";
 /**
  * Classic Hydrogen's implicit Storefront API cache (`CacheDefault`): fresh for
  * a second, then served stale for a day while it refreshes. Hydrogen 2026.10
- * has no default, so every Pilot query passes a strategy explicitly; this one
+ * has no default, so every Aspen query passes a strategy explicitly; this one
  * keeps the behavior queries had before the upgrade.
  */
 export const CACHE_DEFAULT = Cache({
