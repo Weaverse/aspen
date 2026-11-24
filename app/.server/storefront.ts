@@ -108,8 +108,6 @@ export function createRequestStorefront({
     new Request(new URL(resolved.pathPrefix || "/", request.url)),
     marketCountry,
   );
-  // Keep the resolved market language and identity together for loaders.
-  const i18n = { ...locale, language: locale.language };
   const buyerIp = getBuyerIp(request.headers);
   const config = {
     storeDomain: env.PUBLIC_STORE_DOMAIN,
@@ -121,7 +119,11 @@ export function createRequestStorefront({
   if (env.PRIVATE_STOREFRONT_API_TOKEN && buyerIp) {
     return createStorefrontClient({
       type: "private",
-      requestContext: createShopifyRequestContext({ request, i18n, buyerIp }),
+      requestContext: createShopifyRequestContext({
+        request,
+        i18n: locale,
+        buyerIp,
+      }),
       config: {
         ...config,
         privateStorefrontToken: env.PRIVATE_STOREFRONT_API_TOKEN,
@@ -131,7 +133,7 @@ export function createRequestStorefront({
 
   return createStorefrontClient({
     type: "public",
-    requestContext: createShopifyRequestContext({ request, i18n }),
+    requestContext: createShopifyRequestContext({ request, i18n: locale }),
     config: {
       ...config,
       publicStorefrontToken: env.PUBLIC_STOREFRONT_API_TOKEN || undefined,

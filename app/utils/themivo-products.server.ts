@@ -88,8 +88,8 @@ export async function hydrateThemivoItems(
 }
 
 export const WISHLIST_PRODUCTS = gql(`
-  query ThemivoWishlistProducts($ids: [ID!]!)
- {
+  query ThemivoWishlistProducts($ids: [ID!]!, $country: CountryCode, $language: LanguageCode)
+  @inContext(country: $country, language: $language) {
     nodes(ids: $ids) {
       ... on Product {
         id
@@ -146,8 +146,8 @@ export async function readThemivoSuggestions(
   const { collection } = unwrapStorefront(
     await storefront.graphql(
       gql(`
-      query ThemivoWishlistSuggestions($id: ID!, $first: Int!)
-     {
+      query ThemivoWishlistSuggestions($id: ID!, $first: Int!, $country: CountryCode, $language: LanguageCode)
+      @inContext(country: $country, language: $language) {
         collection(id: $id) {
           products(first: $first) {
             nodes {
