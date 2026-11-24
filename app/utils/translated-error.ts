@@ -41,7 +41,8 @@ export function translateError(t: Translate, error: unknown): string {
     (Object.hasOwn(legacyErrorKeys, value)
       ? legacyErrorKeys[value]
       : undefined) ??
-    (value.startsWith("errors.") && defaultTranslation(value)
+    ((value.startsWith("errors.") || value.startsWith("wishlist.")) &&
+    defaultTranslation(value)
       ? value
       : "errors.generic");
   return t(key);

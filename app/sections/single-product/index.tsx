@@ -27,7 +27,8 @@ import {
 } from "~/components/product/variant-prices";
 import { layoutInputs, Section } from "~/components/section";
 import { SellingPlanSelector } from "~/components/subscriptions/selling-plan-selector";
-import { ProductCardWishlistButton } from "~/components/wishlist/product-card-wishlist-button";
+import { ProductWishlistButton } from "~/components/wishlist/product-wishlist-button";
+import { useProductWishlist } from "~/components/wishlist/use-product-wishlist";
 import { PRODUCT_QUERY } from "~/graphql/queries";
 import { useProductQuantity } from "~/hooks/use-product-quantity";
 import { useTranslatedText } from "~/hooks/use-translated-text";
@@ -116,6 +117,13 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
       "themeContent.sectionsSingleProductIndex.heading",
     );
     const { storeDomain, product } = loaderData || {};
+    const {
+      showWishlist,
+      wishlistOnImage,
+      imagePosition,
+      useAspenImageAppearance,
+      wishlistBelowCart,
+    } = useProductWishlist(undefined, "image");
     const [selectedVariant, setSelectedVariant] = useState(
       product?.selectedOrFirstAvailableVariant,
     );
@@ -228,7 +236,7 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
               "lg:max-w-[1360px] lg:grid-cols-[minmax(0,778fr)_minmax(0,542fr)]",
             ])}
           >
-            <div className="featured-product-media relative mx-auto flex aspect-square w-full min-w-0 items-center justify-center overflow-hidden rounded-[var(--Radius-border-radius-md,12px)] [&>div]:h-full [&>div]:w-full [&_.swiper]:h-full [&_.swiper]:w-full [&_.swiper-slide]:h-full [&_img]:h-full [&_img]:w-full [&_img]:object-cover [&_img]:object-center [&_img]:rounded-[var(--Radius-border-radius-md,12px)] lg:mx-0 lg:max-w-[778px]">
+            <div className="featured-product-media group/wishlist-host relative mx-auto flex aspect-square w-full min-w-0 items-center justify-center overflow-hidden rounded-[var(--Radius-border-radius-md,12px)] [&>div]:h-full [&>div]:w-full [&_.swiper]:h-full [&_.swiper]:w-full [&_.swiper-slide]:h-full [&_img]:h-full [&_img]:w-full [&_img]:object-cover [&_img]:object-center [&_img]:rounded-[var(--Radius-border-radius-md,12px)] lg:mx-0 lg:max-w-[778px]">
               <ProductMedia
                 mediaLayout={mediaLayout || "slider"}
                 navigationVariant="quick-shop"
@@ -260,11 +268,16 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
                   )
                 }
               />
-              <ProductCardWishlistButton
-                productId={product.id}
-                productTitle={product.title}
-                showOnMobile
-              />
+              {wishlistOnImage && (
+                <ProductWishlistButton
+                  productId={product.id}
+                  variantId={currentVariant?.id}
+                  productTitle={product.title}
+                  onImage
+                  useAspenAppearance={useAspenImageAppearance}
+                  className={clsx("absolute z-20", imagePosition)}
+                />
+              )}
             </div>
             <div className="min-w-0">
               <div
@@ -341,7 +354,12 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
                     } as React.CSSProperties
                   }
                 >
-                  <div className="flex gap-3">
+                  <div
+                    className={clsx(
+                      "flex gap-3",
+                      showWishlist && !wishlistOnImage && "flex-wrap",
+                    )}
+                  >
                     <Quantity
                       value={quantity}
                       onChange={setQuantity}
@@ -366,6 +384,20 @@ const SingleProduct = forwardRef<HTMLElement, SingleProductProps>(
                     >
                       {atcText}
                     </AddToCartButton>
+                    {showWishlist && !wishlistOnImage && (
+                      <div
+                        className={clsx(
+                          "empty:hidden",
+                          wishlistBelowCart && "basis-full",
+                        )}
+                      >
+                        <ProductWishlistButton
+                          productId={product.id}
+                          variantId={currentVariant?.id}
+                          productTitle={product.title}
+                        />
+                      </div>
+                    )}
                   </div>
                   {canPurchase && (
                     <ShopPayButton

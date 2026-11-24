@@ -10,6 +10,13 @@ export default hydrogenRoutes([
   route("robots.txt", "routes/[robots.txt].tsx"),
   ...prefix(":locale?", [
     index("routes/($locale)._index.tsx"),
+    route("wishlist", "routes/($locale).wishlist.tsx"),
+    route("wishlist/preview", "routes/($locale).wishlist.preview.tsx"),
+    route(
+      "wishlist/shared/:token",
+      "routes/($locale).wishlist.shared.$token.tsx",
+    ),
+    route("wishlist/join/:token", "routes/($locale).wishlist.join.$token.tsx"),
     route("search", "routes/($locale).search.tsx"),
     route(
       ":shopid/orders/:token/authenticate",
@@ -46,6 +53,10 @@ export default hydrogenRoutes([
       route("product", "routes/($locale).api.product.ts"),
       route("products", "routes/($locale).api.products.ts"),
       route("wishlist", "routes/($locale).api.wishlist.ts"),
+      route(
+        "wishlist/saved-cart",
+        "routes/($locale).api.wishlist.saved-cart.ts",
+      ),
       route(
         "review/:productHandle",
         "routes/($locale).api.review.$productHandle.ts",

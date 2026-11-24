@@ -739,6 +739,14 @@ export type LoyaltyCustomerQuery = {
   };
 };
 
+export type ThemivoWishlistCustomerQueryVariables = CustomerAccountAPI.Exact<{
+  [key: string]: never;
+}>;
+
+export type ThemivoWishlistCustomerQuery = {
+  customer: Pick<CustomerAccountAPI.Customer, 'id'>;
+};
+
 export type WishlistCustomerQueryVariables = CustomerAccountAPI.Exact<{
   [key: string]: never;
 }>;
@@ -792,6 +800,10 @@ interface GeneratedQueryTypes {
   '#graphql\n  query LoyaltyCustomer {\n    customer {\n      id\n      emailAddress {\n        emailAddress\n      }\n    }\n  }\n': {
     return: LoyaltyCustomerQuery;
     variables: LoyaltyCustomerQueryVariables;
+  };
+  '#graphql\n  query ThemivoWishlistCustomer {\n    customer { id }\n  }\n': {
+    return: ThemivoWishlistCustomerQuery;
+    variables: ThemivoWishlistCustomerQueryVariables;
   };
   '#graphql\n  query WishlistCustomer {\n    customer {\n      id\n      wishlist: metafield(\n        namespace: "custom"\n        key: "aspen_wishlist"\n      ) {\n        value\n        compareDigest\n      }\n    }\n  }\n': {
     return: WishlistCustomerQuery;

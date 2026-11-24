@@ -1002,6 +1002,20 @@ export const themeSchema: HydrogenThemeSchema = {
           defaultValue: true,
         },
         {
+          type: "toggle-group",
+          name: "pcardWishlistAppearance",
+          label: "Wishlist appearance",
+          helpText:
+            "Controls wishlist buttons on product cards, Featured Product, Quick Shop, and the Main Product image.",
+          configs: {
+            options: [
+              { value: "aspen", label: "Aspen" },
+              { value: "themivo", label: "Themivo" },
+            ],
+          },
+          defaultValue: "aspen",
+        },
+        {
           type: "switch",
           label: "Show quick shop on hover",
           name: "pcardShowQuickShopOnHover",

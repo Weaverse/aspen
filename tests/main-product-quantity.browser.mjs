@@ -292,7 +292,9 @@ test("Featured Product quantity occupies one third of its purchase row at every 
   );
   const settings = {
     quantityClass: source.match(/<Quantity[\s\S]*?className="([^"]+)"/)?.[1],
-    rowClass: source.match(/<div className="([^"]+)">\s*<Quantity/)?.[1],
+    rowClass: source.match(
+      /<div\s+className=\{clsx\(\s*"([^"]+)",[^)]*\)\}\s*>\s*<Quantity/,
+    )?.[1],
     containerClass: source.match(
       /<AddToCartButton\s+width="auto"\s+containerClassName="([^"]+)"/,
     )?.[1],
@@ -422,7 +424,11 @@ test("complete purchase row keeps quantity, CTA content and wishlist inside narr
     .slice(beforeQuantity.lastIndexOf("<div"))
     .match(/className=\{clsx\(([\s\S]*?)\)\}/)?.[1]
     .match(/"[^"]+"/g)
-    ?.map((value) => JSON.parse(value));
+    ?.map((value) => JSON.parse(value))
+    .filter(
+      (value) =>
+        value.startsWith("grid ") || value.includes("max-md:grid-cols"),
+    );
   const quantityClass = source.match(
     /<Quantity[\s\S]*?className="([^"]+)"/,
   )?.[1];
@@ -435,9 +441,12 @@ test("complete purchase row keeps quantity, CTA content and wishlist inside narr
   const buttonClass = source.match(
     /data-test="add-to-cart"\s+className="([^"]+)"/,
   )?.[1];
-  const wishlistClass = source.match(
-    /<ProductWishlistButton\s+productId=\{product.id\}\s+productTitle=\{title\}\s+className="([^"]+)"/,
-  )?.[1];
+  const wishlistHook = await readFile(
+    `${root}app/components/wishlist/use-product-wishlist.ts`,
+    "utf8",
+  );
+  const wishlistClass = wishlistHook.match(/: "(col-start-2[^"]+)"/)?.[1];
+  expect(wishlistClass).toBeTruthy();
   expect(rowClasses?.length).toBe(2);
   expect(containerClasses?.length).toBe(2);
   expect(quantityClass).toBeTruthy();
