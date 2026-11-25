@@ -1,10 +1,11 @@
 import { CaretDownIcon, CaretUpIcon, CheckIcon } from "@phosphor-icons/react";
 import * as Select from "@radix-ui/react-select";
-import { Image, type MappedProductOptions } from "@shopify/hydrogen";
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import { useNavigate } from "react-router";
-import type { ProductVariantFragment } from "storefront-api.generated";
+import type { MappedProductOptions } from "~/components/product/product-form";
 import { SwatchPreview } from "~/components/product/swatch";
+import { Image } from "~/components/shopify-image";
+import type { ProductVariantFragment } from "~/graphql/storefront-types";
 import { cn } from "~/utils/cn";
 
 /*

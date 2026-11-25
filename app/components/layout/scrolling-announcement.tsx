@@ -4,7 +4,7 @@ import {
   TwitterLogo,
   YoutubeLogo,
 } from "@phosphor-icons/react";
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import { cva } from "class-variance-authority";
 import { type CSSProperties, useEffect, useRef } from "react";
 import type { Swiper as SwiperClass } from "swiper";

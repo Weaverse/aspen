@@ -1,5 +1,10 @@
+import { gql, type StorefrontApi } from "@shopify/hydrogen";
+import { CacheShort } from "./cache";
+import { unwrapStorefront } from "./storefront";
 import type { AppLoadContext } from "react-router";
-import type { ThemivoWishlistProductsQuery } from "storefront-api.generated";
+type ThemivoWishlistProductsQuery = StorefrontApi.ResultOf<
+  typeof WISHLIST_PRODUCTS
+>;
 import type { ThemivoItem } from "~/types/wishlist";
 import { productGid, variantGid } from "./themivo-wishlist.server";
 
@@ -23,21 +28,20 @@ export async function hydrateThemivoItems(
   ];
   const nodes: ThemivoWishlistProductsQuery["nodes"] = [];
   for (let start = 0; start < ids.length; start += MAX_NODES_PER_QUERY) {
-    const batch = await storefront.query<ThemivoWishlistProductsQuery>(
-      WISHLIST_PRODUCTS,
-      {
+    const batch = unwrapStorefront(
+      await storefront.graphql(WISHLIST_PRODUCTS, {
         variables: {
           ids: ids.slice(start, start + MAX_NODES_PER_QUERY),
-          country: storefront.i18n.country,
-          language: storefront.i18n.language,
         },
-        cache: storefront.CacheShort(),
-      },
+        cache: CacheShort(),
+      }),
     );
     nodes.push(...batch.nodes);
   }
   const byId = new Map(
-    nodes.flatMap((node) => (node ? [[node.id, node] as const] : [])),
+    nodes.flatMap((node) =>
+      node && "id" in node ? [[node.id, node] as const] : [],
+    ),
   );
   const hidden = new Set(hiddenPrices);
   return items.flatMap((item) => {
@@ -83,7 +87,7 @@ export async function hydrateThemivoItems(
   });
 }
 
-const WISHLIST_PRODUCTS = `#graphql
+export const WISHLIST_PRODUCTS = gql(`
   query ThemivoWishlistProducts($ids: [ID!]!, $country: CountryCode, $language: LanguageCode)
   @inContext(country: $country, language: $language) {
     nodes(ids: $ids) {
@@ -111,22 +115,24 @@ const WISHLIST_PRODUCTS = `#graphql
       }
     }
   }
-`;
+`);
 
 export async function themivoVariantBelongsToProduct(
   storefront: AppLoadContext["storefront"],
   variantId: string,
   productId: string,
 ) {
-  const { node } = await storefront.query(
-    `#graphql
+  const { node } = unwrapStorefront(
+    await storefront.graphql(
+      gql(`
     query ThemivoWishlistVariantProduct($id: ID!) {
       node(id: $id) {
         ... on ProductVariant { product { id } }
       }
     }
-  `,
-    { variables: { id: variantId }, cache: storefront.CacheShort() },
+  `),
+      { variables: { id: variantId }, cache: CacheShort() },
+    ),
   );
   return Boolean(node && "product" in node && node.product.id === productId);
 }
@@ -137,8 +143,9 @@ export async function readThemivoSuggestions(
   count: number,
   hiddenIds: string[],
 ) {
-  const { collection } = await storefront.query(
-    `#graphql
+  const { collection } = unwrapStorefront(
+    await storefront.graphql(
+      gql(`
       query ThemivoWishlistSuggestions($id: ID!, $first: Int!, $country: CountryCode, $language: LanguageCode)
       @inContext(country: $country, language: $language) {
         collection(id: $id) {
@@ -154,16 +161,15 @@ export async function readThemivoSuggestions(
           }
         }
       }
-    `,
-    {
-      variables: {
-        id: collectionId,
-        first: count * 2,
-        country: storefront.i18n.country,
-        language: storefront.i18n.language,
+    `),
+      {
+        variables: {
+          id: collectionId,
+          first: count * 2,
+        },
+        cache: CacheShort(),
       },
-      cache: storefront.CacheShort(),
-    },
+    ),
   );
   const hidden = new Set(hiddenIds.map(productGid));
   return (collection?.products.nodes ?? [])

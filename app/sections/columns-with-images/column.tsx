@@ -1,9 +1,9 @@
 import {
   createSchema,
-  type HydrogenComponentProps,
   IMAGES_PLACEHOLDERS,
+  type WeaverseComponentProps,
   type WeaverseImage,
-} from "@weaverse/hydrogen";
+} from "@weaverse/hydrogen/react-router";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import type { CSSProperties } from "react";
@@ -30,7 +30,7 @@ interface ColumnWithImageItemProps
   extends
     VariantProps<typeof variants>,
     Pick<LinkProps, "variant" | "text" | "to" | "openInNewTab">,
-    HydrogenComponentProps {
+    WeaverseComponentProps {
   imageSrc: WeaverseImage;
   imageBorderRadius: number;
   heading: string;

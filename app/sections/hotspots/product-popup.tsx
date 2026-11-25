@@ -1,13 +1,12 @@
 import { ShoppingBagIcon } from "@phosphor-icons/react";
 import type { MediaImage } from "@shopify/hydrogen/storefront-api-types";
-import { IMAGES_PLACEHOLDERS, useTranslation } from "@weaverse/hydrogen";
+import {
+  IMAGES_PLACEHOLDERS,
+  useTranslation,
+} from "@weaverse/hydrogen/react-router";
 import clsx from "clsx";
 import type { CSSProperties } from "react";
 import { useState } from "react";
-import type {
-  ProductQuery,
-  ProductVariantFragment,
-} from "storefront-api.generated";
 import { Button } from "~/components/button";
 import { Image } from "~/components/image";
 import { Link } from "~/components/link";
@@ -17,6 +16,10 @@ import { OPTIONS_AS_SWATCH } from "~/components/product/product-option-values";
 import { SwatchFill, swatchFrameClassName } from "~/components/product/swatch";
 import { SpacedMoney } from "~/components/product/variant-prices";
 import { Tooltip, TooltipContent, TooltipTrigger } from "~/components/tooltip";
+import type {
+  ProductQuery,
+  ProductVariantFragment,
+} from "~/graphql/storefront-types";
 import { translatePreview } from "~/utils/preview-translation";
 import type { HotspotsItemData } from "./item";
 
@@ -31,7 +34,9 @@ interface ProductPopupProps extends Omit<
   ) => void;
 }
 
-const PRODUCT_PLACEHOLDER: Partial<ProductQuery["product"]> = {
+const PRODUCT_PLACEHOLDER: Partial<ProductQuery["product"]> & {
+  variants?: unknown;
+} = {
   id: "gid://shopify/Product/123",
   title: "Example Product Title",
   handle: "#",
@@ -41,6 +46,8 @@ const PRODUCT_PLACEHOLDER: Partial<ProductQuery["product"]> = {
         id: "1",
         __typename: "MediaImage",
         mediaContentType: "IMAGE",
+        alt: "",
+        previewImage: null,
         image: {
           id: "1",
           url: IMAGES_PLACEHOLDERS.product_4,
@@ -50,7 +57,6 @@ const PRODUCT_PLACEHOLDER: Partial<ProductQuery["product"]> = {
       },
     ],
   },
-  // @ts-expect-error
   variants: {
     nodes: [
       {

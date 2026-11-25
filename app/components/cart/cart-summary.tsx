@@ -1,13 +1,14 @@
 import { Tag, Truck, X } from "@phosphor-icons/react";
-import { CartForm, Money } from "@shopify/hydrogen";
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import clsx from "clsx";
 import { useFetcher } from "react-router";
-import type { CartApiQueryFragment } from "storefront-api.generated";
 import { Button } from "~/components/button";
+import { CartForm } from "~/components/cart/cart-action-form";
 import { Link } from "~/components/link";
 import { LoyaltyPointsHint } from "~/components/loyalty/loyalty-points-hint";
+import { Money } from "~/components/money";
 import { ProgressBar } from "~/components/progress-bar";
+import type { CartApiQueryFragment } from "~/graphql/storefront-types";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import { useTranslatedThemeSettings } from "~/hooks/use-translated-theme-settings";
 import { getCartMutationError } from "~/utils/cart-error";

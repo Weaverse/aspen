@@ -50,6 +50,7 @@ const bundle = await build({
   write: false,
   outfile: "fixture.js",
   format: "iife",
+  define: { "import.meta.env.DEV": "false" },
   jsx: "automatic",
   alias: { "~": `${root}app` },
   plugins: [
@@ -57,15 +58,28 @@ const bundle = await build({
       name: "presentation-boundaries",
       setup(builder) {
         builder.onResolve(
+          { filter: /^~\/components\/product\/product-form$/ },
+          () => ({ path: "product-form", namespace: "product-form-fixture" }),
+        );
+        builder.onLoad(
+          { filter: /.*/, namespace: "product-form-fixture" },
+          () => ({
+            loader: "js",
+            resolveDir: root,
+            contents: `export {getProductOptions,getAdjacentAndFirstAvailableVariants,mapSelectedProductOptionToObject} from "${root}app/components/product/product-form.tsx"; export const ProductProvider=({children})=>children; export const useProductForm=()=>({selectOption:()=>({status:'unresolved'})});`,
+          }),
+        );
+
+        builder.onResolve(
           {
             filter:
-              /^@weaverse\/hydrogen$|use-translated-text$|^\.\/(cart-drawer|desktop-menu|mobile-menu|floating-hotspot|predictive-search\/search-mobile|predictive-search\/search-desktop)$|^~\/components\/(logo|product\/product-media|product\/back-in-stock-form|loyalty\/loyalty-points-hint)$/,
+              /^@weaverse\/hydrogen(?:\/react-router)?$|use-translated-text$|^\.\/(cart-drawer|desktop-menu|mobile-menu|floating-hotspot|predictive-search\/search-mobile|predictive-search\/search-desktop)$|^~\/components\/(logo|product\/product-media|product\/back-in-stock-form|loyalty\/loyalty-points-hint)$/,
           },
           ({ path }) => ({ path, namespace: "fixture" }),
         );
         builder.onLoad({ filter: /.*/, namespace: "fixture" }, ({ path }) => {
           let contents;
-          if (path === "@weaverse/hydrogen") {
+          if (path === "@weaverse/hydrogen/react-router") {
             contents = `export const createSchema=value=>value; export const useThemeSettings=()=>window.settings; export const useTranslation=()=>({t:key=>key});`;
           } else if (path.endsWith("use-translated-text")) {
             contents = `export const useTranslatedText=()=>value=>value;`;
@@ -114,6 +128,9 @@ async function render(width, options = {}, testBrowser = browser) {
     viewport: { width, height: 900 },
     reducedMotion: options.reducedMotion ? "reduce" : "no-preference",
   });
+  page.on("pageerror", (error) =>
+    console.error("Fixture page error:", error.message),
+  );
   page.setDefaultTimeout(5000);
   await page.setContent(
     `<!doctype html><style>${css}:root{--height-nav:80px;--topbar-height:0px;--initial-topbar-height:0px;--page-padding:20px;--radius-md:12px;--color-background:white;--btn-primary-bg:#434343;--btn-primary-text:white;} shop-pay-button{display:none}</style><div id="root"></div>`,
@@ -581,9 +598,9 @@ test("Quick View fades without sliding or scaling and keeps a mobile overlay gut
     await expect(panel).toHaveCSS("opacity", "1");
     if (width < 768) {
       const bounds = await dialog.boundingBox();
-      assert.equal(bounds.width, width - 32);
-      assert.equal(bounds.height, 900 * 0.75);
-      assert.equal(bounds.x, 16);
+      assert.equal(bounds.width, Math.min(400, width - 32));
+      assert.equal(bounds.height, Math.min(872, 900 - 32));
+      assert.equal(bounds.x, (width - bounds.width) / 2);
       assert.equal(bounds.y, (900 - bounds.height) / 2);
       await expect(panel).toHaveCSS("border-radius", "12px");
     }
@@ -637,7 +654,7 @@ test("Mobile Quick View follows viewport height and tokens and dismisses through
   const bounds = await dialog.boundingBox();
   assert.equal(bounds.x, 24);
   assert.equal(bounds.width, 390 - 48);
-  assert.equal(bounds.height, 640 * 0.75);
+  assert.equal(bounds.height, 640 - 48);
   assert.equal(bounds.y, (640 - bounds.height) / 2);
   await page.mouse.click(bounds.x / 2, bounds.y + bounds.height / 2);
   await expect(dialog).toHaveCount(0);
@@ -648,6 +665,8 @@ test("Mobile Quick View follows viewport height and tokens and dismisses through
 test("Testimonials Quick View shares the standard responsive frame, fade, and focus flow", async () => {
   for (const width of [320, 390, 767, 768, 1032]) {
     const page = await render(width, { testimonial: true });
+    const height = width < 768 ? 640 : 900;
+    await page.setViewportSize({ width, height });
     await page.addStyleTag({
       content: ":root{--radius-md:18px;--spacing:6px}",
     });
@@ -666,16 +685,16 @@ test("Testimonials Quick View shares the standard responsive frame, fade, and fo
     await expect(panel).toHaveCSS("animation-name", "fade-in");
     const bounds = await dialog.boundingBox();
     if (width < 768) {
-      assert.equal(bounds.x, 24);
-      assert.equal(bounds.width, width - 48);
-      assert.equal(bounds.height, 900 * 0.75);
-      assert.equal(bounds.y, (900 - bounds.height) / 2);
+      assert.equal(bounds.x, (width - bounds.width) / 2);
+      assert.equal(bounds.width, Math.min(width - 48, 400));
+      assert.equal(bounds.height, Math.min(872, height - 48));
+      assert.equal(bounds.y, (height - bounds.height) / 2);
       await expect(panel).toHaveCSS("border-radius", "18px");
     } else {
-      assert.equal(bounds.width, width - 48);
-      assert.equal(bounds.x, 24);
-      assert.ok(bounds.height <= 900 - 48);
-      assert.equal(bounds.y, (900 - bounds.height) / 2);
+      assert.equal(bounds.width, Math.min(801, width - 72));
+      assert.equal(bounds.x, (width - bounds.width) / 2);
+      assert.ok(bounds.height <= Math.min(783, height - 72));
+      assert.equal(bounds.y, (height - bounds.height) / 2);
     }
     const add = page.getByRole("button", { name: "Add to Cart", exact: true });
     await expect(add).toBeEnabled();
@@ -704,6 +723,9 @@ test("Testimonials Quick View shares the standard responsive frame, fade, and fo
 test("Quick View reduced motion and mobile content scrolling retain dismissal and focus", async () => {
   for (const width of [390, 768, 1440]) {
     const page = await render(width, { reducedMotion: true, controlled: true });
+    if (width < 768) {
+      await page.setViewportSize({ width, height: 640 });
+    }
     const trigger = page.getByRole("button", {
       name: "product.selectOptions",
       exact: true,

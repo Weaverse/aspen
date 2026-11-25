@@ -1,4 +1,4 @@
-import type { HydrogenComponent } from "@weaverse/hydrogen";
+import type { WeaverseComponent } from "@weaverse/hydrogen/react-router";
 import type { ReactNode } from "react";
 import { Children, forwardRef, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -62,7 +62,7 @@ let VideoItems = forwardRef<HTMLElement, VideoItemsProps>((props, ref) => {
   );
 });
 
-export let schema: HydrogenComponent["schema"] = {
+export let schema: WeaverseComponent["schema"] = {
   type: "video--items",
   title: "Videos",
   settings: [

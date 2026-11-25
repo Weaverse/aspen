@@ -46,7 +46,7 @@ const bundle = await build({
               ? `export const usePrefixPathWithLocale=p=>p;`
               : path.includes("pinned-collections")
                 ? `export const withPinnedCollections=items=>items;`
-                : path === "@weaverse/hydrogen"
+                : path === "@weaverse/hydrogen/react-router"
                   ? `export const useTranslation=()=>({t:k=>k});`
                   : path.includes("predictive-search-result")
                     ? `import React from 'react'; export const PredictiveSearchResult=({items=[]})=>React.createElement('ul',{className:'space-y-4'},items.map(item=>React.createElement('li',{key:item.id,style:{height:20}},item.title)));`

@@ -1,4 +1,7 @@
-import { useThemeSettings, useTranslation } from "@weaverse/hydrogen";
+import {
+  useThemeSettings,
+  useTranslation,
+} from "@weaverse/hydrogen/react-router";
 import { useMemo } from "react";
 import { translateThemeText } from "~/utils/translation";
 

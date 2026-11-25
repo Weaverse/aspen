@@ -32,7 +32,7 @@ const bundle = await build({
         );
         builder.onLoad({ filter: /.*/, namespace: "fixture" }, ({ path }) => ({
           contents:
-            path === "@weaverse/hydrogen"
+            path === "@weaverse/hydrogen/react-router"
               ? `export const createSchema=value=>value;export const useThemeSettings=()=>window.settings;export const useTranslation=()=>({t:key=>key});`
               : path.endsWith("use-shop-menu")
                 ? `export const useShopMenu=()=>({shopName:"Fixture",footerMenu:{items:[]},paymentSettings:{acceptedCardBrands:window.payments}});`

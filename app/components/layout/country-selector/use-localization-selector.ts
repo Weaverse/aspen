@@ -1,5 +1,5 @@
-import { CartForm } from "@shopify/hydrogen";
 import { useFetcher, useLocation, useRouteLoaderData } from "react-router";
+import { CartForm } from "~/components/cart/cart-action-form";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import type { RootLoader } from "~/root";
 import type { CurrencyOption, I18nLocale } from "~/types/locale";

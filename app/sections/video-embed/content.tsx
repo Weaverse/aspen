@@ -1,4 +1,7 @@
-import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
+import {
+  createSchema,
+  type WeaverseComponentProps,
+} from "@weaverse/hydrogen/react-router";
 import { cva, type VariantProps } from "class-variance-authority";
 import { forwardRef } from "react";
 import Heading, {
@@ -11,7 +14,7 @@ import { useTranslatedText } from "~/hooks/use-translated-text";
 
 interface VideoEmbedContentProps
   extends
-    HydrogenComponentProps,
+    WeaverseComponentProps,
     VariantProps<typeof variants>,
     Omit<HeadingProps, "content"> {
   // Layout props

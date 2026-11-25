@@ -1,4 +1,4 @@
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import { type LoaderFunctionArgs, useLoaderData } from "react-router";
 import Link from "~/components/link";
 import { ThemivoWishlistItems } from "~/components/wishlist/themivo-wishlist-items";

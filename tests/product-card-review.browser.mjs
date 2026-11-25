@@ -90,10 +90,13 @@ const bundle = await build({
             }),
           );
         }
-        builder.onResolve({ filter: /^@weaverse\/hydrogen$/ }, () => ({
-          path: "cms",
-          namespace: "fixture",
-        }));
+        builder.onResolve(
+          { filter: /^@weaverse\/hydrogen(?:\/react-router)?$/ },
+          () => ({
+            path: "cms",
+            namespace: "fixture",
+          }),
+        );
         builder.onResolve({ filter: /use-translated-text$/ }, () => ({
           path: "translation",
           namespace: "fixture",

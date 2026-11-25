@@ -1,8 +1,11 @@
-import { createSchema, type HydrogenComponentProps } from "@weaverse/hydrogen";
+import {
+  createSchema,
+  type WeaverseComponentProps,
+} from "@weaverse/hydrogen/react-router";
 import { forwardRef } from "react";
 import { cn } from "~/utils/cn";
 
-interface TestimonialProps extends HydrogenComponentProps {}
+interface TestimonialProps extends WeaverseComponentProps {}
 
 const TestimonialItem = forwardRef<HTMLDivElement, TestimonialProps>(
   (props, ref) => {

@@ -20,7 +20,7 @@ import { type LoaderFunctionArgs, redirect } from "react-router";
  * @preserve
  */
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
-  const { cart, session } = context;
+  const { cart } = context;
   const { lines } = params;
   const linesMap = lines?.split(",").map((line) => {
     const lineDetails = line.split(":");
@@ -53,13 +53,7 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
     });
   }
 
-  /**
-   * Update cart id in cookie
-   * Manual workaround for React Router v7 compatibility issue with cart.setCartId()
-   */
-  session.set("cartId", cartResult.id);
-  const headers = new Headers();
-  headers.set("Set-Cookie", await session.commit());
+  const headers = cart.setCartId(cartResult.id);
 
   //! redirect to checkout
   if (cartResult.checkoutUrl) {

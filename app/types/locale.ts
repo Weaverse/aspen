@@ -1,4 +1,4 @@
-import type { I18nBase } from "@shopify/hydrogen";
+import type { ShopifyLocale } from "@shopify/hydrogen";
 import type {
   CountryCode,
   CurrencyCode,
@@ -6,7 +6,7 @@ import type {
 
 export type Localizations = Record<string, I18nLocale>;
 
-export type I18nLocale = I18nBase & {
+export type I18nLocale = ShopifyLocale & {
   currency: CurrencyCode;
   label: string;
   pathPrefix: string;

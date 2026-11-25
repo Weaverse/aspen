@@ -1,25 +1,14 @@
-import type {
-  OptimisticCartLineInput,
-  ShopifyAddToCartPayload,
-  ShopifyPageViewPayload,
-} from "@shopify/hydrogen";
-import {
-  AnalyticsEventName,
-  CartForm,
-  getClientBrowserParameters,
-  sendShopifyAnalytics,
-} from "@shopify/hydrogen";
-import { useTranslation } from "@weaverse/hydrogen";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { FetcherWithComponents } from "react-router";
-import { useMatches } from "react-router";
 import { Button } from "~/components/button";
+import { CartForm } from "~/components/cart/cart-action-form";
 import { useCartFetcherSync } from "~/components/cart/cart-sync";
+import type { OptimisticCartLineInput } from "~/components/cart/cart-types";
 import { canAddCartLines, useCartStore } from "~/components/cart/store";
 import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
 import { getCartMutationError } from "~/utils/cart-error";
 import { cn } from "~/utils/cn";
-import { DEFAULT_LOCALE } from "~/utils/const";
 
 export function AddToCartButton({
   children,
@@ -28,7 +17,6 @@ export function AddToCartButton({
   containerClassName,
   width = "full",
   disabled,
-  analytics,
   onAdded,
   loadingStyle = "overlay",
   cartOpenTiming = "submit",
@@ -41,7 +29,6 @@ export function AddToCartButton({
   containerClassName?: string;
   width?: "auto" | "full";
   disabled?: boolean;
-  analytics?: unknown;
   onAdded?: () => void;
   loadingStyle?: "inline" | "overlay";
   /** Manual lets a modal finish its exit before its owner opens the cart. */
@@ -128,11 +115,6 @@ export function AddToCartButton({
             >
               {/* Preserve the token when staging the add rerenders this form. */}
               <input type="hidden" name="cartStageToken" value={stageToken} />
-              <input
-                type="hidden"
-                name="analytics"
-                value={JSON.stringify(analytics)}
-              />
               <div className="space-y-2">
                 <Button
                   type="submit"
@@ -203,33 +185,6 @@ export function AddToCartButton({
   );
 }
 
-function usePageAnalytics({ hasUserConsent }: { hasUserConsent: boolean }) {
-  const matches = useMatches();
-
-  return useMemo(() => {
-    const data: Record<string, unknown> = {};
-    for (const match of matches) {
-      const eventData = match?.data as Record<string, unknown>;
-      if (eventData) {
-        if (eventData.analytics) {
-          Object.assign(data, eventData.analytics);
-        }
-        const selectedLocale =
-          (eventData.selectedLocale as typeof DEFAULT_LOCALE) || DEFAULT_LOCALE;
-        Object.assign(data, {
-          currency: selectedLocale.currency,
-          acceptedLanguage: selectedLocale.language,
-        });
-      }
-    }
-
-    return {
-      ...data,
-      hasUserConsent,
-    } as unknown as ShopifyPageViewPayload;
-  }, [matches, hasUserConsent]);
-}
-
 function AddToCartAnalytics({
   fetcher,
   children,
@@ -282,8 +237,6 @@ function AddToCartAnalytics({
     [],
   );
   const fetcherData = fetcher.data;
-  const formData = fetcher.formData;
-  const pageAnalytics = usePageAnalytics({ hasUserConsent: true });
   const handledData = useRef<unknown>(null);
 
   useEffect(() => {
@@ -293,22 +246,6 @@ function AddToCartAnalytics({
       handledData.current !== fetcherData
     ) {
       handledData.current = fetcherData;
-      const cartData: Record<string, unknown> = {};
-
-      if (formData) {
-        const cartInputs = CartForm.getFormInput(formData);
-        try {
-          if (cartInputs.inputs.analytics) {
-            const dataInForm: unknown = JSON.parse(
-              String(cartInputs.inputs.analytics),
-            );
-            Object.assign(cartData, dataInForm);
-          }
-        } catch {
-          // Analytics must never block the cart success state.
-        }
-      }
-
       // Open cart drawer after successful add to cart (regardless of analytics)
       if (
         fetcherData.cart &&
@@ -321,29 +258,9 @@ function AddToCartAnalytics({
         onAdded?.();
       }
 
-      // Send analytics if we have cart data
-      if (Object.keys(cartData).length && fetcherData.cart) {
-        const addToCartPayload: ShopifyAddToCartPayload = {
-          ...getClientBrowserParameters(),
-          ...pageAnalytics,
-          ...cartData,
-          cartId: fetcherData.cart.id,
-        };
-
-        sendShopifyAnalytics({
-          eventName: AnalyticsEventName.ADD_TO_CART,
-          payload: addToCartPayload,
-        });
-      }
+      // Hydrogen's cart analytics tracker observes the reconciled cart store.
     }
-  }, [
-    fetcher.state,
-    fetcherData,
-    formData,
-    onAdded,
-    pageAnalytics,
-    cartOpenTiming,
-  ]);
+  }, [fetcher.state, fetcherData, onAdded, cartOpenTiming]);
 
   return <>{children}</>;
 }

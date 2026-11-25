@@ -1,13 +1,17 @@
+import { ShopifyScripts } from "@shopify/hydrogen/react";
+import { useNavigate } from "react-router";
+import { CartLibrarySync } from "~/components/cart/cart-library-sync";
+import { CartProvider } from "~/components/cart/cart-store";
+import { PageView, ShopifyMarketSync } from "~/components/root/analytics-views";
 import { useTranslatedThemeSettings } from "~/hooks/use-translated-theme-settings";
+import { routeTemplates } from "~/utils/route-templates";
 import { localizedSeoMeta } from "~/utils/seo-translation";
 import "@fontsource/tenor-sans/index.css";
 import "@fontsource-variable/dm-sans/index.css";
 import tenorSansWoff2Url from "@fontsource/tenor-sans/files/tenor-sans-latin-400-normal.woff2?url";
 import dmSansVarWoff2Url from "@fontsource-variable/dm-sans/files/dm-sans-latin-wght-normal.woff2?url";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import type { CartReturn, SeoConfig } from "@shopify/hydrogen";
-import { Analytics, useNonce } from "@shopify/hydrogen";
-import { useTranslation, withWeaverse } from "@weaverse/hydrogen";
+import { useTranslation, withWeaverse } from "@weaverse/hydrogen/react-router";
 import type { CSSProperties } from "react";
 import {
   isRouteErrorResponse,
@@ -23,12 +27,13 @@ import {
   useRouteError,
   useRouteLoaderData,
 } from "react-router";
+import { useNonce } from "~/utils/csp";
+import type { SeoConfig } from "~/utils/seo-meta";
 import {
   hasThemivoGuest,
   themivoEnabled,
 } from "~/utils/themivo-wishlist.server";
 import { CartStoreSync } from "./components/cart/cart-sync";
-import { useCartStore } from "./components/cart/store";
 import { Footer } from "./components/layout/footer";
 import { Header } from "./components/layout/header";
 import { ScrollingAnnouncement } from "./components/layout/scrolling-announcement";
@@ -168,6 +173,7 @@ export function ErrorBoundary() {
 
 function RootLayout({ children }: { children?: React.ReactNode }) {
   const nonce = useNonce();
+  const navigate = useNavigate();
   const { t } = useTranslation();
   const data = useRouteLoaderData<RootLoader>("root");
   const locale = data?.selectedLocale ?? DEFAULT_LOCALE;
@@ -177,8 +183,6 @@ function RootLayout({ children }: { children?: React.ReactNode }) {
   const initialDesktopTopbarHeight =
     designSystemPreset === "custom" ? (topbarHeight ?? 56) : 56;
   const shouldShowNewsletterPopup = useShouldRenderNewsletterPopup();
-  const serverCart = useCartStore((state) => state.serverCart);
-  const cartResolved = useCartStore((state) => state.isResolved);
 
   return (
     <html
@@ -186,7 +190,22 @@ function RootLayout({ children }: { children?: React.ReactNode }) {
     >
       <head>
         <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        {data && (
+          <ShopifyScripts
+            nonce={nonce}
+            shop={data.shopifyScripts.shop}
+            i18n={data.shopifyScripts.i18n}
+            analytics={{ channel: data.shopifyScripts.channel }}
+            shopifyAnalytics={
+              data.shopifyScripts.shopifyAnalytics && !privateWishlist
+            }
+            consent={{ mode: "no-banner" }}
+            routes={routeTemplates}
+            navigate={navigate}
+          />
+        )}
+
         <link rel="stylesheet" href={styles} />
         <Meta />
         <Links />
@@ -205,12 +224,10 @@ function RootLayout({ children }: { children?: React.ReactNode }) {
         className="bg-background text-body antialiased opacity-100! transition-opacity duration-300"
       >
         {data ? (
-          <Analytics.Provider
-            cart={cartResolved ? (serverCart as CartReturn) : data.cart}
-            shop={data.shop}
-            consent={data.consent}
-            canTrack={privateWishlist ? () => false : undefined}
-          >
+          <CartProvider>
+            <ShopifyMarketSync {...data.shopifyScripts.i18n} />
+            <CartLibrarySync />
+            {!privateWishlist && <PageView />}
             <CartStoreSync initialCart={data.cart} />
             <WishlistProvider initialWishlist={data.wishlist}>
               <TooltipProvider disableHoverableContent>
@@ -235,7 +252,7 @@ function RootLayout({ children }: { children?: React.ReactNode }) {
                 {!privateWishlist && <CustomAnalytics />}
               </TooltipProvider>
             </WishlistProvider>
-          </Analytics.Provider>
+          </CartProvider>
         ) : (
           children
         )}
@@ -247,7 +264,7 @@ function RootLayout({ children }: { children?: React.ReactNode }) {
             type="module"
             src={`${THEMIVO_STOREFRONT_ORIGIN}/storefront/v1/wishlist.js`}
             data-wishlist-shop={data.themivoScriptShop}
-            data-storefront-token={data.consent.storefrontAccessToken}
+            data-storefront-token={data.shopifyScripts.storefrontAccessToken}
             data-wishlist-url={prefixPathWithLocale(
               THEMIVO_PREVIEW_WISHLIST_PATH,
               locale,

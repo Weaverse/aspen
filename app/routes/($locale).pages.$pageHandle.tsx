@@ -1,13 +1,14 @@
-import type { SeoConfig } from "@shopify/hydrogen";
-import type { RouteLoaderArgs } from "@weaverse/hydrogen";
+import { gql } from "@shopify/hydrogen";
+import type { RouteLoaderArgs } from "@weaverse/hydrogen/react-router";
 import { type MetaFunction, redirect } from "react-router";
-import type { PageDetailsQuery } from "storefront-api.generated";
 import invariant from "tiny-invariant";
-import { routeHeaders } from "~/utils/cache";
+import { CACHE_DEFAULT, routeHeaders } from "~/utils/cache";
 import { redirectIfHandleIsLocalized } from "~/utils/redirect";
 import { skipPageRevalidationForStorefrontActions } from "~/utils/revalidation";
 import { seoPayload } from "~/utils/seo.server";
+import type { SeoConfig } from "~/utils/seo-meta";
 import { localizedSeoMeta } from "~/utils/seo-translation";
+import { unwrapStorefront } from "~/utils/storefront";
 import { canonicalStorefrontPathname } from "~/utils/storefront-path";
 import { WeaverseContent } from "~/weaverse";
 
@@ -29,12 +30,12 @@ export async function loader({ request, params, context }: RouteLoaderArgs) {
 
   // Load page data and weaverseData in parallel
   const [{ page }, weaverseData] = await Promise.all([
-    storefront.query<PageDetailsQuery>(PAGE_QUERY, {
-      variables: {
-        handle: params.pageHandle,
-        language: storefront.i18n.language,
-      },
-    }),
+    storefront
+      .graphql(PAGE_QUERY, {
+        variables: { handle: params.pageHandle },
+        cache: CACHE_DEFAULT,
+      })
+      .then(unwrapStorefront),
     context.weaverse.loadPage({
       type: "PAGE",
       handle: params.pageHandle,
@@ -66,18 +67,16 @@ export default function Page() {
   return <WeaverseContent />;
 }
 
-const PAGE_QUERY = `#graphql
-  query PageDetails($language: LanguageCode, $handle: String!)
-  @inContext(language: $language) {
-    page(handle: $handle) {
-      id
+export const PAGE_QUERY =
+  gql(`query PageDetails($language: LanguageCode, $handle: String!) @inContext(language: $language) {
+  page(handle: $handle) {
+    id
+    title
+    handle
+    body
+    seo {
+      description
       title
-      handle
-      body
-      seo {
-        description
-        title
-      }
     }
   }
-`;
+}`);

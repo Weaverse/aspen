@@ -1,8 +1,8 @@
 import {
   createSchema,
-  type HydrogenComponentProps,
   type InspectorGroup,
-} from "@weaverse/hydrogen";
+  type WeaverseComponentProps,
+} from "@weaverse/hydrogen/react-router";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import type { CSSProperties } from "react";
@@ -98,7 +98,7 @@ export interface HeadingProps
 
 const Heading = forwardRef<
   HTMLHeadingElement,
-  HeadingProps & Partial<HydrogenComponentProps>
+  HeadingProps & Partial<WeaverseComponentProps>
 >((props, ref) => {
   const translateText = useTranslatedText();
 

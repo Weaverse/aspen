@@ -1,9 +1,12 @@
-import type { HydrogenComponentProps, WeaverseImage } from "@weaverse/hydrogen";
+import type {
+  WeaverseComponentProps,
+  WeaverseImage,
+} from "@weaverse/hydrogen/react-router";
 import {
   createSchema,
   IMAGES_PLACEHOLDERS,
   useTranslation,
-} from "@weaverse/hydrogen";
+} from "@weaverse/hydrogen/react-router";
 import clsx from "clsx";
 import { forwardRef } from "react";
 import { Image } from "~/components/image";
@@ -12,7 +15,7 @@ import { calculateAspectRatio } from "~/utils/image";
 import { sectionImage } from "~/utils/section-placeholder";
 import { useHotspotsContext } from "./hotpots";
 
-interface HotspotsProps extends HydrogenComponentProps {
+interface HotspotsProps extends WeaverseComponentProps {
   image: string | WeaverseImage;
   aspectRatio?: ImageAspectRatio | "design";
 }

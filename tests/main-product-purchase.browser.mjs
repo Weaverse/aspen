@@ -41,7 +41,7 @@ const bundle = await build({
           "~/components/cart/use-cart-inventory-policy":
             "export const useVariantInventoryPolicy=()=>({policy:'DENY',pending:false});",
           "@shopify/hydrogen": `import React from 'react'; export const getProductOptions=()=>window.productOptions; export const getAdjacentAndFirstAvailableVariants=()=>[]; export const useOptimisticVariant=v=>v; export const Money=({data,className})=><span className={className}>{data.amount}</span>; export const useMoney=data=>({currencySymbol:'$',currencyNarrowSymbol:'$',withoutTrailingZeros:'$'+data.amount,withoutTrailingZerosAndCurrency:data.amount}); export const Image=()=>null; export const ShopPayButton=({variantIdsAndQuantities})=><a href={'/checkout/'+variantIdsAndQuantities[0].id}>Shop Pay</a>;`,
-          "@weaverse/hydrogen": `export const useTranslation=()=>({t:key=>key}); export const createSchema=v=>v; export const useThemeSettings=()=>({});`,
+          "@weaverse/hydrogen/react-router": `export const useTranslation=()=>({t:key=>key}); export const createSchema=v=>v; export const useThemeSettings=()=>({});`,
           "react-router": `import React from 'react'; export const useLoaderData=()=>window.productData; export const useRouteLoaderData=()=>({selectedLocale:window.productData.locale}); export const useNavigate=()=>to=>{window.navigation=to;}; export const Link=React.forwardRef(({to,viewTransition,...props},ref)=><a href={to} ref={ref} {...props}/>);`,
           "~/hooks/use-translated-text":
             "export const useTranslatedText=()=>value=>value;",
@@ -52,6 +52,16 @@ const bundle = await build({
           "~/components/product/add-to-cart-button":
             "import React from 'react'; export const AddToCartButton=({lines,children,disabled,...props})=><button disabled={disabled} onClick={()=>{window.submitted=lines;}}>{children}</button>;",
         };
+        stubs["~/components/money"] = stubs["@shopify/hydrogen"];
+        stubs["~/components/shopify-image"] = stubs["@shopify/hydrogen"];
+        stubs["~/components/product/shop-pay-button"] =
+          stubs["@shopify/hydrogen"];
+        stubs["~/components/product/product-form"] = `
+          export const getProductOptions=()=>window.productOptions;
+          export const getAdjacentAndFirstAvailableVariants=()=>[];
+          export const useSelectedVariant=product=>product.selectedOrFirstAvailableVariant;
+          export const useProductForm=()=>({selectOption:(name,value)=>({status:'resolved',selectedVariant:window.productOptions.find(option=>option.name===name).optionValues.find(option=>option.name===value).firstSelectableVariant})});
+        `;
         const empty = [
           "~/components/loyalty/loyalty-points-hint",
           "~/components/product/back-in-stock-form",

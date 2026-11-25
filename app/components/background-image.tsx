@@ -1,8 +1,11 @@
-import { Image } from "@shopify/hydrogen";
-import type { InspectorGroup, WeaverseImage } from "@weaverse/hydrogen";
-import { useTranslation } from "@weaverse/hydrogen";
+import type {
+  InspectorGroup,
+  WeaverseImage,
+} from "@weaverse/hydrogen/react-router";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
+import { Image } from "~/components/shopify-image";
 
 const variants = cva("absolute inset-0 z-[-1] h-full w-full", {
   variants: {

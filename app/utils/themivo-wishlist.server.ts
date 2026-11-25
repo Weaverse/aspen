@@ -1,4 +1,5 @@
-import type { ThemivoWishlistCustomerQuery } from "customer-account-api.generated";
+import { gql } from "@shopify/hydrogen/customer-account";
+import { unwrapStorefront } from "./storefront";
 import type { AppLoadContext } from "react-router";
 import {
   THEMIVO_CART_TRANSFER_ATTRIBUTE,
@@ -191,11 +192,10 @@ async function shopperFor(
 ): Promise<Shopper | null> {
   const guest = guestIdFromSession(context);
   if (await context.customerAccount.isLoggedIn()) {
-    const result =
-      await context.customerAccount.query<ThemivoWishlistCustomerQuery>(
-        THEMIVO_CUSTOMER_QUERY,
-      );
-    const id = result.data?.customer?.id;
+    const result = await context.customerAccount.graphql(
+      THEMIVO_CUSTOMER_QUERY,
+    );
+    const id = unwrapStorefront(result).customer?.id;
     if (!id) {
       throw new ThemivoError("unavailable", 503);
     }
@@ -676,11 +676,11 @@ export async function readThemivoShared(
   return { name: shared.list.name, page: shared.items, rules };
 }
 
-const THEMIVO_CUSTOMER_QUERY = `#graphql
+const THEMIVO_CUSTOMER_QUERY = gql(`
   query ThemivoWishlistCustomer {
     customer { id }
   }
-`;
+`);
 
 type SavedCartList = ThemivoList & { items: ThemivoItem[] };
 const PENDING_CART_SAVE = "themivoPendingCartSave";
@@ -768,7 +768,7 @@ async function saveCartItem(
   const variantId = numericId(line.merchandise.id, "ProductVariant");
   const quantity = line.quantity;
   if (
-    line.sellingPlanAllocation ||
+    ("sellingPlanAllocation" in line && line.sellingPlanAllocation) ||
     line.attributes?.some(
       ({ key }) => key !== THEMIVO_CART_TRANSFER_ATTRIBUTE,
     ) ||

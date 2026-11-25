@@ -1,8 +1,8 @@
 import {
   createSchema,
-  type HydrogenComponentProps,
   useTranslation,
-} from "@weaverse/hydrogen";
+  type WeaverseComponentProps,
+} from "@weaverse/hydrogen/react-router";
 import { cva, type VariantProps } from "class-variance-authority";
 import { forwardRef } from "react";
 import Heading, {
@@ -16,7 +16,7 @@ import { useFeaturedProductsLayout } from ".";
 
 interface FeaturedProductsLoaderData
   extends
-    HydrogenComponentProps,
+    WeaverseComponentProps,
     VariantProps<typeof variants>,
     Omit<HeadingProps, "content"> {
   // Layout props

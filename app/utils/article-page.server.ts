@@ -1,4 +1,4 @@
-import { WeaverseClient } from "@weaverse/hydrogen";
+import { WeaverseClient } from "@weaverse/hydrogen/react-router";
 import type { AppLoadContext } from "react-router";
 
 /** Keep parent identity in the CMS request even though SDK drops ordinary queries. */

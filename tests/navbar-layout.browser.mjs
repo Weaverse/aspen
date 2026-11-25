@@ -38,7 +38,7 @@ const bundle = await build({
         builder.onResolve(
           {
             filter:
-              /^@weaverse\/hydrogen$|^@shopify\/hydrogen$|^@phosphor-icons\/react$|^react-router$|^react-use\/esm\/useWindowScroll$|^~\/components\/link$|^~\/hooks\/use-shop-menu$|^\.\/cart-drawer$|^\.\/desktop-menu$|^\.\/mobile-menu$|^\.\/predictive-search\//,
+              /^@weaverse\/hydrogen\/react-router$|^@shopify\/hydrogen$|^@phosphor-icons\/react$|^react-router$|^react-use\/esm\/useWindowScroll$|^~\/components\/link$|^~\/hooks\/use-shop-menu$|^\.\/cart-drawer$|^\.\/desktop-menu$|^\.\/mobile-menu$|^\.\/predictive-search\//,
           },
           ({ path }) => ({ path, namespace: "navbar-fixture" }),
         );
@@ -46,7 +46,7 @@ const bundle = await build({
           { filter: /.*/, namespace: "navbar-fixture" },
           ({ path }) => {
             const modules = {
-              "@weaverse/hydrogen": `export const useThemeSettings=()=>window.settings;export const useTranslation=()=>({t:k=>k});`,
+              "@weaverse/hydrogen/react-router": `export const useThemeSettings=()=>window.settings;export const useTranslation=()=>({t:k=>k});`,
               "react-router": `export const useLocation=()=>({pathname:'/'});export const useRouteError=()=>null;export const useRouteLoaderData=()=>({});export const Await=({children})=>children(false);`,
               "react-use/esm/useWindowScroll": `export default ()=>({y:0});`,
               "~/hooks/use-shop-menu": `export const useShopMenu=()=>({shopName:'Aspen'});`,

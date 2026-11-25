@@ -1,13 +1,13 @@
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import clsx from "clsx";
-import type {
-  ProductCardFragment,
-  ProductVariantFragment,
-} from "storefront-api.generated";
 import { Button } from "~/components/button";
 import { Link } from "~/components/link";
 import { SwatchFill, swatchFrameClassName } from "~/components/product/swatch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "~/components/tooltip";
+import type {
+  ProductCardFragment,
+  ProductVariantFragment,
+} from "~/graphql/storefront-types";
 import { useTranslatedThemeSettings } from "~/hooks/use-translated-theme-settings";
 import { RevealUnderline } from "~/reveal-underline";
 import { cn } from "~/utils/cn";

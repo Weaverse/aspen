@@ -15,7 +15,7 @@ const bundle = await build({
       import React, {useLayoutEffect} from 'react';
       import {createRoot} from 'react-dom/client';
       import {createMemoryRouter,RouterProvider,useLoaderData} from 'react-router';
-      import {CartForm} from '@shopify/hydrogen';
+      import {CartForm} from './app/components/cart/cart-action-form';
       import {useProductQuantity} from './app/hooks/use-product-quantity';
       import {AddToCartButton} from './app/components/product/add-to-cart-button';
       import {CartStoreSync} from './app/components/cart/cart-sync';
@@ -71,10 +71,13 @@ const bundle = await build({
     {
       name: "translation-only",
       setup(builder) {
-        builder.onResolve({ filter: /^@weaverse\/hydrogen$/ }, () => ({
-          path: "translation",
-          namespace: "fixture",
-        }));
+        builder.onResolve(
+          { filter: /^@weaverse\/hydrogen\/react-router$/ },
+          () => ({
+            path: "translation",
+            namespace: "fixture",
+          }),
+        );
         builder.onLoad({ filter: /.*/, namespace: "fixture" }, () => ({
           loader: "js",
           contents: "export const useTranslation=()=>({t:key=>key});",

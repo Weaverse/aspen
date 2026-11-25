@@ -1,5 +1,5 @@
 import { redirect } from "react-router";
-import type { ProductQuery } from "storefront-api.generated";
+import type { ProductQuery } from "~/graphql/storefront-types";
 import { isCombinedListing } from "~/utils/combined-listings";
 
 export function redirectIfHandleIsLocalized(

@@ -1,7 +1,10 @@
-import { Image } from "@shopify/hydrogen";
-import { useThemeSettings, useTranslation } from "@weaverse/hydrogen";
+import {
+  useThemeSettings,
+  useTranslation,
+} from "@weaverse/hydrogen/react-router";
 import clsx from "clsx";
 import { Link } from "~/components/link";
+import { Image } from "~/components/shopify-image";
 import { useShopMenu } from "~/hooks/use-shop-menu";
 
 export function Logo() {

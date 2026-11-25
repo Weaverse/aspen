@@ -1,4 +1,7 @@
-import { useThemeSettings, useTranslation } from "@weaverse/hydrogen";
+import {
+  useThemeSettings,
+  useTranslation,
+} from "@weaverse/hydrogen/react-router";
 import { createElement } from "react";
 import { useRouteLoaderData } from "react-router";
 import type { RootLoader } from "~/root";

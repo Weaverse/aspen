@@ -1,13 +1,13 @@
 import * as RadixAccordion from "@radix-ui/react-accordion";
 import type {
-  HydrogenComponentProps,
-  HydrogenComponentSchema,
-} from "@weaverse/hydrogen";
-import { IMAGES_PLACEHOLDERS } from "@weaverse/hydrogen";
+  WeaverseComponentProps,
+  WeaverseComponentSchema,
+} from "@weaverse/hydrogen/react-router";
+import { IMAGES_PLACEHOLDERS } from "@weaverse/hydrogen/react-router";
 import { forwardRef, isValidElement } from "react";
 import { useAccordionContext } from "./index";
 
-interface AccordionGroupProps extends HydrogenComponentProps {
+interface AccordionGroupProps extends WeaverseComponentProps {
   allowMultiple: boolean;
   defaultOpenFirst?: boolean;
   accordionBackgroundColor: string;
@@ -104,7 +104,7 @@ const AccordionGroup = forwardRef<HTMLDivElement, AccordionGroupProps>(
 
 export default AccordionGroup;
 
-export const schema: HydrogenComponentSchema = {
+export const schema: WeaverseComponentSchema = {
   type: "accordion-group",
   title: "Accordion Group",
   settings: [

@@ -1,7 +1,7 @@
 import { cloudflare } from "@cloudflare/vite-plugin";
 import { reactRouter } from "@react-router/dev/vite";
-import { hydrogen } from "@shopify/hydrogen/vite";
-// import { oxygen } from "@shopify/mini-oxygen/vite";
+import { localHttps } from "@shopify/hydrogen/vite";
+import { oxygen } from "@shopify/mini-oxygen/vite";
 import tailwindcss from "@tailwindcss/vite";
 import { fileURLToPath } from "node:url";
 import type { Plugin } from "vite";
@@ -18,8 +18,8 @@ const CHECK_IGNORES = [
   ".wrangler",
   "icons",
   "patches",
-  "storefront-api.generated.d.ts",
-  "customer-account-api.generated.d.ts",
+  "storefront-graphql-env.d.ts",
+  "customer-account-graphql-env.d.ts",
   ".shopify",
   ".react-router",
   "app/utils/string-parser.ts",
@@ -31,76 +31,68 @@ const CHECK_IGNORES = [
   ".weaverse",
   ".agents",
   "scripts",
-  "vendor"
+  "vendor",
 ];
 
 const FMT = {
-  "printWidth": 80,
-  "singleQuote": false,
-  "semi": true,
-  "trailingComma": "all",
-  "sortPackageJson": false,
-  "embeddedLanguageFormatting": "off",
-  "ignorePatterns": [
+  printWidth: 80,
+  singleQuote: false,
+  semi: true,
+  trailingComma: "all",
+  sortPackageJson: false,
+  embeddedLanguageFormatting: "off",
+  ignorePatterns: [
     ...CHECK_IGNORES,
     "package-lock.json",
-    "**/*.{md,mdx,css,scss,less,yaml,yml,html,vue,toml,graphql,gql,hbs,json5}"
+    "**/*.{md,mdx,css,scss,less,yaml,yml,html,vue,toml,graphql,gql,hbs,json5}",
   ],
-  "overrides": [
+  overrides: [
     {
-      "files": [
-        "*.json",
-        "*.jsonc"
-      ],
-      "options": {
-        "trailingComma": "none"
-      }
-    }
-  ]
+      files: ["*.json", "*.jsonc"],
+      options: {
+        trailingComma: "none",
+      },
+    },
+  ],
 } satisfies OxfmtConfig;
 
 // All category defaults are off; only the mapped Biome rules run.
 const LINT = {
-  "categories": {
-    "correctness": "off",
-    "suspicious": "off",
-    "pedantic": "off",
-    "perf": "off",
-    "style": "off",
-    "restriction": "off",
-    "nursery": "off"
+  categories: {
+    correctness: "off",
+    suspicious: "off",
+    pedantic: "off",
+    perf: "off",
+    style: "off",
+    restriction: "off",
+    nursery: "off",
   },
-  "plugins": [
+  plugins: [
     "eslint",
     "typescript",
     "unicorn",
     "oxc",
     "react",
     "jsx-a11y",
-    "nextjs"
+    "nextjs",
   ],
-  "jsPlugins": [
-    "./lint/weaverse.mjs"
-  ],
-  "ignorePatterns": CHECK_IGNORES,
-  "options": {
-    "typeAware": true
+  jsPlugins: ["./lint/weaverse.mjs"],
+  ignorePatterns: CHECK_IGNORES,
+  options: {
+    typeAware: true,
   },
-  "rules": {
+  rules: {
     "array-callback-return": "warn",
     "constructor-super": "error",
-    "curly": [
-      "warn",
-      "all"
-    ],
+    curly: ["warn", "all"],
     "default-case": "warn",
     "default-case-last": "warn",
-    "eqeqeq": [
+    eqeqeq: [
       "error",
       "always",
       {
-        "null": "ignore"
-      }
+        null: "ignore",
+      },
     ],
     "for-direction": "error",
     "getter-return": "error",
@@ -114,8 +106,8 @@ const LINT = {
     "jsx-a11y/aria-role": [
       "error",
       {
-        "ignoreNonDOM": true
-      }
+        ignoreNonDOM: true,
+      },
     ],
     "jsx-a11y/aria-unsupported-elements": "error",
     "jsx-a11y/heading-has-content": "error",
@@ -132,8 +124,8 @@ const LINT = {
     "jsx-a11y/no-autofocus": [
       "error",
       {
-        "ignoreNonDOM": true
-      }
+        ignoreNonDOM: true,
+      },
     ],
     "jsx-a11y/no-distracting-elements": "error",
     "jsx-a11y/no-interactive-element-to-noninteractive-role": "error",
@@ -148,8 +140,8 @@ const LINT = {
     "max-params": [
       "warn",
       {
-        "max": 4
-      }
+        max: 4,
+      },
     ],
     "nextjs/google-font-display": "warn",
     "nextjs/no-img-element": "warn",
@@ -184,16 +176,16 @@ const LINT = {
       "error",
       "functions",
       {
-        "blockScopedFunctions": "allow"
-      }
+        blockScopedFunctions: "allow",
+      },
     ],
     "no-irregular-whitespace": "warn",
     "no-label-var": "error",
     "no-labels": [
       "warn",
       {
-        "allowLoop": true
-      }
+        allowLoop: true,
+      },
     ],
     "no-lonely-if": "warn",
     "no-loss-of-precision": "error",
@@ -225,20 +217,20 @@ const LINT = {
     "no-unused-vars": [
       "warn",
       {
-        "vars": "local",
-        "varsIgnorePattern": ".*",
-        "args": "all",
-        "argsIgnorePattern": "^_",
-        "caughtErrors": "none"
-      }
+        vars: "local",
+        varsIgnorePattern: ".*",
+        args: "all",
+        argsIgnorePattern: "^_",
+        caughtErrors: "none",
+      },
     ],
     "no-use-before-define": [
       "warn",
       {
-        "functions": false,
-        "classes": false,
-        "variables": false
-      }
+        functions: false,
+        classes: false,
+        variables: false,
+      },
     ],
     "no-useless-backreference": "warn",
     "no-useless-catch": "warn",
@@ -254,14 +246,14 @@ const LINT = {
     "prefer-arrow-callback": [
       "warn",
       {
-        "allowNamedFunctions": true
-      }
+        allowNamedFunctions: true,
+      },
     ],
     "prefer-numeric-literals": "warn",
     "prefer-regex-literals": "warn",
     "prefer-rest-params": "warn",
     "prefer-template": "warn",
-    "radix": "warn",
+    radix: "warn",
     "react/button-has-type": "warn",
     "react/exhaustive-deps": "warn",
     "react/jsx-no-comment-textnodes": "error",
@@ -276,8 +268,8 @@ const LINT = {
     "typescript/array-type": [
       "warn",
       {
-        "default": "array"
-      }
+        default: "array",
+      },
     ],
     "typescript/ban-ts-comment": [
       "warn",
@@ -285,43 +277,43 @@ const LINT = {
         "ts-ignore": true,
         "ts-expect-error": false,
         "ts-nocheck": false,
-        "ts-check": false
-      }
+        "ts-check": false,
+      },
     ],
     "typescript/consistent-type-exports": "warn",
     "typescript/consistent-type-imports": [
       "warn",
       {
-        "fixStyle": "inline-type-imports"
-      }
+        fixStyle: "inline-type-imports",
+      },
     ],
     "typescript/dot-notation": "warn",
     "typescript/explicit-member-accessibility": [
       "warn",
       {
-        "accessibility": "no-public"
-      }
+        accessibility: "no-public",
+      },
     ],
     "typescript/no-deprecated": "warn",
     "typescript/no-duplicate-enum-values": "warn",
     "typescript/no-empty-interface": [
       "error",
       {
-        "allowSingleExtends": true
-      }
+        allowSingleExtends: true,
+      },
     ],
     "typescript/no-empty-object-type": [
       "warn",
       {
-        "allowInterfaces": "with-single-extends"
-      }
+        allowInterfaces: "with-single-extends",
+      },
     ],
     "typescript/no-extra-non-null-assertion": "warn",
     "typescript/no-invalid-void-type": [
       "warn",
       {
-        "allowInGenericTypeArguments": true
-      }
+        allowInGenericTypeArguments: true,
+      },
     ],
     "typescript/no-misused-new": "error",
     "typescript/no-non-null-asserted-optional-chain": "error",
@@ -347,15 +339,11 @@ const LINT = {
     "use-isnan": "error",
     "valid-typeof": "error",
     "weaverse/autocomplete-valid": "error",
-    "weaverse/cognitive-complexity": [
-      "error",
-      50
-    ],
+    "weaverse/cognitive-complexity": ["error", 50],
     "weaverse/no-unused-imports": "warn",
-    "weaverse/prefer-number-predicates": "warn"
-  }
+    "weaverse/prefer-number-predicates": "warn",
+  },
 } satisfies OxlintConfig;
-
 
 // The Oxygen worker inlines dynamic imports, so replace browser-only media
 // packages during SSR to avoid shipping their player stacks in the worker.
@@ -376,57 +364,76 @@ function ssrStubClientOnlyModules(): Plugin {
   };
 }
 
-export default defineConfig(({ isSsrBuild }) => ({
-  fmt: FMT,
-  lint: LINT,
-  plugins: [
-    hydrogen(),
-    cloudflare({ viteEnvironment: { name: "ssr" } }),
-    // oxygen(),
-    reactRouter(),
-    tailwindcss(),
-    ssrStubClientOnlyModules(),
-  ],
-  resolve: {
-    alias: {
-      "~": fileURLToPath(new URL("./app", import.meta.url)),
+export function createAspenViteConfig(
+  oxygenOptions?: Parameters<typeof oxygen>[0],
+) {
+  return defineConfig(({ isSsrBuild }) => ({
+    fmt: FMT,
+    lint: LINT,
+    plugins: [
+      localHttps({
+        enabled: ["dev:https", "dev:ca"].includes(
+          process.env.npm_lifecycle_event || "",
+        ),
+      }),
+      // The runtime test fixture supplies its own MiniOxygen entry.
+      ...(oxygenOptions
+        ? oxygen(oxygenOptions)
+        : [cloudflare({ viteEnvironment: { name: "ssr" } })]),
+      reactRouter(),
+      tailwindcss(),
+      ssrStubClientOnlyModules(),
+    ],
+    resolve: {
+      alias: {
+        "~": fileURLToPath(new URL("./app", import.meta.url)),
+      },
     },
-  },
-  build: {
-    // Allow a strict Content-Security-Policy
-    // without inlining assets as base64:
-    assetsInlineLimit: 0,
-    ...(!isSsrBuild && {
-      rollupOptions: {
-        output: {
-          manualChunks(id: string) {
-            // Keep lazy react-player chunks separate from eager media code.
-            if (id.includes("swiper")) return "vendor-media";
-            if (id.includes("react-share")) return "vendor-social";
-            if (id.includes("@radix-ui")) return "vendor-radix";
+    build: {
+      // Allow a strict Content-Security-Policy
+      // without inlining assets as base64:
+      assetsInlineLimit: 0,
+      ...(!isSsrBuild && {
+        rollupOptions: {
+          output: {
+            manualChunks(id: string) {
+              // Keep lazy react-player chunks separate from eager media code.
+              if (id.includes("swiper")) return "vendor-media";
+              if (id.includes("react-share")) return "vendor-social";
+              if (id.includes("@radix-ui")) return "vendor-radix";
+            },
           },
         },
+      }),
+    },
+    server: {
+      warmup: {
+        clientFiles: [
+          "./app/routes/**/*",
+          "./app/sections/**/*",
+          "./app/components/**/*",
+        ],
       },
-    }),
-  },
-  server: {
-    warmup: {
-      clientFiles: [
-        "./app/routes/**/*",
-        "./app/sections/**/*",
-        "./app/components/**/*",
-      ],
     },
-  },
-  ssr: {
-    optimizeDeps: {
-      include: [
-        "sanitize-html",
-        "@radix-ui/react-primitive",
-        "jsonp",
-        "classnames",
-        "react-share",
-      ],
+    ssr: {
+      optimizeDeps: {
+        include: [
+          "react",
+          "react/jsx-runtime",
+          "react/jsx-dev-runtime",
+          "react-dom",
+          "react-dom/server",
+          "react-router",
+          "react-router > cookie",
+          "react-router > set-cookie-parser",
+          "sanitize-html",
+          "@radix-ui/react-primitive",
+          "jsonp",
+          "classnames",
+          "react-share",
+        ],
+      },
     },
-  },
-}));
+  }));
+}
+export default createAspenViteConfig();

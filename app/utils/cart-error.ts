@@ -1,4 +1,4 @@
-import type { TranslateFunction } from "@weaverse/hydrogen";
+import type { TranslateFunction } from "@weaverse/hydrogen/react-router";
 
 export const CART_ERROR_KEYS = {
   noLineSelected: "cart.errors.noLineSelected",
@@ -24,6 +24,8 @@ export function getCartMutationError(
     data?.errors?.find((error) => error.message)?.message;
 
   switch (message) {
+    case "errors.generic":
+      return t("errors.generic");
     case CART_ERROR_KEYS.noLineSelected:
       return t("cart.errors.noLineSelected");
     case CART_ERROR_KEYS.removeLine:

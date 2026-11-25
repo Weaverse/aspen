@@ -1,15 +1,18 @@
-import { mapSelectedProductOptionToObject } from "@shopify/hydrogen";
-import { useThemeSettings, useTranslation } from "@weaverse/hydrogen";
+import {
+  useThemeSettings,
+  useTranslation,
+} from "@weaverse/hydrogen/react-router";
 import clsx from "clsx";
 import { useState } from "react";
-import type {
-  ProductCardFragment,
-  ProductVariantFragment,
-} from "storefront-api.generated";
 import { Image } from "~/components/image";
 import { Link } from "~/components/link";
 import { NavLink } from "~/components/nav-link";
+import { mapSelectedProductOptionToObject } from "~/components/product/product-form";
 import { ProductCardWishlistButton } from "~/components/wishlist/product-card-wishlist-button";
+import type {
+  ProductCardFragment,
+  ProductVariantFragment,
+} from "~/graphql/storefront-types";
 import {
   DESKTOP_MIN_PX,
   minWidthQuery,

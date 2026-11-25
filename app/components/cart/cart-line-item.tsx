@@ -1,11 +1,11 @@
 import { Tag, X } from "@phosphor-icons/react";
-import { Money } from "@shopify/hydrogen";
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import clsx from "clsx";
-import type { CartApiQueryFragment } from "storefront-api.generated";
 import { Image } from "~/components/image";
 import { Link } from "~/components/link";
+import { Money } from "~/components/money";
 import { SubscriptionLineItem } from "~/components/subscriptions/subscription-line-item";
+import type { CartApiQueryFragment } from "~/graphql/storefront-types";
 import { calculateAspectRatio } from "~/utils/image";
 import { toggleCartDrawer } from "../layout/cart-drawer";
 import { CartLineQuantityAdjust } from "./cart-line-qty-adjust";

@@ -1,4 +1,4 @@
-import { useThemeSettings } from "@weaverse/hydrogen";
+import { useThemeSettings } from "@weaverse/hydrogen/react-router";
 import type { CSSProperties } from "react";
 
 export const CONTENT_ALIGNMENT_CLASSES = {

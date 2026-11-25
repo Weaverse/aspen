@@ -1,4 +1,4 @@
-import { isIframe, useWeaverse } from "@weaverse/hydrogen";
+import { isIframe, useWeaverse } from "@weaverse/hydrogen/react-router";
 
 export function useWeaverseStudioCheck() {
   const weaverse = useWeaverse();

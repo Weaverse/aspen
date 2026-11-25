@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { InMemoryCache } from "@shopify/hydrogen";
+import { InMemoryCache } from "./helpers/cache";
 import type { AppLoadContext } from "react-router";
 import { readThemivoAppearance } from "../app/utils/themivo-appearance.server";
 import { action } from "../app/routes/($locale).api.wishlist";
@@ -18,7 +18,7 @@ function fixture(customer = false) {
     storefront: { i18n: { language: "EN", country: "US" } },
     customerAccount: {
       isLoggedIn: async () => customer,
-      query: async () => ({
+      graphql: async () => ({
         data: { customer: { id: "gid://shopify/Customer/9001" } },
       }),
     },

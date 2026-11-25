@@ -1,7 +1,7 @@
 import type {
-  HydrogenComponentProps,
-  HydrogenComponentSchema,
-} from "@weaverse/hydrogen";
+  WeaverseComponentProps,
+  WeaverseComponentSchema,
+} from "@weaverse/hydrogen/react-router";
 import { forwardRef } from "react";
 import { sectionBackgroundInputs } from "~/components/background-image";
 import {
@@ -10,7 +10,7 @@ import {
   sectionSettings,
 } from "~/components/section";
 
-type InstagramProps = HydrogenComponentProps & SectionProps;
+type InstagramProps = WeaverseComponentProps & SectionProps;
 
 const DEFAULT_BACKGROUND_COLOR = "#EDEDED";
 
@@ -51,7 +51,7 @@ const Instagram = forwardRef<HTMLElement, InstagramProps>((props, ref) => {
 
 export default Instagram;
 
-export const schema: HydrogenComponentSchema = {
+export const schema: WeaverseComponentSchema = {
   type: "instagram",
   title: "Instagram",
   settings: instagramSectionSettings,

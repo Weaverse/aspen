@@ -1,11 +1,11 @@
-import { useMoney } from "@shopify/hydrogen";
 import type { MoneyV2 } from "@shopify/hydrogen/storefront-api-types";
 import clsx from "clsx";
+import { useMoney } from "~/components/money";
 import type {
   ProductCardFragment,
   ProductQuery,
   ProductVariantFragment,
-} from "storefront-api.generated";
+} from "~/graphql/storefront-types";
 import { useTranslatedText } from "~/hooks/use-translated-text";
 import { useTranslatedThemeSettings } from "~/hooks/use-translated-theme-settings";
 import { cn } from "~/utils/cn";

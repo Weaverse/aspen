@@ -65,7 +65,7 @@ const buildFixture = (realImage = false) =>
             { filter: /.*/, namespace: "fixture" },
             ({ path }) => ({
               contents:
-                path === "@weaverse/hydrogen"
+                path === "@weaverse/hydrogen/react-router"
                   ? "export const createSchema = (schema) => schema;export const IMAGES_PLACEHOLDERS={image:'/placeholder.svg'};export const useTranslation=()=>({t:key=>key});export const useThemeSettings=()=>({});"
                   : path === "react-router"
                     ? `import React from "react";export const useRouteLoaderData=()=>({});export const Link=React.forwardRef(({to,viewTransition,...props},ref)=><a ref={ref} href={to} {...props}/>);`

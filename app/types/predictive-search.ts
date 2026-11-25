@@ -2,7 +2,7 @@ import type {
   PredictiveArticleFragment,
   PredictiveCollectionFragment,
   PredictiveProductFragment,
-} from "storefront-api.generated";
+} from "~/graphql/storefront-types";
 
 export const PREDICTIVE_SEARCH_FETCHER_KEY = "predictive-search";
 

@@ -1,3 +1,8 @@
+import {
+  getFilterRemovalUrl as libraryFilterRemovalUrl,
+  parseCollectionParams,
+  serializeCollectionParams,
+} from "@shopify/hydrogen";
 import type { ProductFilter } from "@shopify/hydrogen/storefront-api-types";
 import type { Location, useLocation } from "react-router";
 
@@ -18,6 +23,8 @@ export type SortParam =
 
 function cloneWithoutPagination(params: URLSearchParams) {
   const nextParams = new URLSearchParams(params);
+  nextParams.delete("after");
+  nextParams.delete("before");
   nextParams.delete("cursor");
   nextParams.delete("direction");
   return nextParams;
@@ -29,6 +36,8 @@ export function getAppliedFilterLink(
   location: Location,
 ) {
   const paramsClone = cloneWithoutPagination(params);
+  if (!/\/search$/.test(location.pathname))
+    return `${location.pathname}${libraryFilterRemovalUrl(paramsClone, filter)}`;
   for (const [k, v] of Object.entries(filter)) {
     paramsClone.delete(FILTER_URL_PREFIX + k, JSON.stringify(v));
   }
@@ -54,17 +63,42 @@ export function getFilterLink(
   location: ReturnType<typeof useLocation>,
 ) {
   const paramsClone = cloneWithoutPagination(params);
-  const newParams = filterInputToParams(input, paramsClone);
+  const newParams = filterInputToParams(
+    input,
+    paramsClone,
+    !/\/search$/.test(location.pathname),
+  );
   return `${location.pathname}?${newParams.toString()}`;
 }
 
 export function filterInputToParams(
   input: string | ProductFilter,
   params: URLSearchParams,
+  modern = false,
 ) {
   const filter =
     typeof input === "string" ? (JSON.parse(input) as ProductFilter) : input;
 
+  if (modern) {
+    const current = parseCollectionParams(params);
+    const filters = filter.price
+      ? current.filters.filter((f) => !f.price)
+      : current.filters;
+    // The library parser omits categories, so retain them during URL rebuilds.
+    for (const key of [...params.keys()])
+      if (
+        (key.startsWith(FILTER_URL_PREFIX) && key !== "filter.p.category") ||
+        key === "sort_by"
+      )
+        params.delete(key);
+    const next = serializeCollectionParams({
+      ...current,
+      filters: [...filters, filter],
+    });
+    for (const [key, value] of next)
+      if (!params.has(key, value)) params.append(key, value);
+    return params;
+  }
   for (const [k, v] of Object.entries(filter)) {
     const key = `${FILTER_URL_PREFIX}${k}`;
     const value = JSON.stringify(v);

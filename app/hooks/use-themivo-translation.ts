@@ -1,4 +1,4 @@
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 import { useRouteLoaderData } from "react-router";
 import type { RootLoader } from "~/root";
 import { THEMIVO_TRANSLATION_KEYS } from "~/utils/themivo-translations";

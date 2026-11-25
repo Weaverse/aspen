@@ -12,7 +12,14 @@ export function getWeaverseCsp(request: Request, context: AppLoadContext) {
     url.searchParams.get("weaverseHost") || context.env.WEAVERSE_HOST;
   const weaverseHosts = ["*.weaverse.io", "*.shopify.com", "*.myshopify.com"];
   if (weaverseHost) {
-    weaverseHosts.push(weaverseHost);
+    try {
+      const host = new URL(weaverseHost);
+      if (host.protocol === "https:" && !/[\s,;]/.test(host.origin)) {
+        weaverseHosts.push(host.origin);
+      }
+    } catch {
+      // An invalid preview parameter must never break storefront rendering.
+    }
   }
   const themivoHosts = isThemivoScriptPreview(url)
     ? [THEMIVO_STOREFRONT_ORIGIN]

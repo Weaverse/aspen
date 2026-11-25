@@ -37,7 +37,7 @@ function context(key?: string, customer = false, guestId?: string) {
     },
     customerAccount: {
       isLoggedIn: async () => customer,
-      query: async () => ({
+      graphql: async () => ({
         data: { customer: { id: "gid://shopify/Customer/9001" } },
       }),
     },
