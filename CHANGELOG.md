@@ -1,6 +1,6 @@
 # @weaverse/aspen
 
-## 2026.11.27
+## Unreleased
 
 ### Hydrogen 2026.10 and Weaverse v6
 
@@ -26,15 +26,8 @@
   GraphQL documents as well as TypeScript. Node requirements remain
   `^22.18.0 || ^24.11.0`.
 - See [migration and verification notes](docs/hydrogen-2026-10-migration.md)
-  for deployment verification.
+  for deployment verification. A published release remains outstanding.
 
-### Wishlist and storefront improvements
-
-- Added optional Themivo Wishlist & Alerts integration with Aspen’s existing
-  wishlist controls. See [the Themivo cookbook](guides/themivo-wishlist-cookbook-recipe.md)
-  for setup and fallback.
-- Improved cart quantity synchronization and inventory feedback, search empty
-  states, and Quick View sizing on smaller screens.
 
 ## 2026.11.12
 
