@@ -21,9 +21,8 @@ Requirements: [#7](https://github.com/Weaverse/aspen/issues/7) and
   Customer Account configuration for signed-in features. Follow
   [Aspen's customer wishlist setup](../docs/customer-wishlist-setup.md).
 - A supported Node version and the package manager used by your checkout.
-  The reference snapshot below uses Hydrogen 2026.4, Weaverse 5, and Node 22
-  or 24. Read the target checkout's `package.json` before porting; this
-  cookbook does not perform a Hydrogen/Weaverse migration.
+  Aspen uses Hydrogen 2026.10 and Weaverse 6, with support for Node 22 and 24. Check
+  the target checkout's `package.json` for its supported versions before porting.
 - A test customer, a second customer for collaborators, and disposable
   products/lists. Do not use merchant customer data for trial writes.
 
@@ -48,7 +47,7 @@ secret, never a browser credential.
 3. In Themivo **Developers → Headless storefront → Allowed origins**, register
    each origin used for the public Appearance configuration, for example
    `http://localhost:3456` and the actual HTTPS deployment origin. One per
-   line, no path. Allow up to a minute for vendor changes and 30 seconds for
+   line, no path. Allow up to a minute for vendor changes and five seconds for
    Aspen's config cache. REST requests authenticated on the server do not
    require browser CORS; Appearance is a separate public config request.
 4. Enable the desired features in Themivo: Guest wishlists, Multiple lists,
@@ -372,6 +371,16 @@ second provider. For a checkout without the implementation:
    secrets too; deleting the local `.env` entry does not update Oxygen.
 
 ## Verification
+
+### Recorded Integration Checks
+
+[Aspen PR #12](https://github.com/Weaverse/aspen/pull/12) records 29 unit
+tests and local Chrome checks for the product-page button and Wishlist Grid.
+These results cover the integration before the Hydrogen upgrade.
+[The hydration follow-up](https://github.com/Weaverse/aspen/commit/14db2763)
+adds coverage for Storefront market context. Repeat the installation checks
+below for your deployment, including guest merge, cross-device sync,
+collaborators, and alert email links.
 
 ### Automated checks
 
